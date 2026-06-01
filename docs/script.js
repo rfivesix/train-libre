@@ -777,14 +777,22 @@
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // Theme logic
-  const updateScreenshots = (theme) => {
-    const oldTheme = theme === "dark" ? "light" : "dark";
+  const updateScreenshots = () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+    const currentLang = document.documentElement.getAttribute("lang") || localStorage.getItem("lang") || (navigator.language.startsWith("de") ? "de" : "en");
+    const langFolder = currentLang === "de" ? "de-DE" : "en-US";
+
     document.querySelectorAll("img").forEach((img) => {
-      if (img.src.includes(`assets/screenshots/iOS/${oldTheme}/`)) {
-        img.src = img.src.replace(`/${oldTheme}/`, `/${theme}/`).replace(`_${oldTheme}_`, `_${theme}_`);
-      }
-      if (img.dataset.fallbackSrc && img.dataset.fallbackSrc.includes(`assets/screenshots/iOS/${oldTheme}/`)) {
-        img.dataset.fallbackSrc = img.dataset.fallbackSrc.replace(`/${oldTheme}/`, `/${theme}/`).replace(`_${oldTheme}_`, `_${theme}_`);
+      if (img.src.includes("assets/screenshots/iOS/")) {
+        const filenameMatch = img.src.match(/iOS_(dark|light)_(.+)$/);
+        if (filenameMatch) {
+          const baseName = filenameMatch[2]; // e.g. "diary.png"
+          img.src = `../assets/screenshots/iOS/${langFolder}/${currentTheme}/iOS_${currentTheme}_${baseName}`;
+
+          if (img.dataset.fallbackSrc) {
+            img.dataset.fallbackSrc = `https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/${langFolder}/${currentTheme}/iOS_${currentTheme}_${baseName}`;
+          }
+        }
       }
     });
   };
@@ -792,7 +800,7 @@
   const updateTheme = (theme) => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
-    updateScreenshots(theme);
+    updateScreenshots();
   };
 
   const initTheme = () => {
@@ -827,6 +835,7 @@
       }
     });
     document.documentElement.setAttribute("lang", lang);
+    updateScreenshots();
 
     // Re-render KaTeX math elements after translation updates
     if (typeof renderMathInElement === "function") {
