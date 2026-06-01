@@ -87,6 +87,30 @@ class SleepCanonicalSessionsDao {
     return _mapSession(row);
   }
 
+  Future<List<SleepCanonicalSessionRecord>> findByStartAndSource({
+    required DateTime startAtUtc,
+    required String sourcePlatform,
+    required String? sourceAppId,
+  }) async {
+    // Match null source_app_id when incoming sourceAppId is null.
+    final result = await _db.customSelect(
+      '''
+      SELECT * FROM sleep_canonical_sessions
+      WHERE started_at = ?
+        AND source_platform = ?
+        AND ((source_app_id IS NULL AND ? IS NULL) OR source_app_id = ?)
+      ORDER BY started_at ASC
+      ''',
+      variables: [
+        Variable<int>(_toEpochMillis(startAtUtc)),
+        Variable<String>(sourcePlatform),
+        Variable<String>(sourceAppId),
+        Variable<String>(sourceAppId),
+      ],
+    ).get();
+    return result.map(_mapSession).toList(growable: false);
+  }
+
   Future<List<SleepCanonicalSessionRecord>> findBySourceHash(
     String sourceRecordHash,
   ) async {
@@ -127,6 +151,13 @@ class SleepCanonicalSessionsDao {
       WHERE started_at < ? AND ended_at > ?
       ''',
       <Object?>[_toEpochMillis(toExclusive), _toEpochMillis(fromInclusive)],
+    );
+  }
+
+  Future<void> deleteById(String id) async {
+    await _db.customStatement(
+      'DELETE FROM sleep_canonical_sessions WHERE id = ?',
+      <Object?>[id],
     );
   }
 
