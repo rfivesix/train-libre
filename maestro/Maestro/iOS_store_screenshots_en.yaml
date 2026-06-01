@@ -25,7 +25,11 @@ appId: com.rfivesix.trainlibre
     repeat: 2
     delay: 10000
 - takeScreenshot: 01_diary
-- tapOn: "nutrition\nnutrition"
+- tapOn: 
+    text: "Nutrition\nNutrition"
+    optional: true
+    repeat: 2
+    delay: 10000
 - takeScreenshot: 02_nutrition
 - tapOn:
     point: 91%,13%
@@ -50,9 +54,9 @@ appId: com.rfivesix.trainlibre
 - takeScreenshot: 04_measurements
 - tapOn: "Back"
 - scrollUntilVisible:
-    element: "Muscle Readiness\nCurrently\nMixed recovery state\nRecovering: 2  Ready: 0  Fresh: 11"
+    element: "Muscle Readiness\nCurrently\nSeveral muscle groups still recovering\nRecovering: 6  Ready: 3  Fresh: 4"
     direction: UP
-- tapOn: "Muscle Readiness\nCurrently\nMixed recovery state\nRecovering: 2  Ready: 0  Fresh: 11"
+- tapOn: "Muscle Readiness\nCurrently\nSeveral muscle groups still recovering\nRecovering: 6  Ready: 3  Fresh: 4"
 - takeScreenshot: 05_recovery
 - tapOn: "Back"
 - tapOn:

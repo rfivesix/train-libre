@@ -610,7 +610,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                             thickness: 1,
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                            )
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withValues(alpha: 0.1),
                           ),
                           Expanded(
                             child: exercises.isEmpty
@@ -620,7 +623,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                     padding: EdgeInsets.only(
                                       bottom: (showRestBar
                                               ? 180.0
-                                              : DesignConstants.bottomContentSpacer) +
+                                              : DesignConstants
+                                                  .bottomContentSpacer) +
                                           MediaQuery.paddingOf(context).bottom,
                                     ),
                                     onReorder: _onReorder,
@@ -629,8 +633,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       final routineExercise = exercises[index];
                                       final showE1rmSummary =
                                           !_isCardio(routineExercise);
-                                      final pauseVal =
-                                          manager.pauseTimes[routineExercise.id!];
+                                      final pauseVal = manager
+                                          .pauseTimes[routineExercise.id!];
                                       final hasPause =
                                           pauseVal != null && pauseVal > 0;
                                       return RepaintBoundary(
@@ -649,17 +653,19 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                 leading:
                                                     ReorderableDragStartListener(
                                                   index: index,
-                                                  child: const Icon(
-                                                      LucideIcons.grip_vertical),
+                                                  child: const Icon(LucideIcons
+                                                      .grip_vertical),
                                                 ),
                                                 title: InkWell(
                                                   onTap: () =>
-                                                      Navigator.of(context).push(
+                                                      Navigator.of(context)
+                                                          .push(
                                                     MaterialPageRoute(
                                                       builder: (context) =>
                                                           ExerciseDetailScreen(
-                                                        exercise: routineExercise
-                                                            .exercise,
+                                                        exercise:
+                                                            routineExercise
+                                                                .exercise,
                                                       ),
                                                     ),
                                                   ),
@@ -675,7 +681,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                       maxLines: 2,
                                                       overflow:
                                                           TextOverflow.ellipsis,
-                                                      style: textTheme.titleLarge
+                                                      style: textTheme
+                                                          .titleLarge
                                                           ?.copyWith(
                                                         fontWeight:
                                                             FontWeight.bold,
@@ -684,7 +691,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                   ),
                                                 ),
                                                 trailing: Row(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     IconButton(
                                                       icon: const Icon(
@@ -699,10 +707,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                     ),
                                                     if (hasPause)
                                                       TextButton(
-                                                        style:
-                                                            TextButton.styleFrom(
+                                                        style: TextButton
+                                                            .styleFrom(
                                                           minimumSize:
-                                                              const Size(48, 48),
+                                                              const Size(
+                                                                  48, 48),
                                                           padding:
                                                               EdgeInsets.zero,
                                                         ),
@@ -752,11 +761,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                   ],
                                                 ),
                                               ),
-                                              if (routineExercise.notes != null &&
+                                              if (routineExercise.notes !=
+                                                      null &&
                                                   routineExercise
                                                       .notes!.isNotEmpty)
                                                 Padding(
-                                                  padding: const EdgeInsets.only(
+                                                  padding:
+                                                      const EdgeInsets.only(
                                                     left: 16.0,
                                                     right: 16.0,
                                                     bottom: 12.0,
@@ -767,7 +778,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                             context,
                                                             routineExercise),
                                                     borderRadius:
-                                                        BorderRadius.circular(8),
+                                                        BorderRadius.circular(
+                                                            8),
                                                     child: Container(
                                                       width: double.infinity,
                                                       padding:
@@ -779,8 +791,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                             .withValues(
                                                                 alpha: 0.5),
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                                8),
+                                                            BorderRadius
+                                                                .circular(8),
                                                         border: Border.all(
                                                           color: colorScheme
                                                               .onSurfaceVariant
@@ -838,8 +850,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                     for (final template
                                                         in routineExercise
                                                             .setTemplates) {
-                                                      final log =
-                                                          vm.setLogs[template.id];
+                                                      final log = vm
+                                                          .setLogs[template.id];
                                                       if (log != null) {
                                                         map[template.id!] = log;
                                                       }
@@ -851,7 +863,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                         next.length) {
                                                       return true;
                                                     }
-                                                    for (final key in prev.keys) {
+                                                    for (final key
+                                                        in prev.keys) {
                                                       final prevLog = prev[key];
                                                       final nextLog = next[key];
                                                       if (prevLog == null ||
@@ -888,7 +901,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                             .entries
                                                             .map((setEntry) {
                                                           final templateId =
-                                                              setEntry.value.id!;
+                                                              setEntry
+                                                                  .value.id!;
                                                           final template = setEntry
                                                               .value; // <--- Template
                                                           final setLog =
@@ -899,7 +913,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                             return const SizedBox
                                                                 .shrink();
                                                           }
-                                                          int workingSetIndex = 0;
+                                                          int workingSetIndex =
+                                                              0;
                                                           for (int i = 0;
                                                               i <= setEntry.key;
                                                               i++) {
@@ -942,11 +957,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                   .symmetric(
                                                             horizontal: 16.0,
                                                           ),
-                                                          child: TextButton.icon(
-                                                            onPressed: () => _addSet(
-                                                                routineExercise),
+                                                          child:
+                                                              TextButton.icon(
+                                                            onPressed: () =>
+                                                                _addSet(
+                                                                    routineExercise),
                                                             icon: const Icon(
-                                                                LucideIcons.plus),
+                                                                LucideIcons
+                                                                    .plus),
                                                             label: Text(l10n
                                                                 .addSetButton),
                                                           ),
@@ -973,10 +991,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       child: RepaintBoundary(
                         child: SafeArea(
                           top: false,
+                          bottom: false,
                           child: Padding(
                             padding: EdgeInsets.only(
-                              bottom: (MediaQuery.paddingOf(context).bottom * 0.3)
-                                  .clamp(4.0, 12.0),
+                              bottom:
+                                  (MediaQuery.paddingOf(context).bottom * 0.3)
+                                      .clamp(4.0, 12.0),
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -985,19 +1005,21 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                 AnimatedBuilder(
                                   animation: manager,
                                   builder: (context, _) {
-                                    final bar =
-                                        _buildRestBottomBar(l10n, colorScheme, manager);
+                                    final bar = _buildRestBottomBar(
+                                        l10n, colorScheme, manager);
                                     return bar ?? const SizedBox.shrink();
                                   },
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(bottom: 10.0, top: 0.0),
+                                  padding: const EdgeInsets.only(
+                                      bottom: 10.0, top: 0.0),
                                   child: WgerAttributionWidget(
                                     textStyle: textTheme.bodySmall?.copyWith(
                                       color: Colors.grey[600],
                                       shadows: [
                                         Shadow(
-                                          color: Colors.black.withValues(alpha: 0.5),
+                                          color: Colors.black
+                                              .withValues(alpha: 0.5),
                                           offset: const Offset(1, 1),
                                           blurRadius: 4.0,
                                         ),
@@ -1532,7 +1554,8 @@ class _LiveWorkoutFabShadowClipper extends CustomClipper<Path> {
       -50.0,
       -50.0,
       size.width + 50.0,
-      size.height + 8.0, // cut off exactly at the top of the rest bar (8.0px below FAB bottom)
+      size.height +
+          8.0, // cut off exactly at the top of the rest bar (8.0px below FAB bottom)
     ));
     return path;
   }
