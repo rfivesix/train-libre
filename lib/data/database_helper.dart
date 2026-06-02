@@ -52,6 +52,16 @@ class DatabaseHelper {
         await dbInst.delete(dbInst.supplementSettingsHistory).go();
         await dbInst.customStatement('DELETE FROM health_step_segments');
         await dbInst.customStatement('DELETE FROM health_export_records');
+        await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
+        await dbInst.customStatement('DELETE FROM sleep_canonical_stage_segments');
+        await dbInst.customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
+        await dbInst.customStatement('DELETE FROM sleep_canonical_sessions');
+        await dbInst.customStatement('DELETE FROM sleep_raw_imports');
+        await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
+        await dbInst.customStatement('DELETE FROM pulse_aggregate_metadata');
+        await dbInst.customStatement('DELETE FROM user_food_overrides');
+        await dbInst.delete(dbInst.cardioSamples).go();
+        await dbInst.delete(dbInst.cardioActivities).go();
         await dbInst.delete(dbInst.supplementLogs).go();
         await dbInst.delete(dbInst.fluidLogs).go();
         await dbInst.delete(dbInst.nutritionLogs).go();

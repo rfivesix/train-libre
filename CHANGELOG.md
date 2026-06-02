@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+
+## [0.9.18] - 2026-06-02
+
+### Added
+- **Sleep, Steps, and Heart Rate CSV Exports**: Introduced missing CSV serialization endpoints. Tapping the measurements export trigger now generates and shares a multi-file collection containing `measurements.csv`, `sleep_history.csv`, `steps_history.csv`, and `heart_rate_history.csv` chronologically ordered.
+- **Multi-Sheet Master Excel Workbook Overhaul**: Rewrote the Excel generation engine to compile a comprehensive, 4-sheet workbook:
+  - **Nutrition & Drinks**: All foods and beverages logged with complete macronutrients, caffeine, dynamic fluid flags, and exact timestamps.
+  - **Workouts & Exercises**: Set-by-set training logs with reps, weight, RIR, session durations, and user-provided training comments/notes.
+  - **Sleep Architecture**: Canonical and raw sleep windows, sleep efficiency, WASO (Wake After Sleep Onset), and sleep score indices.
+  - **Biometrics & Wearables**: A chronologically consolidated matrix blending daily steps, resting heart rates, and workout-specific heart rates.
+
+### Changed
+- **Zero-UI Complete Export Overhaul**: Fully refactored the background serialization and file-generation pipelines for backups and reports without altering the existing "Data Hub" UI/UX interface.
+- **High-Fidelity Monolithic JSON Backups**: Upgraded the JSON import/export engine with absolute restore fidelity. Dynamic tables lacking standard compile-time bindings (such as sleep nightly/canonical/raw records, hourly pulse aggregates, user food overrides, and cardio activity logs) are now dynamically serialized and fully restored using dynamic `INSERT OR REPLACE` statements.
+- **Expanded Nutrition and Workout CSV Layouts**: Upgraded `nutrition_history.csv` to merge food and fluid logging with full nutritional values, and enhanced `workout_history.csv` with set-level metrics and contextual training comments.
+- **Full Database Purge & Restore Isolation**: Expanded `clearAllUserData` to completely clean dynamic sleep, pulse, user food overrides, and cardio tables, preventing residual data pollution during database restorations.
+- **Nutritional Companion Serialization**: Enhanced food companion imports to preserve complete nutritional profiles, including liquid categorization, caffeine contents, and localized designations.
+
 ## [0.9.17] - 2026-06-01
 ### Added
 - **iOS Keyboard Done Accessory Bar**: Implemented a custom keyboard accessory overlay bar for iOS numeric inputs, aligning a localized **"Done" / "Fertig"** button (`doneButtonLabel`) above the soft keyboard for quick dismissal.
