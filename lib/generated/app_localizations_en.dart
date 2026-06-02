@@ -4907,4 +4907,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get infoSleepTechnicalExplanation =>
       'Aggregates five primary domains using a weighted linear sum: Duration (30%), Continuity (20%), Architecture (25%), Timing (15%), and Regularity (10%). To prevent misleading averages when a clinical domain is compromised, the final score is degraded if significant bottlenecks are detected in sleep stages or circadian timing.';
+
+  @override
+  String get tdeeRecalculationNotificationTitle => 'TDEE Recalculated';
+
+  @override
+  String tdeeRecalculationNotificationBody(
+      int calories, int protein, int carbs, int fat) {
+    return 'New daily targets: $calories kcal | ${protein}g Protein | ${carbs}g Carbs | ${fat}g Fat';
+  }
+
+  @override
+  String recommendationBannerText(String delta) {
+    return 'New targets available ($delta kcal).';
+  }
+
+  @override
+  String get recommendationBannerApply => 'Apply';
 }

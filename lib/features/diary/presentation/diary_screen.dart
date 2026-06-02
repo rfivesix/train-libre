@@ -35,6 +35,7 @@ import 'widgets/sleep_summary_card.dart';
 import 'widgets/pulse_summary_card.dart';
 import 'widgets/food_entry_tile.dart';
 import 'widgets/fluid_entry_tile.dart';
+import 'widgets/recommendation_banner.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
 ///
@@ -546,6 +547,10 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             child: ListView(
               padding: finalPadding,
               children: [
+                if (viewModel.dailyNutrition != null)
+                  RecommendationBanner(
+                    currentCalories: viewModel.dailyNutrition!.targetCalories,
+                  ),
                 AppSectionHeader(title: l10n.today_overview_text),
                 if (viewModel.dailyNutrition != null)
                   NutritionSummaryWidget(

@@ -37,7 +37,9 @@ Strictly follow the mathematical specifications:
 
 ### 4. Verification
 - [x] Run `flutter analyze` to ensure type safety.
-- [x] Check signatures and verify mathematical transformations are well commented.
+- [x] Add unit and regression tests
+  - [x] Add verification test to `recommendation_service_test.dart`
+  - [x] Run test suite to verify implementation
   - [x] Systematic purge of all inline math dollar sign (`$`) delimiters from all markdown files:
     - [x] [sleep_scoring_engine.md](file:///Users/richardgeorgschotte/Projekte/train-libre/documentation/features/sleep_scoring_engine.md) (converted all `$ ... $` to standard Markdown/HTML).
     - [x] [bayesian_tdee_estimator.md](file:///Users/richardgeorgschotte/Projekte/train-libre/documentation/features/bayesian_tdee_estimator.md) (converted all `$ ... $` to standard Markdown/HTML).

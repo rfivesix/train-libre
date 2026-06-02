@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -12,6 +13,12 @@ import '../domain/recommendation_models.dart';
 typedef SharedPreferencesLoader = Future<SharedPreferences> Function();
 
 class RecommendationRepository {
+  static final StreamController<AdaptiveRecommendationSnapshot> _updateController =
+      StreamController<AdaptiveRecommendationSnapshot>.broadcast();
+
+  Stream<AdaptiveRecommendationSnapshot> get onRecommendationUpdated =>
+      _updateController.stream;
+
   static const String _goalKey =
       'adaptive_nutrition_recommendation.goal_direction';
   static const String _targetRateKey =
@@ -200,6 +207,7 @@ class RecommendationRepository {
     final prefs = await _prefsLoader();
     await prefs.setString(_latestSnapshotKey, jsonEncode(snapshot.toJson()));
     await prefs.setString(_lastGeneratedDueWeekKey, snapshot.dueWeekKey);
+    _updateController.add(snapshot);
   }
 
   Future<NutritionRecommendation?> getLatestGeneratedRecommendation() async {

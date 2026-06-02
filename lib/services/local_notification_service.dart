@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/widgets.dart';
 import '../generated/app_localizations.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import '../features/nutrition_recommendation/data/recommendation_repository.dart';
+import '../features/nutrition_recommendation/domain/adaptive_recommendation_snapshot.dart';
 
 /// Handles local notification setup and rest timer notifications.
 class LocalNotificationService {
@@ -12,9 +15,14 @@ class LocalNotificationService {
 
   static const int restTimerNotificationId = 8801;
   static const int adaptiveRecommendationDueNotificationId = 8802;
+  static const int tdeeRecalculationNotificationId = 8803;
   static const String _restChannelId = 'rest_timer_channel';
   static const String _adaptiveRecommendationChannelId =
       'adaptive_recommendation_channel';
+  static const String _tdeeRecalculationChannelId =
+      'tdee_recalculation_channel';
+
+  StreamSubscription<AdaptiveRecommendationSnapshot>? _tdeeSubscription;
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -37,6 +45,19 @@ class LocalNotificationService {
     await _plugin.initialize(settings: settings);
     await _requestPermissions();
     tz.initializeTimeZones();
+
+    // Subscribe to TDEE updates stream!
+    final repository = RecommendationRepository();
+    _tdeeSubscription?.cancel();
+    _tdeeSubscription = repository.onRecommendationUpdated.listen((snapshot) {
+      showTdeeRecalculationNotification(
+        calories: snapshot.recommendation.recommendedCalories,
+        protein: snapshot.recommendation.recommendedProteinGrams,
+        carbs: snapshot.recommendation.recommendedCarbsGrams,
+        fat: snapshot.recommendation.recommendedFatGrams,
+      );
+    });
+
     _isInitialized = true;
   }
 
@@ -163,6 +184,57 @@ class LocalNotificationService {
       title: texts.title,
       body: texts.body,
       notificationDetails: _adaptiveRecommendationNotificationDetails(),
+    );
+  }
+
+  NotificationDetails _tdeeRecalculationNotificationDetails() {
+    return const NotificationDetails(
+      android: AndroidNotificationDetails(
+        _tdeeRecalculationChannelId,
+        'TDEE Recalculation',
+        channelDescription: 'Alerts when a new TDEE recalculation is completed.',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+      ),
+      iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      macOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+    );
+  }
+
+  ({String title, String body}) _localizedTdeeRecalculationTexts({
+    required int calories,
+    required int protein,
+    required int carbs,
+    required int fat,
+  }) {
+    final locale = WidgetsBinding.instance.platformDispatcher.locale;
+    final l10n = lookupAppLocalizations(locale);
+    return (
+      title: l10n.tdeeRecalculationNotificationTitle,
+      body: l10n.tdeeRecalculationNotificationBody(calories, protein, carbs, fat),
+    );
+  }
+
+  Future<void> showTdeeRecalculationNotification({
+    required int calories,
+    required int protein,
+    required int carbs,
+    required int fat,
+  }) async {
+    if (!_isInitialized) await initialize();
+    final texts = _localizedTdeeRecalculationTexts(
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+    );
+
+    await _plugin.show(
+      id: tdeeRecalculationNotificationId,
+      title: texts.title,
+      body: texts.body,
+      notificationDetails: _tdeeRecalculationNotificationDetails(),
     );
   }
 }
