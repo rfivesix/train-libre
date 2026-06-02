@@ -4959,4 +4959,12 @@ class AppLocalizationsDe extends AppLocalizations {
       int calories, int protein, int carbs, int fat) {
     return 'Neue Zielwerte: $calories kcal | ${protein}g Protein | ${carbs}g Kohlenhydrate | ${fat}g Fett';
   }
+
+  @override
+  String recommendationBannerText(String delta) {
+    return 'Neue Zielwerte verfügbar ($delta kcal).';
+  }
+
+  @override
+  String get recommendationBannerApply => 'Anwenden';
 }

@@ -8658,6 +8658,18 @@ abstract class AppLocalizations {
   /// **'New daily targets: {calories} kcal | {protein}g Protein | {carbs}g Carbs | {fat}g Fat'**
   String tdeeRecalculationNotificationBody(
       int calories, int protein, int carbs, int fat);
+
+  /// No description provided for @recommendationBannerText.
+  ///
+  /// In en, this message translates to:
+  /// **'New targets available ({delta} kcal).'**
+  String recommendationBannerText(String delta);
+
+  /// No description provided for @recommendationBannerApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get recommendationBannerApply;
 }
 
 class _AppLocalizationsDelegate

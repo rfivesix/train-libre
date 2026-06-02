@@ -2031,5 +2031,14 @@
       "carbs": { "type": "int" },
       "fat": { "type": "int" }
     }
-  }
+  },
+  "recommendationBannerText": "New targets available ({delta} kcal).",
+  "@recommendationBannerText": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "recommendationBannerApply": "Apply"
 }

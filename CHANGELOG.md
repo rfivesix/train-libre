@@ -6,8 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
 ## [0.9.18] - 2026-06-02
-
 ### Added
+- **Smarter Contextual Recommendation Banner**: Implemented an in-app context banner at the top of the Diary Screen that dynamically alerts users to updated TDEE targets.
+- **Dynamic Calorie Delta Formatting**: The banner automatically evaluates discrepancies between active profile targets and newly computed recommendations, displaying a real-time signed delta string (e.g., "+200 kcal" or "-120 kcal").
+- **One-Tap Target Application**: Integrated an immediate "Apply" / "Anwenden" action button within the banner that directly invokes `applyLatestRecommendationToActiveTargets()`, updating the local database schema and smoothly refreshing the dashboard.
+- **Version-Locked Persistent Dismissal**: Engineered an intelligent state-hiding mechanic keyed explicitly to the recommendation's structural identifier (`dismissed_tdee_banner_${recommendationKey}`). This ensures that dismissing a banner permanently silences it for that specific TDEE release window while guaranteeing it automatically reappears when a fresh recalculation occurs.
 - **Sleep, Steps, and Heart Rate CSV Exports**: Introduced missing CSV serialization endpoints. Tapping the measurements export trigger now generates and shares a multi-file collection containing `measurements.csv`, `sleep_history.csv`, `steps_history.csv`, and `heart_rate_history.csv` chronologically ordered.
 - **Multi-Sheet Master Excel Workbook Overhaul**: Rewrote the Excel generation engine to compile a comprehensive, 4-sheet workbook:
   - **Nutrition & Drinks**: All foods and beverages logged with complete macronutrients, caffeine, dynamic fluid flags, and exact timestamps.
@@ -21,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Expanded Nutrition and Workout CSV Layouts**: Upgraded `nutrition_history.csv` to merge food and fluid logging with full nutritional values, and enhanced `workout_history.csv` with set-level metrics and contextual training comments.
 - **Full Database Purge & Restore Isolation**: Expanded `clearAllUserData` to completely clean dynamic sleep, pulse, user food overrides, and cardio tables, preventing residual data pollution during database restorations.
 - **Nutritional Companion Serialization**: Enhanced food companion imports to preserve complete nutritional profiles, including liquid categorization, caffeine contents, and localized designations.
+
+### Fixed
+- **Widget Integration Regression Testing**: Fully updated the presentation test suite (`recommendation_banner_test.dart`) to validate delta mathematical prefix logic, click-to-apply database updates, and multi-week isolation rules. All test specifications executed successfully with zero failures.
 
 ## [0.9.17] - 2026-06-01
 ### Added

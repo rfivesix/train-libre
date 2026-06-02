@@ -4916,4 +4916,12 @@ class AppLocalizationsEn extends AppLocalizations {
       int calories, int protein, int carbs, int fat) {
     return 'New daily targets: $calories kcal | ${protein}g Protein | ${carbs}g Carbs | ${fat}g Fat';
   }
+
+  @override
+  String recommendationBannerText(String delta) {
+    return 'New targets available ($delta kcal).';
+  }
+
+  @override
+  String get recommendationBannerApply => 'Apply';
 }

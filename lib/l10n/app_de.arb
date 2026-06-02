@@ -2212,5 +2212,14 @@
       "carbs": { "type": "int" },
       "fat": { "type": "int" }
     }
-  }
+  },
+  "recommendationBannerText": "Neue Zielwerte verfügbar ({delta} kcal).",
+  "@recommendationBannerText": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "recommendationBannerApply": "Anwenden"
 }
