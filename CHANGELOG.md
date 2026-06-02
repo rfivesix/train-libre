@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
+## [0.9.19] - 2026-06-02
+### Added
+- **Isolate Offloaded Excel Export Engine**: Completely refactored the Excel generation pipeline to run inside a background isolate (`compute()`), utilizing fully serialized Dart DTOs (`ExcelExportData`) to decouple database queries from spreadsheet construction, eliminating thread lock and memory sharing failures.
+- **High-Fidelity Sport Science Metrics (Sheet 2: "Workouts & Exercises")**:
+  - Implemented strict compliance for reps in reserve (RIR) and rate of perceived exertion (RPE) null-value serialization, writing empty string cells (`""`) instead of defaulting to `0` (which clinically represents muscular failure).
+  - Added a dedicated "Set Notes" column (`setLog.notes`) right before the exercise comments to prevent data loss.
+  - Standardized workout labeling using the chronological name format `Routine Name (Date)` or `Workout (Datetime)`.
+- **Chronological Outer-Join Wearables Matrix (Sheet 4: "Biometrics & Wearables")**:
+  - Engineered an in-memory chronological outer-join matrix grouping sparse wearable and biometrics streams by local date (`YYYY-MM-DD`).
+  - Added dedicated columns for `[Weight (kg)]` and `[Body Fat (%)]` to the master wearables layout.
+  - Integrates policy-based daily step merging supporting both `autoDominant` and hourly `maxPerHour` aggregation in pure Dart.
+  - Automatically averages multiple daily weight/body fat measurements when present and safely writes empty cells for missing telemetry dates.
+- **Dedicated Physical Measurements Sheet (Sheet 5: "Measurements")**:
+  - Added a dedicated, chronologically sorted sheet outputting a raw, granular log of all user measurements with columns: `[Date] | [Time] | [Measurement Type] | [Value] | [Unit]`.
+
 ## [0.9.18] - 2026-06-02
 ### Added
 - **Smarter Contextual Recommendation Banner**: Implemented an in-app context banner at the top of the Diary Screen that dynamically alerts users to updated TDEE targets.
