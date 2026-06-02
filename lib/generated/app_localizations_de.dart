@@ -4949,4 +4949,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get infoSleepTechnicalExplanation =>
       'Aggregiert fünf Primärbereiche über eine gewichtete lineare Summe: Schlafdauer (30%), Kontinuität (20%), Architektur (25%), Timing (15%) und Regelmäßigkeit (10%) mit dynamischer Matrix-Normalisierung bei fehlenden Datenströmen. Zum Schutz vor verzerrenden Durchschnittswerten bei fatalen Einbrüchen wird der Endwert abgewertet, wenn klinische Engpässe in den Schlafphasen oder im Timing erkannt werden.';
+
+  @override
+  String get tdeeRecalculationNotificationTitle =>
+      'TDEE-Berechnung abgeschlossen';
+
+  @override
+  String tdeeRecalculationNotificationBody(
+      int calories, int protein, int carbs, int fat) {
+    return 'Neue Zielwerte: $calories kcal | ${protein}g Protein | ${carbs}g Kohlenhydrate | ${fat}g Fett';
+  }
 }

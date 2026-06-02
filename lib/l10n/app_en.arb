@@ -2021,5 +2021,15 @@
   "infoSleepExplanation": "Calculates a comprehensive sleep index from quantity, continuity, depth, timing, and daily regularity.",
   "infoSleepKeyPoints": "• Aggregates five clinical dimensions using a weighted sum.\n• Automatically scales requirements if your wearable does not provide specific stages or efficiency data.\n• Protects you via soft-cap multipliers that limit the total score if a critical domain (like REM or Deep sleep) is compromised.",
   "infoSleepTechnicalTitle": "Weighted Baseline & Continuous Soft-Caps",
-  "infoSleepTechnicalExplanation": "Aggregates five primary domains using a weighted linear sum: Duration (30%), Continuity (20%), Architecture (25%), Timing (15%), and Regularity (10%). To prevent misleading averages when a clinical domain is compromised, the final score is degraded if significant bottlenecks are detected in sleep stages or circadian timing."
+  "infoSleepTechnicalExplanation": "Aggregates five primary domains using a weighted linear sum: Duration (30%), Continuity (20%), Architecture (25%), Timing (15%), and Regularity (10%). To prevent misleading averages when a clinical domain is compromised, the final score is degraded if significant bottlenecks are detected in sleep stages or circadian timing.",
+  "tdeeRecalculationNotificationTitle": "TDEE Recalculated",
+  "tdeeRecalculationNotificationBody": "New daily targets: {calories} kcal | {protein}g Protein | {carbs}g Carbs | {fat}g Fat",
+  "@tdeeRecalculationNotificationBody": {
+    "placeholders": {
+      "calories": { "type": "int" },
+      "protein": { "type": "int" },
+      "carbs": { "type": "int" },
+      "fat": { "type": "int" }
+    }
+  }
 }

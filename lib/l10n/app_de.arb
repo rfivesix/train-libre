@@ -2202,5 +2202,15 @@
   "infoSleepExplanation": "Berechnet einen umfassenden Schlafindex aus Schlafmenge, Kontinuität, Schlafphasen-Tiefe, Timing und der täglichen Regelmäßigkeit.",
   "infoSleepKeyPoints": "• Aggregiert fünf klinische Dimensionen über eine gewichtete Summe.\n• Reduziert automatisch die Anforderungen, wenn dein Wearable keine Wachphasen (WASO) oder Effizienz aufzeichnet.\n• Schützt dich durch stufenlose Soft-Cap-Multiplikatoren, die die Gesamtnote begrenzen, wenn ein wichtiger Wert (wie REM oder Tiefschlaf) gefährlich niedrig ist.",
   "infoSleepTechnicalTitle": "Gewichtete Basis & Kontinuierliche Soft-Caps",
-  "infoSleepTechnicalExplanation": "Aggregiert fünf Primärbereiche über eine gewichtete lineare Summe: Schlafdauer (30%), Kontinuität (20%), Architektur (25%), Timing (15%) und Regelmäßigkeit (10%) mit dynamischer Matrix-Normalisierung bei fehlenden Datenströmen. Zum Schutz vor verzerrenden Durchschnittswerten bei fatalen Einbrüchen wird der Endwert abgewertet, wenn klinische Engpässe in den Schlafphasen oder im Timing erkannt werden."
+  "infoSleepTechnicalExplanation": "Aggregiert fünf Primärbereiche über eine gewichtete lineare Summe: Schlafdauer (30%), Kontinuität (20%), Architektur (25%), Timing (15%) und Regelmäßigkeit (10%) mit dynamischer Matrix-Normalisierung bei fehlenden Datenströmen. Zum Schutz vor verzerrenden Durchschnittswerten bei fatalen Einbrüchen wird der Endwert abgewertet, wenn klinische Engpässe in den Schlafphasen oder im Timing erkannt werden.",
+  "tdeeRecalculationNotificationTitle": "TDEE-Berechnung abgeschlossen",
+  "tdeeRecalculationNotificationBody": "Neue Zielwerte: {calories} kcal | {protein}g Protein | {carbs}g Kohlenhydrate | {fat}g Fett",
+  "@tdeeRecalculationNotificationBody": {
+    "placeholders": {
+      "calories": { "type": "int" },
+      "protein": { "type": "int" },
+      "carbs": { "type": "int" },
+      "fat": { "type": "int" }
+    }
+  }
 }
