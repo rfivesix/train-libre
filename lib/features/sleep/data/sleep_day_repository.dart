@@ -40,6 +40,8 @@ class SleepDayOverviewData {
     this.lightDuration,
     this.remDuration,
     this.regularityNights = const <SleepRegularityNight>[],
+    this.allSessions = const <SleepSession>[],
+    this.allAnalyses = const <NightlySleepAnalysis>[],
   });
 
   final NightlySleepAnalysis analysis;
@@ -57,6 +59,8 @@ class SleepDayOverviewData {
   final Duration? lightDuration;
   final Duration? remDuration;
   final List<SleepRegularityNight> regularityNights;
+  final List<SleepSession> allSessions;
+  final List<NightlySleepAnalysis> allAnalyses;
 
   SleepScoringResult? get scoringResult => analysis.scoreBreakdownJson != null
       ? SleepScoringResult.fromJson(analysis.scoreBreakdownJson!)
@@ -143,101 +147,138 @@ class SleepDayRepository implements SleepDayDataRepository {
     );
     if (analyses.isEmpty) return null;
 
-    analyses.sort((a, b) => b.analyzedAt.compareTo(a.analyzedAt));
-    final record = analyses.first;
-    final sessionRecord = await _sessionsDao!.findById(record.sessionId);
-    if (sessionRecord == null) return null;
+    final sortedAnalysesRecords = List<SleepNightlyAnalysisRecord>.from(analyses)
+      ..sort((a, b) {
+        if (a.score != null && b.score == null) return -1;
+        if (b.score != null && a.score == null) return 1;
+        return b.analyzedAt.compareTo(a.analyzedAt);
+      });
 
-    final segments = (await _segmentsDao!.findBySessionId(record.sessionId))
-        .map(
-          (row) => SleepStageSegment(
-            id: row.id,
-            sessionId: row.sessionId,
-            stage: _parseStage(row.stage),
-            startAtUtc: row.startedAt,
-            endAtUtc: row.endedAt,
-            sourcePlatform: row.sourcePlatform,
-            sourceAppId: row.sourceAppId,
-            sourceRecordHash: row.sourceRecordHash,
-            sourceConfidence: row.sourceConfidence,
-            stageConfidence: _parseStageConfidence(row.sourceConfidence),
-          ),
-        )
-        .toList(growable: false);
+    final primaryRecord = sortedAnalysesRecords.first;
+    final allSessions = <SleepSession>[];
+    final allAnalyses = <NightlySleepAnalysis>[];
+    final allSegments = <SleepStageSegment>[];
+    final allHrSamples = <HeartRateSample>[];
 
-    final session = SleepSession(
-      id: sessionRecord.id,
-      startAtUtc: sessionRecord.startedAt,
-      endAtUtc: sessionRecord.endedAt,
-      sessionType: _parseSessionType(sessionRecord.sessionType),
-      sourcePlatform: sessionRecord.sourcePlatform,
-      sourceAppId: sessionRecord.sourceAppId,
-      sourceRecordHash: sessionRecord.sourceRecordHash,
-      sourceConfidence: sessionRecord.sourceConfidence,
-      stageConfidence: _parseStageConfidence(sessionRecord.sourceConfidence),
-      overallConfidence: _parseOverallConfidence(
-        sessionRecord.sourceConfidence,
-      ),
-      normalizationVersion: sessionRecord.normalizationVersion,
+    NightlySleepAnalysis? primaryAnalysis;
+    SleepSession? primarySession;
+    List<SleepStageSegment>? primarySegments;
+
+    for (final record in sortedAnalysesRecords) {
+      final sessionRecord = await _sessionsDao!.findById(record.sessionId);
+      if (sessionRecord == null) continue;
+
+      final session = SleepSession(
+        id: sessionRecord.id,
+        startAtUtc: sessionRecord.startedAt,
+        endAtUtc: sessionRecord.endedAt,
+        sessionType: _parseSessionType(sessionRecord.sessionType),
+        sourcePlatform: sessionRecord.sourcePlatform,
+        sourceAppId: sessionRecord.sourceAppId,
+        sourceRecordHash: sessionRecord.sourceRecordHash,
+        sourceConfidence: sessionRecord.sourceConfidence,
+        stageConfidence: _parseStageConfidence(sessionRecord.sourceConfidence),
+        overallConfidence: _parseOverallConfidence(
+          sessionRecord.sourceConfidence,
+        ),
+        normalizationVersion: sessionRecord.normalizationVersion,
+      );
+
+      final segments = (await _segmentsDao!.findBySessionId(record.sessionId))
+          .map(
+            (row) => SleepStageSegment(
+              id: row.id,
+              sessionId: row.sessionId,
+              stage: _parseStage(row.stage),
+              startAtUtc: row.startedAt,
+              endAtUtc: row.endedAt,
+              sourcePlatform: row.sourcePlatform,
+              sourceAppId: row.sourceAppId,
+              sourceRecordHash: row.sourceRecordHash,
+              sourceConfidence: row.sourceConfidence,
+              stageConfidence: _parseStageConfidence(row.sourceConfidence),
+            ),
+          )
+          .toList();
+
+      final analysis = NightlySleepAnalysis(
+        id: record.id,
+        sessionId: record.sessionId,
+        nightDate: DateTime.parse(record.nightDate),
+        analysisVersion: record.analysisVersion,
+        normalizationVersion: record.normalizationVersion,
+        analyzedAtUtc: record.analyzedAt.toUtc(),
+        score: record.score,
+        totalSleepMinutes: record.totalSleepMinutes,
+        sleepEfficiencyPct: record.sleepEfficiencyPct,
+        restingHeartRateBpm: record.restingHeartRateBpm,
+        interruptionsCount: record.interruptionsCount,
+        interruptionsWakeMinutes: record.interruptionsWakeMinutes,
+        scoreCompleteness: record.scoreCompleteness,
+        regularitySri: record.regularitySri,
+        regularityValidDays: record.regularityValidDays,
+        regularityStable: record.regularityIsStable,
+        sleepQuality: _qualityFromScore(record.score),
+        sourcePlatform: record.sourcePlatform,
+        sourceAppId: record.sourceAppId,
+        sourceRecordHash: record.sourceRecordHash,
+        scoreBreakdownJson: record.scoreBreakdownJson != null
+            ? jsonDecode(record.scoreBreakdownJson!) as Map<String, dynamic>
+            : null,
+      );
+
+      final hrSamples = (await _hrDao!.findBySessionId(record.sessionId))
+          .map(
+            (row) => HeartRateSample(
+              id: row.id,
+              sessionId: row.sessionId,
+              sampledAtUtc: row.sampledAt,
+              bpm: row.bpm,
+              sourcePlatform: row.sourcePlatform,
+              sourceAppId: row.sourceAppId,
+              sourceRecordHash: row.sourceRecordHash,
+              sourceConfidence: row.sourceConfidence,
+            ),
+          )
+          .toList();
+
+      allSessions.add(session);
+      allAnalyses.add(analysis);
+      allSegments.addAll(segments);
+      allHrSamples.addAll(hrSamples);
+
+      if (record.id == primaryRecord.id) {
+        primaryAnalysis = analysis;
+        primarySession = session;
+        primarySegments = segments;
+      }
+    }
+
+    if (primaryAnalysis == null || primarySession == null) return null;
+
+    final primaryRepaired = repairSleepTimeline(
+      session: primarySession,
+      segments: primarySegments ?? const <SleepStageSegment>[],
     );
-
-    final analysis = NightlySleepAnalysis(
-      id: record.id,
-      sessionId: record.sessionId,
-      nightDate: DateTime.parse(record.nightDate),
-      analysisVersion: record.analysisVersion,
-      normalizationVersion: record.normalizationVersion,
-      analyzedAtUtc: record.analyzedAt.toUtc(),
-      score: record.score,
-      totalSleepMinutes: record.totalSleepMinutes,
-      sleepEfficiencyPct: record.sleepEfficiencyPct,
-      restingHeartRateBpm: record.restingHeartRateBpm,
-      interruptionsCount: record.interruptionsCount,
-      interruptionsWakeMinutes: record.interruptionsWakeMinutes,
-      scoreCompleteness: record.scoreCompleteness,
-      regularitySri: record.regularitySri,
-      regularityValidDays: record.regularityValidDays,
-      regularityStable: record.regularityIsStable,
-      sleepQuality: _qualityFromScore(record.score),
-      sourcePlatform: record.sourcePlatform,
-      sourceAppId: record.sourceAppId,
-      sourceRecordHash: record.sourceRecordHash,
-      scoreBreakdownJson: record.scoreBreakdownJson != null
-          ? jsonDecode(record.scoreBreakdownJson!) as Map<String, dynamic>
-          : null,
-    );
-
-    final repaired = repairSleepTimeline(session: session, segments: segments);
-    final nightlyMetrics = calculateNightlySleepMetrics(
-      session: session,
-      repairedSegments: repaired,
+    final primaryMetrics = calculateNightlySleepMetrics(
+      session: primarySession,
+      repairedSegments: primaryRepaired,
     );
 
     final (
       interruptionsCount,
       interruptionsWakeMinutes,
     ) = _resolveInterruptions(
-      record: record,
-      repairedSegments: repaired,
-      metrics: nightlyMetrics,
+      record: primaryRecord,
+      repairedSegments: primaryRepaired,
+      metrics: primaryMetrics,
     );
 
-    final currentHrSamples = (await _hrDao!.findBySessionId(record.sessionId))
-        .map(
-          (row) => HeartRateSample(
-            id: row.id,
-            sessionId: row.sessionId,
-            sampledAtUtc: row.sampledAt,
-            bpm: row.bpm,
-            sourcePlatform: row.sourcePlatform,
-            sourceAppId: row.sourceAppId,
-            sourceRecordHash: row.sourceRecordHash,
-            sourceConfidence: row.sourceConfidence,
-          ),
-        )
-        .toList(growable: false);
+    allSegments.sort((a, b) => a.startAtUtc.compareTo(b.startAtUtc));
+    allHrSamples.sort((a, b) => a.sampledAtUtc.compareTo(b.sampledAtUtc));
+
     final nightlyHr = calculateNightlyHeartRateMetrics(
-      sleepWindowSamples: currentHrSamples,
+      sleepWindowSamples: allHrSamples,
     );
     final historicalHrs = await _historicalNightlyHeartRatesBefore(day);
     final baseline = calculateSleepHeartRateBaseline(historicalHrs);
@@ -246,22 +287,22 @@ class SleepDayRepository implements SleepDayDataRepository {
       baseline: baseline,
     );
 
-    final deepDuration = _sumStageDuration(segments, CanonicalSleepStage.deep);
+    final deepDuration = _sumStageDuration(allSegments, CanonicalSleepStage.deep);
     final lightDuration = _sumStageDuration(
-      segments,
+      allSegments,
       CanonicalSleepStage.light,
     );
-    final remDuration = _sumStageDuration(segments, CanonicalSleepStage.rem);
+    final remDuration = _sumStageDuration(allSegments, CanonicalSleepStage.rem);
     final regularityNights = await _fetchRegularityNights(day);
 
     return SleepDayOverviewData(
-      analysis: analysis,
-      session: session,
-      timelineSegments: segments,
-      heartRateSamples: currentHrSamples,
-      stageDataConfidence: _timelineConfidence(segments),
-      totalSleepMinutes: record.totalSleepMinutes,
-      sleepHrAvg: record.restingHeartRateBpm ?? nightlyHr.sleepHrAvg,
+      analysis: primaryAnalysis,
+      session: primarySession,
+      timelineSegments: allSegments,
+      heartRateSamples: allHrSamples,
+      stageDataConfidence: _timelineConfidence(allSegments),
+      totalSleepMinutes: primaryRecord.totalSleepMinutes,
+      sleepHrAvg: primaryRecord.restingHeartRateBpm ?? nightlyHr.sleepHrAvg,
       baselineSleepHr: baseline.baselineSleepHr,
       deltaSleepHr: hrDelta.deltaSleepHr,
       interruptionsCount: interruptionsCount,
@@ -272,6 +313,8 @@ class SleepDayRepository implements SleepDayDataRepository {
       lightDuration: lightDuration,
       remDuration: remDuration,
       regularityNights: regularityNights,
+      allSessions: allSessions,
+      allAnalyses: allAnalyses,
     );
   }
 

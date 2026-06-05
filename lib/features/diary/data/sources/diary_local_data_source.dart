@@ -122,6 +122,10 @@ class DiaryLocalDataSource {
               expression: t.createdAt,
               mode: drift.OrderingMode.desc,
             ),
+        (t) => drift.OrderingTerm(
+              expression: t.localId,
+              mode: drift.OrderingMode.desc,
+            ),
       ])
       ..limit(1);
 

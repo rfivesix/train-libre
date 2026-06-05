@@ -301,8 +301,8 @@ void main() {
       sessions: [
         SleepIngestionSession(
           recordId: 's2',
-          startAtUtc: DateTime.utc(2026, 3, 29, 23),
-          endAtUtc: DateTime.utc(2026, 3, 30, 5),
+          startAtUtc: DateTime.utc(2026, 3, 29, 21),
+          endAtUtc: DateTime.utc(2026, 3, 30, 7),
           platformSessionType: 'sleep',
           sourcePlatform: 'apple_healthkit',
         ),

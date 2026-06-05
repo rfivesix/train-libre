@@ -6401,6 +6401,24 @@ abstract class AppLocalizations {
   /// **'No stage timeline available for this night.'**
   String get sleepTimelineUnavailable;
 
+  /// No description provided for @sleepSessionTypeCore.
+  ///
+  /// In en, this message translates to:
+  /// **'Core Sleep'**
+  String get sleepSessionTypeCore;
+
+  /// No description provided for @sleepSessionTypeNap.
+  ///
+  /// In en, this message translates to:
+  /// **'Nap'**
+  String get sleepSessionTypeNap;
+
+  /// No description provided for @sleepIntervalsDrawerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep Intervals'**
+  String get sleepIntervalsDrawerTitle;
+
   /// No description provided for @sleepStageDeepLabel.
   ///
   /// In en, this message translates to:

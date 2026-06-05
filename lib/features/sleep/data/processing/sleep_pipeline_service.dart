@@ -36,6 +36,7 @@ class SleepPipelineBackgroundTaskParams {
   final DateTime importedAt;
   final List<SleepCanonicalSessionRecord> lookbackSessions;
   final List<SleepCanonicalStageSegmentRecord> lookbackSegments;
+  final List<SleepNightlyAnalysisRecord> lookbackAnalyses;
 
   SleepPipelineBackgroundTaskParams({
     required this.batch,
@@ -44,6 +45,7 @@ class SleepPipelineBackgroundTaskParams {
     required this.importedAt,
     required this.lookbackSessions,
     required this.lookbackSegments,
+    required this.lookbackAnalyses,
   });
 }
 
@@ -147,7 +149,7 @@ class SleepPipelineService {
 
     // Pre-fetch lookback data for regularity calculation
     final targetNights = normalizedBatch.sessions
-        .map((session) => _normalizeDay(session.endAtUtc))
+        .map((session) => _normalizeDay(session.endAtUtc.toLocal()))
         .toSet()
         .toList(growable: false)
       ..sort();
@@ -164,6 +166,10 @@ class SleepPipelineService {
     final lookbackSessionIds = lookbackSessions.map((s) => s.id).toList();
     final lookbackSegments =
         await _segmentsDao.findBySessionIds(lookbackSessionIds);
+    final lookbackAnalyses = await _analysesDao.findByNightRange(
+      fromNightDateInclusive: _nightKey(lookbackFromInclusive),
+      toNightDateInclusive: _nightKey(lookbackToExclusive),
+    );
 
     // Offload heavy processing to background isolate
     final result = await compute(
@@ -175,6 +181,7 @@ class SleepPipelineService {
         importedAt: importedAt,
         lookbackSessions: lookbackSessions,
         lookbackSegments: lookbackSegments,
+        lookbackAnalyses: lookbackAnalyses,
       ),
     );
 
@@ -183,50 +190,30 @@ class SleepPipelineService {
       final skipSessionIds = <String>{};
       final rawImportIdsToDelete = <String>[];
       for (final session in normalizedBatch.sessions) {
-        final existingSameStart = await _sessionsDao.findByStartAndSource(
-          startAtUtc: session.startAtUtc,
-          sourcePlatform: session.sourcePlatform,
-          sourceAppId: session.sourceAppId,
+        final overlapping = await _sessionsDao.findByDateRange(
+          fromInclusive: session.startAtUtc,
+          toExclusive: session.endAtUtc,
         );
-        final hasLongerOrEqualExisting = existingSameStart.any((existing) {
-          return existing.id != session.recordId &&
-              !existing.endedAt.isBefore(session.endAtUtc);
-        });
-        if (hasLongerOrEqualExisting) {
-          skipSessionIds.add(session.recordId);
-          continue;
-        }
 
-        final shorterExisting = existingSameStart.where((existing) {
-          return existing.id != session.recordId &&
-              existing.endedAt.isBefore(session.endAtUtc);
-        });
-        for (final existing in shorterExisting) {
-          await _sessionsDao.deleteById(existing.id);
-          rawImportIdsToDelete.add('raw:${existing.id}');
-        }
+        final otherOverlapping = overlapping.where((s) => s.id != session.recordId).toList();
+        if (otherOverlapping.isNotEmpty) {
+          final incomingDuration = session.endAtUtc.difference(session.startAtUtc);
+          final maxExistingDuration = otherOverlapping
+              .map((s) => s.endedAt.difference(s.startedAt))
+              .reduce((a, b) => a > b ? a : b);
 
-        final sourceRecordHash = _resolveSourceRecordHash(session);
-        final matchingExternal = await _sessionsDao.findBySourceHash(
-          sourceRecordHash,
-        );
-        final hasExternalOverlap = matchingExternal.any((existing) {
-          return existing.id != session.recordId &&
-              _rangesOverlap(
-                session.startAtUtc,
-                session.endAtUtc,
-                existing.startedAt,
-                existing.endedAt,
-              );
-        });
+          if (incomingDuration > maxExistingDuration) {
+            for (final existing in otherOverlapping) {
+              await _sessionsDao.deleteById(existing.id);
+              rawImportIdsToDelete.add('raw:${existing.id}');
+            }
+          } else {
+            skipSessionIds.add(session.recordId);
+            continue;
+          }
+        }
 
         await _sessionsDao.deleteById(session.recordId);
-        if (_shouldCascadeDelete(session, hasExternalOverlap)) {
-          await _sessionsDao.deleteByDateRange(
-            fromInclusive: session.startAtUtc,
-            toExclusive: session.endAtUtc.add(const Duration(seconds: 1)),
-          );
-        }
       }
 
       if (rawImportIdsToDelete.isNotEmpty) {
@@ -314,6 +301,42 @@ class SleepPipelineService {
         )
         .toList(growable: false);
 
+    // Filter out lookback sessions that are being replaced by the incoming batch
+    final activeLookbackSessions = params.lookbackSessions.map(_toDomainSession).where((existing) {
+      final hasIdMatch = mapped.sessions.any((incoming) => incoming.id == existing.id);
+      if (hasIdMatch) return false;
+      
+      final hasOverlap = mapped.sessions.any((incoming) =>
+          incoming.startAtUtc.isBefore(existing.endAtUtc) &&
+          incoming.endAtUtc.isAfter(existing.startAtUtc));
+      return !hasOverlap;
+    }).toList();
+
+    final allSessions = [...activeLookbackSessions, ...mapped.sessions];
+
+    // Group target sessions by local wake day string
+    final sessionsByNight = <String, List<SleepSession>>{};
+    for (final s in allSessions) {
+      final night = _nightKey(s.endAtUtc.toLocal());
+      sessionsByNight.putIfAbsent(night, () => []).add(s);
+    }
+
+    // Classify core sleep vs naps
+    final classifications = <String, SleepSessionType>{};
+    for (final entry in sessionsByNight.entries) {
+      final nightSessions = entry.value;
+      if (nightSessions.isEmpty) continue;
+      nightSessions.sort((a, b) {
+        final durA = a.endAtUtc.difference(a.startAtUtc);
+        final durB = b.endAtUtc.difference(b.startAtUtc);
+        return durB.compareTo(durA);
+      });
+      classifications[nightSessions.first.id] = SleepSessionType.mainSleep;
+      for (var i = 1; i < nightSessions.length; i++) {
+        classifications[nightSessions[i].id] = SleepSessionType.nap;
+      }
+    }
+
     final sessionRows = mapped.sessions
         .map(
           (session) => SleepCanonicalSessionCompanion(
@@ -325,7 +348,7 @@ class SleepPipelineService {
             sourceRecordHash: session.sourceRecordHash ??
                 _hashRecord('session:${session.id}'),
             normalizationVersion: normalizationVersion,
-            sessionType: session.sessionType.name,
+            sessionType: (classifications[session.id] ?? SleepSessionType.unknown).name,
             startedAt: session.startAtUtc,
             endedAt: session.endAtUtc,
             timezone: null,
@@ -333,7 +356,35 @@ class SleepPipelineService {
             normalizedAt: importedAt,
           ),
         )
-        .toList(growable: false);
+        .toList(growable: true);
+
+    // Also include re-classified active lookback sessions
+    for (final dbSession in params.lookbackSessions) {
+      final domain = _toDomainSession(dbSession);
+      final isActive = activeLookbackSessions.any((s) => s.id == domain.id);
+      if (!isActive) continue;
+
+      final newType = classifications[domain.id];
+      if (newType != null && newType.name != dbSession.sessionType) {
+        sessionRows.add(
+          SleepCanonicalSessionCompanion(
+            id: dbSession.id,
+            rawImportId: dbSession.rawImportId,
+            sourcePlatform: dbSession.sourcePlatform,
+            sourceAppId: dbSession.sourceAppId,
+            sourceConfidence: dbSession.sourceConfidence,
+            sourceRecordHash: dbSession.sourceRecordHash,
+            normalizationVersion: dbSession.normalizationVersion,
+            sessionType: newType.name,
+            startedAt: dbSession.startedAt,
+            endedAt: dbSession.endedAt,
+            timezone: dbSession.timezone,
+            importedAt: dbSession.importedAt,
+            normalizedAt: dbSession.normalizedAt,
+          ),
+        );
+      }
+    }
 
     final segmentRows = mapped.stageSegments
         .map(
@@ -374,87 +425,214 @@ class SleepPipelineService {
         )
         .toList(growable: false);
 
+    final activeLookbackSessionsRecords = params.lookbackSessions.where((dbSession) {
+      return activeLookbackSessions.any((s) => s.id == dbSession.id);
+    }).toList();
+
     final regularityByNight = _buildRegularityByNight(
       targetSessions: mapped.sessions,
-      lookbackSessions: params.lookbackSessions,
+      lookbackSessions: activeLookbackSessionsRecords,
       lookbackSegments: params.lookbackSegments,
       currentBatchSegments: mapped.stageSegments,
     );
 
     final rollingMidSleepSdByNight = _buildRollingMidSleepSdByNight(
       targetSessions: mapped.sessions,
-      lookbackSessions: params.lookbackSessions,
+      lookbackSessions: activeLookbackSessionsRecords,
     );
 
+    final targetNights = mapped.sessions.map((s) => _nightKey(s.endAtUtc.toLocal())).toSet();
     final analysisRows = <SleepNightlyAnalysisCompanion>[];
-    for (final session in mapped.sessions) {
-      final repaired = repairSleepTimeline(
-        session: session,
-        segments: segmentsBySession[session.id] ?? const <SleepStageSegment>[],
-      );
-      final metrics = calculateNightlySleepMetrics(
-        session: session,
-        repairedSegments: repaired,
-      );
-      final hr = hrBySession[session.id] ?? const <HeartRateSample>[];
-      final avgHr = hr.isEmpty
-          ? null
-          : hr.fold<double>(0, (sum, item) => sum + item.bpm) / hr.length;
-          
-      final localStart = session.startAtUtc.toLocal();
-      final sleepOnsetHourLocal = localStart.hour + (localStart.minute / 60.0);
+    
+    final lookbackSegmentsBySession = <String, List<SleepStageSegment>>{};
+    for (final row in params.lookbackSegments) {
+      lookbackSegmentsBySession
+          .putIfAbsent(row.sessionId, () => <SleepStageSegment>[])
+          .add(_toDomainStageSegment(row));
+    }
 
-      final score = calculateSleepScore(
-        SleepScoringInput(
-          durationMinutes: metrics.totalSleepTime.inMinutes,
-          sleepEfficiencyPct: metrics.sleepEfficiencyPct,
-          wasoMinutes: metrics.wakeAfterSleepOnset.inMinutes,
-          regularitySri: regularityByNight[_nightKey(session.endAtUtc)]?.sri,
-          regularityValidDays:
-              regularityByNight[_nightKey(session.endAtUtc)]?.validDays ?? 0,
-          regularityValidComparisonPairs:
-              regularityByNight[_nightKey(session.endAtUtc)]
-                  ?.validComparisonPairs,
-          lightSleepPct: metrics.stagePercentages[CanonicalSleepStage.light],
-          deepSleepPct: metrics.stagePercentages[CanonicalSleepStage.deep],
-          remSleepPct: metrics.stagePercentages[CanonicalSleepStage.rem],
-          asleepUnspecifiedPct:
-              metrics.stagePercentages[CanonicalSleepStage.asleepUnspecified],
-          stageDataConfidence: _timelineConfidence(repaired),
-          sourcePlatform: session.sourcePlatform,
-          sourceAppId: session.sourceAppId,
-          sleepOnsetHourLocal: sleepOnsetHourLocal,
-          rollingMidSleepSd: rollingMidSleepSdByNight[_nightKey(session.endAtUtc)],
-        ),
+    for (final entry in sessionsByNight.entries) {
+      final night = entry.key;
+      if (!targetNights.contains(night)) continue;
+
+      final nightSessions = entry.value;
+      if (nightSessions.isEmpty) continue;
+
+      nightSessions.sort((a, b) {
+        final durA = a.endAtUtc.difference(a.startAtUtc);
+        final durB = b.endAtUtc.difference(b.startAtUtc);
+        return durB.compareTo(durA);
+      });
+
+      final coreSession = nightSessions.first;
+      final napSessions = nightSessions.skip(1).toList();
+
+      final sessionMetrics = <String, NightlySleepMetrics>{};
+      final sessionAvgHr = <String, double?>{};
+      final sessionRepairedSegments = <String, List<SleepStageSegment>>{};
+
+      for (final s in nightSessions) {
+        List<SleepStageSegment> segments;
+        double? avgHr;
+        if (mapped.sessions.any((incoming) => incoming.id == s.id)) {
+          segments = segmentsBySession[s.id] ?? const [];
+          final hr = hrBySession[s.id] ?? const [];
+          avgHr = hr.isEmpty
+              ? null
+              : hr.fold<double>(0, (sum, item) => sum + item.bpm) / hr.length;
+        } else {
+          segments = lookbackSegmentsBySession[s.id] ?? const [];
+          final matches = params.lookbackAnalyses.where((a) => a.sessionId == s.id);
+          final existingAnalysis = matches.isNotEmpty ? matches.first : null;
+          avgHr = existingAnalysis?.restingHeartRateBpm;
+        }
+
+        final repaired = repairSleepTimeline(session: s, segments: segments);
+        sessionRepairedSegments[s.id] = repaired;
+        sessionMetrics[s.id] = calculateNightlySleepMetrics(
+          session: s,
+          repairedSegments: repaired,
+        );
+        sessionAvgHr[s.id] = avgHr;
+      }
+
+      var combinedTotalSleepMinutes = 0;
+      var combinedTimeInBedSeconds = 0;
+      var combinedTotalSleepTimeSeconds = 0;
+      var combinedWasoMinutes = 0;
+      var combinedInterruptionsCount = 0;
+
+      var combinedLightSeconds = 0;
+      var combinedDeepSeconds = 0;
+      var combinedRemSeconds = 0;
+      var combinedAsleepUnspecifiedSeconds = 0;
+
+      for (final s in nightSessions) {
+        final m = sessionMetrics[s.id]!;
+        combinedTotalSleepMinutes += m.totalSleepTime.inMinutes;
+        combinedTimeInBedSeconds += m.timeInBed.inSeconds;
+        combinedTotalSleepTimeSeconds += m.totalSleepTime.inSeconds;
+        combinedWasoMinutes += m.wakeAfterSleepOnset.inMinutes;
+        combinedInterruptionsCount += m.interruptionsCount;
+
+        combinedLightSeconds += m.stageDurations[CanonicalSleepStage.light]?.inSeconds ?? 0;
+        combinedDeepSeconds += m.stageDurations[CanonicalSleepStage.deep]?.inSeconds ?? 0;
+        combinedRemSeconds += m.stageDurations[CanonicalSleepStage.rem]?.inSeconds ?? 0;
+        combinedAsleepUnspecifiedSeconds += m.stageDurations[CanonicalSleepStage.asleepUnspecified]?.inSeconds ?? 0;
+      }
+
+      bool hasLight = false;
+      bool hasDeep = false;
+      bool hasRem = false;
+      bool hasUnspecified = false;
+
+      for (final s in nightSessions) {
+        final m = sessionMetrics[s.id]!;
+        if (m.stageDurations.containsKey(CanonicalSleepStage.light)) hasLight = true;
+        if (m.stageDurations.containsKey(CanonicalSleepStage.deep)) hasDeep = true;
+        if (m.stageDurations.containsKey(CanonicalSleepStage.rem)) hasRem = true;
+        if (m.stageDurations.containsKey(CanonicalSleepStage.asleepUnspecified)) hasUnspecified = true;
+      }
+
+      final combinedSleepEfficiencyPct = combinedTimeInBedSeconds == 0
+          ? 0.0
+          : (combinedTotalSleepTimeSeconds / combinedTimeInBedSeconds) * 100.0;
+
+      final combinedLightPct = !hasLight || combinedTotalSleepTimeSeconds == 0
+          ? null
+          : (combinedLightSeconds / combinedTotalSleepTimeSeconds) * 100.0;
+      final combinedDeepPct = !hasDeep || combinedTotalSleepTimeSeconds == 0
+          ? null
+          : (combinedDeepSeconds / combinedTotalSleepTimeSeconds) * 100.0;
+      final combinedRemPct = !hasRem || combinedTotalSleepTimeSeconds == 0
+          ? null
+          : (combinedRemSeconds / combinedTotalSleepTimeSeconds) * 100.0;
+      final combinedAsleepUnspecifiedPct = !hasUnspecified || combinedTotalSleepTimeSeconds == 0
+          ? null
+          : (combinedAsleepUnspecifiedSeconds / combinedTotalSleepTimeSeconds) * 100.0;
+
+      final coreLocalStart = coreSession.startAtUtc.toLocal();
+      final coreSleepOnsetHourLocal = coreLocalStart.hour + (coreLocalStart.minute / 60.0);
+
+      final regularityResult = regularityByNight[night];
+
+      final coreScoreInput = SleepScoringInput(
+        durationMinutes: combinedTotalSleepMinutes,
+        sleepEfficiencyPct: combinedSleepEfficiencyPct,
+        wasoMinutes: combinedWasoMinutes,
+        regularitySri: regularityResult?.sri,
+        regularityValidDays: regularityResult?.validDays ?? 0,
+        regularityValidComparisonPairs: regularityResult?.validComparisonPairs,
+        lightSleepPct: combinedLightPct,
+        deepSleepPct: combinedDeepPct,
+        remSleepPct: combinedRemPct,
+        asleepUnspecifiedPct: combinedAsleepUnspecifiedPct,
+        stageDataConfidence: _timelineConfidence(sessionRepairedSegments[coreSession.id] ?? const []),
+        sourcePlatform: coreSession.sourcePlatform,
+        sourceAppId: coreSession.sourceAppId,
+        sleepOnsetHourLocal: coreSleepOnsetHourLocal,
+        rollingMidSleepSd: rollingMidSleepSdByNight[night],
+      );
+
+      final coreScore = calculateSleepScore(
+        coreScoreInput,
         config: SleepScoringConfig(analysisVersion: analysisVersion),
       );
-      final night = _nightKey(session.endAtUtc);
+
       analysisRows.add(
         SleepNightlyAnalysisCompanion(
-          id: 'analysis:${session.id}',
-          sessionId: session.id,
-          sourcePlatform: session.sourcePlatform,
-          sourceAppId: session.sourceAppId,
-          sourceConfidence: session.sourceConfidence,
-          sourceRecordHash:
-              session.sourceRecordHash ?? _hashRecord('analysis:${session.id}'),
+          id: 'analysis:${coreSession.id}',
+          sessionId: coreSession.id,
+          sourcePlatform: coreSession.sourcePlatform,
+          sourceAppId: coreSession.sourceAppId,
+          sourceConfidence: coreSession.sourceConfidence,
+          sourceRecordHash: coreSession.sourceRecordHash ?? _hashRecord('analysis:${coreSession.id}'),
           normalizationVersion: normalizationVersion,
           analysisVersion: analysisVersion,
           nightDate: night,
-          score: score.score,
-          totalSleepMinutes: metrics.totalSleepTime.inMinutes,
-          sleepEfficiencyPct: metrics.sleepEfficiencyPct,
-          restingHeartRateBpm: avgHr,
-          interruptionsCount: metrics.interruptionsCount,
-          interruptionsWakeMinutes: metrics.wakeAfterSleepOnset.inMinutes,
-          scoreCompleteness: score.completeness,
-          regularitySri: score.regularityScore,
-          regularityValidDays: score.regularityValidDays,
-          regularityIsStable: score.regularityStable,
-          scoreBreakdownJson: jsonEncode(score.toJson()),
+          score: coreScore.score,
+          totalSleepMinutes: combinedTotalSleepMinutes,
+          sleepEfficiencyPct: combinedSleepEfficiencyPct,
+          restingHeartRateBpm: sessionAvgHr[coreSession.id],
+          interruptionsCount: combinedInterruptionsCount,
+          interruptionsWakeMinutes: combinedWasoMinutes,
+          scoreCompleteness: coreScore.completeness,
+          regularitySri: coreScore.regularityScore,
+          regularityValidDays: coreScore.regularityValidDays,
+          regularityIsStable: coreScore.regularityStable,
+          scoreBreakdownJson: jsonEncode(coreScore.toJson()),
           analyzedAt: importedAt,
         ),
       );
+
+      for (final nap in napSessions) {
+        final m = sessionMetrics[nap.id]!;
+        analysisRows.add(
+          SleepNightlyAnalysisCompanion(
+            id: 'analysis:${nap.id}',
+            sessionId: nap.id,
+            sourcePlatform: nap.sourcePlatform,
+            sourceAppId: nap.sourceAppId,
+            sourceConfidence: nap.sourceConfidence,
+            sourceRecordHash: nap.sourceRecordHash ?? _hashRecord('analysis:${nap.id}'),
+            normalizationVersion: normalizationVersion,
+            analysisVersion: analysisVersion,
+            nightDate: night,
+            score: null,
+            totalSleepMinutes: m.totalSleepTime.inMinutes,
+            sleepEfficiencyPct: m.sleepEfficiencyPct,
+            restingHeartRateBpm: sessionAvgHr[nap.id],
+            interruptionsCount: m.interruptionsCount,
+            interruptionsWakeMinutes: m.wakeAfterSleepOnset.inMinutes,
+            scoreCompleteness: 0.0,
+            regularitySri: null,
+            regularityValidDays: 0,
+            regularityIsStable: null,
+            scoreBreakdownJson: null,
+            analyzedAt: importedAt,
+          ),
+        );
+      }
     }
 
     return SleepPipelineBackgroundTaskResult(
@@ -491,9 +669,6 @@ class SleepPipelineService {
     return '${normalized.year}-$month-$day';
   }
 
-  // Nocturnal window spans 20:00-12:00 local (overnight wrap; end is noon).
-  static const int _nightWindowStartMinutes = 20 * 60;
-  static const int _nightWindowEndMinutes = 12 * 60;
   static const String _unknownSourceAppId = 'unknown_source';
 
   static SleepRawIngestionBatch _dedupeProgressiveSessions(
@@ -528,54 +703,11 @@ class SleepPipelineService {
     return '${session.startAtUtc.toIso8601String()}|${session.sourcePlatform}|$sourceKey';
   }
 
-  static String _resolveSourceRecordHash(SleepIngestionSession session) {
-    final raw = session.sourceRecordHash;
-    if (raw != null && raw.isNotEmpty) return raw;
-    return _hashRecord('session:${session.recordId}');
-  }
-
   static String _rawImportSessionId(String rawImportId) {
     if (rawImportId.startsWith('raw:')) {
       return rawImportId.substring(4);
     }
     return rawImportId;
-  }
-
-  static bool _rangesOverlap(
-    DateTime start,
-    DateTime end,
-    DateTime otherStart,
-    DateTime otherEnd,
-  ) {
-    return start.isBefore(otherEnd) && end.isAfter(otherStart);
-  }
-
-  static bool _shouldCascadeDelete(
-    SleepIngestionSession session,
-    bool hasExternalOverlap,
-  ) {
-    return _isNocturnalWindow(session.startAtUtc, session.endAtUtc) ||
-        hasExternalOverlap;
-  }
-
-  static bool _isNocturnalWindow(DateTime startUtc, DateTime endUtc) {
-    // Uses device local time to align with on-device sleep windows.
-    final startLocal = startUtc.toLocal();
-    final endLocal = endUtc.toLocal();
-    final startDay = DateTime(startLocal.year, startLocal.month, startLocal.day);
-    final endDay = DateTime(endLocal.year, endLocal.month, endLocal.day);
-    // Sessions spanning multiple local dates necessarily cross the overnight window.
-    if (endDay.isAfter(startDay)) {
-      return true;
-    }
-    final startMinutes = startLocal.hour * 60 + startLocal.minute;
-    final endMinutes = endLocal.hour * 60 + endLocal.minute;
-    // Any session starting or ending inside the overnight window is treated as nocturnal.
-    final inNightStart = startMinutes >= _nightWindowStartMinutes ||
-        startMinutes < _nightWindowEndMinutes;
-    final inNightEnd = endMinutes >= _nightWindowStartMinutes ||
-        endMinutes < _nightWindowEndMinutes;
-    return inNightStart || inNightEnd;
   }
 
   static String _hashRecord(String value) =>
@@ -658,7 +790,7 @@ class SleepPipelineService {
     if (targetSessions.isEmpty) return const {};
     
     final targetNights = targetSessions
-        .map((session) => _normalizeDay(session.endAtUtc))
+        .map((session) => _normalizeDay(session.endAtUtc.toLocal()))
         .toSet()
         .toList(growable: false)
       ..sort();
@@ -671,7 +803,18 @@ class SleepPipelineService {
       allSessions[session.id] = session;
     }
 
-    final sessionsList = allSessions.values.toList()
+    final sessionsList = allSessions.values.toList();
+    // Group by night local wake day and keep only the longest session per day (Core Sleep Session)
+    final sessionsByNight = <String, SleepSession>{};
+    for (final s in sessionsList) {
+      final night = _nightKey(s.endAtUtc.toLocal());
+      final existing = sessionsByNight[night];
+      if (existing == null ||
+          s.endAtUtc.difference(s.startAtUtc) > existing.endAtUtc.difference(existing.startAtUtc)) {
+        sessionsByNight[night] = s;
+      }
+    }
+    final coreSessionsList = sessionsByNight.values.toList()
       ..sort((a, b) => a.endAtUtc.compareTo(b.endAtUtc));
 
     final byNight = <String, double>{};
@@ -679,8 +822,8 @@ class SleepPipelineService {
     for (final night in targetNights) {
       final windowStart = night.subtract(const Duration(days: 14));
       
-      final windowSessions = sessionsList.where((s) {
-        final d = _normalizeDay(s.endAtUtc);
+      final windowSessions = coreSessionsList.where((s) {
+        final d = _normalizeDay(s.endAtUtc.toLocal());
         return !d.isBefore(windowStart) && !d.isAfter(night);
       }).toList();
 

@@ -10,6 +10,7 @@ import '../../data/repository/sleep_query_repository.dart';
 import '../../data/sleep_day_repository.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
 import '../../platform/sleep_sync_service.dart';
+import '../../domain/sleep_domain.dart';
 import '../details/sleep_data_unavailable_card.dart';
 import '../month/sleep_month_overview_page.dart';
 import '../week/sleep_week_overview_page.dart';
@@ -316,6 +317,10 @@ class _SleepDayOverviewContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SleepTimelineCard(overview: overview),
+        if (overview.allSessions.length > 1) ...[
+          const SizedBox(height: _sleepOverviewSectionSpacing),
+          _SleepIntervalsCard(overview: overview),
+        ],
         const SizedBox(height: _sleepOverviewSectionSpacing),
         SleepScoreCard(overview: overview),
         const SizedBox(height: _sleepOverviewSectionSpacing),
@@ -326,6 +331,182 @@ class _SleepDayOverviewContent extends StatelessWidget {
         SleepMetricTileGrid(overview: overview),
       ],
     );
+  }
+}
+
+class _SleepIntervalsCard extends StatefulWidget {
+  const _SleepIntervalsCard({required this.overview});
+
+  final SleepDayOverviewData overview;
+
+  @override
+  State<_SleepIntervalsCard> createState() => _SleepIntervalsCardState();
+}
+
+class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final sessions = widget.overview.allSessions;
+
+    if (sessions.length <= 1) return const SizedBox.shrink();
+
+    return SummaryCard(
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.nights_stay_outlined,
+                    color: cs.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.sleepIntervalsDrawerTitle,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: cs.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${sessions.length}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: cs.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.expand_more),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Column(
+              children: [
+                const Divider(height: 1),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: sessions.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final session = sessions[index];
+                    final startLocal = session.startAtUtc.toLocal();
+                    final endLocal = session.endAtUtc.toLocal();
+                    final duration = session.endAtUtc.difference(session.startAtUtc);
+                    
+                    final isCore = session.sessionType == SleepSessionType.mainSleep;
+                    final typeText = isCore 
+                        ? l10n.sleepSessionTypeCore 
+                        : l10n.sleepSessionTypeNap;
+                    final badgeColor = isCore ? cs.primary : cs.secondary;
+
+                    return Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: badgeColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: badgeColor.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            typeText,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: badgeColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Text(
+                                '${_formatTime(startLocal)} - ${_formatTime(endLocal)}',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              if (startLocal.day != endLocal.day) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  '(+1)',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        Text(
+                          _formatDuration(duration),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: cs.onSurface,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTime(DateTime time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  String _formatDuration(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes % 60;
+    if (h > 0) {
+      return '${h}h ${m}m';
+    }
+    return '${m}m';
   }
 }
 

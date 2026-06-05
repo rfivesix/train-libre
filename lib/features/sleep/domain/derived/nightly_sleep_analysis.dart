@@ -55,6 +55,58 @@ class NightlySleepAnalysis {
   final String? sourceRecordHash;
   final Map<String, dynamic>? scoreBreakdownJson;
 
+  NightlySleepAnalysis copyWith({
+    String? id,
+    String? sessionId,
+    DateTime? nightDate,
+    String? analysisVersion,
+    String? normalizationVersion,
+    DateTime? analyzedAtUtc,
+    double? score,
+    int? totalSleepMinutes,
+    double? sleepEfficiencyPct,
+    double? restingHeartRateBpm,
+    int? interruptionsCount,
+    int? interruptionsWakeMinutes,
+    double? scoreCompleteness,
+    double? regularitySri,
+    int? regularityValidDays,
+    bool? regularityStable,
+    SleepQualityBucket? sleepQuality,
+    DateTime? sessionStartAtUtc,
+    DateTime? sessionEndAtUtc,
+    String? sourcePlatform,
+    String? sourceAppId,
+    String? sourceRecordHash,
+    Map<String, dynamic>? scoreBreakdownJson,
+  }) {
+    return NightlySleepAnalysis(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      nightDate: nightDate ?? this.nightDate,
+      analysisVersion: analysisVersion ?? this.analysisVersion,
+      normalizationVersion: normalizationVersion ?? this.normalizationVersion,
+      analyzedAtUtc: analyzedAtUtc ?? this.analyzedAtUtc,
+      score: score ?? this.score,
+      totalSleepMinutes: totalSleepMinutes ?? this.totalSleepMinutes,
+      sleepEfficiencyPct: sleepEfficiencyPct ?? this.sleepEfficiencyPct,
+      restingHeartRateBpm: restingHeartRateBpm ?? this.restingHeartRateBpm,
+      interruptionsCount: interruptionsCount ?? this.interruptionsCount,
+      interruptionsWakeMinutes: interruptionsWakeMinutes ?? this.interruptionsWakeMinutes,
+      scoreCompleteness: scoreCompleteness ?? this.scoreCompleteness,
+      regularitySri: regularitySri ?? this.regularitySri,
+      regularityValidDays: regularityValidDays ?? this.regularityValidDays,
+      regularityStable: regularityStable ?? this.regularityStable,
+      sleepQuality: sleepQuality ?? this.sleepQuality,
+      sessionStartAtUtc: sessionStartAtUtc ?? this.sessionStartAtUtc,
+      sessionEndAtUtc: sessionEndAtUtc ?? this.sessionEndAtUtc,
+      sourcePlatform: sourcePlatform ?? this.sourcePlatform,
+      sourceAppId: sourceAppId ?? this.sourceAppId,
+      sourceRecordHash: sourceRecordHash ?? this.sourceRecordHash,
+      scoreBreakdownJson: scoreBreakdownJson ?? this.scoreBreakdownJson,
+    );
+  }
+
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
         'sessionId': sessionId,

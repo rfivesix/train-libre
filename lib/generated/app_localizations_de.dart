@@ -3631,6 +3631,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Für diese Nacht ist keine Schlafphasen-Timeline verfügbar.';
 
   @override
+  String get sleepSessionTypeCore => 'Hauptschlaf';
+
+  @override
+  String get sleepSessionTypeNap => 'Nickerchen';
+
+  @override
+  String get sleepIntervalsDrawerTitle => 'Schlafintervalle';
+
+  @override
   String get sleepStageDeepLabel => 'Tief';
 
   @override

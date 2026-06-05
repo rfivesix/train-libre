@@ -3599,6 +3599,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'No stage timeline available for this night.';
 
   @override
+  String get sleepSessionTypeCore => 'Core Sleep';
+
+  @override
+  String get sleepSessionTypeNap => 'Nap';
+
+  @override
+  String get sleepIntervalsDrawerTitle => 'Sleep Intervals';
+
+  @override
   String get sleepStageDeepLabel => 'Deep';
 
   @override
