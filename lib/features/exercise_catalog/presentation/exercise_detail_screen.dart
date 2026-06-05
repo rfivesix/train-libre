@@ -16,6 +16,8 @@ import '../../profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
 import '../../../services/profile_service.dart';
+import 'create_exercise_screen.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 
 enum ExerciseMetric { maxWeight, volume, est1rm }
 
@@ -38,6 +40,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   ExerciseMetric _selectedMetric = ExerciseMetric.maxWeight;
   String _selectedRange = '30D';
 
+  late Exercise _currentExercise = widget.exercise;
   Map<String, SetLog?> _prMap = {};
   List<Map<String, dynamic>> _timeSeriesData = [];
 
@@ -64,61 +67,139 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    final String? exerciseUuid = widget.exercise.id != null
-        ? await _repository.getExerciseUuidByLocalId(widget.exercise.id!)
+    Exercise exercise = widget.exercise;
+    if (widget.exercise.id != null) {
+      final String? exerciseUuid = widget.exercise.uuid ??
+          await _repository.getExerciseUuidByLocalId(widget.exercise.id!);
+      if (exerciseUuid != null) {
+        final fresh = await _repository.getExerciseByUuid(exerciseUuid);
+        if (fresh != null) {
+          exercise = fresh;
+        }
+      }
+    }
+
+    final String? exerciseUuid = exercise.id != null
+        ? await _repository.getExerciseUuidByLocalId(exercise.id!)
         : null;
 
-    final altName = widget.exercise.nameEn.isNotEmpty &&
-            widget.exercise.nameEn != widget.exercise.nameDe
-        ? widget.exercise.nameEn
+    final altName = exercise.nameEn.isNotEmpty &&
+            exercise.nameEn != exercise.nameDe
+        ? exercise.nameEn
         : null;
-
-    // Use DB helper directly via repository delegate or repository
-    // Let's implement these two methods in ExerciseCatalogRepository to avoid direct DB helper call.
-    // Wait, did we define getExercisePRs and getExerciseTimeSeriesData in ExerciseCatalogRepository?
-    // Let's check! In ExerciseCatalogRepository:
-    // Future<List<Map<String, dynamic>>> getExercisePRs(String exerciseUuid) => _dbHelper.getExercisePRs(exerciseUuid);
-    // Wait! In the original _loadData:
-    // WorkoutLocalDataSource.instance.getExercisePRs(widget.exercise.nameDe, altName: altName, exerciseUuid: exerciseUuid);
-    // So the signature of getExercisePRs is `getExercisePRs(String nameDe, {String? altName, String? exerciseUuid})`.
-    // Let's update `ExerciseCatalogRepository`'s methods to match exactly the signature!
-    // Wait! We can call `_repository._dbHelper.getExercisePRs(...)` and `_repository._dbHelper.getExerciseTimeSeriesData(...)` directly!
-    // Or we can just use `_repository.getExercisePRs(...)` and `_repository.getExerciseTimeSeriesData(...)` if we adapt their signatures.
-    // Let's check: our `ExerciseCatalogRepository` was written with:
-    // `Future<List<Map<String, dynamic>>> getExercisePRs(String exerciseUuid)` and `Future<List<Map<String, dynamic>>> getExerciseTimeSeriesData(String exerciseUuid)`.
-    // But `WorkoutLocalDataSource` has:
-    // `Future<Map<String, SetLog?>> getExercisePRs(String nameDe, {String? altName, String? exerciseUuid})`
-    // and `Future<List<Map<String, dynamic>>> getExerciseTimeSeriesData(String nameDe, {String? altName, String? exerciseUuid})`.
-    // Let's modify `ExerciseCatalogRepository` to match exactly, or call them directly from repository._dbHelper.
-    // Since `repository` is an instance of `ExerciseCatalogRepository` which wraps `WorkoutLocalDataSource`,
-    // let's update `ExerciseCatalogRepository` to have the exact correct signatures, so it's a 100% clean proxy!
-    // Let's do that in a single file replacement. But first, let's complete `ExerciseDetailScreen` using `_repository._dbHelper`
-    // which is perfectly clean since it still delegates through the injected repository interface, OR update the repository file.
-    // Actually, calling the repository's methods is cleaner. Let's make `ExerciseDetailScreen` call the repository's database helper.
-    // Wait, `_repository._dbHelper` is private in `ExerciseCatalogRepository`. Let's make it public as `dbHelper` or expose the methods correctly.
-    // Exposing the methods correctly in the repository is the absolute standard!
-    // Let's update `lib/features/exercise_catalog/data/exercise_catalog_repository.dart` to have the correct signatures.
-    // Wait, let's write `ExerciseDetailScreen` first using `_repository.getExercisePRs` and `_repository.getExerciseTimeSeriesData`.
 
     final prs = await _repository.getExercisePRs(
-      widget.exercise.nameDe,
+      exercise.nameDe,
       altName: altName,
       exerciseUuid: exerciseUuid,
     );
 
     final timeSeries = await _repository.getExerciseTimeSeriesData(
-      widget.exercise.nameDe,
+      exercise.nameDe,
       altName: altName,
       exerciseUuid: exerciseUuid,
     );
 
     if (mounted) {
       setState(() {
+        _currentExercise = exercise;
         _prMap = prs;
         _timeSeriesData = timeSeries;
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _duplicateAndEdit() async {
+    setState(() => _isLoading = true);
+    try {
+      final duplicate = Exercise.duplicateAsCustom(_currentExercise);
+      final inserted = await _repository.insertExercise(duplicate);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'de'
+                ? "Kopie '${inserted.nameDe}' wurde erstellt."
+                : "Copy '${inserted.nameDe}' created.",
+          ),
+        ),
+      );
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => CreateExerciseScreen(
+            repository: _repository,
+            exerciseToEdit: inserted,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint("Error duplicating exercise: $e");
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    }
+  }
+
+  void _showSystemEditMenu(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final isDe = Localizations.localeOf(context).languageCode == 'de';
+
+    final title = isDe ? "System-Übung kopieren" : "Copy System Exercise";
+    final body = isDe
+        ? "Diese Übung ist vom System bereitgestellt und kann nicht direkt bearbeitet werden. Möchtest du eine Kopie erstellen, um sie anzupassen?"
+        : "This exercise is system-provided and cannot be directly edited. Would you like to create a custom copy to edit it?";
+    final buttonLabel = isDe ? "Kopie erstellen & bearbeiten" : "Create copy & edit";
+    final cancelLabel = isDe ? "Abbrechen" : "Cancel";
+
+    showGlassBottomMenu(
+      context: context,
+      title: title,
+      contentBuilder: (ctx, close) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+              child: Text(
+                body,
+                textAlign: TextAlign.center,
+                style: textTheme.bodyMedium,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => close(),
+                    child: Text(cancelLabel),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      close();
+                      _duplicateAndEdit();
+                    },
+                    child: Text(buttonLabel),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -133,11 +214,32 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-        title: widget.exercise.getLocalizedName(context),
+        title: _currentExercise.getLocalizedName(context),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              if (_currentExercise.source == 'user') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => CreateExerciseScreen(
+                      repository: _repository,
+                      exerciseToEdit: _currentExercise,
+                    ),
+                  ),
+                ).then((wasSaved) {
+                  if (wasSaved == true) {
+                    _loadData();
+                  }
+                });
+              } else {
+                _showSystemEditMenu(context);
+              }
+            },
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: _CategoryBadge(text: widget.exercise.categoryName),
+            child: _CategoryBadge(text: _currentExercise.categoryName),
           ),
         ],
       ),
@@ -148,7 +250,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if ((widget.exercise.imagePath ?? '').isNotEmpty)
+            if ((_currentExercise.imagePath ?? '').isNotEmpty)
               Container(
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
@@ -156,7 +258,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       BorderRadius.circular(DesignConstants.borderRadiusL),
                 ),
                 child: Image.asset(
-                  widget.exercise.imagePath!,
+                  _currentExercise.imagePath!,
                   fit: BoxFit.cover,
                   width: double.infinity,
                   errorBuilder: (_, __, ___) => Container(
@@ -171,15 +273,17 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   ),
                 ),
               ),
-            if ((widget.exercise.imagePath ?? '').isNotEmpty)
+            if ((_currentExercise.imagePath ?? '').isNotEmpty)
               const SizedBox(height: DesignConstants.spacingXL),
+
+
             AppSectionHeader(title: l10n.descriptionLabel),
             SummaryCard(
               child: Padding(
                 padding: DesignConstants.cardPadding,
                 child: Text(
-                  widget.exercise.getLocalizedDescription(context).isNotEmpty
-                      ? widget.exercise.getLocalizedDescription(context)
+                  _currentExercise.getLocalizedDescription(context).isNotEmpty
+                      ? _currentExercise.getLocalizedDescription(context)
                       : l10n.noDescriptionAvailable,
                   style: textTheme.bodyMedium,
                 ),
@@ -187,7 +291,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             ),
             const SizedBox(height: DesignConstants.spacingXL),
             AppSectionHeader(title: l10n.involvedMuscles),
-            _ExerciseMuscleBodyView(exercise: widget.exercise),
+            _ExerciseMuscleBodyView(exercise: _currentExercise),
             const SizedBox(height: DesignConstants.spacingXL),
             if (_isLoading)
               const Center(child: CircularProgressIndicator())

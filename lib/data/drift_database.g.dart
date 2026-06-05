@@ -1390,6 +1390,15 @@ class $ExercisesTable extends Exercises
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _replacesExerciseIdMeta =
+      const VerificationMeta('replacesExerciseId');
+  @override
+  late final GeneratedColumn<String> replacesExerciseId =
+      GeneratedColumn<String>('replaces_exercise_id', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultConstraints:
+              GeneratedColumn.constraintIsAlways('REFERENCES exercises (id)'));
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -1408,7 +1417,8 @@ class $ExercisesTable extends Exercises
         musclesSecondary,
         isCustom,
         source,
-        usageCount
+        usageCount,
+        replacesExerciseId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1503,6 +1513,12 @@ class $ExercisesTable extends Exercises
           usageCount.isAcceptableOrUnknown(
               data['usage_count']!, _usageCountMeta));
     }
+    if (data.containsKey('replaces_exercise_id')) {
+      context.handle(
+          _replacesExerciseIdMeta,
+          replacesExerciseId.isAcceptableOrUnknown(
+              data['replaces_exercise_id']!, _replacesExerciseIdMeta));
+    }
     return context;
   }
 
@@ -1546,6 +1562,8 @@ class $ExercisesTable extends Exercises
           .read(DriftSqlType.string, data['${effectivePrefix}source'])!,
       usageCount: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}usage_count'])!,
+      replacesExerciseId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}replaces_exercise_id']),
     );
   }
 
@@ -1573,6 +1591,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
   final bool isCustom;
   final String source;
   final int usageCount;
+  final String? replacesExerciseId;
   const Exercise(
       {required this.localId,
       required this.id,
@@ -1590,7 +1609,8 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       this.musclesSecondary,
       required this.isCustom,
       required this.source,
-      required this.usageCount});
+      required this.usageCount,
+      this.replacesExerciseId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1627,6 +1647,9 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     map['is_custom'] = Variable<bool>(isCustom);
     map['source'] = Variable<String>(source);
     map['usage_count'] = Variable<int>(usageCount);
+    if (!nullToAbsent || replacesExerciseId != null) {
+      map['replaces_exercise_id'] = Variable<String>(replacesExerciseId);
+    }
     return map;
   }
 
@@ -1665,6 +1688,9 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       isCustom: Value(isCustom),
       source: Value(source),
       usageCount: Value(usageCount),
+      replacesExerciseId: replacesExerciseId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(replacesExerciseId),
     );
   }
 
@@ -1689,6 +1715,8 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       isCustom: serializer.fromJson<bool>(json['isCustom']),
       source: serializer.fromJson<String>(json['source']),
       usageCount: serializer.fromJson<int>(json['usageCount']),
+      replacesExerciseId:
+          serializer.fromJson<String?>(json['replacesExerciseId']),
     );
   }
   @override
@@ -1712,6 +1740,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       'isCustom': serializer.toJson<bool>(isCustom),
       'source': serializer.toJson<String>(source),
       'usageCount': serializer.toJson<int>(usageCount),
+      'replacesExerciseId': serializer.toJson<String?>(replacesExerciseId),
     };
   }
 
@@ -1732,7 +1761,8 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           Value<String?> musclesSecondary = const Value.absent(),
           bool? isCustom,
           String? source,
-          int? usageCount}) =>
+          int? usageCount,
+          Value<String?> replacesExerciseId = const Value.absent()}) =>
       Exercise(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -1757,6 +1787,9 @@ class Exercise extends DataClass implements Insertable<Exercise> {
         isCustom: isCustom ?? this.isCustom,
         source: source ?? this.source,
         usageCount: usageCount ?? this.usageCount,
+        replacesExerciseId: replacesExerciseId.present
+            ? replacesExerciseId.value
+            : this.replacesExerciseId,
       );
   Exercise copyWithCompanion(ExercisesCompanion data) {
     return Exercise(
@@ -1788,6 +1821,9 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       source: data.source.present ? data.source.value : this.source,
       usageCount:
           data.usageCount.present ? data.usageCount.value : this.usageCount,
+      replacesExerciseId: data.replacesExerciseId.present
+          ? data.replacesExerciseId.value
+          : this.replacesExerciseId,
     );
   }
 
@@ -1810,7 +1846,8 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           ..write('musclesSecondary: $musclesSecondary, ')
           ..write('isCustom: $isCustom, ')
           ..write('source: $source, ')
-          ..write('usageCount: $usageCount')
+          ..write('usageCount: $usageCount, ')
+          ..write('replacesExerciseId: $replacesExerciseId')
           ..write(')'))
         .toString();
   }
@@ -1833,7 +1870,8 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       musclesSecondary,
       isCustom,
       source,
-      usageCount);
+      usageCount,
+      replacesExerciseId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1854,7 +1892,8 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           other.musclesSecondary == this.musclesSecondary &&
           other.isCustom == this.isCustom &&
           other.source == this.source &&
-          other.usageCount == this.usageCount);
+          other.usageCount == this.usageCount &&
+          other.replacesExerciseId == this.replacesExerciseId);
 }
 
 class ExercisesCompanion extends UpdateCompanion<Exercise> {
@@ -1875,6 +1914,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
   final Value<bool> isCustom;
   final Value<String> source;
   final Value<int> usageCount;
+  final Value<String?> replacesExerciseId;
   const ExercisesCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -1893,6 +1933,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.isCustom = const Value.absent(),
     this.source = const Value.absent(),
     this.usageCount = const Value.absent(),
+    this.replacesExerciseId = const Value.absent(),
   });
   ExercisesCompanion.insert({
     this.localId = const Value.absent(),
@@ -1912,6 +1953,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.isCustom = const Value.absent(),
     this.source = const Value.absent(),
     this.usageCount = const Value.absent(),
+    this.replacesExerciseId = const Value.absent(),
   })  : nameDe = Value(nameDe),
         nameEn = Value(nameEn);
   static Insertable<Exercise> custom({
@@ -1932,6 +1974,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Expression<bool>? isCustom,
     Expression<String>? source,
     Expression<int>? usageCount,
+    Expression<String>? replacesExerciseId,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -1951,6 +1994,8 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       if (isCustom != null) 'is_custom': isCustom,
       if (source != null) 'source': source,
       if (usageCount != null) 'usage_count': usageCount,
+      if (replacesExerciseId != null)
+        'replaces_exercise_id': replacesExerciseId,
     });
   }
 
@@ -1971,7 +2016,8 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       Value<String?>? musclesSecondary,
       Value<bool>? isCustom,
       Value<String>? source,
-      Value<int>? usageCount}) {
+      Value<int>? usageCount,
+      Value<String?>? replacesExerciseId}) {
     return ExercisesCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -1990,6 +2036,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       isCustom: isCustom ?? this.isCustom,
       source: source ?? this.source,
       usageCount: usageCount ?? this.usageCount,
+      replacesExerciseId: replacesExerciseId ?? this.replacesExerciseId,
     );
   }
 
@@ -2047,6 +2094,9 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     if (usageCount.present) {
       map['usage_count'] = Variable<int>(usageCount.value);
     }
+    if (replacesExerciseId.present) {
+      map['replaces_exercise_id'] = Variable<String>(replacesExerciseId.value);
+    }
     return map;
   }
 
@@ -2069,7 +2119,8 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
           ..write('musclesSecondary: $musclesSecondary, ')
           ..write('isCustom: $isCustom, ')
           ..write('source: $source, ')
-          ..write('usageCount: $usageCount')
+          ..write('usageCount: $usageCount, ')
+          ..write('replacesExerciseId: $replacesExerciseId')
           ..write(')'))
         .toString();
   }
@@ -16777,6 +16828,7 @@ typedef $$ExercisesTableCreateCompanionBuilder = ExercisesCompanion Function({
   Value<bool> isCustom,
   Value<String> source,
   Value<int> usageCount,
+  Value<String?> replacesExerciseId,
 });
 typedef $$ExercisesTableUpdateCompanionBuilder = ExercisesCompanion Function({
   Value<int> localId,
@@ -16796,11 +16848,27 @@ typedef $$ExercisesTableUpdateCompanionBuilder = ExercisesCompanion Function({
   Value<bool> isCustom,
   Value<String> source,
   Value<int> usageCount,
+  Value<String?> replacesExerciseId,
 });
 
 final class $$ExercisesTableReferences
     extends BaseReferences<_$AppDatabase, $ExercisesTable, Exercise> {
   $$ExercisesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ExercisesTable _replacesExerciseIdTable(_$AppDatabase db) =>
+      db.exercises.createAlias($_aliasNameGenerator(
+          db.exercises.replacesExerciseId, db.exercises.id));
+
+  $$ExercisesTableProcessedTableManager? get replacesExerciseId {
+    final $_column = $_itemColumn<String>('replaces_exercise_id');
+    if ($_column == null) return null;
+    final manager = $$ExercisesTableTableManager($_db, $_db.exercises)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_replacesExerciseIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
 
   static MultiTypedResultKey<$RoutineExercisesTable, List<RoutineExercise>>
       _routineExercisesRefsTable(_$AppDatabase db) =>
@@ -16914,6 +16982,26 @@ class $$ExercisesTableFilterComposer
 
   ColumnFilters<int> get usageCount => $composableBuilder(
       column: $table.usageCount, builder: (column) => ColumnFilters(column));
+
+  $$ExercisesTableFilterComposer get replacesExerciseId {
+    final $$ExercisesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.replacesExerciseId,
+        referencedTable: $db.exercises,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ExercisesTableFilterComposer(
+              $db: $db,
+              $table: $db.exercises,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<bool> routineExercisesRefs(
       Expression<bool> Function($$RoutineExercisesTableFilterComposer f) f) {
@@ -17043,6 +17131,26 @@ class $$ExercisesTableOrderingComposer
 
   ColumnOrderings<int> get usageCount => $composableBuilder(
       column: $table.usageCount, builder: (column) => ColumnOrderings(column));
+
+  $$ExercisesTableOrderingComposer get replacesExerciseId {
+    final $$ExercisesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.replacesExerciseId,
+        referencedTable: $db.exercises,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ExercisesTableOrderingComposer(
+              $db: $db,
+              $table: $db.exercises,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$ExercisesTableAnnotationComposer
@@ -17104,6 +17212,26 @@ class $$ExercisesTableAnnotationComposer
 
   GeneratedColumn<int> get usageCount => $composableBuilder(
       column: $table.usageCount, builder: (column) => column);
+
+  $$ExercisesTableAnnotationComposer get replacesExerciseId {
+    final $$ExercisesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.replacesExerciseId,
+        referencedTable: $db.exercises,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ExercisesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.exercises,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<T> routineExercisesRefs<T extends Object>(
       Expression<T> Function($$RoutineExercisesTableAnnotationComposer a) f) {
@@ -17183,7 +17311,8 @@ class $$ExercisesTableTableManager extends RootTableManager<
     (Exercise, $$ExercisesTableReferences),
     Exercise,
     PrefetchHooks Function(
-        {bool routineExercisesRefs,
+        {bool replacesExerciseId,
+        bool routineExercisesRefs,
         bool setLogsRefs,
         bool workoutExerciseLogsRefs})> {
   $$ExercisesTableTableManager(_$AppDatabase db, $ExercisesTable table)
@@ -17214,6 +17343,7 @@ class $$ExercisesTableTableManager extends RootTableManager<
             Value<bool> isCustom = const Value.absent(),
             Value<String> source = const Value.absent(),
             Value<int> usageCount = const Value.absent(),
+            Value<String?> replacesExerciseId = const Value.absent(),
           }) =>
               ExercisesCompanion(
             localId: localId,
@@ -17233,6 +17363,7 @@ class $$ExercisesTableTableManager extends RootTableManager<
             isCustom: isCustom,
             source: source,
             usageCount: usageCount,
+            replacesExerciseId: replacesExerciseId,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -17252,6 +17383,7 @@ class $$ExercisesTableTableManager extends RootTableManager<
             Value<bool> isCustom = const Value.absent(),
             Value<String> source = const Value.absent(),
             Value<int> usageCount = const Value.absent(),
+            Value<String?> replacesExerciseId = const Value.absent(),
           }) =>
               ExercisesCompanion.insert(
             localId: localId,
@@ -17271,6 +17403,7 @@ class $$ExercisesTableTableManager extends RootTableManager<
             isCustom: isCustom,
             source: source,
             usageCount: usageCount,
+            replacesExerciseId: replacesExerciseId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -17279,7 +17412,8 @@ class $$ExercisesTableTableManager extends RootTableManager<
                   ))
               .toList(),
           prefetchHooksCallback: (
-              {routineExercisesRefs = false,
+              {replacesExerciseId = false,
+              routineExercisesRefs = false,
               setLogsRefs = false,
               workoutExerciseLogsRefs = false}) {
             return PrefetchHooks(
@@ -17289,7 +17423,33 @@ class $$ExercisesTableTableManager extends RootTableManager<
                 if (setLogsRefs) db.setLogs,
                 if (workoutExerciseLogsRefs) db.workoutExerciseLogs
               ],
-              addJoins: null,
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (replacesExerciseId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.replacesExerciseId,
+                    referencedTable:
+                        $$ExercisesTableReferences._replacesExerciseIdTable(db),
+                    referencedColumn: $$ExercisesTableReferences
+                        ._replacesExerciseIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (routineExercisesRefs)
@@ -17350,7 +17510,8 @@ typedef $$ExercisesTableProcessedTableManager = ProcessedTableManager<
     (Exercise, $$ExercisesTableReferences),
     Exercise,
     PrefetchHooks Function(
-        {bool routineExercisesRefs,
+        {bool replacesExerciseId,
+        bool routineExercisesRefs,
         bool setLogsRefs,
         bool workoutExerciseLogsRefs})>;
 typedef $$RoutinesTableCreateCompanionBuilder = RoutinesCompanion Function({

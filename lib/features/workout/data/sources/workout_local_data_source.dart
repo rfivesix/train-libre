@@ -110,6 +110,9 @@ class WorkoutLocalDataSource {
   Exercise _mapExerciseToModel(db.Exercise row) {
     return Exercise(
       id: row.localId,
+      uuid: row.id,
+      source: row.source,
+      replacesExerciseId: row.replacesExerciseId,
       nameDe: row.nameDe,
       nameEn: row.nameEn,
       descriptionDe: row.descriptionDe ?? '',

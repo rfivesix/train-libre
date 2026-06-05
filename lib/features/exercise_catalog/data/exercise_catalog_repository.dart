@@ -41,6 +41,11 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
   }
 
   @override
+  Future<void> updateCustomExercise(Exercise exercise) {
+    return _localDataSource.updateCustomExercise(exercise);
+  }
+
+  @override
   Future<List<Exercise>> getCustomExercises() {
     return _localDataSource.getCustomExercises();
   }

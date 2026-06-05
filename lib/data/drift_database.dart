@@ -79,6 +79,9 @@ class Exercises extends Table with HybridId, MetaColumns {
   TextColumn get source => text().withDefault(const Constant('user'))();
 
   IntColumn get usageCount => integer().withDefault(const Constant(0))();
+
+  TextColumn get replacesExerciseId =>
+      text().nullable().references(Exercises, #id)();
 }
 
 // 4. Routines
@@ -447,7 +450,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -652,6 +655,10 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 21) {
             await m.createTable(userFoodOverrides);
+          }
+          if (from < 22) {
+            await m.addColumn(exercises, exercises.replacesExerciseId);
+            await customStatement("UPDATE exercises SET source = 'wger' WHERE source = 'base'");
           }
         },
       );

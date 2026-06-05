@@ -247,10 +247,20 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                           return SummaryCard(
                             child: ListTile(
                               leading: const Icon(Icons.fitness_center),
-                              title: Text(
-                                exercise.getLocalizedName(context),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      exercise.getLocalizedName(context),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  if (exercise.source == 'user') ...[
+                                    const SizedBox(width: 8),
+                                    _buildSourceBadge(context, exercise.source),
+                                  ],
+                                ],
                               ),
                               subtitle: Text(exercise.categoryName),
                               trailing: widget.isSelectionMode
@@ -349,6 +359,27 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         tooltip: l10n.filterByCategory,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
+      ),
+    );
+  }
+
+  Widget _buildSourceBadge(BuildContext context, String source) {
+    final theme = Theme.of(context);
+    const color = Colors.orange;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        'Custom',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

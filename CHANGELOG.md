@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.19] - 2026-06-02
 ### Added
+- **Global Exercise Catalog Overhaul & wger Isolation**:
+  - Implemented database schema migration (v22) adding a `replacesExerciseId` column to track user clones of system exercises.
+  - Added a smart-forking cloning factory `Exercise.duplicateAsCustom` to copy read-only system exercises into customizable user-created copies.
+  - Overhauled repository queries (`getExerciseByUuid`, `getExerciseByName`, and `searchExercises`) to exclude overridden system exercises and prioritize resolving user-created custom overrides.
+  - Implemented strict database write guards to prevent direct modification of read-only wger system catalog entries.
+  - Added a comprehensive database integration test suite validating cloning behavior, search exclusion, and priority override resolution.
+
 - **Sleep Day Overview Screen**: Added a new [SleepDayOverviewPage](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/presentation/day/sleep_day_overview_page.dart) screen detailing nocturnal sleep architecture, duration, cycles, efficiency indicators, and scoring, utilizing dynamic translations and localized strings.
 - **Nightly Sleep Analysis Domain**: Added the [NightlySleepAnalysis](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/domain/derived/nightly_sleep_analysis.dart) model to handle high-precision calculations of physiological sleep data.
 - **Isolate Offloaded Excel Export Engine**: Completely refactored the Excel generation pipeline to run inside a background isolate (`compute()`), utilizing fully serialized Dart DTOs (`ExcelExportData`) to decouple database queries from spreadsheet construction, eliminating thread lock and memory sharing failures.
@@ -23,6 +30,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Added a dedicated, chronologically sorted sheet outputting a raw, granular log of all user measurements with columns: `[Date] | [Time] | [Measurement Type] | [Value] | [Unit]`.
 
 ### Changed
+- **Exercise Catalog & Detail UX Refinements**:
+  - Hid the `[System]` badge on cards in the exercise catalog list view, displaying only the `[Custom]` badge for custom user exercises.
+  - Removed the prominent inline warning card on the exercise detail screen to declutter the layout.
+  - Made the AppBar "Edit" button always visible; clicking it on a system exercise opens a premium glass bottom sheet menu with options to clone and edit.
 - **Real-Time Weight & Measurement Chart Updates**: Refactored the profile repository and database helper to expose reactive data streams, enabling the measurements chart on the Diary/Profile screens to auto-update in real-time when new entries are added, eliminating the need for manual refreshes.
 - **Product Search Engine Optimizations**: Overhauled search query structures in the product local data source to significantly accelerate lookups and improve fuzzy-matching quality against the localized food database.
 - **Sleep Pipeline Architecture Refinement**: Deeply refactored the sleep pipeline service and sleep day repository to resolve overlapping nocturnal logging bugs and stabilize daytime nap exclusions.

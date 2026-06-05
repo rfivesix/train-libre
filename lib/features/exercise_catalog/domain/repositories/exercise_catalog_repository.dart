@@ -13,6 +13,7 @@ abstract class IExerciseCatalogRepository {
   Future<Exercise?> getExerciseByName(String name);
   Future<Exercise?> getExerciseByUuid(String exerciseUuid);
   Future<Exercise> insertExercise(Exercise exercise);
+  Future<void> updateCustomExercise(Exercise exercise);
   Future<List<Exercise>> getCustomExercises();
   Future<void> importCustomExercises(List<Exercise> exercises);
   Future<void> applyExerciseNameMapping(Map<String, String> mapping);

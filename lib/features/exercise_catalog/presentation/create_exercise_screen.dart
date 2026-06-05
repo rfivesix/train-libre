@@ -11,8 +11,9 @@ import '../../../widgets/common/global_app_bar.dart';
 /// A screen for creating custom exercises.
 class CreateExerciseScreen extends StatefulWidget {
   final IExerciseCatalogRepository? repository;
+  final Exercise? exerciseToEdit;
 
-  const CreateExerciseScreen({super.key, this.repository});
+  const CreateExerciseScreen({super.key, this.repository, this.exerciseToEdit});
   @override
   State<CreateExerciseScreen> createState() => _CreateExerciseScreenState();
 }
@@ -25,6 +26,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   final _descriptionController = TextEditingController();
 
   String? _selectedCategory;
+  bool get _isReadOnly => widget.exerciseToEdit?.source == 'wger';
 
   // Fallback lists if the DB is empty
   final List<String> _defaultCategories = [
@@ -106,6 +108,15 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
           _allCategories.sort();
           _allMuscleGroups.sort();
 
+          if (widget.exerciseToEdit != null) {
+            final toEdit = widget.exerciseToEdit!;
+            _nameController.text = toEdit.nameDe;
+            _descriptionController.text = toEdit.descriptionDe;
+            _selectedCategory = toEdit.categoryName;
+            _selectedPrimaryMuscles.addAll(toEdit.primaryMuscles);
+            _selectedSecondaryMuscles.addAll(toEdit.secondaryMuscles);
+          }
+
           _isLoading = false;
         });
       }
@@ -124,11 +135,16 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   Future<void> _saveExercise() async {
     if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
+    if (_isReadOnly) return;
 
     setState(() => _saving = true);
 
     try {
-      final newExercise = Exercise(
+      final exercise = Exercise(
+        id: widget.exerciseToEdit?.id,
+        uuid: widget.exerciseToEdit?.uuid,
+        source: widget.exerciseToEdit?.source ?? 'user',
+        replacesExerciseId: widget.exerciseToEdit?.replacesExerciseId,
         nameDe: _nameController.text.trim(),
         nameEn: _nameController.text.trim(),
         descriptionDe: _descriptionController.text.trim(),
@@ -136,14 +152,18 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
         categoryName: _selectedCategory ?? 'Other',
         primaryMuscles: _selectedPrimaryMuscles,
         secondaryMuscles: _selectedSecondaryMuscles,
-        imagePath: null,
+        imagePath: widget.exerciseToEdit?.imagePath,
       );
 
-      await _repository.insertExercise(newExercise);
+      if (widget.exerciseToEdit != null) {
+        await _repository.updateCustomExercise(exercise);
+      } else {
+        await _repository.insertExercise(exercise);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.snackbarSaveSuccess(newExercise.nameDe))),
+          SnackBar(content: Text(l10n.snackbarSaveSuccess(exercise.nameDe))),
         );
         Navigator.of(context).pop(true);
       }
@@ -163,30 +183,35 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   Widget build(BuildContext context) {
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
+    final isDe = Localizations.localeOf(context).languageCode == 'de';
+    final titleText = widget.exerciseToEdit != null
+        ? (isDe ? "Übung bearbeiten" : "Edit Exercise")
+        : l10n.create_exercise_screen_title;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-        title: l10n.create_exercise_screen_title,
+        title: titleText,
         actions: [
-          TextButton(
-            onPressed: _saving ? null : _saveExercise,
-            child: _saving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(
-                    l10n.save,
-                    style: TextStyle(
-                      color: _saving
-                          ? Theme.of(context).disabledColor
-                          : Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+          if (!_isReadOnly)
+            TextButton(
+              onPressed: _saving ? null : _saveExercise,
+              child: _saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      l10n.save,
+                      style: TextStyle(
+                        color: _saving
+                            ? Theme.of(context).disabledColor
+                            : Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-          ),
+            ),
         ],
       ),
       body: _isLoading
@@ -202,6 +227,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
                   children: [
                     TextFormField(
                       controller: _nameController,
+                      enabled: !_isReadOnly,
                       decoration: InputDecoration(
                         labelText: l10n.exercise_name_label,
                         filled: true,
@@ -220,7 +246,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
                       items: _allCategories.map((cat) {
                         return DropdownMenuItem(value: cat, child: Text(cat));
                       }).toList(),
-                      onChanged: (val) {
+                      onChanged: _isReadOnly ? null : (val) {
                         setState(() => _selectedCategory = val);
                       },
                       decoration: InputDecoration(
@@ -238,6 +264,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
                     const SizedBox(height: DesignConstants.spacingL),
                     TextFormField(
                       controller: _descriptionController,
+                      enabled: !_isReadOnly,
                       decoration: InputDecoration(
                         labelText: l10n.description_optional_label,
                         filled: true,
@@ -278,7 +305,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
         return FilterChip(
           label: Text(muscle),
           selected: isSelected,
-          onSelected: (bool selected) {
+          onSelected: _isReadOnly ? null : (bool selected) {
             setState(() {
               if (selected) {
                 selectedMuscles.add(muscle);

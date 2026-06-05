@@ -394,6 +394,225 @@ void main() {
       expect(names, containsAll(['Historical Exercise', 'Row New']));
     });
 
+    group('Exercise Catalog Overhaul Overrides', () {
+      test('Exercise.duplicateAsCustom creates a valid custom copy', () {
+        final original = model.Exercise(
+          id: 42,
+          uuid: 'orig-uuid',
+          source: 'wger',
+          nameDe: 'Kniebeuge',
+          nameEn: 'Squat',
+          descriptionDe: 'Desc DE',
+          descriptionEn: 'Desc EN',
+          categoryName: 'Strength',
+          primaryMuscles: const ['Quadriceps'],
+          secondaryMuscles: const ['Glutes'],
+        );
+
+        final duplicate = model.Exercise.duplicateAsCustom(original, newUuid: 'new-uuid');
+
+        expect(duplicate.id, isNull);
+        expect(duplicate.uuid, 'new-uuid');
+        expect(duplicate.source, 'user');
+        expect(duplicate.replacesExerciseId, 'orig-uuid');
+        expect(duplicate.nameDe, 'Kniebeuge');
+        expect(duplicate.nameEn, 'Squat');
+        expect(duplicate.descriptionDe, 'Desc DE');
+        expect(duplicate.descriptionEn, 'Desc EN');
+        expect(duplicate.categoryName, 'Strength');
+        expect(duplicate.primaryMuscles, const ['Quadriceps']);
+        expect(duplicate.secondaryMuscles, const ['Glutes']);
+      });
+
+      test('searchExercises excludes overridden wger exercises', () async {
+        // 1. Insert a wger exercise
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-1'),
+                nameDe: const drift.Value('Bench Press (System)'),
+                nameEn: const drift.Value('Bench Press (System)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+
+        // Verify it shows up in search
+        var results = await helper.searchExercises(query: 'Bench');
+        expect(results.any((e) => e.uuid == 'system-1'), isTrue);
+
+        // 2. Insert user override
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-override-1'),
+                replacesExerciseId: const drift.Value('system-1'),
+                nameDe: const drift.Value('Bench Press (Custom Override)'),
+                nameEn: const drift.Value('Bench Press (Custom Override)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+
+        // Verify the system one is hidden and the override is shown
+        results = await helper.searchExercises(query: 'Bench');
+        expect(results.any((e) => e.uuid == 'system-1'), isFalse);
+        expect(results.any((e) => e.uuid == 'custom-override-1'), isTrue);
+      });
+
+      test('getExerciseByUuid resolves to override if present', () async {
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-2'),
+                nameDe: const drift.Value('Squat (System)'),
+                nameEn: const drift.Value('Squat (System)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+
+        // Direct UUID resolution of system-2 should yield the system one when no override exists
+        var resolved = await helper.getExerciseByUuid('system-2');
+        expect(resolved?.uuid, 'system-2');
+        expect(resolved?.source, 'wger');
+
+        // Insert override
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-override-2'),
+                replacesExerciseId: const drift.Value('system-2'),
+                nameDe: const drift.Value('Squat (Custom)'),
+                nameEn: const drift.Value('Squat (Custom)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+
+        // Direct UUID resolution of system-2 should now yield the custom override
+        resolved = await helper.getExerciseByUuid('system-2');
+        expect(resolved?.uuid, 'custom-override-2');
+        expect(resolved?.source, 'user');
+        expect(resolved?.replacesExerciseId, 'system-2');
+      });
+
+      test('getExerciseByName prefers custom/user exercises and overrides', () async {
+        // Case A: Custom and system exercise sharing same name (without explicit replacesExerciseId link)
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-3a'),
+                nameDe: const drift.Value('Deadlift'),
+                nameEn: const drift.Value('Deadlift'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-3b'),
+                nameDe: const drift.Value('Deadlift'),
+                nameEn: const drift.Value('Deadlift'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+
+        var resolved = await helper.getExerciseByName('Deadlift');
+        expect(resolved?.uuid, 'custom-3b');
+        expect(resolved?.source, 'user');
+
+        // Case B: System exercise override (different names, but linked via replacesExerciseId)
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-4'),
+                nameDe: const drift.Value('Overhead Press (System)'),
+                nameEn: const drift.Value('Overhead Press (System)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-override-4'),
+                replacesExerciseId: const drift.Value('system-4'),
+                nameDe: const drift.Value('Overhead Press (Custom)'),
+                nameEn: const drift.Value('Overhead Press (Custom)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+
+        // Lookup by system name resolves to override
+        resolved = await helper.getExerciseByName('Overhead Press (System)');
+        expect(resolved?.uuid, 'custom-override-4');
+        expect(resolved?.source, 'user');
+      });
+
+      test('updateCustomExercise updates user exercise but throws on wger exercise', () async {
+        final systemRow = await database.into(database.exercises).insertReturning(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-5'),
+                nameDe: const drift.Value('Pullup'),
+                nameEn: const drift.Value('Pullup'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        final systemModel = model.Exercise.fromMap({
+          'id': systemRow.localId,
+          'uuid': systemRow.id,
+          'source': systemRow.source,
+          'name_de': systemRow.nameDe,
+          'name_en': systemRow.nameEn,
+          'category_name': systemRow.categoryName,
+        });
+
+        final userRow = await database.into(database.exercises).insertReturning(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-5'),
+                nameDe: const drift.Value('Chinup'),
+                nameEn: const drift.Value('Chinup'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+        final userModel = model.Exercise.fromMap({
+          'id': userRow.localId,
+          'uuid': userRow.id,
+          'source': userRow.source,
+          'name_de': userRow.nameDe,
+          'name_en': userRow.nameEn,
+          'category_name': userRow.categoryName,
+        });
+
+        // 1. Try to update wger exercise - should fail
+        final updatedSystemModel = systemModel.copyWith(nameEn: 'Pullup (Updated)');
+        expect(
+          () => helper.updateCustomExercise(updatedSystemModel),
+          throwsA(isA<Exception>()),
+        );
+
+        // Verify name not changed
+        final verifySystem = await helper.getExerciseByUuid('system-5');
+        expect(verifySystem?.nameEn, 'Pullup');
+
+        // 2. Try to update user exercise - should succeed
+        final updatedUserModel = userModel.copyWith(nameEn: 'Chinup (Updated)');
+        await helper.updateCustomExercise(updatedUserModel);
+
+        // Verify name changed
+        final verifyUser = await helper.getExerciseByUuid('custom-5');
+        expect(verifyUser?.nameEn, 'Chinup (Updated)');
+      });
+    });
+
     test('getRecoveryAnalytics counts bodyweight and weighted strength only',
         () async {
       final now = DateTime.now();

@@ -29,7 +29,6 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     return muscles.toList()..sort();
   }
 
-  /// Searches for exercises matching the [query] and [selectedCategories].
   Future<List<Exercise>> searchExercises({
     String query = '',
     List<String> selectedCategories = const [],
@@ -37,6 +36,16 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
 
     var stmt = dbInstance.select(dbInstance.exercises);
+
+    // Exclude overridden system exercises
+    stmt = stmt..where((tbl) {
+      final other = dbInstance.exercises.createAlias('other_exercises');
+      final subqueryExists = drift.existsQuery(
+        dbInstance.select(other)
+          ..where((otherTable) => otherTable.replacesExerciseId.equalsExp(tbl.id)),
+      );
+      return (tbl.source.equals('wger') & subqueryExists).not();
+    });
 
     if (query.isNotEmpty) {
       final term = query.trim();
@@ -94,18 +103,45 @@ extension ExercisesQueries on WorkoutLocalDataSource {
 
   Future<Exercise?> getExerciseByName(String name) async {
     final dbInstance = await database;
-    final row = await (dbInstance.select(dbInstance.exercises)
+    final rows = await (dbInstance.select(dbInstance.exercises)
           ..where(
             (tbl) => tbl.nameDe.equals(name) | tbl.nameEn.equals(name),
-          )
+          ))
+        .get();
+
+    if (rows.isEmpty) return null;
+
+    // Prefer custom/user exercises
+    final userRow = rows.where((r) => r.source == 'user').firstOrNull;
+    if (userRow != null) {
+      return _mapExerciseToModel(userRow);
+    }
+
+    // Check if the system exercise has an active override
+    final firstRow = rows.first;
+    final overrideRow = await (dbInstance.select(dbInstance.exercises)
+          ..where((tbl) => tbl.replacesExerciseId.equals(firstRow.id) & tbl.source.equals('user'))
           ..limit(1))
         .getSingleOrNull();
+    if (overrideRow != null) {
+      return _mapExerciseToModel(overrideRow);
+    }
 
-    return row != null ? _mapExerciseToModel(row) : null;
+    return _mapExerciseToModel(firstRow);
   }
 
   Future<Exercise?> getExerciseByUuid(String exerciseUuid) async {
     final dbInstance = await database;
+
+    // Resolve overriding custom exercises first
+    final overrideRow = await (dbInstance.select(dbInstance.exercises)
+          ..where((tbl) => tbl.replacesExerciseId.equals(exerciseUuid) & tbl.source.equals('user'))
+          ..limit(1))
+        .getSingleOrNull();
+    if (overrideRow != null) {
+      return _mapExerciseToModel(overrideRow);
+    }
+
     final row = await (dbInstance.select(dbInstance.exercises)
           ..where((tbl) => tbl.id.equals(exerciseUuid))
           ..limit(1))
@@ -138,6 +174,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
 
     final companion = db.ExercisesCompanion(
+      id: exercise.uuid != null ? drift.Value(exercise.uuid!) : const drift.Value.absent(),
+      source: drift.Value(exercise.source),
+      replacesExerciseId: drift.Value(exercise.replacesExerciseId),
       nameDe: drift.Value(exercise.nameDe),
       nameEn: drift.Value(exercise.nameEn),
       descriptionDe: drift.Value(exercise.descriptionDe),
@@ -183,6 +222,39 @@ extension ExercisesQueries on WorkoutLocalDataSource {
           mode: drift.InsertMode.insertOrReplace,
         );
       }
+    });
+  }
+
+  Future<void> updateCustomExercise(Exercise exercise) async {
+    final dbInstance = await database;
+    await dbInstance.transaction(() async {
+      final existing = await (dbInstance.select(dbInstance.exercises)
+            ..where((tbl) => tbl.localId.equals(exercise.id!))
+            ..limit(1))
+          .getSingleOrNull();
+
+      if (existing == null) {
+        throw Exception("Exercise not found");
+      }
+
+      if (existing.source != 'user') {
+        throw Exception("Cannot update non-user exercise directly. Create a custom copy instead.");
+      }
+
+      await (dbInstance.update(dbInstance.exercises)
+            ..where((tbl) => tbl.localId.equals(exercise.id!)))
+          .write(
+        db.ExercisesCompanion(
+          nameDe: drift.Value(exercise.nameDe),
+          nameEn: drift.Value(exercise.nameEn),
+          descriptionDe: drift.Value(exercise.descriptionDe),
+          descriptionEn: drift.Value(exercise.descriptionEn),
+          categoryName: drift.Value(exercise.categoryName),
+          musclesPrimary: drift.Value(jsonEncode(exercise.primaryMuscles)),
+          musclesSecondary: drift.Value(jsonEncode(exercise.secondaryMuscles)),
+          imagePath: drift.Value(exercise.imagePath),
+        ),
+      );
     });
   }
 }

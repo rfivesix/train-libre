@@ -785,7 +785,7 @@ class BasisDataManager {
       musclesSecondary: drift.Value(_parseString(row['muscles_secondary'])),
       isCustom: const drift.Value(false),
       createdBy: const drift.Value('system'),
-      source: const drift.Value('base'),
+      source: const drift.Value('wger'),
     );
   }
 }
