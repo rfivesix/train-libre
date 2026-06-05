@@ -35,6 +35,9 @@ class FakeProfileRepository implements IProfileRepository {
   Future<List<ChartDataPoint>> getChartDataForTypeAndRange(String type, DateTimeRange range) async => [];
 
   @override
+  Stream<List<ChartDataPoint>> watchChartDataForTypeAndRange(String type, DateTimeRange range) => Stream.value([]);
+
+  @override
   Future<int> getCurrentTargetStepsOrDefault() async => 8000;
 
   @override

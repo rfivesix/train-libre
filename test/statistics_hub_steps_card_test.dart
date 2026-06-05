@@ -433,6 +433,10 @@ class _FakeProfileRepository implements IProfileRepository {
           String type, DateTimeRange range) async =>
       [];
   @override
+  Stream<List<ChartDataPoint>> watchChartDataForTypeAndRange(
+          String type, DateTimeRange range) =>
+      Stream.value([]);
+  @override
   Future<db.AppSetting?> getAppSettings() async => null;
   @override
   Future<int> getCurrentTargetStepsOrDefault() async => 10000;

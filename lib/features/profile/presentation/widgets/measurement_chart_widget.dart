@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -98,6 +99,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
   List<ChartDataPoint> _dataPoints = [];
   bool _isLoadingChart = true;
   int? _touchedIndex;
+  StreamSubscription<List<ChartDataPoint>>? _chartDataSubscription;
 
   @override
   void initState() {
@@ -105,7 +107,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     if (widget.usesExternalData) {
       _applyExternalData(notify: false);
     } else {
-      _loadChartData();
+      _subscribeToChartData();
     }
   }
 
@@ -113,6 +115,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
   void didUpdateWidget(covariant MeasurementChartWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.usesExternalData) {
+      _cancelSubscription();
       if (oldWidget.dataPoints != widget.dataPoints ||
           oldWidget.axisMode != widget.axisMode ||
           oldWidget.valueFractionDigits != widget.valueFractionDigits ||
@@ -123,9 +126,21 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     }
     if (oldWidget.chartType != widget.chartType ||
         _dateRangeChanged(oldWidget.dateRange, widget.dateRange) ||
-        oldWidget.axisMode != widget.axisMode) {
-      _loadChartData();
+        oldWidget.axisMode != widget.axisMode ||
+        oldWidget.usesExternalData != widget.usesExternalData) {
+      _subscribeToChartData();
     }
+  }
+
+  @override
+  void dispose() {
+    _cancelSubscription();
+    super.dispose();
+  }
+
+  void _cancelSubscription() {
+    _chartDataSubscription?.cancel();
+    _chartDataSubscription = null;
   }
 
   bool _dateRangeChanged(DateTimeRange? previous, DateTimeRange? next) {
@@ -150,7 +165,8 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     });
   }
 
-  Future<void> _loadChartData() async {
+  void _subscribeToChartData() {
+    _cancelSubscription();
     final chartType = widget.chartType;
     final dateRange = widget.dateRange;
     if (chartType == null || dateRange == null) {
@@ -168,18 +184,25 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
       _touchedIndex = null;
     });
     final repo = widget.repository ?? context.read<IProfileRepository>();
-    final data = await repo.getChartDataForTypeAndRange(
-      chartType,
-      dateRange,
-    );
-    if (mounted) {
-      final sorted = List<ChartDataPoint>.from(data)
-        ..sort((a, b) => a.date.compareTo(b.date));
-      setState(() {
-        _dataPoints = sorted;
-        _isLoadingChart = false;
-      });
-    }
+    _chartDataSubscription = repo
+        .watchChartDataForTypeAndRange(chartType, dateRange)
+        .listen((data) {
+      if (mounted) {
+        final sorted = List<ChartDataPoint>.from(data)
+          ..sort((a, b) => a.date.compareTo(b.date));
+        setState(() {
+          _dataPoints = sorted;
+          _isLoadingChart = false;
+        });
+      }
+    }, onError: (Object err) {
+      if (mounted) {
+        setState(() {
+          _dataPoints = const <ChartDataPoint>[];
+          _isLoadingChart = false;
+        });
+      }
+    });
   }
 
   void _setTouchedIndexWithHaptics(int? newIndex) {
