@@ -29,76 +29,107 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     return muscles.toList()..sort();
   }
 
+  List<String> _tokenizeAndClean(String input) {
+    final sanitized = input
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9äöüß ]', unicode: true), ' ');
+    return sanitized.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+  }
+
   Future<List<Exercise>> searchExercises({
     String query = '',
     List<String> selectedCategories = const [],
   }) async {
     final dbInstance = await database;
 
-    var stmt = dbInstance.select(dbInstance.exercises);
+    final tokens = _tokenizeAndClean(query);
+    final rawSearchLower = query.trim().toLowerCase();
+    final ninetyDaysAgo = DateTime.now()
+        .subtract(const Duration(days: 90))
+        .millisecondsSinceEpoch;
 
-    // Exclude overridden system exercises
-    stmt = stmt..where((tbl) {
-      final other = dbInstance.exercises.createAlias('other_exercises');
-      final subqueryExists = drift.existsQuery(
-        dbInstance.select(other)
-          ..where((otherTable) => otherTable.replacesExerciseId.equalsExp(tbl.id)),
-      );
-      return (tbl.source.equals('wger') & subqueryExists).not();
-    });
+    final variables = <drift.Variable>[];
 
-    if (query.isNotEmpty) {
-      final term = query.trim();
-      stmt = stmt
-        ..where(
-          (tbl) => tbl.nameDe.like('%$term%') | tbl.nameEn.like('%$term%'),
-        );
+    // 1. History subquery variable
+    variables.add(drift.Variable.withInt(ninetyDaysAgo));
 
-      stmt = stmt
-        ..orderBy([
-          (t) => drift.OrderingTerm(
-                expression: drift.CaseWhenExpression(
-                  cases: [
-                    drift.CaseWhen(
-                      t.nameDe.equals(term) | t.nameEn.equals(term),
-                      then: const drift.Constant(0),
-                    ),
-                    drift.CaseWhen(
-                      t.nameDe.like('$term%') | t.nameEn.like('$term%'),
-                      then: const drift.Constant(1),
-                    ),
-                  ],
-                  orElse: const drift.Constant(2),
-                ),
-                mode: drift.OrderingMode.asc,
-              ),
-          (t) => drift.OrderingTerm(
-                expression: t.usageCount,
-                mode: drift.OrderingMode.desc,
-              ),
-          (t) => drift.OrderingTerm(
-              expression: t.nameDe, mode: drift.OrderingMode.asc),
-        ]);
-    } else {
-      stmt = stmt
-        ..orderBy([
-          (t) => drift.OrderingTerm(
-                expression: t.usageCount,
-                mode: drift.OrderingMode.desc,
-              ),
-          (t) => drift.OrderingTerm(
-              expression: t.nameDe, mode: drift.OrderingMode.asc),
-        ]);
+    // 2. Exact match variables (if query is not empty)
+    final String exactMatchExpr = tokens.isEmpty
+        ? '0 AS is_exact_match'
+        : '(CASE WHEN LOWER(e.name_de) = ? OR LOWER(e.name_en) = ? THEN 1 ELSE 0 END) AS is_exact_match';
+    if (tokens.isNotEmpty) {
+      variables.add(drift.Variable.withString(rawSearchLower));
+      variables.add(drift.Variable.withString(rawSearchLower));
+    }
+
+    // 3. Prefix match variables (if query is not empty)
+    final String prefixMatchExpr = tokens.isEmpty
+        ? '0 AS is_prefix_match'
+        : '(CASE WHEN LOWER(e.name_de) LIKE ? OR LOWER(e.name_en) LIKE ? THEN 1 ELSE 0 END) AS is_prefix_match';
+    if (tokens.isNotEmpty) {
+      variables.add(drift.Variable.withString('$rawSearchLower%'));
+      variables.add(drift.Variable.withString('$rawSearchLower%'));
+    }
+
+    // 4. Token matches in WHERE clause
+    final whereClauses = <String>[
+      'NOT (e.source = \'wger\' AND EXISTS (SELECT 1 FROM exercises other_exercises WHERE other_exercises.replaces_exercise_id = e.id))'
+    ];
+
+    if (tokens.isNotEmpty) {
+      for (final token in tokens) {
+        whereClauses.add('(e.name_de LIKE ? OR e.name_en LIKE ?)');
+        variables.add(drift.Variable.withString('%$token%'));
+        variables.add(drift.Variable.withString('%$token%'));
+      }
     }
 
     if (selectedCategories.isNotEmpty) {
-      stmt = stmt..where((tbl) => tbl.categoryName.isIn(selectedCategories));
+      final placeholders = List.filled(selectedCategories.length, '?').join(', ');
+      whereClauses.add('e.category_name IN ($placeholders)');
+      for (final cat in selectedCategories) {
+        variables.add(drift.Variable.withString(cat));
+      }
     }
 
-    stmt = stmt..limit(50);
+    final whereSection = whereClauses.join(' AND ');
 
-    final rows = await stmt.get();
-    return rows.map(_mapExerciseToModel).toList();
+    final sql = '''
+      SELECT e.*,
+             (
+               SELECT COUNT(*) * 15
+               FROM set_logs s
+               JOIN workout_logs w ON s.workout_log_id = w.id
+               WHERE s.exercise_id = e.id
+                 AND w.start_time >= ?
+             ) AS history_priority_score,
+             $exactMatchExpr,
+             (CASE WHEN e.is_custom = 1 OR e.source = 'user' THEN 1 ELSE 0 END) AS is_custom_exercise,
+             $prefixMatchExpr
+      FROM exercises e
+      WHERE $whereSection
+      ORDER BY 
+        is_exact_match DESC, 
+        history_priority_score DESC, 
+        is_custom_exercise DESC, 
+        is_prefix_match DESC, 
+        e.name_de ASC
+      LIMIT 50
+    ''';
+
+    final rows = await dbInstance.customSelect(
+      sql,
+      variables: variables,
+      readsFrom: {
+        dbInstance.exercises,
+        dbInstance.setLogs,
+        dbInstance.workoutLogs,
+      },
+    ).get();
+
+    final dbExercises =
+        rows.map((row) => dbInstance.exercises.map(row.data)).toList();
+    return dbExercises.map(_mapExerciseToModel).toList();
   }
 
   Future<Exercise?> getExerciseByName(String name) async {

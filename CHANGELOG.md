@@ -36,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Made the AppBar "Edit" button always visible; clicking it on a system exercise opens a premium glass bottom sheet menu with options to clone and edit.
 - **Real-Time Weight & Measurement Chart Updates**: Refactored the profile repository and database helper to expose reactive data streams, enabling the measurements chart on the Diary/Profile screens to auto-update in real-time when new entries are added, eliminating the need for manual refreshes.
 - **Product Search Engine Optimizations**: Overhauled search query structures in the product local data source to significantly accelerate lookups and improve fuzzy-matching quality against the localized food database.
+- **Exercise Search Engine Overhaul**: Refactored the local exercise search pipeline inside `exercises_queries.dart` to support word-order invariant token parsing, 90-day lookup window training history rescoring (via correlated subqueries on set and workout logs), and hierarchical priority ranking (exact match > history score > custom overrides > prefix match > alphabetical fallback). Added dedicated integration tests validating search tokenization, scoring weight math, and ranking.
 - **Sleep Pipeline Architecture Refinement**: Deeply refactored the sleep pipeline service and sleep day repository to resolve overlapping nocturnal logging bugs and stabilize daytime nap exclusions.
 
 ## [0.9.18] - 2026-06-02

@@ -613,6 +613,111 @@ void main() {
       });
     });
 
+    group('Exercise Catalog Search Overhaul', () {
+      test('searchExercises applies tokenization and word-order invariant matching', () async {
+        await helper.insertExercise(
+          const model.Exercise(
+            nameDe: 'Barbell Bench Press',
+            nameEn: 'Barbell Bench Press',
+            descriptionDe: '',
+            descriptionEn: '',
+            categoryName: 'Strength',
+            primaryMuscles: [],
+            secondaryMuscles: [],
+          ),
+        );
+        await helper.insertExercise(
+          const model.Exercise(
+            nameDe: 'Incline Bench Press',
+            nameEn: 'Incline Bench Press',
+            descriptionDe: '',
+            descriptionEn: '',
+            categoryName: 'Strength',
+            primaryMuscles: [],
+            secondaryMuscles: [],
+          ),
+        );
+
+        // Word-order invariant: "Press Bench Barbell"
+        final results = await helper.searchExercises(query: 'Press Bench Barbell');
+        
+        expect(results.length, 1);
+        expect(results.first.nameEn, 'Barbell Bench Press');
+      });
+
+      test('searchExercises scores and ranks by 90-day training history and hierarchical priority', () async {
+        // Insert system exercises (source = 'wger', isCustom = false)
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('bench-press-uuid'),
+                nameDe: const drift.Value('Bench Press'),
+                nameEn: const drift.Value('Bench Press'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('incline-bench-press-uuid'),
+                nameDe: const drift.Value('Incline Bench Press'),
+                nameEn: const drift.Value('Incline Bench Press'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('dumbbell-bench-press-uuid'),
+                nameDe: const drift.Value('Dumbbell Bench Press'),
+                nameEn: const drift.Value('Dumbbell Bench Press'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+
+        // Log workout and sets:
+        // Set log 1: Dumbbell Bench Press, 10 days ago (within 90-day window)
+        final workoutLog1 = await _insertWorkout(
+          database,
+          id: 'workout-1',
+          startTime: DateTime.now().subtract(const Duration(days: 10)),
+        );
+        await _insertSet(
+          database,
+          workoutId: workoutLog1,
+          exerciseId: 'dumbbell-bench-press-uuid',
+          exerciseName: 'Dumbbell Bench Press',
+        );
+
+        // Set log 2: Incline Bench Press, 100 days ago (outside 90-day window)
+        final workoutLog2 = await _insertWorkout(
+          database,
+          id: 'workout-2',
+          startTime: DateTime.now().subtract(const Duration(days: 100)),
+        );
+        await _insertSet(
+          database,
+          workoutId: workoutLog2,
+          exerciseId: 'incline-bench-press-uuid',
+          exerciseName: 'Incline Bench Press',
+        );
+
+        // Search for "Bench Press".
+        // 1st: Exact match: "Bench Press" (bench-press-uuid)
+        // 2nd: History priority (logged in last 90 days): "Dumbbell Bench Press" (dumbbell-bench-press-uuid)
+        // 3rd: Fallback prefix match (or custom/alphabetical): "Incline Bench Press" (incline-bench-press-uuid)
+        final results = await helper.searchExercises(query: 'Bench Press');
+
+        expect(results.length, 3);
+        expect(results[0].uuid, 'bench-press-uuid');
+        expect(results[1].uuid, 'dumbbell-bench-press-uuid');
+        expect(results[2].uuid, 'incline-bench-press-uuid');
+      });
+    });
+
     test('getRecoveryAnalytics counts bodyweight and weighted strength only',
         () async {
       final now = DateTime.now();
