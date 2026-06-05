@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.19] - 2026-06-02
 ### Added
+- **Sleep Day Overview Screen**: Added a new [SleepDayOverviewPage](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/presentation/day/sleep_day_overview_page.dart) screen detailing nocturnal sleep architecture, duration, cycles, efficiency indicators, and scoring, utilizing dynamic translations and localized strings.
+- **Nightly Sleep Analysis Domain**: Added the [NightlySleepAnalysis](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/domain/derived/nightly_sleep_analysis.dart) model to handle high-precision calculations of physiological sleep data.
 - **Isolate Offloaded Excel Export Engine**: Completely refactored the Excel generation pipeline to run inside a background isolate (`compute()`), utilizing fully serialized Dart DTOs (`ExcelExportData`) to decouple database queries from spreadsheet construction, eliminating thread lock and memory sharing failures.
 - **High-Fidelity Sport Science Metrics (Sheet 2: "Workouts & Exercises")**:
   - Implemented strict compliance for reps in reserve (RIR) and rate of perceived exertion (RPE) null-value serialization, writing empty string cells (`""`) instead of defaulting to `0` (which clinically represents muscular failure).
@@ -19,6 +21,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Automatically averages multiple daily weight/body fat measurements when present and safely writes empty cells for missing telemetry dates.
 - **Dedicated Physical Measurements Sheet (Sheet 5: "Measurements")**:
   - Added a dedicated, chronologically sorted sheet outputting a raw, granular log of all user measurements with columns: `[Date] | [Time] | [Measurement Type] | [Value] | [Unit]`.
+
+### Changed
+- **Real-Time Weight & Measurement Chart Updates**: Refactored the profile repository and database helper to expose reactive data streams, enabling the measurements chart on the Diary/Profile screens to auto-update in real-time when new entries are added, eliminating the need for manual refreshes.
+- **Product Search Engine Optimizations**: Overhauled search query structures in the product local data source to significantly accelerate lookups and improve fuzzy-matching quality against the localized food database.
+- **Sleep Pipeline Architecture Refinement**: Deeply refactored the sleep pipeline service and sleep day repository to resolve overlapping nocturnal logging bugs and stabilize daytime nap exclusions.
 
 ## [0.9.18] - 2026-06-02
 ### Added
