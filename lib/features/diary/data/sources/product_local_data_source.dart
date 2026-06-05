@@ -400,7 +400,7 @@ class ProductLocalDataSource {
     variables.add(Variable.withString(rawSearchLower)); // Für exakten Match
     variables.add(Variable.withString('$rawSearchLower%')); // Für Wortanfang-Match
 
-    final whereClauses = <String>[];
+    final whereClauses = <String>["p.source IN ('user', 'base', 'off')"];
     for (final token in tokens) {
       // WICHTIGER KNIEFALL FÜR DEN DEUTSCHEN PLURAL:
       // Wenn das Token auf "er" endet (z.B. "eier"), erlauben wir auch den Match auf den Stamm ("ei")
