@@ -30,6 +30,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Added a dedicated, chronologically sorted sheet outputting a raw, granular log of all user measurements with columns: `[Date] | [Time] | [Measurement Type] | [Value] | [Unit]`.
 
 ### Changed
+- **Relational Delta-Synchronization Engine & Contextual 1-Tap Sync**:
+  - Overhauled the workout-to-routine template synchronization framework from a destructive "wipe-and-rebuild" logic to a high-fidelity, non-destructive Relational Delta-Synchronization Engine running in a single SQLite transaction block inside `routines_queries.dart`.
+  - Implemented surgical sequence updates to realign the `order_index` of matching routine exercises, safely delete skipped exercises, and absorb newly added exercises with their live logged metrics.
+  - Introduced split-type positional comparison separating warmup and working sets, preserving baseline template targets (weight, reps, RIR, notes) on overlap, deep-copying configurations from the last known template on expansion, and deleting trailing excess templates on contraction.
+  - Implemented post-synchronization re-ordering sequence to guarantee newly added warmup sets are always sorted and loaded sequentially before working sets (by resetting `localId` ordering while preserving original UUIDs and metadata timestamps).
+  - Added a premium contextual synchronization banner on the workout summary screen when structure or sequence alterations are detected, allowing a 1-tap template update with haptic feedback and real-time confirmations.
 - **Exercise Catalog & Detail UX Refinements**:
   - Hid the `[System]` badge on cards in the exercise catalog list view, displaying only the `[Custom]` badge for custom user exercises.
   - Removed the prominent inline warning card on the exercise detail screen to declutter the layout.
@@ -37,7 +43,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Real-Time Weight & Measurement Chart Updates**: Refactored the profile repository and database helper to expose reactive data streams, enabling the measurements chart on the Diary/Profile screens to auto-update in real-time when new entries are added, eliminating the need for manual refreshes.
 - **Product Search Engine Optimizations**: Overhauled search query structures in the product local data source to significantly accelerate lookups and improve fuzzy-matching quality against the localized food database.
 - **Exercise Search Engine Overhaul**: Refactored the local exercise search pipeline inside `exercises_queries.dart` to support word-order invariant token parsing, 90-day lookup window training history rescoring (via correlated subqueries on set and workout logs), and hierarchical priority ranking (exact match > history score > custom overrides > prefix match > alphabetical fallback). Added dedicated integration tests validating search tokenization, scoring weight math, and ranking.
-- **Sleep Pipeline Architecture Refinement**: Deeply refactored the sleep pipeline service and sleep day repository to resolve overlapping nocturnal logging bugs and stabilize daytime nap exclusions.
+- **Sleep Pipeline & UI Realignment**: Deeply refactored the sleep pipeline service, sleep session entity, and sleep day repository to implement a pure mathematical interval-merging algorithm to resolve overlapping nocturnal sleep intervals, and corrected sleep classification using a $\ge$ 3-hour threshold. Overhauled the Schlafintervalle (Sleep Intervals) card component in the UI with bedtime/snooze vector icons for list items, premium green count badge styling, and clean vertical alignment with the header moon icon removed.
+
+
 
 ## [0.9.18] - 2026-06-02
 ### Added

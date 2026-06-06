@@ -150,6 +150,7 @@ class WorkoutLocalDataSource {
     return WorkoutLog(
       id: logRow.localId,
       routineName: logRow.routineNameSnapshot,
+      routineId: logRow.routineId,
       startTime: logRow.startTime,
       endTime: logRow.endTime,
       notes: logRow.notes,

@@ -117,6 +117,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       _log = WorkoutLog(
         id: _log!.id,
         routineName: _log!.routineName,
+        routineId: _log!.routineId,
         startTime: _log!.startTime,
         endTime: _log!.endTime,
         notes: _log!.notes,

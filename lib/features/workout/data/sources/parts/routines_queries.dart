@@ -388,4 +388,357 @@ extension RoutinesQueries on WorkoutLocalDataSource {
     }
     return null;
   }
+
+  Future<Routine?> getRoutineByUuid(String uuid) async {
+    final dbInstance = await database;
+    final row = await (dbInstance.select(dbInstance.routines)
+          ..where((tbl) => tbl.id.equals(uuid))
+          ..limit(1))
+        .getSingleOrNull();
+
+    if (row != null) {
+      return getRoutineById(row.localId);
+    }
+    return null;
+  }
+
+  Future<void> syncRoutineWithWorkout({
+    required String routineUuid,
+    required int workoutLogId,
+  }) async {
+    final dbInstance = await database;
+    final workoutLogUuid = await _getUuidFromLocalId(
+      dbInstance.workoutLogs,
+      workoutLogId,
+    );
+    if (workoutLogUuid == null) return;
+
+    await dbInstance.transaction(() async {
+      // 1. Get original routine row
+      final routineRow = await (dbInstance.select(dbInstance.routines)
+            ..where((tbl) => tbl.id.equals(routineUuid))
+            ..limit(1))
+          .getSingleOrNull();
+      if (routineRow == null) return;
+
+      // 2. Load original routine exercises
+      final originalExercises = await (dbInstance.select(dbInstance.routineExercises)
+            ..where((tbl) => tbl.routineId.equals(routineUuid))
+            ..orderBy([(t) => drift.OrderingTerm(expression: t.orderIndex)]))
+          .get();
+
+      final originalExByUuid = {for (final re in originalExercises) re.exerciseId: re};
+
+      // 3. Load completed session sets
+      final completedSets = await (dbInstance.select(dbInstance.setLogs)
+            ..where((tbl) =>
+                tbl.workoutLogId.equals(workoutLogUuid) &
+                tbl.isCompleted.equals(true))
+            ..orderBy([(t) => drift.OrderingTerm(expression: t.logOrder)]))
+          .get();
+
+      // Helper to resolve exercise uuid inside transaction
+      Future<String?> resolveExerciseUuid(db.SetLog set) async {
+        if (set.exerciseId != null && set.exerciseId!.isNotEmpty) {
+          return set.exerciseId;
+        }
+        final exRow = await (dbInstance.select(dbInstance.exercises)
+              ..where((tbl) =>
+                  tbl.nameDe.equals(set.exerciseNameSnapshot ?? '') |
+                  tbl.nameEn.equals(set.exerciseNameSnapshot ?? ''))
+              ..limit(1))
+            .getSingleOrNull();
+        return exRow?.id;
+      }
+
+      // 4. Determine unique exercises in the completed session in execution order
+      final orderedExerciseUuids = <String>[];
+      final setsByExerciseUuid = <String, List<db.SetLog>>{};
+
+      for (final set in completedSets) {
+        final uuid = await resolveExerciseUuid(set);
+        if (uuid == null) continue;
+        if (!orderedExerciseUuids.contains(uuid)) {
+          orderedExerciseUuids.add(uuid);
+        }
+        setsByExerciseUuid.putIfAbsent(uuid, () => []).add(set);
+      }
+
+      // 5. Delete routine exercises that were not executed in the completed session
+      for (final originalRe in originalExercises) {
+        if (!orderedExerciseUuids.contains(originalRe.exerciseId)) {
+          await (dbInstance.delete(dbInstance.routineExercises)
+                ..where((tbl) => tbl.id.equals(originalRe.id)))
+              .go();
+        }
+      }
+
+      // 6. Realignment, expansion, contraction, and absorption
+      for (int orderIndex = 0; orderIndex < orderedExerciseUuids.length; orderIndex++) {
+        final exerciseUuid = orderedExerciseUuids[orderIndex];
+        final setsForEx = setsByExerciseUuid[exerciseUuid]!;
+
+        final originalRe = originalExByUuid[exerciseUuid];
+        String routineExerciseUuid;
+
+        if (originalRe != null) {
+          // Rule 1: Sequence Order Realignment (No Deletion)
+          await (dbInstance.update(dbInstance.routineExercises)
+                ..where((tbl) => tbl.id.equals(originalRe.id)))
+              .write(db.RoutineExercisesCompanion(orderIndex: drift.Value(orderIndex)));
+          routineExerciseUuid = originalRe.id;
+        } else {
+          // Rule 3: Total Absorption for Novel Entities
+          final newReRow = await dbInstance.into(dbInstance.routineExercises).insertReturning(
+                db.RoutineExercisesCompanion(
+                  routineId: drift.Value(routineUuid),
+                  exerciseId: drift.Value(exerciseUuid),
+                  orderIndex: drift.Value(orderIndex),
+                ),
+              );
+          routineExerciseUuid = newReRow.id;
+        }
+
+        // Load original templates for this exercise (if it existed)
+        final List<db.RoutineSetTemplate> originalTemplates;
+        if (originalRe != null) {
+          originalTemplates = await (dbInstance.select(dbInstance.routineSetTemplates)
+                ..where((tbl) => tbl.routineExerciseId.equals(originalRe.id))
+                ..orderBy([(t) => drift.OrderingTerm(expression: t.localId)]))
+              .get();
+        } else {
+          originalTemplates = const [];
+        }
+
+        // Separate templates and sets into warmup and working buckets
+        final originalWarmups = originalTemplates.where((t) => t.setType.toLowerCase() == 'warmup').toList();
+        final originalWorkings = originalTemplates.where((t) => t.setType.toLowerCase() != 'warmup').toList();
+
+        final completedWarmups = setsForEx.where((s) => s.setType.toLowerCase() == 'warmup').toList();
+        final completedWorkings = setsForEx.where((s) => s.setType.toLowerCase() != 'warmup').toList();
+
+        // Sync Warmups
+        await _syncSetTemplatesBucket(
+          dbInstance: dbInstance,
+          routineExerciseUuid: routineExerciseUuid,
+          originalTemplates: originalWarmups,
+          completedSets: completedWarmups,
+        );
+
+        // Sync Workings
+        await _syncSetTemplatesBucket(
+          dbInstance: dbInstance,
+          routineExerciseUuid: routineExerciseUuid,
+          originalTemplates: originalWorkings,
+          completedSets: completedWorkings,
+        );
+
+        // 7. Re-order/re-create templates to enforce warmups are always stored/loaded before workings (localId order)
+        final finalTemplates = await (dbInstance.select(dbInstance.routineSetTemplates)
+              ..where((tbl) => tbl.routineExerciseId.equals(routineExerciseUuid)))
+            .get();
+
+        final sortedTemplates = [
+          ...finalTemplates.where((t) => t.setType.toLowerCase() == 'warmup'),
+          ...finalTemplates.where((t) => t.setType.toLowerCase() != 'warmup'),
+        ];
+
+        // Delete existing templates for this exercise
+        await (dbInstance.delete(dbInstance.routineSetTemplates)
+              ..where((tbl) => tbl.routineExerciseId.equals(routineExerciseUuid)))
+            .go();
+
+        // Re-insert in correct sorted order to establish sequential localId ordering
+        for (final t in sortedTemplates) {
+          await dbInstance.into(dbInstance.routineSetTemplates).insert(
+                db.RoutineSetTemplatesCompanion(
+                  id: drift.Value(t.id),
+                  routineExerciseId: drift.Value(routineExerciseUuid),
+                  setType: drift.Value(t.setType),
+                  targetReps: drift.Value(t.targetReps),
+                  targetWeight: drift.Value(t.targetWeight),
+                  targetRir: drift.Value(t.targetRir),
+                  createdAt: drift.Value(t.createdAt),
+                  updatedAt: drift.Value(t.updatedAt),
+                ),
+              );
+        }
+      }
+    });
+  }
+
+  Future<void> _syncSetTemplatesBucket({
+    required db.AppDatabase dbInstance,
+    required String routineExerciseUuid,
+    required List<db.RoutineSetTemplate> originalTemplates,
+    required List<db.SetLog> completedSets,
+  }) async {
+    final origCount = originalTemplates.length;
+    final compCount = completedSets.length;
+    final maxCount = origCount > compCount ? origCount : compCount;
+
+    for (int i = 0; i < maxCount; i++) {
+      if (i < origCount && i < compCount) {
+        // Scenario A: Slot Overlap (The Match Fence)
+        final setLog = completedSets[i];
+        // If the user adjusted the specific set's rest time / pause intervals, update the routine exercise pauseSeconds
+        if (setLog.restTimeSeconds != null && setLog.restTimeSeconds! > 0) {
+          await (dbInstance.update(dbInstance.routineExercises)
+                ..where((tbl) => tbl.id.equals(routineExerciseUuid)))
+              .write(db.RoutineExercisesCompanion(
+                pauseSeconds: drift.Value(setLog.restTimeSeconds),
+              ));
+        }
+      } else if (i >= origCount && i < compCount) {
+        // Scenario B: Volume Expansion (Sets Added)
+        final setLog = completedSets[i];
+        
+        String? targetReps;
+        double? targetWeight;
+        int? targetRir;
+        
+        if (originalTemplates.isNotEmpty) {
+          final lastTemplate = originalTemplates.last;
+          targetReps = lastTemplate.targetReps;
+          targetWeight = lastTemplate.targetWeight;
+          targetRir = lastTemplate.targetRir;
+        } else {
+          targetReps = setLog.reps?.toString();
+          targetWeight = setLog.weight;
+          targetRir = setLog.rir;
+        }
+
+        await dbInstance.into(dbInstance.routineSetTemplates).insert(
+              db.RoutineSetTemplatesCompanion(
+                routineExerciseId: drift.Value(routineExerciseUuid),
+                setType: drift.Value(setLog.setType),
+                targetReps: drift.Value(targetReps),
+                targetWeight: drift.Value(targetWeight),
+                targetRir: drift.Value(targetRir),
+              ),
+            );
+
+        if (setLog.restTimeSeconds != null && setLog.restTimeSeconds! > 0) {
+          await (dbInstance.update(dbInstance.routineExercises)
+                ..where((tbl) => tbl.id.equals(routineExerciseUuid)))
+              .write(db.RoutineExercisesCompanion(
+                pauseSeconds: drift.Value(setLog.restTimeSeconds),
+              ));
+        }
+      } else if (i < origCount && i >= compCount) {
+        // Scenario C: Volume Contraction (Sets Removed)
+        final templateToDelete = originalTemplates[i];
+        await (dbInstance.delete(dbInstance.routineSetTemplates)
+              ..where((tbl) => tbl.localId.equals(templateToDelete.localId)))
+            .go();
+      }
+    }
+  }
+
+  Future<Routine> createRoutineFromWorkout({
+    required int workoutLogId,
+    required String name,
+  }) async {
+    final dbInstance = await database;
+    final workoutLogUuid = await _getUuidFromLocalId(
+      dbInstance.workoutLogs,
+      workoutLogId,
+    );
+    if (workoutLogUuid == null) {
+      throw Exception('Workout log not found');
+    }
+
+    return await dbInstance.transaction(() async {
+      // 1. Create Routine
+      final routineRow = await dbInstance
+          .into(dbInstance.routines)
+          .insertReturning(db.RoutinesCompanion(name: drift.Value(name)));
+
+      // 2. Load completed session sets
+      final completedSets = await (dbInstance.select(dbInstance.setLogs)
+            ..where((tbl) =>
+                tbl.workoutLogId.equals(workoutLogUuid) &
+                tbl.isCompleted.equals(true))
+            ..orderBy([(t) => drift.OrderingTerm(expression: t.logOrder)]))
+          .get();
+
+      // Helper to resolve exercise uuid
+      Future<String?> resolveExerciseUuid(db.SetLog set) async {
+        if (set.exerciseId != null && set.exerciseId!.isNotEmpty) {
+          return set.exerciseId;
+        }
+        final exRow = await (dbInstance.select(dbInstance.exercises)
+              ..where((tbl) =>
+                  tbl.nameDe.equals(set.exerciseNameSnapshot ?? '') |
+                  tbl.nameEn.equals(set.exerciseNameSnapshot ?? ''))
+              ..limit(1))
+            .getSingleOrNull();
+        return exRow?.id;
+      }
+
+      // 3. Determine unique exercises
+      final orderedExerciseUuids = <String>[];
+      final setsByExerciseUuid = <String, List<db.SetLog>>{};
+
+      for (final set in completedSets) {
+        final uuid = await resolveExerciseUuid(set);
+        if (uuid == null) continue;
+        if (!orderedExerciseUuids.contains(uuid)) {
+          orderedExerciseUuids.add(uuid);
+        }
+        setsByExerciseUuid.putIfAbsent(uuid, () => []).add(set);
+      }
+
+      // 4. Create routine exercises and set templates
+      for (int orderIndex = 0; orderIndex < orderedExerciseUuids.length; orderIndex++) {
+        final exerciseUuid = orderedExerciseUuids[orderIndex];
+        final setsForEx = setsByExerciseUuid[exerciseUuid]!;
+
+        final newReRow = await dbInstance.into(dbInstance.routineExercises).insertReturning(
+              db.RoutineExercisesCompanion(
+                routineId: drift.Value(routineRow.id),
+                exerciseId: drift.Value(exerciseUuid),
+                orderIndex: drift.Value(orderIndex),
+              ),
+            );
+
+        // Sort setsForEx to ensure warmups are first, and workings are second
+        final sortedSets = [
+          ...setsForEx.where((s) => s.setType.toLowerCase() == 'warmup'),
+          ...setsForEx.where((s) => s.setType.toLowerCase() != 'warmup'),
+        ];
+
+        int? pauseSeconds;
+        for (final setLog in sortedSets) {
+          if (setLog.restTimeSeconds != null && setLog.restTimeSeconds! > 0) {
+            pauseSeconds = setLog.restTimeSeconds;
+          }
+
+          final targetReps = setLog.reps?.toString();
+          final targetWeight = setLog.weight;
+          final targetRir = setLog.rir;
+
+          await dbInstance.into(dbInstance.routineSetTemplates).insert(
+                db.RoutineSetTemplatesCompanion(
+                  routineExerciseId: drift.Value(newReRow.id),
+                  setType: drift.Value(setLog.setType),
+                  targetReps: drift.Value(targetReps),
+                  targetWeight: drift.Value(targetWeight),
+                  targetRir: drift.Value(targetRir),
+                ),
+              );
+        }
+
+        if (pauseSeconds != null) {
+          await (dbInstance.update(dbInstance.routineExercises)
+                ..where((tbl) => tbl.id.equals(newReRow.id)))
+              .write(db.RoutineExercisesCompanion(
+                pauseSeconds: drift.Value(pauseSeconds),
+              ));
+        }
+      }
+
+      return Routine(id: routineRow.localId, name: routineRow.name);
+    });
+  }
 }

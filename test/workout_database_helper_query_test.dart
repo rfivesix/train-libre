@@ -7,6 +7,7 @@ import 'package:train_libre/features/statistics/domain/recovery_domain_service.d
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
 import 'package:train_libre/features/workout/domain/models/set_log.dart'
     as domain_set;
+import 'package:train_libre/features/workout/domain/models/set_template.dart';
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart'
     as model;
 
@@ -922,6 +923,98 @@ void main() {
       );
       expect(muscles.keys, contains('biceps'));
       expect(muscles.keys, isNot(contains('chest')));
+    });
+
+    test('syncRoutineWithWorkout preserves correct template set type order (warmups first) when adding warmup sets', () async {
+      final routine = await helper.createRoutine('Sync Routine');
+      final exercise = await helper.insertExercise(
+        const model.Exercise(
+          nameDe: 'Bench Press',
+          nameEn: 'Bench Press',
+          descriptionDe: '',
+          descriptionEn: '',
+          categoryName: 'Strength',
+          primaryMuscles: ['chest'],
+          secondaryMuscles: [],
+        ),
+      );
+
+      final routineEx = await helper.addExerciseToRoutine(routine.id!, exercise.id!);
+      expect(routineEx, isNotNull);
+
+      // Setup initial template: 1 warmup, 2 normal sets
+      final templateSets = [
+        SetTemplate(setType: 'warmup', targetReps: '15'),
+        SetTemplate(setType: 'normal', targetReps: '10'),
+        SetTemplate(setType: 'normal', targetReps: '10'),
+      ];
+      await helper.replaceSetTemplatesForExercise(routineEx!.id!, templateSets);
+
+      // Start workout log
+      final workoutLog = await helper.startWorkout(routineName: 'Sync Routine');
+      
+      // Associate with routine
+      final routineRow = await (database.select(database.routines)
+            ..where((tbl) => tbl.localId.equals(routine.id!)))
+          .getSingle();
+      
+      await (database.update(database.workoutLogs)
+            ..where((tbl) => tbl.localId.equals(workoutLog.id!)))
+          .write(db.WorkoutLogsCompanion(
+            routineId: drift.Value(routineRow.id),
+          ));
+
+      // Insert completed logs (added a warmup set at the end or logged two warmups)
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: workoutLog.id!,
+        exerciseName: 'Bench Press',
+        setType: 'warmup',
+        reps: 15,
+        isCompleted: true,
+        logOrder: 0,
+      ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: workoutLog.id!,
+        exerciseName: 'Bench Press',
+        setType: 'warmup',
+        reps: 12,
+        isCompleted: true,
+        logOrder: 1,
+      ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: workoutLog.id!,
+        exerciseName: 'Bench Press',
+        setType: 'normal',
+        reps: 10,
+        isCompleted: true,
+        logOrder: 2,
+      ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: workoutLog.id!,
+        exerciseName: 'Bench Press',
+        setType: 'normal',
+        reps: 10,
+        isCompleted: true,
+        logOrder: 3,
+      ));
+
+      // Synchronize
+      await helper.syncRoutineWithWorkout(
+        routineUuid: routineRow.id,
+        workoutLogId: workoutLog.id!,
+      );
+
+      // Verify template order is: warmup, warmup, normal, normal
+      final updatedRoutine = await helper.getRoutineById(routine.id!);
+      expect(updatedRoutine, isNotNull);
+      expect(updatedRoutine!.exercises.length, 1);
+      
+      final updatedTemplates = updatedRoutine.exercises.first.setTemplates;
+      expect(updatedTemplates.length, 4);
+      expect(updatedTemplates[0].setType, 'warmup');
+      expect(updatedTemplates[1].setType, 'warmup');
+      expect(updatedTemplates[2].setType, 'normal');
+      expect(updatedTemplates[3].setType, 'normal');
     });
   });
 }

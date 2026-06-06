@@ -30,6 +30,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
     return WorkoutLog(
       id: row.localId,
       routineName: routineName,
+      routineId: row.routineId,
       startTime: row.startTime,
       // status field removed from WorkoutLog model in UI, handling internally if needed
     );
@@ -270,6 +271,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           (r) => WorkoutLog(
             id: r.localId,
             routineName: r.routineNameSnapshot,
+            routineId: r.routineId,
             startTime: r.startTime,
             endTime: r.endTime,
             notes: r.notes,

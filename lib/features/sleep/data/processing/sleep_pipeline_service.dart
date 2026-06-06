@@ -266,7 +266,8 @@ class SleepPipelineService {
     final analysisVersion = params.analysisVersion;
     final importedAt = params.importedAt;
 
-    final mapped = _mapBatch(batch);
+    final rawMapped = _mapBatch(batch);
+    final mapped = _mergeOverlappingSleepData(rawMapped);
     final segmentsBySession = <String, List<SleepStageSegment>>{};
     for (final segment in mapped.stageSegments) {
       segmentsBySession
@@ -326,14 +327,27 @@ class SleepPipelineService {
     for (final entry in sessionsByNight.entries) {
       final nightSessions = entry.value;
       if (nightSessions.isEmpty) continue;
-      nightSessions.sort((a, b) {
-        final durA = a.endAtUtc.difference(a.startAtUtc);
-        final durB = b.endAtUtc.difference(b.startAtUtc);
-        return durB.compareTo(durA);
-      });
-      classifications[nightSessions.first.id] = SleepSessionType.mainSleep;
-      for (var i = 1; i < nightSessions.length; i++) {
-        classifications[nightSessions[i].id] = SleepSessionType.nap;
+
+      final hasMain = nightSessions.any((s) => s.endAtUtc.difference(s.startAtUtc) >= const Duration(hours: 3));
+      if (!hasMain) {
+        nightSessions.sort((a, b) {
+          final durA = a.endAtUtc.difference(a.startAtUtc);
+          final durB = b.endAtUtc.difference(b.startAtUtc);
+          return durB.compareTo(durA);
+        });
+        classifications[nightSessions.first.id] = SleepSessionType.mainSleep;
+        for (var i = 1; i < nightSessions.length; i++) {
+          classifications[nightSessions[i].id] = SleepSessionType.nap;
+        }
+      } else {
+        for (final s in nightSessions) {
+          final duration = s.endAtUtc.difference(s.startAtUtc);
+          if (duration >= const Duration(hours: 3)) {
+            classifications[s.id] = SleepSessionType.mainSleep;
+          } else {
+            classifications[s.id] = SleepSessionType.nap;
+          }
+        }
       }
     }
 
@@ -641,6 +655,95 @@ class SleepPipelineService {
       segmentRows: segmentRows,
       hrRows: hrRows,
       analysisRows: analysisRows,
+    );
+  }
+
+  static _MappedBatch _mergeOverlappingSleepData(_MappedBatch mapped) {
+    if (mapped.sessions.isEmpty) return mapped;
+
+    // Sort sessions by onset time (startAtUtc)
+    final sorted = List<SleepSession>.from(mapped.sessions)
+      ..sort((a, b) => a.startAtUtc.compareTo(b.startAtUtc));
+
+    final mergedSessions = <SleepSession>[];
+    final sessionIdMap = <String, String>{}; // Map from original sessionId to merged sessionId
+
+    var current = sorted.first;
+    sessionIdMap[current.id] = current.id;
+
+    for (var i = 1; i < sorted.length; i++) {
+      final next = sorted[i];
+
+      // Overlap or connect continuously: next.startAtUtc <= current.endAtUtc
+      if (next.startAtUtc.isBefore(current.endAtUtc) ||
+          next.startAtUtc.isAtSameMomentAs(current.endAtUtc)) {
+        final latestEnd = next.endAtUtc.isAfter(current.endAtUtc)
+            ? next.endAtUtc
+            : current.endAtUtc;
+
+        current = SleepSession(
+          id: current.id,
+          startAtUtc: current.startAtUtc,
+          endAtUtc: latestEnd,
+          sessionType: current.sessionType,
+          sourcePlatform: current.sourcePlatform,
+          sourceAppId: current.sourceAppId,
+          sourceRecordHash: current.sourceRecordHash,
+          sourceConfidence: current.sourceConfidence,
+          stageConfidence: current.stageConfidence,
+          overallConfidence: current.overallConfidence,
+          normalizationVersion: current.normalizationVersion,
+        );
+        sessionIdMap[next.id] = current.id;
+      } else {
+        mergedSessions.add(current);
+        current = next;
+        sessionIdMap[current.id] = current.id;
+      }
+    }
+    mergedSessions.add(current);
+
+    // Update segments and samples sessionIds
+    final updatedSegments = mapped.stageSegments.map((s) {
+      final targetId = sessionIdMap[s.sessionId];
+      if (targetId != null && targetId != s.sessionId) {
+        return SleepStageSegment(
+          id: s.id,
+          sessionId: targetId,
+          stage: s.stage,
+          startAtUtc: s.startAtUtc,
+          endAtUtc: s.endAtUtc,
+          sourcePlatform: s.sourcePlatform,
+          sourceAppId: s.sourceAppId,
+          sourceRecordHash: s.sourceRecordHash,
+          sourceConfidence: s.sourceConfidence,
+          stageConfidence: s.stageConfidence,
+        );
+      }
+      return s;
+    }).toList();
+
+    final updatedSamples = mapped.heartRateSamples.map((s) {
+      final targetId = sessionIdMap[s.sessionId];
+      if (targetId != null && targetId != s.sessionId) {
+        return HeartRateSample(
+          id: s.id,
+          sessionId: targetId,
+          sampledAtUtc: s.sampledAtUtc,
+          bpm: s.bpm,
+          sourcePlatform: s.sourcePlatform,
+          sourceAppId: s.sourceAppId,
+          sourceRecordHash: s.sourceRecordHash,
+          sourceConfidence: s.sourceConfidence,
+        );
+      }
+      return s;
+    }).toList();
+
+    return _MappedBatch(
+      sessions: mergedSessions,
+      stageSegments: updatedSegments,
+      heartRateSamples: updatedSamples,
     );
   }
 

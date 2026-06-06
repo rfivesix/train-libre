@@ -355,6 +355,14 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
 
     if (sessions.length <= 1) return const SizedBox.shrink();
 
+    final isDark = theme.brightness == Brightness.dark;
+    final countBadgeBg = isDark
+        ? const Color(0xFF065F46).withValues(alpha: 0.3)
+        : const Color(0xFFD1FAE5);
+    final countBadgeText = isDark
+        ? const Color(0xFF34D399)
+        : const Color(0xFF065F46);
+
     return SummaryCard(
       margin: EdgeInsets.zero,
       padding: EdgeInsets.zero,
@@ -368,34 +376,27 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.nights_stay_outlined,
-                    color: cs.primary,
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       l10n.sleepIntervalsDrawerTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: theme.textTheme.titleMedium,
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: cs.primaryContainer,
+                      color: countBadgeBg,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       '${sessions.length}',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: cs.onPrimaryContainer,
+                        color: countBadgeText,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   AnimatedRotation(
                     turns: _isExpanded ? 0.5 : 0.0,
                     duration: const Duration(milliseconds: 200),
@@ -413,7 +414,12 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 12,
+                    bottom: 16,
+                  ),
                   itemCount: sessions.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
@@ -430,6 +436,18 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
 
                     return Row(
                       children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Center(
+                            child: Icon(
+                              isCore ? Icons.bedtime_outlined : Icons.snooze_outlined,
+                              size: 20,
+                              color: isCore ? cs.primary : cs.secondary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(

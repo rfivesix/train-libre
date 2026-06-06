@@ -12,6 +12,9 @@ class WorkoutLog {
   /// The name of the routine used for this workout, if any.
   final String? routineName;
 
+  /// The UUID of the routine used for this workout, if any.
+  final String? routineId;
+
   /// The exact time when the workout session started.
   final DateTime startTime;
 
@@ -36,6 +39,7 @@ class WorkoutLog {
   WorkoutLog({
     this.id,
     this.routineName,
+    this.routineId,
     required this.startTime,
     this.endTime,
     this.notes,
@@ -54,6 +58,7 @@ class WorkoutLog {
     return WorkoutLog(
       id: map['id'],
       routineName: map['routine_name'],
+      routineId: map['routine_id'],
       startTime: DateTime.parse(map['start_time'] as String),
       endTime: map['end_time'] != null
           ? DateTime.parse(map['end_time'] as String)
@@ -68,6 +73,7 @@ class WorkoutLog {
     return {
       'id': id,
       'routine_name': routineName,
+      'routine_id': routineId,
       'start_time': startTime.toIso8601String(),
       'end_time': endTime?.toIso8601String(),
       'notes': notes,

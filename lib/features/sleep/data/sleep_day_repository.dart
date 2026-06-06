@@ -313,7 +313,7 @@ class SleepDayRepository implements SleepDayDataRepository {
       lightDuration: lightDuration,
       remDuration: remDuration,
       regularityNights: regularityNights,
-      allSessions: allSessions,
+      allSessions: mergeOverlappingIntervals(allSessions),
       allAnalyses: allAnalyses,
     );
   }
