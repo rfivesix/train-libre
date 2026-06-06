@@ -37,4 +37,13 @@ abstract class IWorkoutRepository {
   Stream<List<Routine>> watchAllRoutines();
   Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
       DateTime start, DateTime end);
+  Future<Routine?> getRoutineByUuid(String uuid);
+  Future<void> syncRoutineWithWorkout({
+    required String routineUuid,
+    required int workoutLogId,
+  });
+  Future<Routine> createRoutineFromWorkout({
+    required int workoutLogId,
+    required String name,
+  });
 }

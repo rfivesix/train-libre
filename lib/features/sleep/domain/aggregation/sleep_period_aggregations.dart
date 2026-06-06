@@ -145,14 +145,44 @@ class SleepPeriodAggregationEngine {
   Map<DateTime, NightlySleepAnalysis> _latestByDate(
     List<NightlySleepAnalysis> analyses,
   ) {
-    final byDate = <DateTime, NightlySleepAnalysis>{};
+    final grouped = <DateTime, List<NightlySleepAnalysis>>{};
     for (final analysis in analyses) {
       final key = _normalizeDate(analysis.nightDate);
-      final existing = byDate[key];
-      if (existing == null ||
-          analysis.analyzedAtUtc.isAfter(existing.analyzedAtUtc)) {
-        byDate[key] = analysis;
+      grouped.putIfAbsent(key, () => <NightlySleepAnalysis>[]).add(analysis);
+    }
+
+    final byDate = <DateTime, NightlySleepAnalysis>{};
+    for (final entry in grouped.entries) {
+      final key = entry.key;
+      final dayAnalyses = entry.value;
+
+      final latestBySession = <String, NightlySleepAnalysis>{};
+      for (final analysis in dayAnalyses) {
+        final existing = latestBySession[analysis.sessionId];
+        if (existing == null ||
+            analysis.analyzedAtUtc.isAfter(existing.analyzedAtUtc)) {
+          latestBySession[analysis.sessionId] = analysis;
+        }
       }
+
+      final uniqueSessions = latestBySession.values.toList();
+      if (uniqueSessions.isEmpty) continue;
+
+      uniqueSessions.sort((a, b) {
+        if (a.score != null && b.score == null) return -1;
+        if (b.score != null && a.score == null) return 1;
+        return b.analyzedAtUtc.compareTo(a.analyzedAtUtc);
+      });
+
+      final primary = uniqueSessions.first;
+      int totalMinutes = 0;
+      for (final analysis in uniqueSessions) {
+        totalMinutes += analysis.totalSleepMinutes ?? 0;
+      }
+
+      byDate[key] = primary.copyWith(
+        totalSleepMinutes: totalMinutes > 0 ? totalMinutes : primary.totalSleepMinutes,
+      );
     }
     return byDate;
   }

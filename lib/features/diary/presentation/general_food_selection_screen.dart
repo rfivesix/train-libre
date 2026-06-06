@@ -183,156 +183,164 @@ class _GeneralFoodSelectionScreenState
           children: [
             SizedBox(
               height: 48,
-              child: TextField(
-                controller: _searchController,
-                onChanged: (val) {
-                  setState(() {});
-                  _onSearchChanged(val);
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _searchController,
+                builder: (context, value, child) {
+                  return TextField(
+                    controller: _searchController,
+                    onChanged: (val) {
+                      _onSearchChanged(val);
+                    },
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: InputDecoration(
+                      hintText: l10n.searchHintText,
+                      isDense: true,
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: colorScheme.onSurfaceVariant,
+                        size: 20,
+                      ),
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (value.text.isNotEmpty) ...[
+                            SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: colorScheme.onSurfaceVariant,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _runFilter('');
+                                },
+                              ),
+                            ),
+                          ] else ...[
+                            SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: Icon(
+                                  CupertinoIcons.barcode_viewfinder,
+                                  color: colorScheme.primary,
+                                  size: 26,
+                                ),
+                                onPressed: _scanBarcodeAndPop,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                  );
                 },
-                textAlignVertical: TextAlignVertical.center,
-                decoration: InputDecoration(
-                  hintText: l10n.searchHintText,
-                  isDense: true,
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (_searchController.text.isNotEmpty) ...[
-                        SizedBox(
-                          width: 44,
-                          height: 44,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            icon: Icon(
-                              Icons.clear,
-                              color: colorScheme.onSurfaceVariant,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {});
-                              _runFilter('');
-                            },
-                          ),
-                        ),
-                      ] else ...[
-                        SizedBox(
-                          width: 44,
-                          height: 44,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            icon: Icon(
-                              CupertinoIcons.barcode_viewfinder,
-                              color: colorScheme.primary,
-                              size: 26,
-                            ),
-                            onPressed: _scanBarcodeAndPop,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
               ),
             ),
             const SizedBox(height: DesignConstants.spacingM),
             Expanded(
-              child: _searchController.text.trim().isEmpty
-                  ? (_baseCategories.isEmpty
-                      ? const Center(child: CircularProgressIndicator())
-                      : ListView.builder(
-                          itemCount: _baseCategories.length,
-                          itemBuilder: (context, idx) {
-                            final cat = _baseCategories[idx];
-                            final key = cat['key'] as String;
-                            final emoji = (cat['emoji'] as String?)?.trim();
-                            final locale = Localizations.localeOf(
-                              context,
-                            ).languageCode;
-                            final de = (cat['name_de'] as String?)?.trim();
-                            final en = (cat['name_en'] as String?)?.trim();
-                            final title = locale == 'de'
-                                ? (de?.isNotEmpty == true
-                                    ? de!
-                                    : (en?.isNotEmpty == true ? en! : key))
-                                : (en?.isNotEmpty == true
-                                    ? en!
-                                    : (de?.isNotEmpty == true ? de! : key));
-
-                            final loading = _loadingCats.contains(key);
-                            final items = _catItems[key];
-
-                            return Theme(
-                              data: Theme.of(
-                                context,
-                              ).copyWith(dividerColor: Colors.transparent),
-                              child: ExpansionTile(
-                                leading: Text(
-                                  emoji?.isNotEmpty == true ? emoji! : '🗂️',
-                                  style: const TextStyle(fontSize: 20),
-                                ),
-                                title: Text(title),
-                                onExpansionChanged: (expanded) {
-                                  if (expanded) _loadCategoryItems(key);
-                                },
-                                children: [
-                                  if (loading)
-                                    const Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      child: Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    )
-                                  else if (items == null || items.isEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      child: Center(
-                                        child: Text(l10n.emptyCategory),
-                                      ),
-                                    )
-                                  else
-                                    ListView.builder(
-                                      shrinkWrap: true,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      padding: DesignConstants.cardPadding
-                                          .copyWith(top: 0),
-                                      itemCount: items.length,
-                                      itemBuilder: (_, i) =>
-                                          _buildFoodListItem(items[i], l10n),
-                                    ),
-                                ],
-                              ),
-                            );
-                          },
-                        ))
-                  : (_isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _results.isEmpty
-                          ? Center(
-                              child: Text(
-                                _searchInitialText,
-                                style: textTheme.titleMedium,
-                              ),
-                            )
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _searchController,
+                builder: (context, value, child) {
+                  return value.text.trim().isEmpty
+                      ? (_baseCategories.isEmpty
+                          ? const Center(child: CircularProgressIndicator())
                           : ListView.builder(
-                              itemCount: _results.length,
-                              itemBuilder: (context, index) =>
-                                  _buildFoodListItem(_results[index], l10n),
-                            )),
+                              itemCount: _baseCategories.length,
+                              itemBuilder: (context, idx) {
+                                final cat = _baseCategories[idx];
+                                final key = cat['key'] as String;
+                                final emoji = (cat['emoji'] as String?)?.trim();
+                                final locale = Localizations.localeOf(
+                                  context,
+                                ).languageCode;
+                                final de = (cat['name_de'] as String?)?.trim();
+                                final en = (cat['name_en'] as String?)?.trim();
+                                final title = locale == 'de'
+                                    ? (de?.isNotEmpty == true
+                                        ? de!
+                                        : (en?.isNotEmpty == true ? en! : key))
+                                    : (en?.isNotEmpty == true
+                                        ? en!
+                                        : (de?.isNotEmpty == true ? de! : key));
+
+                                final loading = _loadingCats.contains(key);
+                                final items = _catItems[key];
+
+                                return Theme(
+                                  data: Theme.of(
+                                    context,
+                                  ).copyWith(dividerColor: Colors.transparent),
+                                  child: ExpansionTile(
+                                    leading: Text(
+                                      emoji?.isNotEmpty == true ? emoji! : '🗂️',
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                    title: Text(title),
+                                    onExpansionChanged: (expanded) {
+                                      if (expanded) _loadCategoryItems(key);
+                                    },
+                                    children: [
+                                      if (loading)
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        )
+                                      else if (items == null || items.isEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                          child: Center(
+                                            child: Text(l10n.emptyCategory),
+                                          ),
+                                        )
+                                      else
+                                        ListView.builder(
+                                          shrinkWrap: true,
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          padding: DesignConstants.cardPadding
+                                              .copyWith(top: 0),
+                                          itemCount: items.length,
+                                          itemBuilder: (_, i) =>
+                                              _buildFoodListItem(items[i], l10n),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ))
+                      : (_isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _results.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    _searchInitialText,
+                                    style: textTheme.titleMedium,
+                                  ),
+                                )
+                              : ListView.builder(
+                                  itemCount: _results.length,
+                                  itemBuilder: (context, index) =>
+                                      _buildFoodListItem(_results[index], l10n),
+                                ));
+                },
+              ),
             ),
           ],
         ),

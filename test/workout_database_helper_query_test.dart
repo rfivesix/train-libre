@@ -7,6 +7,7 @@ import 'package:train_libre/features/statistics/domain/recovery_domain_service.d
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
 import 'package:train_libre/features/workout/domain/models/set_log.dart'
     as domain_set;
+import 'package:train_libre/features/workout/domain/models/set_template.dart';
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart'
     as model;
 
@@ -394,6 +395,330 @@ void main() {
       expect(names, containsAll(['Historical Exercise', 'Row New']));
     });
 
+    group('Exercise Catalog Overhaul Overrides', () {
+      test('Exercise.duplicateAsCustom creates a valid custom copy', () {
+        final original = model.Exercise(
+          id: 42,
+          uuid: 'orig-uuid',
+          source: 'wger',
+          nameDe: 'Kniebeuge',
+          nameEn: 'Squat',
+          descriptionDe: 'Desc DE',
+          descriptionEn: 'Desc EN',
+          categoryName: 'Strength',
+          primaryMuscles: const ['Quadriceps'],
+          secondaryMuscles: const ['Glutes'],
+        );
+
+        final duplicate = model.Exercise.duplicateAsCustom(original, newUuid: 'new-uuid');
+
+        expect(duplicate.id, isNull);
+        expect(duplicate.uuid, 'new-uuid');
+        expect(duplicate.source, 'user');
+        expect(duplicate.replacesExerciseId, 'orig-uuid');
+        expect(duplicate.nameDe, 'Kniebeuge');
+        expect(duplicate.nameEn, 'Squat');
+        expect(duplicate.descriptionDe, 'Desc DE');
+        expect(duplicate.descriptionEn, 'Desc EN');
+        expect(duplicate.categoryName, 'Strength');
+        expect(duplicate.primaryMuscles, const ['Quadriceps']);
+        expect(duplicate.secondaryMuscles, const ['Glutes']);
+      });
+
+      test('searchExercises excludes overridden wger exercises', () async {
+        // 1. Insert a wger exercise
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-1'),
+                nameDe: const drift.Value('Bench Press (System)'),
+                nameEn: const drift.Value('Bench Press (System)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+
+        // Verify it shows up in search
+        var results = await helper.searchExercises(query: 'Bench');
+        expect(results.any((e) => e.uuid == 'system-1'), isTrue);
+
+        // 2. Insert user override
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-override-1'),
+                replacesExerciseId: const drift.Value('system-1'),
+                nameDe: const drift.Value('Bench Press (Custom Override)'),
+                nameEn: const drift.Value('Bench Press (Custom Override)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+
+        // Verify the system one is hidden and the override is shown
+        results = await helper.searchExercises(query: 'Bench');
+        expect(results.any((e) => e.uuid == 'system-1'), isFalse);
+        expect(results.any((e) => e.uuid == 'custom-override-1'), isTrue);
+      });
+
+      test('getExerciseByUuid resolves to override if present', () async {
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-2'),
+                nameDe: const drift.Value('Squat (System)'),
+                nameEn: const drift.Value('Squat (System)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+
+        // Direct UUID resolution of system-2 should yield the system one when no override exists
+        var resolved = await helper.getExerciseByUuid('system-2');
+        expect(resolved?.uuid, 'system-2');
+        expect(resolved?.source, 'wger');
+
+        // Insert override
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-override-2'),
+                replacesExerciseId: const drift.Value('system-2'),
+                nameDe: const drift.Value('Squat (Custom)'),
+                nameEn: const drift.Value('Squat (Custom)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+
+        // Direct UUID resolution of system-2 should now yield the custom override
+        resolved = await helper.getExerciseByUuid('system-2');
+        expect(resolved?.uuid, 'custom-override-2');
+        expect(resolved?.source, 'user');
+        expect(resolved?.replacesExerciseId, 'system-2');
+      });
+
+      test('getExerciseByName prefers custom/user exercises and overrides', () async {
+        // Case A: Custom and system exercise sharing same name (without explicit replacesExerciseId link)
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-3a'),
+                nameDe: const drift.Value('Deadlift'),
+                nameEn: const drift.Value('Deadlift'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-3b'),
+                nameDe: const drift.Value('Deadlift'),
+                nameEn: const drift.Value('Deadlift'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+
+        var resolved = await helper.getExerciseByName('Deadlift');
+        expect(resolved?.uuid, 'custom-3b');
+        expect(resolved?.source, 'user');
+
+        // Case B: System exercise override (different names, but linked via replacesExerciseId)
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-4'),
+                nameDe: const drift.Value('Overhead Press (System)'),
+                nameEn: const drift.Value('Overhead Press (System)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-override-4'),
+                replacesExerciseId: const drift.Value('system-4'),
+                nameDe: const drift.Value('Overhead Press (Custom)'),
+                nameEn: const drift.Value('Overhead Press (Custom)'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+
+        // Lookup by system name resolves to override
+        resolved = await helper.getExerciseByName('Overhead Press (System)');
+        expect(resolved?.uuid, 'custom-override-4');
+        expect(resolved?.source, 'user');
+      });
+
+      test('updateCustomExercise updates user exercise but throws on wger exercise', () async {
+        final systemRow = await database.into(database.exercises).insertReturning(
+              db.ExercisesCompanion(
+                id: const drift.Value('system-5'),
+                nameDe: const drift.Value('Pullup'),
+                nameEn: const drift.Value('Pullup'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        final systemModel = model.Exercise.fromMap({
+          'id': systemRow.localId,
+          'uuid': systemRow.id,
+          'source': systemRow.source,
+          'name_de': systemRow.nameDe,
+          'name_en': systemRow.nameEn,
+          'category_name': systemRow.categoryName,
+        });
+
+        final userRow = await database.into(database.exercises).insertReturning(
+              db.ExercisesCompanion(
+                id: const drift.Value('custom-5'),
+                nameDe: const drift.Value('Chinup'),
+                nameEn: const drift.Value('Chinup'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('user'),
+                isCustom: const drift.Value(true),
+              ),
+            );
+        final userModel = model.Exercise.fromMap({
+          'id': userRow.localId,
+          'uuid': userRow.id,
+          'source': userRow.source,
+          'name_de': userRow.nameDe,
+          'name_en': userRow.nameEn,
+          'category_name': userRow.categoryName,
+        });
+
+        // 1. Try to update wger exercise - should fail
+        final updatedSystemModel = systemModel.copyWith(nameEn: 'Pullup (Updated)');
+        expect(
+          () => helper.updateCustomExercise(updatedSystemModel),
+          throwsA(isA<Exception>()),
+        );
+
+        // Verify name not changed
+        final verifySystem = await helper.getExerciseByUuid('system-5');
+        expect(verifySystem?.nameEn, 'Pullup');
+
+        // 2. Try to update user exercise - should succeed
+        final updatedUserModel = userModel.copyWith(nameEn: 'Chinup (Updated)');
+        await helper.updateCustomExercise(updatedUserModel);
+
+        // Verify name changed
+        final verifyUser = await helper.getExerciseByUuid('custom-5');
+        expect(verifyUser?.nameEn, 'Chinup (Updated)');
+      });
+    });
+
+    group('Exercise Catalog Search Overhaul', () {
+      test('searchExercises applies tokenization and word-order invariant matching', () async {
+        await helper.insertExercise(
+          const model.Exercise(
+            nameDe: 'Barbell Bench Press',
+            nameEn: 'Barbell Bench Press',
+            descriptionDe: '',
+            descriptionEn: '',
+            categoryName: 'Strength',
+            primaryMuscles: [],
+            secondaryMuscles: [],
+          ),
+        );
+        await helper.insertExercise(
+          const model.Exercise(
+            nameDe: 'Incline Bench Press',
+            nameEn: 'Incline Bench Press',
+            descriptionDe: '',
+            descriptionEn: '',
+            categoryName: 'Strength',
+            primaryMuscles: [],
+            secondaryMuscles: [],
+          ),
+        );
+
+        // Word-order invariant: "Press Bench Barbell"
+        final results = await helper.searchExercises(query: 'Press Bench Barbell');
+        
+        expect(results.length, 1);
+        expect(results.first.nameEn, 'Barbell Bench Press');
+      });
+
+      test('searchExercises scores and ranks by 90-day training history and hierarchical priority', () async {
+        // Insert system exercises (source = 'wger', isCustom = false)
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('bench-press-uuid'),
+                nameDe: const drift.Value('Bench Press'),
+                nameEn: const drift.Value('Bench Press'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('incline-bench-press-uuid'),
+                nameDe: const drift.Value('Incline Bench Press'),
+                nameEn: const drift.Value('Incline Bench Press'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exercises).insert(
+              db.ExercisesCompanion(
+                id: const drift.Value('dumbbell-bench-press-uuid'),
+                nameDe: const drift.Value('Dumbbell Bench Press'),
+                nameEn: const drift.Value('Dumbbell Bench Press'),
+                categoryName: const drift.Value('Strength'),
+                source: const drift.Value('wger'),
+                isCustom: const drift.Value(false),
+              ),
+            );
+
+        // Log workout and sets:
+        // Set log 1: Dumbbell Bench Press, 10 days ago (within 90-day window)
+        final workoutLog1 = await _insertWorkout(
+          database,
+          id: 'workout-1',
+          startTime: DateTime.now().subtract(const Duration(days: 10)),
+        );
+        await _insertSet(
+          database,
+          workoutId: workoutLog1,
+          exerciseId: 'dumbbell-bench-press-uuid',
+          exerciseName: 'Dumbbell Bench Press',
+        );
+
+        // Set log 2: Incline Bench Press, 100 days ago (outside 90-day window)
+        final workoutLog2 = await _insertWorkout(
+          database,
+          id: 'workout-2',
+          startTime: DateTime.now().subtract(const Duration(days: 100)),
+        );
+        await _insertSet(
+          database,
+          workoutId: workoutLog2,
+          exerciseId: 'incline-bench-press-uuid',
+          exerciseName: 'Incline Bench Press',
+        );
+
+        // Search for "Bench Press".
+        // 1st: Exact match: "Bench Press" (bench-press-uuid)
+        // 2nd: History priority (logged in last 90 days): "Dumbbell Bench Press" (dumbbell-bench-press-uuid)
+        // 3rd: Fallback prefix match (or custom/alphabetical): "Incline Bench Press" (incline-bench-press-uuid)
+        final results = await helper.searchExercises(query: 'Bench Press');
+
+        expect(results.length, 3);
+        expect(results[0].uuid, 'bench-press-uuid');
+        expect(results[1].uuid, 'dumbbell-bench-press-uuid');
+        expect(results[2].uuid, 'incline-bench-press-uuid');
+      });
+    });
+
     test('getRecoveryAnalytics counts bodyweight and weighted strength only',
         () async {
       final now = DateTime.now();
@@ -598,6 +923,219 @@ void main() {
       );
       expect(muscles.keys, contains('biceps'));
       expect(muscles.keys, isNot(contains('chest')));
+    });
+
+    test('syncRoutineWithWorkout preserves correct template set type order (warmups first) when adding warmup sets', () async {
+      final routine = await helper.createRoutine('Sync Routine');
+      final exercise = await helper.insertExercise(
+        const model.Exercise(
+          nameDe: 'Bench Press',
+          nameEn: 'Bench Press',
+          descriptionDe: '',
+          descriptionEn: '',
+          categoryName: 'Strength',
+          primaryMuscles: ['chest'],
+          secondaryMuscles: [],
+        ),
+      );
+
+      final routineEx = await helper.addExerciseToRoutine(routine.id!, exercise.id!);
+      expect(routineEx, isNotNull);
+
+      // Setup initial template: 1 warmup, 2 normal sets
+      final templateSets = [
+        SetTemplate(setType: 'warmup', targetReps: '15'),
+        SetTemplate(setType: 'normal', targetReps: '10'),
+        SetTemplate(setType: 'normal', targetReps: '10'),
+      ];
+      await helper.replaceSetTemplatesForExercise(routineEx!.id!, templateSets);
+
+      // Start workout log
+      final workoutLog = await helper.startWorkout(routineName: 'Sync Routine');
+      
+      // Associate with routine
+      final routineRow = await (database.select(database.routines)
+            ..where((tbl) => tbl.localId.equals(routine.id!)))
+          .getSingle();
+      
+      await (database.update(database.workoutLogs)
+            ..where((tbl) => tbl.localId.equals(workoutLog.id!)))
+          .write(db.WorkoutLogsCompanion(
+            routineId: drift.Value(routineRow.id),
+          ));
+
+      // Insert completed logs (added a warmup set at the end or logged two warmups)
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: workoutLog.id!,
+        exerciseName: 'Bench Press',
+        setType: 'warmup',
+        reps: 15,
+        isCompleted: true,
+        logOrder: 0,
+      ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: workoutLog.id!,
+        exerciseName: 'Bench Press',
+        setType: 'warmup',
+        reps: 12,
+        isCompleted: true,
+        logOrder: 1,
+      ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: workoutLog.id!,
+        exerciseName: 'Bench Press',
+        setType: 'normal',
+        reps: 10,
+        isCompleted: true,
+        logOrder: 2,
+      ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: workoutLog.id!,
+        exerciseName: 'Bench Press',
+        setType: 'normal',
+        reps: 10,
+        isCompleted: true,
+        logOrder: 3,
+      ));
+
+      // Synchronize
+      await helper.syncRoutineWithWorkout(
+        routineUuid: routineRow.id,
+        workoutLogId: workoutLog.id!,
+      );
+
+      // Verify template order is: warmup, warmup, normal, normal
+      final updatedRoutine = await helper.getRoutineById(routine.id!);
+      expect(updatedRoutine, isNotNull);
+      expect(updatedRoutine!.exercises.length, 1);
+      
+      final updatedTemplates = updatedRoutine.exercises.first.setTemplates;
+      expect(updatedTemplates.length, 4);
+      expect(updatedTemplates[0].setType, 'warmup');
+      expect(updatedTemplates[1].setType, 'warmup');
+      expect(updatedTemplates[2].setType, 'normal');
+      expect(updatedTemplates[3].setType, 'normal');
+    });
+
+    test('createRoutineFromWorkout correctly creates a routine from a workout log', () async {
+      // 1. Setup exercises
+      final squatId = await _insertExercise(
+        database,
+        id: 'squat-uuid',
+        name: 'Squat',
+        category: 'Strength',
+        primaryMuscles: '["quads"]',
+      );
+      final benchId = await _insertExercise(
+        database,
+        id: 'bench-uuid',
+        name: 'Bench Press',
+        category: 'Strength',
+        primaryMuscles: '["chest"]',
+      );
+
+      // 2. Create a workout log
+      final workoutLogIdStr = await _insertWorkout(
+        database,
+        id: 'workout-for-creation',
+        startTime: DateTime.now(),
+      );
+
+      // 3. Add sets to the workout log.
+      // Exercise 1: Squat. Let's add normal set, warmup set (out of order, e.g. normal first then warmup), and an incomplete set (which should be skipped, isCompleted: false).
+      // Normal set 1 (order 0)
+      await _insertSet(
+        database,
+        workoutId: workoutLogIdStr,
+        exerciseId: squatId,
+        exerciseName: 'Squat',
+        setType: 'normal',
+        weight: 100.0,
+        reps: 5,
+        isCompleted: true,
+      );
+      // Warmup set 1 (order 1)
+      await _insertSet(
+        database,
+        workoutId: workoutLogIdStr,
+        exerciseId: squatId,
+        exerciseName: 'Squat',
+        setType: 'warmup',
+        weight: 60.0,
+        reps: 8,
+        isCompleted: true,
+      );
+      // Incomplete set (order 2) - should not be included
+      await _insertSet(
+        database,
+        workoutId: workoutLogIdStr,
+        exerciseId: squatId,
+        exerciseName: 'Squat',
+        setType: 'normal',
+        weight: 100.0,
+        reps: 5,
+        isCompleted: false,
+      );
+
+      // Exercise 2: Bench Press. Add completed sets with rest times.
+      // Normal set 1 (order 3) with rest time 90s (mapped to restTimeSeconds)
+      await database.into(database.setLogs).insert(
+            db.SetLogsCompanion(
+              workoutLogId: drift.Value(workoutLogIdStr),
+              exerciseId: drift.Value(benchId),
+              exerciseNameSnapshot: drift.Value('Bench Press'),
+              setType: drift.Value('normal'),
+              weight: drift.Value(80.0),
+              reps: drift.Value(10),
+              isCompleted: drift.Value(true),
+              restTimeSeconds: drift.Value(90),
+            ),
+          );
+
+      // We need localId (int) of workoutLog. Let's find it.
+      final workoutLog = await database.select(database.workoutLogs).getSingle();
+
+      // 4. Create routine from workout log
+      final routine = await helper.createRoutineFromWorkout(
+        workoutLogId: workoutLog.localId,
+        name: 'New Custom Routine',
+      );
+
+      expect(routine, isNotNull);
+      expect(routine.name, 'New Custom Routine');
+
+      // 5. Verify database records
+      // Verify Routine is created
+      final dbRoutine = await helper.getRoutineById(routine.id!);
+      expect(dbRoutine, isNotNull);
+      expect(dbRoutine!.name, 'New Custom Routine');
+
+      // Verify RoutineExercises
+      expect(dbRoutine.exercises.length, 2);
+      
+      // Exercise 1 (Index 0): Squat
+      final squatExercise = dbRoutine.exercises[0];
+      expect(squatExercise.exercise.uuid, squatId);
+      
+      // Check set templates for squat: warmup first (weight 60, reps 8), normal second (weight 100, reps 5)
+      expect(squatExercise.setTemplates.length, 2); // Excluded incomplete
+      expect(squatExercise.setTemplates[0].setType, 'warmup');
+      expect(squatExercise.setTemplates[0].targetWeight, 60.0);
+      expect(squatExercise.setTemplates[0].targetReps, '8');
+
+      expect(squatExercise.setTemplates[1].setType, 'normal');
+      expect(squatExercise.setTemplates[1].targetWeight, 100.0);
+      expect(squatExercise.setTemplates[1].targetReps, '5');
+
+      // Exercise 2 (Index 1): Bench Press
+      final benchExercise = dbRoutine.exercises[1];
+      expect(benchExercise.exercise.uuid, benchId);
+      expect(benchExercise.pauseSeconds, 90); // Mapped rest time
+
+      expect(benchExercise.setTemplates.length, 1);
+      expect(benchExercise.setTemplates[0].setType, 'normal');
+      expect(benchExercise.setTemplates[0].targetWeight, 80.0);
+      expect(benchExercise.setTemplates[0].targetReps, '10');
     });
   });
 }

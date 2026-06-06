@@ -1646,6 +1646,36 @@ abstract class AppLocalizations {
   /// **'Routine saved.'**
   String get snackbarRoutineSaved;
 
+  /// No description provided for @saveAsRoutineButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as routine'**
+  String get saveAsRoutineButton;
+
+  /// No description provided for @saveAsRoutineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as Routine'**
+  String get saveAsRoutineTitle;
+
+  /// No description provided for @saveAsRoutinePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name for the new routine:'**
+  String get saveAsRoutinePrompt;
+
+  /// No description provided for @saveAsRoutineSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine created!'**
+  String get saveAsRoutineSuccess;
+
+  /// No description provided for @snackbarRoutineSavedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get snackbarRoutineSavedAction;
+
   /// No description provided for @formFieldRoutineName.
   ///
   /// In en, this message translates to:
@@ -3599,7 +3629,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealsEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No meals yet'**
+  /// **'No meal templates saved'**
   String get mealsEmptyTitle;
 
   /// No description provided for @mealsEmptyBody.
@@ -3607,6 +3637,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create meals to quickly log multiple foods at once.'**
   String get mealsEmptyBody;
+
+  /// No description provided for @mealsEmptyBodyWithShortcut.
+  ///
+  /// In en, this message translates to:
+  /// **'In the diary, use the “Save as meal” option below your Breakfast or Dinner to save common food combinations as a quick template.'**
+  String get mealsEmptyBodyWithShortcut;
+
+  /// No description provided for @mealsCreateManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Create meal manually'**
+  String get mealsCreateManually;
+
+  /// No description provided for @saveMealTemplateShortcut.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as meal'**
+  String get saveMealTemplateShortcut;
 
   /// No description provided for @mealsCreate.
   ///
@@ -6400,6 +6448,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No stage timeline available for this night.'**
   String get sleepTimelineUnavailable;
+
+  /// No description provided for @sleepSessionTypeCore.
+  ///
+  /// In en, this message translates to:
+  /// **'Core Sleep'**
+  String get sleepSessionTypeCore;
+
+  /// No description provided for @sleepSessionTypeNap.
+  ///
+  /// In en, this message translates to:
+  /// **'Nap'**
+  String get sleepSessionTypeNap;
+
+  /// No description provided for @sleepIntervalsDrawerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep Intervals'**
+  String get sleepIntervalsDrawerTitle;
 
   /// No description provided for @sleepStageDeepLabel.
   ///

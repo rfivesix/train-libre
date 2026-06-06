@@ -90,9 +90,8 @@ class ProductLocalDataSource {
     }
   }
 
-
-
-  FoodItem _mapRowAndOverrideToFoodItem(db.Product row, db.UserFoodOverride? overrideRow) {
+  FoodItem _mapRowAndOverrideToFoodItem(
+      db.Product row, db.UserFoodOverride? overrideRow) {
     FoodItemSource source;
     switch (row.source) {
       case 'base':
@@ -121,22 +120,29 @@ class ProductLocalDataSource {
       sugar: overrideRow?.sugar ?? row.sugar,
       fiber: overrideRow?.fiber ?? row.fiber,
       salt: overrideRow?.salt ?? row.salt,
-      sodium: (overrideRow?.salt ?? row.salt) != null ? (overrideRow?.salt ?? row.salt)! / 2.5 : null,
+      sodium: (overrideRow?.salt ?? row.salt) != null
+          ? (overrideRow?.salt ?? row.salt)! / 2.5
+          : null,
       kj: ((overrideRow?.calories ?? row.calories) * 4.184),
       calcium: null,
       isLiquid: overrideRow?.isLiquid ?? row.isLiquid,
       isFluid: overrideRow?.isFluid ?? row.isFluid,
       caffeineMgPer100ml: overrideRow?.caffeine ?? row.caffeine,
-      caffeineMgPer100g: overrideRow?.caffeineMgPer100g ?? row.caffeineMgPer100g,
+      caffeineMgPer100g:
+          overrideRow?.caffeineMgPer100g ?? row.caffeineMgPer100g,
       ingredientsText: overrideRow?.ingredientsText ?? row.ingredientsText,
-      ingredientsAnalysisTags: _parseJsonList(overrideRow?.ingredientsAnalysisTags ?? row.ingredientsAnalysisTags),
-      additivesTags: _parseJsonList(overrideRow?.additivesTags ?? row.additivesTags),
+      ingredientsAnalysisTags: _parseJsonList(
+          overrideRow?.ingredientsAnalysisTags ?? row.ingredientsAnalysisTags),
+      additivesTags:
+          _parseJsonList(overrideRow?.additivesTags ?? row.additivesTags),
       productQuantity: overrideRow?.productQuantity ?? row.productQuantity,
-      productQuantityUnit: overrideRow?.productQuantityUnit ?? row.productQuantityUnit,
+      productQuantityUnit:
+          overrideRow?.productQuantityUnit ?? row.productQuantityUnit,
     );
   }
 
-  Future<List<FoodItem>> _enrichProductsWithOverrides(List<db.Product> rows) async {
+  Future<List<FoodItem>> _enrichProductsWithOverrides(
+      List<db.Product> rows) async {
     if (rows.isEmpty) return [];
     final dbInstance = await database;
     final barcodes = rows.map((r) => r.barcode).toList();
@@ -243,7 +249,7 @@ class ProductLocalDataSource {
         .toList();
 
     final products = await getProductsByBarcodes(recentBarcodes);
-    
+
     // Sort products to match the exact descending order of recentBarcodes
     final barcodeToIndex = {
       for (var i = 0; i < recentBarcodes.length; i++) recentBarcodes[i]: i
@@ -340,79 +346,109 @@ class ProductLocalDataSource {
     return _enrichProductsWithOverrides(rows);
   }
 
+  List<String> _tokenizeAndClean(String input) {
+    final sanitized = input
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9äöüß ]', unicode: true), ' ');
+    return sanitized.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+  }
+
   /// Performs a global search across user-created, base, and Open Food Facts products.
   Future<List<FoodItem>> searchProducts(String keyword) async {
-    final term = keyword.trim();
-    if (term.isEmpty) return [];
+    final tokens = _tokenizeAndClean(keyword);
+    if (tokens.isEmpty) return [];
+
     final dbInstance = await database;
     const int limit = 50;
 
-    Expression<int> searchPriority(db.Products t) {
-      return CaseWhenExpression<int>(
-        cases: [
-          CaseWhen(
-            t.name.equals(term) | t.nameDe.equals(term) | t.nameEn.equals(term),
-            then: const Constant(0),
-          ),
-          CaseWhen(
-            t.name.like('$term%') |
-                t.nameDe.like('$term%') |
-                t.nameEn.like('$term%'),
-            then: const Constant(1),
-          ),
-        ],
-        orElse: const Constant(2),
-      );
-    }
-
-    final priorityRows = await (dbInstance.select(dbInstance.products)
-          ..where(
-            (t) =>
-                (t.name.like('%$term%') |
-                    t.nameDe.like('%$term%') |
-                    t.nameEn.like('%$term%') |
-                    t.brand.like('%$term%')) &
-                t.source.isIn(['user', 'base']),
-          )
-          ..orderBy([
-            (t) => OrderingTerm(
-                expression: searchPriority(t), mode: OrderingMode.asc),
-            (t) =>
-                OrderingTerm(expression: t.usageCount, mode: OrderingMode.desc),
-            (t) =>
-                OrderingTerm(expression: t.name.length, mode: OrderingMode.asc),
-          ])
-          ..limit(limit))
+    // 1. Fetch nutrition logs from the last 30 days first to compute recency score in Dart
+    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
+    final recentLogs = await (dbInstance.select(dbInstance.nutritionLogs)
+          ..where((tbl) => tbl.consumedAt.isBiggerOrEqualValue(thirtyDaysAgo)))
         .get();
 
-    final List<FoodItem> results = await _enrichProductsWithOverrides(priorityRows);
-
-    if (results.length < limit) {
-      final int remaining = limit - results.length;
-      final offRows = await (dbInstance.select(dbInstance.products)
-            ..where(
-              (t) =>
-                  (t.name.like('%$term%') |
-                      t.nameDe.like('%$term%') |
-                      t.nameEn.like('%$term%') |
-                      t.brand.like('%$term%')) &
-                  t.source.equals('off'),
-            )
-            ..orderBy([
-              (t) => OrderingTerm(
-                  expression: searchPriority(t), mode: OrderingMode.asc),
-              (t) => OrderingTerm(
-                  expression: t.usageCount, mode: OrderingMode.desc),
-              (t) => OrderingTerm(
-                  expression: t.name.length, mode: OrderingMode.asc),
-            ])
-            ..limit(remaining))
-          .get();
-
-      results.addAll(await _enrichProductsWithOverrides(offRows));
+    final barcodeCounts = <String, int>{};
+    final productIdCounts = <String, int>{};
+    for (final log in recentLogs) {
+      if (log.legacyBarcode != null && log.legacyBarcode!.isNotEmpty) {
+        barcodeCounts[log.legacyBarcode!] = (barcodeCounts[log.legacyBarcode!] ?? 0) + 1;
+      }
+      if (log.productId != null && log.productId!.isNotEmpty) {
+        productIdCounts[log.productId!] = (productIdCounts[log.productId!] ?? 0) + 1;
+      }
     }
 
-    return results;
+    final variables = <Variable>[];
+    final caseClauses = <String>[];
+
+    // Build the dynamic CASE WHEN statement for history priority score
+    for (final entry in productIdCounts.entries) {
+      caseClauses.add('WHEN p.id = ? THEN ${entry.value * 10}');
+      variables.add(Variable.withString(entry.key));
+    }
+    for (final entry in barcodeCounts.entries) {
+      caseClauses.add('WHEN p.barcode = ? THEN ${entry.value * 10}');
+      variables.add(Variable.withString(entry.key));
+    }
+
+    final String historyScoreExpr = caseClauses.isEmpty
+        ? '0 AS history_priority_score'
+        : 'CASE ${caseClauses.join(' ')} ELSE 0 END AS history_priority_score';
+
+    // Für die Relevanz-Gewichtung im ORDER BY übergeben wir den rohen Suchbegriff
+    final rawSearchLower = keyword.trim().toLowerCase();
+    variables.add(Variable.withString(rawSearchLower)); // Für exakten Match
+    variables.add(Variable.withString('$rawSearchLower%')); // Für Wortanfang-Match
+
+    final whereClauses = <String>["p.source IN ('user', 'base', 'off')"];
+    for (final token in tokens) {
+      // WICHTIGER KNIEFALL FÜR DEN DEUTSCHEN PLURAL:
+      // Wenn das Token auf "er" endet (z.B. "eier"), erlauben wir auch den Match auf den Stamm ("ei")
+      if (token.endsWith('er') && token.length > 3) {
+        final stem = token.substring(0, token.length - 2);
+        whereClauses.add('(p.name LIKE ? OR p.name LIKE ?)');
+        variables.add(Variable.withString('%$token%'));
+        variables.add(Variable.withString('%$stem%'));
+      } else {
+        whereClauses.add('p.name LIKE ?');
+        variables.add(Variable.withString('%$token%'));
+      }
+    }
+
+    final whereSection = whereClauses.join(' AND ');
+
+    final query = '''
+      SELECT p.*,
+             $historyScoreExpr,
+             (CASE WHEN p.source = 'base' THEN 1 ELSE 0 END) AS is_base_food,
+             -- Text-Relevanz-Scores berechnen:
+             (CASE WHEN LOWER(p.name) = ? THEN 1 ELSE 0 END) AS is_exact_match,
+             (CASE WHEN LOWER(p.name) LIKE ? THEN 1 ELSE 0 END) AS is_prefix_match
+      FROM products p
+      WHERE $whereSection
+      -- DIE NEUE PRIORISIERUNG:
+      -- 1. Exakte Namens-Treffer müssen IMMER ganz nach oben (z.B. wenn ein Produkt exakt "Eier" oder "Ei" heißt)
+      -- 2. Wortanfang-Treffer (z.B. "Eiercreme" bei Suche nach "Eier") kommen als nächstes
+      -- 3. Erst danach greift die Unterscheidung zwischen Grundnahrungsmittel und OpenFoodFacts
+      -- 4. Innerhalb der Blöcke entscheidet deine Historie
+      ORDER BY 
+        is_exact_match DESC, 
+        history_priority_score DESC, 
+        is_prefix_match DESC, 
+        is_base_food DESC, 
+        LENGTH(p.name) ASC,
+        p.name ASC
+      LIMIT $limit
+    ''';
+
+    final rows = await dbInstance.customSelect(
+      query,
+      variables: variables,
+      readsFrom: {dbInstance.products, dbInstance.nutritionLogs},
+    ).get();
+
+    final dbProducts = rows.map((row) => dbInstance.products.map(row.data)).toList();
+    return _enrichProductsWithOverrides(dbProducts);
   }
 
   /// Retrieves a single product by its [barcode].
@@ -445,65 +481,12 @@ class ProductLocalDataSource {
 
   /// Fuzzy-matches an AI-detected food name against the products table.
   Future<List<FoodItem>> fuzzyMatchForAi(String aiName) async {
-    final tokens = aiName
-        .trim()
-        .toLowerCase()
-        .split(RegExp(r'\s+'))
-        .where((t) => t.length > 1)
-        .toList();
-    if (tokens.isEmpty) return [];
+    final candidates = await searchProducts(aiName);
+    if (candidates.isEmpty) return [];
 
-    final dbInstance = await database;
-    const int fetchLimit = 20;
     const int returnLimit = 5;
-
-    Expression<int> sourcePriority(GeneratedColumn<String> source) {
-      return CaseWhenExpression<int>(
-        cases: [
-          CaseWhen(source.equals('base'), then: const Constant(0)),
-          CaseWhen(source.equals('user'), then: const Constant(1)),
-        ],
-        orElse: const Constant(2),
-      );
-    }
-
-    List<db.Product> rows = [];
-
-    if (tokens.length > 1) {
-      var query = dbInstance.select(dbInstance.products)
-        ..limit(fetchLimit)
-        ..orderBy([
-          (t) => OrderingTerm(
-              expression: sourcePriority(t.source), mode: OrderingMode.asc),
-          (t) =>
-              OrderingTerm(expression: t.name.length, mode: OrderingMode.asc),
-        ]);
-      for (final token in tokens) {
-        query = query..where((t) => t.name.like('%$token%'));
-      }
-      rows = await query.get();
-    }
-
-    if (rows.isEmpty) {
-      tokens.sort((a, b) => b.length.compareTo(a.length));
-      final bestToken = tokens.first;
-      rows = await (dbInstance.select(dbInstance.products)
-            ..where((t) => t.name.like('%$bestToken%'))
-            ..orderBy([
-              (t) => OrderingTerm(
-                  expression: sourcePriority(t.source), mode: OrderingMode.asc),
-              (t) => OrderingTerm(
-                  expression: t.name.length, mode: OrderingMode.asc),
-            ])
-            ..limit(fetchLimit))
-          .get();
-    }
-
-    if (rows.isEmpty) return [];
-
-    final items = await _enrichProductsWithOverrides(rows);
     return const EvaluateFoodSourceUseCase().execute(
-      candidates: items,
+      candidates: candidates,
       searchTerm: aiName,
       limit: returnLimit,
     );
@@ -520,65 +503,11 @@ class ProductLocalDataSource {
     String? stateHint,
     int limit = 5,
   }) async {
-    final tokens = aiName
-        .trim()
-        .toLowerCase()
-        .split(RegExp(r'\s+'))
-        .where((t) => t.length > 1)
-        .toList();
-    if (tokens.isEmpty) return [];
-
-    final dbInstance = await database;
-    const int fetchLimit = 30;
-
-    Expression<int> sourcePriority(GeneratedColumn<String> source) {
-      return CaseWhenExpression<int>(
-        cases: [
-          CaseWhen(source.equals('base'), then: const Constant(0)),
-          CaseWhen(source.equals('user'), then: const Constant(1)),
-        ],
-        orElse: const Constant(2),
-      );
-    }
-
-    List<db.Product> rows = [];
-
-    if (tokens.length > 1) {
-      var query = dbInstance.select(dbInstance.products)
-        ..limit(fetchLimit)
-        ..orderBy([
-          (t) => OrderingTerm(
-              expression: sourcePriority(t.source), mode: OrderingMode.asc),
-          (t) =>
-              OrderingTerm(expression: t.name.length, mode: OrderingMode.asc),
-        ]);
-      for (final token in tokens) {
-        query = query..where((t) => t.name.like('%$token%'));
-      }
-      rows = await query.get();
-    }
-
-    if (rows.isEmpty) {
-      tokens.sort((a, b) => b.length.compareTo(a.length));
-      final bestToken = tokens.first;
-      rows = await (dbInstance.select(dbInstance.products)
-            ..where((t) => t.name.like('%$bestToken%'))
-            ..orderBy([
-              (t) => OrderingTerm(
-                  expression: sourcePriority(t.source), mode: OrderingMode.asc),
-              (t) => OrderingTerm(
-                  expression: t.name.length, mode: OrderingMode.asc),
-            ])
-            ..limit(fetchLimit))
-          .get();
-    }
-
-    if (rows.isEmpty) return [];
-
-    final items = await _enrichProductsWithOverrides(rows);
+    final candidates = await searchProducts(aiName);
+    if (candidates.isEmpty) return [];
 
     // Re-rank items incorporating stateHint
-    items.sort((a, b) {
+    candidates.sort((a, b) {
       final aName = a.getLocalizedName(null).toLowerCase();
       final bName = b.getLocalizedName(null).toLowerCase();
 
@@ -587,7 +516,10 @@ class ProductLocalDataSource {
         if (stateHint != null) {
           final hint = stateHint.toLowerCase();
           if (hint == 'cooked') {
-            if (name.contains('gekocht') || name.contains('zubereitet') || name.contains('gebraten') || name.contains('gebacken')) {
+            if (name.contains('gekocht') ||
+                name.contains('zubereitet') ||
+                name.contains('gebraten') ||
+                name.contains('gebacken')) {
               return -2.0; // Lower is better in sort (ascending)
             }
             if (name.contains('roh')) {
@@ -597,7 +529,9 @@ class ProductLocalDataSource {
             if (name.contains('roh')) {
               return -2.0;
             }
-            if (name.contains('gekocht') || name.contains('zubereitet') || name.contains('gebraten')) {
+            if (name.contains('gekocht') ||
+                name.contains('zubereitet') ||
+                name.contains('gebraten')) {
               return 2.0;
             }
           }
@@ -639,7 +573,7 @@ class ProductLocalDataSource {
       return aName.length.compareTo(bName.length);
     });
 
-    return items.take(limit).toList();
+    return candidates.take(limit).toList();
   }
 
   // === Legacy / Compatibility ===

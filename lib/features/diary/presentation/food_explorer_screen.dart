@@ -1,5 +1,6 @@
 // lib/screens/food_explorer_screen.dart (Final & De-Materialisiert)
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
@@ -33,6 +34,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   bool _isLoadingFavorites = true;
 
   late TabController _tabController;
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -45,7 +47,15 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   void dispose() {
     _searchController.dispose();
     _tabController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_searchDebounce?.isActive ?? false) _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      _runFilter(query);
+    });
   }
 
   void _runFilter(String enteredKeyword) async {
@@ -184,29 +194,34 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
       child: Column(
         children: [
           // FIX 4: TextField uses global InputDecorationTheme.
-          TextField(
-            controller: _searchController,
-            onChanged: (value) => _runFilter(value),
-            decoration: InputDecoration(
-              hintText: l10n.searchHintText,
-              prefixIcon: Icon(
-                Icons.search,
-                color: colorScheme.onSurfaceVariant,
-                size: 20,
-              ),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: Icon(
-                        Icons.clear,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      onPressed: () {
-                        _searchController.clear();
-                        _runFilter('');
-                      },
-                    )
-                  : null,
-            ),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _searchController,
+            builder: (context, value, child) {
+              return TextField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: l10n.searchHintText,
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  suffixIcon: value.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            _runFilter('');
+                          },
+                        )
+                      : null,
+                ),
+              );
+            },
           ),
           const SizedBox(height: 20),
           Expanded(

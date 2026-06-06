@@ -111,6 +111,21 @@ class FakeWorkoutRepository implements IWorkoutRepository {
     }
     return workoutLogsController.stream;
   }
+
+  @override
+  Future<Routine?> getRoutineByUuid(String uuid) async => null;
+
+  @override
+  Future<void> syncRoutineWithWorkout({
+    required String routineUuid,
+    required int workoutLogId,
+  }) async {}
+
+  @override
+  Future<Routine> createRoutineFromWorkout({
+    required int workoutLogId,
+    required String name,
+  }) async => Routine(id: 1, name: name);
 }
 
 void main() {

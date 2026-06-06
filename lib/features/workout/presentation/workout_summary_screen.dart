@@ -8,12 +8,15 @@ import '../data/sources/workout_local_data_source.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../../sharing/share_service.dart';
 import '../../../generated/app_localizations.dart';
+import '../domain/models/routine.dart';
 import '../domain/models/set_log.dart';
 import '../domain/models/workout_log.dart';
+import 'edit_routine_screen.dart';
 import '../../../services/health/workout_heart_rate_models.dart';
 import '../../../services/health/workout_heart_rate_service.dart';
 import '../../../services/unit_service.dart';
 import '../../../services/profile_service.dart';
+import '../../../services/haptic_feedback_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
@@ -49,6 +52,10 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   Map<String, List<_ExerciseRecordData>> _newRecordsPerExercise = {};
 
   Map<String, Exercise> _exerciseDetails = {};
+
+  bool _showSyncBanner = false;
+  Routine? _associatedRoutine;
+  bool _isSyncing = false;
 
   @override
   void initState() {
@@ -173,6 +180,18 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         }
       }
 
+      // Fetch routine and compute structural/sequence delta
+      bool showSyncBanner = false;
+      Routine? associatedRoutine;
+
+      if (data.routineId != null) {
+        final routine = await db.getRoutineByUuid(data.routineId!);
+        if (routine != null) {
+          associatedRoutine = routine;
+          showSyncBanner = _detectRoutineDelta(routine, data, detailsMap);
+        }
+      }
+
       final heartRate = await heartRateFuture;
 
       if (mounted) {
@@ -182,6 +201,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           _newRecordsPerExercise = newRecordsMap;
           _exerciseDetails = detailsMap;
           _heartRateSummary = heartRate;
+          _associatedRoutine = associatedRoutine;
+          _showSyncBanner = showSyncBanner;
           _isLoading = false;
         });
       }
@@ -244,6 +265,10 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               progress: null,
                             ),
                             const SizedBox(height: DesignConstants.spacingL),
+                            if (_showSyncBanner && _associatedRoutine != null) ...[
+                              _buildSyncBanner(colorScheme, textTheme),
+                              const SizedBox(height: DesignConstants.spacingL),
+                            ],
                             if (_exerciseDetails.isNotEmpty) ...[
                               _buildMuscleHeatmap(l10n),
                               const SizedBox(height: DesignConstants.spacingL),
@@ -568,6 +593,235 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         l10n.workoutHeartRateNoDataQueryFailed,
       _ => l10n.workoutHeartRateNoDataGeneral,
     };
+  }
+
+  bool _detectRoutineDelta(
+    Routine routine,
+    WorkoutLog log,
+    Map<String, Exercise> exerciseDetails,
+  ) {
+    final workingSets = log.sets
+        .where((s) => s.isCompleted == true && s.setType.toLowerCase() != 'warmup')
+        .toList();
+    
+    final logExNames = <String>[];
+    for (final s in workingSets) {
+      if (!logExNames.contains(s.exerciseName)) {
+        logExNames.add(s.exerciseName);
+      }
+    }
+
+    if (routine.exercises.length != logExNames.length) {
+      return true;
+    }
+
+    for (int i = 0; i < logExNames.length; i++) {
+      final logName = logExNames[i];
+      final routineEx = routine.exercises[i];
+      final logEx = exerciseDetails[logName];
+
+      if (logEx == null) {
+        return true;
+      }
+
+      if (routineEx.exercise.id != logEx.id &&
+          routineEx.exercise.uuid != logEx.uuid) {
+        return true;
+      }
+
+      final logSetsForEx = workingSets.where((s) => s.exerciseName == logName).toList();
+      if (routineEx.setTemplates.length != logSetsForEx.length) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  Widget _buildSyncBanner(ColorScheme colorScheme, TextTheme textTheme) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: Card(
+        key: const ValueKey('sync_routine_banner'),
+        elevation: 4,
+        shadowColor: colorScheme.primary.withValues(alpha: 0.2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.primary.withValues(alpha: 0.08),
+                colorScheme.secondary.withValues(alpha: 0.03),
+              ],
+            ),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.sync,
+                      color: colorScheme.primary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Routine aktualisieren?",
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "Struktur- oder Reihenfolgeänderungen erkannt.",
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "Möchtest du die Routine '${_associatedRoutine!.name}' mit den aktuellen Workout-Daten (Übungen, Reihenfolge, Sätze) aktualisieren?",
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _showSyncBanner = false;
+                      });
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.outline,
+                    ),
+                    child: const Text("Verwerfen"),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    onPressed: _isSyncing ? null : _syncRoutine,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                    ),
+                    icon: _isSyncing
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : const Icon(Icons.check, size: 18),
+                    label: const Text("Jetzt aktualisieren"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _syncRoutine() async {
+    if (_log?.routineId == null || _log?.id == null) return;
+    
+    setState(() {
+      _isSyncing = true;
+    });
+
+    try {
+      final db = WorkoutLocalDataSource.instance;
+      await db.syncRoutineWithWorkout(
+        routineUuid: _log!.routineId!,
+        workoutLogId: _log!.id!,
+      );
+
+      final updatedRoutine = await db.getRoutineByUuid(_log!.routineId!);
+
+      if (mounted) {
+        try {
+          HapticFeedbackService.instance.confirmationFeedback();
+        } catch (_) {}
+
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Routine erfolgreich aktualisiert!"),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: l10n.snackbarRoutineSavedAction,
+              textColor: Colors.white,
+              onPressed: () {
+                if (updatedRoutine != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => EditRoutineScreen(routine: updatedRoutine),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Fehler beim Aktualisieren der Routine: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSyncing = false;
+          _showSyncBanner = false;
+        });
+      }
+    }
   }
 }
 

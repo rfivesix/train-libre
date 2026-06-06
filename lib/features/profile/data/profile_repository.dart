@@ -66,6 +66,21 @@ class ProfileRepository implements IProfileRepository {
   }
 
   @override
+  Stream<List<ChartDataPoint>> watchChartDataForTypeAndRange(
+      String type, DateTimeRange range) {
+    return _localDataSource
+        .watchChartDataForTypeAndRange(type, range)
+        .map((raw) {
+      return raw.map((item) {
+        return ChartDataPoint(
+          date: item['date'] as DateTime,
+          value: (item['value'] as num).toDouble(),
+        );
+      }).toList();
+    });
+  }
+
+  @override
   Future<db.AppSetting?> getAppSettings() {
     return _localDataSource.getAppSettings();
   }

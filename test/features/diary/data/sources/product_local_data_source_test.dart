@@ -287,5 +287,95 @@ void main() {
       // Brokkoli frisch is consumed at -30min, so it must rank SECOND
       expect(recent[1].barcode, '111111');
     });
+
+    test('searchProducts implements multi-token word order invariance and recency rescoring', () async {
+      await dataSource.insertProduct(testUserItem); // Apfel Elstar (user, barcode '444444')
+      await dataSource.insertProduct(testOffItem);  // Apfelmus ungezuckert (off, barcode '555555')
+
+      // 1. Test word-order invariance: "Elstar Apfel" should match "Apfel Elstar"
+      final invariantResults = await dataSource.searchProducts('Elstar Apfel');
+      expect(invariantResults.length, 1);
+      expect(invariantResults[0].barcode, '444444');
+
+      // 2. Test recency rescoring:
+      // Initially, searching for "Apfel" returns:
+      // 'Apfel Elstar' (user) followed by 'Apfelmus ungezuckert' (off) due to alphabetical sort 'Apfel Elstar' < 'Apfelmus'
+      final searchBeforeLog = await dataSource.searchProducts('Apfel');
+      expect(searchBeforeLog.length, 2);
+      expect(searchBeforeLog[0].barcode, '444444'); // Apfel Elstar
+      expect(searchBeforeLog[1].barcode, '555555'); // Apfelmus ungezuckert
+
+      // Now, log "Apfelmus ungezuckert" (off) within the past 30 days.
+      await database.into(database.nutritionLogs).insert(
+        db.NutritionLogsCompanion(
+          id: const drift.Value('log_mus'),
+          productId: const drift.Value(null),
+          legacyBarcode: const drift.Value('555555'),
+          consumedAt: drift.Value(DateTime.now().subtract(const Duration(days: 5))),
+          amount: const drift.Value(100.0),
+        ),
+      );
+
+      // Now, search again. "Apfelmus ungezuckert" should be prioritized above "Apfel Elstar"
+      // because its history score is 10, while "Apfel Elstar" history score is 0.
+      final searchAfterLog = await dataSource.searchProducts('Apfel');
+      expect(searchAfterLog.length, 2);
+      expect(searchAfterLog[0].barcode, '555555'); // Apfelmus ungezuckert (now first!)
+      expect(searchAfterLog[1].barcode, '444444'); // Apfel Elstar
+    });
+
+    test('searchProducts implements exact/prefix match boosting and German plural stem fallback', () async {
+      await dataSource.insertProduct(FoodItem(
+        barcode: '888888',
+        name: 'Eiercreme',
+        brand: '',
+        calories: 200,
+        protein: 5.0,
+        carbs: 10.0,
+        fat: 15.0,
+        source: FoodItemSource.base,
+      ));
+      await dataSource.insertProduct(FoodItem(
+        barcode: '999999',
+        name: 'Ei',
+        brand: '',
+        calories: 70,
+        protein: 6.0,
+        carbs: 0.5,
+        fat: 5.0,
+        source: FoodItemSource.base,
+      ));
+      await dataSource.insertProduct(FoodItem(
+        barcode: '101010',
+        name: 'Hühnerei',
+        brand: '',
+        calories: 75,
+        protein: 6.5,
+        carbs: 0.6,
+        fat: 5.2,
+        source: FoodItemSource.base,
+      ));
+
+      // Query for "Eier".
+      // German plural check should map "eier" -> "ei" as a stem.
+      // - "Ei" matches "%ei%" (exact match on LOWER(p.name) = "eier" is FALSE)
+      // - "Eiercreme" starts with "eier", so LOWER(p.name) LIKE "eier%" is TRUE.
+      // - "Hühnerei" is substring matched but has prefix = 0.
+      final eierResults = await dataSource.searchProducts('Eier');
+      expect(eierResults.length, 3);
+      expect(eierResults[0].barcode, '888888'); // Eiercreme (prefix match)
+      expect(eierResults[1].barcode, '999999'); // Ei
+      expect(eierResults[2].barcode, '101010'); // Hühnerei
+
+      // Query for "Ei".
+      // - "Ei" is exact match, so it must be FIRST.
+      // - "Eiercreme" is prefix match, so it must be SECOND.
+      // - "Hühnerei" is substring match, so it must be THIRD.
+      final eiResults = await dataSource.searchProducts('Ei');
+      expect(eiResults.length, 3);
+      expect(eiResults[0].barcode, '999999'); // Ei (exact match)
+      expect(eiResults[1].barcode, '888888'); // Eiercreme (prefix match)
+      expect(eiResults[2].barcode, '101010'); // Hühnerei (substring match)
+    });
   });
 }

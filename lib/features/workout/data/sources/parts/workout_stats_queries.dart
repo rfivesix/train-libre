@@ -470,59 +470,43 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final since = now.subtract(Duration(days: daysBack));
     final dbInstance = await database;
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-      drift.leftOuterJoin(
-        dbInstance.exercises,
-        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
-      ),
-    ])
-      ..where(
-        dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
-            dbInstance.workoutLogs.status.equals('completed') &
-            dbInstance.workoutLogs.startTime.isBetweenValues(
-              since,
-              now.add(const Duration(days: 1)),
-            ),
-      );
+    final query = '''
+      SELECT 
+        COALESCE(j.value, 'Other') as muscleGroup,
+        SUM(s.weight * s.reps) as tonnage
+      FROM set_logs s
+      INNER JOIN workout_logs w ON w.id = s.workout_log_id
+      LEFT JOIN exercises e ON e.id = s.exercise_id
+      LEFT JOIN json_each(
+        CASE 
+          WHEN e.muscles_primary IS NULL OR e.muscles_primary = '' THEN '["Other"]'
+          WHEN e.muscles_primary LIKE '[%' THEN e.muscles_primary
+          ELSE '["' || e.muscles_primary || '"]'
+        END
+      ) j ON 1=1
+      WHERE s.is_completed = 1 
+        AND s.set_type != 'warmup'
+        AND s.weight > 0 
+        AND s.reps > 0
+        AND w.status = 'completed'
+        AND w.start_time >= ?
+        AND w.start_time <= ?
+      GROUP BY COALESCE(j.value, 'Other')
+      ORDER BY tonnage DESC
+    ''';
 
-    final rows = await query.get();
-    final Map<String, double> muscleVolume = {};
+    final rows = await dbInstance.customSelect(
+      query,
+      variables: [
+        drift.Variable.withDateTime(since),
+        drift.Variable.withDateTime(now.add(const Duration(days: 1))),
+      ],
+    ).get();
 
-    for (final r in rows) {
-      final setRow = r.readTable(dbInstance.setLogs);
-      final exRow = r.readTableOrNull(dbInstance.exercises);
-      final volume = (setRow.weight ?? 0.0) * (setRow.reps ?? 0);
-
-      if (exRow != null) {
-        final muscles = WorkoutLocalDataSource._parseMuscleList(exRow.musclesPrimary);
-        if (muscles.isNotEmpty) {
-          for (final m in muscles) {
-            muscleVolume[m] = (muscleVolume[m] ?? 0.0) + volume;
-          }
-        } else {
-          muscleVolume['Other'] = (muscleVolume['Other'] ?? 0.0) + volume;
-        }
-      } else {
-        muscleVolume['Other'] = (muscleVolume['Other'] ?? 0.0) + volume;
-      }
-    }
-
-    final result = muscleVolume.entries
-        .map((e) => {'muscleGroup': e.key, 'tonnage': e.value})
-        .toList()
-      ..sort(
-        (a, b) => (b['tonnage'] as double).compareTo(a['tonnage'] as double),
-      );
-    return result;
+    return rows.map((r) => {
+      'muscleGroup': r.read<String>('muscleGroup'),
+      'tonnage': r.read<double>('tonnage'),
+    }).toList();
   }
 
   /// Equivalent hard-set analytics for muscle groups.

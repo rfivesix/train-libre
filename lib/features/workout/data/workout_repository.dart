@@ -113,4 +113,28 @@ class WorkoutRepository implements IWorkoutRepository {
   Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
           DateTime start, DateTime end) =>
       _localDataSource.watchWorkoutLogsForDateRange(start, end);
+
+  @override
+  Future<Routine?> getRoutineByUuid(String uuid) =>
+      _localDataSource.getRoutineByUuid(uuid);
+
+  @override
+  Future<void> syncRoutineWithWorkout({
+    required String routineUuid,
+    required int workoutLogId,
+  }) =>
+      _localDataSource.syncRoutineWithWorkout(
+        routineUuid: routineUuid,
+        workoutLogId: workoutLogId,
+      );
+
+  @override
+  Future<Routine> createRoutineFromWorkout({
+    required int workoutLogId,
+    required String name,
+  }) =>
+      _localDataSource.createRoutineFromWorkout(
+        workoutLogId: workoutLogId,
+        name: name,
+      );
 }

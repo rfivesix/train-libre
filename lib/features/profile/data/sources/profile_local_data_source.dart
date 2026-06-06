@@ -144,6 +144,37 @@ class ProfileLocalDataSource {
         .toList();
   }
 
+  Stream<List<Map<String, dynamic>>> watchChartDataForTypeAndRange(
+      String type, dynamic rangeOrStart,
+      [DateTime? end]) {
+    DateTime s, e;
+    if (rangeOrStart is DateTimeRange) {
+      s = rangeOrStart.start;
+      e = rangeOrStart.end;
+    } else if (rangeOrStart is DateTime && end != null) {
+      s = rangeOrStart;
+      e = end;
+    } else {
+      throw ArgumentError('Invalid arguments');
+    }
+    final query = dbInstance.select(dbInstance.measurements)
+      ..where(
+          (tbl) => tbl.type.equals(type) & tbl.date.isBetweenValues(s, e))
+      ..orderBy([
+        (t) => drift.OrderingTerm(
+            expression: t.date, mode: drift.OrderingMode.asc)
+      ]);
+    return query.watch().map((rows) {
+      return rows
+          .map((row) => {
+                'value': row.value,
+                'timestamp': row.date.millisecondsSinceEpoch,
+                'date': row.date
+              })
+          .toList();
+    });
+  }
+
   Future<void> saveUserGoals(
       {required int calories,
       required int protein,

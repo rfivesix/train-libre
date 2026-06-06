@@ -42,3 +42,71 @@ class SleepSession {
         'normalizationVersion': normalizationVersion,
       };
 }
+
+typedef SleepInterval = SleepSession;
+
+/// Merges overlapping or continuously connecting sleep intervals.
+List<SleepInterval> mergeOverlappingIntervals(List<SleepInterval> intervals) {
+  if (intervals.isEmpty) return [];
+
+  // Sort by startAtUtc (onset time)
+  final sorted = List<SleepInterval>.from(intervals)
+    ..sort((a, b) => a.startAtUtc.compareTo(b.startAtUtc));
+
+  final merged = <SleepInterval>[];
+  var current = sorted.first;
+
+  for (var i = 1; i < sorted.length; i++) {
+    final next = sorted[i];
+
+    // Overlap or connect continuously: next.startAtUtc <= current.endAtUtc
+    if (next.startAtUtc.isBefore(current.endAtUtc) ||
+        next.startAtUtc.isAtSameMomentAs(current.endAtUtc)) {
+      final latestEnd = next.endAtUtc.isAfter(current.endAtUtc)
+          ? next.endAtUtc
+          : current.endAtUtc;
+
+      current = SleepSession(
+        id: current.id,
+        startAtUtc: current.startAtUtc,
+        endAtUtc: latestEnd,
+        sessionType: current.sessionType,
+        sourcePlatform: current.sourcePlatform,
+        sourceAppId: current.sourceAppId,
+        sourceRecordHash: current.sourceRecordHash,
+        sourceConfidence: current.sourceConfidence,
+        stageConfidence: current.stageConfidence,
+        overallConfidence: current.overallConfidence,
+        normalizationVersion: current.normalizationVersion,
+      );
+    } else {
+      merged.add(current);
+      current = next;
+    }
+  }
+  merged.add(current);
+
+  // Update classification logic: merged intervals exceeding >= 3 hours
+  // are correctly categorized as mainSleep, else nap.
+  return merged.map((s) {
+    final duration = s.endAtUtc.difference(s.startAtUtc);
+    final newType = duration >= const Duration(hours: 3)
+        ? SleepSessionType.mainSleep
+        : SleepSessionType.nap;
+        
+    return SleepSession(
+      id: s.id,
+      startAtUtc: s.startAtUtc,
+      endAtUtc: s.endAtUtc,
+      sessionType: newType,
+      sourcePlatform: s.sourcePlatform,
+      sourceAppId: s.sourceAppId,
+      sourceRecordHash: s.sourceRecordHash,
+      sourceConfidence: s.sourceConfidence,
+      stageConfidence: s.stageConfidence,
+      overallConfidence: s.overallConfidence,
+      normalizationVersion: s.normalizationVersion,
+    );
+  }).toList();
+}
+

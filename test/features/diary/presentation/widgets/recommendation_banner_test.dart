@@ -205,7 +205,7 @@ void main() {
       expect(applyButton, findsOneWidget);
 
       // Delay briefly to ensure the system clock ticks forward, preventing identical timestamps
-      await Future.delayed(const Duration(milliseconds: 10));
+      await tester.pump(const Duration(milliseconds: 10));
 
       await tester.tap(applyButton);
       await tester.pump();

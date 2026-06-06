@@ -4,6 +4,7 @@ import '../../../../data/drift_database.dart' as drift_db
     hide Supplement, SupplementLog, WorkoutLog;
 import 'package:drift/drift.dart' as drift;
 import '../../../../data/database_helper.dart';
+import '../../../../util/date_util.dart';
 import '../../domain/models/food_entry.dart';
 import '../../domain/models/fluid_entry.dart';
 import '../../../supplements/domain/models/supplement.dart' as domain;
@@ -120,6 +121,10 @@ class DiaryLocalDataSource {
       ..orderBy([
         (t) => drift.OrderingTerm(
               expression: t.createdAt,
+              mode: drift.OrderingMode.desc,
+            ),
+        (t) => drift.OrderingTerm(
+              expression: t.localId,
               mode: drift.OrderingMode.desc,
             ),
       ])
@@ -460,8 +465,8 @@ class DiaryLocalDataSource {
     DateTime end, {
     DateTime? updatedSince,
   }) async {
-    final startOfDay = DateTime(start.year, start.month, start.day);
-    final endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
+    final startOfDay = start.dateOnly.add(const Duration(hours: 4));
+    final endOfDay = end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
 
     final query = _db.select(_db.nutritionLogs)
       ..where((tbl) => tbl.consumedAt.isBetweenValues(startOfDay, endOfDay));
@@ -490,8 +495,8 @@ class DiaryLocalDataSource {
     DateTime end, {
     DateTime? updatedSince,
   }) async {
-    final startOfDay = DateTime(start.year, start.month, start.day);
-    final endOfDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
+    final startOfDay = start.dateOnly.add(const Duration(hours: 4));
+    final endOfDay = end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
 
     final query = _db.select(_db.fluidLogs).join([
       drift.leftOuterJoin(

@@ -5,6 +5,75 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
+## [0.9.19] - 2026-06-06
+### Added
+- **Save Workout as Routine**: Implemented a "Save Workout as Routine" feature in the historical workout log details screen (`WorkoutLogDetailScreen`).
+  - Added repository contract and transaction method (`createRoutineFromWorkout`) to safely copy completed sets, sort warmup sets first, exclude incomplete sets, and map logged rest times to exercise pause durations.
+  - Implemented a subtle "Save as routine" action button and a customized routine name entry bottom sheet menu using the custom glass panel (`showGlassBottomMenu`).
+  - Deployed localized string keys (`saveAsRoutineButton`, `saveAsRoutineTitle`, `saveAsRoutinePrompt`, `saveAsRoutineSuccess`, `snackbarRoutineSavedAction`) across German and English dictionaries.
+- **One-Click Routine Navigation**: Integrated a dynamic SnackBar action ("Ansehen" / "View") to immediately navigate (`Navigator.push`) to the routine's editor screen (`EditRoutineScreen`) both upon creating a new routine from history and after applying contextual routine delta synchronization.
+- **Integration Testing**: Added integration test `createRoutineFromWorkout correctly creates a routine from a workout log` in `workout_database_helper_query_test.dart` to verify dataset cloning, warmup sorting, and rest-time mapping precision.
+- **Global Exercise Catalog Overhaul & wger Isolation**:
+  - Implemented database schema migration (v22) adding a `replacesExerciseId` column to track user clones of system exercises.
+  - Added a smart-forking cloning factory `Exercise.duplicateAsCustom` to copy read-only system exercises into customizable user-created copies.
+  - Overhauled repository queries (`getExerciseByUuid`, `getExerciseByName`, and `searchExercises`) to exclude overridden system exercises and prioritize resolving user-created custom overrides.
+  - Implemented strict database write guards to prevent direct modification of read-only wger system catalog entries.
+  - Added a comprehensive database integration test suite validating cloning behavior, search exclusion, and priority override resolution.
+
+- **Sleep Day Overview Screen**: Added a new [SleepDayOverviewPage](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/presentation/day/sleep_day_overview_page.dart) screen detailing nocturnal sleep architecture, duration, cycles, efficiency indicators, and scoring, utilizing dynamic translations and localized strings.
+- **Nightly Sleep Analysis Domain**: Added the [NightlySleepAnalysis](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/domain/derived/nightly_sleep_analysis.dart) model to handle high-precision calculations of physiological sleep data.
+- **Isolate Offloaded Excel Export Engine**: Completely refactored the Excel generation pipeline to run inside a background isolate (`compute()`), utilizing fully serialized Dart DTOs (`ExcelExportData`) to decouple database queries from spreadsheet construction, eliminating thread lock and memory sharing failures.
+- **High-Fidelity Sport Science Metrics (Sheet 2: "Workouts & Exercises")**:
+  - Implemented strict compliance for reps in reserve (RIR) and rate of perceived exertion (RPE) null-value serialization, writing empty string cells (`""`) instead of defaulting to `0` (which clinically represents muscular failure).
+  - Added a dedicated "Set Notes" column (`setLog.notes`) right before the exercise comments to prevent data loss.
+  - Standardized workout labeling using the chronological name format `Routine Name (Date)` or `Workout (Datetime)`.
+- **Chronological Outer-Join Wearables Matrix (Sheet 4: "Biometrics & Wearables")**:
+  - Engineered an in-memory chronological outer-join matrix grouping sparse wearable and biometrics streams by local date (`YYYY-MM-DD`).
+  - Added dedicated columns for `[Weight (kg)]` and `[Body Fat (%)]` to the master wearables layout.
+  - Integrates policy-based daily step merging supporting both `autoDominant` and hourly `maxPerHour` aggregation in pure Dart.
+  - Automatically averages multiple daily weight/body fat measurements when present and safely writes empty cells for missing telemetry dates.
+- **Dedicated Physical Measurements Sheet (Sheet 5: "Measurements")**:
+  - Added a dedicated, chronologically sorted sheet outputting a raw, granular log of all user measurements with columns: `[Date] | [Time] | [Measurement Type] | [Value] | [Unit]`.
+
+### Changed
+- **3-Tier Performance and UX Overhaul**:
+  - **Tier 1 (Database Ingestion Isolate)**: Shifted massive SQLite database row parsing, companion mapping, and object instantiation into a dedicated background isolate during remote catalog synchronization, completely eliminating UI thread locking and frame drops.
+  - **Tier 2 (SQLite Computational Pushdown)**: Refactored expensive Dart-side collection loops in the `getVolumeByMuscleGroup` analytics queries to utilize raw SQLite queries with `json_each` functions. Muscle volumes are now natively grouped and aggregated via database engine optimizations before crossing the FFI bridge, significantly reducing heap memory allocation.
+  - **Tier 3 (Logical Day Offset & Debounce Refactoring)**: Altered the global logical day boundary for diaries and sleep tracking from `00:00` to a `04:00 AM` offset utilizing a custom `dateOnly` extension, correctly associating late-night meals and workouts with the active wake cycle. Fixed heavy UI stuttering across `FoodExplorerScreen` and `GeneralFoodSelectionScreen` by isolating text debouncers from synchronous `setState` rebuilds and wrapping inputs in `ValueListenableBuilder`.
+- **Relational Delta-Synchronization Engine & Contextual 1-Tap Sync**:
+  - Overhauled the workout-to-routine template synchronization framework from a destructive "wipe-and-rebuild" logic to a high-fidelity, non-destructive Relational Delta-Synchronization Engine running in a single SQLite transaction block inside `routines_queries.dart`.
+  - Implemented surgical sequence updates to realign the `order_index` of matching routine exercises, safely delete skipped exercises, and absorb newly added exercises with their live logged metrics.
+  - Introduced split-type positional comparison separating warmup and working sets, preserving baseline template targets (weight, reps, RIR, notes) on overlap, deep-copying configurations from the last known template on expansion, and deleting trailing excess templates on contraction.
+  - Implemented post-synchronization re-ordering sequence to guarantee newly added warmup sets are always sorted and loaded sequentially before working sets (by resetting `localId` ordering while preserving original UUIDs and metadata timestamps).
+  - Added a premium contextual synchronization banner on the workout summary screen when structure or sequence alterations are detected, allowing a 1-tap template update with haptic feedback and real-time confirmations.
+- **Exercise Catalog & Detail UX Refinements**:
+  - Hid the `[System]` badge on cards in the exercise catalog list view, displaying only the `[Custom]` badge for custom user exercises.
+  - Removed the prominent inline warning card on the exercise detail screen to declutter the layout.
+  - Made the AppBar "Edit" button always visible; clicking it on a system exercise opens a premium glass bottom sheet menu with options to clone and edit.
+- **Real-Time Weight & Measurement Chart Updates**: Refactored the profile repository and database helper to expose reactive data streams, enabling the measurements chart on the Diary/Profile screens to auto-update in real-time when new entries are added, eliminating the need for manual refreshes.
+- **Product Search Engine Optimizations**: Overhauled search query structures in the product local data source to significantly accelerate lookups and improve fuzzy-matching quality against the localized food database.
+- **Exercise Search Engine Overhaul**: Refactored the local exercise search pipeline inside `exercises_queries.dart` to support word-order invariant token parsing, 90-day lookup window training history rescoring (via correlated subqueries on set and workout logs), and hierarchical priority ranking (exact match > history score > custom overrides > prefix match > alphabetical fallback). Added dedicated integration tests validating search tokenization, scoring weight math, and ranking.
+- **Sleep Pipeline & UI Realignment**: Deeply refactored the sleep pipeline service, sleep session entity, and sleep day repository to implement a pure mathematical interval-merging algorithm to resolve overlapping nocturnal sleep intervals, and corrected sleep classification using a $\ge$ 3-hour threshold. Overhauled the Schlafintervalle (Sleep Intervals) card component in the UI with bedtime/snooze vector icons for list items, premium green count badge styling, and clean vertical alignment with the header moon icon removed.
+
+- **Save as Meal Template Shortcut**: Added a minimalist section footer link ("Als Mahlzeit sichern" / "Save as meal") to each expanded meal card in the Diary Screen.
+  - Renders exclusively when a meal section contains at least one solid food entry (liquid-only sections such as Water are suppressed) to eliminate visual clutter.
+  - Tapping the link creates a blank meal stub in the database, pre-populates `MealScreen` with the filtered solid entries (barcode + logged gram amount), and opens the meal creation flow in edit mode with name and notes fields intentionally left blank so the user authors their own template title.
+  - Styled as a zero-padding `TextButton` with `FontWeight.w700` and `colorScheme.primary` foreground, matching the "Mahlzeit bearbeiten" app bar action on `MealScreen`.
+  - Performs best-effort cleanup of the DB stub if the user discards the flow without saving a name.
+- **`MealScreen` Pre-population API**: Extended `MealScreen` with an optional `prefillItems` parameter (`List<Map<String, dynamic>>?`). When provided, the screen skips the DB ingredient fetch, loads the supplied rows directly, and opens automatically in edit mode — enabling the diary shortcut workflow without any separate creation screen.
+
+### Changed
+- **Meal Template Explorer Empty State**: Replaced the plain greyed-out icon/text placeholder in `MealsScreen` with a premium, on-brand empty state:
+  - 88×88 circular container with 12 % opacity primary color background wrapping `Icons.restaurant_menu_outlined`.
+  - Bold `titleLarge` headline: "Keine Mahlzeiten gespeichert" / "No meal templates saved".
+  - `bodyMedium` subtext at 75 % opacity (line height 1.45) explaining the diary shortcut workflow as the recommended first step.
+  - `OutlinedButton.icon` CTA ("Mahlzeit manuell erstellen" / "Create meal manually") wired to the existing `_createMealAndOpenEditor` flow for users who prefer to build templates from scratch.
+  - Padding accounts for `topPadding` so the layout centres correctly behind the navigation bar.
+
+### Fixed
+- **Static Analysis**: Resolved the `use_build_context_synchronously` lint warnings inside `_showSaveAsRoutineDialog` by capturing repository and navigation handlers prior to the async bottom sheet UI transitions.
+- **Deprecated Opacity APIs**: Fixed the `deprecated_member_use` compiler warning by replacing `withOpacity` with the modern `withValues(alpha: ...)` API.
+
 ## [0.9.18] - 2026-06-02
 ### Added
 - **Smarter Contextual Recommendation Banner**: Implemented an in-app context banner at the top of the Diary Screen that dynamically alerts users to updated TDEE targets.

@@ -36,9 +36,26 @@ class DriftSleepQueryRepository implements SleepQueryRepository {
       toNightDateInclusive: key,
     );
     if (rows.isEmpty) return null;
-    rows.sort((a, b) => b.analyzedAt.compareTo(a.analyzedAt));
-    final sessionsById = await _loadSessionsById([rows.first.sessionId]);
-    return _toDomain(rows.first, sessionsById[rows.first.sessionId]);
+
+    final sortedRows = List<SleepNightlyAnalysisRecord>.from(rows)
+      ..sort((a, b) {
+        if (a.score != null && b.score == null) return -1;
+        if (b.score != null && a.score == null) return 1;
+        return b.analyzedAt.compareTo(a.analyzedAt);
+      });
+
+    final primaryRow = sortedRows.first;
+    final sessionsById = await _loadSessionsById(sortedRows.map((r) => r.sessionId));
+
+    int totalSleep = 0;
+    for (final row in sortedRows) {
+      totalSleep += row.totalSleepMinutes ?? 0;
+    }
+
+    final domainAnalysis = _toDomain(primaryRow, sessionsById[primaryRow.sessionId]);
+    return domainAnalysis.copyWith(
+      totalSleepMinutes: totalSleep > 0 ? totalSleep : primaryRow.totalSleepMinutes,
+    );
   }
 
   @override

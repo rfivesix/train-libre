@@ -942,6 +942,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get snackbarRoutineSaved => 'Routine gespeichert.';
 
   @override
+  String get saveAsRoutineButton => 'Als Routine speichern';
+
+  @override
+  String get saveAsRoutineTitle => 'Als Routine speichern';
+
+  @override
+  String get saveAsRoutinePrompt =>
+      'Bitte gib einen Namen für die neue Routine ein:';
+
+  @override
+  String get saveAsRoutineSuccess => 'Routine erstellt!';
+
+  @override
+  String get snackbarRoutineSavedAction => 'Ansehen';
+
+  @override
   String get formFieldRoutineName => 'Name der Routine';
 
   @override
@@ -1993,11 +2009,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bald kannst du eigene Mahlzeiten aus mehreren Lebensmitteln zusammenstellen.';
 
   @override
-  String get mealsEmptyTitle => 'Noch keine Mahlzeiten';
+  String get mealsEmptyTitle => 'Keine Mahlzeiten gespeichert';
 
   @override
   String get mealsEmptyBody =>
       'Lege Mahlzeiten an, um mehrere Lebensmittel mit einem Klick einzutragen.';
+
+  @override
+  String get mealsEmptyBodyWithShortcut =>
+      'Nutze im Tagebuch die Option „Als Mahlzeit sichern“ unter deinem Frühstück oder Abendessen, um häufige Lebensmittel-Kombinationen als schnelle Vorlage zu speichern.';
+
+  @override
+  String get mealsCreateManually => 'Mahlzeit manuell erstellen';
+
+  @override
+  String get saveMealTemplateShortcut => 'Als Mahlzeit sichern';
 
   @override
   String get mealsCreate => 'Mahlzeit erstellen';
@@ -3629,6 +3655,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get sleepTimelineUnavailable =>
       'Für diese Nacht ist keine Schlafphasen-Timeline verfügbar.';
+
+  @override
+  String get sleepSessionTypeCore => 'Hauptschlaf';
+
+  @override
+  String get sleepSessionTypeNap => 'Nickerchen';
+
+  @override
+  String get sleepIntervalsDrawerTitle => 'Schlafintervalle';
 
   @override
   String get sleepStageDeepLabel => 'Tief';

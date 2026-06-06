@@ -36,6 +36,7 @@ import 'widgets/pulse_summary_card.dart';
 import 'widgets/food_entry_tile.dart';
 import 'widgets/fluid_entry_tile.dart';
 import 'widgets/recommendation_banner.dart';
+import 'meal_screen.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
 ///
@@ -346,6 +347,67 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     }
   }
 
+  /// Creates a blank meal stub in the DB and routes to [MealScreen] with the
+  /// filtered solid diary entries pre-populated so the user can author their
+  /// own template title before committing.
+  Future<void> _saveAsMealTemplate(
+    List<TrackedFoodItem> solidItems,
+    AppLocalizations l10n,
+  ) async {
+    // Create a temporary meal row (name will be set by the user in MealScreen).
+    final newMealId = await DatabaseHelper.instance.insertMeal(
+      name: '', // intentionally blank — user must fill it in
+      notes: '',
+    );
+
+    // Convert TrackedFoodItem list to the raw map format MealScreen expects.
+    final prefill = solidItems
+        .map(
+          (ti) => <String, dynamic>{
+            'barcode': ti.item.barcode,
+            'quantity_in_grams': ti.entry.quantityInGrams,
+          },
+        )
+        .toList();
+
+    if (!mounted) return;
+
+    final meal = <String, dynamic>{
+      'id': newMealId,
+      'name': '',
+      'notes': '',
+    };
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MealScreen(
+          meal: meal,
+          prefillItems: prefill,
+        ),
+      ),
+    );
+
+    // If the user saved with an empty name and no items the stub should be
+    // cleaned up. DatabaseHelper.insertMeal creates a row regardless, so we
+    // attempt a best-effort delete when the result is still empty.
+    try {
+      final savedItems = await DatabaseHelper.instance.getMealItems(newMealId);
+      final meals = await DatabaseHelper.instance.getMeals();
+      final created =
+          meals.cast<Map<String, dynamic>?>().firstWhere(
+                (m) => m?['id'] == newMealId,
+                orElse: () => null,
+              );
+      if (created != null &&
+          (created['name'] as String).isEmpty &&
+          savedItems.isEmpty) {
+        await DatabaseHelper.instance.deleteMeal(newMealId);
+      }
+    } catch (_) {
+      // cleanup is best-effort
+    }
+  }
+
   Future<void> _addFoodToMeal(String mealType) async {
     final vm = viewModel;
     final routeResult = await Navigator.of(context).push<Object?>(
@@ -622,6 +684,13 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final theme = Theme.of(context);
     final titleStyle = theme.textTheme.titleMedium;
 
+    // Filter to solid (non-liquid) food entries for the shortcut eligibility check.
+    final solidItems = items.where((item) {
+      final fi = item.item;
+      // Exclude if explicitly liquid or flagged as a fluid/beverage.
+      return fi.isLiquid != true && !fi.isFluid;
+    }).toList();
+
     return AppCardContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -668,6 +737,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                 isOpen ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             duration: DesignConstants.expandCollapseDuration,
             firstChild: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (items.isNotEmpty) const Divider(height: 16),
                 ...items.map(
@@ -677,6 +747,27 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                     onDelete: _deleteFoodEntry,
                   ),
                 ),
+                // Section footer: "Save as Meal Template" shortcut.
+                // Shown only when the card is open AND contains at least one
+                // solid food entry (liquids like Water are excluded).
+                if (solidItems.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 0,
+                        vertical: 4,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      foregroundColor: theme.colorScheme.primary,
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    onPressed: () => _saveAsMealTemplate(solidItems, l10n),
+                    child: Text(l10n.saveMealTemplateShortcut),
+                  ),
+                ],
               ],
             ),
             secondChild: const SizedBox.shrink(),

@@ -396,7 +396,7 @@ void main() {
   );
 
   test(
-    'pipeline preserves overlapping daytime naps from different records',
+    'pipeline preserves non-overlapping daytime naps from different records',
     () async {
       final db = AppDatabase(
         NativeDatabase.memory(
@@ -409,8 +409,8 @@ void main() {
         sessions: [
           SleepIngestionSession(
             recordId: 'nap-1',
-            startAtUtc: DateTime.utc(2026, 3, 1, 14),
-            endAtUtc: DateTime.utc(2026, 3, 1, 14, 30),
+            startAtUtc: DateTime.utc(2026, 3, 1, 13),
+            endAtUtc: DateTime.utc(2026, 3, 1, 13, 30),
             platformSessionType: 'sleep',
             sourcePlatform: 'health_connect',
             sourceAppId: 'com.withings.mobile',
@@ -424,8 +424,8 @@ void main() {
         sessions: [
           SleepIngestionSession(
             recordId: 'nap-2',
-            startAtUtc: DateTime.utc(2026, 3, 1, 14, 15),
-            endAtUtc: DateTime.utc(2026, 3, 1, 14, 45),
+            startAtUtc: DateTime.utc(2026, 3, 1, 14),
+            endAtUtc: DateTime.utc(2026, 3, 1, 14, 30),
             platformSessionType: 'sleep',
             sourcePlatform: 'health_connect',
             sourceAppId: 'com.withings.mobile',
@@ -442,6 +442,134 @@ void main() {
           .customSelect('SELECT COUNT(*) c FROM sleep_canonical_sessions')
           .getSingle();
       expect(sessions.read<int>('c'), 2);
+
+      await db.close();
+    },
+  );
+
+  test(
+    'pipeline handles multi-session sleep: classifies core vs. nap, sets nap score to null, aggregates volume metrics linearly, and dedupes overlaps by duration',
+    () async {
+      final db = AppDatabase(
+        NativeDatabase.memory(
+          setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+        ),
+      );
+      final service = SleepPipelineService(database: db);
+
+      final batch = SleepRawIngestionBatch(
+        sessions: [
+          SleepIngestionSession(
+            recordId: 'core-session',
+            startAtUtc: DateTime.utc(2026, 3, 1, 21),
+            endAtUtc: DateTime.utc(2026, 3, 2, 5),
+            platformSessionType: 'sleep',
+            sourcePlatform: 'healthkit',
+          ),
+          SleepIngestionSession(
+            recordId: 'nap-session',
+            startAtUtc: DateTime.utc(2026, 3, 2, 13),
+            endAtUtc: DateTime.utc(2026, 3, 2, 13, 45),
+            platformSessionType: 'sleep',
+            sourcePlatform: 'healthkit',
+          ),
+        ],
+        stageSegments: [
+          SleepIngestionStageSegment(
+            recordId: 'core-seg-1',
+            sessionRecordId: 'core-session',
+            startAtUtc: DateTime.utc(2026, 3, 1, 21),
+            endAtUtc: DateTime.utc(2026, 3, 2, 1),
+            platformStage: 'deep',
+            sourcePlatform: 'healthkit',
+          ),
+          SleepIngestionStageSegment(
+            recordId: 'core-seg-2',
+            sessionRecordId: 'core-session',
+            startAtUtc: DateTime.utc(2026, 3, 2, 1),
+            endAtUtc: DateTime.utc(2026, 3, 2, 5),
+            platformStage: 'core',
+            sourcePlatform: 'healthkit',
+          ),
+          SleepIngestionStageSegment(
+            recordId: 'nap-seg-1',
+            sessionRecordId: 'nap-session',
+            startAtUtc: DateTime.utc(2026, 3, 2, 13),
+            endAtUtc: DateTime.utc(2026, 3, 2, 13, 45),
+            platformStage: 'core',
+            sourcePlatform: 'healthkit',
+          ),
+        ],
+        heartRateSamples: const [],
+      );
+
+      final result = await service.runImport(batch: batch);
+      expect(result.importedSessions, 2);
+      expect(result.analyzedNights, 2);
+
+      final dbSessions = await db.customSelect(
+        'SELECT id, session_type FROM sleep_canonical_sessions ORDER BY id'
+      ).get();
+      expect(dbSessions.length, 2);
+      expect(dbSessions[0].read<String>('id'), 'core-session');
+      expect(dbSessions[0].read<String>('session_type'), 'mainSleep');
+      expect(dbSessions[1].read<String>('id'), 'nap-session');
+      expect(dbSessions[1].read<String>('session_type'), 'nap');
+
+      final dbAnalyses = await db.customSelect(
+        'SELECT id, session_id, score, total_sleep_minutes FROM sleep_nightly_analyses ORDER BY session_id'
+      ).get();
+      expect(dbAnalyses.length, 2);
+
+      final coreAnalysis = dbAnalyses.firstWhere((a) => a.read<String>('session_id') == 'core-session');
+      expect(coreAnalysis.readNullable<double>('score'), isNotNull);
+      expect(coreAnalysis.readNullable<int>('total_sleep_minutes'), 525);
+
+      final napAnalysis = dbAnalyses.firstWhere((a) => a.read<String>('session_id') == 'nap-session');
+      expect(napAnalysis.readNullable<double>('score'), isNull);
+
+      final shorterOverlappingNap = SleepRawIngestionBatch(
+        sessions: [
+          SleepIngestionSession(
+            recordId: 'shorter-nap-session',
+            startAtUtc: DateTime.utc(2026, 3, 2, 13, 10),
+            endAtUtc: DateTime.utc(2026, 3, 2, 13, 40),
+            platformSessionType: 'sleep',
+            sourcePlatform: 'healthkit',
+          ),
+        ],
+        stageSegments: const [],
+        heartRateSamples: const [],
+      );
+
+      final resultShort = await service.runImport(batch: shorterOverlappingNap);
+      expect(resultShort.importedSessions, 0);
+
+      final longerOverlappingNap = SleepRawIngestionBatch(
+        sessions: [
+          SleepIngestionSession(
+            recordId: 'longer-nap-session',
+            startAtUtc: DateTime.utc(2026, 3, 2, 12, 30),
+            endAtUtc: DateTime.utc(2026, 3, 2, 14, 0),
+            platformSessionType: 'sleep',
+            sourcePlatform: 'healthkit',
+          ),
+        ],
+        stageSegments: const [],
+        heartRateSamples: const [],
+      );
+
+      final resultLong = await service.runImport(batch: longerOverlappingNap);
+      expect(resultLong.importedSessions, 1);
+
+      final finalSessions = await db.customSelect(
+        'SELECT id FROM sleep_canonical_sessions ORDER BY id'
+      ).get();
+      expect(finalSessions.length, 2);
+      final finalIds = finalSessions.map((s) => s.read<String>('id')).toList();
+      expect(finalIds.contains('core-session'), isTrue);
+      expect(finalIds.contains('longer-nap-session'), isTrue);
+      expect(finalIds.contains('nap-session'), isFalse);
 
       await db.close();
     },

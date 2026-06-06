@@ -12,6 +12,15 @@ class Exercise {
   /// Can be null if the exercise is newly created and not yet saved to the database.
   final int? id; // Optional for newly created records
 
+  /// The global UUID identifier for database references.
+  final String? uuid;
+
+  /// The source tag ('user', 'wger', etc.)
+  final String source;
+
+  /// The UUID of the original system exercise replaced by this user exercise override.
+  final String? replacesExerciseId;
+
   /// The name of the exercise in German.
   final String nameDe;
 
@@ -39,6 +48,9 @@ class Exercise {
   /// Creates a new [Exercise] instance.
   const Exercise({
     this.id,
+    this.uuid,
+    this.source = 'user',
+    this.replacesExerciseId,
     required this.nameDe,
     required this.nameEn,
     required this.descriptionDe,
@@ -92,6 +104,9 @@ class Exercise {
 
     return Exercise(
       id: (m['id'] is num) ? (m['id'] as num).toInt() : m['id'] as int?,
+      uuid: m['uuid'] as String?,
+      source: (m['source'] ?? 'user') as String,
+      replacesExerciseId: m['replaces_exercise_id'] as String?,
       nameDe: (m['name_de'] ?? '') as String,
       nameEn: (m['name_en'] ?? '') as String,
       descriptionDe: (m['description_de'] ?? '') as String,
@@ -111,6 +126,9 @@ class Exercise {
   Map<String, Object?> toMap() {
     return <String, Object?>{
       if (id != null) 'id': id,
+      if (uuid != null) 'uuid': uuid,
+      'source': source,
+      if (replacesExerciseId != null) 'replaces_exercise_id': replacesExerciseId,
       'name_de': nameDe,
       'name_en': nameEn,
       'description_de': descriptionDe,
@@ -126,6 +144,9 @@ class Exercise {
   /// Creates a copy of this [Exercise] with the given fields replaced by the new values.
   Exercise copyWith({
     int? id,
+    String? uuid,
+    String? source,
+    String? replacesExerciseId,
     String? nameDe,
     String? nameEn,
     String? descriptionDe,
@@ -137,6 +158,9 @@ class Exercise {
   }) {
     return Exercise(
       id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      source: source ?? this.source,
+      replacesExerciseId: replacesExerciseId ?? this.replacesExerciseId,
       nameDe: nameDe ?? this.nameDe,
       nameEn: nameEn ?? this.nameEn,
       descriptionDe: descriptionDe ?? this.descriptionDe,
@@ -145,6 +169,24 @@ class Exercise {
       imagePath: imagePath ?? this.imagePath,
       primaryMuscles: primaryMuscles ?? this.primaryMuscles,
       secondaryMuscles: secondaryMuscles ?? this.secondaryMuscles,
+    );
+  }
+
+  /// Spawns a custom copy of a system exercise.
+  factory Exercise.duplicateAsCustom(Exercise original, {String? newUuid}) {
+    return Exercise(
+      id: null,
+      uuid: newUuid,
+      source: 'user',
+      replacesExerciseId: original.uuid,
+      nameDe: original.nameDe,
+      nameEn: original.nameEn,
+      descriptionDe: original.descriptionDe,
+      descriptionEn: original.descriptionEn,
+      categoryName: original.categoryName,
+      imagePath: original.imagePath,
+      primaryMuscles: List.from(original.primaryMuscles),
+      secondaryMuscles: List.from(original.secondaryMuscles),
     );
   }
 
