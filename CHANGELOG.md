@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.19] - 2026-06-02
 ### Added
+- **Save Workout as Routine**: Implemented a "Save Workout as Routine" feature in the historical workout log details screen (`WorkoutLogDetailScreen`).
+  - Added repository contract and transaction method (`createRoutineFromWorkout`) to safely copy completed sets, sort warmup sets first, exclude incomplete sets, and map logged rest times to exercise pause durations.
+  - Implemented a subtle "Save as routine" action button and a customized routine name entry bottom sheet menu using the custom glass panel (`showGlassBottomMenu`).
+  - Deployed localized string keys (`saveAsRoutineButton`, `saveAsRoutineTitle`, `saveAsRoutinePrompt`, `saveAsRoutineSuccess`, `snackbarRoutineSavedAction`) across German and English dictionaries.
+- **One-Click Routine Navigation**: Integrated a dynamic SnackBar action ("Ansehen" / "View") to immediately navigate (`Navigator.push`) to the routine's editor screen (`EditRoutineScreen`) both upon creating a new routine from history and after applying contextual routine delta synchronization.
+- **Integration Testing**: Added integration test `createRoutineFromWorkout correctly creates a routine from a workout log` in `workout_database_helper_query_test.dart` to verify dataset cloning, warmup sorting, and rest-time mapping precision.
 - **Global Exercise Catalog Overhaul & wger Isolation**:
   - Implemented database schema migration (v22) adding a `replacesExerciseId` column to track user clones of system exercises.
   - Added a smart-forking cloning factory `Exercise.duplicateAsCustom` to copy read-only system exercises into customizable user-created copies.
@@ -45,7 +51,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Exercise Search Engine Overhaul**: Refactored the local exercise search pipeline inside `exercises_queries.dart` to support word-order invariant token parsing, 90-day lookup window training history rescoring (via correlated subqueries on set and workout logs), and hierarchical priority ranking (exact match > history score > custom overrides > prefix match > alphabetical fallback). Added dedicated integration tests validating search tokenization, scoring weight math, and ranking.
 - **Sleep Pipeline & UI Realignment**: Deeply refactored the sleep pipeline service, sleep session entity, and sleep day repository to implement a pure mathematical interval-merging algorithm to resolve overlapping nocturnal sleep intervals, and corrected sleep classification using a $\ge$ 3-hour threshold. Overhauled the Schlafintervalle (Sleep Intervals) card component in the UI with bedtime/snooze vector icons for list items, premium green count badge styling, and clean vertical alignment with the header moon icon removed.
 
-
+### Fixed
+- **Static Analysis**: Resolved the `use_build_context_synchronously` lint warnings inside `_showSaveAsRoutineDialog` by capturing repository and navigation handlers prior to the async bottom sheet UI transitions.
+- **Deprecated Opacity APIs**: Fixed the `deprecated_member_use` compiler warning by replacing `withOpacity` with the modern `withValues(alpha: ...)` API.
 
 ## [0.9.18] - 2026-06-02
 ### Added

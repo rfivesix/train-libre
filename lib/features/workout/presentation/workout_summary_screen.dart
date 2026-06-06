@@ -11,6 +11,7 @@ import '../../../generated/app_localizations.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/set_log.dart';
 import '../domain/models/workout_log.dart';
+import 'edit_routine_screen.dart';
 import '../../../services/health/workout_heart_rate_models.dart';
 import '../../../services/health/workout_heart_rate_service.dart';
 import '../../../services/unit_service.dart';
@@ -776,15 +777,31 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         workoutLogId: _log!.id!,
       );
 
+      final updatedRoutine = await db.getRoutineByUuid(_log!.routineId!);
+
       if (mounted) {
         try {
           HapticFeedbackService.instance.confirmationFeedback();
         } catch (_) {}
 
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Routine erfolgreich aktualisiert!"),
+          SnackBar(
+            content: const Text("Routine erfolgreich aktualisiert!"),
             backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: l10n.snackbarRoutineSavedAction,
+              textColor: Colors.white,
+              onPressed: () {
+                if (updatedRoutine != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => EditRoutineScreen(routine: updatedRoutine),
+                    ),
+                  );
+                }
+              },
+            ),
           ),
         );
       }

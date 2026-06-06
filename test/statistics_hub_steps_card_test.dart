@@ -198,6 +198,12 @@ class _FakeWorkoutRepository implements IWorkoutRepository {
     required String routineUuid,
     required int workoutLogId,
   }) async {}
+
+  @override
+  Future<Routine> createRoutineFromWorkout({
+    required int workoutLogId,
+    required String name,
+  }) async => Routine(id: 1, name: name);
 }
 
 class _FakePulseRepository implements PulseAnalysisRepository {

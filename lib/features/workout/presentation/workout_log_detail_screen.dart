@@ -29,6 +29,7 @@ import 'widgets/workout_heart_rate_section.dart';
 import 'widgets/workout_exercise_log_card.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
+import 'edit_routine_screen.dart';
 
 /// A detailed view for a single completed [WorkoutLog].
 ///
@@ -470,6 +471,124 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     _loadDetails();
   }
 
+  void _showSaveAsRoutineDialog() async {
+    final repo = context.read<IWorkoutRepository>();
+    final l10n = AppLocalizations.of(context)!;
+    final defaultName = _log!.routineName != null && _log!.routineName!.isNotEmpty
+        ? "${_log!.routineName} (Kopie)"
+        : "Meine neue Routine";
+
+    final controller = TextEditingController(text: defaultName);
+
+    final routineName = await showGlassBottomMenu<String?>(
+      context: context,
+      title: l10n.saveAsRoutineTitle,
+      contentBuilder: (ctx, close) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: Text(
+                l10n.saveAsRoutinePrompt,
+                style: Theme.of(ctx).textTheme.bodyMedium,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                labelText: l10n.formFieldRoutineName,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      close();
+                      Navigator.of(ctx).pop(null);
+                    },
+                    child: Text(l10n.cancel),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      final name = controller.text.trim();
+                      if (name.isNotEmpty) {
+                        close();
+                        Navigator.of(ctx).pop(name);
+                      }
+                    },
+                    child: Text(l10n.save),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+
+    if (routineName != null && routineName.isNotEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final newRoutine = await repo.createRoutineFromWorkout(
+          workoutLogId: widget.logId,
+          name: routineName,
+        );
+
+        final newRoutineWithDetails = await WorkoutLocalDataSource.instance.getRoutineById(newRoutine.id!);
+
+        if (mounted) {
+          final navigator = Navigator.of(context);
+          HapticFeedbackService.instance.confirmationFeedback();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.saveAsRoutineSuccess),
+              action: SnackBarAction(
+                label: l10n.snackbarRoutineSavedAction,
+                onPressed: () {
+                  if (newRoutineWithDetails != null) {
+                    navigator.push(
+                      MaterialPageRoute(
+                        builder: (context) => EditRoutineScreen(routine: newRoutineWithDetails),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Fehler beim Erstellen der Routine: $e")),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
   void _editExerciseNotes(BuildContext context, String exerciseName) async {
     final l10n = AppLocalizations.of(context)!;
     final controller =
@@ -690,6 +809,23 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                           height: DesignConstants.spacingS,
                                         ),
                                         _buildMuscleHeatmap(l10n),
+                                      ],
+                                      if (!_isEditMode) ...[
+                                        const SizedBox(height: 12),
+                                        Center(
+                                          child: TextButton.icon(
+                                            onPressed: _showSaveAsRoutineDialog,
+                                            icon: const Icon(Icons.copy_all, size: 18),
+                                            label: Text(
+                                              l10n.saveAsRoutineButton,
+                                              style: const TextStyle(fontWeight: FontWeight.w600),
+                                            ),
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: colorScheme.primary.withValues(alpha: 0.8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ],
                                   ),

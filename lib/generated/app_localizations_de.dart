@@ -942,6 +942,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get snackbarRoutineSaved => 'Routine gespeichert.';
 
   @override
+  String get saveAsRoutineButton => 'Als Routine speichern';
+
+  @override
+  String get saveAsRoutineTitle => 'Als Routine speichern';
+
+  @override
+  String get saveAsRoutinePrompt =>
+      'Bitte gib einen Namen für die neue Routine ein:';
+
+  @override
+  String get saveAsRoutineSuccess => 'Routine erstellt!';
+
+  @override
+  String get snackbarRoutineSavedAction => 'Ansehen';
+
+  @override
   String get formFieldRoutineName => 'Name der Routine';
 
   @override

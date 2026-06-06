@@ -1016,6 +1016,127 @@ void main() {
       expect(updatedTemplates[2].setType, 'normal');
       expect(updatedTemplates[3].setType, 'normal');
     });
+
+    test('createRoutineFromWorkout correctly creates a routine from a workout log', () async {
+      // 1. Setup exercises
+      final squatId = await _insertExercise(
+        database,
+        id: 'squat-uuid',
+        name: 'Squat',
+        category: 'Strength',
+        primaryMuscles: '["quads"]',
+      );
+      final benchId = await _insertExercise(
+        database,
+        id: 'bench-uuid',
+        name: 'Bench Press',
+        category: 'Strength',
+        primaryMuscles: '["chest"]',
+      );
+
+      // 2. Create a workout log
+      final workoutLogIdStr = await _insertWorkout(
+        database,
+        id: 'workout-for-creation',
+        startTime: DateTime.now(),
+      );
+
+      // 3. Add sets to the workout log.
+      // Exercise 1: Squat. Let's add normal set, warmup set (out of order, e.g. normal first then warmup), and an incomplete set (which should be skipped, isCompleted: false).
+      // Normal set 1 (order 0)
+      await _insertSet(
+        database,
+        workoutId: workoutLogIdStr,
+        exerciseId: squatId,
+        exerciseName: 'Squat',
+        setType: 'normal',
+        weight: 100.0,
+        reps: 5,
+        isCompleted: true,
+      );
+      // Warmup set 1 (order 1)
+      await _insertSet(
+        database,
+        workoutId: workoutLogIdStr,
+        exerciseId: squatId,
+        exerciseName: 'Squat',
+        setType: 'warmup',
+        weight: 60.0,
+        reps: 8,
+        isCompleted: true,
+      );
+      // Incomplete set (order 2) - should not be included
+      await _insertSet(
+        database,
+        workoutId: workoutLogIdStr,
+        exerciseId: squatId,
+        exerciseName: 'Squat',
+        setType: 'normal',
+        weight: 100.0,
+        reps: 5,
+        isCompleted: false,
+      );
+
+      // Exercise 2: Bench Press. Add completed sets with rest times.
+      // Normal set 1 (order 3) with rest time 90s (mapped to restTimeSeconds)
+      await database.into(database.setLogs).insert(
+            db.SetLogsCompanion(
+              workoutLogId: drift.Value(workoutLogIdStr),
+              exerciseId: drift.Value(benchId),
+              exerciseNameSnapshot: drift.Value('Bench Press'),
+              setType: drift.Value('normal'),
+              weight: drift.Value(80.0),
+              reps: drift.Value(10),
+              isCompleted: drift.Value(true),
+              restTimeSeconds: drift.Value(90),
+            ),
+          );
+
+      // We need localId (int) of workoutLog. Let's find it.
+      final workoutLog = await database.select(database.workoutLogs).getSingle();
+
+      // 4. Create routine from workout log
+      final routine = await helper.createRoutineFromWorkout(
+        workoutLogId: workoutLog.localId,
+        name: 'New Custom Routine',
+      );
+
+      expect(routine, isNotNull);
+      expect(routine.name, 'New Custom Routine');
+
+      // 5. Verify database records
+      // Verify Routine is created
+      final dbRoutine = await helper.getRoutineById(routine.id!);
+      expect(dbRoutine, isNotNull);
+      expect(dbRoutine!.name, 'New Custom Routine');
+
+      // Verify RoutineExercises
+      expect(dbRoutine.exercises.length, 2);
+      
+      // Exercise 1 (Index 0): Squat
+      final squatExercise = dbRoutine.exercises[0];
+      expect(squatExercise.exercise.uuid, squatId);
+      
+      // Check set templates for squat: warmup first (weight 60, reps 8), normal second (weight 100, reps 5)
+      expect(squatExercise.setTemplates.length, 2); // Excluded incomplete
+      expect(squatExercise.setTemplates[0].setType, 'warmup');
+      expect(squatExercise.setTemplates[0].targetWeight, 60.0);
+      expect(squatExercise.setTemplates[0].targetReps, '8');
+
+      expect(squatExercise.setTemplates[1].setType, 'normal');
+      expect(squatExercise.setTemplates[1].targetWeight, 100.0);
+      expect(squatExercise.setTemplates[1].targetReps, '5');
+
+      // Exercise 2 (Index 1): Bench Press
+      final benchExercise = dbRoutine.exercises[1];
+      expect(benchExercise.exercise.uuid, benchId);
+      expect(benchExercise.pauseSeconds, 90); // Mapped rest time
+
+      expect(benchExercise.setTemplates.length, 1);
+      expect(benchExercise.setTemplates[0].setType, 'normal');
+      expect(benchExercise.setTemplates[0].targetWeight, 80.0);
+      expect(benchExercise.setTemplates[0].targetReps, '10');
+    });
   });
 }
 

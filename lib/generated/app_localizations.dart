@@ -1646,6 +1646,36 @@ abstract class AppLocalizations {
   /// **'Routine saved.'**
   String get snackbarRoutineSaved;
 
+  /// No description provided for @saveAsRoutineButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as routine'**
+  String get saveAsRoutineButton;
+
+  /// No description provided for @saveAsRoutineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as Routine'**
+  String get saveAsRoutineTitle;
+
+  /// No description provided for @saveAsRoutinePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name for the new routine:'**
+  String get saveAsRoutinePrompt;
+
+  /// No description provided for @saveAsRoutineSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine created!'**
+  String get saveAsRoutineSuccess;
+
+  /// No description provided for @snackbarRoutineSavedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get snackbarRoutineSavedAction;
+
   /// No description provided for @formFieldRoutineName.
   ///
   /// In en, this message translates to:
