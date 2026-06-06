@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
-## [0.9.19] - 2026-06-02
+## [0.9.19] - 2026-06-06
 ### Added
 - **Save Workout as Routine**: Implemented a "Save Workout as Routine" feature in the historical workout log details screen (`WorkoutLogDetailScreen`).
   - Added repository contract and transaction method (`createRoutineFromWorkout`) to safely copy completed sets, sort warmup sets first, exclude incomplete sets, and map logged rest times to exercise pause durations.
@@ -36,6 +36,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Added a dedicated, chronologically sorted sheet outputting a raw, granular log of all user measurements with columns: `[Date] | [Time] | [Measurement Type] | [Value] | [Unit]`.
 
 ### Changed
+- **3-Tier Performance and UX Overhaul**:
+  - **Tier 1 (Database Ingestion Isolate)**: Shifted massive SQLite database row parsing, companion mapping, and object instantiation into a dedicated background isolate during remote catalog synchronization, completely eliminating UI thread locking and frame drops.
+  - **Tier 2 (SQLite Computational Pushdown)**: Refactored expensive Dart-side collection loops in the `getVolumeByMuscleGroup` analytics queries to utilize raw SQLite queries with `json_each` functions. Muscle volumes are now natively grouped and aggregated via database engine optimizations before crossing the FFI bridge, significantly reducing heap memory allocation.
+  - **Tier 3 (Logical Day Offset & Debounce Refactoring)**: Altered the global logical day boundary for diaries and sleep tracking from `00:00` to a `04:00 AM` offset utilizing a custom `dateOnly` extension, correctly associating late-night meals and workouts with the active wake cycle. Fixed heavy UI stuttering across `FoodExplorerScreen` and `GeneralFoodSelectionScreen` by isolating text debouncers from synchronous `setState` rebuilds and wrapping inputs in `ValueListenableBuilder`.
 - **Relational Delta-Synchronization Engine & Contextual 1-Tap Sync**:
   - Overhauled the workout-to-routine template synchronization framework from a destructive "wipe-and-rebuild" logic to a high-fidelity, non-destructive Relational Delta-Synchronization Engine running in a single SQLite transaction block inside `routines_queries.dart`.
   - Implemented surgical sequence updates to realign the `order_index` of matching routine exercises, safely delete skipped exercises, and absorb newly added exercises with their live logged metrics.

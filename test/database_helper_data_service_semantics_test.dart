@@ -83,7 +83,7 @@ void main() {
         await database.into(database.nutritionLogs).insert(
               db.NutritionLogsCompanion(
                 legacyBarcode: const drift.Value('early'),
-                consumedAt: drift.Value(DateTime(2026, 4, 2, 0, 0, 0)),
+                consumedAt: drift.Value(DateTime(2026, 4, 2, 4, 0, 0)),
                 amount: const drift.Value(100),
                 mealType: const drift.Value('Breakfast'),
                 updatedAt: drift.Value(DateTime(2026, 4, 2, 9, 0, 0)),
@@ -92,7 +92,7 @@ void main() {
         await database.into(database.nutritionLogs).insert(
               db.NutritionLogsCompanion(
                 legacyBarcode: const drift.Value('late'),
-                consumedAt: drift.Value(DateTime(2026, 4, 3, 23, 59, 59)),
+                consumedAt: drift.Value(DateTime(2026, 4, 4, 3, 59, 59)),
                 amount: const drift.Value(200),
                 mealType: const drift.Value('Dinner'),
                 updatedAt: drift.Value(DateTime(2026, 4, 3, 10, 0, 0)),
@@ -101,7 +101,7 @@ void main() {
         await database.into(database.nutritionLogs).insert(
               db.NutritionLogsCompanion(
                 legacyBarcode: const drift.Value('outside'),
-                consumedAt: drift.Value(DateTime(2026, 4, 4, 0, 0, 0)),
+                consumedAt: drift.Value(DateTime(2026, 4, 4, 4, 0, 0)),
                 amount: const drift.Value(300),
                 mealType: const drift.Value('Breakfast'),
                 updatedAt: drift.Value(DateTime(2026, 4, 4, 10, 0, 0)),

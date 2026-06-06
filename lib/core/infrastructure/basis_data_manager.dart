@@ -35,6 +35,38 @@ typedef RemoteCatalogSkipRequested = bool Function();
 ///
 /// Handles importing exercises, food products, and categories from asset databases
 /// into the main application database.
+enum BatchImportType { exercises, productsBase, categories, productsOff }
+
+class _BatchImportPayload {
+  final List<Map<String, dynamic>> rows;
+  final BatchImportType type;
+  final String? preferredLanguage;
+
+  const _BatchImportPayload({
+    required this.rows,
+    required this.type,
+    this.preferredLanguage,
+  });
+}
+
+List<dynamic> _parseBatchInIsolate(_BatchImportPayload payload) {
+  switch (payload.type) {
+    case BatchImportType.exercises:
+      return payload.rows.map(BasisDataManager._mapExerciseRow).toList();
+    case BatchImportType.categories:
+      return payload.rows.map(BasisDataManager._mapCategoryRow).toList();
+    case BatchImportType.productsBase:
+      return payload.rows
+          .map((r) => BasisDataManager._mapProductRow(r,
+              sourceLabel: 'base', preferredLanguage: payload.preferredLanguage))
+          .toList();
+    case BatchImportType.productsOff:
+      return payload.rows
+          .map((r) => BasisDataManager._mapProductRow(r, sourceLabel: 'off'))
+          .toList();
+  }
+}
+
 class BasisDataManager {
   /// Singleton instance of [BasisDataManager].
   static final BasisDataManager instance = BasisDataManager._init();
@@ -49,9 +81,9 @@ class BasisDataManager {
       'installed_food_enrichment_v1';
   static const String _fallbackInstalledVersion = '000000000001';
 
-  int _parseInt(dynamic value) => (value as num?)?.toInt() ?? 0;
-  double _parseDouble(dynamic value) => (value as num?)?.toDouble() ?? 0.0;
-  String _parseString(dynamic value) => value?.toString() ?? '';
+  static int _parseInt(dynamic value) => (value as num?)?.toInt() ?? 0;
+  static double _parseDouble(dynamic value) => (value as num?)?.toDouble() ?? 0.0;
+  static String _parseString(dynamic value) => value?.toString() ?? '';
 
   /// Checks for updates to the basis data and performs an import if necessary.
   ///
@@ -99,10 +131,11 @@ class BasisDataManager {
       String asset,
       String key,
       String table,
-      Function(Map<String, dynamic>) mapper, {
+      BatchImportType importType, {
       String? sourceFilePath,
       String? legacyAssetPath,
       String? driftTable,
+      String? preferredLanguage,
       bool enableOffReplacementRetention = false,
       bool? forceImportOverride,
     }) async {
@@ -114,7 +147,8 @@ class BasisDataManager {
         tableName: table,
         driftTableName: driftTable,
         legacyAssetPath: legacyAssetPath,
-        mapFunction: mapper,
+        importType: importType,
+        preferredLanguage: preferredLanguage,
         taskLabel: label,
         onProgress: onProgress,
         forceImport: forceImportOverride ?? force,
@@ -156,7 +190,7 @@ class BasisDataManager {
       AppDataSources.trainingAssetDbPath,
       _keyVersionTraining,
       'exercises',
-      _mapExerciseRow,
+      BatchImportType.exercises,
       sourceFilePath: remoteTrainingDbPath,
       legacyAssetPath: AppDataSources.legacyTrainingAssetDbPath,
     );
@@ -173,11 +207,8 @@ class BasisDataManager {
       AppDataSources.baseFoodsAssetDbPath,
       _keyVersionFood,
       'products',
-      (row) => _mapProductRow(
-        row,
-        sourceLabel: 'base',
-        preferredLanguage: baseFoodLangCode,
-      ),
+      BatchImportType.productsBase,
+      preferredLanguage: baseFoodLangCode,
       legacyAssetPath: AppDataSources.legacyBaseFoodsAssetDbPath,
       forceImportOverride: force || forceEnrichment,
     );
@@ -188,7 +219,7 @@ class BasisDataManager {
       AppDataSources.foodCategoriesAssetDbPath,
       _keyVersionCats,
       'categories',
-      _mapCategoryRow,
+      BatchImportType.categories,
       driftTable: 'food_categories',
       legacyAssetPath: AppDataSources.legacyFoodCategoriesAssetDbPath,
     );
@@ -253,7 +284,7 @@ class BasisDataManager {
       activeOffSource.bundledAssetDbPath,
       activeOffVersionKey,
       'products',
-      (row) => _mapProductRow(row, sourceLabel: 'off'),
+      BatchImportType.productsOff,
       sourceFilePath: remoteOffDbPath,
       legacyAssetPath: activeOffSource.legacyBundledAssetDbPath,
       enableOffReplacementRetention: true,
@@ -318,7 +349,8 @@ class BasisDataManager {
     required SharedPreferences prefs,
     required String tableName,
     String? driftTableName,
-    required Function(Map<String, dynamic>) mapFunction,
+    required BatchImportType importType,
+    String? preferredLanguage,
     required String taskLabel,
     ProgressCallback? onProgress,
     required bool forceImport,
@@ -427,7 +459,8 @@ class BasisDataManager {
         final importedBarcodes = await _performBatchImport(
           assetDb,
           checkTable,
-          mapFunction,
+          importType,
+          preferredLanguage,
           onProgress,
           taskLabel,
           collectProductBarcodes: enableOffReplacementRetention,
@@ -536,7 +569,8 @@ class BasisDataManager {
   Future<Set<String>> _performBatchImport(
     sqflite.Database assetDb,
     String tableName,
-    dynamic Function(Map<String, dynamic>) mapRowToCompanion,
+    BatchImportType importType,
+    String? preferredLanguage,
     ProgressCallback? onProgress,
     String taskLabel, {
     required bool collectProductBarcodes,
@@ -570,10 +604,18 @@ class BasisDataManager {
       );
       if (rows.isEmpty) break;
 
+      final mappedCompanions = await compute(
+        _parseBatchInIsolate,
+        _BatchImportPayload(
+          rows: rows,
+          type: importType,
+          preferredLanguage: preferredLanguage,
+        ),
+      );
+
       await mainDb.batch((batch) {
-        for (final row in rows) {
+        for (final companion in mappedCompanions) {
           try {
-            final companion = mapRowToCompanion(row);
             if (companion is ProductsCompanion) {
               if (collectProductBarcodes &&
                   companion.barcode.present &&
@@ -654,7 +696,7 @@ class BasisDataManager {
 
   // --- Mapping functions (unchanged) ---
 
-  dynamic _mapProductRow(
+  static dynamic _mapProductRow(
     Map<String, dynamic> row, {
     required String sourceLabel,
     String? preferredLanguage,
@@ -764,7 +806,7 @@ class BasisDataManager {
     };
   }
 
-  dynamic _mapCategoryRow(Map<String, dynamic> row) {
+  static dynamic _mapCategoryRow(Map<String, dynamic> row) {
     return FoodCategoriesCompanion(
       key: drift.Value(_parseString(row['key'])),
       nameDe: drift.Value(row['name_de'] as String?),
@@ -773,7 +815,7 @@ class BasisDataManager {
     );
   }
 
-  dynamic _mapExerciseRow(Map<String, dynamic> row) {
+  static dynamic _mapExerciseRow(Map<String, dynamic> row) {
     return ExercisesCompanion(
       id: drift.Value(_parseString(row['id'])),
       nameDe: drift.Value(_parseString(row['name_de'] ?? row['name_en'])),
