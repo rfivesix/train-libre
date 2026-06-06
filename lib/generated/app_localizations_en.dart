@@ -1998,11 +1998,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Soon you will be able to create your own meals from multiple foods.';
 
   @override
-  String get mealsEmptyTitle => 'No meals yet';
+  String get mealsEmptyTitle => 'No meal templates saved';
 
   @override
   String get mealsEmptyBody =>
       'Create meals to quickly log multiple foods at once.';
+
+  @override
+  String get mealsEmptyBodyWithShortcut =>
+      'In the diary, use the “Save as meal” option below your Breakfast or Dinner to save common food combinations as a quick template.';
+
+  @override
+  String get mealsCreateManually => 'Create meal manually';
+
+  @override
+  String get saveMealTemplateShortcut => 'Save as meal';
 
   @override
   String get mealsCreate => 'Create meal';

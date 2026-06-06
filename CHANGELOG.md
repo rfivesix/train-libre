@@ -51,6 +51,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Exercise Search Engine Overhaul**: Refactored the local exercise search pipeline inside `exercises_queries.dart` to support word-order invariant token parsing, 90-day lookup window training history rescoring (via correlated subqueries on set and workout logs), and hierarchical priority ranking (exact match > history score > custom overrides > prefix match > alphabetical fallback). Added dedicated integration tests validating search tokenization, scoring weight math, and ranking.
 - **Sleep Pipeline & UI Realignment**: Deeply refactored the sleep pipeline service, sleep session entity, and sleep day repository to implement a pure mathematical interval-merging algorithm to resolve overlapping nocturnal sleep intervals, and corrected sleep classification using a $\ge$ 3-hour threshold. Overhauled the Schlafintervalle (Sleep Intervals) card component in the UI with bedtime/snooze vector icons for list items, premium green count badge styling, and clean vertical alignment with the header moon icon removed.
 
+- **Save as Meal Template Shortcut**: Added a minimalist section footer link ("Als Mahlzeit sichern" / "Save as meal") to each expanded meal card in the Diary Screen.
+  - Renders exclusively when a meal section contains at least one solid food entry (liquid-only sections such as Water are suppressed) to eliminate visual clutter.
+  - Tapping the link creates a blank meal stub in the database, pre-populates `MealScreen` with the filtered solid entries (barcode + logged gram amount), and opens the meal creation flow in edit mode with name and notes fields intentionally left blank so the user authors their own template title.
+  - Styled as a zero-padding `TextButton` with `FontWeight.w700` and `colorScheme.primary` foreground, matching the "Mahlzeit bearbeiten" app bar action on `MealScreen`.
+  - Performs best-effort cleanup of the DB stub if the user discards the flow without saving a name.
+- **`MealScreen` Pre-population API**: Extended `MealScreen` with an optional `prefillItems` parameter (`List<Map<String, dynamic>>?`). When provided, the screen skips the DB ingredient fetch, loads the supplied rows directly, and opens automatically in edit mode — enabling the diary shortcut workflow without any separate creation screen.
+
+### Changed
+- **Meal Template Explorer Empty State**: Replaced the plain greyed-out icon/text placeholder in `MealsScreen` with a premium, on-brand empty state:
+  - 88×88 circular container with 12 % opacity primary color background wrapping `Icons.restaurant_menu_outlined`.
+  - Bold `titleLarge` headline: "Keine Mahlzeiten gespeichert" / "No meal templates saved".
+  - `bodyMedium` subtext at 75 % opacity (line height 1.45) explaining the diary shortcut workflow as the recommended first step.
+  - `OutlinedButton.icon` CTA ("Mahlzeit manuell erstellen" / "Create meal manually") wired to the existing `_createMealAndOpenEditor` flow for users who prefer to build templates from scratch.
+  - Padding accounts for `topPadding` so the layout centres correctly behind the navigation bar.
+
 ### Fixed
 - **Static Analysis**: Resolved the `use_build_context_synchronously` lint warnings inside `_showSaveAsRoutineDialog` by capturing repository and navigation handlers prior to the async bottom sheet UI transitions.
 - **Deprecated Opacity APIs**: Fixed the `deprecated_member_use` compiler warning by replacing `withOpacity` with the modern `withValues(alpha: ...)` API.

@@ -250,29 +250,64 @@ class _MealsScreenState extends State<MealsScreen> {
           : _meals.isEmpty
               ? Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: EdgeInsets.fromLTRB(
+                      24,
+                      topPadding + 24,
+                      24,
+                      96,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.restaurant_menu,
-                          size: 80,
-                          color: Colors.grey.shade400,
+                        // Icon in a circular accent background container
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.12),
+                          ),
+                          child: Icon(
+                            Icons.restaurant_menu_outlined,
+                            size: 40,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                         const SizedBox(height: DesignConstants.spacingL),
+                        // Bold headline
                         Text(
                           l10n.mealsEmptyTitle,
-                          style: Theme.of(context).textTheme.headlineSmall,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w700),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: DesignConstants.spacingS),
+                        // Low-opacity instructional subtext
                         Text(
-                          l10n.mealsEmptyBody,
+                          l10n.mealsEmptyBodyWithShortcut,
                           textAlign: TextAlign.center,
                           style: Theme.of(context)
                               .textTheme
-                              .bodyLarge
-                              ?.copyWith(color: Colors.grey.shade600),
+                              .bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withValues(alpha: 0.75),
+                                height: 1.45,
+                              ),
+                        ),
+                        const SizedBox(height: DesignConstants.spacingL),
+                        // Outlined CTA to build a template from scratch
+                        OutlinedButton.icon(
+                          onPressed: () => _createMealAndOpenEditor(l10n),
+                          icon: const Icon(Icons.add),
+                          label: Text(l10n.mealsCreateManually),
                         ),
                       ],
                     ),

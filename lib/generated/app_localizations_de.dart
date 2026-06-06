@@ -2009,11 +2009,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bald kannst du eigene Mahlzeiten aus mehreren Lebensmitteln zusammenstellen.';
 
   @override
-  String get mealsEmptyTitle => 'Noch keine Mahlzeiten';
+  String get mealsEmptyTitle => 'Keine Mahlzeiten gespeichert';
 
   @override
   String get mealsEmptyBody =>
       'Lege Mahlzeiten an, um mehrere Lebensmittel mit einem Klick einzutragen.';
+
+  @override
+  String get mealsEmptyBodyWithShortcut =>
+      'Nutze im Tagebuch die Option „Als Mahlzeit sichern“ unter deinem Frühstück oder Abendessen, um häufige Lebensmittel-Kombinationen als schnelle Vorlage zu speichern.';
+
+  @override
+  String get mealsCreateManually => 'Mahlzeit manuell erstellen';
+
+  @override
+  String get saveMealTemplateShortcut => 'Als Mahlzeit sichern';
 
   @override
   String get mealsCreate => 'Mahlzeit erstellen';

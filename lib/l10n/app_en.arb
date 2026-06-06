@@ -782,8 +782,12 @@
   "searchSectionOther": "Other results",
   "mealsComingSoonTitle": "Meals (coming soon)",
   "mealsComingSoonBody": "Soon you’ll be able to create meals from multiple foods and add them in one tap.",
-  "mealsEmptyTitle": "No meals yet",
+  "mealsEmptyTitle": "No meal templates saved",
   "mealsEmptyBody": "Create meals to quickly log multiple foods at once.",
+  "mealsEmptyBodyWithShortcut": "In the diary, use the \u201cSave as meal\u201d option below your Breakfast or Dinner to save common food combinations as a quick template.",
+
+  "mealsCreateManually": "Create meal manually",
+  "saveMealTemplateShortcut": "Save as meal",
   "mealsCreate": "Create meal",
   "mealsEdit": "Edit meal",
   "mealsDelete": "Delete meal",

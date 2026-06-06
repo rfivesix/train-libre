@@ -3629,7 +3629,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealsEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No meals yet'**
+  /// **'No meal templates saved'**
   String get mealsEmptyTitle;
 
   /// No description provided for @mealsEmptyBody.
@@ -3637,6 +3637,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create meals to quickly log multiple foods at once.'**
   String get mealsEmptyBody;
+
+  /// No description provided for @mealsEmptyBodyWithShortcut.
+  ///
+  /// In en, this message translates to:
+  /// **'In the diary, use the “Save as meal” option below your Breakfast or Dinner to save common food combinations as a quick template.'**
+  String get mealsEmptyBodyWithShortcut;
+
+  /// No description provided for @mealsCreateManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Create meal manually'**
+  String get mealsCreateManually;
+
+  /// No description provided for @saveMealTemplateShortcut.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as meal'**
+  String get saveMealTemplateShortcut;
 
   /// No description provided for @mealsCreate.
   ///

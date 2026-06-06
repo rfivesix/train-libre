@@ -32,7 +32,18 @@ class MealScreen extends StatefulWidget {
   /// Whether to open the screen in edit mode initially.
   final bool startInEdit;
 
-  const MealScreen({super.key, required this.meal, this.startInEdit = false});
+  /// Optional pre-filled food items from a diary section (e.g. Breakfast).
+  /// Each entry must contain 'barcode' (String) and 'quantity_in_grams' (int).
+  /// When provided the screen opens in edit mode with these rows populated and
+  /// the name/notes fields left blank so the user can author their own title.
+  final List<Map<String, dynamic>>? prefillItems;
+
+  const MealScreen({
+    super.key,
+    required this.meal,
+    this.startInEdit = false,
+    this.prefillItems,
+  });
 
   @override
   State<MealScreen> createState() => _MealScreenState();
@@ -54,12 +65,15 @@ class _MealScreenState extends State<MealScreen> {
   @override
   void initState() {
     super.initState();
-    _editMode = widget.startInEdit;
+    // Open in edit mode whenever prefill data is provided or startInEdit is set.
+    _editMode = widget.startInEdit || widget.prefillItems != null;
+    // Leave name/notes blank when launched via the diary shortcut so the user
+    // must consciously choose a template title.
     _nameCtrl = TextEditingController(
-      text: widget.meal['name'] as String? ?? '',
+      text: widget.prefillItems != null ? '' : (widget.meal['name'] as String? ?? ''),
     );
     _notesCtrl = TextEditingController(
-      text: widget.meal['notes'] as String? ?? '',
+      text: widget.prefillItems != null ? '' : (widget.meal['notes'] as String? ?? ''),
     );
     _loadItems();
   }
@@ -73,9 +87,17 @@ class _MealScreenState extends State<MealScreen> {
 
   Future<void> _loadItems() async {
     setState(() => _loadingItems = true);
-    final id = widget.meal['id'] as int;
-    final rows = await DatabaseHelper.instance.getMealItems(id);
-    _items = List<Map<String, dynamic>>.from(rows);
+
+    if (widget.prefillItems != null) {
+      // Launched via the diary shortcut — use supplied items directly and skip
+      // the DB fetch (the meal row has just been created and has no items yet).
+      _items = List<Map<String, dynamic>>.from(widget.prefillItems!);
+    } else {
+      final id = widget.meal['id'] as int;
+      final rows = await DatabaseHelper.instance.getMealItems(id);
+      _items = List<Map<String, dynamic>>.from(rows);
+    }
+
     await _recomputeTotals(); // Initial totals.
     if (mounted) setState(() => _loadingItems = false);
   }
