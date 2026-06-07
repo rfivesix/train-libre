@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
-import '../../../../services/theme_service.dart';
+import '../../../../util/design_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-import 'package:provider/provider.dart';
 
 /// Represents an action item within a [showGlassBottomMenu].
 class GlassMenuAction {
@@ -32,9 +31,6 @@ class GlassMenuAction {
         );
 }
 
-// ... (showGlassBottomMenu and _GlassBottomMenuSheet stay unchanged) ...
-// ... Do not delete the code in between; only skip it ...
-
 /// Shows a premium glass-styled modal bottom sheet.
 ///
 /// Can display either a list of [actions] or custom [contentBuilder] content.
@@ -53,13 +49,9 @@ Future<T?> showGlassBottomMenu<T>({
   );
 
   final isDark = Theme.of(context).brightness == Brightness.dark;
-  final themeService = Provider.of<ThemeService>(context, listen: false);
-  final bool isLiquid = themeService.visualStyle == 1;
 
   final Color barrierColor = isDark
-      ? (!isLiquid
-          ? Colors.grey.withValues(alpha: 0.187)
-          : Colors.black.withValues(alpha: 0.5))
+      ? Colors.black.withValues(alpha: 0.5)
       : Colors.black.withValues(alpha: 0.3);
 
   return showModalBottomSheet<T>(
@@ -105,15 +97,12 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bottomInset = media.viewPadding.bottom;
-    final themeService = context.watch<ThemeService>();
+
 
     final Color neutralTint = isDark
         ? theme.colorScheme.surface.withValues(alpha: 0.70)
         : theme.colorScheme.surface.withValues(alpha: 0.82);
-    // Smarter liquid glass color: pure white translucent tint without solid gray base.
-    final Color effectiveGlass = isDark
-        ? Colors.white.withValues(alpha: 0.12)
-        : Colors.white.withValues(alpha: 0.15);
+    final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
     const double r = 24;
     const EdgeInsets outerMargin = EdgeInsets.fromLTRB(16, 0, 16, 16);
@@ -255,52 +244,6 @@ class _GlassBottomMenuSheet extends StatelessWidget {
       );
     }
 
-    Widget plainCard() {
-      return Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 30,
-                    spreadRadius: 4,
-                    offset: const Offset(0, 14),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          AdaptiveGlass(
-            settings: LiquidGlassSettings(
-              thickness: 30,
-              blur: 8,
-              glassColor: effectiveGlass,
-              lightIntensity: isDark ? 0.55 : 0.80,
-              saturation: 1.20,
-            ),
-            shape: const LiquidRoundedRectangle(borderRadius: r),
-            quality: GlassQuality.premium,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: neutralTint,
-                      borderRadius: BorderRadius.circular(r),
-                    ),
-                  ),
-                ),
-                contentColumn(),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
-
     return SafeArea(
       top: false,
       bottom: false,
@@ -310,7 +253,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
           padding: outerMargin,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
-            child: themeService.visualStyle == 1 ? liquidCard() : plainCard(),
+            child: liquidCard(),
           ),
         ),
       ),
@@ -339,15 +282,9 @@ class _GlassTile extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final textTheme = theme.textTheme;
-    final themeService = context.watch<ThemeService>();
 
-    // Adjust background tint slightly
-    final Color neutralTint = (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: isDark ? 0.05 : 0.10);
-    // Smarter liquid glass color: pure white translucent tint without solid gray base.
-    final Color effectiveGlass = isDark
-        ? Colors.white.withValues(alpha: 0.12)
-        : Colors.white.withValues(alpha: 0.15);
+    final Color neutralTint = DesignConstants.glassNeutralTint(isDark);
+    final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
     final Widget leadingWidget =
         customIcon != null ? customIcon! : Icon(icon, size: 22);
@@ -408,58 +345,18 @@ class _GlassTile extends StatelessWidget {
       ),
     );
 
-    if (themeService.visualStyle == 1) {
-      return AdaptiveGlass(
-        settings: LiquidGlassSettings(
-          // Changed here: thickness 0 removes distortion/shift.
-          thickness: 0,
-          blur:
-              2.0, // Restored blur for clear but properly diffused liquid-glass look
-          glassColor: effectiveGlass,
-          // Changed here: less light intensity reduces harsh edges.
-          lightIntensity: 0.1,
-          saturation: 1.20,
-        ),
-        shape: const LiquidRoundedSuperellipse(borderRadius: 18),
-        quality: GlassQuality.premium,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(18),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            hoverColor: Colors.transparent,
-            focusColor: Colors.transparent,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    // BorderRadius also helps visual separation here.
-                    decoration: BoxDecoration(
-                      color: neutralTint,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                ),
-                tileContent,
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
     return AdaptiveGlass(
       settings: LiquidGlassSettings(
+        // Changed here: thickness 0 removes distortion/shift.
         thickness: 0,
-        blur: 2.0,
+        blur:
+            2.0, // Restored blur for clear but properly diffused liquid-glass look
         glassColor: effectiveGlass,
+        // Changed here: less light intensity reduces harsh edges.
         lightIntensity: 0.1,
         saturation: 1.20,
       ),
-      shape: const LiquidRoundedRectangle(borderRadius: 18),
+      shape: const LiquidRoundedSuperellipse(borderRadius: 18),
       quality: GlassQuality.premium,
       child: Material(
         color: Colors.transparent,
@@ -474,6 +371,7 @@ class _GlassTile extends StatelessWidget {
             children: [
               Positioned.fill(
                 child: DecoratedBox(
+                  // BorderRadius also helps visual separation here.
                   decoration: BoxDecoration(
                     color: neutralTint,
                     borderRadius: BorderRadius.circular(18),

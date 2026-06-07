@@ -50,19 +50,19 @@ void main() {
       await _waitForThemeServiceInit();
 
       await service.setThemeMode(ThemeMode.light);
-      await service.setVisualStyle(0); // Changed from 1 to 0
+      await service.setVisualStyle(1); // Test writing style 1
       await service.setAiEnabled(true);
       await service.setMaterialColorsEnabled(true);
       await service.setHapticsEnabled(false);
 
       final prefs = await SharedPreferences.getInstance();
       expect(service.themeMode, ThemeMode.light);
-      expect(service.visualStyle, 0); // Changed from 1 to 0
+      expect(service.visualStyle, 1);
       expect(service.isAiEnabled, true);
       expect(service.materialColorsEnabled, true);
       expect(service.hapticsEnabled, false);
       expect(prefs.getInt('theme_mode'), ThemeMode.light.index);
-      expect(prefs.getInt('visual_style'), 0); // Changed from 1 to 0
+      expect(prefs.getInt('visual_style'), 1);
       expect(prefs.getBool('ai_enabled'), true);
       expect(prefs.getBool('material_colors_enabled'), true);
       expect(prefs.getBool('haptics_enabled'), false);

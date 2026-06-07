@@ -55,87 +55,43 @@ class AppearanceSettingsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Divider(height: 1),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: Text(
-                          l10n.settingsVisualStyleTitle,
-                          style:
-                              Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                      ),
-                      RadioGroup<int>(
-                        groupValue: themeService.visualStyle,
-                        onChanged: (value) {
-                          if (value == null) return;
-                          themeService.setVisualStyle(value);
-                        },
-                        child: Column(
-                          children: [
-                            RadioListTile<int>(
-                              title: Text(l10n.settingsVisualStyleStandard),
-                              value: 0,
-                            ),
-                            RadioListTile<int>(
-                              title: Text(l10n.settingsVisualStyleLiquid),
-                              subtitle:
-                                  Text(l10n.settingsVisualStyleLiquidDesc),
-                              value: 1,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (isAndroid) ...[
-                        const Divider(height: 1),
-                        SwitchListTile(
-                          secondary: const Icon(Icons.palette_outlined),
-                          title: Text(
-                            l10n.settingsMaterialColorsTitle,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(l10n.settingsMaterialColorsSubtitle),
-                          value: themeService.materialColorsEnabled,
-                          onChanged: (value) =>
-                              themeService.setMaterialColorsEnabled(value),
-                        ),
-                      ],
-                      const Divider(height: 1),
-                      SwitchListTile(
-                        secondary: const Icon(Icons.vibration_outlined),
-                        title: Text(
-                          l10n.settingsHapticFeedbackTitle,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(l10n.settingsHapticFeedbackSubtitle),
-                        value: themeService.hapticsEnabled,
-                        onChanged: (value) =>
-                            themeService.setHapticsEnabled(value),
-                      ),
-                      const Divider(height: 1),
-                      SwitchListTile(
-                        secondary: const Icon(Icons.style_outlined),
-                        title: Text(
-                          l10n.settingsColorfulMacroBadgesTitle,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(l10n.settingsColorfulMacroBadgesSubtitle),
-                        value: themeService.useColorfulMacroBadges,
-                        onChanged: (value) =>
-                            themeService.setUseColorfulMacroBadges(value),
-                      ),
-                    ],
+                if (isAndroid) ...[
+                  const Divider(height: 1),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.palette_outlined),
+                    title: Text(
+                      l10n.settingsMaterialColorsTitle,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(l10n.settingsMaterialColorsSubtitle),
+                    value: themeService.materialColorsEnabled,
+                    onChanged: (value) =>
+                        themeService.setMaterialColorsEnabled(value),
                   ),
+                ],
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.vibration_outlined),
+                  title: Text(
+                    l10n.settingsHapticFeedbackTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(l10n.settingsHapticFeedbackSubtitle),
+                  value: themeService.hapticsEnabled,
+                  onChanged: (value) =>
+                      themeService.setHapticsEnabled(value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.style_outlined),
+                  title: Text(
+                    l10n.settingsColorfulMacroBadgesTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(l10n.settingsColorfulMacroBadgesSubtitle),
+                  value: themeService.useColorfulMacroBadges,
+                  onChanged: (value) =>
+                      themeService.setUseColorfulMacroBadges(value),
                 ),
               ],
             ),

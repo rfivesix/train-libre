@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.22] - 2026-06-08
+### Changed
+- **Centralized Design Constants**: Migrated and refactored all glassmorphic widgets (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) to utilize unified styling tokens defined in `DesignConstants` (`glassShadow`, `glassNeutralTint`, `glassColor`, and `liquidGlassSettings`).
+
+### Fixed
+- **Liquid Glass Shadow Clipping**: Integrated `ShadowOuterClipper` across all Liquid Glass components (bottom navigation, FAB, workout overlay, speed dial actions) to strictly clip drop shadows from behind the transparent glass elements, keeping the backgrounds bright and translucent.
+
 ## [0.9.21] - 2026-06-07
 ### Changed
 - **Default Visual Style Swap**: Swapped the out-of-the-box visual style preference default from "Flüssig (Liquid Glass)" (index `1`) to "Standard (Glas)" (index `0`) in `ThemeService` so new app installations default to the frosted standard glass style.
@@ -12,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Standard Glass Shader Pipeline Upgrade**: Migrated the standard visual style (`visualStyle == 0`) branch across multiple components (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) from legacy native `BackdropFilter` and solid container fallbacks onto the unified `AdaptiveGlass` shader pipeline from the `liquid_glass_widgets` package.
 - **Light Mode Tint Harmonization**: Fixed Light Mode background burnout/clipping issues where the bottom bar and FAB appeared muddy, dark, and dirty-grey or clipped into raw white by aligning their background `neutralTint` to a clean, bright, semi-transparent white (`Colors.white.withValues(alpha: 0.10)`), matching the functioning `RunningWorkoutOverlay` background exactly.
 - **Ambient Shadow Matrix Unification**: Unified and applied the deep physical depth shadow matrix (`BoxShadow` with `blurRadius: 12`, `offset: Offset(0, 6)`, `Colors.black` at `30%` opacity) across both standard (`visualStyle == 0`) and liquid (`visualStyle == 1`) navigation components to eliminate visual rift and restore parity with the workout overlay.
+- **Liquid Mode Shadow & FAB Refinement**: Added physical drop shadows to the navigation bar, workout overlay, and speed dial action buttons in Liquid Glass mode for visual parity. Fixed the muddy dark grey appearance of the Floating Action Button in Liquid Mode by removing the redundant solid black background layer..
 
 ## [0.9.20] - 2026-06-07
 ### Added

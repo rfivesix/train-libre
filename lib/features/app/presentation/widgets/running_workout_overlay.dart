@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:provider/provider.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-import '../../../../services/theme_service.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../util/design_constants.dart';
 
 class RunningWorkoutOverlay extends StatelessWidget {
   final String elapsedDuration;
@@ -21,16 +20,6 @@ class RunningWorkoutOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final themeService = context.watch<ThemeService>();
-
-    /*
-    final Color neutralTint = (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: isDark ? 0.1 : 0.10);
-   */
-    // Smarter liquid glass color: pure white translucent tint without solid gray base.
-    final Color effectiveGlass = isDark
-        ? Colors.white.withValues(alpha: 0.12)
-        : Colors.white.withValues(alpha: 0.15);
 
     Widget child = _RunningWorkoutRow(
       timeText: elapsedDuration,
@@ -39,86 +28,35 @@ class RunningWorkoutOverlay extends StatelessWidget {
       l10n: l10n,
     );
 
-    if (themeService.visualStyle == 1) {
-      double radius = 37.0; // Half of height 74.0 for perfect pill
-      return Container(
-        margin: const EdgeInsets.only(
-            bottom: 16.0), // Yields exactly 20px gap above GlassBottomBar
-        height: 74.0,
-        child: Stack(
-          children: [
-            // Shadow dimming layer underneath exactly like main_screen.dart
-            Positioned.fill(
-              child: DecoratedBox(
+    double radius = 37.0; // Half of height 74.0 for perfect pill
+    return Container(
+      margin: const EdgeInsets.only(
+          bottom: 16.0), // Yields exactly 20px gap above GlassBottomBar
+      height: 74.0,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ClipPath(
+              clipper: ShadowOuterClipper(borderRadius: radius),
+              child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.16),
                   borderRadius: BorderRadius.circular(radius),
+                  boxShadow: DesignConstants.glassShadow,
                 ),
               ),
             ),
-            GlassContainer(
-              useOwnLayer: true,
-              height: 74.0,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              alignment: Alignment.center,
-              shape: LiquidRoundedSuperellipse(borderRadius: radius),
-              quality: GlassQuality.premium,
-              settings: LiquidGlassSettings(
-                thickness: 30,
-                blur: 2.0,
-                glassColor: effectiveGlass,
-                lightIntensity: isDark ? 0.55 : 0.80,
-                saturation: 1.20,
-              ),
-              child: child,
-            ),
-          ],
-        ),
-      );
-    }
-    double radius = 20;
-    // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
-    final Color neutralTint = (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: isDark ? 0.1 : 0.10);
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius.toDouble()),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-            color: Colors.black.withValues(alpha: 0.3),
+          ),
+          GlassContainer(
+            useOwnLayer: true,
+            height: 74.0,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            alignment: Alignment.center,
+            shape: LiquidRoundedSuperellipse(borderRadius: radius),
+            quality: GlassQuality.premium,
+            settings: DesignConstants.liquidGlassSettings(isDark),
+            child: child,
           ),
         ],
-      ),
-      child: AdaptiveGlass(
-        settings: LiquidGlassSettings(
-          thickness: 30,
-          blur: 2.0,
-          glassColor: effectiveGlass,
-          lightIntensity: isDark ? 0.55 : 0.80,
-          saturation: 1.20,
-        ),
-        shape: LiquidRoundedRectangle(borderRadius: radius.toDouble()),
-        quality: GlassQuality.premium,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: neutralTint,
-            borderRadius: BorderRadius.circular(radius.toDouble()),
-          ),
-          foregroundDecoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(radius.toDouble()),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.30)
-                  : Colors.black.withValues(alpha: 0.10),
-              width: 1.5,
-            ),
-          ),
-          child: child,
-        ),
       ),
     );
   }

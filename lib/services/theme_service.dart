@@ -26,7 +26,8 @@ class ThemeService extends ChangeNotifier {
   ThemeMode get themeMode => _themeMode;
 
   /// The current visual style index.
-  int get visualStyle => _visualStyle;
+  /// Hardcoded to 1 (Liquid Glass) since Standard Glass has been removed.
+  int get visualStyle => 1;
 
   /// Whether AI features are enabled globally.
   bool get isAiEnabled => _isAiEnabled;

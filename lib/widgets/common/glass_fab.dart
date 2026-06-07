@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../services/theme_service.dart';
 import '../../services/haptic_feedback_service.dart';
+import '../../util/design_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-import 'package:provider/provider.dart';
 
 /// A floating action button with a premium glass aesthetic.
 ///
@@ -58,15 +57,9 @@ class _GlassFabState extends State<GlassFab>
 
   @override
   Widget build(BuildContext context) {
-    final themeService = context.watch<ThemeService>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasLabel = widget.label != null;
-    final Color neutralTint = (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: isDark ? 0.1 : 0.10);
-    // Smarter liquid glass color: pure white translucent tint without solid gray base.
-    final Color effectiveGlass = isDark
-        ? Colors.white.withValues(alpha: 0.12)
-        : Colors.white.withValues(alpha: 0.15);
+    final Color neutralTint = DesignConstants.glassNeutralTint(isDark);
 
     final iconAndText = Padding(
       padding: hasLabel
@@ -96,129 +89,62 @@ class _GlassFabState extends State<GlassFab>
       ),
     );
 
-    Widget content;
-
-    switch (themeService.visualStyle) {
-      case 1:
-        // In Liquid Mode, render perfect circular buttons (size 74x74) for icon-only FABs,
-        // and rounded stadium/pill shapes for labeled FABs, preserving screen-specific strings.
-        final double effectiveRadius = hasLabel ? 37.0 : 999.0;
-        content = Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(effectiveRadius),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-                color: Colors.black.withValues(alpha: 0.3),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              // Shadow dimming layer underneath exactly like main_screen.dart and running_workout_overlay.dart
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.16),
-                    borderRadius: BorderRadius.circular(effectiveRadius),
-                  ),
-                ),
-              ),
-              AdaptiveGlass(
-                settings: LiquidGlassSettings(
-                  thickness: 30,
-                  blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
-                  glassColor: effectiveGlass,
-                  lightIntensity: isDark ? 0.55 : 0.80,
-                  saturation: 1.20,
-                ),
-                shape: hasLabel
-                    ? const LiquidRoundedSuperellipse(borderRadius: 37)
-                    : const LiquidOval(),
-                quality: GlassQuality.premium,
-                child: GlassGlow(
-                  glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
-                  glowRadius: 1.0,
-                  child: Container(
-                    height: 74.0, // Match main screen bottom bar height
-                    width: hasLabel ? null : 74.0,
-                    decoration: BoxDecoration(
-                      color: neutralTint,
-                      borderRadius: BorderRadius.circular(effectiveRadius),
-                    ),
-                    foregroundDecoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(effectiveRadius),
-                      border: Border.all(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.20)
-                            : Colors.black.withValues(alpha: 0.08),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: hasLabel
-                        ? iconAndText
-                        : Center(
-                            child: Icon(
-                              widget.icon,
-                              size: 30,
-                              color: isDark ? Colors.white : Colors.black,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-        break;
-
-      default:
-        // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
-        final Color standardNeutralTint = (isDark ? Colors.white : Colors.white)
-            .withValues(alpha: isDark ? 0.10 : 0.10);
-        content = Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-                color: Colors.black.withValues(alpha: 0.3),
-              ),
-            ],
-          ),
-          child: AdaptiveGlass(
-            settings: LiquidGlassSettings(
-              thickness: 30,
-              blur: 2.0,
-              glassColor: effectiveGlass,
-              lightIntensity: isDark ? 0.55 : 0.80,
-              saturation: 1.20,
+    final double effectiveRadius = hasLabel ? 37.0 : 999.0;
+    final Widget content = Stack(
+      children: [
+        Positioned.fill(
+          child: ClipPath(
+            clipper: ShadowOuterClipper(
+              borderRadius: effectiveRadius,
+              isOval: !hasLabel,
             ),
-            shape: const LiquidRoundedRectangle(borderRadius: 20),
-            quality: GlassQuality.premium,
             child: Container(
-              height: 76,
-              width: hasLabel ? null : 76,
               decoration: BoxDecoration(
-                color: standardNeutralTint,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(effectiveRadius),
+                boxShadow: DesignConstants.glassShadow,
+              ),
+            ),
+          ),
+        ),
+        AdaptiveGlass(
+          settings: DesignConstants.liquidGlassSettings(isDark),
+          shape: hasLabel
+              ? const LiquidRoundedSuperellipse(borderRadius: 37)
+              : const LiquidOval(),
+          quality: GlassQuality.premium,
+          child: GlassGlow(
+            glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+            glowRadius: 1.0,
+            child: Container(
+              height: 74.0, // Match main screen bottom bar height
+              width: hasLabel ? null : 74.0,
+              decoration: BoxDecoration(
+                color: neutralTint,
+                borderRadius: BorderRadius.circular(effectiveRadius),
               ),
               foregroundDecoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(effectiveRadius),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : Colors.black.withValues(alpha: 0.1),
-                  width: 1.5,
+                      ? Colors.white.withValues(alpha: 0.20)
+                      : Colors.black.withValues(alpha: 0.08),
+                  width: 1.2,
                 ),
               ),
-              child: iconAndText,
+              child: hasLabel
+                  ? iconAndText
+                  : Center(
+                      child: Icon(
+                        widget.icon,
+                        size: 30,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
             ),
           ),
-        );
-    }
+        ),
+      ],
+    );
 
     return GestureDetector(
       onTapDown: _onTapDown,
