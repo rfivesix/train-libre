@@ -65,6 +65,7 @@ dependencies:
       url: https://github.com/rfivesix/flutter_body_highlighter
       ref: main
   liquid_glass_widgets: ^0.15.0
+  flutter_lucide: ^1.11.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

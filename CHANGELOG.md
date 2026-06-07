@@ -8,7 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - **Glassmorphic UI Library Migration**: Integrated the `liquid_glass_widgets` package (v0.15.0) as the primary engine for the application's premium glassmorphic layouts.
 
+- **Lucide Icons Migration & Color State Refactor**: Transitioned the primary application navigation shell (`GlassBottomBar`) and the active workout tracking overlay (`RunningWorkoutOverlay`) to the `flutter_lucide` asset system.
+  - Implemented the **Pure Color State Toggle** principle: icons now retain identical tokens across active and inactive states to eliminate layout jitter.
+  - State differentiation is now exclusively handled via color mutations: `brandAccentColor` (Chartreuse) for active states and muted `onSurface` for inactive states.
+  - Integrated `LucideIcons.notebook`, `LucideIcons.dumbbell`, `LucideIcons.chart_no_axes_column`, and `LucideIcons.utensils` into the navigation deck.
+  - Deployed `LucideIcons.clock` (size 20) in the active workout tracking overlay.
+- **Dependency Overhaul**: Added `flutter_lucide: ^1.11.0` and removed previous experimental icon sets.
+
+
 ### Fixed
+- **Navigation Label Typography & Scaling**: Fixed a regression in the `GlassBottomBar` where uninherited Material context caused text labels to scale disproportionately large and render with yellow error underlines. Wrapped the component in a `Material` widget and applied an explicit `DefaultTextStyle` mapping directly to our absolute compact design token (`fontSize: 11.0`, `fontWeight: FontWeight.w600`, `fontFamily: 'Inter'`, `letterSpacing: -0.2`).
 - **Layout & Typography in RunningWorkoutOverlay**: Fixed a critical layout collision where the workout tracking bar overlapped the new `GlassBottomBar` by introducing an 8px layout offset. Fixed a visual regression by realigning the elapsed duration typography with the centralized `titleMedium` system style, ensuring `Inter` font rendering, correct boldness, and consistent tracking.
 
 ## [0.9.19] - 2026-06-06

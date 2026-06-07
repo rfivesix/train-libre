@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../theme/color_constants.dart';
 import '../../../data/database_helper.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../diary/presentation/dialogs/fluid_dialog_content.dart';
@@ -1196,74 +1198,85 @@ class _MainScreenState extends State<MainScreen>
                               ),
                             ),
                           ),
-                          GlassBottomBar(
-                            selectedIndex: _currentIndex,
-                            onTabSelected: _onNavigationTapped,
-                            barHeight: 74,
-                            barBorderRadius:
-                                37, // Half of height for perfectly rounded semi-circle ends
-                            tabWidth:
-                                null, // Stretches to occupy all horizontal space not taken by extraButton
-                            quality:
-                                GlassQuality.premium, // Enforce premium quality
-                            indicatorExpansion: 14,
-                            selectedIconColor: theme.colorScheme.primary,
-                            unselectedIconColor:
-                                isDark ? Colors.white : Colors.black,
-                            indicatorColor:
-                                (isDark ? Colors.white : Colors.black)
-                                    .withValues(alpha: 0.15),
-                            settings: LiquidGlassSettings(
-                              thickness: 30,
-                              blur:
-                                  2.0, // Restored blur for clear but properly diffused liquid-glass look
-                              glassColor: effectiveGlass,
-                              lightIntensity: isDark ? 0.55 : 0.80,
-                              saturation: 1.20,
-                            ),
-                            tabs: [
-                              GlassBottomBarTab(
-                                label: l10n.diary,
-                                icon: Icon(
-                                  Icons.book_outlined,
-                                  key: _tourDiaryTabKey,
+                          Material(
+                            type: MaterialType.transparency,
+                            child: DefaultTextStyle(
+                              style: const TextStyle(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Inter',
+                                letterSpacing: -0.2,
+                              ),
+                              child: GlassBottomBar(
+                                selectedIndex: _currentIndex,
+                                onTabSelected: _onNavigationTapped,
+                                barHeight: 74,
+                                barBorderRadius:
+                                    37, // Half of height for perfectly rounded semi-circle ends
+                                tabWidth:
+                                    null, // Stretches to occupy all horizontal space not taken by extraButton
+                                quality:
+                                    GlassQuality.premium, // Enforce premium quality
+                                indicatorExpansion: 14,
+                                selectedIconColor: theme.colorScheme.primary,
+                                unselectedIconColor:
+                                    isDark ? Colors.white : Colors.black,
+                                indicatorColor:
+                                    (isDark ? Colors.white : Colors.black)
+                                        .withValues(alpha: 0.15),
+                                settings: LiquidGlassSettings(
+                                  thickness: 30,
+                                  blur:
+                                      2.0, // Restored blur for clear but properly diffused liquid-glass look
+                                  glassColor: effectiveGlass,
+                                  lightIntensity: isDark ? 0.55 : 0.80,
+                                  saturation: 1.20,
                                 ),
-                                activeIcon: const Icon(Icons.book),
-                              ),
-                              GlassBottomBarTab(
-                                label: l10n.workout,
-                                icon: Icon(
-                                  Icons.fitness_center_outlined,
-                                  key: _tourWorkoutTabKey,
+                                tabs: [
+                                  GlassBottomBarTab(
+                                    label: l10n.diary,
+                                    icon: Icon(
+                                      LucideIcons.notebook,
+                                      key: _tourDiaryTabKey,
+                                    ),
+                                    activeIcon: const Icon(LucideIcons.notebook),
+                                  ),
+                                  GlassBottomBarTab(
+                                    label: l10n.workout,
+                                    icon: Icon(
+                                      LucideIcons.dumbbell,
+                                      key: _tourWorkoutTabKey,
+                                    ),
+                                    activeIcon: const Icon(LucideIcons.dumbbell),
+                                  ),
+                                  GlassBottomBarTab(
+                                    label: l10n.statistics,
+                                    icon: Icon(
+                                      LucideIcons.chart_no_axes_column,
+                                      key: _tourStatisticsTabKey,
+                                    ),
+                                    activeIcon: const Icon(LucideIcons.chart_no_axes_column),
+                                  ),
+                                  GlassBottomBarTab(
+                                    label: l10n.nutrition,
+                                    icon: Icon(
+                                      LucideIcons.utensils,
+                                      key: _tourNutritionTabKey,
+                                    ),
+                                    activeIcon: const Icon(LucideIcons.utensils),
+                                  ),
+                                ],
+                                extraButton: GlassBottomBarExtraButton(
+                                  icon: Icon(
+                                    Icons.add,
+                                    key: _tourFabKey,
+                                  ),
+                                  label: 'Add',
+                                  onTap: _toggleAddMenu,
+                                  size: 74,
+                                  iconColor: isDark ? Colors.white : Colors.black,
                                 ),
-                                activeIcon: const Icon(Icons.fitness_center),
                               ),
-                              GlassBottomBarTab(
-                                label: l10n.statistics,
-                                icon: Icon(
-                                  Icons.bar_chart_outlined,
-                                  key: _tourStatisticsTabKey,
-                                ),
-                                activeIcon: const Icon(Icons.bar_chart),
-                              ),
-                              GlassBottomBarTab(
-                                label: l10n.nutrition,
-                                icon: Icon(
-                                  Icons.restaurant_menu_rounded,
-                                  key: _tourNutritionTabKey,
-                                ),
-                                activeIcon: const Icon(Icons.restaurant_menu),
-                              ),
-                            ],
-                            extraButton: GlassBottomBarExtraButton(
-                              icon: Icon(
-                                Icons.add,
-                                key: _tourFabKey,
-                              ),
-                              label: 'Add',
-                              onTap: _toggleAddMenu,
-                              size: 74,
-                              iconColor: isDark ? Colors.white : Colors.black,
                             ),
                           ),
                         ],
@@ -1284,30 +1297,34 @@ class _MainScreenState extends State<MainScreen>
                           items: [
                             BottomNavigationBarItem(
                               icon: Icon(
-                                Icons.book_outlined,
+                                LucideIcons.notebook,
                                 key: _tourDiaryTabKey,
                               ),
+                              activeIcon: const Icon(LucideIcons.notebook),
                               label: l10n.diary,
                             ),
                             BottomNavigationBarItem(
                               icon: Icon(
-                                Icons.fitness_center_outlined,
+                                LucideIcons.dumbbell,
                                 key: _tourWorkoutTabKey,
                               ),
+                              activeIcon: const Icon(LucideIcons.dumbbell),
                               label: l10n.workout,
                             ),
                             BottomNavigationBarItem(
                               icon: Icon(
-                                Icons.bar_chart_outlined,
+                                LucideIcons.chart_no_axes_column,
                                 key: _tourStatisticsTabKey,
                               ),
+                              activeIcon: const Icon(LucideIcons.chart_no_axes_column),
                               label: l10n.statistics,
                             ),
                             BottomNavigationBarItem(
                               icon: Icon(
-                                Icons.restaurant_menu_rounded,
+                                LucideIcons.utensils,
                                 key: _tourNutritionTabKey,
                               ),
+                              activeIcon: const Icon(LucideIcons.utensils),
                               label: l10n.nutrition,
                             ),
                           ],

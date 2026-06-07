@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../services/theme_service.dart';
@@ -25,8 +26,10 @@ class RunningWorkoutOverlay extends StatelessWidget {
     final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
     final themeService = context.watch<ThemeService>();
 
+    /*
     final Color neutralTint = (isDark ? Colors.white : Colors.white)
         .withValues(alpha: isDark ? 0.1 : 0.10);
+   */
     // Smarter liquid glass color: pure white translucent tint without solid gray base.
     final Color effectiveGlass = isDark
         ? Colors.white.withValues(alpha: 0.12)
@@ -130,7 +133,7 @@ class _RunningWorkoutRow extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
-              const Icon(Icons.timer_outlined, size: 20),
+              const Icon(LucideIcons.clock, size: 20),
               const SizedBox(width: 6),
               Text(
                 timeText,

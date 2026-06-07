@@ -22,12 +22,20 @@ class GlassBottomNavBar extends StatelessWidget {
   /// The list of navigation items to display.
   final List<BottomNavigationBarItem> items;
 
+  /// The color of the selected item.
+  final Color? selectedItemColor;
+
+  /// The color of unselected items.
+  final Color? unselectedItemColor;
+
   const GlassBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
     required this.onFabTap,
     required this.items,
+    this.selectedItemColor,
+    this.unselectedItemColor,
   });
 
   Widget _buildNavItem(
@@ -38,8 +46,10 @@ class GlassBottomNavBar extends StatelessWidget {
   ) {
     final cs = Theme.of(context).colorScheme;
     final isDarkLocal = Theme.of(context).brightness == Brightness.dark;
-    final color =
-        isSelected ? cs.primary : (isDarkLocal ? Colors.white : Colors.black);
+    final color = isSelected
+        ? (selectedItemColor ?? cs.primary)
+        : (unselectedItemColor ??
+            (isDarkLocal ? Colors.white : Colors.black));
     return Expanded(
       child: Material(
         type: MaterialType.transparency,
