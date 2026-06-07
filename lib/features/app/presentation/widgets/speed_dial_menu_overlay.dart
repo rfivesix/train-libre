@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../theme/color_constants.dart';
+import '../../../../core/performance/glass_performance_manager.dart';
 
 class SpeedDialMenuOverlay extends StatelessWidget {
   final Animation<double> animation;
@@ -116,18 +117,24 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                             ),
                                           ),
                                         ),
-                                        GlassButton.custom(
-                                          onTap: () {
-                                            onActionTap(action['action']);
+                                        ValueListenableBuilder<GlassQuality>(
+                                          valueListenable: GlassPerformanceManager().qualityNotifier,
+                                          builder: (context, quality, child) {
+                                            return GlassButton.custom(
+                                              onTap: () {
+                                                onActionTap(action['action']);
+                                              },
+                                              width: 74.0,
+                                              height: 74.0,
+                                              useOwnLayer: true,
+                                              quality: quality,
+                                              shape: const LiquidRoundedSuperellipse(
+                                                borderRadius: rLiquid,
+                                              ),
+                                              settings: DesignConstants.liquidGlassSettings(isDarkLocal),
+                                              child: child,
+                                            );
                                           },
-                                          width: 74.0,
-                                          height: 74.0,
-                                          useOwnLayer: true,
-                                          quality: GlassQuality.premium,
-                                          shape: const LiquidRoundedSuperellipse(
-                                            borderRadius: rLiquid,
-                                          ),
-                                          settings: DesignConstants.liquidGlassSettings(isDarkLocal),
                                           child: Container(
                                             width: 74.0,
                                             height: 74.0,

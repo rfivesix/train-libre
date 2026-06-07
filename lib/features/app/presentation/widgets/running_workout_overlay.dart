@@ -3,8 +3,9 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../core/performance/glass_performance_manager.dart';
 
-class RunningWorkoutOverlay extends StatelessWidget {
+class RunningWorkoutOverlay extends StatefulWidget {
   final String elapsedDuration;
   final VoidCallback onContinue;
   final VoidCallback onDiscard;
@@ -17,46 +18,91 @@ class RunningWorkoutOverlay extends StatelessWidget {
   });
 
   @override
+  State<RunningWorkoutOverlay> createState() => _RunningWorkoutOverlayState();
+}
+
+class _RunningWorkoutOverlayState extends State<RunningWorkoutOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late GlassQuality _displayQuality;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayQuality = GlassPerformanceManager().qualityNotifier.value;
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+    _fadeController.value = 1.0;
+    GlassPerformanceManager().qualityNotifier.addListener(_onQualityChanged);
+  }
+
+  @override
+  void dispose() {
+    GlassPerformanceManager().qualityNotifier.removeListener(_onQualityChanged);
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  void _onQualityChanged() async {
+    final newQuality = GlassPerformanceManager().qualityNotifier.value;
+    if (newQuality != _displayQuality) {
+      await _fadeController.animateTo(0.0,
+          duration: const Duration(milliseconds: 60), curve: Curves.easeIn);
+      if (!mounted) return;
+      setState(() {
+        _displayQuality = newQuality;
+      });
+      await _fadeController.animateTo(1.0,
+          duration: const Duration(milliseconds: 60), curve: Curves.easeOut);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget child = _RunningWorkoutRow(
-      timeText: elapsedDuration,
-      onContinue: onContinue,
-      onDiscard: onDiscard,
+      timeText: widget.elapsedDuration,
+      onContinue: widget.onContinue,
+      onDiscard: widget.onDiscard,
       l10n: l10n,
     );
 
     double radius = 37.0; // Half of height 74.0 for perfect pill
-    return Container(
-      margin: const EdgeInsets.only(
-          bottom: 16.0), // Yields exactly 20px gap above GlassBottomBar
-      height: 74.0,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ClipPath(
-              clipper: ShadowOuterClipper(borderRadius: radius),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(radius),
-                  boxShadow: DesignConstants.glassShadow,
+    return FadeTransition(
+      opacity: _fadeController,
+      child: Container(
+        margin: const EdgeInsets.only(
+            bottom: 16.0), // Yields exactly 20px gap above GlassBottomBar
+        height: 74.0,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipPath(
+                clipper: ShadowOuterClipper(borderRadius: radius),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(radius),
+                    boxShadow: DesignConstants.glassShadow,
+                  ),
                 ),
               ),
             ),
-          ),
-          GlassContainer(
-            useOwnLayer: true,
-            height: 74.0,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            alignment: Alignment.center,
-            shape: LiquidRoundedSuperellipse(borderRadius: radius),
-            quality: GlassQuality.premium,
-            settings: DesignConstants.liquidGlassSettings(isDark),
-            child: child,
-          ),
-        ],
+            GlassContainer(
+              useOwnLayer: true,
+              height: 74.0,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              alignment: Alignment.center,
+              shape: LiquidRoundedSuperellipse(borderRadius: radius),
+              quality: _displayQuality,
+              settings: DesignConstants.liquidGlassSettings(isDark),
+              child: child,
+            ),
+          ],
+        ),
       ),
     );
   }

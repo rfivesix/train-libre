@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/performance/glass_performance_manager.dart';
 import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -106,12 +107,18 @@ class _GlassFabState extends State<GlassFab>
             ),
           ),
         ),
-        AdaptiveGlass(
-          settings: DesignConstants.liquidGlassSettings(isDark),
-          shape: hasLabel
-              ? const LiquidRoundedSuperellipse(borderRadius: 37)
-              : const LiquidOval(),
-          quality: GlassQuality.premium,
+        ValueListenableBuilder<GlassQuality>(
+          valueListenable: GlassPerformanceManager().qualityNotifier,
+          builder: (context, quality, child) {
+            return AdaptiveGlass(
+              settings: DesignConstants.liquidGlassSettings(isDark),
+              shape: hasLabel
+                  ? const LiquidRoundedSuperellipse(borderRadius: 37)
+                  : const LiquidOval(),
+              quality: quality,
+              child: child!,
+            );
+          },
           child: GlassGlow(
             glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
             glowRadius: 1.0,

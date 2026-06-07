@@ -42,6 +42,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../navigation/app_route_observer.dart';
 import '../../../services/app_tour_service.dart';
 import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
+import '../../../core/performance/glass_performance_manager.dart';
 
 /// The root scaffold containing the main navigation structure.
 ///
@@ -77,6 +78,35 @@ class _MainScreenState extends State<MainScreen>
   final StepsAggregationRepository _stepsRepository =
       HealthStepsAggregationRepository();
 
+  GlassQuality _currentQuality = GlassQuality.premium;
+  GlassQuality? _pendingQuality;
+  bool _isRouteActive = true;
+
+  int _getQualityLevel(GlassQuality quality) {
+    switch (quality) {
+      case GlassQuality.minimal:
+        return 1;
+      case GlassQuality.standard:
+        return 2;
+      case GlassQuality.premium:
+        return 3;
+    }
+  }
+
+  void _onQualityRecommended() {
+    final recommended = GlassPerformanceManager().qualityNotifier.value;
+    if (recommended != _currentQuality) {
+      if (!_isRouteActive) {
+        setState(() {
+          _currentQuality = recommended;
+          _pendingQuality = null;
+        });
+      } else {
+        _pendingQuality = recommended;
+      }
+    }
+  }
+
   ThemeService get themeService =>
       Provider.of<ThemeService>(context, listen: false);
 
@@ -93,6 +123,8 @@ class _MainScreenState extends State<MainScreen>
   @override
   void initState() {
     super.initState();
+    _currentQuality = GlassPerformanceManager().qualityNotifier.value;
+    GlassPerformanceManager().qualityNotifier.addListener(_onQualityRecommended);
     _currentIndex = widget.initialTabIndex ?? 0;
     _pageController = PageController(initialPage: _currentIndex);
     _menuController = AnimationController(
@@ -116,16 +148,51 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void didPush() {
+    _isRouteActive = true;
     _handlePendingAppTourEntry();
   }
 
   @override
   void didPopNext() {
+    _isRouteActive = true;
+    if (_pendingQuality != null) {
+      final currentLevel = _getQualityLevel(_currentQuality);
+      final pendingLevel = _getQualityLevel(_pendingQuality!);
+      if (pendingLevel > currentLevel) {
+        setState(() {
+          _currentQuality = _pendingQuality!;
+          _pendingQuality = null;
+        });
+      }
+    }
     _handlePendingAppTourEntry();
   }
 
   @override
+  void didPushNext() {
+    _isRouteActive = false;
+    if (_pendingQuality != null) {
+      final currentLevel = _getQualityLevel(_currentQuality);
+      final pendingLevel = _getQualityLevel(_pendingQuality!);
+      if (pendingLevel < currentLevel) {
+        setState(() {
+          _currentQuality = _pendingQuality!;
+          _pendingQuality = null;
+        });
+      }
+    }
+    super.didPushNext();
+  }
+
+  @override
+  void didPop() {
+    _isRouteActive = false;
+    super.didPop();
+  }
+
+  @override
   void dispose() {
+    GlassPerformanceManager().qualityNotifier.removeListener(_onQualityRecommended);
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
     }
@@ -1213,8 +1280,7 @@ class _MainScreenState extends State<MainScreen>
                               null, // Stretches to occupy all horizontal space not taken by extraButton
                           horizontalPadding: horizontalPadding,
                           verticalPadding: verticalPadding,
-                          quality: GlassQuality
-                              .premium, // Enforce premium quality
+                          quality: _currentQuality,
                           indicatorExpansion: 14,
                           selectedIconColor: theme.colorScheme.primary,
                           unselectedIconColor:

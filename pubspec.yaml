@@ -2,7 +2,7 @@ name: train_libre
 description: "Train Libre is a modern, privacy-first fitness and nutrition
   tracking app. Offline-first, no cloud dependency, built with Flutter."
 publish_to: "none"
-version: 0.9.22+90037
+version: 0.9.23+90038
 environment:
   sdk: ">=3.0.0 <4.0.0" # Adjusted for modern SDKs
 
@@ -64,7 +64,7 @@ dependencies:
     git:
       url: https://github.com/rfivesix/flutter_body_highlighter
       ref: main
-  liquid_glass_widgets: ^0.15.0
+  liquid_glass_widgets: ^0.15.1
   flutter_lucide: ^1.11.0
 dev_dependencies:
   flutter_test:
