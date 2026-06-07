@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/theme_service.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 
 /// Represents an action item within a [showGlassBottomMenu].
@@ -109,14 +109,13 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     final bottomInset = media.viewPadding.bottom;
     final themeService = context.watch<ThemeService>();
 
-    final Color neutralTint = (isDark
-        ? Colors.white.withValues(alpha: 0.05)
-        : Colors.white.withValues(alpha: 0.22));
-
-    final Color effectiveGlass = Color.alphaBlend(
-      neutralTint,
-      theme.colorScheme.surface.withValues(alpha: isDark ? 0.8 : 0.5),
-    );
+    final Color neutralTint = isDark
+        ? theme.colorScheme.surface.withValues(alpha: 0.70)
+        : theme.colorScheme.surface.withValues(alpha: 0.82);
+    // Smarter liquid glass color: pure white translucent tint without solid gray base.
+    final Color effectiveGlass = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.white.withValues(alpha: 0.15);
 
     const double r = 24;
     const EdgeInsets outerMargin = EdgeInsets.fromLTRB(16, 0, 16, 16);
@@ -215,15 +214,16 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               ),
             ),
           ),
-          LiquidGlass.withOwnLayer(
+          AdaptiveGlass(
             settings: LiquidGlassSettings(
               thickness: 30,
               blur: 8,
               glassColor: effectiveGlass,
-              lightIntensity: 0.35,
-              saturation: 1.10,
+              lightIntensity: isDark ? 0.55 : 0.80,
+              saturation: 1.20,
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: r),
+            quality: GlassQuality.premium,
             child: Stack(
               children: [
                 Positioned.fill(
@@ -334,13 +334,12 @@ class _GlassTile extends StatelessWidget {
     final themeService = context.watch<ThemeService>();
 
     // Adjust background tint slightly
-    final Color neutralTint =
-        (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05);
-
-    final Color effectiveGlass = Color.alphaBlend(
-      neutralTint,
-      Colors.white.withValues(alpha: isDark ? 0.10 : 0.12),
-    );
+    final Color neutralTint = (isDark ? Colors.white : Colors.white)
+        .withValues(alpha: isDark ? 0.05 : 0.10);
+    // Smarter liquid glass color: pure white translucent tint without solid gray base.
+    final Color effectiveGlass = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.white.withValues(alpha: 0.15);
 
     final Widget leadingWidget =
         customIcon != null ? customIcon! : Icon(icon, size: 22);
@@ -402,17 +401,19 @@ class _GlassTile extends StatelessWidget {
     );
 
     if (themeService.visualStyle == 1) {
-      return LiquidGlass.withOwnLayer(
+      return AdaptiveGlass(
         settings: LiquidGlassSettings(
           // Changed here: thickness 0 removes distortion/shift.
           thickness: 0,
-          blur: 5,
+          blur:
+              2.0, // Restored blur for clear but properly diffused liquid-glass look
           glassColor: effectiveGlass,
           // Changed here: less light intensity reduces harsh edges.
           lightIntensity: 0.1,
-          saturation: 1.10,
+          saturation: 1.20,
         ),
         shape: const LiquidRoundedSuperellipse(borderRadius: 18),
+        quality: GlassQuality.premium,
         child: Material(
           color: Colors.transparent,
           child: InkWell(

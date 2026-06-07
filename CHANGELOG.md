@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.20] - 2026-06-07
+### Added
+- **Glassmorphic UI Library Migration**: Integrated the `liquid_glass_widgets` package (v0.15.0) as the primary engine for the application's premium glassmorphic layouts.
 
 ## [0.9.19] - 2026-06-06
 ### Added
@@ -36,6 +39,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Added a dedicated, chronologically sorted sheet outputting a raw, granular log of all user measurements with columns: `[Date] | [Time] | [Measurement Type] | [Value] | [Unit]`.
 
 ### Changed
+- **Liquid Navigation Overlay**: Swapped the custom bottom row in `main_screen.dart` to use the native `GlassBottomBar` with organic liquid-glass blending and a right-anchored quick-action FAB (`extraButton`).
+- **Core Component Refactoring**: Shifted custom widgets (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) onto the package's `AdaptiveGlass` and `GlassButton` APIs to deprecate legacy low-level shaders.
 - **3-Tier Performance and UX Overhaul**:
   - **Tier 1 (Database Ingestion Isolate)**: Shifted massive SQLite database row parsing, companion mapping, and object instantiation into a dedicated background isolate during remote catalog synchronization, completely eliminating UI thread locking and frame drops.
   - **Tier 2 (SQLite Computational Pushdown)**: Refactored expensive Dart-side collection loops in the `getVolumeByMuscleGroup` analytics queries to utilize raw SQLite queries with `json_each` functions. Muscle volumes are now natively grouped and aggregated via database engine optimizations before crossing the FFI bridge, significantly reducing heap memory allocation.
@@ -73,6 +78,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - **Static Analysis**: Resolved the `use_build_context_synchronously` lint warnings inside `_showSaveAsRoutineDialog` by capturing repository and navigation handlers prior to the async bottom sheet UI transitions.
 - **Deprecated Opacity APIs**: Fixed the `deprecated_member_use` compiler warning by replacing `withOpacity` with the modern `withValues(alpha: ...)` API.
+
+### Removed
+- **Legacy Glass Renderer**: Fully removed the deprecated `liquid_glass_renderer` package and its references from the codebase.
 
 ## [0.9.18] - 2026-06-02
 ### Added

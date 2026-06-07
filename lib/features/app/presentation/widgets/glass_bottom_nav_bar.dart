@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../theme/color_constants.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 
 /// A premium glass-styled navigation bar with haptic feedback and fluid animations.
@@ -112,14 +112,13 @@ class GlassBottomNavBar extends StatelessWidget {
     switch (themeService.visualStyle) {
       case 1:
         // Derive neutral tint (works on white and black).
-        final Color neutralTint = (isDark ? Colors.white : Colors.black)
-            .withValues(alpha: isDark ? 0.1 : 0.1);
+        final Color neutralTint = (isDark ? Colors.white : Colors.white)
+            .withValues(alpha: isDark ? 0.1 : 0.10);
 
-        // Smarter glass: blend bg color with neutral tint.
-        final Color effectiveGlass = Color.alphaBlend(
-          neutralTint,
-          bg.withValues(alpha: isDark ? 0.8 : 0.5),
-        );
+        // Smarter liquid glass color: pure white translucent tint without solid gray base.
+        final Color effectiveGlass = isDark
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.white.withValues(alpha: 0.15);
 
         // Drag-to-select + release-to-activate via GestureDetector.
         return LayoutBuilder(
@@ -162,56 +161,53 @@ class GlassBottomNavBar extends StatelessWidget {
                 lastDx = null;
                 lastHoverIndex = null;
               },
-              child: LiquidStretch(
-                stretch: 0.2,
-                interactionScale: 1.04,
-                child: LiquidGlass.withOwnLayer(
-                  settings: LiquidGlassSettings(
-                    thickness: 30,
-                    blur: 0.75,
-                    glassColor: effectiveGlass,
-                    lightIntensity: 0.35,
-                    saturation: 1.10,
-                  ),
-                  shape: const LiquidRoundedSuperellipse(borderRadius: 99),
-                  child: GlassGlow(
-                    glowColor:
-                        Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
-                    glowRadius: 1.0,
-                    child: SizedBox(
-                      height: barHeight,
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(color: neutralTint),
-                            ),
+              child: AdaptiveGlass(
+                settings: LiquidGlassSettings(
+                  thickness: 30,
+                  blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
+                  glassColor: effectiveGlass,
+                  lightIntensity: isDark ? 0.55 : 0.80,
+                  saturation: 1.20,
+                ),
+                shape: const LiquidRoundedSuperellipse(borderRadius: 99),
+                quality: GlassQuality.premium,
+                child: GlassGlow(
+                  glowColor:
+                      Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+                  glowRadius: 1.0,
+                  child: SizedBox(
+                    height: barHeight,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(color: neutralTint),
                           ),
-                          Positioned.fill(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              child: navItemsRow,
+                        ),
+                        Positioned.fill(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
                             ),
+                            child: navItemsRow,
                           ),
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(99),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.20)
-                                        : Colors.black.withValues(alpha: 0.08),
-                                    width: 1.2,
-                                  ),
+                        ),
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(99),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.20)
+                                      : Colors.black.withValues(alpha: 0.08),
+                                  width: 1.2,
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

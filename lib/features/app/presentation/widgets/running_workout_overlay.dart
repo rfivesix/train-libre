@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../theme/color_constants.dart';
 import '../../../../generated/app_localizations.dart';
@@ -25,12 +25,12 @@ class RunningWorkoutOverlay extends StatelessWidget {
     final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
     final themeService = context.watch<ThemeService>();
 
-    final Color neutralTint = (isDark ? Colors.white : Colors.black)
-        .withValues(alpha: isDark ? 0.1 : 0.1);
-    final Color effectiveGlass = Color.alphaBlend(
-      neutralTint,
-      bg.withValues(alpha: isDark ? 0.8 : 0.5),
-    );
+    final Color neutralTint = (isDark ? Colors.white : Colors.white)
+        .withValues(alpha: isDark ? 0.1 : 0.10);
+    // Smarter liquid glass color: pure white translucent tint without solid gray base.
+    final Color effectiveGlass = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.white.withValues(alpha: 0.15);
 
     Widget child = _RunningWorkoutRow(
       timeText: elapsedDuration,
@@ -43,43 +43,40 @@ class RunningWorkoutOverlay extends StatelessWidget {
       double radius = 99;
       return SizedBox(
         height: 65.0,
-        child: LiquidStretch(
-          stretch: 0.2,
-          interactionScale: 1.04,
-          child: LiquidGlass.withOwnLayer(
-            settings: LiquidGlassSettings(
-              thickness: 30,
-              blur: 0.75,
-              glassColor: effectiveGlass,
-              lightIntensity: 0.35,
-              saturation: 1.10,
-            ),
-            shape: LiquidRoundedSuperellipse(borderRadius: radius),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(color: neutralTint),
+        child: AdaptiveGlass(
+          settings: LiquidGlassSettings(
+            thickness: 30,
+            blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
+            glassColor: effectiveGlass,
+            lightIntensity: isDark ? 0.55 : 0.80,
+            saturation: 1.20,
+          ),
+          shape: LiquidRoundedSuperellipse(borderRadius: radius),
+          quality: GlassQuality.premium,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: neutralTint),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(radius.toDouble()),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.20)
+                        : Colors.black.withValues(alpha: 0.08),
+                    width: 1.2,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(radius.toDouble()),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.20)
-                          : Colors.black.withValues(alpha: 0.08),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: child,
-                ),
-              ],
-            ),
+                child: child,
+              ),
+            ],
           ),
         ),
       );

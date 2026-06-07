@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../theme/color_constants.dart';
 
@@ -25,14 +25,14 @@ class SpeedDialMenuOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeService = context.watch<ThemeService>();
     final bool isDarkLocal = Theme.of(context).brightness == Brightness.dark;
-    final Color bgLocal = isDarkLocal ? summaryCardDarkMode : summaryCardWhiteMode;
-    final Color neutralTintLocal = (isDarkLocal ? Colors.white : Colors.black).withValues(
+    final bgLocal = isDarkLocal ? summaryCardDarkMode : summaryCardWhiteMode;
+    final Color neutralTintLocal = (isDarkLocal ? Colors.white : Colors.white).withValues(
       alpha: isDarkLocal ? 0.10 : 0.10,
     );
-    final Color effectiveGlassLocal = Color.alphaBlend(
-      neutralTintLocal,
-      bgLocal.withValues(alpha: isDarkLocal ? 0.22 : 0.16),
-    );
+    // Smarter liquid glass color: pure white translucent tint without solid gray base.
+    final Color effectiveGlassLocal = isDarkLocal
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.white.withValues(alpha: 0.15);
 
     // Define liquid animation radius locally here or from a constant.
     const double rLiquid = 99;
@@ -106,70 +106,69 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(width: 16),
-                                  GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () {
-                                      onActionTap(action['action']);
-                                    },
-                                    child: themeService.visualStyle == 1
-                                        ? LiquidGlass.withOwnLayer(
-                                            settings: LiquidGlassSettings(
-                                              thickness: 25,
-                                              blur: 5,
-                                              glassColor: effectiveGlassLocal,
-                                              lightIntensity: 0.35,
-                                              saturation: 1.10,
+                                  themeService.visualStyle == 1
+                                      ? GlassButton.custom(
+                                          onTap: () {
+                                            onActionTap(action['action']);
+                                          },
+                                          width: 74.0,
+                                          height: 74.0,
+                                          useOwnLayer: true,
+                                          quality: GlassQuality.premium,
+                                          shape: const LiquidRoundedSuperellipse(
+                                            borderRadius: rLiquid,
+                                          ),
+                                          settings: LiquidGlassSettings(
+                                            thickness: 25,
+                                            blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
+                                            glassColor: effectiveGlassLocal,
+                                            lightIntensity: isDarkLocal ? 0.55 : 0.80,
+                                            saturation: 1.20,
+                                          ),
+                                          child: Container(
+                                            width: 74.0,
+                                            height: 74.0,
+                                            decoration: BoxDecoration(
+                                              color: neutralTintLocal,
+                                              borderRadius: BorderRadius.circular(rLiquid),
                                             ),
-                                            shape: const LiquidRoundedSuperellipse(
-                                              borderRadius: rLiquid,
+                                            foregroundDecoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(rLiquid),
+                                              border: Border.all(
+                                                color: isDarkLocal
+                                                    ? Colors.white.withValues(alpha: 0.20)
+                                                    : Colors.black.withValues(alpha: 0.08),
+                                                width: 1.2,
+                                              ),
                                             ),
-                                            child: Container(
-                                              width: 65.0,
-                                              height: 65.0,
-                                              decoration: BoxDecoration(
-                                                color: neutralTintLocal,
-                                                borderRadius: BorderRadius.circular(
-                                                  rLiquid,
-                                                ),
-                                              ),
-                                              foregroundDecoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(
-                                                  rLiquid,
-                                                ),
-                                                border: Border.all(
-                                                  color: isDarkLocal
-                                                      ? Colors.white.withValues(
-                                                          alpha: 0.20,
-                                                        )
-                                                      : Colors.black.withValues(
-                                                          alpha: 0.08,
-                                                        ),
-                                                  width: 1.2,
-                                                ),
-                                              ),
-                                              alignment: Alignment.center,
-                                              child: action['gradient'] == true
-                                                  ? ShaderMask(
-                                                      blendMode: BlendMode.srcIn,
-                                                      shaderCallback: (bounds) =>
-                                                          createAiGradientShader(
-                                                        bounds,
-                                                      ),
-                                                      child: Icon(
-                                                        action['icon'],
-                                                        size: 28,
-                                                      ),
-                                                    )
-                                                  : Icon(
+                                            alignment: Alignment.center,
+                                            child: action['gradient'] == true
+                                                ? ShaderMask(
+                                                    blendMode: BlendMode.srcIn,
+                                                    shaderCallback: (bounds) =>
+                                                        createAiGradientShader(
+                                                      bounds,
+                                                    ),
+                                                    child: Icon(
                                                       action['icon'],
                                                       size: 28,
-                                                      color: isDarkLocal
-                                                          ? Colors.white
-                                                          : Colors.black,
                                                     ),
-                                            ),
-                                          )
-                                        : ClipRRect(
+                                                  )
+                                                : Icon(
+                                                    action['icon'],
+                                                    size: 28,
+                                                    color: isDarkLocal
+                                                        ? Colors.white
+                                                        : Colors.black,
+                                                  ),
+                                          ),
+                                        )
+                                      : GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () {
+                                            onActionTap(action['action']);
+                                          },
+                                          child: ClipRRect(
                                             borderRadius: BorderRadius.circular(18),
                                             child: BackdropFilter(
                                               filter: ImageFilter.blur(
@@ -241,7 +240,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                               ),
                                             ),
                                           ),
-                                  ),
+                                        ),
                                 ],
                               ),
                             ),

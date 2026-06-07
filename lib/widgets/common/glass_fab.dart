@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/theme_service.dart';
 import '../../services/haptic_feedback_service.dart';
 import '../../theme/color_constants.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 
 /// A floating action button with a premium glass aesthetic.
@@ -64,12 +64,12 @@ class _GlassFabState extends State<GlassFab>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
     final hasLabel = widget.label != null;
-    final Color neutralTint = (isDark ? Colors.white : Colors.black)
-        .withValues(alpha: isDark ? 0.1 : 0.1);
-    final Color effectiveGlass = Color.alphaBlend(
-      neutralTint,
-      bg.withValues(alpha: isDark ? 0.8 : 0.5),
-    );
+    final Color neutralTint = (isDark ? Colors.white : Colors.white)
+        .withValues(alpha: isDark ? 0.1 : 0.10);
+    // Smarter liquid glass color: pure white translucent tint without solid gray base.
+    final Color effectiveGlass = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.white.withValues(alpha: 0.15);
 
     final iconAndText = Padding(
       padding: hasLabel
@@ -103,83 +103,43 @@ class _GlassFabState extends State<GlassFab>
 
     switch (themeService.visualStyle) {
       case 1:
-        final hasLabel = widget.label != null;
-
-        content = LiquidStretch(
-          stretch: 0.2,
-          interactionScale: 1.04,
-          child: LiquidGlass.withOwnLayer(
-            settings: LiquidGlassSettings(
-              thickness: 30,
-              blur: 0.75,
-              glassColor: effectiveGlass,
-              lightIntensity: 0.35,
-              saturation: 1.10,
-            ),
-            shape: hasLabel
-                ? const LiquidRoundedSuperellipse(borderRadius: 99)
-                : const LiquidOval(),
-            child: GlassGlow(
-              glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
-              glowRadius: 1.0,
+        // In Liquid Mode, render perfect circular buttons (size 74x74) for icon-only FABs,
+        // and rounded stadium/pill shapes for labeled FABs, preserving screen-specific strings.
+        final double effectiveRadius = hasLabel ? 37.0 : 999.0;
+        content = AdaptiveGlass(
+          settings: LiquidGlassSettings(
+            thickness: 30,
+            blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
+            glassColor: effectiveGlass,
+            lightIntensity: isDark ? 0.55 : 0.80,
+            saturation: 1.20,
+          ),
+          shape: hasLabel
+              ? const LiquidRoundedSuperellipse(borderRadius: 37)
+              : const LiquidOval(),
+          quality: GlassQuality.premium,
+          child: GlassGlow(
+            glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+            glowRadius: 1.0,
+            child: Container(
+              height: 74.0, // Match main screen bottom bar height
+              width: hasLabel ? null : 74.0,
+              decoration: BoxDecoration(
+                color: neutralTint,
+                borderRadius: BorderRadius.circular(effectiveRadius),
+              ),
+              foregroundDecoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(effectiveRadius),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.20)
+                      : Colors.black.withValues(alpha: 0.08),
+                  width: 1.2,
+                ),
+              ),
               child: hasLabel
-                  // PILL: width from content + padding
-                  ? Container(
-                      height: 65.0,
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      decoration: BoxDecoration(
-                        color: neutralTint, // << Base tint
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                      foregroundDecoration: BoxDecoration(
-                        // << Rim layered on top
-                        borderRadius: BorderRadius.circular(99),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.20)
-                              : Colors.black.withValues(alpha: 0.08),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            widget.icon,
-                            size: 30,
-                            color: isDark ? Colors.white : Colors.black,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            widget.label!,
-                            style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  // Circle: fixed 76x76
-                  : Container(
-                      height: 65.0,
-                      width: 65.0,
-                      decoration: BoxDecoration(
-                        color: neutralTint,
-                        borderRadius: BorderRadius.circular(999), // „Kreis“
-                      ),
-                      foregroundDecoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.20)
-                              : Colors.black.withValues(alpha: 0.08),
-                          width: 1.2,
-                        ),
-                      ),
-                      alignment: Alignment.center,
+                  ? iconAndText
+                  : Center(
                       child: Icon(
                         widget.icon,
                         size: 30,
