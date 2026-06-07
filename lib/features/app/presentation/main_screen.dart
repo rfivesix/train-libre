@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../data/database_helper.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../diary/presentation/dialogs/fluid_dialog_content.dart';
@@ -39,6 +40,7 @@ import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/keep_alive_page.dart';
 import 'package:provider/provider.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../navigation/app_route_observer.dart';
 import '../../../services/app_tour_service.dart';
 import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
@@ -81,7 +83,7 @@ class _MainScreenState extends State<MainScreen>
       Provider.of<ThemeService>(context, listen: false);
   bool get isLiquid => themeService.visualStyle == 1;
 
-  double get kNavBarHeight => isLiquid ? 65 : 72;
+  double get kNavBarHeight => isLiquid ? 62 : 76;
   double kBarFabGap = 12.0;
 
   DateTime get _currentActiveDate {
@@ -1041,6 +1043,13 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    // Smarter liquid glass color: pure white translucent tint without solid gray base.
+    final Color effectiveGlass = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.white.withValues(alpha: 0.15);
+
     final l10n = AppLocalizations.of(context)!;
     final appTourSteps = _buildAppTourSteps(l10n);
     final activeTourStep = (_isTourActive &&
@@ -1056,7 +1065,6 @@ class _MainScreenState extends State<MainScreen>
     // Animation parameters
     // const basePad = 120.0; // Unused locally
     // final runningPad = manager.isActive ? 68.0 : 0.0; // Unused locally
-    // final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode; // Unused locally in build, used in GlassNavBar logic internal
 
     // Because we use a completely custom floating Bottom Navigation Bar and Workout Bar,
     // the system Scaffold does not automatically inset floating Snackbars.
@@ -1122,8 +1130,7 @@ class _MainScreenState extends State<MainScreen>
                 final confirmed = await showDeleteConfirmation(
                   context,
                   title: l10n.discard_button, // "Discard"
-                  content:
-                      l10n.deleteWorkoutConfirmContent, // "Really delete?"
+                  content: l10n.deleteWorkoutConfirmContent, // "Really delete?"
                   confirmLabel: l10n.discard_button, // Red button: "Discard"
                 );
 
@@ -1140,60 +1147,205 @@ class _MainScreenState extends State<MainScreen>
           ),
         // Bottom Nav Bar & FAB
         Positioned(
-          bottom: 24,
+          bottom: themeService.visualStyle == 1 ? 12 : 24,
           left: 16,
           right: 16,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: KeyedSubtree(
+          child: themeService.visualStyle == 1
+              ? KeyedSubtree(
                   key: _tourNavigationBarKey,
-                  child: GlassBottomNavBar(
-                    currentIndex: _currentIndex,
-                    onTap: _onNavigationTapped,
-                    onFabTap: _toggleAddMenu,
-                    items: [
-                      BottomNavigationBarItem(
-                        icon: Icon(
-                          Icons.book_outlined,
-                          key: _tourDiaryTabKey,
-                        ),
-                        label: l10n.diary,
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(
-                          Icons.fitness_center_outlined,
-                          key: _tourWorkoutTabKey,
-                        ),
-                        label: l10n.workout,
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(
-                          Icons.bar_chart_outlined,
-                          key: _tourStatisticsTabKey,
-                        ),
-                        label: l10n.statistics,
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(
-                          Icons.restaurant_menu_rounded,
-                          key: _tourNutritionTabKey,
-                        ),
-                        label: l10n.nutrition,
-                      ),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final double horizontalPadding = 0.0;
+                      final double verticalPadding = 20.0;
+                      final double spacing = 8.0;
+                      final double extraButtonSize = 74.0;
+                      final double maxTabW = constraints.maxWidth -
+                          (horizontalPadding * 2) -
+                          (extraButtonSize + spacing);
+
+                      return Stack(
+                        children: [
+                          // Subtle dimming layer underneath the glass tabs & FAB to improve legibility over bright text
+                          IgnorePointer(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: horizontalPadding,
+                                vertical: verticalPadding,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: maxTabW,
+                                    height: 74.0, // Match barHeight
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(
+                                          alpha: isDark ? 0.22 : 0.16),
+                                      borderRadius: BorderRadius.circular(37),
+                                    ),
+                                  ),
+                                  SizedBox(width: spacing),
+                                  Container(
+                                    width: extraButtonSize,
+                                    height: 74.0, // Match barHeight
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(
+                                          alpha: isDark ? 0.22 : 0.16),
+                                      borderRadius: BorderRadius.circular(37),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Material(
+                            type: MaterialType.transparency,
+                            child: DefaultTextStyle(
+                              style: const TextStyle(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Inter',
+                                letterSpacing: -0.2,
+                              ),
+                              child: GlassBottomBar(
+                                selectedIndex: _currentIndex,
+                                onTabSelected: _onNavigationTapped,
+                                barHeight: 74,
+                                barBorderRadius:
+                                    37, // Half of height for perfectly rounded semi-circle ends
+                                tabWidth:
+                                    null, // Stretches to occupy all horizontal space not taken by extraButton
+                                horizontalPadding: horizontalPadding,
+                                verticalPadding: verticalPadding,
+                                quality: GlassQuality
+                                    .premium, // Enforce premium quality
+                                indicatorExpansion: 14,
+                                selectedIconColor: theme.colorScheme.primary,
+                                unselectedIconColor:
+                                    isDark ? Colors.white : Colors.black,
+                                indicatorColor:
+                                    (isDark ? Colors.white : Colors.black)
+                                        .withValues(alpha: 0.15),
+                                settings: LiquidGlassSettings(
+                                  thickness: 30,
+                                  blur:
+                                      2.0, // Restored blur for clear but properly diffused liquid-glass look
+                                  glassColor: effectiveGlass,
+                                  lightIntensity: isDark ? 0.55 : 0.80,
+                                  saturation: 1.20,
+                                ),
+                                tabs: [
+                                  GlassBottomBarTab(
+                                    label: l10n.diary,
+                                    icon: Icon(
+                                      LucideIcons.notebook,
+                                      key: _tourDiaryTabKey,
+                                    ),
+                                    activeIcon:
+                                        const Icon(LucideIcons.notebook),
+                                  ),
+                                  GlassBottomBarTab(
+                                    label: l10n.workout,
+                                    icon: Icon(
+                                      LucideIcons.dumbbell,
+                                      key: _tourWorkoutTabKey,
+                                    ),
+                                    activeIcon:
+                                        const Icon(LucideIcons.dumbbell),
+                                  ),
+                                  GlassBottomBarTab(
+                                    label: l10n.statistics,
+                                    icon: Icon(
+                                      LucideIcons.chart_no_axes_column,
+                                      key: _tourStatisticsTabKey,
+                                    ),
+                                    activeIcon: const Icon(
+                                        LucideIcons.chart_no_axes_column),
+                                  ),
+                                  GlassBottomBarTab(
+                                    label: l10n.nutrition,
+                                    icon: Icon(
+                                      LucideIcons.utensils,
+                                      key: _tourNutritionTabKey,
+                                    ),
+                                    activeIcon:
+                                        const Icon(LucideIcons.utensils),
+                                  ),
+                                ],
+                                extraButton: GlassBottomBarExtraButton(
+                                  icon: Icon(
+                                    Icons.add,
+                                    key: _tourFabKey,
+                                  ),
+                                  label: 'Add',
+                                  onTap: _toggleAddMenu,
+                                  size: 74,
+                                  iconColor:
+                                      isDark ? Colors.white : Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: KeyedSubtree(
+                        key: _tourNavigationBarKey,
+                        child: GlassBottomNavBar(
+                          currentIndex: _currentIndex,
+                          onTap: _onNavigationTapped,
+                          onFabTap: _toggleAddMenu,
+                          items: [
+                            BottomNavigationBarItem(
+                              icon: Icon(
+                                LucideIcons.notebook,
+                                key: _tourDiaryTabKey,
+                              ),
+                              activeIcon: const Icon(LucideIcons.notebook),
+                              label: l10n.diary,
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(
+                                LucideIcons.dumbbell,
+                                key: _tourWorkoutTabKey,
+                              ),
+                              activeIcon: const Icon(LucideIcons.dumbbell),
+                              label: l10n.workout,
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(
+                                LucideIcons.chart_no_axes_column,
+                                key: _tourStatisticsTabKey,
+                              ),
+                              activeIcon:
+                                  const Icon(LucideIcons.chart_no_axes_column),
+                              label: l10n.statistics,
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(
+                                LucideIcons.utensils,
+                                key: _tourNutritionTabKey,
+                              ),
+                              activeIcon: const Icon(LucideIcons.utensils),
+                              label: l10n.nutrition,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: kBarFabGap),
+                    GlassFab(
+                      key: _tourFabKey,
+                      onPressed: _toggleAddMenu,
+                      icon: Icons.add,
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(width: kBarFabGap),
-              GlassFab(
-                key: _tourFabKey,
-                onPressed: _toggleAddMenu,
-                icon: Icons.add,
-              ),
-            ],
-          ),
         ),
         // Speed Dial Menu Animation
         SpeedDialMenuOverlay(
@@ -1277,4 +1429,3 @@ class _AppTourStep {
     required this.description,
   });
 }
-

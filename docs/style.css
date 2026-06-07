@@ -94,6 +94,41 @@
   box-sizing: border-box;
 }
 
+/* ─── Global Heading Reset ──────────────────────────────────────────────────
+   Explicitly neutralise aggressive browser defaults so all heading elements
+   inherit our typography system cleanly, matching the Flutter app baseline. */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  padding: 0;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+/* ─── Flutter Text-Theme Utility Tokens ─────────────────────────────────────
+   Maps directly to Flutter's TextTheme specifications used in the mobile app.
+   Apply these to heading-level elements inside widget cards and page sections. */
+.title-large {
+  font-size: 22px;        /* titleLarge: 22px / 28px / w600 */
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.title-medium {
+  font-size: 16px;        /* titleMedium: 16px / 24px / w600 */
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+}
+
+.body-medium {
+  font-size: 14px;        /* bodyMedium: 14px / 20px / w400 */
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
 html {
   scroll-behavior: smooth;
   background: var(--bg);
@@ -550,7 +585,7 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--accent);
+  color: rgba(255, 255, 255, 0.5); /* White-grey in dark mode – neutral, not accent-coloured */
   font-size: 14px; /* labelLarge */
   font-weight: 700;
   letter-spacing: 1px; /* DesignConstants.sectionHeaderLetterSpacing */
@@ -562,11 +597,7 @@ h1 {
 }
 
 .section-kicker::before {
-  content: "";
-  width: 12px; /* Subtle dash */
-  height: 2px;
-  border-radius: 999px;
-  background: currentColor;
+  display: none; /* Dot indicator removed per design request */
 }
 
 .section-heading {
@@ -647,28 +678,17 @@ h1 {
 
 
 .feature-icon {
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border-radius: 15px;
-  color: var(--feature);
-  background: rgba(var(--feature-rgb), 0.17);
-  border: 1px solid rgba(var(--feature-rgb), 0.34);
-  margin-bottom: 20px;
-  flex: 0 0 auto;
+  display: none; /* Icons removed entirely — text starts at top of card */
 }
 
 .feature-icon svg {
-  width: 22px;
-  height: 22px;
-  stroke-width: 2.1;
+  display: none;
 }
 
 .feature-card h3 {
-  font-size: clamp(1.2rem, 2vw, 1.6rem);
-  line-height: 1.1;
-  font-weight: 850;
+  font-size: 22px;        /* titleLarge – matches Flutter app card headers */
+  line-height: 28px;
+  font-weight: 700;
   letter-spacing: 0;
 }
 
@@ -773,9 +793,9 @@ h1 {
 
 .policy-section h2 {
   color: var(--fg);
-  font-size: clamp(1.45rem, 3vw, 2.28rem);
-  line-height: 1.02;
-  font-weight: 900;
+  font-size: 22px;        /* titleLarge – removed erratic fluid scaling */
+  line-height: 28px;
+  font-weight: 700;
   letter-spacing: 0;
 }
 
@@ -885,8 +905,8 @@ h1 {
 
 .intelligence-card h3 {
   margin-top: 18px;
-  font-size: 20px; /* titleLarge */
-  line-height: 1.2;
+  font-size: 22px;        /* titleLarge – harmonised with feature-card h3 */
+  line-height: 28px;
   font-weight: 700;
   letter-spacing: 0;
 }
@@ -1040,23 +1060,23 @@ h1 {
 
 .guidance-step {
   display: grid;
-  grid-template-columns: 34px 1fr;
-  gap: 12px;
-  align-items: start;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: baseline;
   color: var(--muted);
   font-size: 0.95rem;
 }
 
 .guidance-step b {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  color: var(--accent-ink);
-  background: var(--accent);
-  font-size: 0.86rem;
-  font-weight: 900;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--quiet);   /* Plain muted number — no green badge */
+  background: transparent;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  display: inline;
+  text-align: right;
 }
 
 /* Privacy Band */
@@ -1104,30 +1124,25 @@ h1 {
 }
 
 .ownership-row {
-  display: grid;
-  grid-template-columns: 48px 1fr;
-  gap: 14px;
-  align-items: start;
+  display: block;
+  padding: 20px 24px;    /* horizontal padding so text sits inside the card */
+  border-bottom: 1px solid var(--line);
 }
 
+.ownership-row:last-child {
+  border-bottom: none;
+}
 
 .ownership-number {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border-radius: 15px;
-  color: var(--accent-ink);
-  background: var(--accent);
-  font-weight: 900;
+  display: none;         /* Green number badges removed per design request */
 }
 
 .ownership-row h3 {
-  font-size: 20px; /* titleLarge */
+  font-size: 22px;        /* titleLarge – harmonised token */
+  line-height: 28px;
   font-weight: 700;
   letter-spacing: 0;
 }
-
 
 .ownership-row p {
   margin-top: 4px;
@@ -1279,10 +1294,7 @@ h1 {
 }
 
 .open-item h3 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 20px; /* titleLarge */
+  font-size: 22px;        /* titleLarge – harmonised token */
   font-weight: 700;
   letter-spacing: 0;
 }
@@ -1399,7 +1411,7 @@ h1 {
   .guidance-topline, .guidance-range { flex-direction: column; gap: 5px; }
   .guidance-macros { grid-template-columns: 1fr; }
   .privacy-band { padding: 56px 0; }
-  .ownership-row { grid-template-columns: 1fr; }
+  /* .ownership-row no longer uses grid — override removed */
   .phone-row { width: min(320px, 100%); margin: 34px auto 0; padding: 0 0 10px; grid-template-columns: 1fr; gap: 22px; overflow: visible; scroll-snap-type: none; transform: none !important; }
   .showcase-phone { width: 100%; margin: 0; border-radius: 30px; padding: 9px; scroll-snap-align: none; }
   .showcase-phone:hover, .showcase-phone:nth-child(2), .showcase-phone:nth-child(3), .showcase-phone:nth-child(2):hover, .showcase-phone:nth-child(3):hover { transform: none; }
@@ -1454,7 +1466,9 @@ h1 {
 }
 
 .hero-minimal {
-  padding: clamp(140px, 15vw, 180px) 24px clamp(40px, 5vw, 80px);
+  width: min(var(--max), calc(100% - 32px));  /* locked to the same section grid */
+  margin: 0 auto;
+  padding: clamp(140px, 15vw, 180px) 0 clamp(40px, 5vw, 80px);
   text-align: center;
 }
 
@@ -1519,8 +1533,20 @@ h1 {
 }
 
 .evidence-links a::before {
-  content: "🔗";
-  font-size: 1.1rem;
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'%3E%3C/path%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'%3E%3C/path%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-position: center;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'%3E%3C/path%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'%3E%3C/path%3E%3C/svg%3E");
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  mask-position: center;
 }
 
 /* Algorithmic Transparency & Technical Deep-Dive Styles */
@@ -1662,50 +1688,35 @@ h1 {
 
 /* Centered Header for Transparency section */
 .transparency-header {
-  text-align: center;
   margin-top: clamp(48px, 8vw, 84px);
   margin-bottom: clamp(24px, 4vw, 36px);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;  /* Left-aligned like every other section header */
 }
 
 .transparency-header .section-heading {
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
+  /* No override needed – inherits standard left alignment */
 }
 
-/* Premium Technical Teaser Cards */
+/* deep-dive-card inherits all shared card tokens (background, border, radius, shadow, transition)
+   from the combined .feature-card / .intelligence-card / .deep-dive-card rule above.
+   Only layout-specific properties are set here. */
 .deep-dive-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 32px 28px;
   display: flex;
   flex-direction: column;
   height: 100%;
-  transition: border-color 240ms var(--ease), box-shadow 240ms var(--ease), background 240ms var(--ease);
+  padding: 28px 24px;  /* slightly more generous than base 16px for dense content */
 }
 
-.deep-dive-card:hover {
-  border-color: var(--line-strong);
-  background: var(--panel-2);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="dark"] .deep-dive-card:hover {
-  box-shadow: 0 16px 48px rgba(221, 255, 0, 0.02);
-}
 
 .deep-dive-card h3 {
-  font-size: 1.35rem;
-  font-weight: 850;
+  font-size: 22px;        /* titleLarge – harmonised token */
+  line-height: 28px;
+  font-weight: 700;
   color: var(--fg);
   margin-bottom: 8px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .deep-dive-card .deep-dive-intro {
@@ -1736,16 +1747,25 @@ h1 {
 }
 
 .deep-dive-features li::before {
-  content: "✓";
+  content: "";
   position: absolute;
   left: 0;
-  color: var(--accent);
-  font-weight: 900;
-  font-size: 1rem;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  background-color: var(--accent);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-position: center;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  mask-position: center;
 }
 
 [data-theme="light"] .deep-dive-features li::before {
-  color: #8da100;
+  background-color: #8da100; /* tints the SVG mask checkmark in light mode */
 }
 
 .deep-dive-card .deep-dive-link-container {

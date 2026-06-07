@@ -272,11 +272,6 @@
       <section id="features" class="section">
         <div class="feature-grid">
           <article class="feature-card reveal delay-1" style="--feature: var(--blue); --feature-rgb: 133, 215, 244;">
-            <div class="feature-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 20V10M18 20V4M6 20v-4"></path>
-              </svg>
-            </div>
             <h3 data-i18n="adapt_nut_what_t">What this system does</h3>
             <ul class="feature-list">
                 <li data-i18n="adapt_nut_what_l1">Estimates your maintenance calories (TDEE) based on your real-world progress.</li>
@@ -287,12 +282,6 @@
           </article>
 
           <article class="feature-card reveal delay-2" style="--feature: var(--red); --feature-rgb: 245, 83, 83;">
-            <div class="feature-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-              </svg>
-            </div>
             <h3 data-i18n="adapt_nut_not_t">What it does NOT do</h3>
             <ul class="feature-list">
                 <li data-i18n="adapt_nut_not_l1">It is not a replacement for metabolic testing or medical advice.</li>
@@ -435,7 +424,18 @@
                 
                 <!-- Data Confidence Warning Card -->
                 <div class="bottleneck-card" id="tdee-confidence-card">
-                  <div class="bottleneck-icon" id="tdee-confidence-icon">ℹ️</div>
+                  <div class="bottleneck-icon" id="tdee-confidence-icon">
+                    <svg id="tdee-icon-info" class="status-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <svg id="tdee-icon-warning" class="status-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" style="display:none;">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                  </div>
                   <div>
                     <div class="bottleneck-title" id="tdee-confidence-title">High Data Confidence</div>
                     <div class="bottleneck-copy" id="tdee-confidence-copy">Consistent daily logs have been captured. The recursive filter covariance remains locked (P_t = 100). Estimation is highly reliable.</div>
@@ -588,20 +588,27 @@
 
         // Update confidence warnings and classes
         const card = document.getElementById("tdee-confidence-card");
-        const icon = document.getElementById("tdee-confidence-icon");
         const title = document.getElementById("tdee-confidence-title");
         const copy = document.getElementById("tdee-confidence-copy");
+
+        // Icon toggle helper (replaces raw emoji mutation)
+        const setIcon = (state) => {
+          const iconInfo    = document.getElementById("tdee-icon-info");
+          const iconWarning = document.getElementById("tdee-icon-warning");
+          iconInfo.style.display    = state === "info"    ? "block" : "none";
+          iconWarning.style.display = state === "warning" ? "block" : "none";
+        };
 
         card.className = "bottleneck-card";
 
         if (unloggedDays >= 5 || duration < 2) {
-          icon.innerText = "⚠️";
+          setIcon("warning");
           title.innerText = lang === "de" ? "Kritisch niedrige Datenabdeckung" : "Low Data Confidence";
           copy.innerText = lang === "de"
             ? `Eingeschränkte Datenbasis (Dauer: ${duration}W, Lücken: ${unloggedDays}T). Die Fehlerkovarianz ist hoch (P_t = ${Math.round(covariance)}). Train Libre stützt sich verstärkt auf Profil-Ausgangswerte.`
             : `Limited data baseline (Duration: ${duration}w, Gaps: ${unloggedDays}d). The estimation error covariance is high (P_t = ${Math.round(covariance)}). The system relies more on profile priors to protect integrity.`;
         } else if (unloggedDays >= 3 || duration < 4) {
-          icon.innerText = "⚠️";
+          setIcon("warning");
           card.style.borderColor = "var(--orange)";
           title.innerText = lang === "de" ? "Suboptimale Datenabdeckung" : "Suboptimal Data Confidence";
           copy.innerText = lang === "de"
@@ -609,7 +616,7 @@
             : `Elevated filter covariance (P_t = ${Math.round(covariance)}). Future adjustments are dampened to avoid oversteering due to transient weight noise.`;
         } else {
           card.classList.add("no-penalty");
-          icon.innerText = "ℹ️";
+          setIcon("info");
           title.innerText = lang === "de" ? "Hohe Datenabdeckung" : "High Data Confidence";
           copy.innerText = lang === "de"
             ? `Konsistente Logs erfasst (P_t = ${Math.round(covariance)}). Deine Stoffwechselschätzung ist präzise und reagiert aktiv auf Veränderungen.`

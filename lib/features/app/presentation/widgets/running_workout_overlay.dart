@@ -1,9 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../services/theme_service.dart';
-import '../../../../theme/color_constants.dart';
 import '../../../../generated/app_localizations.dart';
 
 class RunningWorkoutOverlay extends StatelessWidget {
@@ -22,15 +21,16 @@ class RunningWorkoutOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
     final themeService = context.watch<ThemeService>();
 
-    final Color neutralTint = (isDark ? Colors.white : Colors.black)
-        .withValues(alpha: isDark ? 0.1 : 0.1);
-    final Color effectiveGlass = Color.alphaBlend(
-      neutralTint,
-      bg.withValues(alpha: isDark ? 0.8 : 0.5),
-    );
+    /*
+    final Color neutralTint = (isDark ? Colors.white : Colors.white)
+        .withValues(alpha: isDark ? 0.1 : 0.10);
+   */
+    // Smarter liquid glass color: pure white translucent tint without solid gray base.
+    final Color effectiveGlass = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.white.withValues(alpha: 0.15);
 
     Widget child = _RunningWorkoutRow(
       timeText: elapsedDuration,
@@ -40,59 +40,75 @@ class RunningWorkoutOverlay extends StatelessWidget {
     );
 
     if (themeService.visualStyle == 1) {
-      double radius = 99;
-      return SizedBox(
-        height: 65.0,
-        child: LiquidStretch(
-          stretch: 0.2,
-          interactionScale: 1.04,
-          child: LiquidGlass.withOwnLayer(
-            settings: LiquidGlassSettings(
-              thickness: 30,
-              blur: 0.75,
-              glassColor: effectiveGlass,
-              lightIntensity: 0.35,
-              saturation: 1.10,
-            ),
-            shape: LiquidRoundedSuperellipse(borderRadius: radius),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(color: neutralTint),
-                  ),
+      double radius = 37.0; // Half of height 74.0 for perfect pill
+      return Container(
+        margin: const EdgeInsets.only(
+            bottom: 16.0), // Yields exactly 20px gap above GlassBottomBar
+        height: 74.0,
+        child: Stack(
+          children: [
+            // Shadow dimming layer underneath exactly like main_screen.dart
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.16),
+                  borderRadius: BorderRadius.circular(radius),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(radius.toDouble()),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.20)
-                          : Colors.black.withValues(alpha: 0.08),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: child,
-                ),
-              ],
+              ),
             ),
-          ),
+            GlassContainer(
+              useOwnLayer: true,
+              height: 74.0,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              alignment: Alignment.center,
+              shape: LiquidRoundedSuperellipse(borderRadius: radius),
+              quality: GlassQuality.premium,
+              settings: LiquidGlassSettings(
+                thickness: 30,
+                blur: 2.0,
+                glassColor: effectiveGlass,
+                lightIntensity: isDark ? 0.55 : 0.80,
+                saturation: 1.20,
+              ),
+              child: child,
+            ),
+          ],
         ),
       );
     }
     double radius = 20;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius.toDouble()),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+    // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
+    final Color neutralTint = (isDark ? Colors.white : Colors.white)
+        .withValues(alpha: isDark ? 0.1 : 0.10);
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius.toDouble()),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.3),
+          ),
+        ],
+      ),
+      child: AdaptiveGlass(
+        settings: LiquidGlassSettings(
+          thickness: 30,
+          blur: 2.0,
+          glassColor: effectiveGlass,
+          lightIntensity: isDark ? 0.55 : 0.80,
+          saturation: 1.20,
+        ),
+        shape: LiquidRoundedRectangle(borderRadius: radius.toDouble()),
+        quality: GlassQuality.premium,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: bg.withValues(alpha: 0.80),
+            color: neutralTint,
+            borderRadius: BorderRadius.circular(radius.toDouble()),
+          ),
+          foregroundDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius.toDouble()),
             border: Border.all(
               color: isDark
@@ -100,13 +116,6 @@ class RunningWorkoutOverlay extends StatelessWidget {
                   : Colors.black.withValues(alpha: 0.10),
               width: 1.5,
             ),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-                color: Colors.black.withValues(alpha: 0.3),
-              ),
-            ],
           ),
           child: child,
         ),
@@ -131,21 +140,19 @@ class _RunningWorkoutRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Row(
       children: [
         Expanded(
           child: Row(
             children: [
-              const Icon(Icons.timer_outlined, size: 20),
+              const Icon(LucideIcons.clock, size: 20),
               const SizedBox(width: 6),
               Text(
                 timeText,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.9),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: isDark ? Colors.white : Colors.black,
                   decoration: TextDecoration.none,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),

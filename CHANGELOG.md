@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.21] - 2026-06-07
+### Changed
+- **Default Visual Style Swap**: Swapped the out-of-the-box visual style preference default from "Flüssig (Liquid Glass)" (index `1`) to "Standard (Glas)" (index `0`) in `ThemeService` so new app installations default to the frosted standard glass style.
+
+### Fixed
+- **Standard Glass Shader Pipeline Upgrade**: Migrated the standard visual style (`visualStyle == 0`) branch across multiple components (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) from legacy native `BackdropFilter` and solid container fallbacks onto the unified `AdaptiveGlass` shader pipeline from the `liquid_glass_widgets` package.
+- **Light Mode Tint Harmonization**: Fixed Light Mode background burnout/clipping issues where the bottom bar and FAB appeared muddy, dark, and dirty-grey or clipped into raw white by aligning their background `neutralTint` to a clean, bright, semi-transparent white (`Colors.white.withValues(alpha: 0.10)`), matching the functioning `RunningWorkoutOverlay` background exactly.
+- **Ambient Shadow Matrix Unification**: Unified and applied the deep physical depth shadow matrix (`BoxShadow` with `blurRadius: 12`, `offset: Offset(0, 6)`, `Colors.black` at `30%` opacity) across both standard (`visualStyle == 0`) and liquid (`visualStyle == 1`) navigation components to eliminate visual rift and restore parity with the workout overlay.
+
+## [0.9.20] - 2026-06-07
+### Added
+- **Glassmorphic UI Library Migration**: Integrated the `liquid_glass_widgets` package (v0.15.0) as the primary engine for the application's premium glassmorphic layouts.
+
+- **Lucide Icons Migration & Color State Refactor**: Transitioned the primary application navigation shell (`GlassBottomBar`) and the active workout tracking overlay (`RunningWorkoutOverlay`) to the `flutter_lucide` asset system.
+  - Implemented the **Pure Color State Toggle** principle: icons now retain identical tokens across active and inactive states to eliminate layout jitter.
+  - State differentiation is now exclusively handled via color mutations: `brandAccentColor` (Chartreuse) for active states and muted `onSurface` for inactive states.
+  - Integrated `LucideIcons.notebook`, `LucideIcons.dumbbell`, `LucideIcons.chart_no_axes_column`, and `LucideIcons.utensils` into the navigation deck.
+  - Deployed `LucideIcons.clock` (size 20) in the active workout tracking overlay.
+- **Dependency Overhaul**: Added `flutter_lucide: ^1.11.0` and removed previous experimental icon sets.
+
+
+### Fixed
+- **Navigation Label Typography & Scaling**: Fixed a regression in the `GlassBottomBar` where uninherited Material context caused text labels to scale disproportionately large and render with yellow error underlines. Wrapped the component in a `Material` widget and applied an explicit `DefaultTextStyle` mapping directly to our absolute compact design token (`fontSize: 11.0`, `fontWeight: FontWeight.w600`, `fontFamily: 'Inter'`, `letterSpacing: -0.2`).
+- **Layout & Typography in RunningWorkoutOverlay**: Fixed a critical layout collision where the workout tracking bar overlapped the new `GlassBottomBar` by introducing an 8px layout offset. Fixed a visual regression by realigning the elapsed duration typography with the centralized `titleMedium` system style, ensuring `Inter` font rendering, correct boldness, and consistent tracking.
 
 ## [0.9.19] - 2026-06-06
 ### Added
@@ -36,6 +60,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Added a dedicated, chronologically sorted sheet outputting a raw, granular log of all user measurements with columns: `[Date] | [Time] | [Measurement Type] | [Value] | [Unit]`.
 
 ### Changed
+- **Liquid Navigation Overlay**: Swapped the custom bottom row in `main_screen.dart` to use the native `GlassBottomBar` with organic liquid-glass blending and a right-anchored quick-action FAB (`extraButton`).
+- **Core Component Refactoring**: Shifted custom widgets (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) onto the package's `AdaptiveGlass` and `GlassButton` APIs to deprecate legacy low-level shaders.
 - **3-Tier Performance and UX Overhaul**:
   - **Tier 1 (Database Ingestion Isolate)**: Shifted massive SQLite database row parsing, companion mapping, and object instantiation into a dedicated background isolate during remote catalog synchronization, completely eliminating UI thread locking and frame drops.
   - **Tier 2 (SQLite Computational Pushdown)**: Refactored expensive Dart-side collection loops in the `getVolumeByMuscleGroup` analytics queries to utilize raw SQLite queries with `json_each` functions. Muscle volumes are now natively grouped and aggregated via database engine optimizations before crossing the FFI bridge, significantly reducing heap memory allocation.
@@ -73,6 +99,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - **Static Analysis**: Resolved the `use_build_context_synchronously` lint warnings inside `_showSaveAsRoutineDialog` by capturing repository and navigation handlers prior to the async bottom sheet UI transitions.
 - **Deprecated Opacity APIs**: Fixed the `deprecated_member_use` compiler warning by replacing `withOpacity` with the modern `withValues(alpha: ...)` API.
+
+### Removed
+- **Legacy Glass Renderer**: Fully removed the deprecated `liquid_glass_renderer` package and its references from the codebase.
 
 ## [0.9.18] - 2026-06-02
 ### Added

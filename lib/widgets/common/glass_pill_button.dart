@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/theme_service.dart';
 import '../../services/haptic_feedback_service.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 
 /// Reusable liquid-glass Pill / Bubble.
@@ -85,17 +85,16 @@ class _GlassPillButtonState extends State<GlassPillButton>
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final glassColor = Color.alphaBlend(
-      cs.surfaceTint.withValues(alpha: isDark ? 0.08 : 0.04),
-      cs.surface.withValues(alpha: isDark ? 0.62 : 0.72),
-    );
     final rimColor = cs.onSurface.withValues(alpha: 0.08);
 
-    final Color neutralTint = cs.onSurface.withValues(alpha: 0.08);
-    final Color effectiveGlass = Color.alphaBlend(
-      neutralTint,
-      glassColor,
-    );
+
+
+    final Color neutralTint = (isDark ? cs.onSurface : Colors.white)
+        .withValues(alpha: isDark ? 0.08 : 0.10);
+    // Smarter liquid glass color: pure white translucent tint without solid gray base.
+    final Color effectiveGlass = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.white.withValues(alpha: 0.15);
 
     // The radius is half the height to create a stadium (pill) shape.
     final double effectiveRadius = widget.height / 2;
@@ -103,67 +102,80 @@ class _GlassPillButtonState extends State<GlassPillButton>
     Widget surface;
 
     if (themeService.visualStyle == 1) {
-      // Liquid style (with LiquidStretch)
-      surface = LiquidStretch(
-        stretch: 0.55,
-        interactionScale: 1.04,
-        child: LiquidGlass.withOwnLayer(
-          settings: LiquidGlassSettings(
-            thickness: 25,
-            blur: 5,
-            glassColor: effectiveGlass,
-            lightIntensity: 0.35,
-            saturation: 1.10,
-          ),
-          shape: LiquidRoundedSuperellipse(borderRadius: effectiveRadius),
-          child: GlassGlow(
-            glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
-            glowRadius: 1.0,
-            child: Container(
-              padding: widget.padding,
-              decoration: BoxDecoration(
-                color: neutralTint,
-                borderRadius: BorderRadius.circular(effectiveRadius),
+      // Liquid style (with AdaptiveGlass)
+      surface = AdaptiveGlass(
+        settings: LiquidGlassSettings(
+          thickness: 25,
+          blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
+          glassColor: effectiveGlass,
+          lightIntensity: isDark ? 0.55 : 0.80,
+          saturation: 1.20,
+        ),
+        shape: LiquidRoundedSuperellipse(borderRadius: effectiveRadius),
+        quality: GlassQuality.premium,
+        child: GlassGlow(
+          glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+          glowRadius: 1.0,
+          child: Container(
+            padding: widget.padding,
+            decoration: BoxDecoration(
+              color: neutralTint,
+              borderRadius: BorderRadius.circular(effectiveRadius),
+            ),
+            foregroundDecoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(effectiveRadius),
+              border: Border.all(
+                color: rimColor,
+                width: 1.2,
               ),
-              foregroundDecoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(effectiveRadius),
-                border: Border.all(
-                  color: rimColor,
-                  width: 1.2,
-                ),
-              ),
-              child: Center(
-                widthFactor: 1.0,
-                child: widget.child,
-              ),
+            ),
+            child: Center(
+              widthFactor: 1.0,
+              child: widget.child,
             ),
           ),
         ),
       );
     } else {
-      // Fallback-Glass (solid high-opacity surface without blur)
-      surface = ClipRRect(
-        borderRadius: BorderRadius.circular(effectiveRadius),
-        child: Container(
-          padding: widget.padding,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2A2A2A) : glassColor,
-            borderRadius: BorderRadius.circular(effectiveRadius),
-            border: Border.all(
-              color: rimColor,
-              width: 1,
+      // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
+      surface = Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(effectiveRadius),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+              color: cs.shadow.withValues(alpha: isDark ? 0.4 : 0.16),
             ),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-                color: cs.shadow.withValues(alpha: isDark ? 0.4 : 0.16),
-              ),
-            ],
+          ],
+        ),
+        child: AdaptiveGlass(
+          settings: LiquidGlassSettings(
+            thickness: 25,
+            blur: 2.0,
+            glassColor: effectiveGlass,
+            lightIntensity: isDark ? 0.55 : 0.80,
+            saturation: 1.20,
           ),
-          child: Center(
-            widthFactor: 1.0,
-            child: widget.child,
+          shape: LiquidRoundedRectangle(borderRadius: effectiveRadius),
+          quality: GlassQuality.premium,
+          child: Container(
+            padding: widget.padding,
+            decoration: BoxDecoration(
+              color: neutralTint,
+              borderRadius: BorderRadius.circular(effectiveRadius),
+            ),
+            foregroundDecoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(effectiveRadius),
+              border: Border.all(
+                color: rimColor,
+                width: 1,
+              ),
+            ),
+            child: Center(
+              widthFactor: 1.0,
+              child: widget.child,
+            ),
           ),
         ),
       );

@@ -1,9 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/theme_service.dart';
-import '../../../../theme/color_constants.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 
 /// A premium glass-styled navigation bar with haptic feedback and fluid animations.
@@ -22,12 +20,20 @@ class GlassBottomNavBar extends StatelessWidget {
   /// The list of navigation items to display.
   final List<BottomNavigationBarItem> items;
 
+  /// The color of the selected item.
+  final Color? selectedItemColor;
+
+  /// The color of unselected items.
+  final Color? unselectedItemColor;
+
   const GlassBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
     required this.onFabTap,
     required this.items,
+    this.selectedItemColor,
+    this.unselectedItemColor,
   });
 
   Widget _buildNavItem(
@@ -38,8 +44,10 @@ class GlassBottomNavBar extends StatelessWidget {
   ) {
     final cs = Theme.of(context).colorScheme;
     final isDarkLocal = Theme.of(context).brightness == Brightness.dark;
-    final color =
-        isSelected ? cs.primary : (isDarkLocal ? Colors.white : Colors.black);
+    final color = isSelected
+        ? (selectedItemColor ?? cs.primary)
+        : (unselectedItemColor ??
+            (isDarkLocal ? Colors.white : Colors.black));
     return Expanded(
       child: Material(
         type: MaterialType.transparency,
@@ -93,7 +101,6 @@ class GlassBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
     final themeService = context.watch<ThemeService>();
 
     final navItemsRow = Row(
@@ -112,14 +119,13 @@ class GlassBottomNavBar extends StatelessWidget {
     switch (themeService.visualStyle) {
       case 1:
         // Derive neutral tint (works on white and black).
-        final Color neutralTint = (isDark ? Colors.white : Colors.black)
-            .withValues(alpha: isDark ? 0.1 : 0.1);
+        final Color neutralTint = (isDark ? Colors.white : Colors.white)
+            .withValues(alpha: isDark ? 0.1 : 0.10);
 
-        // Smarter glass: blend bg color with neutral tint.
-        final Color effectiveGlass = Color.alphaBlend(
-          neutralTint,
-          bg.withValues(alpha: isDark ? 0.8 : 0.5),
-        );
+        // Smarter liquid glass color: pure white translucent tint without solid gray base.
+        final Color effectiveGlass = isDark
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.white.withValues(alpha: 0.15);
 
         // Drag-to-select + release-to-activate via GestureDetector.
         return LayoutBuilder(
@@ -162,18 +168,27 @@ class GlassBottomNavBar extends StatelessWidget {
                 lastDx = null;
                 lastHoverIndex = null;
               },
-              child: LiquidStretch(
-                stretch: 0.2,
-                interactionScale: 1.04,
-                child: LiquidGlass.withOwnLayer(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(99),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                      color: Colors.black.withValues(alpha: 0.3),
+                    ),
+                  ],
+                ),
+                child: AdaptiveGlass(
                   settings: LiquidGlassSettings(
                     thickness: 30,
-                    blur: 0.75,
+                    blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
                     glassColor: effectiveGlass,
-                    lightIntensity: 0.35,
-                    saturation: 1.10,
+                    lightIntensity: isDark ? 0.55 : 0.80,
+                    saturation: 1.20,
                   ),
                   shape: const LiquidRoundedSuperellipse(borderRadius: 99),
+                  quality: GlassQuality.premium,
                   child: GlassGlow(
                     glowColor:
                         Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
@@ -221,16 +236,42 @@ class GlassBottomNavBar extends StatelessWidget {
         );
 
       default:
-        // Standard: previous backdrop filter
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
+        final Color effectiveGlass = isDark
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.white.withValues(alpha: 0.15);
+        final Color neutralTint = (isDark ? Colors.white : Colors.white)
+            .withValues(alpha: isDark ? 0.10 : 0.10);
+
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+                color: Colors.black.withValues(alpha: 0.3),
+              ),
+            ],
+          ),
+          child: AdaptiveGlass(
+            settings: LiquidGlassSettings(
+              thickness: 30,
+              blur: 2.0,
+              glassColor: effectiveGlass,
+              lightIntensity: isDark ? 0.55 : 0.80,
+              saturation: 1.20,
+            ),
+            shape: const LiquidRoundedRectangle(borderRadius: 20),
+            quality: GlassQuality.premium,
             child: Container(
               height: barHeight,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: bg.withValues(alpha: 0.8),
+                color: neutralTint,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              foregroundDecoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isDark
