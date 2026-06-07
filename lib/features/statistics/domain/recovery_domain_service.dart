@@ -171,6 +171,8 @@ class RecoveryDomainService {
     'serratus': 'back',
     'traps': 'back',
     'trapezius': 'back',
+    'neck': 'back',
+    'lower neck': 'back',
     // Shoulders
     'shoulder': 'shoulders',
     'shoulders': 'shoulders',

@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Route-Aware Render Complexity Gating**: Integrated invisible route-aware quality transitions to apply quality downgrades on push-route transitions and quality upgrades on pop-route re-entry.
 - **Fade-Transition Shader Cross-Fade Shield**: Refactored the persistent `RunningWorkoutOverlay` to perform quality shader swaps at zero opacity via a 120ms `FadeTransition` animation shield to eliminate quality "pop-in" visual flicker.
 - **Speed Dial Quality Binding**: Wired the `SpeedDialMenuOverlay` action buttons to consume active manager quality dynamically using a `ValueListenableBuilder`.
+- **Expanded Recovery Tracker Muscle Groups**: Expanded the master tracking array to track 13 primary muscle groups, adding `Muscle.adductors`, `Muscle.lowerBack`, and `Muscle.forearms` to target lists, status badges, and recovery calculations.
 
 ### Changed
 - **Centralized Design Constants**: Migrated and refactored all glassmorphic widgets (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) to utilize unified styling tokens defined in `DesignConstants` (`glassShadow`, `glassNeutralTint`, `glassColor`, and `liquidGlassSettings`).
@@ -18,6 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - **Liquid Glass Shadow Clipping**: Integrated `ShadowOuterClipper` across all Liquid Glass components (bottom navigation, FAB, workout overlay, speed dial actions) to strictly clip drop shadows from behind the transparent glass elements, keeping the backgrounds bright and translucent.
+- **Anatomical Body Highlighter Canvas Mappings**: Synchronized SVG path mappings in local package `flutter_body_highlighter` (and bumped version to 1.0.3) to resolve blank forearms, map lateral head triceps (front view), neck muscles (back view), erector spinae (lower back), isolated tibialis anterior (shin-adjacent), and inner-thigh adductors insertion (back view).
+- **Neck & Traps Visual Merge**: Merged the posterior neck SVG paths directly into the `trapezius` map entry in `flutter_body_highlighter` (v1.0.3) and routed all legacy neck/lower neck raw mappings to the `trapezius` token to eliminate the uncolored gap on the back view.
+- **Adductor Logging Pipeline Repair**: Fixed the state query aggregation pipeline to resolve naming variance drops for adductors by mapping raw input strings to major muscle groups before fatigue load evaluation threshold filtering.
 
 ## [0.9.21] - 2026-06-07
 ### Changed
