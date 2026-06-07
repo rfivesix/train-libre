@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../theme/color_constants.dart';
 import '../../../data/database_helper.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../diary/presentation/dialogs/fluid_dialog_content.dart';
@@ -1215,8 +1214,8 @@ class _MainScreenState extends State<MainScreen>
                                     37, // Half of height for perfectly rounded semi-circle ends
                                 tabWidth:
                                     null, // Stretches to occupy all horizontal space not taken by extraButton
-                                quality:
-                                    GlassQuality.premium, // Enforce premium quality
+                                quality: GlassQuality
+                                    .premium, // Enforce premium quality
                                 indicatorExpansion: 14,
                                 selectedIconColor: theme.colorScheme.primary,
                                 unselectedIconColor:
@@ -1239,7 +1238,8 @@ class _MainScreenState extends State<MainScreen>
                                       LucideIcons.notebook,
                                       key: _tourDiaryTabKey,
                                     ),
-                                    activeIcon: const Icon(LucideIcons.notebook),
+                                    activeIcon:
+                                        const Icon(LucideIcons.notebook),
                                   ),
                                   GlassBottomBarTab(
                                     label: l10n.workout,
@@ -1247,7 +1247,8 @@ class _MainScreenState extends State<MainScreen>
                                       LucideIcons.dumbbell,
                                       key: _tourWorkoutTabKey,
                                     ),
-                                    activeIcon: const Icon(LucideIcons.dumbbell),
+                                    activeIcon:
+                                        const Icon(LucideIcons.dumbbell),
                                   ),
                                   GlassBottomBarTab(
                                     label: l10n.statistics,
@@ -1255,7 +1256,8 @@ class _MainScreenState extends State<MainScreen>
                                       LucideIcons.chart_no_axes_column,
                                       key: _tourStatisticsTabKey,
                                     ),
-                                    activeIcon: const Icon(LucideIcons.chart_no_axes_column),
+                                    activeIcon: const Icon(
+                                        LucideIcons.chart_no_axes_column),
                                   ),
                                   GlassBottomBarTab(
                                     label: l10n.nutrition,
@@ -1263,7 +1265,8 @@ class _MainScreenState extends State<MainScreen>
                                       LucideIcons.utensils,
                                       key: _tourNutritionTabKey,
                                     ),
-                                    activeIcon: const Icon(LucideIcons.utensils),
+                                    activeIcon:
+                                        const Icon(LucideIcons.utensils),
                                   ),
                                 ],
                                 extraButton: GlassBottomBarExtraButton(
@@ -1274,7 +1277,8 @@ class _MainScreenState extends State<MainScreen>
                                   label: 'Add',
                                   onTap: _toggleAddMenu,
                                   size: 74,
-                                  iconColor: isDark ? Colors.white : Colors.black,
+                                  iconColor:
+                                      isDark ? Colors.white : Colors.black,
                                 ),
                               ),
                             ),
@@ -1316,7 +1320,8 @@ class _MainScreenState extends State<MainScreen>
                                 LucideIcons.chart_no_axes_column,
                                 key: _tourStatisticsTabKey,
                               ),
-                              activeIcon: const Icon(LucideIcons.chart_no_axes_column),
+                              activeIcon:
+                                  const Icon(LucideIcons.chart_no_axes_column),
                               label: l10n.statistics,
                             ),
                             BottomNavigationBarItem(
