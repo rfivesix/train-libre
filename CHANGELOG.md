@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 - **Centralized Design Constants**: Migrated and refactored all glassmorphic widgets (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) to utilize unified styling tokens defined in `DesignConstants` (`glassShadow`, `glassNeutralTint`, `glassColor`, and `liquidGlassSettings`).
 - **Removed Android Bottom Bar Quality Override**: Removed target platform checks that restricted the bottom navigation bar's tap indicator to standard/medium quality on Android devices, allowing it to leverage dynamic/configured quality settings.
+- **3-Zone Accordion Compacting Architecture for Recovery Tracker**: Refactored the scrollable list layer in `recovery_tracker_screen.dart` to group all 13 core muscle metrics into exactly three master expandable categories based on recovery status: "In Erholung" (In Recovery - expanded by default), "Gemischt / Bereit" (Mixed / Ready - expanded by default), and "Frisch" (Fresh - collapsed by default). Each zone card features a color-coded status dot, a horizontal minimalist muscle preview chip loop, an animated rotation disclosure chevron, and smooth expansion/collapse cross-fade transitions.
 
 
 ### Fixed
