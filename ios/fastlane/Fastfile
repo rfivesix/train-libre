@@ -1,0 +1,33 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build IPA and upload to Apple TestFlight"
+  lane :beta do
+    # Inkrementiert die Build-Nummer basierend auf dem App Store Stand
+    begin
+      current_build = latest_testflight_build_number
+      build_number = current_build + 1
+      UI.message("Latest TestFlight build number: #{current_build}. Incrementing to #{build_number}.")
+    rescue => e
+      UI.important("Could not retrieve latest build number from TestFlight: #{e.message}")
+      UI.important("Defaulting build number to 1.")
+      build_number = 1
+    end
+
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: "Runner.xcodeproj"
+    )
+
+    # Reiner iOS-Bau, da Core-Generierung und Pods bereits stehen
+    sh("cd .. && flutter build ipa --release --export-options-plist=ios/ExportOptions.plist")
+
+    ipa_path = Dir["../build/ios/ipa/*.ipa"].first
+    UI.user_error!("No IPA file found in build/ios/ipa/") unless ipa_path
+
+    upload_to_testflight(
+      ipa: ipa_path,
+      changelog: "We are constantly working on improvements. To view the full changelog, please visit our GitHub repository."
+    )
+  end
+end
