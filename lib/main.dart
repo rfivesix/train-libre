@@ -17,6 +17,7 @@ import 'services/theme_service.dart';
 import 'theme/app_colors.dart';
 import 'theme/color_constants.dart';
 import 'package:intl/date_symbol_data_local.dart'; // FIX: Initialize intl formatting
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'features/onboarding/presentation/initial_consent_screen.dart';
@@ -41,6 +42,9 @@ import 'features/supplements/data/sources/supplement_local_data_source.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Liquid Glass shaders and pipeline
+  await LiquidGlassWidgets.initialize();
 
   // FIX: Ensures DateFormat does not throw LocaleDataException on non-en_US locales.
   await initializeDateFormatting();

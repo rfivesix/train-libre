@@ -1106,8 +1106,8 @@ class _MainScreenState extends State<MainScreen>
         if (isWorkoutRunning)
           Positioned(
             bottom: 36 + kNavBarHeight,
-            left: isLiquid ? 20 : 16,
-            right: isLiquid ? 20 : 16,
+            left: 16,
+            right: 16,
             child: RunningWorkoutOverlay(
               elapsedDuration: elapsed,
               onContinue: () {
@@ -1148,14 +1148,14 @@ class _MainScreenState extends State<MainScreen>
         // Bottom Nav Bar & FAB
         Positioned(
           bottom: themeService.visualStyle == 1 ? 12 : 24,
-          left: themeService.visualStyle == 1 ? 4 : 16,
-          right: themeService.visualStyle == 1 ? 4 : 16,
+          left: 16,
+          right: 16,
           child: themeService.visualStyle == 1
               ? KeyedSubtree(
                   key: _tourNavigationBarKey,
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final double horizontalPadding = 20.0;
+                      final double horizontalPadding = 0.0;
                       final double verticalPadding = 20.0;
                       final double spacing = 8.0;
                       final double extraButtonSize = 74.0;
@@ -1214,6 +1214,8 @@ class _MainScreenState extends State<MainScreen>
                                     37, // Half of height for perfectly rounded semi-circle ends
                                 tabWidth:
                                     null, // Stretches to occupy all horizontal space not taken by extraButton
+                                horizontalPadding: horizontalPadding,
+                                verticalPadding: verticalPadding,
                                 quality: GlassQuality
                                     .premium, // Enforce premium quality
                                 indicatorExpansion: 14,
