@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [0.9.23] - 2026-06-08
+## [0.9.22] - 2026-06-08
 ### Added
 - **Dynamic Glassmorphic Shader Quality Degradation**: Implemented `GlassPerformanceManager` singleton to dynamically adjust glass rendering quality (`premium`, `standard`, `minimal`) based on sliding-window raster FrameTiming performance and hardware frame budgets.
 - **Route-Aware Render Complexity Gating**: Integrated invisible route-aware quality transitions to apply quality downgrades on push-route transitions and quality upgrades on pop-route re-entry.
@@ -12,11 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Speed Dial Quality Binding**: Wired the `SpeedDialMenuOverlay` action buttons to consume active manager quality dynamically using a `ValueListenableBuilder`.
 
 ### Changed
+- **Centralized Design Constants**: Migrated and refactored all glassmorphic widgets (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) to utilize unified styling tokens defined in `DesignConstants` (`glassShadow`, `glassNeutralTint`, `glassColor`, and `liquidGlassSettings`).
 - **Removed Android Bottom Bar Quality Override**: Removed target platform checks that restricted the bottom navigation bar's tap indicator to standard/medium quality on Android devices, allowing it to leverage dynamic/configured quality settings.
 
-## [0.9.22] - 2026-06-08
-### Changed
-- **Centralized Design Constants**: Migrated and refactored all glassmorphic widgets (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) to utilize unified styling tokens defined in `DesignConstants` (`glassShadow`, `glassNeutralTint`, `glassColor`, and `liquidGlassSettings`).
 
 ### Fixed
 - **Liquid Glass Shadow Clipping**: Integrated `ShadowOuterClipper` across all Liquid Glass components (bottom navigation, FAB, workout overlay, speed dial actions) to strictly clip drop shadows from behind the transparent glass elements, keeping the backgrounds bright and translucent.
