@@ -1,8 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/theme_service.dart';
-import '../../../../theme/color_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 
@@ -103,7 +101,6 @@ class GlassBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
     final themeService = context.watch<ThemeService>();
 
     final navItemsRow = Row(
@@ -171,53 +168,65 @@ class GlassBottomNavBar extends StatelessWidget {
                 lastDx = null;
                 lastHoverIndex = null;
               },
-              child: AdaptiveGlass(
-                settings: LiquidGlassSettings(
-                  thickness: 30,
-                  blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
-                  glassColor: effectiveGlass,
-                  lightIntensity: isDark ? 0.55 : 0.80,
-                  saturation: 1.20,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(99),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                      color: Colors.black.withValues(alpha: 0.3),
+                    ),
+                  ],
                 ),
-                shape: const LiquidRoundedSuperellipse(borderRadius: 99),
-                quality: GlassQuality.premium,
-                child: GlassGlow(
-                  glowColor:
-                      Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
-                  glowRadius: 1.0,
-                  child: SizedBox(
-                    height: barHeight,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(color: neutralTint),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
+                child: AdaptiveGlass(
+                  settings: LiquidGlassSettings(
+                    thickness: 30,
+                    blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
+                    glassColor: effectiveGlass,
+                    lightIntensity: isDark ? 0.55 : 0.80,
+                    saturation: 1.20,
+                  ),
+                  shape: const LiquidRoundedSuperellipse(borderRadius: 99),
+                  quality: GlassQuality.premium,
+                  child: GlassGlow(
+                    glowColor:
+                        Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+                    glowRadius: 1.0,
+                    child: SizedBox(
+                      height: barHeight,
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(color: neutralTint),
                             ),
-                            child: navItemsRow,
                           ),
-                        ),
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(99),
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.20)
-                                      : Colors.black.withValues(alpha: 0.08),
-                                  width: 1.2,
+                          Positioned.fill(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: navItemsRow,
+                            ),
+                          ),
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(99),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.20)
+                                        : Colors.black.withValues(alpha: 0.08),
+                                    width: 1.2,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -227,16 +236,42 @@ class GlassBottomNavBar extends StatelessWidget {
         );
 
       default:
-        // Standard: previous backdrop filter
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
+        final Color effectiveGlass = isDark
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.white.withValues(alpha: 0.15);
+        final Color neutralTint = (isDark ? Colors.white : Colors.white)
+            .withValues(alpha: isDark ? 0.10 : 0.10);
+
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+                color: Colors.black.withValues(alpha: 0.3),
+              ),
+            ],
+          ),
+          child: AdaptiveGlass(
+            settings: LiquidGlassSettings(
+              thickness: 30,
+              blur: 2.0,
+              glassColor: effectiveGlass,
+              lightIntensity: isDark ? 0.55 : 0.80,
+              saturation: 1.20,
+            ),
+            shape: const LiquidRoundedRectangle(borderRadius: 20),
+            quality: GlassQuality.premium,
             child: Container(
               height: barHeight,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: bg.withValues(alpha: 0.8),
+                color: neutralTint,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              foregroundDecoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isDark
