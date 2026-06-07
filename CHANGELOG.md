@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - **Glassmorphic UI Library Migration**: Integrated the `liquid_glass_widgets` package (v0.15.0) as the primary engine for the application's premium glassmorphic layouts.
 
+### Fixed
+- **Layout & Typography in RunningWorkoutOverlay**: Fixed a critical layout collision where the workout tracking bar overlapped the new `GlassBottomBar` by introducing an 8px layout offset. Fixed a visual regression by realigning the elapsed duration typography with the centralized `titleMedium` system style, ensuring `Inter` font rendering, correct boldness, and consistent tracking.
+
 ## [0.9.19] - 2026-06-06
 ### Added
 - **Save Workout as Routine**: Implemented a "Save Workout as Routine" feature in the historical workout log details screen (`WorkoutLogDetailScreen`).

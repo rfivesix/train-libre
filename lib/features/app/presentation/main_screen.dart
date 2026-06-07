@@ -1105,8 +1105,8 @@ class _MainScreenState extends State<MainScreen>
         if (isWorkoutRunning)
           Positioned(
             bottom: 36 + kNavBarHeight,
-            left: 16,
-            right: 16,
+            left: isLiquid ? 20 : 16,
+            right: isLiquid ? 20 : 16,
             child: RunningWorkoutOverlay(
               elapsedDuration: elapsed,
               onContinue: () {
@@ -1129,8 +1129,7 @@ class _MainScreenState extends State<MainScreen>
                 final confirmed = await showDeleteConfirmation(
                   context,
                   title: l10n.discard_button, // "Discard"
-                  content:
-                      l10n.deleteWorkoutConfirmContent, // "Really delete?"
+                  content: l10n.deleteWorkoutConfirmContent, // "Really delete?"
                   confirmLabel: l10n.discard_button, // Red button: "Discard"
                 );
 
@@ -1159,7 +1158,9 @@ class _MainScreenState extends State<MainScreen>
                       final double verticalPadding = 20.0;
                       final double spacing = 8.0;
                       final double extraButtonSize = 74.0;
-                      final double maxTabW = constraints.maxWidth - (horizontalPadding * 2) - (extraButtonSize + spacing);
+                      final double maxTabW = constraints.maxWidth -
+                          (horizontalPadding * 2) -
+                          (extraButtonSize + spacing);
 
                       return Stack(
                         children: [
@@ -1176,7 +1177,8 @@ class _MainScreenState extends State<MainScreen>
                                     width: maxTabW,
                                     height: 74.0, // Match barHeight
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.16),
+                                      color: Colors.black.withValues(
+                                          alpha: isDark ? 0.22 : 0.16),
                                       borderRadius: BorderRadius.circular(37),
                                     ),
                                   ),
@@ -1185,7 +1187,8 @@ class _MainScreenState extends State<MainScreen>
                                     width: extraButtonSize,
                                     height: 74.0, // Match barHeight
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.16),
+                                      color: Colors.black.withValues(
+                                          alpha: isDark ? 0.22 : 0.16),
                                       borderRadius: BorderRadius.circular(37),
                                     ),
                                   ),
@@ -1197,17 +1200,23 @@ class _MainScreenState extends State<MainScreen>
                             selectedIndex: _currentIndex,
                             onTabSelected: _onNavigationTapped,
                             barHeight: 74,
-                            barBorderRadius: 37, // Half of height for perfectly rounded semi-circle ends
-                            tabWidth: null, // Stretches to occupy all horizontal space not taken by extraButton
-                            quality: GlassQuality.premium, // Enforce premium quality
+                            barBorderRadius:
+                                37, // Half of height for perfectly rounded semi-circle ends
+                            tabWidth:
+                                null, // Stretches to occupy all horizontal space not taken by extraButton
+                            quality:
+                                GlassQuality.premium, // Enforce premium quality
                             indicatorExpansion: 14,
                             selectedIconColor: theme.colorScheme.primary,
-                            unselectedIconColor: isDark ? Colors.white : Colors.black,
-                            indicatorColor: (isDark ? Colors.white : Colors.black)
-                                .withValues(alpha: 0.15),
+                            unselectedIconColor:
+                                isDark ? Colors.white : Colors.black,
+                            indicatorColor:
+                                (isDark ? Colors.white : Colors.black)
+                                    .withValues(alpha: 0.15),
                             settings: LiquidGlassSettings(
                               thickness: 30,
-                              blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
+                              blur:
+                                  2.0, // Restored blur for clear but properly diffused liquid-glass look
                               glassColor: effectiveGlass,
                               lightIntensity: isDark ? 0.55 : 0.80,
                               saturation: 1.20,
@@ -1396,4 +1405,3 @@ class _AppTourStep {
     required this.description,
   });
 }
-

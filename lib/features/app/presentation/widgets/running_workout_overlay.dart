@@ -40,44 +40,39 @@ class RunningWorkoutOverlay extends StatelessWidget {
     );
 
     if (themeService.visualStyle == 1) {
-      double radius = 99;
-      return SizedBox(
-        height: 65.0,
-        child: AdaptiveGlass(
-          settings: LiquidGlassSettings(
-            thickness: 30,
-            blur: 2.0, // Restored blur for clear but properly diffused liquid-glass look
-            glassColor: effectiveGlass,
-            lightIntensity: isDark ? 0.55 : 0.80,
-            saturation: 1.20,
-          ),
-          shape: LiquidRoundedSuperellipse(borderRadius: radius),
-          quality: GlassQuality.premium,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(color: neutralTint),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
+      double radius = 37.0; // Half of height 74.0 for perfect pill
+      return Container(
+        margin: const EdgeInsets.only(
+            bottom: 16.0), // Yields exactly 20px gap above GlassBottomBar
+        height: 74.0,
+        child: Stack(
+          children: [
+            // Shadow dimming layer underneath exactly like main_screen.dart
+            Positioned.fill(
+              child: DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(radius.toDouble()),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.20)
-                        : Colors.black.withValues(alpha: 0.08),
-                    width: 1.2,
-                  ),
+                  color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.16),
+                  borderRadius: BorderRadius.circular(radius),
                 ),
-                child: child,
               ),
-            ],
-          ),
+            ),
+            GlassContainer(
+              useOwnLayer: true,
+              height: 74.0,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              alignment: Alignment.center,
+              shape: LiquidRoundedSuperellipse(borderRadius: radius),
+              quality: GlassQuality.premium,
+              settings: LiquidGlassSettings(
+                thickness: 30,
+                blur: 2.0,
+                glassColor: effectiveGlass,
+                lightIntensity: isDark ? 0.55 : 0.80,
+                saturation: 1.20,
+              ),
+              child: child,
+            ),
+          ],
         ),
       );
     }
@@ -128,6 +123,7 @@ class _RunningWorkoutRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Row(
       children: [
@@ -138,11 +134,8 @@ class _RunningWorkoutRow extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 timeText,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.9),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: isDark ? Colors.white : Colors.black,
                   decoration: TextDecoration.none,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
