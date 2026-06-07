@@ -33,7 +33,7 @@ Welcome to the Train Libre repository! We appreciate your interest in contributi
    ```
 6. **Generate all release artifacts:**
    ```bash
-   flutter clean && flutter pub get && flutter gen-l10n && flutter build appbundle --release && flutter build apk --release --split-per-abi && cd ios && pod install && cd ..
+   flutter clean && flutter pub get && flutter gen-l10n && flutter build appbundle --release && flutter build apk --release --split-per-abi && flutter build apk --release && cd ios && pod install && cd ..
    ```
 
    For iOS go to xCode and archive
