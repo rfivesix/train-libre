@@ -1,5 +1,3 @@
-// lib/widgets/glass_bottom_menu.dart
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
@@ -275,18 +273,28 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               ),
             ),
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(r),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface.withValues(
-                    alpha: isDark ? 0.80 : 0.92,
+          AdaptiveGlass(
+            settings: LiquidGlassSettings(
+              thickness: 30,
+              blur: 8,
+              glassColor: effectiveGlass,
+              lightIntensity: isDark ? 0.55 : 0.80,
+              saturation: 1.20,
+            ),
+            shape: const LiquidRoundedRectangle(borderRadius: r),
+            quality: GlassQuality.premium,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: neutralTint,
+                      borderRadius: BorderRadius.circular(r),
+                    ),
                   ),
                 ),
-                child: contentColumn(),
-              ),
+                contentColumn(),
+              ],
             ),
           ),
         ],
@@ -442,13 +450,41 @@ class _GlassTile extends StatelessWidget {
       );
     }
 
-    return Material(
-      color: isDark
-          ? Colors.white.withValues(alpha: 0.06)
-          : Colors.white.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(18),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(onTap: onTap, child: tileContent),
+    // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
+    return AdaptiveGlass(
+      settings: LiquidGlassSettings(
+        thickness: 0,
+        blur: 2.0,
+        glassColor: effectiveGlass,
+        lightIntensity: 0.1,
+        saturation: 1.20,
+      ),
+      shape: const LiquidRoundedRectangle(borderRadius: 18),
+      quality: GlassQuality.premium,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.transparent,
+          focusColor: Colors.transparent,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: neutralTint,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+              ),
+              tileContent,
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

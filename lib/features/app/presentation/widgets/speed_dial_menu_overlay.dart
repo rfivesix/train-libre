@@ -25,7 +25,6 @@ class SpeedDialMenuOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeService = context.watch<ThemeService>();
     final bool isDarkLocal = Theme.of(context).brightness == Brightness.dark;
-    final bgLocal = isDarkLocal ? summaryCardDarkMode : summaryCardWhiteMode;
     final Color neutralTintLocal = (isDarkLocal ? Colors.white : Colors.white).withValues(
       alpha: isDarkLocal ? 0.10 : 0.10,
     );
@@ -168,46 +167,44 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                           onTap: () {
                                             onActionTap(action['action']);
                                           },
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(18),
-                                            child: BackdropFilter(
-                                              filter: ImageFilter.blur(
-                                                sigmaX: 12,
-                                                sigmaY: 12,
-                                              ),
-                                              child: Container(
-                                                width: 76,
-                                                height: 76,
-                                                decoration: BoxDecoration(
-                                                  color: bgLocal.withValues(
-                                                      alpha: 0.80),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                    18,
+                                          child: Container(
+                                            width: 76,
+                                            height: 76,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(18),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withValues(
+                                                    alpha: 0.25,
                                                   ),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            child: AdaptiveGlass(
+                                              settings: LiquidGlassSettings(
+                                                thickness: 25,
+                                                blur: 2.0,
+                                                glassColor: effectiveGlassLocal,
+                                                lightIntensity: isDarkLocal ? 0.55 : 0.80,
+                                                saturation: 1.20,
+                                              ),
+                                              shape: const LiquidRoundedRectangle(borderRadius: 18),
+                                              quality: GlassQuality.premium,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: neutralTintLocal,
+                                                  borderRadius: BorderRadius.circular(18),
+                                                ),
+                                                foregroundDecoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(18),
                                                   border: Border.all(
                                                     color: isDarkLocal
-                                                        ? Colors.white.withValues(
-                                                            alpha: 0.30,
-                                                          )
-                                                        : Colors.black.withValues(
-                                                            alpha: 0.10,
-                                                          ),
+                                                        ? Colors.white.withValues(alpha: 0.30)
+                                                        : Colors.black.withValues(alpha: 0.10),
                                                     width: 1.5,
                                                   ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withValues(
-                                                        alpha: 0.25,
-                                                      ),
-                                                      blurRadius: 10,
-                                                      offset: const Offset(
-                                                        0,
-                                                        4,
-                                                      ),
-                                                    ),
-                                                  ],
                                                 ),
                                                 alignment: Alignment.center,
                                                 child: action['gradient'] == true

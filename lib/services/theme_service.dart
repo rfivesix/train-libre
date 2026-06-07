@@ -15,7 +15,7 @@ class ThemeService extends ChangeNotifier {
   static const _useColorfulMacroBadgesKey = 'use_colorful_macro_badges';
 
   ThemeMode _themeMode = ThemeMode.system;
-  int _visualStyle = 1; // 1 = Liquid (Standard), 0 = Frosted
+  int _visualStyle = 0; // 0 = Standard (Glas), 1 = Liquid
   bool _isAiEnabled = false;
   bool _materialColorsEnabled = false;
   bool _hapticsEnabled = true;
@@ -63,7 +63,7 @@ class ThemeService extends ChangeNotifier {
 
   Future<void> _loadVisualStyle() async {
     final prefs = await SharedPreferences.getInstance();
-    _visualStyle = prefs.getInt(_styleKey) ?? 1;
+    _visualStyle = prefs.getInt(_styleKey) ?? 0;
     notifyListeners();
   }
 

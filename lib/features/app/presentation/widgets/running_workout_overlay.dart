@@ -1,10 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../services/theme_service.dart';
-import '../../../../theme/color_constants.dart';
 import '../../../../generated/app_localizations.dart';
 
 class RunningWorkoutOverlay extends StatelessWidget {
@@ -23,7 +21,6 @@ class RunningWorkoutOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
     final themeService = context.watch<ThemeService>();
 
     /*
@@ -80,14 +77,38 @@ class RunningWorkoutOverlay extends StatelessWidget {
       );
     }
     double radius = 20;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius.toDouble()),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+    // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
+    final Color neutralTint = (isDark ? Colors.white : Colors.white)
+        .withValues(alpha: isDark ? 0.1 : 0.10);
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius.toDouble()),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.3),
+          ),
+        ],
+      ),
+      child: AdaptiveGlass(
+        settings: LiquidGlassSettings(
+          thickness: 30,
+          blur: 2.0,
+          glassColor: effectiveGlass,
+          lightIntensity: isDark ? 0.55 : 0.80,
+          saturation: 1.20,
+        ),
+        shape: LiquidRoundedRectangle(borderRadius: radius.toDouble()),
+        quality: GlassQuality.premium,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: bg.withValues(alpha: 0.80),
+            color: neutralTint,
+            borderRadius: BorderRadius.circular(radius.toDouble()),
+          ),
+          foregroundDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius.toDouble()),
             border: Border.all(
               color: isDark
@@ -95,13 +116,6 @@ class RunningWorkoutOverlay extends StatelessWidget {
                   : Colors.black.withValues(alpha: 0.10),
               width: 1.5,
             ),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-                color: Colors.black.withValues(alpha: 0.3),
-              ),
-            ],
           ),
           child: child,
         ),
