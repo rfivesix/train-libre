@@ -396,12 +396,6 @@
       <section id="features" class="section">
         <div class="feature-grid">
           <article class="feature-card reveal delay-1" style="--feature: var(--blue); --feature-rgb: 133, 215, 244;">
-            <div class="feature-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </div>
             <h3 data-i18n="sleep_score_what_t">What this system does</h3>
             <ul class="feature-list">
                 <li data-i18n="sleep_score_what_l1">Evaluates sleep across 5 primary clinical domains simultaneously.</li>
@@ -412,12 +406,6 @@
           </article>
 
           <article class="feature-card reveal delay-2" style="--feature: var(--red); --feature-rgb: 245, 83, 83;">
-            <div class="feature-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-              </svg>
-            </div>
             <h3 data-i18n="sleep_score_not_t">What it does NOT do</h3>
             <ul class="feature-list">
                 <li data-i18n="sleep_score_not_l1">It is not a diagnostic device or a replacement for clinical sleep studies (PSG).</li>
@@ -611,7 +599,18 @@
 
                 <!-- Bottleneck Penalty Warning Panel -->
                 <div class="bottleneck-card" id="penalty-card">
-                  <div class="bottleneck-icon" id="penalty-icon">ℹ️</div>
+                  <div class="bottleneck-icon" id="penalty-icon">
+                    <svg id="sleep-icon-info" class="status-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <svg id="sleep-icon-warning" class="status-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" style="display:none;">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                  </div>
                   <div>
                     <div class="bottleneck-title" id="penalty-title">Optimal Sleep Quality</div>
                     <div class="bottleneck-copy" id="penalty-copy">No dynamic soft-cap bottlenecks are active. Your composite sleep score represents full anabolic recovery.</div>
@@ -1080,22 +1079,29 @@
 
         // Update Bottleneck Penalties
         const card = document.getElementById("penalty-card");
-        const icon = document.getElementById("penalty-icon");
         const title = document.getElementById("penalty-title");
         const copy = document.getElementById("penalty-copy");
+
+        // Icon toggle helper (replaces raw emoji mutation)
+        const setIcon = (state) => {
+          const iconInfo    = document.getElementById("sleep-icon-info");
+          const iconWarning = document.getElementById("sleep-icon-warning");
+          iconInfo.style.display    = state === "info"    ? "block" : "none";
+          iconWarning.style.display = state === "warning" ? "block" : "none";
+        };
 
         card.className = "bottleneck-card";
 
         const lang = localStorage.getItem("lang") || "en";
         if (dynamicMultiplier >= 1.0) {
           card.classList.add("no-penalty");
-          icon.innerText = "ℹ️";
+          setIcon("info");
           title.innerText = lang === "de" ? "Optimale Schlafregeneration" : "Optimal Sleep Recovery";
           copy.innerText = lang === "de"
             ? "Keine dynamischen Engpässe aktiv. Dein Schlafwert ist unbeeinträchtigt."
             : "No dynamic soft-cap bottlenecks are active. Your sleep score is uncompromised.";
         } else {
-          icon.innerText = "⚠️";
+          setIcon("warning");
           if (bottleneck === "rem") {
             title.innerText = lang === "de" ? "REM-Schlaf-Engpass" : "REM Sleep Bottleneck";
             copy.innerText = lang === "de"
