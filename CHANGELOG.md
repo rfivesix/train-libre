@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.23] - 2026-06-08
+### Changed
+- **SpeedDial Overlay Quality Isolation**: Decoupled the speed dial action buttons from dynamic performance telemetry and forced them to render with standard quality (`GlassQuality.standard`), eliminating dynamic quality degradation or toggling.
+
+### Fixed
+- **Bottom Navigation FAB Glassmorphic Blur Mismatch**: Fixed a visual discrepancy where the bottom navigation bar's circular FAB lost background blur (rendering flat white) when quality downgraded to `minimal`. Refactored `main_screen.dart` to bypass the package's built-in `extraButton` parameter, instead implementing a layout composition with a custom sibling `AdaptiveGlass` widget configured with `isInteractive: false` to guarantee consistent glassmorphic blur across all rendering quality levels.
+- **Fix:** Restricted calorie adjustment notification banner strictly to the current date view in Diary.
+- **UX:** Configured 3-Zone master cards in Recovery Tracker to be collapsed by default for faster scanning.
+- **UI:** Removed leading food icons and converted vertical meal lists into space-adaptive horizontal grids.
+- **Nutrition Hub Card Overflow Fix**: Removed 12px default nested padding from horizontal meal overview cards, preventing layout overflows when translated action strings wrap to multiple lines.
+- **Light Mode Bottom Sheet Container Harmonization**: Corrected white-on-white visibility issues in workout and supplement selection bottom sheets under Light Mode by resolving card backgrounds to a transparent black color, ensuring outlines are clearly visible.
+
 ## [0.9.22] - 2026-06-08
 ### Added
 - **Dynamic Glassmorphic Shader Quality Degradation**: Implemented `GlassPerformanceManager` singleton to dynamically adjust glass rendering quality (`premium`, `standard`, `minimal`) based on sliding-window raster FrameTiming performance and hardware frame budgets.

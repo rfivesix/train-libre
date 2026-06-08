@@ -899,9 +899,15 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
     return RefreshIndicator(
       onRefresh: _loadMeals,
-      child: ListView.builder(
+      child: GridView.builder(
         padding: DesignConstants.cardPadding.copyWith(bottom: _bottomPadding),
-        itemCount: _meals.length, // FIX: Removed +1 because padding is used.
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 400,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          mainAxisExtent: 135,
+        ),
+        itemCount: _meals.length,
         itemBuilder: (_, i) {
           final meal = _meals[i];
           return _buildMealCard(meal, l10n);
