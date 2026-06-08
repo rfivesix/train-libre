@@ -354,7 +354,9 @@ class _MainScreenState extends State<MainScreen>
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         Widget glassCard({required Widget child, EdgeInsets? padding}) {
           return Material(
-            color: Colors.white.withValues(alpha: isDark ? 0.06 : 0.08),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.06)
+                : Colors.black.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(18),
             child: Padding(
               padding: padding ??

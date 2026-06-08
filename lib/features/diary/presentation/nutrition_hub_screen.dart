@@ -281,6 +281,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       child: Padding(
         padding: const EdgeInsets.only(right: 12.0),
         child: SummaryCard(
+          padding: EdgeInsets.zero,
           child: InkWell(
             onTap: _createMealAndOpenEditor,
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
@@ -314,6 +315,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       child: Padding(
         padding: const EdgeInsets.only(right: 12.0),
         child: SummaryCard(
+          padding: EdgeInsets.zero,
           child: InkWell(
             onTap: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => MealScreen(meal: meal)))
