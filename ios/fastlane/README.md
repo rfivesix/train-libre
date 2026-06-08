@@ -21,7 +21,7 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 [bundle exec] fastlane ios test_build
 ```
 
-Local iOS compilation test without uploading to TestFlight
+Run dry-run verification checks locally
 
 ### ios beta
 
@@ -29,7 +29,7 @@ Local iOS compilation test without uploading to TestFlight
 [bundle exec] fastlane ios beta
 ```
 
-Build IPA and upload to Apple TestFlight
+Process version incrementing and upload to Apple TestFlight
 
 ----
 
