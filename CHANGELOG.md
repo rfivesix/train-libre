@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.22] - 2026-06-08
+### Added
+- **Dynamic Glassmorphic Shader Quality Degradation**: Implemented `GlassPerformanceManager` singleton to dynamically adjust glass rendering quality (`premium`, `standard`, `minimal`) based on sliding-window raster FrameTiming performance and hardware frame budgets.
+- **Route-Aware Render Complexity Gating**: Integrated invisible route-aware quality transitions to apply quality downgrades on push-route transitions and quality upgrades on pop-route re-entry.
+- **Fade-Transition Shader Cross-Fade Shield**: Refactored the persistent `RunningWorkoutOverlay` to perform quality shader swaps at zero opacity via a 120ms `FadeTransition` animation shield to eliminate quality "pop-in" visual flicker.
+- **Speed Dial Quality Binding**: Wired the `SpeedDialMenuOverlay` action buttons to consume active manager quality dynamically using a `ValueListenableBuilder`.
+- **Expanded Recovery Tracker Muscle Groups**: Expanded the master tracking array to track 13 primary muscle groups, adding `Muscle.adductors`, `Muscle.lowerBack`, and `Muscle.forearms` to target lists, status badges, and recovery calculations.
+
+### Changed
+- **Centralized Design Constants**: Migrated and refactored all glassmorphic widgets (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) to utilize unified styling tokens defined in `DesignConstants` (`glassShadow`, `glassNeutralTint`, `glassColor`, and `liquidGlassSettings`).
+- **Removed Android Bottom Bar Quality Override**: Removed target platform checks that restricted the bottom navigation bar's tap indicator to standard/medium quality on Android devices, allowing it to leverage dynamic/configured quality settings.
+- **3-Zone Accordion Compacting Architecture for Recovery Tracker**: Refactored the scrollable list layer in `recovery_tracker_screen.dart` to group all 13 core muscle metrics into exactly three master expandable categories based on recovery status: "In Erholung" (In Recovery - expanded by default), "Gemischt / Bereit" (Mixed / Ready - expanded by default), and "Frisch" (Fresh - collapsed by default). Each zone card features a color-coded status dot, a horizontal minimalist muscle preview chip loop, an animated rotation disclosure chevron, and smooth expansion/collapse cross-fade transitions.
+
+
+### Fixed
+- **Liquid Glass Shadow Clipping**: Integrated `ShadowOuterClipper` across all Liquid Glass components (bottom navigation, FAB, workout overlay, speed dial actions) to strictly clip drop shadows from behind the transparent glass elements, keeping the backgrounds bright and translucent.
+- **Anatomical Body Highlighter Canvas Mappings**: Synchronized SVG path mappings in local package `flutter_body_highlighter` (and bumped version to 1.0.3) to resolve blank forearms, map lateral head triceps (front view), neck muscles (back view), erector spinae (lower back), isolated tibialis anterior (shin-adjacent), and inner-thigh adductors insertion (back view).
+- **Neck & Traps Visual Merge**: Merged the posterior neck SVG paths directly into the `trapezius` map entry in `flutter_body_highlighter` (v1.0.3) and routed all legacy neck/lower neck raw mappings to the `trapezius` token to eliminate the uncolored gap on the back view.
+- **Adductor Logging Pipeline Repair**: Fixed the state query aggregation pipeline to resolve naming variance drops for adductors by mapping raw input strings to major muscle groups before fatigue load evaluation threshold filtering.
+
 ## [0.9.21] - 2026-06-07
 ### Changed
 - **Default Visual Style Swap**: Swapped the out-of-the-box visual style preference default from "Flüssig (Liquid Glass)" (index `1`) to "Standard (Glas)" (index `0`) in `ThemeService` so new app installations default to the frosted standard glass style.
@@ -12,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Standard Glass Shader Pipeline Upgrade**: Migrated the standard visual style (`visualStyle == 0`) branch across multiple components (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) from legacy native `BackdropFilter` and solid container fallbacks onto the unified `AdaptiveGlass` shader pipeline from the `liquid_glass_widgets` package.
 - **Light Mode Tint Harmonization**: Fixed Light Mode background burnout/clipping issues where the bottom bar and FAB appeared muddy, dark, and dirty-grey or clipped into raw white by aligning their background `neutralTint` to a clean, bright, semi-transparent white (`Colors.white.withValues(alpha: 0.10)`), matching the functioning `RunningWorkoutOverlay` background exactly.
 - **Ambient Shadow Matrix Unification**: Unified and applied the deep physical depth shadow matrix (`BoxShadow` with `blurRadius: 12`, `offset: Offset(0, 6)`, `Colors.black` at `30%` opacity) across both standard (`visualStyle == 0`) and liquid (`visualStyle == 1`) navigation components to eliminate visual rift and restore parity with the workout overlay.
+- **Liquid Mode Shadow & FAB Refinement**: Added physical drop shadows to the navigation bar, workout overlay, and speed dial action buttons in Liquid Glass mode for visual parity. Fixed the muddy dark grey appearance of the Floating Action Button in Liquid Mode by removing the redundant solid black background layer..
 
 ## [0.9.20] - 2026-06-07
 ### Added

@@ -730,10 +730,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       }..removeAll(primary);
 
       for (final muscle in primary) {
+        final majorGroup = RecoveryDomainService.majorMuscleGroupFor(muscle);
+        if (majorGroup == null) continue;
         addMuscleContribution(
           workoutLogId: logRow.id,
           startTime: logRow.startTime,
-          muscle: muscle,
+          muscle: majorGroup,
           equivalentSets: 1.0,
           rir: setRow.rir,
           rpe: setRow.rpe,
@@ -741,10 +743,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       }
 
       for (final muscle in secondary) {
+        final majorGroup = RecoveryDomainService.majorMuscleGroupFor(muscle);
+        if (majorGroup == null) continue;
         addMuscleContribution(
           workoutLogId: logRow.id,
           startTime: logRow.startTime,
-          muscle: muscle,
+          muscle: majorGroup,
           equivalentSets: 0.3,
           rir: setRow.rir,
           rpe: setRow.rpe,
@@ -753,6 +757,27 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     }
 
     final Map<String, List<Map<String, dynamic>>> significantByMuscle = {};
+
+    // Master tracking array containing all 13 muscle groups.
+    final List<String> masterTrackingArray = [
+      'chest',
+      'back',
+      'shoulders',
+      'biceps',
+      'triceps',
+      'quads',
+      'hamstrings',
+      'glutes',
+      'calves',
+      'abs',
+      'adductors',
+      'lower back',
+      'forearms',
+    ];
+
+    for (final muscle in masterTrackingArray) {
+      significantByMuscle.putIfAbsent(muscle, () => []);
+    }
 
     for (final session in muscleSessionMap.values) {
       final eqSets = (session['equivalentSets'] as double);
@@ -772,6 +797,33 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     for (final entry in significantByMuscle.entries) {
       final muscle = entry.key; 
       final sessions = entry.value;
+
+      if (sessions.isEmpty) {
+        final recoveringUpper = RecoveryDomainService.recoveringUpperHours(
+          highSessionFatigue: false,
+          muscleGroup: muscle,
+          lastEquivalentSets: 0.0,
+        );
+        final readyUpper = RecoveryDomainService.readyUpperHours(
+          highSessionFatigue: false,
+          muscleGroup: muscle,
+          lastEquivalentSets: 0.0,
+        );
+        muscles.add({
+          'muscleGroup': muscle,
+          'state': RecoveryDomainService.stateFresh,
+          'hoursSinceLastSignificantLoad': 999.0,
+          'lastSignificantLoadAt': null,
+          'lastEquivalentSets': 0.0,
+          'avgRir': null,
+          'avgRpe': null,
+          'highSessionFatigue': false,
+          'recoveringUpperHours': recoveringUpper,
+          'readyUpperHours': readyUpper,
+        });
+        continue;
+      }
+
       sessions.sort(
         (a, b) =>
             (b['startTime'] as DateTime).compareTo(a['startTime'] as DateTime),
@@ -855,6 +907,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       );
     });
 
+    final hasData = muscles.any((m) => m['lastSignificantLoadAt'] != null);
+
     final recoveringCount = muscles
         .where((m) => m['state'] == RecoveryDomainService.stateRecovering)
         .length;
@@ -872,15 +926,15 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     );
 
     final result = {
-      'hasData': total > 0,
-      'overallState': overallState,
+      'hasData': hasData,
+      'overallState': hasData ? overallState : RecoveryDomainService.overallInsufficientData,
       'totals': {
-        RecoveryDomainService.stateRecovering: recoveringCount,
-        RecoveryDomainService.stateReady: readyCount,
-        RecoveryDomainService.stateFresh: freshCount,
-        'tracked': total,
+        RecoveryDomainService.stateRecovering: hasData ? recoveringCount : 0,
+        RecoveryDomainService.stateReady: hasData ? readyCount : 0,
+        RecoveryDomainService.stateFresh: hasData ? freshCount : 0,
+        'tracked': hasData ? total : 0,
       },
-      'muscles': muscles,
+      'muscles': hasData ? muscles : <Map<String, dynamic>>[],
     };
     PerfDebugTimer.logDuration(
       area: 'db',

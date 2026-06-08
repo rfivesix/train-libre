@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'features/sleep/presentation/sleep_navigation.dart';
 import 'generated/app_localizations.dart';
 import 'navigation/app_route_observer.dart';
+import 'core/performance/glass_performance_manager.dart';
 // App startup routing is delegated to the dedicated initializer screen.
 import 'features/app/presentation/app_initializer_screen.dart';
 import 'services/profile_service.dart';
@@ -602,10 +603,20 @@ class _MyAppState extends State<MyApp> {
           themeMode: themeService.themeMode,
           onGenerateRoute: SleepNavigation.onGenerateRoute,
           builder: (context, child) {
-            return GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              child: child,
+            return Listener(
+              onPointerDown: (_) =>
+                  GlassPerformanceManager().recordUserInteraction(),
+              onPointerMove: (_) =>
+                  GlassPerformanceManager().recordUserInteraction(),
+              onPointerHover: (_) =>
+                  GlassPerformanceManager().recordUserInteraction(),
+              onPointerSignal: (_) =>
+                  GlassPerformanceManager().recordUserInteraction(),
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                child: child,
+              ),
             );
           },
           home: widget.home,

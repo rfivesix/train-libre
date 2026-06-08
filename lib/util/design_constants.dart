@@ -1,5 +1,6 @@
 // lib/util/design_constants.dart
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 /// Central source of truth for design tokens including spacing, radii, and padding.
 ///
@@ -82,4 +83,62 @@ class DesignConstants {
     left: 4.0,
     top: 4.0,
   );
+
+  // === GLASSMORPHISM ===
+  /// Unified shadow for glassmorphic elements.
+  static List<BoxShadow> get glassShadow => [
+        BoxShadow(
+          blurRadius: 12,
+          offset: const Offset(0, 6),
+          color: Colors.black.withValues(alpha: 0.30),
+        ),
+      ];
+
+  /// Unified neutral background color tint for glassmorphic elements.
+  static Color glassNeutralTint(bool isDark) =>
+      (isDark ? Colors.white : Colors.white).withValues(alpha: 0.10);
+
+  /// Unified base color tint for the glass shader.
+  static Color glassColor(bool isDark) =>
+      isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.15);
+
+  /// Unified settings for liquid glassmorphic rendering.
+  static LiquidGlassSettings liquidGlassSettings(bool isDark) =>
+      LiquidGlassSettings(
+        thickness: 30,
+        blur: 2.0,
+        glassColor: glassColor(isDark),
+        lightIntensity: isDark ? 0.55 : 0.80,
+        saturation: 1.20,
+      );
+}
+
+/// A custom clipper that clips out the inner area of a shape, leaving only
+/// the outer boundary visible. Used to draw drop shadows around transparent
+/// widgets without darkening the widgets themselves.
+class ShadowOuterClipper extends CustomClipper<Path> {
+  final double borderRadius;
+  final bool isOval;
+
+  ShadowOuterClipper({required this.borderRadius, this.isOval = false});
+
+  @override
+  Path getClip(Size size) {
+    final Path outer = Path()..addRect(Rect.fromLTWH(-100, -100, size.width + 200, size.height + 200));
+    final Path inner = Path();
+    if (isOval) {
+      inner.addOval(Rect.fromLTWH(0, 0, size.width, size.height));
+    } else {
+      inner.addRRect(RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        Radius.circular(borderRadius),
+      ));
+    }
+    return Path.combine(PathOperation.difference, outer, inner);
+  }
+
+  @override
+  bool shouldReclip(covariant ShadowOuterClipper oldClipper) {
+    return oldClipper.borderRadius != borderRadius || oldClipper.isOval != isOval;
+  }
 }

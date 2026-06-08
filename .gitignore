@@ -56,3 +56,7 @@ docs/node_modules/
 # AI Agents & Preflight Skills
 .agents/
 skills-lock.json
+
+# Fastlane local standalone bundles
+ios/vendor/bundle/
+ios/.bundle/

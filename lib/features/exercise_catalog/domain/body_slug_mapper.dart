@@ -37,13 +37,13 @@ class BodySlugMapper {
     ],
     'triceps': [BodyPartSlug.triceps],
     'quads': [BodyPartSlug.quadriceps],
-    'hamstrings': [BodyPartSlug.hamstring],
+    'hamstrings': [BodyPartSlug.hamstrings],
     'glutes': [BodyPartSlug.gluteal],
-    'calves': [BodyPartSlug.calves, BodyPartSlug.tibialis],
+    'calves': [BodyPartSlug.calves],
     'lower back': [BodyPartSlug.lowerBack],
     'abs': [BodyPartSlug.abs, BodyPartSlug.obliques],
-    'adductors': [BodyPartSlug.adductor],
-    'forearms': [BodyPartSlug.forearm],
+    'adductors': [BodyPartSlug.adductors],
+    'forearms': [BodyPartSlug.forearms],
   };
 
   /// Which side of the body each slug is visible on.
@@ -63,20 +63,19 @@ class BodySlugMapper {
     BodyPartSlug.biceps_short: BodySide.front,
     BodyPartSlug.quadriceps: BodySide.front,
     BodyPartSlug.abductors: BodySide.front,
-    BodyPartSlug.tibialis: BodySide.front,
-    BodyPartSlug.adductor: BodySide.front,
-    BodyPartSlug.neck: BodySide.front,
+    BodyPartSlug.tibialisAnterior: BodySide.front,
     // Back-only slugs
     BodyPartSlug.upperBack: BodySide.back,
     BodyPartSlug.lowerBack: BodySide.back,
     BodyPartSlug.backDeltoids: BodySide.back,
-    BodyPartSlug.triceps: BodySide.back,
     BodyPartSlug.gluteal: BodySide.back,
-    BodyPartSlug.hamstring: BodySide.back,
+    BodyPartSlug.hamstrings: BodySide.back,
     // Visible on both sides — no entry means shown on both
     // BodyPartSlug.trapezius → both (front collar and back neck area)
     // BodyPartSlug.calves → both (gastrocnemius has a rear silhouette entry)
-    // BodyPartSlug.forearm → both (SVG has paths on front + back views)
+    // BodyPartSlug.forearms → both (SVG has paths on front + back views)
+    // BodyPartSlug.triceps → both (lateral head silhouette visible from front)
+    // BodyPartSlug.adductors → both (deep inner-thigh visible on front and back)
   };
 
   /// Maps a single raw muscle name (e.g. `"chest"`, `"front delts"`,
@@ -87,7 +86,7 @@ class BodySlugMapper {
     final cleaned = rawName.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
 
     // Explicit manual mappings for specific muscle queries to bridge cleanly to visual slugs
-    if (cleaned == 'traps' || cleaned == 'trapezius') {
+    if (cleaned == 'traps' || cleaned == 'trapezius' || cleaned == 'neck' || cleaned == 'lower neck') {
       return [BodyPartSlug.trapezius];
     }
     if (cleaned == 'lower back' || cleaned == 'erector spinae' ||
@@ -96,10 +95,10 @@ class BodySlugMapper {
     }
     if (cleaned == 'adductor' || cleaned == 'adductors' ||
         cleaned == 'hip adductor' || cleaned == 'hip adductors') {
-      return [BodyPartSlug.adductor];
+      return [BodyPartSlug.adductors];
     }
     if (cleaned == 'forearm' || cleaned == 'forearms') {
-      return [BodyPartSlug.forearm];
+      return [BodyPartSlug.forearms];
     }
     if (cleaned.contains('biceps') || cleaned == 'brachialis') {
       return [

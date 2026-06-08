@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:provider/provider.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-import '../../../../services/theme_service.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../util/design_constants.dart';
+import '../../../../core/performance/glass_performance_manager.dart';
 
-class RunningWorkoutOverlay extends StatelessWidget {
+class RunningWorkoutOverlay extends StatefulWidget {
   final String elapsedDuration;
   final VoidCallback onContinue;
   final VoidCallback onDiscard;
@@ -18,41 +18,76 @@ class RunningWorkoutOverlay extends StatelessWidget {
   });
 
   @override
+  State<RunningWorkoutOverlay> createState() => _RunningWorkoutOverlayState();
+}
+
+class _RunningWorkoutOverlayState extends State<RunningWorkoutOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late GlassQuality _displayQuality;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayQuality = GlassPerformanceManager().qualityNotifier.value;
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+    _fadeController.value = 1.0;
+    GlassPerformanceManager().qualityNotifier.addListener(_onQualityChanged);
+  }
+
+  @override
+  void dispose() {
+    GlassPerformanceManager().qualityNotifier.removeListener(_onQualityChanged);
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  void _onQualityChanged() async {
+    final newQuality = GlassPerformanceManager().qualityNotifier.value;
+    if (newQuality != _displayQuality) {
+      await _fadeController.animateTo(0.0,
+          duration: const Duration(milliseconds: 60), curve: Curves.easeIn);
+      if (!mounted) return;
+      setState(() {
+        _displayQuality = newQuality;
+      });
+      await _fadeController.animateTo(1.0,
+          duration: const Duration(milliseconds: 60), curve: Curves.easeOut);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final themeService = context.watch<ThemeService>();
-
-    /*
-    final Color neutralTint = (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: isDark ? 0.1 : 0.10);
-   */
-    // Smarter liquid glass color: pure white translucent tint without solid gray base.
-    final Color effectiveGlass = isDark
-        ? Colors.white.withValues(alpha: 0.12)
-        : Colors.white.withValues(alpha: 0.15);
 
     Widget child = _RunningWorkoutRow(
-      timeText: elapsedDuration,
-      onContinue: onContinue,
-      onDiscard: onDiscard,
+      timeText: widget.elapsedDuration,
+      onContinue: widget.onContinue,
+      onDiscard: widget.onDiscard,
       l10n: l10n,
     );
 
-    if (themeService.visualStyle == 1) {
-      double radius = 37.0; // Half of height 74.0 for perfect pill
-      return Container(
+    double radius = 37.0; // Half of height 74.0 for perfect pill
+    return FadeTransition(
+      opacity: _fadeController,
+      child: Container(
         margin: const EdgeInsets.only(
             bottom: 16.0), // Yields exactly 20px gap above GlassBottomBar
         height: 74.0,
         child: Stack(
           children: [
-            // Shadow dimming layer underneath exactly like main_screen.dart
             Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.16),
-                  borderRadius: BorderRadius.circular(radius),
+              child: ClipPath(
+                clipper: ShadowOuterClipper(borderRadius: radius),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(radius),
+                    boxShadow: DesignConstants.glassShadow,
+                  ),
                 ),
               ),
             ),
@@ -62,62 +97,11 @@ class RunningWorkoutOverlay extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               alignment: Alignment.center,
               shape: LiquidRoundedSuperellipse(borderRadius: radius),
-              quality: GlassQuality.premium,
-              settings: LiquidGlassSettings(
-                thickness: 30,
-                blur: 2.0,
-                glassColor: effectiveGlass,
-                lightIntensity: isDark ? 0.55 : 0.80,
-                saturation: 1.20,
-              ),
+              quality: _displayQuality,
+              settings: DesignConstants.liquidGlassSettings(isDark),
               child: child,
             ),
           ],
-        ),
-      );
-    }
-    double radius = 20;
-    // Upgrade Standard Glass to AdaptiveGlass rendering pipeline
-    final Color neutralTint = (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: isDark ? 0.1 : 0.10);
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius.toDouble()),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-            color: Colors.black.withValues(alpha: 0.3),
-          ),
-        ],
-      ),
-      child: AdaptiveGlass(
-        settings: LiquidGlassSettings(
-          thickness: 30,
-          blur: 2.0,
-          glassColor: effectiveGlass,
-          lightIntensity: isDark ? 0.55 : 0.80,
-          saturation: 1.20,
-        ),
-        shape: LiquidRoundedRectangle(borderRadius: radius.toDouble()),
-        quality: GlassQuality.premium,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: neutralTint,
-            borderRadius: BorderRadius.circular(radius.toDouble()),
-          ),
-          foregroundDecoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(radius.toDouble()),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.30)
-                  : Colors.black.withValues(alpha: 0.10),
-              width: 1.5,
-            ),
-          ),
-          child: child,
         ),
       ),
     );

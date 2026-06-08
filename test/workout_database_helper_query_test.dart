@@ -829,9 +829,9 @@ void main() {
       expect(muscles['chest']!['lastEquivalentSets'], 1.0);
       expect(muscles['back']!['lastEquivalentSets'], 1.0);
       expect(muscles.keys, isNot(contains('front_delts')));
-      expect(muscles.keys, isNot(contains('quads')));
-      expect(muscles.keys, isNot(contains('hamstrings')));
-      expect(muscles.keys, isNot(contains('glutes')));
+      expect(muscles['quads']!['lastEquivalentSets'], 0.0);
+      expect(muscles['hamstrings']!['lastEquivalentSets'], 0.0);
+      expect(muscles['glutes']!['lastEquivalentSets'], 0.0);
     });
 
     test('getRecoveryAnalytics ignores sub-threshold muscle noise', () async {
@@ -922,7 +922,7 @@ void main() {
         14,
       );
       expect(muscles.keys, contains('biceps'));
-      expect(muscles.keys, isNot(contains('chest')));
+      expect(muscles['chest']!['lastEquivalentSets'], 0.0);
     });
 
     test('syncRoutineWithWorkout preserves correct template set type order (warmups first) when adding warmup sets', () async {
