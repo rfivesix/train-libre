@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Fix:** Restricted calorie adjustment notification banner strictly to the current date view in Diary.
 - **UX:** Configured 3-Zone master cards in Recovery Tracker to be collapsed by default for faster scanning.
 - **UI:** Removed leading food icons and converted vertical meal lists into space-adaptive horizontal grids.
+- **Nutrition Hub Card Overflow Fix**: Removed 12px default nested padding from horizontal meal overview cards, preventing layout overflows when translated action strings wrap to multiple lines.
+- **Light Mode Bottom Sheet Container Harmonization**: Corrected white-on-white visibility issues in workout and supplement selection bottom sheets under Light Mode by resolving card backgrounds to a transparent black color, ensuring outlines are clearly visible.
 
 ## [0.9.22] - 2026-06-08
 ### Added
