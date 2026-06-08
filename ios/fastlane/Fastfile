@@ -29,14 +29,14 @@ platform :ios do
       xcodeproj: "Runner.xcodeproj"
     )
 
-    # Locate the pre-compiled IPA artifact from the build step
-    ipa_path = Dir["../build/ios/ipa/*.ipa"].first
+    # Search recursively for the IPA artifact to prevent folder naming mismatches
+    ipa_path = Dir["../build/ios/ipa/**/*.ipa"].first
     UI.user_error!("No compiled IPA file found in build/ios/ipa/") unless ipa_path
 
     # Upload the IPA to TestFlight
     upload_to_testflight(
       ipa: ipa_path,
-      changelog: "Wir arbeiten ständig an Verbesserungen. Um den vollen Changelog einzusehen, besuche bitte unser GitHub Repository."
+      changelog: "We are constantly working on improvements. To view the full changelog, please visit our GitHub repository."
     )
   end
 end
