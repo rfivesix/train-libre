@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.23] - 2026-06-08
+### Changed
+- **SpeedDial Overlay Quality Isolation**: Decoupled the speed dial action buttons from dynamic performance telemetry and forced them to render with standard quality (`GlassQuality.standard`), eliminating dynamic quality degradation or toggling.
+
+### Fixed
+- **Bottom Navigation FAB Glassmorphic Blur Mismatch**: Fixed a visual discrepancy where the bottom navigation bar's circular FAB lost background blur (rendering flat white) when quality downgraded to `minimal`. Refactored `main_screen.dart` to bypass the package's built-in `extraButton` parameter, instead implementing a layout composition with a custom sibling `AdaptiveGlass` widget configured with `isInteractive: false` to guarantee consistent glassmorphic blur across all rendering quality levels.
+
 ## [0.9.22] - 2026-06-08
 ### Added
 - **Dynamic Glassmorphic Shader Quality Degradation**: Implemented `GlassPerformanceManager` singleton to dynamically adjust glass rendering quality (`premium`, `standard`, `minimal`) based on sliding-window raster FrameTiming performance and hardware frame budgets.

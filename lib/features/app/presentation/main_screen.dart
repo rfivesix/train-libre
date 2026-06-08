@@ -1270,73 +1270,101 @@ class _MainScreenState extends State<MainScreen>
                           fontFamily: 'Inter',
                           letterSpacing: -0.2,
                         ),
-                        child: GlassBottomBar(
-                          selectedIndex: _currentIndex,
-                          onTabSelected: _onNavigationTapped,
-                          barHeight: 74,
-                          barBorderRadius:
-                              37, // Half of height for perfectly rounded semi-circle ends
-                          tabWidth:
-                              null, // Stretches to occupy all horizontal space not taken by extraButton
-                          horizontalPadding: horizontalPadding,
-                          verticalPadding: verticalPadding,
-                          quality: _currentQuality,
-                          indicatorExpansion: 14,
-                          selectedIconColor: theme.colorScheme.primary,
-                          unselectedIconColor:
-                              isDark ? Colors.white : Colors.black,
-                          indicatorColor:
-                              (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.15),
-                          settings: DesignConstants.liquidGlassSettings(isDark),
-                          tabs: [
-                            GlassBottomBarTab(
-                              label: l10n.diary,
-                              icon: Icon(
-                                LucideIcons.notebook,
-                                key: _tourDiaryTabKey,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                            vertical: verticalPadding,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: GlassBottomBar(
+                                  selectedIndex: _currentIndex,
+                                  onTabSelected: _onNavigationTapped,
+                                  barHeight: 74,
+                                  barBorderRadius:
+                                      37, // Half of height for perfectly rounded semi-circle ends
+                                  tabWidth:
+                                      null, // Stretches to occupy all horizontal space
+                                  horizontalPadding: 0.0,
+                                  verticalPadding: 0.0,
+                                  quality: _currentQuality,
+                                  indicatorExpansion: 14,
+                                  selectedIconColor: theme.colorScheme.primary,
+                                  unselectedIconColor:
+                                      isDark ? Colors.white : Colors.black,
+                                  indicatorColor:
+                                      (isDark ? Colors.white : Colors.black)
+                                          .withValues(alpha: 0.15),
+                                  settings: DesignConstants.liquidGlassSettings(isDark),
+                                  tabs: [
+                                    GlassBottomBarTab(
+                                      label: l10n.diary,
+                                      icon: Icon(
+                                        LucideIcons.notebook,
+                                        key: _tourDiaryTabKey,
+                                      ),
+                                      activeIcon:
+                                          const Icon(LucideIcons.notebook),
+                                    ),
+                                    GlassBottomBarTab(
+                                      label: l10n.workout,
+                                      icon: Icon(
+                                        LucideIcons.dumbbell,
+                                        key: _tourWorkoutTabKey,
+                                      ),
+                                      activeIcon:
+                                          const Icon(LucideIcons.dumbbell),
+                                    ),
+                                    GlassBottomBarTab(
+                                      label: l10n.statistics,
+                                      icon: Icon(
+                                        LucideIcons.chart_no_axes_column,
+                                        key: _tourStatisticsTabKey,
+                                      ),
+                                      activeIcon: const Icon(
+                                          LucideIcons.chart_no_axes_column),
+                                    ),
+                                    GlassBottomBarTab(
+                                      label: l10n.nutrition,
+                                      icon: Icon(
+                                        LucideIcons.utensils,
+                                        key: _tourNutritionTabKey,
+                                      ),
+                                      activeIcon:
+                                          const Icon(LucideIcons.utensils),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              activeIcon:
-                                  const Icon(LucideIcons.notebook),
-                            ),
-                            GlassBottomBarTab(
-                              label: l10n.workout,
-                              icon: Icon(
-                                LucideIcons.dumbbell,
-                                key: _tourWorkoutTabKey,
+                              SizedBox(width: spacing),
+                              AdaptiveGlass(
+                                shape: const LiquidOval(),
+                                settings: DesignConstants.liquidGlassSettings(isDark),
+                                quality: _currentQuality,
+                                useOwnLayer: true,
+                                isInteractive: false, // Force blur in minimal quality
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    customBorder: const CircleBorder(),
+                                    onTap: _toggleAddMenu,
+                                    child: SizedBox(
+                                      width: extraButtonSize,
+                                      height: 74.0,
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.add,
+                                          key: _tourFabKey,
+                                          color: isDark ? Colors.white : Colors.black,
+                                          size: 28,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                              activeIcon:
-                                  const Icon(LucideIcons.dumbbell),
-                            ),
-                            GlassBottomBarTab(
-                              label: l10n.statistics,
-                              icon: Icon(
-                                LucideIcons.chart_no_axes_column,
-                                key: _tourStatisticsTabKey,
-                              ),
-                              activeIcon: const Icon(
-                                  LucideIcons.chart_no_axes_column),
-                            ),
-                            GlassBottomBarTab(
-                              label: l10n.nutrition,
-                              icon: Icon(
-                                LucideIcons.utensils,
-                                key: _tourNutritionTabKey,
-                              ),
-                              activeIcon:
-                                  const Icon(LucideIcons.utensils),
-                            ),
-                          ],
-                          extraButton: GlassBottomBarExtraButton(
-                            icon: Icon(
-                              Icons.add,
-                              key: _tourFabKey,
-                            ),
-                            label: 'Add',
-                            onTap: _toggleAddMenu,
-                            size: 74,
-                            iconColor:
-                                isDark ? Colors.white : Colors.black,
+                            ],
                           ),
                         ),
                       ),
