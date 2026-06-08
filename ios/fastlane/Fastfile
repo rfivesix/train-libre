@@ -1,9 +1,19 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Build IPA and upload to Apple TestFlight"
+  desc "Run dry-run verification checks locally"
+  lane :test_build do
+    UI.message("Executing dry-run release checks...")
+    if File.exist?("../Runner.xcodeproj")
+      UI.success("Xcode project structure verified successfully.")
+    else
+      UI.user_error!("Runner.xcodeproj could not be located in the expected directory.")
+    end
+  end
+
+  desc "Process version incrementing and upload to Apple TestFlight"
   lane :beta do
-    # Inkrementiert die Build-Nummer basierend auf dem App Store Stand
+    # Fetch the latest build number from TestFlight and increment Xcode configuration
     begin
       current_build = latest_testflight_build_number
       build_number = current_build + 1
@@ -19,15 +29,14 @@ platform :ios do
       xcodeproj: "Runner.xcodeproj"
     )
 
-    # Reiner iOS-Bau, da Core-Generierung und Pods bereits stehen
-    sh("cd .. && flutter build ipa --release --export-options-plist=ios/ExportOptions.plist")
-
+    # Locate the pre-compiled IPA artifact from the build step
     ipa_path = Dir["../build/ios/ipa/*.ipa"].first
-    UI.user_error!("No IPA file found in build/ios/ipa/") unless ipa_path
+    UI.user_error!("No compiled IPA file found in build/ios/ipa/") unless ipa_path
 
+    # Upload the IPA to TestFlight
     upload_to_testflight(
       ipa: ipa_path,
-      changelog: "We are constantly working on improvements. To view the full changelog, please visit our GitHub repository."
+      changelog: "Wir arbeiten ständig an Verbesserungen. Um den vollen Changelog einzusehen, besuche bitte unser GitHub Repository."
     )
   end
 end

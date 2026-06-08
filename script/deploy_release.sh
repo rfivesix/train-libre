@@ -5,7 +5,7 @@ set -e
 # Train Libre Automated Release Script (Android, iOS & GitHub)
 # ==============================================================================
 
-# Temporäre Datei für Release Notes
+# Temporary file to store extracted changelog release notes
 CHANGELOG_TEMP_FILE=$(mktemp /tmp/changelog-XXXXXX.md)
 cleanup() {
   rm -f "$CHANGELOG_TEMP_FILE"
@@ -63,7 +63,7 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
 fi
 
 # ------------------------------------------------------------------------------
-# STEP 3: Clean & Generate All Release Artifacts (Your Exact Chain)
+# STEP 3: Clean & Generate All Release Artifacts
 # ------------------------------------------------------------------------------
 echo "Running core build preparation pipeline..."
 flutter clean
@@ -79,6 +79,10 @@ echo "Preparing iOS Workspace & Native Pods..."
 cd ios
 pod install
 cd ..
+
+echo "Building iOS Production Release Artifact (IPA)..."
+# Execute flutter build ipa directly in the global shell environment to avoid Ruby path pollution inside Fastlane/Bundler
+flutter build ipa --release
 
 # ------------------------------------------------------------------------------
 # STEP 4: Changelog Extraction
@@ -151,6 +155,7 @@ echo "Triggering Fastlane for iOS Deployment..."
 cd ios
 
 if [ ! -f "Gemfile" ]; then
+  echo "Creating default Gemfile..."
   echo "source \"https://rubygems.org\"" > Gemfile
   echo "gem \"fastlane\"" >> Gemfile
 fi
@@ -162,6 +167,13 @@ fi
 bundle exec fastlane beta
 cd ..
 
+# ------------------------------------------------------------------------------
+# STEP 8: Clean Up Local Build Settings Changes
+# ------------------------------------------------------------------------------
+echo "Restoring dynamic build number variables in iOS project files..."
+git restore ios/Runner.xcodeproj/project.pbxproj ios/Runner/Info.plist
+
 echo "=============================================================================="
 echo "SUCCESS: Version v$VERSION_NUMBER deployed to GitHub (with Android Assets) & TestFlight!"
 echo "=============================================================================="
+
