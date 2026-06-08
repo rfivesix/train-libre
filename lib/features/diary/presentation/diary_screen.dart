@@ -609,7 +609,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             child: ListView(
               padding: finalPadding,
               children: [
-                if (viewModel.dailyNutrition != null)
+                if (viewModel.dailyNutrition != null &&
+                    viewModel.selectedDate.isSameDate(DateTime.now()))
                   RecommendationBanner(
                     currentCalories: viewModel.dailyNutrition!.targetCalories,
                   ),

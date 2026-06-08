@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - **Bottom Navigation FAB Glassmorphic Blur Mismatch**: Fixed a visual discrepancy where the bottom navigation bar's circular FAB lost background blur (rendering flat white) when quality downgraded to `minimal`. Refactored `main_screen.dart` to bypass the package's built-in `extraButton` parameter, instead implementing a layout composition with a custom sibling `AdaptiveGlass` widget configured with `isInteractive: false` to guarantee consistent glassmorphic blur across all rendering quality levels.
+- **Fix:** Restricted calorie adjustment notification banner strictly to the current date view in Diary.
+- **UX:** Configured 3-Zone master cards in Recovery Tracker to be collapsed by default for faster scanning.
+- **UI:** Removed leading food icons and converted vertical meal lists into space-adaptive horizontal grids.
 
 ## [0.9.22] - 2026-06-08
 ### Added

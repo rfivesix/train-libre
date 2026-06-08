@@ -49,8 +49,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   final ScrollController _scrollController = ScrollController();
   final Map<String, GlobalKey> _muscleKeys = {};
 
-  bool _isRecoveringExpanded = true;
-  bool _isReadyExpanded = true;
+  bool _isRecoveringExpanded = false;
+  bool _isReadyExpanded = false;
   bool _isFreshExpanded = false;
 
   bool _isLoading = true;
