@@ -106,7 +106,6 @@ class _GlassPillButtonState extends State<GlassPillButton>
         AdaptiveGlass(
           settings: DesignConstants.liquidGlassSettings(isDark),
           shape: LiquidRoundedSuperellipse(borderRadius: effectiveRadius),
-          quality: GlassQuality.premium,
           child: GlassGlow(
             glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
             glowRadius: 1.0,

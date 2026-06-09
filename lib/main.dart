@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'features/sleep/presentation/sleep_navigation.dart';
 import 'generated/app_localizations.dart';
 import 'navigation/app_route_observer.dart';
-import 'core/performance/glass_performance_manager.dart';
 // App startup routing is delegated to the dedicated initializer screen.
 import 'features/app/presentation/app_initializer_screen.dart';
 import 'services/profile_service.dart';
@@ -58,6 +57,12 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final hasAcceptedConsent = prefs.getBool('hasAcceptedConsent') ?? false;
 
+  // Load previously settled glass quality to avoid warmup jank on cold starts
+  final savedGlassQuality = prefs.getString('glass_quality');
+  final initialGlassQuality = savedGlassQuality != null
+      ? GlassQuality.values.byName(savedGlassQuality)
+      : null;
+
   final database = db.AppDatabase();
   DatabaseHelper.setDriftDb(database);
   final diaryLocalDataSource = DiaryLocalDataSource(database);
@@ -78,47 +83,56 @@ void main() async {
   final themeService = ThemeService(); // Create an instance
   final unitService = UnitService();
 
-  // Start the app with all required providers.
+  // Start the app with all required providers and Liquid Glass Setup.
   runApp(
-    MultiProvider(
-      providers: [
-        Provider<IDiaryRepository>(
-          create: (_) => NutritionRepository(
-            localDataSource: diaryLocalDataSource,
+    LiquidGlassWidgets.wrap(
+      adaptiveQuality: true,
+      adaptiveConfig: GlassAdaptiveScopeConfig(
+        initialQuality: initialGlassQuality,
+        allowStepUp: true,
+        onQualityChanged: (_, to) =>
+            prefs.setString('glass_quality', to.name),
+      ),
+      child: MultiProvider(
+        providers: [
+          Provider<IDiaryRepository>(
+            create: (_) => NutritionRepository(
+              localDataSource: diaryLocalDataSource,
+            ),
           ),
-        ),
-        Provider<IWorkoutRepository>.value(value: workoutRepository),
-        Provider<SupplementRepository>(
-          create: (_) => SupplementRepositoryImpl(
-            localDataSource: supplementLocalDataSource,
+          Provider<IWorkoutRepository>.value(value: workoutRepository),
+          Provider<SupplementRepository>(
+            create: (_) => SupplementRepositoryImpl(
+              localDataSource: supplementLocalDataSource,
+            ),
           ),
-        ),
-        Provider<IExerciseCatalogRepository>(
-          create: (_) => ExerciseCatalogRepository(
-            localDataSource: exerciseCatalogLocalDataSource,
+          Provider<IExerciseCatalogRepository>(
+            create: (_) => ExerciseCatalogRepository(
+              localDataSource: exerciseCatalogLocalDataSource,
+            ),
           ),
-        ),
-        Provider<IProfileRepository>(
-          create: (_) => ProfileRepository(
-            localDataSource: profileLocalDataSource,
+          Provider<IProfileRepository>(
+            create: (_) => ProfileRepository(
+              localDataSource: profileLocalDataSource,
+            ),
           ),
+          ChangeNotifierProvider.value(value: workoutSessionManager),
+          ChangeNotifierProvider(
+            create: (context) {
+              final profileService = ProfileService();
+              final repository = context.read<IProfileRepository>();
+              profileService.initialize(repository);
+              return profileService;
+            },
+          ),
+          ChangeNotifierProvider.value(value: unitService),
+          ChangeNotifierProvider.value(value: themeService),
+        ],
+        child: MyApp(
+          home: hasAcceptedConsent
+              ? const AppInitializerScreen()
+              : InitialConsentScreen(nextScreen: const AppInitializerScreen()),
         ),
-        ChangeNotifierProvider.value(value: workoutSessionManager),
-        ChangeNotifierProvider(
-          create: (context) {
-            final profileService = ProfileService();
-            final repository = context.read<IProfileRepository>();
-            profileService.initialize(repository);
-            return profileService;
-          },
-        ),
-        ChangeNotifierProvider.value(value: unitService),
-        ChangeNotifierProvider.value(value: themeService),
-      ],
-      child: MyApp(
-        home: hasAcceptedConsent
-            ? const AppInitializerScreen()
-            : InitialConsentScreen(nextScreen: const AppInitializerScreen()),
       ),
     ),
   );
@@ -603,20 +617,10 @@ class _MyAppState extends State<MyApp> {
           themeMode: themeService.themeMode,
           onGenerateRoute: SleepNavigation.onGenerateRoute,
           builder: (context, child) {
-            return Listener(
-              onPointerDown: (_) =>
-                  GlassPerformanceManager().recordUserInteraction(),
-              onPointerMove: (_) =>
-                  GlassPerformanceManager().recordUserInteraction(),
-              onPointerHover: (_) =>
-                  GlassPerformanceManager().recordUserInteraction(),
-              onPointerSignal: (_) =>
-                  GlassPerformanceManager().recordUserInteraction(),
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-                child: child,
-              ),
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: child,
             );
           },
           home: widget.home,

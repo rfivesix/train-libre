@@ -210,7 +210,6 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               saturation: 1.20,
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: r),
-            quality: GlassQuality.premium,
             child: Stack(
               children: [
                 Positioned.fill(
@@ -357,7 +356,6 @@ class _GlassTile extends StatelessWidget {
         saturation: 1.20,
       ),
       shape: const LiquidRoundedSuperellipse(borderRadius: 18),
-      quality: GlassQuality.premium,
       child: Material(
         color: Colors.transparent,
         child: InkWell(

@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.24] - 2026-06-09
+### Added
+- **Nested Locked Glassmorphic Adaptive Scopes**: Introduced nested, locked `GlassAdaptiveScope` wrappers (`minQuality: GlassQuality.premium, maxQuality: GlassQuality.premium`) around the bottom navigation bar, workout overlay, and FAB. This prevents these core elements from being downgraded by the performance-driven global adaptive quality ceiling during frame-dropping screen transitions.
+
+### Fixed
+- **Bottom Navigation Bar Quality Degradation**: Fixed a bug where returning from route transitions (such as speed dial option screens) demoted the navigation bar to medium quality (frosted fallback) while leaving the sibling action button in premium quality.
+- **Static Analysis Cleanup**: Resolved all remaining static analysis warnings by removing the unused `_isRouteActive` field, deleting redundant `didPushNext()` and `didPop()` overrides, cleaning up unnecessary `dart:ui` imports, and globally suppressing `experimental_member_use` warnings for the liquid glass widgets API.
+
 ## [0.9.23] - 2026-06-08
 ### Changed
 - **SpeedDial Overlay Quality Isolation**: Decoupled the speed dial action buttons from dynamic performance telemetry and forced them to render with standard quality (`GlassQuality.standard`), eliminating dynamic quality degradation or toggling.
