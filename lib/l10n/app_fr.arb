@@ -1,0 +1,56 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Train Libre",
+  "settingsTitle": "Paramètres",
+  "protein": "Protéines",
+  "carbs": "Glucides",
+  "fat": "Lipides",
+  "calories": "Calories",
+  "water": "Eau",
+  "steps": "Pas",
+  "cancel": "Annuler",
+  "save": "Enregistrer",
+  "delete": "Supprimer",
+  
+  "settingsBaseFoodLanguageTitle": "Langue d'affichage des aliments",
+  "settingsBaseFoodLanguageSubtitle": "Choisissez la langue à utiliser pour les noms des aliments de base.",
+  "settingsBaseFoodLanguageFollowApp": "Suivre la langue de l'application",
+  "settingsBaseFoodLanguageEnglish": "Anglais",
+  "settingsBaseFoodLanguageGerman": "Allemand",
+  "settingsBaseFoodLanguageFrench": "Français",
+  "settingsBaseFoodLanguageItalian": "Italien",
+  "settingsBaseFoodLanguageJapanese": "Japonais",
+  
+  "settingsFoodDbRegionTitle": "Région de la base de données",
+  "settingsFoodDbRegionSubtitle": "Sélectionnez la région du catalogue de produits Open Food Facts utilisée.",
+  "settingsFoodDbRegionDialogTitle": "Choisir la région de la base de données",
+  "settingsFoodDbRegionDialogSubtitle": "Cela modifie la source du catalogue Open Food Facts pour la recherche.",
+  "settingsFoodDbRegionGermany": "Allemagne (DE)",
+  "settingsFoodDbRegionSwitzerland": "Suisse (CH)",
+  "settingsFoodDbRegionUnitedStates": "États-Unis (US)",
+  "settingsFoodDbRegionUnitedKingdom": "Royaume-Uni (UK)",
+  "settingsFoodDbRegionFrance": "France (FR)",
+  "settingsFoodDbRegionItaly": "Italie (IT)",
+  "settingsFoodDbRegionJapan": "Japon (JP)",
+  "settingsFoodDbRegionChanged": "Région de la base de données définie sur {region}. Les modifications s'appliqueront lors du prochain cycle d'importation.",
+  "@settingsFoodDbRegionChanged": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "aiSettingsTitle": "Reconnaissance de repas par IA",
+  "aiSettingsDescription": "Configurer la détection de repas assistée par IA.",
+  "aiProviderLabel": "Fournisseur",
+  "aiModelLabel": "Modèle",
+  
+  "legal_section": "Mentions légales et confidentialité",
+  "legal_notice": "Mentions légales",
+  "privacy_policy": "Charte de confidentialité",
+  "terms_of_service": "Conditions d'utilisation",
+  "legal_document_version": "Version du document",
+  "legal_document_last_updated": "Dernière mise à jour",
+  "view_in_browser": "Afficher dans le navigateur"
+}

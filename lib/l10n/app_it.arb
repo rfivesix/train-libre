@@ -1,0 +1,56 @@
+{
+  "@@locale": "it",
+  "appTitle": "Train Libre",
+  "settingsTitle": "Impostazioni",
+  "protein": "Proteine",
+  "carbs": "Carboidrati",
+  "fat": "Grassi",
+  "calories": "Calorie",
+  "water": "Acqua",
+  "steps": "Passi",
+  "cancel": "Annulla",
+  "save": "Salva",
+  "delete": "Elimina",
+  
+  "settingsBaseFoodLanguageTitle": "Lingua di visualizzazione cibo",
+  "settingsBaseFoodLanguageSubtitle": "Scegli la lingua per i nomi degli alimenti di base.",
+  "settingsBaseFoodLanguageFollowApp": "Segui la lingua dell'applicazione",
+  "settingsBaseFoodLanguageEnglish": "Inglese",
+  "settingsBaseFoodLanguageGerman": "Tedesco",
+  "settingsBaseFoodLanguageFrench": "Francese",
+  "settingsBaseFoodLanguageItalian": "Italiano",
+  "settingsBaseFoodLanguageJapanese": "Giapponese",
+  
+  "settingsFoodDbRegionTitle": "Regione del database",
+  "settingsFoodDbRegionSubtitle": "Seleziona la regione del catalogo prodotti Open Food Facts utilizzata.",
+  "settingsFoodDbRegionDialogTitle": "Scegli la regione del database",
+  "settingsFoodDbRegionDialogSubtitle": "Questo cambia la sorgente del catalogo Open Food Facts per la ricerca.",
+  "settingsFoodDbRegionGermany": "Germania (DE)",
+  "settingsFoodDbRegionSwitzerland": "Svizzera (CH)",
+  "settingsFoodDbRegionUnitedStates": "Stati Uniti (US)",
+  "settingsFoodDbRegionUnitedKingdom": "Regno Unito (UK)",
+  "settingsFoodDbRegionFrance": "Francia (FR)",
+  "settingsFoodDbRegionItaly": "Italia (IT)",
+  "settingsFoodDbRegionJapan": "Giappone (JP)",
+  "settingsFoodDbRegionChanged": "Regione del database impostata su {region}. Le modifiche verranno applicate al prossimo ciclo di importazione.",
+  "@settingsFoodDbRegionChanged": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "aiSettingsTitle": "Riconoscimento pasti tramite IA",
+  "aiSettingsDescription": "Configura il rilevamento dei pasti assistito da IA.",
+  "aiProviderLabel": "Fornitore",
+  "aiModelLabel": "Modello",
+  
+  "legal_section": "Informazioni legali e privacy",
+  "legal_notice": "Note legali",
+  "privacy_policy": "Informativa sulla privacy",
+  "terms_of_service": "Termini di servizio",
+  "legal_document_version": "Versione documento",
+  "legal_document_last_updated": "Ultimo aggiornamento",
+  "view_in_browser": "Visualizza nel browser"
+}

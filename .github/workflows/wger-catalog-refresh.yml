@@ -67,6 +67,10 @@ jobs:
           python -m py_compile script/build_wger_release_notes.py
           python -m py_compile script/publish_wger_run_summary.py
 
+      - name: Run unit tests
+        run: |
+          python -m unittest script/tests/test_wger_catalog_diff.py
+
       - name: Generate exercise catalog and build report
         id: generate
         run: |

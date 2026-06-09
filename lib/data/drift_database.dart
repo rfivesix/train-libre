@@ -62,12 +62,6 @@ class AppSettings extends Table with HybridId, MetaColumns {
 class Exercises extends Table with HybridId, MetaColumns {
   TextColumn get createdBy =>
       text().nullable()(); // Nullable for system exercises
-  TextColumn get nameDe => text()();
-  TextColumn get nameEn => text()();
-
-  // From old code: descriptions and category were important for the UI
-  TextColumn get descriptionDe => text().nullable()();
-  TextColumn get descriptionEn => text().nullable()();
   TextColumn get categoryName => text().nullable()();
   TextColumn get imagePath => text().nullable()();
 
@@ -82,6 +76,19 @@ class Exercises extends Table with HybridId, MetaColumns {
 
   TextColumn get replacesExerciseId =>
       text().nullable().references(Exercises, #id)();
+}
+
+class ExerciseTranslations extends Table with HybridId, MetaColumns {
+  TextColumn get exerciseId =>
+      text().references(Exercises, #id, onDelete: KeyAction.cascade)();
+  TextColumn get languageCode => text()(); // 'en', 'de', 'ja', 'fr', 'it'
+  TextColumn get name => text()();
+  TextColumn get description => text().nullable()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {exerciseId, languageCode}
+      ];
 }
 
 // 4. Routines
@@ -208,9 +215,17 @@ class Products extends Table with HybridId, MetaColumns {
   TextColumn get source =>
       text().withDefault(const Constant('user'))(); // off, user, base
 
-  TextColumn get category => text().nullable()(); // <-- Insert this line
+  TextColumn get category => text().nullable()();
 
   IntColumn get usageCount => integer().withDefault(const Constant(0))();
+
+  // Multi-Language Flat Columns (Version 23)
+  TextColumn get nameFr => text().nullable()();
+  TextColumn get categoryFr => text().nullable()();
+  TextColumn get nameIt => text().nullable()();
+  TextColumn get categoryIt => text().nullable()();
+  TextColumn get nameJa => text().nullable()();
+  TextColumn get categoryJa => text().nullable()();
 }
 
 // 12. NutritionLogs (replaces food_entries)
@@ -332,6 +347,9 @@ class FoodCategories extends Table {
   TextColumn get nameDe => text().nullable()();
   TextColumn get nameEn => text().nullable()();
   TextColumn get emoji => text().nullable()();
+  TextColumn get nameFr => text().nullable()();
+  TextColumn get nameIt => text().nullable()();
+  TextColumn get nameJa => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {key};
@@ -391,8 +409,6 @@ class WorkoutExerciseLogs extends Table with HybridId, MetaColumns {
 class UserFoodOverrides extends Table with HybridId, MetaColumns {
   TextColumn get barcode => text().unique()();
   TextColumn get name => text()();
-  TextColumn get nameDe => text().nullable()();
-  TextColumn get nameEn => text().nullable()();
   TextColumn get brand => text().nullable()();
   IntColumn get calories => integer()();
   RealColumn get protein => real()();
@@ -411,6 +427,18 @@ class UserFoodOverrides extends Table with HybridId, MetaColumns {
   BoolColumn get isFluid => boolean().withDefault(const Constant(false))();
   BoolColumn get isLiquid => boolean().withDefault(const Constant(false))();
   TextColumn get category => text().nullable()();
+}
+
+class UserFoodOverrideTranslations extends Table with HybridId, MetaColumns {
+  TextColumn get userFoodOverrideId =>
+      text().references(UserFoodOverrides, #id, onDelete: KeyAction.cascade)();
+  TextColumn get languageCode => text()(); // 'en', 'de', 'ja', 'fr', 'it'
+  TextColumn get name => text()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {userFoodOverrideId, languageCode}
+      ];
 }
 
 @DriftDatabase(
@@ -442,6 +470,8 @@ class UserFoodOverrides extends Table with HybridId, MetaColumns {
     HealthStepSegments,
     WorkoutExerciseLogs,
     UserFoodOverrides,
+    ExerciseTranslations,
+    UserFoodOverrideTranslations,
   ],
 )
 
@@ -450,7 +480,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -660,8 +690,59 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(exercises, exercises.replacesExerciseId);
             await customStatement("UPDATE exercises SET source = 'wger' WHERE source = 'base'");
           }
+          if (from < 23) {
+            // 1. Create translation tables
+            await m.createTable(exerciseTranslations);
+            await m.createTable(userFoodOverrideTranslations);
+
+            // 2. Backfill exercise translations
+            await customStatement('''
+              INSERT INTO exercise_translations (id, created_at, updated_at, exercise_id, language_code, name, description)
+              SELECT lower(hex(randomblob(16))), strftime('%s','now')*1000, strftime('%s','now')*1000, id, 'de', name_de, description_de
+              FROM exercises WHERE name_de IS NOT NULL AND name_de != '';
+            ''');
+            await customStatement('''
+              INSERT INTO exercise_translations (id, created_at, updated_at, exercise_id, language_code, name, description)
+              SELECT lower(hex(randomblob(16))), strftime('%s','now')*1000, strftime('%s','now')*1000, id, 'en', name_en, description_en
+              FROM exercises WHERE name_en IS NOT NULL AND name_en != '';
+            ''');
+
+            // 3. Backfill user food override translations
+            await customStatement('''
+              INSERT INTO user_food_override_translations (id, created_at, updated_at, user_food_override_id, language_code, name)
+              SELECT lower(hex(randomblob(16))), strftime('%s','now')*1000, strftime('%s','now')*1000, id, 'de', name_de
+              FROM user_food_overrides WHERE name_de IS NOT NULL AND name_de != '';
+            ''');
+            await customStatement('''
+              INSERT INTO user_food_override_translations (id, created_at, updated_at, user_food_override_id, language_code, name)
+              SELECT lower(hex(randomblob(16))), strftime('%s','now')*1000, strftime('%s','now')*1000, id, 'en', name_en
+              FROM user_food_overrides WHERE name_en IS NOT NULL AND name_en != '';
+            ''');
+
+            // 4. Alter products (base foods) and food_categories tables to add the flat columns
+            await m.addColumn(products, products.nameFr);
+            await m.addColumn(products, products.categoryFr);
+            await m.addColumn(products, products.nameIt);
+            await m.addColumn(products, products.categoryIt);
+            await m.addColumn(products, products.nameJa);
+            await m.addColumn(products, products.categoryJa);
+
+            await m.addColumn(foodCategories, foodCategories.nameFr);
+            await m.addColumn(foodCategories, foodCategories.nameIt);
+            await m.addColumn(foodCategories, foodCategories.nameJa);
+
+            // 5. Drop legacy columns
+            await customStatement('ALTER TABLE exercises DROP COLUMN name_de;');
+            await customStatement('ALTER TABLE exercises DROP COLUMN name_en;');
+            await customStatement('ALTER TABLE exercises DROP COLUMN description_de;');
+            await customStatement('ALTER TABLE exercises DROP COLUMN description_en;');
+
+            await customStatement('ALTER TABLE user_food_overrides DROP COLUMN name_de;');
+            await customStatement('ALTER TABLE user_food_overrides DROP COLUMN name_en;');
+          }
         },
       );
+
 }
 
 Future<void> _createPulsePersistenceSchema(GeneratedDatabase db) async {

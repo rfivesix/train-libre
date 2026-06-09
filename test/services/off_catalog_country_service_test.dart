@@ -77,7 +77,7 @@ void main() {
 
     test('invalid stored value safely falls back to default', () async {
       SharedPreferences.setMockInitialValues({
-        OffCatalogCountryService.preferenceKey: 'fr',
+        OffCatalogCountryService.preferenceKey: 'xx',
       });
       final prefs = await SharedPreferences.getInstance();
 

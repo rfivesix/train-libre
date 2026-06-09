@@ -7,6 +7,9 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_it.dart';
+import 'app_localizations_ja.dart';
 
 // ignore_for_file: type=lint
 
@@ -95,7 +98,10 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('de'),
-    Locale('en')
+    Locale('en'),
+    Locale('fr'),
+    Locale('it'),
+    Locale('ja')
   ];
 
   /// No description provided for @appTitle.
@@ -3931,6 +3937,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'United States (US)'**
   String get settingsFoodDbRegionUnitedStates;
+
+  /// No description provided for @settingsFoodDbRegionFrance.
+  ///
+  /// In en, this message translates to:
+  /// **'France (FR)'**
+  String get settingsFoodDbRegionFrance;
+
+  /// No description provided for @settingsFoodDbRegionItaly.
+  ///
+  /// In en, this message translates to:
+  /// **'Italy (IT)'**
+  String get settingsFoodDbRegionItaly;
+
+  /// No description provided for @settingsFoodDbRegionJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Japan (JP)'**
+  String get settingsFoodDbRegionJapan;
 
   /// No description provided for @settingsColorfulMacroBadgesTitle.
   ///
@@ -7986,6 +8010,24 @@ abstract class AppLocalizations {
   /// **'German'**
   String get settingsBaseFoodLanguageGerman;
 
+  /// No description provided for @settingsBaseFoodLanguageFrench.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get settingsBaseFoodLanguageFrench;
+
+  /// No description provided for @settingsBaseFoodLanguageItalian.
+  ///
+  /// In en, this message translates to:
+  /// **'Italian'**
+  String get settingsBaseFoodLanguageItalian;
+
+  /// No description provided for @settingsBaseFoodLanguageJapanese.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese'**
+  String get settingsBaseFoodLanguageJapanese;
+
   /// No description provided for @aiModelLabel.
   ///
   /// In en, this message translates to:
@@ -8749,7 +8791,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['de', 'en'].contains(locale.languageCode);
+      <String>['de', 'en', 'fr', 'it', 'ja'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -8762,6 +8804,12 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'it':
+      return AppLocalizationsIt();
+    case 'ja':
+      return AppLocalizationsJa();
   }
 
   throw FlutterError(

@@ -1319,28 +1319,6 @@ class $ExercisesTable extends Exercises
   late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
       'created_by', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _nameDeMeta = const VerificationMeta('nameDe');
-  @override
-  late final GeneratedColumn<String> nameDe = GeneratedColumn<String>(
-      'name_de', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _nameEnMeta = const VerificationMeta('nameEn');
-  @override
-  late final GeneratedColumn<String> nameEn = GeneratedColumn<String>(
-      'name_en', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _descriptionDeMeta =
-      const VerificationMeta('descriptionDe');
-  @override
-  late final GeneratedColumn<String> descriptionDe = GeneratedColumn<String>(
-      'description_de', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _descriptionEnMeta =
-      const VerificationMeta('descriptionEn');
-  @override
-  late final GeneratedColumn<String> descriptionEn = GeneratedColumn<String>(
-      'description_en', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _categoryNameMeta =
       const VerificationMeta('categoryName');
   @override
@@ -1407,10 +1385,6 @@ class $ExercisesTable extends Exercises
         updatedAt,
         deletedAt,
         createdBy,
-        nameDe,
-        nameEn,
-        descriptionDe,
-        descriptionEn,
         categoryName,
         imagePath,
         musclesPrimary,
@@ -1452,30 +1426,6 @@ class $ExercisesTable extends Exercises
     if (data.containsKey('created_by')) {
       context.handle(_createdByMeta,
           createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta));
-    }
-    if (data.containsKey('name_de')) {
-      context.handle(_nameDeMeta,
-          nameDe.isAcceptableOrUnknown(data['name_de']!, _nameDeMeta));
-    } else if (isInserting) {
-      context.missing(_nameDeMeta);
-    }
-    if (data.containsKey('name_en')) {
-      context.handle(_nameEnMeta,
-          nameEn.isAcceptableOrUnknown(data['name_en']!, _nameEnMeta));
-    } else if (isInserting) {
-      context.missing(_nameEnMeta);
-    }
-    if (data.containsKey('description_de')) {
-      context.handle(
-          _descriptionDeMeta,
-          descriptionDe.isAcceptableOrUnknown(
-              data['description_de']!, _descriptionDeMeta));
-    }
-    if (data.containsKey('description_en')) {
-      context.handle(
-          _descriptionEnMeta,
-          descriptionEn.isAcceptableOrUnknown(
-              data['description_en']!, _descriptionEnMeta));
     }
     if (data.containsKey('category_name')) {
       context.handle(
@@ -1540,14 +1490,6 @@ class $ExercisesTable extends Exercises
           .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
       createdBy: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}created_by']),
-      nameDe: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name_de'])!,
-      nameEn: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name_en'])!,
-      descriptionDe: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}description_de']),
-      descriptionEn: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}description_en']),
       categoryName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}category_name']),
       imagePath: attachedDatabase.typeMapping
@@ -1580,10 +1522,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
   final DateTime updatedAt;
   final DateTime? deletedAt;
   final String? createdBy;
-  final String nameDe;
-  final String nameEn;
-  final String? descriptionDe;
-  final String? descriptionEn;
   final String? categoryName;
   final String? imagePath;
   final String? musclesPrimary;
@@ -1599,10 +1537,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       required this.updatedAt,
       this.deletedAt,
       this.createdBy,
-      required this.nameDe,
-      required this.nameEn,
-      this.descriptionDe,
-      this.descriptionEn,
       this.categoryName,
       this.imagePath,
       this.musclesPrimary,
@@ -1623,14 +1557,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     }
     if (!nullToAbsent || createdBy != null) {
       map['created_by'] = Variable<String>(createdBy);
-    }
-    map['name_de'] = Variable<String>(nameDe);
-    map['name_en'] = Variable<String>(nameEn);
-    if (!nullToAbsent || descriptionDe != null) {
-      map['description_de'] = Variable<String>(descriptionDe);
-    }
-    if (!nullToAbsent || descriptionEn != null) {
-      map['description_en'] = Variable<String>(descriptionEn);
     }
     if (!nullToAbsent || categoryName != null) {
       map['category_name'] = Variable<String>(categoryName);
@@ -1665,14 +1591,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       createdBy: createdBy == null && nullToAbsent
           ? const Value.absent()
           : Value(createdBy),
-      nameDe: Value(nameDe),
-      nameEn: Value(nameEn),
-      descriptionDe: descriptionDe == null && nullToAbsent
-          ? const Value.absent()
-          : Value(descriptionDe),
-      descriptionEn: descriptionEn == null && nullToAbsent
-          ? const Value.absent()
-          : Value(descriptionEn),
       categoryName: categoryName == null && nullToAbsent
           ? const Value.absent()
           : Value(categoryName),
@@ -1704,10 +1622,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       createdBy: serializer.fromJson<String?>(json['createdBy']),
-      nameDe: serializer.fromJson<String>(json['nameDe']),
-      nameEn: serializer.fromJson<String>(json['nameEn']),
-      descriptionDe: serializer.fromJson<String?>(json['descriptionDe']),
-      descriptionEn: serializer.fromJson<String?>(json['descriptionEn']),
       categoryName: serializer.fromJson<String?>(json['categoryName']),
       imagePath: serializer.fromJson<String?>(json['imagePath']),
       musclesPrimary: serializer.fromJson<String?>(json['musclesPrimary']),
@@ -1729,10 +1643,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'createdBy': serializer.toJson<String?>(createdBy),
-      'nameDe': serializer.toJson<String>(nameDe),
-      'nameEn': serializer.toJson<String>(nameEn),
-      'descriptionDe': serializer.toJson<String?>(descriptionDe),
-      'descriptionEn': serializer.toJson<String?>(descriptionEn),
       'categoryName': serializer.toJson<String?>(categoryName),
       'imagePath': serializer.toJson<String?>(imagePath),
       'musclesPrimary': serializer.toJson<String?>(musclesPrimary),
@@ -1751,10 +1661,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           DateTime? updatedAt,
           Value<DateTime?> deletedAt = const Value.absent(),
           Value<String?> createdBy = const Value.absent(),
-          String? nameDe,
-          String? nameEn,
-          Value<String?> descriptionDe = const Value.absent(),
-          Value<String?> descriptionEn = const Value.absent(),
           Value<String?> categoryName = const Value.absent(),
           Value<String?> imagePath = const Value.absent(),
           Value<String?> musclesPrimary = const Value.absent(),
@@ -1770,12 +1676,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
         updatedAt: updatedAt ?? this.updatedAt,
         deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
         createdBy: createdBy.present ? createdBy.value : this.createdBy,
-        nameDe: nameDe ?? this.nameDe,
-        nameEn: nameEn ?? this.nameEn,
-        descriptionDe:
-            descriptionDe.present ? descriptionDe.value : this.descriptionDe,
-        descriptionEn:
-            descriptionEn.present ? descriptionEn.value : this.descriptionEn,
         categoryName:
             categoryName.present ? categoryName.value : this.categoryName,
         imagePath: imagePath.present ? imagePath.value : this.imagePath,
@@ -1799,14 +1699,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
-      nameDe: data.nameDe.present ? data.nameDe.value : this.nameDe,
-      nameEn: data.nameEn.present ? data.nameEn.value : this.nameEn,
-      descriptionDe: data.descriptionDe.present
-          ? data.descriptionDe.value
-          : this.descriptionDe,
-      descriptionEn: data.descriptionEn.present
-          ? data.descriptionEn.value
-          : this.descriptionEn,
       categoryName: data.categoryName.present
           ? data.categoryName.value
           : this.categoryName,
@@ -1836,10 +1728,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdBy: $createdBy, ')
-          ..write('nameDe: $nameDe, ')
-          ..write('nameEn: $nameEn, ')
-          ..write('descriptionDe: $descriptionDe, ')
-          ..write('descriptionEn: $descriptionEn, ')
           ..write('categoryName: $categoryName, ')
           ..write('imagePath: $imagePath, ')
           ..write('musclesPrimary: $musclesPrimary, ')
@@ -1860,10 +1748,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       updatedAt,
       deletedAt,
       createdBy,
-      nameDe,
-      nameEn,
-      descriptionDe,
-      descriptionEn,
       categoryName,
       imagePath,
       musclesPrimary,
@@ -1882,10 +1766,6 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
           other.createdBy == this.createdBy &&
-          other.nameDe == this.nameDe &&
-          other.nameEn == this.nameEn &&
-          other.descriptionDe == this.descriptionDe &&
-          other.descriptionEn == this.descriptionEn &&
           other.categoryName == this.categoryName &&
           other.imagePath == this.imagePath &&
           other.musclesPrimary == this.musclesPrimary &&
@@ -1903,10 +1783,6 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
   final Value<String?> createdBy;
-  final Value<String> nameDe;
-  final Value<String> nameEn;
-  final Value<String?> descriptionDe;
-  final Value<String?> descriptionEn;
   final Value<String?> categoryName;
   final Value<String?> imagePath;
   final Value<String?> musclesPrimary;
@@ -1922,10 +1798,6 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdBy = const Value.absent(),
-    this.nameDe = const Value.absent(),
-    this.nameEn = const Value.absent(),
-    this.descriptionDe = const Value.absent(),
-    this.descriptionEn = const Value.absent(),
     this.categoryName = const Value.absent(),
     this.imagePath = const Value.absent(),
     this.musclesPrimary = const Value.absent(),
@@ -1942,10 +1814,6 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdBy = const Value.absent(),
-    required String nameDe,
-    required String nameEn,
-    this.descriptionDe = const Value.absent(),
-    this.descriptionEn = const Value.absent(),
     this.categoryName = const Value.absent(),
     this.imagePath = const Value.absent(),
     this.musclesPrimary = const Value.absent(),
@@ -1954,8 +1822,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.source = const Value.absent(),
     this.usageCount = const Value.absent(),
     this.replacesExerciseId = const Value.absent(),
-  })  : nameDe = Value(nameDe),
-        nameEn = Value(nameEn);
+  });
   static Insertable<Exercise> custom({
     Expression<int>? localId,
     Expression<String>? id,
@@ -1963,10 +1830,6 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
     Expression<String>? createdBy,
-    Expression<String>? nameDe,
-    Expression<String>? nameEn,
-    Expression<String>? descriptionDe,
-    Expression<String>? descriptionEn,
     Expression<String>? categoryName,
     Expression<String>? imagePath,
     Expression<String>? musclesPrimary,
@@ -1983,10 +1846,6 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (createdBy != null) 'created_by': createdBy,
-      if (nameDe != null) 'name_de': nameDe,
-      if (nameEn != null) 'name_en': nameEn,
-      if (descriptionDe != null) 'description_de': descriptionDe,
-      if (descriptionEn != null) 'description_en': descriptionEn,
       if (categoryName != null) 'category_name': categoryName,
       if (imagePath != null) 'image_path': imagePath,
       if (musclesPrimary != null) 'muscles_primary': musclesPrimary,
@@ -2006,10 +1865,6 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       Value<DateTime>? updatedAt,
       Value<DateTime?>? deletedAt,
       Value<String?>? createdBy,
-      Value<String>? nameDe,
-      Value<String>? nameEn,
-      Value<String?>? descriptionDe,
-      Value<String?>? descriptionEn,
       Value<String?>? categoryName,
       Value<String?>? imagePath,
       Value<String?>? musclesPrimary,
@@ -2025,10 +1880,6 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
       createdBy: createdBy ?? this.createdBy,
-      nameDe: nameDe ?? this.nameDe,
-      nameEn: nameEn ?? this.nameEn,
-      descriptionDe: descriptionDe ?? this.descriptionDe,
-      descriptionEn: descriptionEn ?? this.descriptionEn,
       categoryName: categoryName ?? this.categoryName,
       imagePath: imagePath ?? this.imagePath,
       musclesPrimary: musclesPrimary ?? this.musclesPrimary,
@@ -2060,18 +1911,6 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     }
     if (createdBy.present) {
       map['created_by'] = Variable<String>(createdBy.value);
-    }
-    if (nameDe.present) {
-      map['name_de'] = Variable<String>(nameDe.value);
-    }
-    if (nameEn.present) {
-      map['name_en'] = Variable<String>(nameEn.value);
-    }
-    if (descriptionDe.present) {
-      map['description_de'] = Variable<String>(descriptionDe.value);
-    }
-    if (descriptionEn.present) {
-      map['description_en'] = Variable<String>(descriptionEn.value);
     }
     if (categoryName.present) {
       map['category_name'] = Variable<String>(categoryName.value);
@@ -2109,10 +1948,6 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdBy: $createdBy, ')
-          ..write('nameDe: $nameDe, ')
-          ..write('nameEn: $nameEn, ')
-          ..write('descriptionDe: $descriptionDe, ')
-          ..write('descriptionEn: $descriptionEn, ')
           ..write('categoryName: $categoryName, ')
           ..write('imagePath: $imagePath, ')
           ..write('musclesPrimary: $musclesPrimary, ')
@@ -6238,6 +6073,39 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _nameFrMeta = const VerificationMeta('nameFr');
+  @override
+  late final GeneratedColumn<String> nameFr = GeneratedColumn<String>(
+      'name_fr', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _categoryFrMeta =
+      const VerificationMeta('categoryFr');
+  @override
+  late final GeneratedColumn<String> categoryFr = GeneratedColumn<String>(
+      'category_fr', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameItMeta = const VerificationMeta('nameIt');
+  @override
+  late final GeneratedColumn<String> nameIt = GeneratedColumn<String>(
+      'name_it', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _categoryItMeta =
+      const VerificationMeta('categoryIt');
+  @override
+  late final GeneratedColumn<String> categoryIt = GeneratedColumn<String>(
+      'category_it', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameJaMeta = const VerificationMeta('nameJa');
+  @override
+  late final GeneratedColumn<String> nameJa = GeneratedColumn<String>(
+      'name_ja', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _categoryJaMeta =
+      const VerificationMeta('categoryJa');
+  @override
+  late final GeneratedColumn<String> categoryJa = GeneratedColumn<String>(
+      'category_ja', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -6268,7 +6136,13 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         isLiquid,
         source,
         category,
-        usageCount
+        usageCount,
+        nameFr,
+        categoryFr,
+        nameIt,
+        categoryIt,
+        nameJa,
+        categoryJa
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6422,6 +6296,36 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           usageCount.isAcceptableOrUnknown(
               data['usage_count']!, _usageCountMeta));
     }
+    if (data.containsKey('name_fr')) {
+      context.handle(_nameFrMeta,
+          nameFr.isAcceptableOrUnknown(data['name_fr']!, _nameFrMeta));
+    }
+    if (data.containsKey('category_fr')) {
+      context.handle(
+          _categoryFrMeta,
+          categoryFr.isAcceptableOrUnknown(
+              data['category_fr']!, _categoryFrMeta));
+    }
+    if (data.containsKey('name_it')) {
+      context.handle(_nameItMeta,
+          nameIt.isAcceptableOrUnknown(data['name_it']!, _nameItMeta));
+    }
+    if (data.containsKey('category_it')) {
+      context.handle(
+          _categoryItMeta,
+          categoryIt.isAcceptableOrUnknown(
+              data['category_it']!, _categoryItMeta));
+    }
+    if (data.containsKey('name_ja')) {
+      context.handle(_nameJaMeta,
+          nameJa.isAcceptableOrUnknown(data['name_ja']!, _nameJaMeta));
+    }
+    if (data.containsKey('category_ja')) {
+      context.handle(
+          _categoryJaMeta,
+          categoryJa.isAcceptableOrUnknown(
+              data['category_ja']!, _categoryJaMeta));
+    }
     return context;
   }
 
@@ -6490,6 +6394,18 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           .read(DriftSqlType.string, data['${effectivePrefix}category']),
       usageCount: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}usage_count'])!,
+      nameFr: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_fr']),
+      categoryFr: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category_fr']),
+      nameIt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_it']),
+      categoryIt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category_it']),
+      nameJa: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_ja']),
+      categoryJa: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category_ja']),
     );
   }
 
@@ -6529,6 +6445,12 @@ class Product extends DataClass implements Insertable<Product> {
   final String source;
   final String? category;
   final int usageCount;
+  final String? nameFr;
+  final String? categoryFr;
+  final String? nameIt;
+  final String? categoryIt;
+  final String? nameJa;
+  final String? categoryJa;
   const Product(
       {required this.localId,
       required this.id,
@@ -6558,7 +6480,13 @@ class Product extends DataClass implements Insertable<Product> {
       required this.isLiquid,
       required this.source,
       this.category,
-      required this.usageCount});
+      required this.usageCount,
+      this.nameFr,
+      this.categoryFr,
+      this.nameIt,
+      this.categoryIt,
+      this.nameJa,
+      this.categoryJa});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -6622,6 +6550,24 @@ class Product extends DataClass implements Insertable<Product> {
       map['category'] = Variable<String>(category);
     }
     map['usage_count'] = Variable<int>(usageCount);
+    if (!nullToAbsent || nameFr != null) {
+      map['name_fr'] = Variable<String>(nameFr);
+    }
+    if (!nullToAbsent || categoryFr != null) {
+      map['category_fr'] = Variable<String>(categoryFr);
+    }
+    if (!nullToAbsent || nameIt != null) {
+      map['name_it'] = Variable<String>(nameIt);
+    }
+    if (!nullToAbsent || categoryIt != null) {
+      map['category_it'] = Variable<String>(categoryIt);
+    }
+    if (!nullToAbsent || nameJa != null) {
+      map['name_ja'] = Variable<String>(nameJa);
+    }
+    if (!nullToAbsent || categoryJa != null) {
+      map['category_ja'] = Variable<String>(categoryJa);
+    }
     return map;
   }
 
@@ -6679,6 +6625,21 @@ class Product extends DataClass implements Insertable<Product> {
           ? const Value.absent()
           : Value(category),
       usageCount: Value(usageCount),
+      nameFr:
+          nameFr == null && nullToAbsent ? const Value.absent() : Value(nameFr),
+      categoryFr: categoryFr == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryFr),
+      nameIt:
+          nameIt == null && nullToAbsent ? const Value.absent() : Value(nameIt),
+      categoryIt: categoryIt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryIt),
+      nameJa:
+          nameJa == null && nullToAbsent ? const Value.absent() : Value(nameJa),
+      categoryJa: categoryJa == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryJa),
     );
   }
 
@@ -6718,6 +6679,12 @@ class Product extends DataClass implements Insertable<Product> {
       source: serializer.fromJson<String>(json['source']),
       category: serializer.fromJson<String?>(json['category']),
       usageCount: serializer.fromJson<int>(json['usageCount']),
+      nameFr: serializer.fromJson<String?>(json['nameFr']),
+      categoryFr: serializer.fromJson<String?>(json['categoryFr']),
+      nameIt: serializer.fromJson<String?>(json['nameIt']),
+      categoryIt: serializer.fromJson<String?>(json['categoryIt']),
+      nameJa: serializer.fromJson<String?>(json['nameJa']),
+      categoryJa: serializer.fromJson<String?>(json['categoryJa']),
     );
   }
   @override
@@ -6754,6 +6721,12 @@ class Product extends DataClass implements Insertable<Product> {
       'source': serializer.toJson<String>(source),
       'category': serializer.toJson<String?>(category),
       'usageCount': serializer.toJson<int>(usageCount),
+      'nameFr': serializer.toJson<String?>(nameFr),
+      'categoryFr': serializer.toJson<String?>(categoryFr),
+      'nameIt': serializer.toJson<String?>(nameIt),
+      'categoryIt': serializer.toJson<String?>(categoryIt),
+      'nameJa': serializer.toJson<String?>(nameJa),
+      'categoryJa': serializer.toJson<String?>(categoryJa),
     };
   }
 
@@ -6786,7 +6759,13 @@ class Product extends DataClass implements Insertable<Product> {
           bool? isLiquid,
           String? source,
           Value<String?> category = const Value.absent(),
-          int? usageCount}) =>
+          int? usageCount,
+          Value<String?> nameFr = const Value.absent(),
+          Value<String?> categoryFr = const Value.absent(),
+          Value<String?> nameIt = const Value.absent(),
+          Value<String?> categoryIt = const Value.absent(),
+          Value<String?> nameJa = const Value.absent(),
+          Value<String?> categoryJa = const Value.absent()}) =>
       Product(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -6828,6 +6807,12 @@ class Product extends DataClass implements Insertable<Product> {
         source: source ?? this.source,
         category: category.present ? category.value : this.category,
         usageCount: usageCount ?? this.usageCount,
+        nameFr: nameFr.present ? nameFr.value : this.nameFr,
+        categoryFr: categoryFr.present ? categoryFr.value : this.categoryFr,
+        nameIt: nameIt.present ? nameIt.value : this.nameIt,
+        categoryIt: categoryIt.present ? categoryIt.value : this.categoryIt,
+        nameJa: nameJa.present ? nameJa.value : this.nameJa,
+        categoryJa: categoryJa.present ? categoryJa.value : this.categoryJa,
       );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
@@ -6873,6 +6858,15 @@ class Product extends DataClass implements Insertable<Product> {
       category: data.category.present ? data.category.value : this.category,
       usageCount:
           data.usageCount.present ? data.usageCount.value : this.usageCount,
+      nameFr: data.nameFr.present ? data.nameFr.value : this.nameFr,
+      categoryFr:
+          data.categoryFr.present ? data.categoryFr.value : this.categoryFr,
+      nameIt: data.nameIt.present ? data.nameIt.value : this.nameIt,
+      categoryIt:
+          data.categoryIt.present ? data.categoryIt.value : this.categoryIt,
+      nameJa: data.nameJa.present ? data.nameJa.value : this.nameJa,
+      categoryJa:
+          data.categoryJa.present ? data.categoryJa.value : this.categoryJa,
     );
   }
 
@@ -6907,7 +6901,13 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('isLiquid: $isLiquid, ')
           ..write('source: $source, ')
           ..write('category: $category, ')
-          ..write('usageCount: $usageCount')
+          ..write('usageCount: $usageCount, ')
+          ..write('nameFr: $nameFr, ')
+          ..write('categoryFr: $categoryFr, ')
+          ..write('nameIt: $nameIt, ')
+          ..write('categoryIt: $categoryIt, ')
+          ..write('nameJa: $nameJa, ')
+          ..write('categoryJa: $categoryJa')
           ..write(')'))
         .toString();
   }
@@ -6942,7 +6942,13 @@ class Product extends DataClass implements Insertable<Product> {
         isLiquid,
         source,
         category,
-        usageCount
+        usageCount,
+        nameFr,
+        categoryFr,
+        nameIt,
+        categoryIt,
+        nameJa,
+        categoryJa
       ]);
   @override
   bool operator ==(Object other) =>
@@ -6976,7 +6982,13 @@ class Product extends DataClass implements Insertable<Product> {
           other.isLiquid == this.isLiquid &&
           other.source == this.source &&
           other.category == this.category &&
-          other.usageCount == this.usageCount);
+          other.usageCount == this.usageCount &&
+          other.nameFr == this.nameFr &&
+          other.categoryFr == this.categoryFr &&
+          other.nameIt == this.nameIt &&
+          other.categoryIt == this.categoryIt &&
+          other.nameJa == this.nameJa &&
+          other.categoryJa == this.categoryJa);
 }
 
 class ProductsCompanion extends UpdateCompanion<Product> {
@@ -7009,6 +7021,12 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<String> source;
   final Value<String?> category;
   final Value<int> usageCount;
+  final Value<String?> nameFr;
+  final Value<String?> categoryFr;
+  final Value<String?> nameIt;
+  final Value<String?> categoryIt;
+  final Value<String?> nameJa;
+  final Value<String?> categoryJa;
   const ProductsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -7039,6 +7057,12 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.source = const Value.absent(),
     this.category = const Value.absent(),
     this.usageCount = const Value.absent(),
+    this.nameFr = const Value.absent(),
+    this.categoryFr = const Value.absent(),
+    this.nameIt = const Value.absent(),
+    this.categoryIt = const Value.absent(),
+    this.nameJa = const Value.absent(),
+    this.categoryJa = const Value.absent(),
   });
   ProductsCompanion.insert({
     this.localId = const Value.absent(),
@@ -7070,6 +7094,12 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.source = const Value.absent(),
     this.category = const Value.absent(),
     this.usageCount = const Value.absent(),
+    this.nameFr = const Value.absent(),
+    this.categoryFr = const Value.absent(),
+    this.nameIt = const Value.absent(),
+    this.categoryIt = const Value.absent(),
+    this.nameJa = const Value.absent(),
+    this.categoryJa = const Value.absent(),
   })  : barcode = Value(barcode),
         name = Value(name),
         calories = Value(calories),
@@ -7106,6 +7136,12 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<String>? source,
     Expression<String>? category,
     Expression<int>? usageCount,
+    Expression<String>? nameFr,
+    Expression<String>? categoryFr,
+    Expression<String>? nameIt,
+    Expression<String>? categoryIt,
+    Expression<String>? nameJa,
+    Expression<String>? categoryJa,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -7139,6 +7175,12 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (source != null) 'source': source,
       if (category != null) 'category': category,
       if (usageCount != null) 'usage_count': usageCount,
+      if (nameFr != null) 'name_fr': nameFr,
+      if (categoryFr != null) 'category_fr': categoryFr,
+      if (nameIt != null) 'name_it': nameIt,
+      if (categoryIt != null) 'category_it': categoryIt,
+      if (nameJa != null) 'name_ja': nameJa,
+      if (categoryJa != null) 'category_ja': categoryJa,
     });
   }
 
@@ -7171,7 +7213,13 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<bool>? isLiquid,
       Value<String>? source,
       Value<String?>? category,
-      Value<int>? usageCount}) {
+      Value<int>? usageCount,
+      Value<String?>? nameFr,
+      Value<String?>? categoryFr,
+      Value<String?>? nameIt,
+      Value<String?>? categoryIt,
+      Value<String?>? nameJa,
+      Value<String?>? categoryJa}) {
     return ProductsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -7203,6 +7251,12 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       source: source ?? this.source,
       category: category ?? this.category,
       usageCount: usageCount ?? this.usageCount,
+      nameFr: nameFr ?? this.nameFr,
+      categoryFr: categoryFr ?? this.categoryFr,
+      nameIt: nameIt ?? this.nameIt,
+      categoryIt: categoryIt ?? this.categoryIt,
+      nameJa: nameJa ?? this.nameJa,
+      categoryJa: categoryJa ?? this.categoryJa,
     );
   }
 
@@ -7298,6 +7352,24 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (usageCount.present) {
       map['usage_count'] = Variable<int>(usageCount.value);
     }
+    if (nameFr.present) {
+      map['name_fr'] = Variable<String>(nameFr.value);
+    }
+    if (categoryFr.present) {
+      map['category_fr'] = Variable<String>(categoryFr.value);
+    }
+    if (nameIt.present) {
+      map['name_it'] = Variable<String>(nameIt.value);
+    }
+    if (categoryIt.present) {
+      map['category_it'] = Variable<String>(categoryIt.value);
+    }
+    if (nameJa.present) {
+      map['name_ja'] = Variable<String>(nameJa.value);
+    }
+    if (categoryJa.present) {
+      map['category_ja'] = Variable<String>(categoryJa.value);
+    }
     return map;
   }
 
@@ -7332,7 +7404,13 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('isLiquid: $isLiquid, ')
           ..write('source: $source, ')
           ..write('category: $category, ')
-          ..write('usageCount: $usageCount')
+          ..write('usageCount: $usageCount, ')
+          ..write('nameFr: $nameFr, ')
+          ..write('categoryFr: $categoryFr, ')
+          ..write('nameIt: $nameIt, ')
+          ..write('categoryIt: $categoryIt, ')
+          ..write('nameJa: $nameJa, ')
+          ..write('categoryJa: $categoryJa')
           ..write(')'))
         .toString();
   }
@@ -12066,8 +12144,24 @@ class $FoodCategoriesTable extends FoodCategories
   late final GeneratedColumn<String> emoji = GeneratedColumn<String>(
       'emoji', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameFrMeta = const VerificationMeta('nameFr');
   @override
-  List<GeneratedColumn> get $columns => [key, nameDe, nameEn, emoji];
+  late final GeneratedColumn<String> nameFr = GeneratedColumn<String>(
+      'name_fr', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameItMeta = const VerificationMeta('nameIt');
+  @override
+  late final GeneratedColumn<String> nameIt = GeneratedColumn<String>(
+      'name_it', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _nameJaMeta = const VerificationMeta('nameJa');
+  @override
+  late final GeneratedColumn<String> nameJa = GeneratedColumn<String>(
+      'name_ja', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [key, nameDe, nameEn, emoji, nameFr, nameIt, nameJa];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -12096,6 +12190,18 @@ class $FoodCategoriesTable extends FoodCategories
       context.handle(
           _emojiMeta, emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta));
     }
+    if (data.containsKey('name_fr')) {
+      context.handle(_nameFrMeta,
+          nameFr.isAcceptableOrUnknown(data['name_fr']!, _nameFrMeta));
+    }
+    if (data.containsKey('name_it')) {
+      context.handle(_nameItMeta,
+          nameIt.isAcceptableOrUnknown(data['name_it']!, _nameItMeta));
+    }
+    if (data.containsKey('name_ja')) {
+      context.handle(_nameJaMeta,
+          nameJa.isAcceptableOrUnknown(data['name_ja']!, _nameJaMeta));
+    }
     return context;
   }
 
@@ -12113,6 +12219,12 @@ class $FoodCategoriesTable extends FoodCategories
           .read(DriftSqlType.string, data['${effectivePrefix}name_en']),
       emoji: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}emoji']),
+      nameFr: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_fr']),
+      nameIt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_it']),
+      nameJa: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_ja']),
     );
   }
 
@@ -12127,7 +12239,17 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
   final String? nameDe;
   final String? nameEn;
   final String? emoji;
-  const FoodCategory({required this.key, this.nameDe, this.nameEn, this.emoji});
+  final String? nameFr;
+  final String? nameIt;
+  final String? nameJa;
+  const FoodCategory(
+      {required this.key,
+      this.nameDe,
+      this.nameEn,
+      this.emoji,
+      this.nameFr,
+      this.nameIt,
+      this.nameJa});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -12141,6 +12263,15 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
     if (!nullToAbsent || emoji != null) {
       map['emoji'] = Variable<String>(emoji);
     }
+    if (!nullToAbsent || nameFr != null) {
+      map['name_fr'] = Variable<String>(nameFr);
+    }
+    if (!nullToAbsent || nameIt != null) {
+      map['name_it'] = Variable<String>(nameIt);
+    }
+    if (!nullToAbsent || nameJa != null) {
+      map['name_ja'] = Variable<String>(nameJa);
+    }
     return map;
   }
 
@@ -12153,6 +12284,12 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
           nameEn == null && nullToAbsent ? const Value.absent() : Value(nameEn),
       emoji:
           emoji == null && nullToAbsent ? const Value.absent() : Value(emoji),
+      nameFr:
+          nameFr == null && nullToAbsent ? const Value.absent() : Value(nameFr),
+      nameIt:
+          nameIt == null && nullToAbsent ? const Value.absent() : Value(nameIt),
+      nameJa:
+          nameJa == null && nullToAbsent ? const Value.absent() : Value(nameJa),
     );
   }
 
@@ -12164,6 +12301,9 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
       nameDe: serializer.fromJson<String?>(json['nameDe']),
       nameEn: serializer.fromJson<String?>(json['nameEn']),
       emoji: serializer.fromJson<String?>(json['emoji']),
+      nameFr: serializer.fromJson<String?>(json['nameFr']),
+      nameIt: serializer.fromJson<String?>(json['nameIt']),
+      nameJa: serializer.fromJson<String?>(json['nameJa']),
     );
   }
   @override
@@ -12174,6 +12314,9 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
       'nameDe': serializer.toJson<String?>(nameDe),
       'nameEn': serializer.toJson<String?>(nameEn),
       'emoji': serializer.toJson<String?>(emoji),
+      'nameFr': serializer.toJson<String?>(nameFr),
+      'nameIt': serializer.toJson<String?>(nameIt),
+      'nameJa': serializer.toJson<String?>(nameJa),
     };
   }
 
@@ -12181,12 +12324,18 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
           {String? key,
           Value<String?> nameDe = const Value.absent(),
           Value<String?> nameEn = const Value.absent(),
-          Value<String?> emoji = const Value.absent()}) =>
+          Value<String?> emoji = const Value.absent(),
+          Value<String?> nameFr = const Value.absent(),
+          Value<String?> nameIt = const Value.absent(),
+          Value<String?> nameJa = const Value.absent()}) =>
       FoodCategory(
         key: key ?? this.key,
         nameDe: nameDe.present ? nameDe.value : this.nameDe,
         nameEn: nameEn.present ? nameEn.value : this.nameEn,
         emoji: emoji.present ? emoji.value : this.emoji,
+        nameFr: nameFr.present ? nameFr.value : this.nameFr,
+        nameIt: nameIt.present ? nameIt.value : this.nameIt,
+        nameJa: nameJa.present ? nameJa.value : this.nameJa,
       );
   FoodCategory copyWithCompanion(FoodCategoriesCompanion data) {
     return FoodCategory(
@@ -12194,6 +12343,9 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
       nameDe: data.nameDe.present ? data.nameDe.value : this.nameDe,
       nameEn: data.nameEn.present ? data.nameEn.value : this.nameEn,
       emoji: data.emoji.present ? data.emoji.value : this.emoji,
+      nameFr: data.nameFr.present ? data.nameFr.value : this.nameFr,
+      nameIt: data.nameIt.present ? data.nameIt.value : this.nameIt,
+      nameJa: data.nameJa.present ? data.nameJa.value : this.nameJa,
     );
   }
 
@@ -12203,13 +12355,17 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
           ..write('key: $key, ')
           ..write('nameDe: $nameDe, ')
           ..write('nameEn: $nameEn, ')
-          ..write('emoji: $emoji')
+          ..write('emoji: $emoji, ')
+          ..write('nameFr: $nameFr, ')
+          ..write('nameIt: $nameIt, ')
+          ..write('nameJa: $nameJa')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(key, nameDe, nameEn, emoji);
+  int get hashCode =>
+      Object.hash(key, nameDe, nameEn, emoji, nameFr, nameIt, nameJa);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -12217,7 +12373,10 @@ class FoodCategory extends DataClass implements Insertable<FoodCategory> {
           other.key == this.key &&
           other.nameDe == this.nameDe &&
           other.nameEn == this.nameEn &&
-          other.emoji == this.emoji);
+          other.emoji == this.emoji &&
+          other.nameFr == this.nameFr &&
+          other.nameIt == this.nameIt &&
+          other.nameJa == this.nameJa);
 }
 
 class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
@@ -12225,12 +12384,18 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
   final Value<String?> nameDe;
   final Value<String?> nameEn;
   final Value<String?> emoji;
+  final Value<String?> nameFr;
+  final Value<String?> nameIt;
+  final Value<String?> nameJa;
   final Value<int> rowid;
   const FoodCategoriesCompanion({
     this.key = const Value.absent(),
     this.nameDe = const Value.absent(),
     this.nameEn = const Value.absent(),
     this.emoji = const Value.absent(),
+    this.nameFr = const Value.absent(),
+    this.nameIt = const Value.absent(),
+    this.nameJa = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FoodCategoriesCompanion.insert({
@@ -12238,6 +12403,9 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
     this.nameDe = const Value.absent(),
     this.nameEn = const Value.absent(),
     this.emoji = const Value.absent(),
+    this.nameFr = const Value.absent(),
+    this.nameIt = const Value.absent(),
+    this.nameJa = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : key = Value(key);
   static Insertable<FoodCategory> custom({
@@ -12245,6 +12413,9 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
     Expression<String>? nameDe,
     Expression<String>? nameEn,
     Expression<String>? emoji,
+    Expression<String>? nameFr,
+    Expression<String>? nameIt,
+    Expression<String>? nameJa,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -12252,6 +12423,9 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
       if (nameDe != null) 'name_de': nameDe,
       if (nameEn != null) 'name_en': nameEn,
       if (emoji != null) 'emoji': emoji,
+      if (nameFr != null) 'name_fr': nameFr,
+      if (nameIt != null) 'name_it': nameIt,
+      if (nameJa != null) 'name_ja': nameJa,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -12261,12 +12435,18 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
       Value<String?>? nameDe,
       Value<String?>? nameEn,
       Value<String?>? emoji,
+      Value<String?>? nameFr,
+      Value<String?>? nameIt,
+      Value<String?>? nameJa,
       Value<int>? rowid}) {
     return FoodCategoriesCompanion(
       key: key ?? this.key,
       nameDe: nameDe ?? this.nameDe,
       nameEn: nameEn ?? this.nameEn,
       emoji: emoji ?? this.emoji,
+      nameFr: nameFr ?? this.nameFr,
+      nameIt: nameIt ?? this.nameIt,
+      nameJa: nameJa ?? this.nameJa,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -12286,6 +12466,15 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
     if (emoji.present) {
       map['emoji'] = Variable<String>(emoji.value);
     }
+    if (nameFr.present) {
+      map['name_fr'] = Variable<String>(nameFr.value);
+    }
+    if (nameIt.present) {
+      map['name_it'] = Variable<String>(nameIt.value);
+    }
+    if (nameJa.present) {
+      map['name_ja'] = Variable<String>(nameJa.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -12299,6 +12488,9 @@ class FoodCategoriesCompanion extends UpdateCompanion<FoodCategory> {
           ..write('nameDe: $nameDe, ')
           ..write('nameEn: $nameEn, ')
           ..write('emoji: $emoji, ')
+          ..write('nameFr: $nameFr, ')
+          ..write('nameIt: $nameIt, ')
+          ..write('nameJa: $nameJa, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -14730,16 +14922,6 @@ class $UserFoodOverridesTable extends UserFoodOverrides
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _nameDeMeta = const VerificationMeta('nameDe');
-  @override
-  late final GeneratedColumn<String> nameDe = GeneratedColumn<String>(
-      'name_de', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _nameEnMeta = const VerificationMeta('nameEn');
-  @override
-  late final GeneratedColumn<String> nameEn = GeneratedColumn<String>(
-      'name_en', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _brandMeta = const VerificationMeta('brand');
   @override
   late final GeneratedColumn<String> brand = GeneratedColumn<String>(
@@ -14859,8 +15041,6 @@ class $UserFoodOverridesTable extends UserFoodOverrides
         deletedAt,
         barcode,
         name,
-        nameDe,
-        nameEn,
         brand,
         calories,
         protein,
@@ -14920,14 +15100,6 @@ class $UserFoodOverridesTable extends UserFoodOverrides
           _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
-    }
-    if (data.containsKey('name_de')) {
-      context.handle(_nameDeMeta,
-          nameDe.isAcceptableOrUnknown(data['name_de']!, _nameDeMeta));
-    }
-    if (data.containsKey('name_en')) {
-      context.handle(_nameEnMeta,
-          nameEn.isAcceptableOrUnknown(data['name_en']!, _nameEnMeta));
     }
     if (data.containsKey('brand')) {
       context.handle(
@@ -15045,10 +15217,6 @@ class $UserFoodOverridesTable extends UserFoodOverrides
           .read(DriftSqlType.string, data['${effectivePrefix}barcode'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      nameDe: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name_de']),
-      nameEn: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name_en']),
       brand: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}brand']),
       calories: attachedDatabase.typeMapping
@@ -15104,8 +15272,6 @@ class UserFoodOverride extends DataClass
   final DateTime? deletedAt;
   final String barcode;
   final String name;
-  final String? nameDe;
-  final String? nameEn;
   final String? brand;
   final int calories;
   final double protein;
@@ -15132,8 +15298,6 @@ class UserFoodOverride extends DataClass
       this.deletedAt,
       required this.barcode,
       required this.name,
-      this.nameDe,
-      this.nameEn,
       this.brand,
       required this.calories,
       required this.protein,
@@ -15164,12 +15328,6 @@ class UserFoodOverride extends DataClass
     }
     map['barcode'] = Variable<String>(barcode);
     map['name'] = Variable<String>(name);
-    if (!nullToAbsent || nameDe != null) {
-      map['name_de'] = Variable<String>(nameDe);
-    }
-    if (!nullToAbsent || nameEn != null) {
-      map['name_en'] = Variable<String>(nameEn);
-    }
     if (!nullToAbsent || brand != null) {
       map['brand'] = Variable<String>(brand);
     }
@@ -15227,10 +15385,6 @@ class UserFoodOverride extends DataClass
           : Value(deletedAt),
       barcode: Value(barcode),
       name: Value(name),
-      nameDe:
-          nameDe == null && nullToAbsent ? const Value.absent() : Value(nameDe),
-      nameEn:
-          nameEn == null && nullToAbsent ? const Value.absent() : Value(nameEn),
       brand:
           brand == null && nullToAbsent ? const Value.absent() : Value(brand),
       calories: Value(calories),
@@ -15282,8 +15436,6 @@ class UserFoodOverride extends DataClass
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       barcode: serializer.fromJson<String>(json['barcode']),
       name: serializer.fromJson<String>(json['name']),
-      nameDe: serializer.fromJson<String?>(json['nameDe']),
-      nameEn: serializer.fromJson<String?>(json['nameEn']),
       brand: serializer.fromJson<String?>(json['brand']),
       calories: serializer.fromJson<int>(json['calories']),
       protein: serializer.fromJson<double>(json['protein']),
@@ -15318,8 +15470,6 @@ class UserFoodOverride extends DataClass
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'barcode': serializer.toJson<String>(barcode),
       'name': serializer.toJson<String>(name),
-      'nameDe': serializer.toJson<String?>(nameDe),
-      'nameEn': serializer.toJson<String?>(nameEn),
       'brand': serializer.toJson<String?>(brand),
       'calories': serializer.toJson<int>(calories),
       'protein': serializer.toJson<double>(protein),
@@ -15350,8 +15500,6 @@ class UserFoodOverride extends DataClass
           Value<DateTime?> deletedAt = const Value.absent(),
           String? barcode,
           String? name,
-          Value<String?> nameDe = const Value.absent(),
-          Value<String?> nameEn = const Value.absent(),
           Value<String?> brand = const Value.absent(),
           int? calories,
           double? protein,
@@ -15378,8 +15526,6 @@ class UserFoodOverride extends DataClass
         deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
         barcode: barcode ?? this.barcode,
         name: name ?? this.name,
-        nameDe: nameDe.present ? nameDe.value : this.nameDe,
-        nameEn: nameEn.present ? nameEn.value : this.nameEn,
         brand: brand.present ? brand.value : this.brand,
         calories: calories ?? this.calories,
         protein: protein ?? this.protein,
@@ -15419,8 +15565,6 @@ class UserFoodOverride extends DataClass
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       barcode: data.barcode.present ? data.barcode.value : this.barcode,
       name: data.name.present ? data.name.value : this.name,
-      nameDe: data.nameDe.present ? data.nameDe.value : this.nameDe,
-      nameEn: data.nameEn.present ? data.nameEn.value : this.nameEn,
       brand: data.brand.present ? data.brand.value : this.brand,
       calories: data.calories.present ? data.calories.value : this.calories,
       protein: data.protein.present ? data.protein.value : this.protein,
@@ -15464,8 +15608,6 @@ class UserFoodOverride extends DataClass
           ..write('deletedAt: $deletedAt, ')
           ..write('barcode: $barcode, ')
           ..write('name: $name, ')
-          ..write('nameDe: $nameDe, ')
-          ..write('nameEn: $nameEn, ')
           ..write('brand: $brand, ')
           ..write('calories: $calories, ')
           ..write('protein: $protein, ')
@@ -15497,8 +15639,6 @@ class UserFoodOverride extends DataClass
         deletedAt,
         barcode,
         name,
-        nameDe,
-        nameEn,
         brand,
         calories,
         protein,
@@ -15529,8 +15669,6 @@ class UserFoodOverride extends DataClass
           other.deletedAt == this.deletedAt &&
           other.barcode == this.barcode &&
           other.name == this.name &&
-          other.nameDe == this.nameDe &&
-          other.nameEn == this.nameEn &&
           other.brand == this.brand &&
           other.calories == this.calories &&
           other.protein == this.protein &&
@@ -15559,8 +15697,6 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
   final Value<DateTime?> deletedAt;
   final Value<String> barcode;
   final Value<String> name;
-  final Value<String?> nameDe;
-  final Value<String?> nameEn;
   final Value<String?> brand;
   final Value<int> calories;
   final Value<double> protein;
@@ -15587,8 +15723,6 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
     this.deletedAt = const Value.absent(),
     this.barcode = const Value.absent(),
     this.name = const Value.absent(),
-    this.nameDe = const Value.absent(),
-    this.nameEn = const Value.absent(),
     this.brand = const Value.absent(),
     this.calories = const Value.absent(),
     this.protein = const Value.absent(),
@@ -15616,8 +15750,6 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
     this.deletedAt = const Value.absent(),
     required String barcode,
     required String name,
-    this.nameDe = const Value.absent(),
-    this.nameEn = const Value.absent(),
     this.brand = const Value.absent(),
     required int calories,
     required double protein,
@@ -15650,8 +15782,6 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
     Expression<DateTime>? deletedAt,
     Expression<String>? barcode,
     Expression<String>? name,
-    Expression<String>? nameDe,
-    Expression<String>? nameEn,
     Expression<String>? brand,
     Expression<int>? calories,
     Expression<double>? protein,
@@ -15679,8 +15809,6 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (barcode != null) 'barcode': barcode,
       if (name != null) 'name': name,
-      if (nameDe != null) 'name_de': nameDe,
-      if (nameEn != null) 'name_en': nameEn,
       if (brand != null) 'brand': brand,
       if (calories != null) 'calories': calories,
       if (protein != null) 'protein': protein,
@@ -15712,8 +15840,6 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
       Value<DateTime?>? deletedAt,
       Value<String>? barcode,
       Value<String>? name,
-      Value<String?>? nameDe,
-      Value<String?>? nameEn,
       Value<String?>? brand,
       Value<int>? calories,
       Value<double>? protein,
@@ -15740,8 +15866,6 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
       deletedAt: deletedAt ?? this.deletedAt,
       barcode: barcode ?? this.barcode,
       name: name ?? this.name,
-      nameDe: nameDe ?? this.nameDe,
-      nameEn: nameEn ?? this.nameEn,
       brand: brand ?? this.brand,
       calories: calories ?? this.calories,
       protein: protein ?? this.protein,
@@ -15787,12 +15911,6 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
-    }
-    if (nameDe.present) {
-      map['name_de'] = Variable<String>(nameDe.value);
-    }
-    if (nameEn.present) {
-      map['name_en'] = Variable<String>(nameEn.value);
     }
     if (brand.present) {
       map['brand'] = Variable<String>(brand.value);
@@ -15863,8 +15981,6 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
           ..write('deletedAt: $deletedAt, ')
           ..write('barcode: $barcode, ')
           ..write('name: $name, ')
-          ..write('nameDe: $nameDe, ')
-          ..write('nameEn: $nameEn, ')
           ..write('brand: $brand, ')
           ..write('calories: $calories, ')
           ..write('protein: $protein, ')
@@ -15883,6 +15999,923 @@ class UserFoodOverridesCompanion extends UpdateCompanion<UserFoodOverride> {
           ..write('isFluid: $isFluid, ')
           ..write('isLiquid: $isLiquid, ')
           ..write('category: $category')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExerciseTranslationsTable extends ExerciseTranslations
+    with TableInfo<$ExerciseTranslationsTable, ExerciseTranslation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExerciseTranslationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _exerciseIdMeta =
+      const VerificationMeta('exerciseId');
+  @override
+  late final GeneratedColumn<String> exerciseId = GeneratedColumn<String>(
+      'exercise_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES exercises (id) ON DELETE CASCADE'));
+  static const VerificationMeta _languageCodeMeta =
+      const VerificationMeta('languageCode');
+  @override
+  late final GeneratedColumn<String> languageCode = GeneratedColumn<String>(
+      'language_code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        exerciseId,
+        languageCode,
+        name,
+        description
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exercise_translations';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<ExerciseTranslation> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+          _exerciseIdMeta,
+          exerciseId.isAcceptableOrUnknown(
+              data['exercise_id']!, _exerciseIdMeta));
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('language_code')) {
+      context.handle(
+          _languageCodeMeta,
+          languageCode.isAcceptableOrUnknown(
+              data['language_code']!, _languageCodeMeta));
+    } else if (isInserting) {
+      context.missing(_languageCodeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {exerciseId, languageCode},
+      ];
+  @override
+  ExerciseTranslation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExerciseTranslation(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      exerciseId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}exercise_id'])!,
+      languageCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}language_code'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+    );
+  }
+
+  @override
+  $ExerciseTranslationsTable createAlias(String alias) {
+    return $ExerciseTranslationsTable(attachedDatabase, alias);
+  }
+}
+
+class ExerciseTranslation extends DataClass
+    implements Insertable<ExerciseTranslation> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String exerciseId;
+  final String languageCode;
+  final String name;
+  final String? description;
+  const ExerciseTranslation(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.exerciseId,
+      required this.languageCode,
+      required this.name,
+      this.description});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['exercise_id'] = Variable<String>(exerciseId);
+    map['language_code'] = Variable<String>(languageCode);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    return map;
+  }
+
+  ExerciseTranslationsCompanion toCompanion(bool nullToAbsent) {
+    return ExerciseTranslationsCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      exerciseId: Value(exerciseId),
+      languageCode: Value(languageCode),
+      name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+    );
+  }
+
+  factory ExerciseTranslation.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExerciseTranslation(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      exerciseId: serializer.fromJson<String>(json['exerciseId']),
+      languageCode: serializer.fromJson<String>(json['languageCode']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'exerciseId': serializer.toJson<String>(exerciseId),
+      'languageCode': serializer.toJson<String>(languageCode),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+    };
+  }
+
+  ExerciseTranslation copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? exerciseId,
+          String? languageCode,
+          String? name,
+          Value<String?> description = const Value.absent()}) =>
+      ExerciseTranslation(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        exerciseId: exerciseId ?? this.exerciseId,
+        languageCode: languageCode ?? this.languageCode,
+        name: name ?? this.name,
+        description: description.present ? description.value : this.description,
+      );
+  ExerciseTranslation copyWithCompanion(ExerciseTranslationsCompanion data) {
+    return ExerciseTranslation(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      exerciseId:
+          data.exerciseId.present ? data.exerciseId.value : this.exerciseId,
+      languageCode: data.languageCode.present
+          ? data.languageCode.value
+          : this.languageCode,
+      name: data.name.present ? data.name.value : this.name,
+      description:
+          data.description.present ? data.description.value : this.description,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseTranslation(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('name: $name, ')
+          ..write('description: $description')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
+      exerciseId, languageCode, name, description);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExerciseTranslation &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.exerciseId == this.exerciseId &&
+          other.languageCode == this.languageCode &&
+          other.name == this.name &&
+          other.description == this.description);
+}
+
+class ExerciseTranslationsCompanion
+    extends UpdateCompanion<ExerciseTranslation> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> exerciseId;
+  final Value<String> languageCode;
+  final Value<String> name;
+  final Value<String?> description;
+  const ExerciseTranslationsCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.exerciseId = const Value.absent(),
+    this.languageCode = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+  });
+  ExerciseTranslationsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String exerciseId,
+    required String languageCode,
+    required String name,
+    this.description = const Value.absent(),
+  })  : exerciseId = Value(exerciseId),
+        languageCode = Value(languageCode),
+        name = Value(name);
+  static Insertable<ExerciseTranslation> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? exerciseId,
+    Expression<String>? languageCode,
+    Expression<String>? name,
+    Expression<String>? description,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (languageCode != null) 'language_code': languageCode,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+    });
+  }
+
+  ExerciseTranslationsCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? exerciseId,
+      Value<String>? languageCode,
+      Value<String>? name,
+      Value<String?>? description}) {
+    return ExerciseTranslationsCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      exerciseId: exerciseId ?? this.exerciseId,
+      languageCode: languageCode ?? this.languageCode,
+      name: name ?? this.name,
+      description: description ?? this.description,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<String>(exerciseId.value);
+    }
+    if (languageCode.present) {
+      map['language_code'] = Variable<String>(languageCode.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseTranslationsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('name: $name, ')
+          ..write('description: $description')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserFoodOverrideTranslationsTable extends UserFoodOverrideTranslations
+    with
+        TableInfo<$UserFoodOverrideTranslationsTable,
+            UserFoodOverrideTranslation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserFoodOverrideTranslationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _userFoodOverrideIdMeta =
+      const VerificationMeta('userFoodOverrideId');
+  @override
+  late final GeneratedColumn<String> userFoodOverrideId =
+      GeneratedColumn<String>('user_food_override_id', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'REFERENCES user_food_overrides (id) ON DELETE CASCADE'));
+  static const VerificationMeta _languageCodeMeta =
+      const VerificationMeta('languageCode');
+  @override
+  late final GeneratedColumn<String> languageCode = GeneratedColumn<String>(
+      'language_code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        userFoodOverrideId,
+        languageCode,
+        name
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_food_override_translations';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<UserFoodOverrideTranslation> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('user_food_override_id')) {
+      context.handle(
+          _userFoodOverrideIdMeta,
+          userFoodOverrideId.isAcceptableOrUnknown(
+              data['user_food_override_id']!, _userFoodOverrideIdMeta));
+    } else if (isInserting) {
+      context.missing(_userFoodOverrideIdMeta);
+    }
+    if (data.containsKey('language_code')) {
+      context.handle(
+          _languageCodeMeta,
+          languageCode.isAcceptableOrUnknown(
+              data['language_code']!, _languageCodeMeta));
+    } else if (isInserting) {
+      context.missing(_languageCodeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {userFoodOverrideId, languageCode},
+      ];
+  @override
+  UserFoodOverrideTranslation map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserFoodOverrideTranslation(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      userFoodOverrideId: attachedDatabase.typeMapping.read(DriftSqlType.string,
+          data['${effectivePrefix}user_food_override_id'])!,
+      languageCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}language_code'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+    );
+  }
+
+  @override
+  $UserFoodOverrideTranslationsTable createAlias(String alias) {
+    return $UserFoodOverrideTranslationsTable(attachedDatabase, alias);
+  }
+}
+
+class UserFoodOverrideTranslation extends DataClass
+    implements Insertable<UserFoodOverrideTranslation> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String userFoodOverrideId;
+  final String languageCode;
+  final String name;
+  const UserFoodOverrideTranslation(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.userFoodOverrideId,
+      required this.languageCode,
+      required this.name});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['user_food_override_id'] = Variable<String>(userFoodOverrideId);
+    map['language_code'] = Variable<String>(languageCode);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  UserFoodOverrideTranslationsCompanion toCompanion(bool nullToAbsent) {
+    return UserFoodOverrideTranslationsCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      userFoodOverrideId: Value(userFoodOverrideId),
+      languageCode: Value(languageCode),
+      name: Value(name),
+    );
+  }
+
+  factory UserFoodOverrideTranslation.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserFoodOverrideTranslation(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      userFoodOverrideId:
+          serializer.fromJson<String>(json['userFoodOverrideId']),
+      languageCode: serializer.fromJson<String>(json['languageCode']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'userFoodOverrideId': serializer.toJson<String>(userFoodOverrideId),
+      'languageCode': serializer.toJson<String>(languageCode),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  UserFoodOverrideTranslation copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? userFoodOverrideId,
+          String? languageCode,
+          String? name}) =>
+      UserFoodOverrideTranslation(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        userFoodOverrideId: userFoodOverrideId ?? this.userFoodOverrideId,
+        languageCode: languageCode ?? this.languageCode,
+        name: name ?? this.name,
+      );
+  UserFoodOverrideTranslation copyWithCompanion(
+      UserFoodOverrideTranslationsCompanion data) {
+    return UserFoodOverrideTranslation(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      userFoodOverrideId: data.userFoodOverrideId.present
+          ? data.userFoodOverrideId.value
+          : this.userFoodOverrideId,
+      languageCode: data.languageCode.present
+          ? data.languageCode.value
+          : this.languageCode,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserFoodOverrideTranslation(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('userFoodOverrideId: $userFoodOverrideId, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
+      userFoodOverrideId, languageCode, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserFoodOverrideTranslation &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.userFoodOverrideId == this.userFoodOverrideId &&
+          other.languageCode == this.languageCode &&
+          other.name == this.name);
+}
+
+class UserFoodOverrideTranslationsCompanion
+    extends UpdateCompanion<UserFoodOverrideTranslation> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> userFoodOverrideId;
+  final Value<String> languageCode;
+  final Value<String> name;
+  const UserFoodOverrideTranslationsCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.userFoodOverrideId = const Value.absent(),
+    this.languageCode = const Value.absent(),
+    this.name = const Value.absent(),
+  });
+  UserFoodOverrideTranslationsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String userFoodOverrideId,
+    required String languageCode,
+    required String name,
+  })  : userFoodOverrideId = Value(userFoodOverrideId),
+        languageCode = Value(languageCode),
+        name = Value(name);
+  static Insertable<UserFoodOverrideTranslation> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? userFoodOverrideId,
+    Expression<String>? languageCode,
+    Expression<String>? name,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (userFoodOverrideId != null)
+        'user_food_override_id': userFoodOverrideId,
+      if (languageCode != null) 'language_code': languageCode,
+      if (name != null) 'name': name,
+    });
+  }
+
+  UserFoodOverrideTranslationsCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? userFoodOverrideId,
+      Value<String>? languageCode,
+      Value<String>? name}) {
+    return UserFoodOverrideTranslationsCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      userFoodOverrideId: userFoodOverrideId ?? this.userFoodOverrideId,
+      languageCode: languageCode ?? this.languageCode,
+      name: name ?? this.name,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (userFoodOverrideId.present) {
+      map['user_food_override_id'] = Variable<String>(userFoodOverrideId.value);
+    }
+    if (languageCode.present) {
+      map['language_code'] = Variable<String>(languageCode.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserFoodOverrideTranslationsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('userFoodOverrideId: $userFoodOverrideId, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('name: $name')
           ..write(')'))
         .toString();
   }
@@ -15927,6 +16960,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $WorkoutExerciseLogsTable(this);
   late final $UserFoodOverridesTable userFoodOverrides =
       $UserFoodOverridesTable(this);
+  late final $ExerciseTranslationsTable exerciseTranslations =
+      $ExerciseTranslationsTable(this);
+  late final $UserFoodOverrideTranslationsTable userFoodOverrideTranslations =
+      $UserFoodOverrideTranslationsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -15958,7 +16995,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         supplementSettingsHistory,
         healthStepSegments,
         workoutExerciseLogs,
-        userFoodOverrides
+        userFoodOverrides,
+        exerciseTranslations,
+        userFoodOverrideTranslations
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -16046,6 +17085,21 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('workout_exercise_logs', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('exercises',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('exercise_translations', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('user_food_overrides',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('user_food_override_translations',
+                  kind: UpdateKind.delete),
             ],
           ),
         ],
@@ -16817,10 +17871,6 @@ typedef $$ExercisesTableCreateCompanionBuilder = ExercisesCompanion Function({
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
   Value<String?> createdBy,
-  required String nameDe,
-  required String nameEn,
-  Value<String?> descriptionDe,
-  Value<String?> descriptionEn,
   Value<String?> categoryName,
   Value<String?> imagePath,
   Value<String?> musclesPrimary,
@@ -16837,10 +17887,6 @@ typedef $$ExercisesTableUpdateCompanionBuilder = ExercisesCompanion Function({
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
   Value<String?> createdBy,
-  Value<String> nameDe,
-  Value<String> nameEn,
-  Value<String?> descriptionDe,
-  Value<String?> descriptionEn,
   Value<String?> categoryName,
   Value<String?> imagePath,
   Value<String?> musclesPrimary,
@@ -16919,6 +17965,25 @@ final class $$ExercisesTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$ExerciseTranslationsTable,
+      List<ExerciseTranslation>> _exerciseTranslationsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.exerciseTranslations,
+          aliasName: $_aliasNameGenerator(
+              db.exercises.id, db.exerciseTranslations.exerciseId));
+
+  $$ExerciseTranslationsTableProcessedTableManager
+      get exerciseTranslationsRefs {
+    final manager = $$ExerciseTranslationsTableTableManager(
+            $_db, $_db.exerciseTranslations)
+        .filter((f) => f.exerciseId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_exerciseTranslationsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$ExercisesTableFilterComposer
@@ -16947,18 +18012,6 @@ class $$ExercisesTableFilterComposer
 
   ColumnFilters<String> get createdBy => $composableBuilder(
       column: $table.createdBy, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get nameDe => $composableBuilder(
-      column: $table.nameDe, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get nameEn => $composableBuilder(
-      column: $table.nameEn, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get descriptionDe => $composableBuilder(
-      column: $table.descriptionDe, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get descriptionEn => $composableBuilder(
-      column: $table.descriptionEn, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get categoryName => $composableBuilder(
       column: $table.categoryName, builder: (column) => ColumnFilters(column));
@@ -17065,6 +18118,28 @@ class $$ExercisesTableFilterComposer
             ));
     return f(composer);
   }
+
+  Expression<bool> exerciseTranslationsRefs(
+      Expression<bool> Function($$ExerciseTranslationsTableFilterComposer f)
+          f) {
+    final $$ExerciseTranslationsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.exerciseTranslations,
+        getReferencedColumn: (t) => t.exerciseId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ExerciseTranslationsTableFilterComposer(
+              $db: $db,
+              $table: $db.exerciseTranslations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$ExercisesTableOrderingComposer
@@ -17093,20 +18168,6 @@ class $$ExercisesTableOrderingComposer
 
   ColumnOrderings<String> get createdBy => $composableBuilder(
       column: $table.createdBy, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get nameDe => $composableBuilder(
-      column: $table.nameDe, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get nameEn => $composableBuilder(
-      column: $table.nameEn, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get descriptionDe => $composableBuilder(
-      column: $table.descriptionDe,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get descriptionEn => $composableBuilder(
-      column: $table.descriptionEn,
-      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get categoryName => $composableBuilder(
       column: $table.categoryName,
@@ -17179,18 +18240,6 @@ class $$ExercisesTableAnnotationComposer
 
   GeneratedColumn<String> get createdBy =>
       $composableBuilder(column: $table.createdBy, builder: (column) => column);
-
-  GeneratedColumn<String> get nameDe =>
-      $composableBuilder(column: $table.nameDe, builder: (column) => column);
-
-  GeneratedColumn<String> get nameEn =>
-      $composableBuilder(column: $table.nameEn, builder: (column) => column);
-
-  GeneratedColumn<String> get descriptionDe => $composableBuilder(
-      column: $table.descriptionDe, builder: (column) => column);
-
-  GeneratedColumn<String> get descriptionEn => $composableBuilder(
-      column: $table.descriptionEn, builder: (column) => column);
 
   GeneratedColumn<String> get categoryName => $composableBuilder(
       column: $table.categoryName, builder: (column) => column);
@@ -17297,6 +18346,29 @@ class $$ExercisesTableAnnotationComposer
                 ));
     return f(composer);
   }
+
+  Expression<T> exerciseTranslationsRefs<T extends Object>(
+      Expression<T> Function($$ExerciseTranslationsTableAnnotationComposer a)
+          f) {
+    final $$ExerciseTranslationsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.exerciseTranslations,
+            getReferencedColumn: (t) => t.exerciseId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$ExerciseTranslationsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.exerciseTranslations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$ExercisesTableTableManager extends RootTableManager<
@@ -17314,7 +18386,8 @@ class $$ExercisesTableTableManager extends RootTableManager<
         {bool replacesExerciseId,
         bool routineExercisesRefs,
         bool setLogsRefs,
-        bool workoutExerciseLogsRefs})> {
+        bool workoutExerciseLogsRefs,
+        bool exerciseTranslationsRefs})> {
   $$ExercisesTableTableManager(_$AppDatabase db, $ExercisesTable table)
       : super(TableManagerState(
           db: db,
@@ -17332,10 +18405,6 @@ class $$ExercisesTableTableManager extends RootTableManager<
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
             Value<String?> createdBy = const Value.absent(),
-            Value<String> nameDe = const Value.absent(),
-            Value<String> nameEn = const Value.absent(),
-            Value<String?> descriptionDe = const Value.absent(),
-            Value<String?> descriptionEn = const Value.absent(),
             Value<String?> categoryName = const Value.absent(),
             Value<String?> imagePath = const Value.absent(),
             Value<String?> musclesPrimary = const Value.absent(),
@@ -17352,10 +18421,6 @@ class $$ExercisesTableTableManager extends RootTableManager<
             updatedAt: updatedAt,
             deletedAt: deletedAt,
             createdBy: createdBy,
-            nameDe: nameDe,
-            nameEn: nameEn,
-            descriptionDe: descriptionDe,
-            descriptionEn: descriptionEn,
             categoryName: categoryName,
             imagePath: imagePath,
             musclesPrimary: musclesPrimary,
@@ -17372,10 +18437,6 @@ class $$ExercisesTableTableManager extends RootTableManager<
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
             Value<String?> createdBy = const Value.absent(),
-            required String nameDe,
-            required String nameEn,
-            Value<String?> descriptionDe = const Value.absent(),
-            Value<String?> descriptionEn = const Value.absent(),
             Value<String?> categoryName = const Value.absent(),
             Value<String?> imagePath = const Value.absent(),
             Value<String?> musclesPrimary = const Value.absent(),
@@ -17392,10 +18453,6 @@ class $$ExercisesTableTableManager extends RootTableManager<
             updatedAt: updatedAt,
             deletedAt: deletedAt,
             createdBy: createdBy,
-            nameDe: nameDe,
-            nameEn: nameEn,
-            descriptionDe: descriptionDe,
-            descriptionEn: descriptionEn,
             categoryName: categoryName,
             imagePath: imagePath,
             musclesPrimary: musclesPrimary,
@@ -17415,13 +18472,15 @@ class $$ExercisesTableTableManager extends RootTableManager<
               {replacesExerciseId = false,
               routineExercisesRefs = false,
               setLogsRefs = false,
-              workoutExerciseLogsRefs = false}) {
+              workoutExerciseLogsRefs = false,
+              exerciseTranslationsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (routineExercisesRefs) db.routineExercises,
                 if (setLogsRefs) db.setLogs,
-                if (workoutExerciseLogsRefs) db.workoutExerciseLogs
+                if (workoutExerciseLogsRefs) db.workoutExerciseLogs,
+                if (exerciseTranslationsRefs) db.exerciseTranslations
               ],
               addJoins: <
                   T extends TableManagerState<
@@ -17490,6 +18549,19 @@ class $$ExercisesTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.exerciseId == item.id),
+                        typedResults: items),
+                  if (exerciseTranslationsRefs)
+                    await $_getPrefetchedData<Exercise, $ExercisesTable,
+                            ExerciseTranslation>(
+                        currentTable: table,
+                        referencedTable: $$ExercisesTableReferences
+                            ._exerciseTranslationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ExercisesTableReferences(db, table, p0)
+                                .exerciseTranslationsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.exerciseId == item.id),
                         typedResults: items)
                 ];
               },
@@ -17513,7 +18585,8 @@ typedef $$ExercisesTableProcessedTableManager = ProcessedTableManager<
         {bool replacesExerciseId,
         bool routineExercisesRefs,
         bool setLogsRefs,
-        bool workoutExerciseLogsRefs})>;
+        bool workoutExerciseLogsRefs,
+        bool exerciseTranslationsRefs})>;
 typedef $$RoutinesTableCreateCompanionBuilder = RoutinesCompanion Function({
   Value<int> localId,
   Value<String> id,
@@ -20708,6 +21781,12 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   Value<String> source,
   Value<String?> category,
   Value<int> usageCount,
+  Value<String?> nameFr,
+  Value<String?> categoryFr,
+  Value<String?> nameIt,
+  Value<String?> categoryIt,
+  Value<String?> nameJa,
+  Value<String?> categoryJa,
 });
 typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<int> localId,
@@ -20739,6 +21818,12 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<String> source,
   Value<String?> category,
   Value<int> usageCount,
+  Value<String?> nameFr,
+  Value<String?> categoryFr,
+  Value<String?> nameIt,
+  Value<String?> categoryIt,
+  Value<String?> nameJa,
+  Value<String?> categoryJa,
 });
 
 final class $$ProductsTableReferences
@@ -20876,6 +21961,24 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<int> get usageCount => $composableBuilder(
       column: $table.usageCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameFr => $composableBuilder(
+      column: $table.nameFr, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get categoryFr => $composableBuilder(
+      column: $table.categoryFr, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameIt => $composableBuilder(
+      column: $table.nameIt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get categoryIt => $composableBuilder(
+      column: $table.categoryIt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameJa => $composableBuilder(
+      column: $table.nameJa, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get categoryJa => $composableBuilder(
+      column: $table.categoryJa, builder: (column) => ColumnFilters(column));
 
   Expression<bool> nutritionLogsRefs(
       Expression<bool> Function($$NutritionLogsTableFilterComposer f) f) {
@@ -21021,6 +22124,24 @@ class $$ProductsTableOrderingComposer
 
   ColumnOrderings<int> get usageCount => $composableBuilder(
       column: $table.usageCount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameFr => $composableBuilder(
+      column: $table.nameFr, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get categoryFr => $composableBuilder(
+      column: $table.categoryFr, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameIt => $composableBuilder(
+      column: $table.nameIt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get categoryIt => $composableBuilder(
+      column: $table.categoryIt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameJa => $composableBuilder(
+      column: $table.nameJa, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get categoryJa => $composableBuilder(
+      column: $table.categoryJa, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ProductsTableAnnotationComposer
@@ -21119,6 +22240,24 @@ class $$ProductsTableAnnotationComposer
   GeneratedColumn<int> get usageCount => $composableBuilder(
       column: $table.usageCount, builder: (column) => column);
 
+  GeneratedColumn<String> get nameFr =>
+      $composableBuilder(column: $table.nameFr, builder: (column) => column);
+
+  GeneratedColumn<String> get categoryFr => $composableBuilder(
+      column: $table.categoryFr, builder: (column) => column);
+
+  GeneratedColumn<String> get nameIt =>
+      $composableBuilder(column: $table.nameIt, builder: (column) => column);
+
+  GeneratedColumn<String> get categoryIt => $composableBuilder(
+      column: $table.categoryIt, builder: (column) => column);
+
+  GeneratedColumn<String> get nameJa =>
+      $composableBuilder(column: $table.nameJa, builder: (column) => column);
+
+  GeneratedColumn<String> get categoryJa => $composableBuilder(
+      column: $table.categoryJa, builder: (column) => column);
+
   Expression<T> nutritionLogsRefs<T extends Object>(
       Expression<T> Function($$NutritionLogsTableAnnotationComposer a) f) {
     final $$NutritionLogsTableAnnotationComposer composer = $composerBuilder(
@@ -21214,6 +22353,12 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String> source = const Value.absent(),
             Value<String?> category = const Value.absent(),
             Value<int> usageCount = const Value.absent(),
+            Value<String?> nameFr = const Value.absent(),
+            Value<String?> categoryFr = const Value.absent(),
+            Value<String?> nameIt = const Value.absent(),
+            Value<String?> categoryIt = const Value.absent(),
+            Value<String?> nameJa = const Value.absent(),
+            Value<String?> categoryJa = const Value.absent(),
           }) =>
               ProductsCompanion(
             localId: localId,
@@ -21245,6 +22390,12 @@ class $$ProductsTableTableManager extends RootTableManager<
             source: source,
             category: category,
             usageCount: usageCount,
+            nameFr: nameFr,
+            categoryFr: categoryFr,
+            nameIt: nameIt,
+            categoryIt: categoryIt,
+            nameJa: nameJa,
+            categoryJa: categoryJa,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -21276,6 +22427,12 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String> source = const Value.absent(),
             Value<String?> category = const Value.absent(),
             Value<int> usageCount = const Value.absent(),
+            Value<String?> nameFr = const Value.absent(),
+            Value<String?> categoryFr = const Value.absent(),
+            Value<String?> nameIt = const Value.absent(),
+            Value<String?> categoryIt = const Value.absent(),
+            Value<String?> nameJa = const Value.absent(),
+            Value<String?> categoryJa = const Value.absent(),
           }) =>
               ProductsCompanion.insert(
             localId: localId,
@@ -21307,6 +22464,12 @@ class $$ProductsTableTableManager extends RootTableManager<
             source: source,
             category: category,
             usageCount: usageCount,
+            nameFr: nameFr,
+            categoryFr: categoryFr,
+            nameIt: nameIt,
+            categoryIt: categoryIt,
+            nameJa: nameJa,
+            categoryJa: categoryJa,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) =>
@@ -24769,6 +25932,9 @@ typedef $$FoodCategoriesTableCreateCompanionBuilder = FoodCategoriesCompanion
   Value<String?> nameDe,
   Value<String?> nameEn,
   Value<String?> emoji,
+  Value<String?> nameFr,
+  Value<String?> nameIt,
+  Value<String?> nameJa,
   Value<int> rowid,
 });
 typedef $$FoodCategoriesTableUpdateCompanionBuilder = FoodCategoriesCompanion
@@ -24777,6 +25943,9 @@ typedef $$FoodCategoriesTableUpdateCompanionBuilder = FoodCategoriesCompanion
   Value<String?> nameDe,
   Value<String?> nameEn,
   Value<String?> emoji,
+  Value<String?> nameFr,
+  Value<String?> nameIt,
+  Value<String?> nameJa,
   Value<int> rowid,
 });
 
@@ -24800,6 +25969,15 @@ class $$FoodCategoriesTableFilterComposer
 
   ColumnFilters<String> get emoji => $composableBuilder(
       column: $table.emoji, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameFr => $composableBuilder(
+      column: $table.nameFr, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameIt => $composableBuilder(
+      column: $table.nameIt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameJa => $composableBuilder(
+      column: $table.nameJa, builder: (column) => ColumnFilters(column));
 }
 
 class $$FoodCategoriesTableOrderingComposer
@@ -24822,6 +26000,15 @@ class $$FoodCategoriesTableOrderingComposer
 
   ColumnOrderings<String> get emoji => $composableBuilder(
       column: $table.emoji, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameFr => $composableBuilder(
+      column: $table.nameFr, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameIt => $composableBuilder(
+      column: $table.nameIt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameJa => $composableBuilder(
+      column: $table.nameJa, builder: (column) => ColumnOrderings(column));
 }
 
 class $$FoodCategoriesTableAnnotationComposer
@@ -24844,6 +26031,15 @@ class $$FoodCategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get emoji =>
       $composableBuilder(column: $table.emoji, builder: (column) => column);
+
+  GeneratedColumn<String> get nameFr =>
+      $composableBuilder(column: $table.nameFr, builder: (column) => column);
+
+  GeneratedColumn<String> get nameIt =>
+      $composableBuilder(column: $table.nameIt, builder: (column) => column);
+
+  GeneratedColumn<String> get nameJa =>
+      $composableBuilder(column: $table.nameJa, builder: (column) => column);
 }
 
 class $$FoodCategoriesTableTableManager extends RootTableManager<
@@ -24877,6 +26073,9 @@ class $$FoodCategoriesTableTableManager extends RootTableManager<
             Value<String?> nameDe = const Value.absent(),
             Value<String?> nameEn = const Value.absent(),
             Value<String?> emoji = const Value.absent(),
+            Value<String?> nameFr = const Value.absent(),
+            Value<String?> nameIt = const Value.absent(),
+            Value<String?> nameJa = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FoodCategoriesCompanion(
@@ -24884,6 +26083,9 @@ class $$FoodCategoriesTableTableManager extends RootTableManager<
             nameDe: nameDe,
             nameEn: nameEn,
             emoji: emoji,
+            nameFr: nameFr,
+            nameIt: nameIt,
+            nameJa: nameJa,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -24891,6 +26093,9 @@ class $$FoodCategoriesTableTableManager extends RootTableManager<
             Value<String?> nameDe = const Value.absent(),
             Value<String?> nameEn = const Value.absent(),
             Value<String?> emoji = const Value.absent(),
+            Value<String?> nameFr = const Value.absent(),
+            Value<String?> nameIt = const Value.absent(),
+            Value<String?> nameJa = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FoodCategoriesCompanion.insert(
@@ -24898,6 +26103,9 @@ class $$FoodCategoriesTableTableManager extends RootTableManager<
             nameDe: nameDe,
             nameEn: nameEn,
             emoji: emoji,
+            nameFr: nameFr,
+            nameIt: nameIt,
+            nameJa: nameJa,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -26373,8 +27581,6 @@ typedef $$UserFoodOverridesTableCreateCompanionBuilder
   Value<DateTime?> deletedAt,
   required String barcode,
   required String name,
-  Value<String?> nameDe,
-  Value<String?> nameEn,
   Value<String?> brand,
   required int calories,
   required double protein,
@@ -26403,8 +27609,6 @@ typedef $$UserFoodOverridesTableUpdateCompanionBuilder
   Value<DateTime?> deletedAt,
   Value<String> barcode,
   Value<String> name,
-  Value<String?> nameDe,
-  Value<String?> nameEn,
   Value<String?> brand,
   Value<int> calories,
   Value<double> protein,
@@ -26424,6 +27628,32 @@ typedef $$UserFoodOverridesTableUpdateCompanionBuilder
   Value<bool> isLiquid,
   Value<String?> category,
 });
+
+final class $$UserFoodOverridesTableReferences extends BaseReferences<
+    _$AppDatabase, $UserFoodOverridesTable, UserFoodOverride> {
+  $$UserFoodOverridesTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$UserFoodOverrideTranslationsTable,
+      List<UserFoodOverrideTranslation>> _userFoodOverrideTranslationsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.userFoodOverrideTranslations,
+          aliasName: $_aliasNameGenerator(db.userFoodOverrides.id,
+              db.userFoodOverrideTranslations.userFoodOverrideId));
+
+  $$UserFoodOverrideTranslationsTableProcessedTableManager
+      get userFoodOverrideTranslationsRefs {
+    final manager = $$UserFoodOverrideTranslationsTableTableManager(
+            $_db, $_db.userFoodOverrideTranslations)
+        .filter((f) =>
+            f.userFoodOverrideId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult
+        .readTableOrNull(_userFoodOverrideTranslationsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
 
 class $$UserFoodOverridesTableFilterComposer
     extends Composer<_$AppDatabase, $UserFoodOverridesTable> {
@@ -26454,12 +27684,6 @@ class $$UserFoodOverridesTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get nameDe => $composableBuilder(
-      column: $table.nameDe, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get nameEn => $composableBuilder(
-      column: $table.nameEn, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get brand => $composableBuilder(
       column: $table.brand, builder: (column) => ColumnFilters(column));
@@ -26519,6 +27743,30 @@ class $$UserFoodOverridesTableFilterComposer
 
   ColumnFilters<String> get category => $composableBuilder(
       column: $table.category, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> userFoodOverrideTranslationsRefs(
+      Expression<bool> Function(
+              $$UserFoodOverrideTranslationsTableFilterComposer f)
+          f) {
+    final $$UserFoodOverrideTranslationsTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.userFoodOverrideTranslations,
+            getReferencedColumn: (t) => t.userFoodOverrideId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$UserFoodOverrideTranslationsTableFilterComposer(
+                  $db: $db,
+                  $table: $db.userFoodOverrideTranslations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$UserFoodOverridesTableOrderingComposer
@@ -26550,12 +27798,6 @@ class $$UserFoodOverridesTableOrderingComposer
 
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get nameDe => $composableBuilder(
-      column: $table.nameDe, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get nameEn => $composableBuilder(
-      column: $table.nameEn, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get brand => $composableBuilder(
       column: $table.brand, builder: (column) => ColumnOrderings(column));
@@ -26648,12 +27890,6 @@ class $$UserFoodOverridesTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<String> get nameDe =>
-      $composableBuilder(column: $table.nameDe, builder: (column) => column);
-
-  GeneratedColumn<String> get nameEn =>
-      $composableBuilder(column: $table.nameEn, builder: (column) => column);
-
   GeneratedColumn<String> get brand =>
       $composableBuilder(column: $table.brand, builder: (column) => column);
 
@@ -26707,6 +27943,30 @@ class $$UserFoodOverridesTableAnnotationComposer
 
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
+
+  Expression<T> userFoodOverrideTranslationsRefs<T extends Object>(
+      Expression<T> Function(
+              $$UserFoodOverrideTranslationsTableAnnotationComposer a)
+          f) {
+    final $$UserFoodOverrideTranslationsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.userFoodOverrideTranslations,
+            getReferencedColumn: (t) => t.userFoodOverrideId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$UserFoodOverrideTranslationsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.userFoodOverrideTranslations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$UserFoodOverridesTableTableManager extends RootTableManager<
@@ -26718,12 +27978,9 @@ class $$UserFoodOverridesTableTableManager extends RootTableManager<
     $$UserFoodOverridesTableAnnotationComposer,
     $$UserFoodOverridesTableCreateCompanionBuilder,
     $$UserFoodOverridesTableUpdateCompanionBuilder,
-    (
-      UserFoodOverride,
-      BaseReferences<_$AppDatabase, $UserFoodOverridesTable, UserFoodOverride>
-    ),
+    (UserFoodOverride, $$UserFoodOverridesTableReferences),
     UserFoodOverride,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool userFoodOverrideTranslationsRefs})> {
   $$UserFoodOverridesTableTableManager(
       _$AppDatabase db, $UserFoodOverridesTable table)
       : super(TableManagerState(
@@ -26744,8 +28001,6 @@ class $$UserFoodOverridesTableTableManager extends RootTableManager<
             Value<DateTime?> deletedAt = const Value.absent(),
             Value<String> barcode = const Value.absent(),
             Value<String> name = const Value.absent(),
-            Value<String?> nameDe = const Value.absent(),
-            Value<String?> nameEn = const Value.absent(),
             Value<String?> brand = const Value.absent(),
             Value<int> calories = const Value.absent(),
             Value<double> protein = const Value.absent(),
@@ -26773,8 +28028,6 @@ class $$UserFoodOverridesTableTableManager extends RootTableManager<
             deletedAt: deletedAt,
             barcode: barcode,
             name: name,
-            nameDe: nameDe,
-            nameEn: nameEn,
             brand: brand,
             calories: calories,
             protein: protein,
@@ -26802,8 +28055,6 @@ class $$UserFoodOverridesTableTableManager extends RootTableManager<
             Value<DateTime?> deletedAt = const Value.absent(),
             required String barcode,
             required String name,
-            Value<String?> nameDe = const Value.absent(),
-            Value<String?> nameEn = const Value.absent(),
             Value<String?> brand = const Value.absent(),
             required int calories,
             required double protein,
@@ -26831,8 +28082,6 @@ class $$UserFoodOverridesTableTableManager extends RootTableManager<
             deletedAt: deletedAt,
             barcode: barcode,
             name: name,
-            nameDe: nameDe,
-            nameEn: nameEn,
             brand: brand,
             calories: calories,
             protein: protein,
@@ -26853,9 +28102,40 @@ class $$UserFoodOverridesTableTableManager extends RootTableManager<
             category: category,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$UserFoodOverridesTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({userFoodOverrideTranslationsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (userFoodOverrideTranslationsRefs)
+                  db.userFoodOverrideTranslations
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (userFoodOverrideTranslationsRefs)
+                    await $_getPrefetchedData<
+                            UserFoodOverride,
+                            $UserFoodOverridesTable,
+                            UserFoodOverrideTranslation>(
+                        currentTable: table,
+                        referencedTable: $$UserFoodOverridesTableReferences
+                            ._userFoodOverrideTranslationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UserFoodOverridesTableReferences(db, table, p0)
+                                .userFoodOverrideTranslationsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.userFoodOverrideId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -26868,12 +28148,679 @@ typedef $$UserFoodOverridesTableProcessedTableManager = ProcessedTableManager<
     $$UserFoodOverridesTableAnnotationComposer,
     $$UserFoodOverridesTableCreateCompanionBuilder,
     $$UserFoodOverridesTableUpdateCompanionBuilder,
-    (
-      UserFoodOverride,
-      BaseReferences<_$AppDatabase, $UserFoodOverridesTable, UserFoodOverride>
-    ),
+    (UserFoodOverride, $$UserFoodOverridesTableReferences),
     UserFoodOverride,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool userFoodOverrideTranslationsRefs})>;
+typedef $$ExerciseTranslationsTableCreateCompanionBuilder
+    = ExerciseTranslationsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String exerciseId,
+  required String languageCode,
+  required String name,
+  Value<String?> description,
+});
+typedef $$ExerciseTranslationsTableUpdateCompanionBuilder
+    = ExerciseTranslationsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> exerciseId,
+  Value<String> languageCode,
+  Value<String> name,
+  Value<String?> description,
+});
+
+final class $$ExerciseTranslationsTableReferences extends BaseReferences<
+    _$AppDatabase, $ExerciseTranslationsTable, ExerciseTranslation> {
+  $$ExerciseTranslationsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $ExercisesTable _exerciseIdTable(_$AppDatabase db) =>
+      db.exercises.createAlias($_aliasNameGenerator(
+          db.exerciseTranslations.exerciseId, db.exercises.id));
+
+  $$ExercisesTableProcessedTableManager get exerciseId {
+    final $_column = $_itemColumn<String>('exercise_id')!;
+
+    final manager = $$ExercisesTableTableManager($_db, $_db.exercises)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_exerciseIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ExerciseTranslationsTableFilterComposer
+    extends Composer<_$AppDatabase, $ExerciseTranslationsTable> {
+  $$ExerciseTranslationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  $$ExercisesTableFilterComposer get exerciseId {
+    final $$ExercisesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.exerciseId,
+        referencedTable: $db.exercises,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ExercisesTableFilterComposer(
+              $db: $db,
+              $table: $db.exercises,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ExerciseTranslationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExerciseTranslationsTable> {
+  $$ExerciseTranslationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get languageCode => $composableBuilder(
+      column: $table.languageCode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  $$ExercisesTableOrderingComposer get exerciseId {
+    final $$ExercisesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.exerciseId,
+        referencedTable: $db.exercises,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ExercisesTableOrderingComposer(
+              $db: $db,
+              $table: $db.exercises,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ExerciseTranslationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExerciseTranslationsTable> {
+  $$ExerciseTranslationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  $$ExercisesTableAnnotationComposer get exerciseId {
+    final $$ExercisesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.exerciseId,
+        referencedTable: $db.exercises,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ExercisesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.exercises,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ExerciseTranslationsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ExerciseTranslationsTable,
+    ExerciseTranslation,
+    $$ExerciseTranslationsTableFilterComposer,
+    $$ExerciseTranslationsTableOrderingComposer,
+    $$ExerciseTranslationsTableAnnotationComposer,
+    $$ExerciseTranslationsTableCreateCompanionBuilder,
+    $$ExerciseTranslationsTableUpdateCompanionBuilder,
+    (ExerciseTranslation, $$ExerciseTranslationsTableReferences),
+    ExerciseTranslation,
+    PrefetchHooks Function({bool exerciseId})> {
+  $$ExerciseTranslationsTableTableManager(
+      _$AppDatabase db, $ExerciseTranslationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExerciseTranslationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExerciseTranslationsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExerciseTranslationsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> exerciseId = const Value.absent(),
+            Value<String> languageCode = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+          }) =>
+              ExerciseTranslationsCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            exerciseId: exerciseId,
+            languageCode: languageCode,
+            name: name,
+            description: description,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String exerciseId,
+            required String languageCode,
+            required String name,
+            Value<String?> description = const Value.absent(),
+          }) =>
+              ExerciseTranslationsCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            exerciseId: exerciseId,
+            languageCode: languageCode,
+            name: name,
+            description: description,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ExerciseTranslationsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({exerciseId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (exerciseId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.exerciseId,
+                    referencedTable: $$ExerciseTranslationsTableReferences
+                        ._exerciseIdTable(db),
+                    referencedColumn: $$ExerciseTranslationsTableReferences
+                        ._exerciseIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ExerciseTranslationsTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $ExerciseTranslationsTable,
+        ExerciseTranslation,
+        $$ExerciseTranslationsTableFilterComposer,
+        $$ExerciseTranslationsTableOrderingComposer,
+        $$ExerciseTranslationsTableAnnotationComposer,
+        $$ExerciseTranslationsTableCreateCompanionBuilder,
+        $$ExerciseTranslationsTableUpdateCompanionBuilder,
+        (ExerciseTranslation, $$ExerciseTranslationsTableReferences),
+        ExerciseTranslation,
+        PrefetchHooks Function({bool exerciseId})>;
+typedef $$UserFoodOverrideTranslationsTableCreateCompanionBuilder
+    = UserFoodOverrideTranslationsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String userFoodOverrideId,
+  required String languageCode,
+  required String name,
+});
+typedef $$UserFoodOverrideTranslationsTableUpdateCompanionBuilder
+    = UserFoodOverrideTranslationsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> userFoodOverrideId,
+  Value<String> languageCode,
+  Value<String> name,
+});
+
+final class $$UserFoodOverrideTranslationsTableReferences
+    extends BaseReferences<_$AppDatabase, $UserFoodOverrideTranslationsTable,
+        UserFoodOverrideTranslation> {
+  $$UserFoodOverrideTranslationsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $UserFoodOverridesTable _userFoodOverrideIdTable(_$AppDatabase db) =>
+      db.userFoodOverrides.createAlias($_aliasNameGenerator(
+          db.userFoodOverrideTranslations.userFoodOverrideId,
+          db.userFoodOverrides.id));
+
+  $$UserFoodOverridesTableProcessedTableManager get userFoodOverrideId {
+    final $_column = $_itemColumn<String>('user_food_override_id')!;
+
+    final manager =
+        $$UserFoodOverridesTableTableManager($_db, $_db.userFoodOverrides)
+            .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userFoodOverrideIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$UserFoodOverrideTranslationsTableFilterComposer
+    extends Composer<_$AppDatabase, $UserFoodOverrideTranslationsTable> {
+  $$UserFoodOverrideTranslationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  $$UserFoodOverridesTableFilterComposer get userFoodOverrideId {
+    final $$UserFoodOverridesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userFoodOverrideId,
+        referencedTable: $db.userFoodOverrides,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserFoodOverridesTableFilterComposer(
+              $db: $db,
+              $table: $db.userFoodOverrides,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$UserFoodOverrideTranslationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserFoodOverrideTranslationsTable> {
+  $$UserFoodOverrideTranslationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get languageCode => $composableBuilder(
+      column: $table.languageCode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  $$UserFoodOverridesTableOrderingComposer get userFoodOverrideId {
+    final $$UserFoodOverridesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userFoodOverrideId,
+        referencedTable: $db.userFoodOverrides,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserFoodOverridesTableOrderingComposer(
+              $db: $db,
+              $table: $db.userFoodOverrides,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$UserFoodOverrideTranslationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserFoodOverrideTranslationsTable> {
+  $$UserFoodOverrideTranslationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  $$UserFoodOverridesTableAnnotationComposer get userFoodOverrideId {
+    final $$UserFoodOverridesTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.userFoodOverrideId,
+            referencedTable: $db.userFoodOverrides,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$UserFoodOverridesTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.userFoodOverrides,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+}
+
+class $$UserFoodOverrideTranslationsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $UserFoodOverrideTranslationsTable,
+    UserFoodOverrideTranslation,
+    $$UserFoodOverrideTranslationsTableFilterComposer,
+    $$UserFoodOverrideTranslationsTableOrderingComposer,
+    $$UserFoodOverrideTranslationsTableAnnotationComposer,
+    $$UserFoodOverrideTranslationsTableCreateCompanionBuilder,
+    $$UserFoodOverrideTranslationsTableUpdateCompanionBuilder,
+    (
+      UserFoodOverrideTranslation,
+      $$UserFoodOverrideTranslationsTableReferences
+    ),
+    UserFoodOverrideTranslation,
+    PrefetchHooks Function({bool userFoodOverrideId})> {
+  $$UserFoodOverrideTranslationsTableTableManager(
+      _$AppDatabase db, $UserFoodOverrideTranslationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserFoodOverrideTranslationsTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserFoodOverrideTranslationsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserFoodOverrideTranslationsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> userFoodOverrideId = const Value.absent(),
+            Value<String> languageCode = const Value.absent(),
+            Value<String> name = const Value.absent(),
+          }) =>
+              UserFoodOverrideTranslationsCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            userFoodOverrideId: userFoodOverrideId,
+            languageCode: languageCode,
+            name: name,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String userFoodOverrideId,
+            required String languageCode,
+            required String name,
+          }) =>
+              UserFoodOverrideTranslationsCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            userFoodOverrideId: userFoodOverrideId,
+            languageCode: languageCode,
+            name: name,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$UserFoodOverrideTranslationsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({userFoodOverrideId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (userFoodOverrideId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.userFoodOverrideId,
+                    referencedTable:
+                        $$UserFoodOverrideTranslationsTableReferences
+                            ._userFoodOverrideIdTable(db),
+                    referencedColumn:
+                        $$UserFoodOverrideTranslationsTableReferences
+                            ._userFoodOverrideIdTable(db)
+                            .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$UserFoodOverrideTranslationsTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $UserFoodOverrideTranslationsTable,
+        UserFoodOverrideTranslation,
+        $$UserFoodOverrideTranslationsTableFilterComposer,
+        $$UserFoodOverrideTranslationsTableOrderingComposer,
+        $$UserFoodOverrideTranslationsTableAnnotationComposer,
+        $$UserFoodOverrideTranslationsTableCreateCompanionBuilder,
+        $$UserFoodOverrideTranslationsTableUpdateCompanionBuilder,
+        (
+          UserFoodOverrideTranslation,
+          $$UserFoodOverrideTranslationsTableReferences
+        ),
+        UserFoodOverrideTranslation,
+        PrefetchHooks Function({bool userFoodOverrideId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -26933,4 +28880,10 @@ class $AppDatabaseManager {
       $$WorkoutExerciseLogsTableTableManager(_db, _db.workoutExerciseLogs);
   $$UserFoodOverridesTableTableManager get userFoodOverrides =>
       $$UserFoodOverridesTableTableManager(_db, _db.userFoodOverrides);
+  $$ExerciseTranslationsTableTableManager get exerciseTranslations =>
+      $$ExerciseTranslationsTableTableManager(_db, _db.exerciseTranslations);
+  $$UserFoodOverrideTranslationsTableTableManager
+      get userFoodOverrideTranslations =>
+          $$UserFoodOverrideTranslationsTableTableManager(
+              _db, _db.userFoodOverrideTranslations);
 }

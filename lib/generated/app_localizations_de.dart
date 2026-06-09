@@ -2174,6 +2174,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsFoodDbRegionUnitedStates => 'Vereinigte Staaten (US)';
 
   @override
+  String get settingsFoodDbRegionFrance => 'Frankreich (FR)';
+
+  @override
+  String get settingsFoodDbRegionItaly => 'Italien (IT)';
+
+  @override
+  String get settingsFoodDbRegionJapan => 'Japan (JP)';
+
+  @override
   String get settingsColorfulMacroBadgesTitle => 'Bunte Nährwert-Badges';
 
   @override
@@ -4583,6 +4592,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsBaseFoodLanguageGerman => 'Deutsch';
+
+  @override
+  String get settingsBaseFoodLanguageFrench => 'Französisch';
+
+  @override
+  String get settingsBaseFoodLanguageItalian => 'Italienisch';
+
+  @override
+  String get settingsBaseFoodLanguageJapanese => 'Japanisch';
 
   @override
   String get aiModelLabel => 'Modell';

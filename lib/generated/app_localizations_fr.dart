@@ -4,9 +4,9 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class AppLocalizationsEn extends AppLocalizations {
-  AppLocalizationsEn([String locale = 'en']) : super(locale);
+/// The translations for French (`fr`).
+class AppLocalizationsFr extends AppLocalizations {
+  AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
   String get appTitle => 'Train Libre';
@@ -18,19 +18,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calories => 'Calories';
 
   @override
-  String get water => 'Water';
+  String get water => 'Eau';
 
   @override
-  String get protein => 'Protein';
+  String get protein => 'Protéines';
 
   @override
-  String get carbs => 'Carbs';
+  String get carbs => 'Glucides';
 
   @override
-  String get fat => 'Fat';
+  String get fat => 'Lipides';
 
   @override
-  String get steps => 'Steps';
+  String get steps => 'Pas';
 
   @override
   String get daily => 'Daily';
@@ -613,13 +613,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteConfirmContent => 'Do you really want to delete this entry?';
 
   @override
-  String get cancel => 'Cancel';
+  String get cancel => 'Annuler';
 
   @override
-  String get delete => 'Delete';
+  String get delete => 'Supprimer';
 
   @override
-  String get save => 'Save';
+  String get save => 'Enregistrer';
 
   @override
   String get unsavedChangesTitle => 'Unsaved Changes';
@@ -1258,7 +1258,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_capslock => 'SETTINGS';
 
   @override
-  String get settingsTitle => 'Settings';
+  String get settingsTitle => 'Paramètres';
 
   @override
   String get settingsUpdateFoodDatabase => 'Update Food Database';
@@ -2132,43 +2132,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsFoodDbSectionTitle => 'Food database';
 
   @override
-  String get settingsFoodDbRegionTitle => 'Food database region';
+  String get settingsFoodDbRegionTitle => 'Région de la base de données';
 
   @override
   String get settingsFoodDbRegionSubtitle =>
-      'Select which Open Food Facts product catalog region is used for food search.';
+      'Sélectionnez la région du catalogue de produits Open Food Facts utilisée.';
 
   @override
   String get settingsFoodDbRegionCurrent => 'Current region';
 
   @override
-  String get settingsFoodDbRegionDialogTitle => 'Choose food database region';
+  String get settingsFoodDbRegionDialogTitle =>
+      'Choisir la région de la base de données';
 
   @override
   String get settingsFoodDbRegionDialogSubtitle =>
-      'This changes the Open Food Facts catalog source used by product search.';
+      'Cela modifie la source du catalogue Open Food Facts pour la recherche.';
 
   @override
   String get settingsFoodDbRegionIssueHint =>
       'If your country is not listed yet, feel free to open a GitHub issue and request support.';
 
   @override
-  String get settingsFoodDbRegionGermany => 'Germany (DE)';
+  String get settingsFoodDbRegionGermany => 'Allemagne (DE)';
 
   @override
-  String get settingsFoodDbRegionSwitzerland => 'Switzerland (CH)';
+  String get settingsFoodDbRegionSwitzerland => 'Suisse (CH)';
 
   @override
-  String get settingsFoodDbRegionUnitedStates => 'United States (US)';
+  String get settingsFoodDbRegionUnitedStates => 'États-Unis (US)';
 
   @override
   String get settingsFoodDbRegionFrance => 'France (FR)';
 
   @override
-  String get settingsFoodDbRegionItaly => 'Italy (IT)';
+  String get settingsFoodDbRegionItaly => 'Italie (IT)';
 
   @override
-  String get settingsFoodDbRegionJapan => 'Japan (JP)';
+  String get settingsFoodDbRegionJapan => 'Japon (JP)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Colorful Macro Badges';
@@ -2178,11 +2179,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Uses the color-coded badge design from AI verification in the diary as well.';
 
   @override
-  String get settingsFoodDbRegionUnitedKingdom => 'United Kingdom (UK)';
+  String get settingsFoodDbRegionUnitedKingdom => 'Royaume-Uni (UK)';
 
   @override
   String settingsFoodDbRegionChanged(String region) {
-    return 'Food database region set to $region. Changes apply on the next catalog refresh/import cycle.';
+    return 'Région de la base de données définie sur $region. Les modifications s\'appliqueront lors du prochain cycle d\'importation.';
   }
 
   @override
@@ -2333,16 +2334,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ingredients => 'Ingredients';
 
   @override
-  String get aiSettingsTitle => 'AI Meal Capture';
+  String get aiSettingsTitle => 'Reconnaissance de repas par IA';
 
   @override
-  String get aiSettingsDescription => 'Configure AI-powered meal recognition.';
+  String get aiSettingsDescription =>
+      'Configurer la détection de repas assistée par IA.';
 
   @override
   String get aiProviderSection => 'AI Provider';
 
   @override
-  String get aiProviderLabel => 'Provider';
+  String get aiProviderLabel => 'Fournisseur';
 
   @override
   String get aiApiKeySection => 'API Key';
@@ -4537,32 +4539,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'Health Connect export status';
 
   @override
-  String get settingsBaseFoodLanguageTitle => 'Base food display language';
+  String get settingsBaseFoodLanguageTitle =>
+      'Langue d\'affichage des aliments';
 
   @override
   String get settingsBaseFoodLanguageSubtitle =>
-      'Choose which language to use for base food names.';
+      'Choisissez la langue à utiliser pour les noms des aliments de base.';
 
   @override
-  String get settingsBaseFoodLanguageFollowApp => 'Follow app language';
+  String get settingsBaseFoodLanguageFollowApp =>
+      'Suivre la langue de l\'application';
 
   @override
-  String get settingsBaseFoodLanguageEnglish => 'English';
+  String get settingsBaseFoodLanguageEnglish => 'Anglais';
 
   @override
-  String get settingsBaseFoodLanguageGerman => 'German';
+  String get settingsBaseFoodLanguageGerman => 'Allemand';
 
   @override
-  String get settingsBaseFoodLanguageFrench => 'French';
+  String get settingsBaseFoodLanguageFrench => 'Français';
 
   @override
-  String get settingsBaseFoodLanguageItalian => 'Italian';
+  String get settingsBaseFoodLanguageItalian => 'Italien';
 
   @override
-  String get settingsBaseFoodLanguageJapanese => 'Japanese';
+  String get settingsBaseFoodLanguageJapanese => 'Japonais';
 
   @override
-  String get aiModelLabel => 'Model';
+  String get aiModelLabel => 'Modèle';
 
   @override
   String get autoBackupStoragePickerUnavailable =>
@@ -4716,22 +4720,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about_train_libre => 'About Train Libre';
 
   @override
-  String get legal_notice => 'Legal Notice';
+  String get legal_notice => 'Mentions légales';
 
   @override
-  String get privacy_policy => 'Privacy Policy';
+  String get privacy_policy => 'Charte de confidentialité';
 
   @override
-  String get terms_of_service => 'Terms of Service';
+  String get terms_of_service => 'Conditions d\'utilisation';
 
   @override
-  String get view_in_browser => 'View in Browser';
+  String get view_in_browser => 'Afficher dans le navigateur';
 
   @override
-  String get legal_document_version => 'Version';
+  String get legal_document_version => 'Version du document';
 
   @override
-  String get legal_document_last_updated => 'Last update';
+  String get legal_document_last_updated => 'Dernière mise à jour';
 
   @override
   String get used_libraries => 'Used Libraries';
@@ -4782,7 +4786,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about_section => 'About';
 
   @override
-  String get legal_section => 'Legal';
+  String get legal_section => 'Mentions légales et confidentialité';
 
   @override
   String get aiSettingsInstructionTitle => 'How AI Meal Recognition Works';

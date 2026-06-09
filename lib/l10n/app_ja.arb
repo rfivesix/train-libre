@@ -1,0 +1,56 @@
+{
+  "@@locale": "ja",
+  "appTitle": "Train Libre",
+  "settingsTitle": "設定",
+  "protein": "タンパク質",
+  "carbs": "炭水化物",
+  "fat": "脂質",
+  "calories": "カロリー",
+  "water": "水分",
+  "steps": "歩数",
+  "cancel": "キャンセル",
+  "save": "保存",
+  "delete": "削除",
+  
+  "settingsBaseFoodLanguageTitle": "食品表示言語",
+  "settingsBaseFoodLanguageSubtitle": "基本食品名に使用する言語を選択します。",
+  "settingsBaseFoodLanguageFollowApp": "アプリの言語に合わせる",
+  "settingsBaseFoodLanguageEnglish": "英語",
+  "settingsBaseFoodLanguageGerman": "ドイツ語",
+  "settingsBaseFoodLanguageFrench": "フランス語",
+  "settingsBaseFoodLanguageItalian": "イタリア語",
+  "settingsBaseFoodLanguageJapanese": "日本語",
+  
+  "settingsFoodDbRegionTitle": "食品データベース地域",
+  "settingsFoodDbRegionSubtitle": "検索に使用するOpen Food Facts製品カタログの地域を選択します。",
+  "settingsFoodDbRegionDialogTitle": "食品データベース地域を選択",
+  "settingsFoodDbRegionDialogSubtitle": "製品検索で使用されるOpen Food Factsカタログソースが変更されます。",
+  "settingsFoodDbRegionGermany": "ドイツ (DE)",
+  "settingsFoodDbRegionSwitzerland": "スイス (CH)",
+  "settingsFoodDbRegionUnitedStates": "米国 (US)",
+  "settingsFoodDbRegionUnitedKingdom": "英国 (UK)",
+  "settingsFoodDbRegionFrance": "フランス (FR)",
+  "settingsFoodDbRegionItaly": "イタリア (IT)",
+  "settingsFoodDbRegionJapan": "日本 (JP)",
+  "settingsFoodDbRegionChanged": "データベースの地域を {region} に設定しました。変更は次回のインポート時に適用されます。",
+  "@settingsFoodDbRegionChanged": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "aiSettingsTitle": "AI食事認識",
+  "aiSettingsDescription": "AI支援食事検出の設定を行います。",
+  "aiProviderLabel": "プロバイダー",
+  "aiModelLabel": "モデル",
+  
+  "legal_section": "法的通知とプライバシー",
+  "legal_notice": "法的通知",
+  "privacy_policy": "プライバシーポリシー",
+  "terms_of_service": "利用規約",
+  "legal_document_version": "ドキュメントバージョン",
+  "legal_document_last_updated": "最終更新日",
+  "view_in_browser": "ブラウザで表示"
+}

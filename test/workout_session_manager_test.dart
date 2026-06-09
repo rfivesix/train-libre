@@ -294,10 +294,6 @@ void main() {
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
               id: const drift.Value('catalog-bench-1'),
-              nameDe: const drift.Value('Bankdruecken Alt'),
-              nameEn: const drift.Value('Bench Press Old'),
-              descriptionDe: const drift.Value('alt'),
-              descriptionEn: const drift.Value('old'),
               categoryName: const drift.Value('Strength'),
               musclesPrimary: const drift.Value('["chest"]'),
               musclesSecondary: const drift.Value('["triceps"]'),
@@ -305,6 +301,22 @@ void main() {
               isCustom: const drift.Value(false),
             ),
           );
+      await database.into(database.exerciseTranslations).insert(
+        db.ExerciseTranslationsCompanion.insert(
+          exerciseId: 'catalog-bench-1',
+          languageCode: 'de',
+          name: 'Bankdruecken Alt',
+          description: const drift.Value('alt'),
+        ),
+      );
+      await database.into(database.exerciseTranslations).insert(
+        db.ExerciseTranslationsCompanion.insert(
+          exerciseId: 'catalog-bench-1',
+          languageCode: 'en',
+          name: 'Bench Press Old',
+          description: const drift.Value('old'),
+        ),
+      );
 
       final log = await workoutDb.startWorkout(routineName: 'Rename Case');
       await workoutDb.insertSetLog(
@@ -320,14 +332,31 @@ void main() {
         ),
       );
 
-      await (database.update(database.exercises)
-            ..where((tbl) => tbl.id.equals('catalog-bench-1')))
-          .write(
-        const db.ExercisesCompanion(
-          nameDe: drift.Value('Bankdruecken Neu'),
-          nameEn: drift.Value('Bench Press New'),
-          descriptionDe: drift.Value('neu'),
-          descriptionEn: drift.Value('new'),
+      final deCompanion = db.ExerciseTranslationsCompanion.insert(
+        exerciseId: 'catalog-bench-1',
+        languageCode: 'de',
+        name: 'Bankdruecken Neu',
+        description: const drift.Value('neu'),
+      );
+      await database.into(database.exerciseTranslations).insert(
+        deCompanion,
+        onConflict: drift.DoUpdate(
+          (old) => deCompanion,
+          target: [database.exerciseTranslations.exerciseId, database.exerciseTranslations.languageCode],
+        ),
+      );
+      
+      final enCompanion = db.ExerciseTranslationsCompanion.insert(
+        exerciseId: 'catalog-bench-1',
+        languageCode: 'en',
+        name: 'Bench Press New',
+        description: const drift.Value('new'),
+      );
+      await database.into(database.exerciseTranslations).insert(
+        enCompanion,
+        onConflict: drift.DoUpdate(
+          (old) => enCompanion,
+          target: [database.exerciseTranslations.exerciseId, database.exerciseTranslations.languageCode],
         ),
       );
 
@@ -345,8 +374,6 @@ void main() {
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('catalog-missing-1'),
-                nameDe: const drift.Value('Historische Uebung'),
-                nameEn: const drift.Value('Historical Exercise'),
                 categoryName: const drift.Value('Strength'),
                 musclesPrimary: const drift.Value('["back"]'),
                 musclesSecondary: const drift.Value('[]'),
@@ -354,6 +381,20 @@ void main() {
                 isCustom: const drift.Value(false),
               ),
             );
+        await database.into(database.exerciseTranslations).insert(
+          db.ExerciseTranslationsCompanion.insert(
+            exerciseId: 'catalog-missing-1',
+            languageCode: 'de',
+            name: 'Historische Uebung',
+          ),
+        );
+        await database.into(database.exerciseTranslations).insert(
+          db.ExerciseTranslationsCompanion.insert(
+            exerciseId: 'catalog-missing-1',
+            languageCode: 'en',
+            name: 'Historical Exercise',
+          ),
+        );
 
         final log = await workoutDb.startWorkout(routineName: 'Missing Case');
         await workoutDb.insertSetLog(

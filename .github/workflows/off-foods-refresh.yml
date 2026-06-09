@@ -41,6 +41,12 @@ jobs:
             min_product_count: 5000
           - country_code: ch
             min_product_count: 5000
+          - country_code: fr
+            min_product_count: 5000
+          - country_code: it
+            min_product_count: 5000
+          - country_code: jp
+            min_product_count: 5000
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

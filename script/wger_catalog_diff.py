@@ -136,6 +136,11 @@ def load_catalog(db_path: str) -> Dict[str, Any]:
 
         cursor.execute("PRAGMA table_info(exercises)")
         exercise_columns = {row["name"] for row in cursor.fetchall()}
+        
+        has_translations_table = "exercise_translations" in tables
+        if has_translations_table:
+            exercise_columns.update({"name_de", "name_en", "description_de", "description_en"})
+
         missing_columns = [
             column for column in REQUIRED_EXERCISE_COLUMNS if column not in exercise_columns
         ]
@@ -153,8 +158,24 @@ def load_catalog(db_path: str) -> Dict[str, Any]:
         metadata = {row["key"]: row["value"] for row in cursor.fetchall()}
 
         select_columns = ["id"] + compare_fields
-        column_sql = ", ".join(select_columns)
-        cursor.execute(f"SELECT {column_sql} FROM exercises")
+        if has_translations_table:
+            base_columns = [c for c in select_columns if c not in ("name_de", "name_en", "description_de", "description_en")]
+            select_list = [f"e.{c}" for c in base_columns]
+            select_list.append("de.name AS name_de")
+            select_list.append("de.description AS description_de")
+            select_list.append("en.name AS name_en")
+            select_list.append("en.description AS description_en")
+            query = f"""
+                SELECT {', '.join(select_list)}
+                FROM exercises e
+                LEFT JOIN exercise_translations de ON e.id = de.exercise_id AND de.language_code = 'de'
+                LEFT JOIN exercise_translations en ON e.id = en.exercise_id AND en.language_code = 'en'
+            """
+            cursor.execute(query)
+        else:
+            column_sql = ", ".join(select_columns)
+            cursor.execute(f"SELECT {column_sql} FROM exercises")
+
         rows = cursor.fetchall()
 
         exercises: Dict[str, Dict[str, Any]] = {}

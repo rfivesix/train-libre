@@ -108,8 +108,8 @@ class ProductLocalDataSource {
     return FoodItem(
       barcode: row.barcode,
       name: overrideRow?.name ?? row.name,
-      nameDe: overrideRow?.nameDe ?? row.nameDe ?? row.name,
-      nameEn: overrideRow?.nameEn ?? row.nameEn ?? row.name,
+      nameDe: overrideRow?.name ?? row.nameDe ?? row.name,
+      nameEn: overrideRow?.name ?? row.nameEn ?? row.name,
       brand: overrideRow?.brand ?? row.brand ?? '',
       calories: overrideRow?.calories ?? row.calories,
       protein: overrideRow?.protein ?? row.protein,
@@ -179,8 +179,6 @@ class ProductLocalDataSource {
     final overrideCompanion = db.UserFoodOverridesCompanion(
       barcode: Value(item.barcode),
       name: Value(item.name),
-      nameDe: Value(item.nameDe),
-      nameEn: Value(item.nameEn),
       brand: Value(item.brand),
       calories: Value(item.calories),
       protein: Value(item.protein),

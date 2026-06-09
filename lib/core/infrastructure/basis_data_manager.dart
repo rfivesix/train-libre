@@ -49,10 +49,21 @@ class _BatchImportPayload {
   });
 }
 
+/// Holds raw primitives for one exercise row (isolate-safe).
+class _ExerciseBundle {
+  final Map<String, dynamic> exerciseFields;
+  final List<Map<String, dynamic>> translationFields;
+
+  const _ExerciseBundle({
+    required this.exerciseFields,
+    required this.translationFields,
+  });
+}
+
 List<dynamic> _parseBatchInIsolate(_BatchImportPayload payload) {
   switch (payload.type) {
     case BatchImportType.exercises:
-      return payload.rows.map(BasisDataManager._mapExerciseRow).toList();
+      return payload.rows.map(BasisDataManager._mapExerciseBundle).toList();
     case BatchImportType.categories:
       return payload.rows.map(BasisDataManager._mapCategoryRow).toList();
     case BatchImportType.productsBase:
@@ -613,8 +624,12 @@ class BasisDataManager {
         ),
       );
 
+      // Exercise bundles need two passes: first insert exercises, then translations.
+      final exerciseBundles = mappedCompanions.whereType<_ExerciseBundle>().toList();
+      final otherCompanions = mappedCompanions.where((c) => c is! _ExerciseBundle).toList();
+
       await mainDb.batch((batch) {
-        for (final companion in mappedCompanions) {
+        for (final companion in otherCompanions) {
           try {
             if (companion is ProductsCompanion) {
               if (collectProductBarcodes &&
@@ -626,15 +641,6 @@ class BasisDataManager {
                 mainDb.products,
                 companion,
                 mode: drift.InsertMode.insertOrReplace,
-              );
-            } else if (companion is ExercisesCompanion) {
-              batch.insert(
-                mainDb.exercises,
-                companion,
-                onConflict: drift.DoUpdate(
-                  (_) => companion,
-                  target: [mainDb.exercises.id],
-                ),
               );
             } else if (companion is FoodCategoriesCompanion) {
               batch.insert(
@@ -648,6 +654,63 @@ class BasisDataManager {
           }
         }
       });
+
+      if (exerciseBundles.isNotEmpty) {
+        await mainDb.batch((batch) {
+          for (final bundle in exerciseBundles) {
+            try {
+              final fields = bundle.exerciseFields;
+              final exerciseCompanion = ExercisesCompanion(
+                id: drift.Value(_parseString(fields['id'])),
+                categoryName: drift.Value(_parseString(fields['category_name'])),
+                musclesPrimary: drift.Value(_parseString(fields['muscles_primary'])),
+                musclesSecondary: drift.Value(_parseString(fields['muscles_secondary'])),
+                isCustom: const drift.Value(false),
+                createdBy: const drift.Value('system'),
+                source: const drift.Value('wger'),
+              );
+              batch.insert(
+                mainDb.exercises,
+                exerciseCompanion,
+                onConflict: drift.DoUpdate(
+                  (_) => exerciseCompanion,
+                  target: [mainDb.exercises.id],
+                ),
+              );
+            } catch (e) {
+              debugPrint('Skipping malformed exercise for $taskLabel: $e');
+            }
+          }
+        });
+
+        await mainDb.batch((batch) {
+          for (final bundle in exerciseBundles) {
+            for (final t in bundle.translationFields) {
+              try {
+                final companion = ExerciseTranslationsCompanion(
+                  exerciseId: drift.Value(_parseString(t['exercise_id'])),
+                  languageCode: drift.Value(_parseString(t['language_code'])),
+                  name: drift.Value(_parseString(t['name'])),
+                  description: drift.Value(t['description'] as String?),
+                );
+                batch.insert(
+                  mainDb.exerciseTranslations,
+                  companion,
+                  onConflict: drift.DoUpdate(
+                    (_) => companion,
+                    target: [
+                      mainDb.exerciseTranslations.exerciseId,
+                      mainDb.exerciseTranslations.languageCode,
+                    ],
+                  ),
+                );
+              } catch (e) {
+                debugPrint('Skipping malformed exercise translation for $taskLabel: $e');
+              }
+            }
+          }
+        });
+      }
 
       processed += rows.length;
       offset += batchSize;
@@ -799,10 +862,16 @@ class BasisDataManager {
   }) {
     if (choice == BaseFoodLanguage.en) return 'en';
     if (choice == BaseFoodLanguage.de) return 'de';
+    if (choice == BaseFoodLanguage.fr) return 'fr';
+    if (choice == BaseFoodLanguage.it) return 'it';
+    if (choice == BaseFoodLanguage.ja) return 'ja';
     // Auto: derive from the food DB region.
     return switch (offCountry) {
       OffCatalogCountry.us || OffCatalogCountry.uk => 'en',
       OffCatalogCountry.de || OffCatalogCountry.ch => 'de',
+      OffCatalogCountry.fr => 'fr',
+      OffCatalogCountry.it => 'it',
+      OffCatalogCountry.jp => 'ja',
     };
   }
 
@@ -811,23 +880,57 @@ class BasisDataManager {
       key: drift.Value(_parseString(row['key'])),
       nameDe: drift.Value(row['name_de'] as String?),
       nameEn: drift.Value(row['name_en'] as String?),
+      nameFr: drift.Value(row['name_fr'] as String?),
+      nameIt: drift.Value(row['name_it'] as String?),
+      nameJa: drift.Value(row['name_ja'] as String?),
       emoji: drift.Value(row['emoji'] as String?),
     );
   }
 
-  static dynamic _mapExerciseRow(Map<String, dynamic> row) {
-    return ExercisesCompanion(
-      id: drift.Value(_parseString(row['id'])),
-      nameDe: drift.Value(_parseString(row['name_de'] ?? row['name_en'])),
-      nameEn: drift.Value(_parseString(row['name_en'])),
-      descriptionDe: drift.Value(_parseString(row['description_de'])),
-      descriptionEn: drift.Value(_parseString(row['description_en'])),
-      categoryName: drift.Value(_parseString(row['category_name'])),
-      musclesPrimary: drift.Value(_parseString(row['muscles_primary'])),
-      musclesSecondary: drift.Value(_parseString(row['muscles_secondary'])),
-      isCustom: const drift.Value(false),
-      createdBy: const drift.Value('system'),
-      source: const drift.Value('wger'),
+  /// Maps a flat exercise asset row to an [_ExerciseBundle] containing
+  /// the structural exercise fields and derived translation rows.
+  ///
+  /// Handles both legacy flat format (name_de, name_en columns) and
+  /// future relational format (exercise_translations sub-rows).
+  static _ExerciseBundle _mapExerciseBundle(Map<String, dynamic> row) {
+    final id = _parseString(row['id']);
+
+    final exerciseFields = <String, dynamic>{
+      'id': id,
+      'category_name': _parseString(row['category_name']),
+      'muscles_primary': _parseString(row['muscles_primary']),
+      'muscles_secondary': _parseString(row['muscles_secondary']),
+    };
+
+    // Build translation rows. Support both flat (legacy) and
+    // future relational format from the updated Python pipeline.
+    final translations = <Map<String, dynamic>>[];
+
+    void addTranslation(String langCode, dynamic name, dynamic description) {
+      final n = _parseString(name);
+      if (n.isEmpty) return;
+      translations.add({
+        'exercise_id': id,
+        'language_code': langCode,
+        'name': n,
+        'description': description?.toString(),
+      });
+    }
+
+    // Flat-column format (current wger asset DB)
+    if (row.containsKey('name_de') || row.containsKey('name_en')) {
+      addTranslation('de', row['name_de'] ?? row['name_en'], row['description_de']);
+      addTranslation('en', row['name_en'], row['description_en']);
+      addTranslation('fr', row['name_fr'], row['description_fr']);
+      addTranslation('it', row['name_it'], row['description_it']);
+      addTranslation('ja', row['name_ja'], row['description_ja']);
+    }
+
+    return _ExerciseBundle(
+      exerciseFields: exerciseFields,
+      translationFields: translations,
     );
   }
+
+
 }

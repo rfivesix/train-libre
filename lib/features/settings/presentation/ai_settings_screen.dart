@@ -459,6 +459,18 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 value: AiMatchingLanguage.de,
                                 child: Text('Deutsch'),
                               ),
+                              DropdownMenuItem(
+                                value: AiMatchingLanguage.fr,
+                                child: Text('Français'),
+                              ),
+                              DropdownMenuItem(
+                                value: AiMatchingLanguage.it,
+                                child: Text('Italiano'),
+                              ),
+                              DropdownMenuItem(
+                                value: AiMatchingLanguage.ja,
+                                child: Text('日本語'),
+                              ),
                             ],
                             onChanged: (v) async {
                               if (v == null) return;

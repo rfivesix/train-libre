@@ -53,6 +53,9 @@ class AppDataSources {
     OffCatalogCountry.ch,
     OffCatalogCountry.us,
     OffCatalogCountry.uk,
+    OffCatalogCountry.fr,
+    OffCatalogCountry.it,
+    OffCatalogCountry.jp,
   ];
 
   /// OFF release-channel/manifest expectations per supported country.
@@ -153,6 +156,75 @@ class AppDataSources {
       legacyLocalCacheDbFileName: 'hypertrack_off_uk_remote.db',
       localManifestFileName: 'off_catalog_manifest_uk_cached.json',
     ),
+    OffCatalogCountry.fr: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'fr',
+      channel: 'stable',
+      releaseTag: 'off-foods-fr-stable',
+      baseUrl:
+          'https://github.com/rfivesix/train-libre/releases/download/off-foods-fr-stable/',
+      manifestPath: 'off_catalog_manifest_fr.json',
+      defaultDbPath: 'train_libre_off_fr.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_fr.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_fr.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_fr_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_fr_cached.json',
+    ),
+    OffCatalogCountry.it: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'it',
+      channel: 'stable',
+      releaseTag: 'off-foods-it-stable',
+      baseUrl:
+          'https://github.com/rfivesix/train-libre/releases/download/off-foods-it-stable/',
+      manifestPath: 'off_catalog_manifest_it.json',
+      defaultDbPath: 'train_libre_off_it.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_it.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_it.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_it_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_it_cached.json',
+    ),
+    OffCatalogCountry.jp: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'jp',
+      channel: 'stable',
+      releaseTag: 'off-foods-jp-stable',
+      baseUrl:
+          'https://github.com/rfivesix/train-libre/releases/download/off-foods-jp-stable/',
+      manifestPath: 'off_catalog_manifest_jp.json',
+      defaultDbPath: 'train_libre_off_jp.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_jp.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_jp.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_jp_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_jp_cached.json',
+    ),
   };
 
   static OffCatalogRemoteSourceConfig offCatalogForCountry(
@@ -213,6 +285,9 @@ enum OffCatalogCountry {
   ch,
   us,
   uk,
+  fr,
+  it,
+  jp,
 }
 
 extension OffCatalogCountryX on OffCatalogCountry {
@@ -221,6 +296,9 @@ extension OffCatalogCountryX on OffCatalogCountry {
         OffCatalogCountry.ch => 'ch',
         OffCatalogCountry.us => 'us',
         OffCatalogCountry.uk => 'uk',
+        OffCatalogCountry.fr => 'fr',
+        OffCatalogCountry.it => 'it',
+        OffCatalogCountry.jp => 'jp',
       };
 
   String get upperCode => code.toUpperCase();
