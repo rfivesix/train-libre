@@ -1,37 +1,897 @@
 {
   "@@locale": "fr",
   "appTitle": "Train Libre",
-  "settingsTitle": "Paramètres",
+  "bannerText": "Recommandation / Entraînement actuel",
+  "calories": "Calories",
+  "water": "Eau",
   "protein": "Protéines",
   "carbs": "Glucides",
   "fat": "Lipides",
-  "calories": "Calories",
-  "water": "Eau",
   "steps": "Pas",
+  "daily": "Tous les jours",
+  "today": "Aujourd'hui",
+  "workoutSection": "Section entraînement - pas encore implémentée",
+  "addMenuTitle": "Que veux-tu ajouter ?",
+  "addFoodOption": "ajouter de la nourriture",
+  "addLiquidOption": "ajouter du liquide",
+  "searchHintText": "Recherche...",
+  "mealtypeBreakfast": "Petit-déjeuner",
+  "mealtypeLunch": "Déjeuner",
+  "mealtypeDinner": "Dîner",
+  "mealtypeSnack": "Collation",
+  "waterHeader": "Eau et boissons",
+  "openFoodFactsSource": "Données d’Open Food Facts",
+  "tabRecent": "Récent",
+  "tabSearch": "Recherche",
+  "tabFavorites": "Favoris",
+  "fabCreateOwnFood": "Nourriture personnalisée",
+  "recentEmptyState": "Vos produits alimentaires récemment utilisés\napparaîtra ici.",
+  "favoritesEmptyState": "Vous n'avez pas encore de favoris.\nMarquez un aliment avec l'icône en forme de cœur pour le voir ici.",
+  "searchInitialHint": "Veuillez saisir un terme de recherche.",
+  "searchNoResults": "Aucun résultat trouvé.",
+  "createFoodScreenTitle": "Créer des aliments personnalisés",
+  "formFieldName": "Nom de la nourriture",
+  "formFieldBrand": "Marque (facultatif)",
+  "formSectionMainNutrients": "Principaux nutriments (pour 100 g)",
+  "formFieldCalories": "Calories (kcal)",
+  "formFieldProtein": "Protéine (g)",
+  "formFieldCarbs": "Glucides (g)",
+  "formFieldFat": "Graisse (g)",
+  "formSectionOptionalNutrients": "Nutriments supplémentaires (facultatif, par 100 g)",
+  "formFieldSugar": "Dont sucres (g)",
+  "formFieldFiber": "Fibres (g)",
+  "formFieldKj": "Kilojoules (kJ)",
+  "formFieldSalt": "Sel (g)",
+  "formFieldSodium": "Sodium (mg)",
+  "formFieldCalcium": "Calcium (mg)",
+  "buttonSave": "Sauvegarder",
+  "validatorPleaseEnterName": "Veuillez saisir un nom.",
+  "validatorPleaseEnterNumber": "Veuillez entrer un numéro valide.",
+  "snackbarSaveSuccess": "{foodName} a été enregistré avec succès.",
+  "@snackbarSaveSuccess": {
+    "placeholders": {
+      "foodName": {
+        "type": "String"
+      }
+    }
+  },
+  "foodDetailSegmentPortion": "Partie",
+  "foodDetailSegment100g": "100g",
+  "sugar": "Sucre",
+  "fiber": "Fibre",
+  "salt": "Sel",
+  "caffeine": "Caféine",
+  "explorerScreenTitle": "Explorateur culinaire",
+  "nutritionScreenTitle": "Analyse nutritionnelle",
+  "entriesForDateRangeLabel": "Entrées pour",
+  "noEntriesForPeriod": "Aucune entrée pour cette période pour l'instant.",
+  "waterEntryTitle": "Eau",
+  "profileScreenTitle": "Profil",
+  "profileDailyGoals": "Objectifs quotidiens",
+  "profileDailyGoalsCL": "OBJECTIFS QUOTIDIENS",
+  "snackbarGoalsSaved": "Objectifs enregistrés avec succès !",
+  "measurementsScreenTitle": "Mesures",
+  "measurementsEmptyState": "Aucune mesure enregistrée pour l'instant.\nCommencez par le bouton « + ».",
+  "addMeasurementDialogTitle": "Ajouter une nouvelle mesure",
+  "formFieldMeasurementType": "Type de mesure",
+  "formFieldMeasurementValue": "Valeur ({unit})",
+  "validatorPleaseEnterValue": "Veuillez saisir une valeur",
+  "measurementWeight": "Poids corporel",
+  "measurementFatPercent": "Graisse corporelle",
+  "measurementNeck": "Cou",
+  "measurementShoulder": "Épaule",
+  "measurementChest": "Poitrine",
+  "measurementLeftBicep": "Biceps gauche",
+  "measurementRightBicep": "Biceps droit",
+  "measurementLeftForearm": "Avant-bras gauche",
+  "measurementRightForearm": "Avant-bras droit",
+  "measurementAbdomen": "Abdomen",
+  "measurementWaist": "Taille",
+  "measurementHips": "Les hanches",
+  "measurementLeftThigh": "Cuisse gauche",
+  "measurementRightThigh": "Cuisse droite",
+  "measurementLeftCalf": "Mollet gauche",
+  "measurementRightCalf": "Veau droit",
+  "drawerMenuTitle": "Menu Train Libre",
+  "drawerDashboard": "Tableau de bord",
+  "drawerFoodExplorer": "Explorateur culinaire",
+  "drawerDataManagement": "Sauvegarde des données",
+  "drawerMeasurements": "Mesures",
+  "dataManagementTitle": "Sauvegarde des données",
+  "exportCardTitle": "Exporter des données",
+  "exportCardDescription": "Enregistre toutes vos entrées de journal, favoris et aliments personnalisés dans un seul fichier de sauvegarde.",
+  "exportCardButton": "Créer une sauvegarde",
+  "importCardTitle": "Importer des données",
+  "importCardDescription": "Restaure vos données à partir d'un fichier de sauvegarde précédemment créé. AVERTISSEMENT : toutes les données actuellement stockées dans l'application seront écrasées !",
+  "importCardButton": "Restaurer la sauvegarde",
+  "recommendationDefault": "Suivez votre premier repas !",
+  "recommendationOverTarget": "{count} derniers jours : +{difference} kcal par rapport à l'objectif",
+  "@recommendationOverTarget": {
+    "placeholders": {
+      "count": {},
+      "difference": {}
+    }
+  },
+  "recommendationUnderTarget": "{count} derniers jours : {difference} kcal en dessous de l'objectif",
+  "@recommendationUnderTarget": {
+    "placeholders": {
+      "count": {},
+      "difference": {}
+    }
+  },
+  "recommendationOnTarget": "{count} derniers jours : objectif atteint ✅",
+  "@recommendationOnTarget": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "recommendationFirstEntry": "Super, votre première entrée est enregistrée !",
+  "dialogConfirmTitle": "Confirmation requise",
+  "dialogConfirmImportContent": "Voulez-vous vraiment restaurer les données de cette sauvegarde ?\n\nAVERTISSEMENT : toutes vos entrées, favoris et aliments personnalisés actuels seront définitivement supprimés et remplacés.",
+  "dialogButtonCancel": "Annuler",
+  "dialogButtonOverwrite": "Oui, tout écraser",
+  "snackbarNoFileSelected": "Aucun fichier sélectionné.",
+  "snackbarImportSuccessTitle": "Importation réussie !",
+  "snackbarImportSuccessContent": "Vos données ont été restaurées. Il est recommandé de redémarrer l'application pour un affichage correct.",
+  "snackbarButtonOK": "D'ACCORD",
+  "snackbarImportError": "Erreur lors de l'importation des données.",
+  "snackbarExportSuccess": "Le fichier de sauvegarde a été transmis au système. Veuillez choisir un emplacement à enregistrer.",
+  "snackbarExportFailed": "L'exportation a été annulée ou a échoué.",
+  "profileUserHeight": "Hauteur (cm)",
+  "workoutRoutinesTitle": "Programmes",
+  "workoutHistoryTitle": "Historique d'entraînement",
+  "workoutHistoryButton": "Histoire",
+  "emptyRoutinesTitle": "Aucune routine trouvée",
+  "emptyRoutinesSubtitle": "Créez votre première routine ou démarrez un entraînement vierge.",
+  "createFirstRoutineButton": "Créer la première routine",
+  "startEmptyWorkoutButton": "Entraînement gratuit",
+  "editRoutineSubtitle": "Appuyez pour modifier ou démarrer l'entraînement.",
+  "startButton": "Commencer",
+  "addRoutineButton": "Nouvelle routine",
+  "freeWorkoutTitle": "Entraînement gratuit",
+  "finishWorkoutButton": "Finition",
+  "addSetButton": "Ajouter un ensemble",
+  "addExerciseToWorkoutButton": "Ajouter de l'exercice à l'entraînement",
+  "lastTimeLabel": "Dernière fois",
+  "setLabel": "Ensemble",
+  "kgLabel": "Poids (kg)",
+  "repsLabel": "Représentants",
+  "cardioDistanceLabel": "Distance (km)",
+  "cardioTimeLabel": "Temps (min)",
+  "cardioIntensityLabel": "Intenses.",
+  "cardioIntensityShortLabel": "Int.",
+  "restTimerLabel": "Repos",
+  "skipButton": "Sauter",
+  "appInitStarting": "Démarrage de l'application...",
+  "appInitInitializing": "Initialisation...",
+  "appInitFinalizing": "Finalisation",
+  "appInitCheckingBackups": "Vérification des sauvegardes...",
+  "appInitSkipDownload": "Ignorer le téléchargement",
+  "appInitSkippingRemoteDownload": "Ignorer le téléchargement à distance...",
+  "emptyHistory": "Aucun entraînement terminé pour l'instant.",
+  "workoutDetailsTitle": "Détails de l'entraînement",
+  "workoutHeartRateSectionTitle": "Fréquence cardiaque",
+  "workoutHeartRateAverageLabel": "Moy.",
+  "workoutHeartRateMaxLabel": "Max.",
+  "workoutHeartRateMinLabel": "Min.",
+  "workoutHeartRateQualityReady": "Bonne couverture",
+  "workoutHeartRateQualityLimited": "Données limitées",
+  "workoutHeartRateQualityInsufficient": "Très clairsemé",
+  "workoutHeartRateQualityNoData": "Aucune donnée",
+  "workoutHeartRateNoDataGeneral": "Aucun échantillon de fréquence cardiaque n'a été trouvé pour cette fenêtre d'entraînement.",
+  "workoutHeartRateNoDataPermission": "Une autorisation de fréquence cardiaque est requise pour afficher la fréquence cardiaque de l'entraînement.",
+  "workoutHeartRateNoDataUnavailable": "Les données de fréquence cardiaque ne sont actuellement pas disponibles sur cet appareil.",
+  "workoutHeartRateNoDataWorkoutNotFinished": "Un résumé de la fréquence cardiaque apparaît après un entraînement terminé.",
+  "workoutHeartRateNoDataInvalidWindow": "La fenêtre de temps d’entraînement n’est pas valide, la FC ne peut donc pas être analysée.",
+  "workoutHeartRateNoDataQueryFailed": "Impossible de lire les données de fréquence cardiaque pour cet entraînement.",
+  "workoutHeartRateLimitedChartHint": "Pas assez d’échantillons cohérents pour un graphique fiable.",
+  "workoutHeartRateSampleCount": "{count, plural, =0{Aucun echantillon} one{1 echantillon} other{{count} échantillons}}}",
+  "@workoutHeartRateSampleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "No": {}
+    }
+  },
+  "workoutNotFound": "Entraînement introuvable.",
+  "totalVolumeLabel": "Volume total",
+  "notesLabel": "Remarques",
+  "workoutImportTitle": "Importation d'entraînement externe",
+  "workoutImportDescription": "Importez votre historique de formation à partir d’un fichier d’export CSV ou Excel.",
+  "workoutImportButton": "Importer des données d'entraînement",
+  "workoutImportSuccess": "{count} entraînements ont été importés avec succès !",
+  "@workoutImportSuccess": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "workoutImportFailed": "L'importation a échoué. Veuillez vérifier le fichier.",
+  "importUnitSelectionTitle": "Unité d'importation",
+  "importUnitSelectionDescription": "Dans quelle unité les données du fichier sont-elles fournies ?",
+  "unitMetricLabel": "Métrique (kg)",
+  "unitImperialLabel": "Impérial (lbs)",
+  "excelExportButton": "Exportation Excel (.xlsx)",
+  "exportWorkoutHistory": "Historique d'entraînement",
+  "exportNutritionDiary": "Journal nutritionnel",
+  "exportMeasurements": "Mesures",
+  "startWorkout": "Commencer l'entraînement",
+  "addMeasurement": "Ajouter une mesure",
+  "filterToday": "Aujourd'hui",
+  "filter7Days": "7 jours",
+  "filter30Days": "30 jours",
+  "filterAll": "Tous",
+  "showLess": "Afficher moins",
+  "showMoreDetails": "Afficher plus de détails",
+  "deleteConfirmTitle": "Confirmer la suppression",
+  "deleteConfirmContent": "Voulez-vous vraiment supprimer cette entrée ?",
   "cancel": "Annuler",
-  "save": "Enregistrer",
   "delete": "Supprimer",
-  
-  "settingsBaseFoodLanguageTitle": "Langue d'affichage des aliments",
-  "settingsBaseFoodLanguageSubtitle": "Choisissez la langue à utiliser pour les noms des aliments de base.",
-  "settingsBaseFoodLanguageFollowApp": "Suivre la langue de l'application",
-  "settingsBaseFoodLanguageEnglish": "Anglais",
-  "settingsBaseFoodLanguageGerman": "Allemand",
-  "settingsBaseFoodLanguageFrench": "Français",
-  "settingsBaseFoodLanguageItalian": "Italien",
-  "settingsBaseFoodLanguageJapanese": "Japonais",
-  
+  "save": "Enregistrer",
+  "unsavedChangesTitle": "Modifications non enregistrées",
+  "unsavedChangesContent": "Vous avez des modifications non enregistrées. Voulez-vous les sauvegarder avant de partir ?",
+  "share": "Partager",
+  "shareWorkout": "Partager l'entraînement",
+  "shareRoutine": "Partager la routine",
+  "shareAsImage": "Partager en tant qu'image",
+  "shareAsText": "Partager sous forme de texte",
+  "sharedFromTrainLibre": "Partagé depuis Train Libre",
+  "sharedWithTrainLibre": "Partagé avec Train Libre",
+  "shareImageSummary": "Résumé",
+  "shareImageExercises": "Exercices",
+  "shareImageMuscleFocus": "Concentration musculaire",
+  "shareImageMinimal": "Minimal",
+  "volume": "Volume",
+  "moreExercises": "+ {count} exercices supplémentaires",
+  "@moreExercises": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareSetNumber": "Définir {number}",
+  "@shareSetNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "repsShort": "représentants",
+  "shareFailed": "Le partage a échoué",
+  "workoutShareTitle": "Entraînement",
+  "routineShareTitle": "Routine",
+  "setTypeWarmup": "Réchauffer",
+  "setTypeWork": "Ensembles de travail",
+  "setTypeFailure": "Échec",
+  "setTypeDropset": "Ensemble de gouttes",
+  "setTypeSuperset": "Surensemble",
+  "setTypeOther": "Autre",
+  "setTypeWarmupSuffix": "Réchauffer",
+  "setTypeFailureSuffix": "Échec",
+  "setTypeDropsetSuffix": "Ensemble de gouttes",
+  "setTypeSupersetSuffix": "Surensemble",
+  "setTypeOtherSuffix": "Autre",
+  "warmupSetCount": "{count, plural, =1{1 kit d'echauffement} other{Ensembles d'echauffement {count}}}}",
+  "workSetCount": "{count, plural, =1{1 ensemble de travail} other{Ensembles de travaux {count}}}}",
+  "failureSetCount": "{count, plural, =1{1 jeu de pannes} other{Ensembles de defaillances {count}}}}",
+  "dropsetCount": "{count, plural, =1{1 dropset} other{Ensembles de gouttes {count}}}}",
+  "supersetSetCount": "{count, plural, =1{1 surensemble} other{Surensembles {count}}}}",
+  "otherSetCount": "{count, plural, =1{1 autre ensemble} other{{count} autres ensembles}}}",
+  "warmupCompactCount": "{count, plural, =1{1 echauffement} other{{count} échauffement}}}",
+  "workCompactCount": "{count, plural, =1{1 uvre} other{{count} travail}}}",
+  "failureCompactCount": "{count, plural, =1{1 echec} other{Echec {count}}}}",
+  "dropsetCompactCount": "{count, plural, =1{1 dropset} other{Ensembles de gouttes {count}}}}",
+  "supersetCompactCount": "{count, plural, =1{1 surensemble} other{Surensembles {count}}}}",
+  "otherCompactCount": "{count, plural, =1{1 autre} other{{count} autre}}}",
+  "shareExercisesLabel": "exercices",
+  "shareSetsLabel": "ensembles",
+  "shareSetLabel": "ensemble",
+  "tabBaseFoods": "Aliments de base",
+  "baseFoodsEmptyState": "Cette section sera bientôt remplie d'une liste organisée d'aliments de base comme des fruits, des légumes et plus encore.",
+  "noBrand": "Aucune marque",
+  "unknown": "Inconnu",
+  "backupFileSubject": "Sauvegarde de l'application Train Libre - {timestamp}",
+  "@backupFileSubject": {
+    "placeholders": {
+      "timestamp": {
+        "type": "String"
+      }
+    }
+  },
+  "foodItemSubtitle": "{brand} - {calories} kcal / 100g",
+  "@foodItemSubtitle": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "foodListSubtitle": "{grams} g - {time}",
+  "@foodListSubtitle": {
+    "placeholders": {
+      "grams": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "foodListTrailingKcal": "{calories} kcal",
+  "@foodListTrailingKcal": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "waterListTrailingMl": "{milliliters} ml",
+  "@waterListTrailingMl": {
+    "placeholders": {
+      "milliliters": {
+        "type": "int"
+      }
+    }
+  },
+  "exerciseCatalogTitle": "Catalogue d'exercices",
+  "filterByMuscle": "Filtrer par groupe musculaire",
+  "noExercisesFound": "Aucun exercice trouvé.",
+  "noDescriptionAvailable": "Aucune description disponible.",
+  "filterByCategory": "Filtrer par catégorie",
+  "edit": "Modifier",
+  "repsLabelShort": "représentants",
+  "titleNewRoutine": "Nouvelle routine",
+  "titleEditRoutine": "Modifier la routine",
+  "validatorPleaseEnterRoutineName": "Veuillez saisir un nom pour la routine.",
+  "snackbarRoutineCreated": "Routine créée. Ajoutez maintenant quelques exercices.",
+  "snackbarRoutineSaved": "Routine enregistrée.",
+  "saveAsRoutineButton": "Enregistrer comme routine",
+  "saveAsRoutineTitle": "Enregistrer comme routine",
+  "saveAsRoutinePrompt": "Veuillez saisir un nom pour la nouvelle routine :",
+  "saveAsRoutineSuccess": "Routine créée !",
+  "snackbarRoutineSavedAction": "Voir",
+  "formFieldRoutineName": "Nom de la routine",
+  "emptyStateAddFirstExercise": "Ajoutez votre premier exercice.",
+  "setCount": "{count, plural, =1{1 ensemble} other{Ensembles {count}}}}",
+  "@setCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fabAddExercise": "Ajouter un exercice",
+  "kgLabelShort": "kilos",
+  "drawerExerciseCatalog": "Catalogue d'exercices",
+  "lastWorkoutTitle": "Dernier entraînement",
+  "repeatButton": "Répéter",
+  "weightHistoryTitle": "Historique du poids",
+  "hideSummary": "Masquer le résumé",
+  "showSummary": "Afficher le résumé",
+  "exerciseDataAttribution": "Données d'exercice de wger",
+  "duplicate": "Double",
+  "deleteRoutineConfirmContent": "Êtes-vous sûr de vouloir supprimer définitivement la routine « {routineName} » ?",
+  "@deleteRoutineConfirmContent": {
+    "placeholders": {
+      "routineName": {
+        "type": "String"
+      }
+    }
+  },
+  "editPauseTimeTitle": "Modifier la durée de la pause",
+  "pauseInSeconds": "Pause en secondes",
+  "editPauseTime": "Modifier la pause",
+  "pauseDuration": "{seconds} seconde pause",
+  "@pauseDuration": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "maxPauseDuration": "Pause jusqu'à {seconds} s",
+  "@maxPauseDuration": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteWorkoutConfirmContent": "Êtes-vous sûr de vouloir supprimer définitivement ce journal d'entraînement ?",
+  "removeExercise": "Supprimer l'exercice",
+  "deleteExerciseConfirmTitle": "Supprimer l'exercice ?",
+  "deleteExerciseConfirmContent": "Êtes-vous sûr de vouloir supprimer « {exerciseName} » de cette routine ?",
+  "@deleteExerciseConfirmContent": {
+    "placeholders": {
+      "exerciseName": {
+        "type": "String"
+      }
+    }
+  },
+  "doneButtonLabel": "Fait",
+  "setRestTimeButton": "Définir le temps de repos",
+  "deleteExerciseButton": "Supprimer l'exercice",
+  "restOverLabel": "La pause est terminée",
+  "workoutRunningLabel": "L’entraînement est actif…",
+  "continueButton": "Continuer",
+  "discardButton": "Jeter",
+  "workoutStatsTitle": "Formation (7 jours)",
+  "workoutsLabel": "Entraînements",
+  "durationLabel": "Durée",
+  "@durationLabel": {
+    "description": "Label for workout duration summary"
+  },
+  "volumeLabel": "Volume",
+  "setsLabel": "Ensembles",
+  "@setsLabel": {
+    "description": "Label for number of sets summary"
+  },
+  "muscleSplitLabel": "Division musculaire",
+  "@muscleSplitLabel": {
+    "description": "Label for muscle split bar chart"
+  },
+  "snackbar_could_not_open_open_link": "Impossible d'ouvrir le lien",
+  "chart_no_data_for_period": "Aucune donnée graphique pour cette période",
+  "amount_in_milliliters": "Quantité en millilitres",
+  "amount_in_grams": "Quantité en grammes",
+  "meal_label": "Repas",
+  "add_to_water_intake": "Ajouter à la prise d'eau",
+  "create_exercise_screen_title": "Créer un exercice personnalisé",
+  "exercise_name_label": "Nom de l'exercice",
+  "category_label": "Catégorie",
+  "description_optional_label": "Description (facultatif)",
+  "primary_muscles_label": "Muscles primaires",
+  "primary_muscles_hint": "par ex. Poitrine, Triceps",
+  "secondary_muscles_label": "Muscles secondaires (facultatif)",
+  "secondary_muscles_hint": "par ex. Épaules",
+  "fluidNameLabel": "Nom",
+  "sugarPer100mlLabel": "Sucre (g/100ml)",
+  "set_type_normal": "Normale",
+  "set_type_warmup": "Réchauffer",
+  "set_type_failure": "Échec",
+  "set_type_dropset": "Ensemble de gouttes",
+  "set_reps_hint": "8-12",
+  "data_export_button": "Exporter",
+  "data_import_button": "Importer",
+  "snackbar_button_ok": "D'ACCORD",
+  "measurement_session_detail_view": "Vue détaillée de la session de mesure",
+  "unit_grams": "g",
+  "unit_kcal": "kilocalories",
+  "delete_profile_picture_button": "Supprimer la photo de profil",
+  "attribution_title": "Attribution",
+  "add_liquid_title": "Ajouter du liquide",
+  "add_button": "Ajouter",
+  "discard_button": "Jeter",
+  "continue_workout_button": "Continuer",
+  "soon_available_snackbar": "Cet écran sera bientôt disponible",
+  "start_button": "Commencer",
+  "today_overview_text": "AUJOURD'HUI À L'AFFICHE",
+  "quick_add_text": "AJOUT RAPIDE",
+  "scann_barcode_capslock": "Scanner le code-barres",
+  "protocol_today_capslock": "PROTOCOLE D'AUJOURD'HUI",
+  "my_plans_capslock": "MES PROJETS",
+  "overview_capslock": "APERÇU",
+  "manage_all_plans": "Gérer tous les forfaits",
+  "workoutSectionStart": "Commencer",
+  "workoutSectionMyPlans": "Mes projets",
+  "workoutSectionHistoryLibrary": "Histoire et bibliothèque",
+  "workoutAllRoutines": "Toutes les routines",
+  "workoutEntryWorkouts": "Entraînements",
+  "free_training": "formation gratuite",
+  "my_consistency": "MA COHÉRENCE",
+  "calendar_currently_not_available": "La vue du calendrier sera bientôt disponible.",
+  "in_depth_analysis": "ANALYSE APPROFONDIE",
+  "body_measurements": "Mesures du corps",
+  "measurements_description": "Analysez le poids, le pourcentage de graisse corporelle et la circonférence.",
+  "nutrition_description": "Évaluez les macros, les calories et les tendances.",
+  "training_analysis": "Analyse de la formation",
+  "training_analysis_description": "Suivez le volume, la force et la progression.",
+  "load_dots": "chargement...",
+  "profile_capslock": "PROFIL",
+  "settings_capslock": "PARAMÈTRES",
+  "settingsTitle": "Paramètres",
+  "settingsUpdateFoodDatabase": "Mettre à jour la base de données alimentaire",
+  "settingsUpdateFoodDatabaseSubtitle": "Vérifiez manuellement les mises à jour de la base de données Open Food Facts.",
+  "settingsUpdateFoodDatabaseSuccess": "Base de données alimentaire mise à jour avec succès.",
+  "settingsUpdateFoodDatabaseError": "Erreur lors de la mise à jour de la base de données : {error}",
+  "@settingsUpdateFoodDatabaseError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsGuidedTourSectionTitle": "Visite guidée",
+  "settingsRestartAppTourTitle": "Redémarrer la visite guidée de l'application",
+  "settingsRestartAppTourSubtitle": "Exécutez à nouveau la courte procédure pas à pas dans l’application.",
+  "my_goals": "Mes objectifs",
+  "my_goals_description": "Ajustez les calories, les macros et l'eau.",
+  "backup_and_import": "Sauvegarde et importation de données",
+  "backup_and_import_description": "Créez des sauvegardes, restaurez et importez des données.",
+  "feedbackReportSettingsSectionTitle": "Soutien",
+  "feedbackReportSettingsEntryTitle": "Envoyer des commentaires",
+  "feedbackReportSettingsEntrySubtitle": "Créez un rapport de diagnostic local et choisissez comment le partager.",
+  "about_and_legal_capslock": "À PROPOS ET LÉGAL",
+  "feedbackReportScreenTitle": "Rapport de rétroaction",
+  "feedbackReportPrivacyTitle": "La confidentialité avant tout",
+  "feedbackReportPrivacyBody": "Ce rapport est généré localement sur votre appareil. Rien n'est envoyé automatiquement. Seul ce que vous voyez dans l'aperçu est inclus lorsque vous choisissez de copier, enregistrer, partager ou envoyer par courrier électronique. L'e-mail ouvre un brouillon à feedback@schotte.me afin que vous puissiez le consulter, le modifier ou l'annuler avant de l'envoyer.",
+  "feedbackReportOptionalNoteTitle": "Remarque facultative",
+  "feedbackReportOptionalNoteLabel": "Votre note (facultatif)",
+  "feedbackReportOptionalNoteHint": "Décrivez ce qui s'est passé, le comportement attendu et les étapes à suivre pour reproduire.",
+  "feedbackReportIncludeSectionTitle": "Inclure dans le rapport",
+  "feedbackReportIncludeAdaptiveNutrition": "Diagnostic nutritionnel adaptatif",
+  "feedbackReportIncludeBackupRestore": "Diagnostic de sauvegarde/restauration",
+  "feedbackReportIncludeUserNote": "Remarque utilisateur",
+  "feedbackReportGeneratePreview": "Générer un aperçu",
+  "feedbackReportPreviewTitle": "Aperçu",
+  "feedbackReportActionCopy": "Copie",
+  "feedbackReportActionSave": "Sauvegarder",
+  "feedbackReportActionShare": "Partager",
+  "feedbackReportActionEmail": "E-mail",
+  "feedbackReportCopied": "Rapport copié dans le presse-papiers.",
+  "feedbackReportSavedToTemporaryFile": "Enregistré dans un fichier de rapport temporaire.",
+  "feedbackReportShareCompleted": "Feuille de partage ouverte.",
+  "feedbackReportShareCanceled": "Partage annulé.",
+  "feedbackReportEmailOpenFailed": "Impossible d'ouvrir l'application de messagerie.",
+  "feedbackReportEmailSubject": "Rapport de retour d'information sur Train Libre",
+  "feedbackReportReportTitle": "Rapport de rétroaction sur Train Libre",
+  "feedbackReportReportGeneratedAt": "Généré",
+  "feedbackReportReportAppVersion": "Version de l'application",
+  "feedbackReportReportBuildNumber": "Numéro de build",
+  "feedbackReportReportPlatform": "Plate-forme",
+  "feedbackReportReportOsVersion": "Version du système d'exploitation",
+  "feedbackReportUnavailable": "indisponible",
+  "feedbackReportSectionUserNote": "Remarque utilisateur",
+  "feedbackReportSectionAdaptiveNutrition": "Diagnostic nutritionnel adaptatif",
+  "feedbackReportSectionBackupRestore": "Diagnostic de sauvegarde/restauration",
+  "attribution_and_license": "Attribution et licences",
+  "data_from_off_and_wger": "Données d’Open Food Facts et wger.",
+  "app_version": "Version de l'application",
+  "all_measurements": "TOUTES LES MESURES",
+  "all_measurements_no_cap": "Toutes les mesures",
+  "date_and_time_of_measurement": "Date et heure de la mesure",
+  "onbWelcomeTitle": "Bienvenue chez Train Libre",
+  "@onbWelcomeTitle": {
+    "description": "Onboarding slide 1 title"
+  },
+  "onbWelcomeBody": "Commençons par fixer des objectifs personnels pour guider l’entraînement et la nutrition.",
+  "@onbWelcomeBody": {
+    "description": "Onboarding slide 1 description"
+  },
+  "onbTrackTitle": "Suivez tout",
+  "@onbTrackTitle": {
+    "description": "Onboarding slide 2 title"
+  },
+  "onbTrackBody": "Enregistrez la nutrition, les entraînements et les mesures, le tout au même endroit.",
+  "@onbTrackBody": {
+    "description": "Onboarding slide 2 description"
+  },
+  "onbPrivacyTitle": "Hors ligne et confidentialité",
+  "@onbPrivacyTitle": {
+    "description": "Onboarding slide 3 title"
+  },
+  "onbPrivacyBody": "Vos données restent sur l'appareil. Pas de comptes cloud, pas de synchronisation en arrière-plan.",
+  "@onbPrivacyBody": {
+    "description": "Onboarding slide 3 description"
+  },
+  "onbFinishTitle": "Tout est prêt",
+  "@onbFinishTitle": {
+    "description": "Onboarding final slide title"
+  },
+  "onbFinishBody": "Vous êtes prêt à explorer l'application. Vous pouvez ajuster les paramètres à tout moment.",
+  "@onbFinishBody": {
+    "description": "Onboarding final slide description"
+  },
+  "onbFinishCta": "Allons-y!",
+  "@onbFinishCta": {
+    "description": "Final button label to finish onboarding"
+  },
+  "onbShowTutorialAgain": "Afficher à nouveau l'intégration",
+  "@onbShowTutorialAgain": {
+    "description": "Settings item to reopen onboarding"
+  },
+  "appTourOfferTitle": "Faire une visite rapide de l'application ?",
+  "appTourOfferBody": "Obtenez une brève présentation des principaux domaines de l’application. Vous pouvez ignorer maintenant et redémarrer plus tard dans Paramètres.",
+  "appTourOfferStart": "Commencer la visite",
+  "appTourOfferSkip": "Peut-être plus tard",
+  "appTourSkip": "Sauter",
+  "appTourNext": "Suivant",
+  "appTourDone": "Fait",
+  "appTourStepNavigationTitle": "Navigation principale",
+  "appTourStepNavigationBody": "Utilisez les onglets du bas pour vous déplacer entre Journal, Entraînement, Statistiques et Nutrition.",
+  "appTourStepQuickActionsTitle": "Actions rapides",
+  "appTourStepQuickActionsBody": "Appuyez sur le bouton plus pour ajouter rapidement de la nourriture, des liquides, des mesures, des séances d'entraînement et bien plus encore.",
+  "appTourStepDiaryTitle": "Agenda",
+  "appTourStepDiaryBody": "Le journal est votre aperçu quotidien. Suivez vos repas, votre hydratation, vos suppléments et votre journée en un coup d'œil.",
+  "appTourStepWorkoutTitle": "Entraînement",
+  "appTourStepWorkoutBody": "L'entraînement est l'endroit où vous démarrez des séances, gérez des routines et consultez votre historique d'entraînement.",
+  "appTourStepNutritionTitle": "Nutrition",
+  "appTourStepNutritionBody": "La nutrition vous aide à planifier vos repas, à revoir vos objectifs et à accéder à des outils tels que des modèles de repas.",
+  "appTourStepStatisticsTitle": "Statistiques",
+  "appTourStepStatisticsBody": "Les statistiques montrent les tendances et les progrès afin que vous puissiez comprendre comment vos données évoluent au fil du temps.",
+  "onbSetGoalsCta": "Fixer des objectifs",
+  "@onbSetGoalsCta": {
+    "description": "Optional CTA linking to Goals screen from onboarding"
+  },
+  "onbHeaderTitle": "Tutoriel",
+  "@onbHeaderTitle": {
+    "description": "Onboarding header title"
+  },
+  "onbHeaderSkip": "Sauter",
+  "@onbHeaderSkip": {
+    "description": "Skip button label in onboarding header"
+  },
+  "onbBack": "Dos",
+  "@onbBack": {
+    "description": "Back button in onboarding footer"
+  },
+  "onbNext": "Suivant",
+  "@onbNext": {
+    "description": "Next button in onboarding footer"
+  },
+  "onbGuideTitle": "Comment fonctionne ce tutoriel",
+  "@onbGuideTitle": {
+    "description": "Guide banner title in onboarding"
+  },
+  "onbGuideBody": "Faites glisser votre doigt entre les diapositives ou utilisez Suivant. Appuyez sur les boutons de chaque diapositive pour essayer les fonctionnalités. Vous pouvez terminer à tout moment avec Skip.",
+  "@onbGuideBody": {
+    "description": "Guide banner description in onboarding"
+  },
+  "onbCtaOpenNutrition": "Alimentation ouverte",
+  "@onbCtaOpenNutrition": {
+    "description": "CTA to open nutrition tracking from onboarding"
+  },
+  "onbCtaLearnMore": "Apprendre encore plus",
+  "@onbCtaLearnMore": {
+    "description": "CTA to learn more about privacy/offline"
+  },
+  "onbBadgeDone": "Fait",
+  "@onbBadgeDone": {
+    "description": "Badge label shown after completing CTA"
+  },
+  "onbTipSetGoals": "Astuce : ajustez d'abord les cibles",
+  "@onbTipSetGoals": {
+    "description": "Hint text on goals slide"
+  },
+  "onbTipAddEntry": "Astuce : ajoutez une entrée aujourd'hui",
+  "@onbTipAddEntry": {
+    "description": "Hint text on nutrition slide"
+  },
+  "onbTipLocalControl": "Vous contrôlez toutes les données localement",
+  "@onbTipLocalControl": {
+    "description": "Hint on privacy slide about local data control"
+  },
+  "onbTrackHowBody": "Comment enregistrer la nutrition :\n• Ouvrez l'onglet Aliments.\n• Appuyez sur le bouton +.\n• Recherchez des produits ou scannez un code-barres.\n• Ajustez la portion et le temps.\n• Enregistrez dans votre agenda.",
+  "@onbTrackHowBody": {
+    "description": "Onboarding slide 2 replacement body: step-by-step nutrition logging instructions"
+  },
+  "onbMeasureTitle": "Suivre les mesures",
+  "@onbMeasureTitle": {
+    "description": "Onboarding slide title for measurements"
+  },
+  "onbMeasureBody": "Comment ajouter des mesures :\n• Ouvrez l'onglet Statistiques.\n• Appuyez sur le bouton +.\n• Choisissez une mesure (par exemple, poids, taille, graisse corporelle).\n• Entrez la valeur et l'heure.\n• Enregistrez dans votre historique.",
+  "@onbMeasureBody": {
+    "description": "Step-by-step instructions for adding measurements"
+  },
+  "onbTipMeasureToday": "Astuce : ajoutez le poids du jour pour commencer votre graphique",
+  "@onbTipMeasureToday": {
+    "description": "Hint for measurements slide"
+  },
+  "onbTrainTitle": "Entraînez-vous avec des routines",
+  "@onbTrainTitle": {
+    "description": "Onboarding slide title for training routines"
+  },
+  "onbTrainBody": "Créez une routine et démarrez un entraînement :\n• Ouvrez l'onglet Train.\n• Appuyez sur Créer une routine pour ajouter des exercices et des séries.\n• Sauvegardez la routine.\n• Appuyez sur Démarrer pour commencer ou utilisez « Démarrer un entraînement vide ».",
+  "@onbTrainBody": {
+    "description": "Instructions for creating a routine and starting a workout"
+  },
+  "onbTipStartWorkout": "Astuce : démarrez un entraînement vide pour enregistrer une séance rapide",
+  "@onbTipStartWorkout": {
+    "description": "Hint for training slide"
+  },
+  "unitsSection": "unités",
+  "weightUnit": "Unités de poids",
+  "lengthUnit": "unité de longueur",
+  "comingSoon": "À venir",
+  "noFavorites": "Aucun favori",
+  "nothingTrackedYet": "Rien de suivi pour l'instant",
+  "snackbarBarcodeNotFound": "Aucun produit trouvé pour le code-barres \"{barcode}\".",
+  "@snackbarBarcodeNotFound": {
+    "placeholders": {
+      "barcode": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryHint": "par ex. Poitrine, Dos, Jambes...",
+  "validatorPleaseEnterCategory": "Veuillez entrer une catégorie.",
+  "dialogEnterPasswordImport": "Entrez le mot de passe pour importer la sauvegarde",
+  "dataManagementBackupTitle": "Sauvegarde des données Train Libre",
+  "dataManagementBackupDescription": "Sauvegardez ou restaurez toutes les données de votre application. Idéal pour changer d'appareil.",
+  "exportEncrypted": "Exporter crypté",
+  "dialogPasswordForExport": "Mot de passe pour l'exportation cryptée",
+  "snackbarEncryptedBackupShared": "Sauvegarde cryptée partagée.",
+  "exportFailed": "L'exportation a échoué.",
+  "csvExportTitle": "Exportation de données (CSV)",
+  "csvExportDescription": "Exportez des parties de vos données sous forme de fichier CSV pour les analyser dans d'autres programmes.",
+  "snackbarSharingNutrition": "Partager le journal nutritionnel...",
+  "snackbarExportFailedNoEntries": "L'exportation a échoué. Il n'y a peut-être pas encore d'entrées.",
+  "snackbarSharingMeasurements": "Partage des mesures...",
+  "snackbarSharingWorkouts": "Partager l'historique des entraînements...",
+  "mapExercisesTitle": "Exercices de cartes",
+  "mapExercisesDescription": "Mappez les noms inconnus des journaux vers les exercices wger.",
+  "mapExercisesButton": "Commencer la cartographie",
+  "autoBackupTitle": "Sauvegardes automatiques",
+  "autoBackupDescription": "Enregistre périodiquement une sauvegarde dans le dossier. Dossier actuel :",
+  "autoBackupDefaultFolder": "Documents d'application/sauvegardes (par défaut)",
+  "autoBackupChooseFolder": "Choisir un dossier",
+  "autoBackupCopyPath": "Copier le chemin",
+  "autoBackupRunNow": "Vérifiez et exécutez la sauvegarde automatique maintenant",
+  "autoBackupRequestAccessSubtitle": "Pour sauvegarder automatiquement vos données, Train Libre a besoin d'accéder à un dossier que vous choisissez. Vos sauvegardes y seront stockées.",
+  "snackbarAutoBackupSuccess": "Sauvegarde automatique terminée.",
+  "snackbarAutoBackupFailed": "La sauvegarde automatique a échoué ou a été annulée.",
+  "localDataDeletionCardTitle": "Données d'application locale",
+  "localDataDeletionCardDescription": "Supprimez définitivement les données appartenant à l'utilisateur stockées sur cet appareil et réinitialisez Train Libre à un nouvel état local.",
+  "deleteAllLocalAppData": "Supprimer toutes les données de l'application locale",
+  "localDataDeletionConfirmTitle": "Supprimer toutes les données de l'application locale ?",
+  "localDataDeletionConfirmBody": "Cela supprime définitivement les entraînements stockés localement, les journaux nutritionnels, les mesures, les suppléments, les paramètres/état, les analyses mises en cache et les données des applications locales.\n\nCela ne supprime pas les données déjà exportées vers Apple Health ou Health Connect.\n\nCela ne supprime pas les données des fournisseurs externes ni les sources de catalogue public distantes. Les ressources d'application groupées et les catalogues par défaut requis sont conservés ou recréés afin que l'application puisse se lancer après la réinitialisation.",
+  "localDataDeletionTypeDeleteLabel": "Tapez SUPPR pour confirmer",
+  "localDataDeletionSuccessTitle": "Données locales supprimées",
+  "localDataDeletionSuccessBody": "Train Libre reviendra à son état de configuration initial.",
+  "localDataDeletionFailed": "Les données locales n'ont pas pu être supprimées. Veuillez réessayer.",
+  "noUnknownExercisesFound": "Aucun exercice inconnu trouvé",
+  "snackbarAutoBackupFolderSet": "Ensemble de dossiers de sauvegarde automatique :\n{path}",
+  "@snackbarAutoBackupFolderSet": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarPathCopied": "Chemin copié",
+  "passwordLabel": "Mot de passe",
+  "descriptionLabel": "Description",
+  "involvedMuscles": "Muscles impliqués",
+  "primaryLabel": "Primaire:",
+  "secondaryLabel": "Secondaire:",
+  "noMusclesSpecified": "Aucun muscle spécifié.",
+  "frontLabel": "Devant",
+  "backLabel": "Dos",
+  "noSelection": "Aucune sélection",
+  "selectButton": "Sélectionner",
+  "applyingChanges": "Application des modifications...",
+  "applyMapping": "Appliquer le mappage",
+  "mappingSuggestions": "Suggestions",
+  "mappingSuggestionsEmpty": "Aucun exercice correspondant trouvé",
+  "personalData": "Données personnelles",
+  "personalDataCL": "DONNÉES PERSONNELLES",
+  "macroDistribution": "Distribution des macronutriments",
+  "dialogFinishWorkoutBody": "Êtes-vous sûr de vouloir terminer cet entraînement ?",
+  "attributionText": "Cette application utilise des données provenant de sources externes :\n\n● Données d'exercice et images de wger (wger.de), sous licence CC-BY-SA 4.0.\n\n● Base de données alimentaire d'Open Food Facts (openfoodfacts.org), disponible sous licence Open Database (ODbL).",
+  "errorRoutineNotFound": "Routine introuvable",
+  "workoutHistoryEmptyTitle": "Votre historique est vide",
+  "workoutSummaryTitle": "Entraînement terminé",
+  "workoutSummaryExerciseOverview": "Aperçu de l'exercice",
+  "nutritionDiary": "Agenda",
+  "detailedNutrientGoals": "Nutriments détaillés",
+  "detailedNutrientGoalsCL": "NUTRIMENTS DÉTAILLÉS",
+  "supplementTrackerTitle": "Suivi des suppléments",
+  "supplementTrackerDescription": "Suivez les objectifs, les limites et les apports.",
+  "createSupplementTitle": "Créer un supplément",
+  "supplementNameLabel": "Nom du supplément",
+  "defaultDoseLabel": "Dose par défaut",
+  "unitLabel": "Unité",
+  "dailyGoalLabel": "Objectif quotidien (facultatif)",
+  "dailyLimitLabel": "Limite quotidienne (facultatif)",
+  "dailyProgressTitle": "Progrès quotidien",
+  "todaysLogTitle": "Journal du jour",
+  "logIntakeTitle": "Entrée de journal",
+  "emptySupplementGoals": "Fixez des objectifs ou des limites pour les suppléments pour voir vos progrès ici.",
+  "emptySupplementLogs": "Aucune prise enregistrée pour aujourd'hui pour l'instant.",
+  "doseLabel": "Dose",
+  "settingsDescription": "Thème, unités, données et plus",
+  "settingsAppearance": "Apparence",
+  "themeSystem": "Système",
+  "themeLight": "Lumière",
+  "themeDark": "Sombre",
+  "caffeinePrompt": "Caféine (facultatif)",
+  "caffeineUnit": "mg pour 100 ml",
+  "profile": "Profil",
+  "measurementWeightCapslock": "POIDS CORPOREL",
+  "diary": "Agenda",
+  "analysis": "Analyse",
+  "yesterday": "Hier",
+  "dayBeforeYesterday": "Il y a deux jours",
+  "statistics": "Statistiques",
+  "workout": "Entraînement",
+  "addFoodTitle": "ajouter de la nourriture",
+  "nutritionExplorerTitle": "Explorateur de nutrition",
+  "myMeals": "Mes repas",
+  "myMealsCL": "MES REPAS",
+  "nutritionSectionTodayInFocus": "Aujourd'hui en bref",
+  "nutritionSectionMyMeals": "Mes repas",
+  "nutritionSectionToolsAndLibrary": "Outils et bibliothèque",
+  "supplement_caffeine": "Caféine",
+  "supplement_creatine_monohydrate": "Créatine Monohydrate",
+  "manageSupplementsTitle": "Gérer les suppléments",
+  "deleted": "supprimé",
+  "operationNotAllowed": "Cette opération n'est pas autorisée",
+  "emptySupplements": "Aucun supplément disponible",
+  "undo": "Défaire",
+  "deleteSupplementConfirm": "Êtes-vous sûr de vouloir supprimer ce supplément ? Toutes les données historiques seront perdues.\n\nAstuce : Vous pouvez simplement supprimer le suivi en modifiant le supplément à la place.",
+  "fieldRequired": "Requis",
+  "unitNotSupported": "Unité non prise en charge.",
+  "caffeineUnitLocked": "Pour la caféine l’unité est fixe : mg.",
+  "caffeineMustBeMg": "La caféine doit être enregistrée en mg.",
+  "tabCatalogSearch": "Catalogue",
+  "tabMeals": "Repas",
+  "emptyCategory": "Aucune entrée",
+  "searchSectionBase": "Aliments de base",
+  "searchSectionOther": "Autres résultats",
+  "mealsComingSoonTitle": "Repas (à venir)",
+  "mealsComingSoonBody": "Bientôt, vous pourrez créer vos propres repas à partir de plusieurs aliments.",
+  "mealsEmptyTitle": "Aucun modèle de repas enregistré",
+  "mealsEmptyBody": "Créez des repas pour enregistrer rapidement plusieurs aliments à la fois.",
+  "mealsEmptyBodyWithShortcut": "Dans le journal, utilisez l'option « Enregistrer comme repas » sous votre petit-déjeuner ou votre dîner pour enregistrer les combinaisons alimentaires courantes comme modèle rapide.",
+  "mealsCreateManually": "Créer un repas manuellement",
+  "saveMealTemplateShortcut": "Enregistrer comme repas",
+  "mealsCreate": "Créer un repas",
+  "mealsEdit": "Modifier le repas",
+  "mealsDelete": "Supprimer le repas",
+  "mealsAddToDiary": "Ajouter de la nourriture",
+  "mealNameLabel": "Nom du repas",
+  "mealNotesLabel": "Remarques",
+  "mealIngredientsTitle": "Ingrédients",
+  "mealAddIngredient": "Ajouter un ingrédient",
+  "mealIngredientAmountLabel": "Montant",
+  "mealDeleteConfirmTitle": "Supprimer le repas",
+  "mealDeleteConfirmBody": "Êtes-vous sûr de vouloir supprimer le repas « {name} » ? Tous ses ingrédients seront également supprimés.",
+  "mealAddedToDiary": "Le repas '{name}' a été ajouté à votre agenda.",
+  "mealSaved": "Repas sauvé.",
+  "mealDeleted": "Repas supprimé.",
+  "confirm": "Confirmer",
+  "addMealToDiaryTitle": "Ajouter au journal",
+  "mealTypeLabel": "Repas",
+  "amountLabel": "Montant",
+  "mealAddedToDiarySuccess": "Repas ajouté au journal",
+  "error": "Erreur",
+  "mealsViewTitle": "repasViewTitle",
+  "noNotes": "Aucune note",
+  "ingredientsCapsLock": "INGRÉDIENTS",
+  "nutritionSectionLabel": "FAITS NUTRITIONNELS",
+  "nutritionCalculatedForCurrentAmounts": "pour les quantités actuelles",
+  "startCapsLock": "COMMENCER",
+  "nutritionHubSubtitle": "Découvrez des informations, suivez vos repas et planifiez votre alimentation ici bientôt.",
+  "nutritionHubTitle": "Nutrition",
+  "nutrition": "nutrition",
+  "changeSetTypTitle": "Modifier le type d'ensemble",
+  "settingsVisualStyleTitle": "Style visuel",
+  "settingsVisualStyleStandard": "Verre dépoli",
+  "settingsVisualStyleLiquid": "Verre liquide (fluide)",
+  "settingsVisualStyleLiquidDesc": "Éléments d'interface utilisateur arrondis et flottants",
+  "settingsMaterialColorsTitle": "Couleurs des matériaux",
+  "settingsMaterialColorsSubtitle": "Utilisez les couleurs dynamiques Android (Material You) au lieu de l'accent de la marque Train Libre",
+  "settingsFoodDbSectionTitle": "Base de données alimentaire",
   "settingsFoodDbRegionTitle": "Région de la base de données",
   "settingsFoodDbRegionSubtitle": "Sélectionnez la région du catalogue de produits Open Food Facts utilisée.",
+  "settingsFoodDbRegionCurrent": "Région actuelle",
   "settingsFoodDbRegionDialogTitle": "Choisir la région de la base de données",
   "settingsFoodDbRegionDialogSubtitle": "Cela modifie la source du catalogue Open Food Facts pour la recherche.",
+  "settingsFoodDbRegionIssueHint": "Si votre pays ne figure pas encore dans la liste, n'hésitez pas à ouvrir un ticket GitHub et à demander de l'aide.",
   "settingsFoodDbRegionGermany": "Allemagne (DE)",
   "settingsFoodDbRegionSwitzerland": "Suisse (CH)",
   "settingsFoodDbRegionUnitedStates": "États-Unis (US)",
-  "settingsFoodDbRegionUnitedKingdom": "Royaume-Uni (UK)",
   "settingsFoodDbRegionFrance": "France (FR)",
   "settingsFoodDbRegionItaly": "Italie (IT)",
   "settingsFoodDbRegionJapan": "Japon (JP)",
+  "settingsColorfulMacroBadgesTitle": "Insignes macro colorés",
+  "settingsColorfulMacroBadgesSubtitle": "Utilise également la conception du badge à code couleur issue de la vérification par l'IA dans le journal.",
+  "settingsFoodDbRegionUnitedKingdom": "Royaume-Uni (UK)",
   "settingsFoodDbRegionChanged": "Région de la base de données définie sur {region}. Les modifications s'appliqueront lors du prochain cycle d'importation.",
   "@settingsFoodDbRegionChanged": {
     "placeholders": {
@@ -40,17 +900,1347 @@
       }
     }
   },
-  
+  "searchBaseFoodHint": "Rechercher des aliments de base",
+  "searchNoHits": "Aucun coup sûr.",
+  "onbSubtitleWelcome": "Votre outil central pour la forme physique, la nutrition et le progrès.",
+  "onbBodyWelcome": "Nous vous aidons à définir et suivre vos objectifs. Enregistrez efficacement vos entraînements, votre nutrition, vos suppléments et vos mensurations.",
+  "onbBodyNutritionVisual": "Enregistrez vos repas en quelques clics. Gardez un œil sur les calories, les macros et l'eau pour suivre sans effort votre objectif.",
+  "onbBodyMeasurementsVisual": "Visualisez vos progrès. Le tableau des poids et des circonférences rend votre réussite visible et vous maintient motivé.",
+  "onbBodyWorkoutVisual": "Créez des routines et démarrez votre entraînement en quelques secondes. Enregistrez les séries, les poids et les repos pour une progression maximale.",
+  "onbTitleAppLayout": "Navigation et ajout rapide",
+  "onbBodyAppLayout": "La barre inférieure permet de basculer rapidement entre les zones. Utilisez le gros bouton [+] pour tout enregistrer instantanément.",
+  "dataHubTitle": "Centre de données",
+  "resumeButton": "CV",
+  "onboardingWelcomeTitle": "Bienvenue chez Train Libre",
+  "onboardingWelcomeSubtitle": "Configurons votre profil pour obtenir les meilleurs résultats.",
+  "onboardingNameTitle": "Quel est ton nom?",
+  "onboardingNameLabel": "Votre nom",
+  "onboardingNameError": "Veuillez entrer votre nom",
+  "onboardingDobTitle": "Quand êtes-vous né?",
+  "onboardingDobLabel": "Date de naissance",
+  "onboardingDobError": "Veuillez sélectionner votre date de naissance",
+  "onboardingWeightTitle": "Poids actuel",
+  "onboardingWeightLabel": "Poids",
+  "onboardingWeightError": "Veuillez entrer un poids valide",
+  "onboardingGoalsTitle": "Vos objectifs nutritionnels",
+  "onboardingGoalsSubtitle": "Vous pourrez les modifier ultérieurement dans les paramètres.",
+  "onboardingGoalCalories": "Calories quotidiennes (kcal)",
+  "onboardingGoalProtein": "Protéine (g)",
+  "onboardingGoalCarbs": "Glucides (g)",
+  "onboardingGoalFat": "Graisse (g)",
+  "onboardingGoalWater": "Eau",
+  "onboardingNext": "Suivant",
+  "onboardingBack": "Dos",
+  "onboardingFinish": "Commencer le suivi",
+  "onboardingUnitSystemTitle": "Choisissez votre système d'unités",
+  "onboardingUnitSystemSubtitle": "Vous pourrez modifier cela ultérieurement dans Paramètres.",
+  "onboardingUnitMetric": "Métrique",
+  "onboardingUnitMetricSubtitle": "kg, cm, ml",
+  "onboardingUnitImperial": "Impérial",
+  "onboardingUnitImperialSubtitle": "livres, po, fl oz",
+  "onboardingHeightLabel": "Hauteur",
+  "onboardingGenderLabel": "Genre",
+  "genderMale": "Mâle",
+  "genderFemale": "Femelle",
+  "genderDiverse": "Divers",
+  "vegan": "Végétalien",
+  "vegetarian": "Végétarien",
+  "ingredients": "Ingrédients",
   "aiSettingsTitle": "Reconnaissance de repas par IA",
   "aiSettingsDescription": "Configurer la détection de repas assistée par IA.",
+  "aiProviderSection": "Fournisseur d'IA",
   "aiProviderLabel": "Fournisseur",
+  "aiApiKeySection": "Clé API",
+  "aiApiKeyLabel": "Clé API",
+  "aiApiKeyHint": "Collez votre clé API ici",
+  "aiSaveKey": "Enregistrer la clé",
+  "aiTestConnection": "Test",
+  "aiTestSuccess": "Connexion réussie !",
+  "aiKeySaved": "Clé API enregistrée en toute sécurité.",
+  "aiPrivacySection": "Confidentialité",
+  "aiPrivacyDisclosure": "Les images, le texte et les invites générées sont envoyés au fournisseur d'IA sélectionné uniquement lorsque vous utilisez une action d'IA. La rétention et le traitement du fournisseur suivent les conditions de ce fournisseur. Votre clé API est stockée cryptée sur cet appareil uniquement.",
+  "aiMealCapture": "Repas IA",
+  "aiCaptureTitle": "Capture de repas IA",
+  "aiCaptureTabPhoto": "Photo",
+  "aiCaptureTabText": "Texte",
+  "aiCapturePhotoHint": "Prenez ou sélectionnez jusqu'à 4 photos de votre repas.",
+  "aiCaptureTextHint": "Décrivez votre repas (par exemple \"Poulet grillé avec riz et salade\")...",
+  "aiAnalyzeButton": "Analyser",
+  "aiAnalyzing": "Analyser votre repas...",
+  "aiReviewTitle": "Suggestions de révision",
+  "aiReviewFoundItems": "L'IA a trouvé {count} éléments",
+  "@aiReviewFoundItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiReviewNoMatch": "Aucune correspondance – appuyez pour rechercher",
+  "aiReviewConfidence": "Confiance",
+  "aiReviewAddItem": "Ajouter un article manuellement",
+  "aiReviewReplaceItem": "Remplacer l'élément",
+  "aiReviewSaveToDiary": "Enregistrer dans le journal",
+  "aiReviewFeedbackHint": "Décrivez ce que l'IA s'est trompé...",
+  "aiReviewRetryButton": "Réessayez avec commentaires",
+  "aiReviewFeedbackSection": "Correction",
+  "aiErrorNoKey": "Aucune clé API configurée. Veuillez en définir un dans Paramètres → AI Meal Capture.",
+  "aiErrorNetwork": "Erreur réseau. Veuillez vérifier votre connexion et réessayer.",
+  "aiErrorAuth": "L'authentification a échoué. Veuillez vérifier votre clé API.",
+  "aiErrorParse": "Impossible de comprendre la réponse de l'IA. Veuillez réessayer.",
+  "aiErrorRateLimit": "Trop de demandes. Veuillez patienter un moment.",
+  "aiEnableTitle": "Activer les fonctionnalités d'IA",
+  "aiEnableSubtitle": "Permet l'utilisation de l'IA pour la reconnaissance des repas. La désactivation de cette option masque tous les boutons AI de l'application.",
+  "aiCustomInstructionsTitle": "Instructions mondiales sur l'IA",
+  "aiCustomInstructionsSubtitle": "Donnez à l'IA des règles fixes (par exemple, allergies, aliments interdits comme « pas de bols » ou intolérances) à suivre à chaque capture.",
+  "aiValidationNoMatchedItemsSaveYet": "Aucun élément correspondant ne peut encore être enregistré.",
+  "aiValidationNoMatchedIngredientsSaveYet": "Aucun ingrédient correspondant ne peut encore être enregistré.",
+  "aiValidationSomeItemsNeedReviewTitle": "Certains éléments doivent être révisés",
+  "aiValidationSomeIngredientsNeedReviewTitle": "Certains ingrédients doivent être révisés",
+  "aiValidationSaveMatchedItemsButton": "Enregistrer les éléments correspondants",
+  "aiValidationSaveMatchedIngredientsButton": "Enregistrez les ingrédients correspondants",
+  "aiValidationValidationPassedTitle": "Validation réussie",
+  "aiValidationReviewSuggestedTitle": "Avis suggéré",
+  "aiValidationMacroFitValidatedTitle": "Ajustement macro validé",
+  "aiValidationNeedsReviewTitle": "Besoin d'un examen",
+  "aiValidationRepairLimitReachedReview": "Limite de réparation automatique atteinte. Veuillez vérifier avant d'enregistrer.",
+  "aiValidationRecentMealContextIncluded": "Le contexte du repas récent a été inclus.",
+  "aiValidationGeneratedWithoutRecentMealHistory": "Généré sans historique de repas récent.",
+  "aiValidationApiKeyRequiredTitle": "Clé API requise",
+  "aiValidationScoreLabel": "Note : {score}/100",
+  "@aiValidationScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationDeltaSummary": "Delta : {kcalDelta} kcal · {proteinDelta}g Protéines · {carbsDelta}g Glucides · {fatDelta}g Lipides",
+  "@aiValidationDeltaSummary": {
+    "placeholders": {
+      "kcalDelta": {
+        "type": "int"
+      },
+      "proteinDelta": {
+        "type": "int"
+      },
+      "carbsDelta": {
+        "type": "int"
+      },
+      "fatDelta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationPartialSaveItemsMessage": "{unmatchedCount, plural, =1{1 element n'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.} other{Les elements {unmatchedCount} n'ont pas de correspondance dans la base de données locale et ne seront pas enregistrés.}}",
+  "@aiValidationPartialSaveItemsMessage": {
+    "placeholders": {
+      "unmatchedCount": {
+        "type": "int"
+      },
+      "matchedCount": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationPartialSaveIngredientsMessage": "{unmatchedCount, plural, =1{1 ingredient n'a pas de correspondance dans la base de donnees locale et ne sera pas enregistre.} other{Les ingredients {unmatchedCount} n'ont pas de correspondance dans la base de données locale et ne seront pas enregistrés.}}",
+  "@aiValidationPartialSaveIngredientsMessage": {
+    "placeholders": {
+      "unmatchedCount": {
+        "type": "int"
+      },
+      "matchedCount": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationEmptyItemName": "Un article n'a pas de nom d'aliment.",
+  "aiValidationDuplicateItemMerged": "Les entrées « {name} » en double ont été fusionnées avant la validation.",
+  "@aiValidationDuplicateItemMerged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aiValidationInvalidQuantity": "La quantité doit être supérieure à 0g.",
+  "aiValidationTinyQuantity": "La quantité est très petite ; vérifiez la quantité en grammes.",
+  "aiValidationExtremeQuantity": "La quantité est invraisemblablement élevée pour un repas.",
+  "aiValidationLargeQuantity": "La quantité est inhabituellement importante ; vérifiez la quantité en grammes.",
+  "aiValidationLowAiConfidence": "La confiance de l’IA est faible pour cet élément.",
+  "aiValidationUnmatchedItem": "Aucune correspondance avec la base de données locale n'a été trouvée.",
+  "aiValidationWeakDbMatch": "La correspondance avec la base de données locale est faible.",
+  "aiValidationPartialDbMatch": "La correspondance avec la base de données locale est partielle.",
+  "aiValidationAmbiguousDbMatch": "Plusieurs correspondances de bases de données locales semblent tout aussi plausibles.",
+  "aiValidationStateMismatch": "L'état de l'élément AI peut ne pas correspondre à l'entrée de la base de données.",
+  "aiValidationZeroNutritionMatch": "L’entrée de base de données correspondante ne contient aucune donnée nutritionnelle utilisable.",
+  "aiValidationImplausibleFoodDensity": "Les aliments assortis contiennent des calories inhabituellement élevées pour 100 g.",
+  "aiValidationMacroEnergyMismatch": "Les macros alimentaires assorties ne correspondent pas bien aux kcal.",
+  "aiValidationImplausibleItemNutrition": "La nutrition pour cette quantité est inhabituellement élevée.",
+  "aiValidationEmptyMeal": "L’IA n’a renvoyé aucun repas.",
+  "aiValidationAllItemsUnmatched": "Aucun article n'a pu être associé à la base de données sur les aliments locaux.",
+  "aiValidationPartialUnmatchedItems": "{count, plural, =1{1 element ne peut pas etre enregistre tant qu'il n'a pas ete associe.} other{Les elements {count} ne peuvent pas être enregistrés tant qu'ils n'ont pas été mis en correspondance.}}}",
+  "@aiValidationPartialUnmatchedItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationZeroTotalKcal": "Les éléments correspondants produisent 0 kcal.",
+  "aiValidationCaptureTotalKcalExtreme": "Le total de kcal est incroyablement élevé pour un repas capturé.",
+  "aiValidationCaptureTotalKcalHigh": "Le kcal total est inhabituellement élevé ; passer en revue des parties.",
+  "aiValidationMacroTotalExtreme": "Le total des macros est incroyablement élevé.",
+  "aiValidationMacroTotalHigh": "Le total des macros est inhabituellement élevé ; passer en revue des parties.",
+  "aiValidationTargetKcalMismatch": "Les calories manquent l'objectif de {delta} kcal.",
+  "@aiValidationTargetKcalMismatch": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationTargetProteinMismatch": "La protéine manque la cible de {delta} g.",
+  "@aiValidationTargetProteinMismatch": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationTargetCarbsMismatch": "Les glucides manquent la cible de {delta} g.",
+  "@aiValidationTargetCarbsMismatch": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationTargetFatMismatch": "Fat manque la cible de {delta}g.",
+  "@aiValidationTargetFatMismatch": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationUnknownIssue": "Problème de validation : {code}",
+  "@aiValidationUnknownIssue": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "currentlyTracking": "Actuellement",
+  "currentlyTrackingDesc": "Afficher dans le hub de suivi quotidien",
+  "filter3Months": "3 mois",
+  "filter6Months": "6 mois",
+  "sectionConsistency": "Cohérence et fréquence",
+  "metricsWorkoutsWeek": "Entraînements (semaine)",
+  "metricsCurrentStreak": "Série actuelle",
+  "metricsActiveWeeks": "semaines d'activité",
+  "placeholderCalendarHeatmap": "Visuel de la carte thermique du calendrier",
+  "consistencyTrackerTitle": "Suivi de cohérence",
+  "consistencyTrackerComingSoon": "Suivi de la cohérence et des habitudes (à venir)",
+  "sectionMuscleVolume": "Groupes musculaires et volume",
+  "metricsTopTrained": "Les mieux formés",
+  "metricsMostNeglected": "Les plus négligés",
+  "placeholderMuscleHeatmap": "Visuel de la carte thermique musculaire",
+  "muscleAnalyticsTitle": "Analyse des groupes musculaires",
+  "muscleAnalyticsComingSoon": "Volume musculaire et cartes thermiques (à venir)",
+  "sectionPerformance": "Performances et relations publiques",
+  "metricsRecentPrs": "PR récents",
+  "metricsVolumeLifted": "Volume augmenté",
+  "metricsMostImproved": "Le plus amélioré",
+  "exerciseAnalyticsTitle": "Analyse des exercices",
+  "exerciseAnalyticsSubtitle": "Rechercher et analyser des exercices spécifiques",
+  "prDashboardTitle": "Tableau de bord des relations publiques",
+  "prDashboardComingSoon": "Records et progrès (à venir)",
+  "exerciseAnalyticsComingSoon": "Recherche d'exercices et tendances spécifiques (à venir)",
+  "sectionRecovery": "Récupération",
+  "metricsMuscleReadiness": "Préparation musculaire",
+  "recoveryTrackerTitle": "Suivi de récupération",
+  "recoveryTrackerComingSoon": "Préparation musculaire et fatigue (à venir)",
+  "recoveryOverallMostlyRecovered": "En grande partie récupéré",
+  "recoveryOverallMixed": "État de récupération mixte",
+  "recoveryOverallSeveralRecovering": "Plusieurs groupes musculaires encore en convalescence",
+  "recoveryOverallInsufficientData": "Pas encore assez de données pour obtenir des informations sur la récupération",
+  "recoveryHubCountsSummary": "Récupération : {recovering} Prêt : {ready} Frais : {fresh}",
+  "@recoveryHubCountsSummary": {
+    "placeholders": {
+      "recovering": {
+        "type": "int"
+      },
+      "ready": {
+        "type": "int"
+      },
+      "fresh": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryHubNoDataSummary": "Continuez à enregistrer vos entraînements pour débloquer des informations sur la récupération.",
+  "recoveryByMuscleTitle": "Récupération par Muscle",
+  "recoveryStateRecovering": "Récupération",
+  "recoveryStateReady": "Prêt",
+  "recoveryStateFresh": "Frais",
+  "recoveryStateUnknown": "Inconnu",
+  "recoveryLastLoadedHours": "Dernier chargement significatif : il y a {hours} h",
+  "@recoveryLastLoadedHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryFatigueContextHigh": "Contexte de fatigue : fatigue de séance élevée",
+  "recoveryFatigueContextBaseline": "Contexte de fatigue : fatigue de base de la séance",
+  "recoveryExplanationWithHighFatigue": "{muscle} : dernière charge significative il y a {hours} h, avec une fatigue de session élevée.",
+  "@recoveryExplanationWithHighFatigue": {
+    "placeholders": {
+      "muscle": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryExplanationBasic": "{muscle} : dernière charge significative il y a {hours} h.",
+  "@recoveryExplanationBasic": {
+    "placeholders": {
+      "muscle": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryHeuristicDisclaimer": "Il s’agit d’une heuristique conservatrice basée sur des efforts de chargement et de session importants récents. Il ne s’agit pas d’une mesure de récupération médicale.",
+  "recoveryReadinessLabel": "Préparation",
+  "recoveryRecentLoad": "Dernier chargement : {sets} ensembles équivalents",
+  "@recoveryRecentLoad": {
+    "placeholders": {
+      "sets": {
+        "type": "String"
+      }
+    }
+  },
+  "recoveryLastLoadPressure": "Dernière pression de charge : {level}",
+  "@recoveryLastLoadPressure": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "recoveryPressureLow": "faible",
+  "recoveryPressureModerate": "modéré",
+  "recoveryPressureHigh": "haut",
+  "recoveryPressureVeryHigh": "très élevé",
+  "recoveryCurrentWindow": "Fenêtre actuelle : récupération jusqu'à environ {recoveringUpper} h, prêt jusqu'à environ {readyUpper} h.",
+  "@recoveryCurrentWindow": {
+    "placeholders": {
+      "recoveringUpper": {
+        "type": "int"
+      },
+      "readyUpper": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryWindowHeuristic": "Fenêtre actuelle : récupération jusqu'à environ {from} h, prêt jusqu'à environ {to} h.",
+  "@recoveryWindowHeuristic": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryRadarHeuristicCaption": "Aperçu radar de l'état de préparation actuel par muscle. Les badges de statut restent le signal principal.",
+  "recoveryNoDataBody": "Une charge d’entraînement suffisamment significative n’a pas encore été enregistrée pour estimer la récupération musculaire.",
+  "sectionBodyNutrition": "Corps & Nutrition",
+  "statisticsSectionTraining": "Entraînement",
+  "statisticsSectionBody": "Corps",
+  "statisticsEnableStepTrackingHint": "Activer le suivi des étapes dans les paramètres",
+  "statisticsNoStepDataYet": "Aucune donnée de pas pour l'instant",
+  "statisticsTotalSteps": "Nombre total d'étapes",
+  "statisticsLast7Days": "7 derniers jours",
+  "statisticsLast30Days": "30 derniers jours",
+  "statisticsLast3Months": "3 derniers mois",
+  "statisticsLast6Months": "6 derniers mois",
+  "metricsCurrentWeight": "Poids actuel",
+  "metricsAvgCalories": "Moy. Calories",
+  "placeholderWeightTrend": "Graphique linéaire de tendance du poids",
+  "exerciseAnalyticsPrsLabel": "DOSSIERS PERSONNELS",
+  "exerciseAnalyticsTrendsLabel": "TENDANCES",
+  "exerciseAnalyticsNoData": "Aucune donnée de suivi pour cet exercice.",
+  "exerciseAnalyticsNotEnoughData": "Pas assez de données",
+  "exerciseAnalyticsChartWeight": "Poids dans le temps (kg)",
+  "exerciseAnalyticsChartVolume": "Volume dans le temps (kg)",
+  "exerciseAnalyticsChartSets": "Se fixe au fil du temps",
+  "exerciseMetricMaxWeight": "Poids maximum",
+  "exerciseMetricVolume": "Volume",
+  "exerciseMetricEst1RM": "HNE. 1RM",
+  "prBannerBestMaxWeight": "Meilleur poids maximum",
+  "prBannerBestVolumeSet": "Meilleur ensemble de volumes",
+  "prBannerBest1RM": "Meilleur 1 répétition maximum",
+  "newPersonalRecordLabel": "Nouveau record personnel",
+  "prBadgeTooltip": "Nouveau record personnel !",
+  "workoutSummaryNewRecordsTitle": "Nouveaux records",
+  "allTimeRecordsLabel": "Records de tous les temps",
+  "recentActivityLabel": "Activité récente",
+  "prsByRepRangeLabel": "Meilleur ensemble par plage de répétitions",
+  "volumeAnalyticsTitle": "Analyse des volumes",
+  "weeklyTonnageLabel": "Tonnage hebdomadaire",
+  "volumeByMuscleLabel": "Par groupe musculaire",
+  "topExercisesLabel": "Meilleurs exercices",
+  "thisWeekLabel": "Cette semaine",
+  "avgPerWeekLabel": "Moyenne / Semaine",
+  "streakLabel": "Traînée",
+  "trainingCalendarLabel": "Calendrier de formation",
+  "workoutsPerWeekLabel": "Entraînements par semaine",
+  "totalWorkoutsLabel": "Nombre total d’entraînements",
+  "weeksLabel": "Semaines",
+  "tonnageKgLabel": "Tonnage (kg)",
+  "noWorkoutDataLabel": "Aucune donnée d'entraînement pour l'instant. Commencez à vous connecter pour voir les statistiques.",
+  "analyticsSectionVolumeMuscles": "Groupes de volume et de muscles",
+  "analyticsSectionPerformanceRecords": "Performances et records",
+  "analyticsTopVolume": "Les mieux formés",
+  "analyticsLowestVolume": "Volume le plus bas",
+  "analyticsRecentRecords": "Enregistrements récents",
+  "analyticsPerfWithReps": "{weight} kg x {reps}",
+  "@analyticsPerfWithReps": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsKgThisWeek": "kg (cette semaine)",
+  "analyticsRecoverySummary": "3 en récupération, 8 prêts",
+  "analyticsViewDetails": "Afficher les détails",
+  "analyticsRepRangeSuffix": "représentants",
+  "analyticsNoRecordYet": "Pas encore d'enregistrement",
+  "analyticsNotableImprovements": "Améliorations notables",
+  "analyticsNoPrTrendInWindow": "Il n’y a pas encore de tendance claire en matière de relations publiques dans cette fenêtre.",
+  "analyticsE1rmProgress": "e1RM {previous} -> {recent} kg",
+  "@analyticsE1rmProgress": {
+    "placeholders": {
+      "previous": {
+        "type": "String"
+      },
+      "recent": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsUnitKg": "kilos",
+  "analyticsUnitSets": "ensembles",
+  "analyticsViewLabel": "Voir",
+  "analyticsViewWeek": "Semaine",
+  "analyticsViewMonth": "Mois",
+  "analyticsViewByExercise": "Par exercice",
+  "analyticsViewByMuscle": "Par groupe musculaire",
+  "analyticsMetricLabel": "Métrique",
+  "analyticsMovedWeightKg": "Poids déplacé (kg)",
+  "analyticsWorkSets": "Ensembles de travail",
+  "analyticsVolumeContextWithSets": "Poids déplacé = poids x répétitions. Passez aux ensembles de travaux pour une charge basée sur le nombre.",
+  "analyticsVolumeContextTonnageOnly": "Cette vue utilise le poids déplacé (poids x répétitions).",
+  "analyticsKpisHeader": "KPI",
+  "analyticsTrainingDaysPerWeek": "Jours de formation/semaine",
+  "analyticsLast4Weeks": "les 4 dernières semaines",
+  "analyticsRhythm": "Rythme",
+  "analyticsVsPrior4Weeks": "vs les 4 semaines précédentes",
+  "analyticsRollingConsistency": "Cohérence de roulement",
+  "analyticsWeeksAtLeast2Workouts": "semaines avec au moins 2 séances",
+  "analyticsCalendarExplainer": "L'intensité des couleurs reflète les séances quotidiennes, ce qui en fait une véritable carte de cohérence.",
+  "analyticsSelectDayPrompt": "Sélectionnez un jour pour inspecter le nombre de sessions.",
+  "analyticsSelectedDayWorkouts": "{date} : {count} sessions",
+  "@analyticsSelectedDayWorkouts": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsTotalSessions": "Nombre total de séances",
+  "analyticsPlaceholderWeightValue": "82,5",
+  "analyticsPlaceholderWeightTrend": "kg (-0,5)",
+  "analyticsPlaceholderCaloriesValue": "2 450",
+  "analyticsPlaceholderCaloriesUnit": "kcal/jour",
+  "analyticsMuscleWeeklySets": "Ensembles hebdomadaires",
+  "analyticsMuscleTopFrequency": "Fréquence la plus élevée",
+  "analyticsPerWeekAbbrev": "semaine",
+  "analyticsKeepTrackingUnlockInsights": "Continuez à suivre pour débloquer des informations.",
+  "analyticsGuidanceNoClearWeakPoint": "Orientation : Pas de point faible évident sur cette période.",
+  "analyticsGuidanceLowerEmphasis": "Conseils : Moins d'accent récemment mis sur les {muscles}.",
+  "@analyticsGuidanceLowerEmphasis": {
+    "placeholders": {
+      "muscles": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsPeriodLabel": "Période",
+  "analyticsEquivalentSetsExplainer": "Les ensembles durs équivalents utilisent une pondération primaire x1,0 et secondaire x0,3. La fréquence ne compte que les jours atteignant >= 1,0 ensembles équivalents.",
+  "analyticsWeeklySetsByMuscle": "Séries hebdomadaires par muscle",
+  "analyticsFrequencyByMuscle": "Fréquence par muscle",
+  "analyticsRecentDistributionHeatmap": "Carte thermique de distribution récente",
+  "analyticsRadarOverviewTitle": "Aperçu des radars",
+  "analyticsRadarVolumeCaption": "Affiche la répartition relative du volume entre les muscles pour un résumé rapide en un coup d'œil.",
+  "analyticsGuidanceTitle": "Conseils",
+  "analyticsGuidanceDirectionalDisclaimer": "Il s'agit d'un guidage directionnel basé sur votre distribution d'ensemble récente, et non d'un diagnostic absolu.",
+  "analyticsGuidanceSoftenedDisclaimer": "Les informations sont intentionnellement adoucies jusqu'à ce que suffisamment de données soient disponibles.",
+  "analyticsWeekTotalEquivalentSets": "Total de la semaine : {value} ensembles équivalents",
+  "@analyticsWeekTotalEquivalentSets": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsFrequencyRuleFooter": "La fréquence ne compte que les jours où le muscle a atteint >= 1,0 séries équivalentes.",
+  "liveWorkoutE1rmCurrentSet": "e1RM {value} kg",
+  "@liveWorkoutE1rmCurrentSet": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "liveWorkoutE1rmBestSession": "Meilleur e1RM cette session : {value} kg",
+  "@liveWorkoutE1rmBestSession": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "liveWorkoutE1rmVsLastSession": "vs dernière séance : {delta} kg",
+  "@liveWorkoutE1rmVsLastSession": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "bodyNutritionCorrelationTitle": "Tendances corps et nutrition",
+  "metricsWeightChange": "Changement de poids",
+  "analyticsKcalPerDay": "kcal/jour",
+  "analyticsDaysWithWeightData": "jours avec du poids",
+  "analyticsDayUnitLabel": "jours",
+  "analyticsPerDayLabel": "par jour",
+  "analyticsEffectiveRangeLabel": "Portée efficace",
+  "analyticsAxisXLabel": "X",
+  "analyticsAxisYLabel": "Oui",
+  "analyticsHighConfidenceLabel": "Modèle de confiance plus élevée",
+  "analyticsLowConfidenceLabel": "Modèle de confiance inférieure",
+  "analyticsObservedPatternLabel": "Modèle observé",
+  "analyticsBodyNutritionTrendContext": "Poids et calories au fil du temps",
+  "analyticsBodyNutritionTrendContextHint": "Le graphique met à l'échelle chaque série pour s'adapter au même espace ; les info-bulles affichent les valeurs brutes en kg et en kcal.",
+  "analyticsBodyNutritionNormalizedHint": "Le graphique met à l'échelle le poids et les calories pour s'adapter au même espace ; les info-bulles affichent les valeurs brutes en kg et en kcal.",
+  "analyticsBodyNutritionTotalWeightLabel": "Poids total (kg)",
+  "analyticsBodyNutritionTotalCaloriesLabel": "Calories totales (kcal)",
+  "analyticsWeightTrendLabel": "Poids (kg)",
+  "analyticsCaloriesTrendLabel": "Calories (kcal)",
+  "analyticsInterpretationTitle": "Interprétation",
+  "analyticsBodyNutritionConfidenceHighHint": "La couverture des données dans cette plage est suffisamment forte pour une lecture de modèle plus fiable.",
+  "analyticsBodyNutritionConfidenceModerateHint": "La couverture des données est modérée. Les tendances constituent un contexte utile, mais continuez à les enregistrer pour renforcer votre confiance.",
+  "analyticsBodyNutritionConfidenceLowHint": "La couverture des données dans cette plage est encore limitée, il faut donc considérer cela comme un contexte précoce.",
+  "analyticsBodyNutritionLowConfidenceNudge": "Continuez à enregistrer régulièrement votre poids et vos calories pour améliorer votre confiance.",
+  "analyticsBodyNutritionInterpretationConfidenceHigh": "Confiance dans l’interprétation : plus élevée. Utilisez-le comme contexte de tendance, et non comme énoncé de cause directe.",
+  "analyticsBodyNutritionInterpretationConfidenceLow": "Confiance dans l’interprétation : inférieure. Utilisez-le comme signal de modèle précoce et continuez à suivre.",
+  "analyticsCorrelationDisclaimer": "Cette vue fournit un contexte de tendance. Cela ne prouve pas que les changements de calories entraînent directement des changements de poids.",
+  "analyticsInsightStableWeightCaloriesUp": "La tendance du poids est stable tandis que les calories moyennes augmentent.",
+  "analyticsInsightWeightUpCaloriesUp": "Le poids tend à augmenter parallèlement à un apport calorique moyen plus élevé.",
+  "analyticsInsightCaloriesDownWeightStable": "La réduction récente des calories n’a pas encore clairement modifié la tendance en matière de poids.",
+  "analyticsInsightWeightDownCaloriesDown": "Le poids tend à diminuer parallèlement à une baisse de l’apport calorique moyen.",
+  "analyticsInsightMixedPattern": "Les tendances en matière de poids et de calories sont mitigées sans encore de relation claire.",
+  "analyticsInsightNotEnoughData": "Pas encore assez de données cohérentes pour une lecture de tendance significative.",
+  "analyticsModerateConfidenceLabel": "Modèle de confiance modérée",
+  "analyticsInsufficientConfidenceLabel": "Confiance insuffisante des données",
+  "analyticsTrendRising": "Soulèvement",
+  "analyticsTrendFalling": "Chute",
+  "analyticsTrendStable": "Écurie",
+  "analyticsTrendUnclear": "Peu clair",
+  "analyticsRelationshipAlignedCut": "La baisse de la consommation et la baisse du poids corporel sont alignées.",
+  "analyticsRelationshipAlignedBulk": "Une consommation plus élevée et une augmentation du poids corporel sont alignées.",
+  "analyticsRelationshipStableMaintenance": "Le poids et la consommation semblent globalement stables.",
+  "analyticsRelationshipMixed": "Les signaux sont mélangés ou retardés.",
+  "analyticsRelationshipInsufficient": "Pas encore assez de chevauchement cohérent pour classer le motif.",
+  "analyticsBasedOnDataCoverage": "Basé sur {weightDays} pesées et {calorieDays} jours caloriques",
+  "@analyticsBasedOnDataCoverage": {
+    "placeholders": {
+      "weightDays": {
+        "type": "int"
+      },
+      "calorieDays": {
+        "type": "int"
+      }
+    }
+  },
+  "restTimerNotificationTitle": "Reste terminé",
+  "restTimerNotificationBody": "Votre minuteur de pause est terminé. Prêt pour le prochain set.",
+  "onboardingContinueSetup": "Configurer le profil",
+  "onboardingRestoreFromBackup": "Restaurer à partir d'une sauvegarde",
+  "onboardingRestoreImporting": "Importation de la sauvegarde...",
+  "onboardingRestoreSuccess": "Sauvegarde restaurée avec succès !",
+  "onboardingRestoreFailed": "L'importation a échoué. Veuillez vérifier le fichier et réessayer.",
+  "finishWorkoutTitleLabel": "Titre de l'entraînement",
+  "finishWorkoutNotesLabel": "Remarques (facultatif)",
+  "finishWorkoutNotesHint": "Comment s’est passé l’entraînement ?",
+  "sleepSectionTitle": "Dormir",
+  "sleepSectionSubtitleDayEntry": "Aperçu de la journée et détails détaillés",
+  "sleepSectionSubtitleAllEntry": "Les vues du jour, de la semaine et du mois du sommeil sont disponibles à partir de cette entrée",
+  "sleepScopeDay": "Jour",
+  "sleepScopeWeek": "Semaine",
+  "sleepScopeMonth": "Mois",
+  "sleepWeekSummaryTitle": "Résumé de la semaine",
+  "sleepMonthSummaryTitle": "Résumé du mois",
+  "sleepSleepWindowTitle": "Fenêtre de veille",
+  "sleepDailyScoreTitle": "Score quotidien",
+  "sleepMonthDailyScoreStatesTitle": "États de score quotidiens",
+  "sleepMeanScoreLabel": "Score moyen : {value}",
+  "@sleepMeanScoreLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepHubScoreLabel": "Score de sommeil",
+  "sleepHubAverageLabel": "Moyenne",
+  "sleepHubBedtimeLabel": "Heure du coucher",
+  "sleepHubInterruptionsLabel": "Interruptions",
+  "sleepHubInterruptionsSummary": "{count} réveils, {duration} au total",
+  "@sleepHubInterruptionsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWeekdayAvgDurationLabel": "Durée moyenne en semaine : {value}",
+  "@sleepWeekdayAvgDurationLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWeekendAvgDurationLabel": "Durée moyenne du week-end : {value}",
+  "@sleepWeekendAvgDurationLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWeekNoScoredNights": "Aucune nuit de sommeil notée n'est encore disponible cette semaine.",
+  "sleepMonthNoScoredNights": "Aucune nuit de sommeil notée n'est encore disponible ce mois-ci.",
+  "sleepSettingsSectionTitle": "Dormir",
+  "sleepEnableTrackingTitle": "Activer le suivi du sommeil",
+  "sleepEnableTrackingSubtitle": "Lisez le sommeil et la fréquence cardiaque nocturne à partir de Health Connect / HealthKit",
+  "sleepHealthConnectionStatusTitle": "État de la connexion santé",
+  "sleepRequestAccessTitle": "Demander l'accès",
+  "sleepRequestAccessSubtitle": "Demander ou redemander des autorisations de sommeil/fréquence cardiaque",
+  "sleepImportNowTitle": "Importez les données de sommeil maintenant",
+  "sleepImportNowSubtitle": "Importer toutes les données de sommeil disponibles (à tout moment)",
+  "sleepRawImportsTitle": "Afficher les importations brutes de sommeil",
+  "sleepRawImportsSubtitle": "Afficher les charges utiles Health Connect récentes",
+  "sleepDataStatusTitle": "Statut des données",
+  "sleepDataStatusSubtitle": "Autorisations accordées. Si aucune veille n'apparaît encore, exécutez une importation manuelle ci-dessous.",
+  "sleepNoPermissionTitle": "Aucune autorisation",
+  "sleepNoPermissionSubtitle": "Des autorisations de sommeil et de fréquence cardiaque sont requises pour importer des données de sommeil.",
+  "sleepFeatureUnavailableTitle": "Fonctionnalité indisponible",
+  "sleepFeatureUnavailableSubtitle": "L’importation du sommeil n’est pas disponible sur cet appareil ou Health Connect n’est pas installé.",
+  "sleepNoRawImportsFound": "Aucune importation de sommeil brut n'a encore été trouvée.",
+  "sleepRawImportsSheetTitle": "Importations de sommeil brut (dernières)",
+  "sleepImportFinishedSessions": "Importation du sommeil terminée ({count} sessions).",
+  "@sleepImportFinishedSessions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepImportUnavailableCheckPermissions": "L'importation du sommeil n'est pas disponible. Vérifiez les autorisations.",
+  "sleepStatusChecking": "Vérification de l'état des autorisations…",
+  "sleepStatusReady": "Prêt",
+  "sleepStatusDenied": "Refusé",
+  "sleepStatusPartial": "Accès partiel",
+  "sleepStatusUnavailable": "Indisponible sur cet appareil",
+  "sleepStatusNotInstalled": "Health Connect n'est pas installé",
+  "sleepStatusTechnicalError": "Erreur technique",
+  "sleepConnectHealthDataTitle": "Connecter les données de santé",
+  "sleepConnectHealthDataMessage": "Connectez HealthKit ou Health Connect pour importer des enregistrements de sommeil.",
+  "sleepPermissionDeniedTitle": "Autorisation refusée",
+  "sleepPermissionDeniedMessage": "Les autorisations de veille sont refusées. Ouvrez les paramètres pour accorder l’accès.",
+  "sleepSourceUnavailableTitle": "Source indisponible",
+  "sleepSourceUnavailableMessage": "La source de données de veille n'est pas disponible ou n'est pas installée sur cet appareil.",
+  "sleepEmptyDayNoData": "Aucune donnée sur le sommeil disponible pour cette journée.",
+  "sleepEmptyDayConnectMessage": "Connectez Health Connect/HealthKit dans Paramètres et importez les données de sommeil récentes.",
+  "sleepOpenSettingsButton": "Ouvrir les paramètres",
+  "sleepImportNowButton": "Importer maintenant",
+  "sleepImportFinishedRefreshing": "L'importation du sommeil est terminée. Rafraîchissant...",
+  "sleepImportUnavailableSettingsHint": "L'importation du sommeil n'est pas disponible. Vérifiez les autorisations dans Paramètres.",
+  "sleepTimelineTitle": "Chronologie",
+  "sleepTimelineUnavailable": "Aucun calendrier de scène disponible pour cette soirée.",
+  "sleepSessionTypeCore": "Sommeil de base",
+  "sleepSessionTypeNap": "Somme",
+  "sleepIntervalsDrawerTitle": "Intervalles de sommeil",
+  "sleepStageDeepLabel": "Profond",
+  "sleepStageLightLabel": "Lumière",
+  "sleepStageRemLabel": "REM",
+  "sleepStageAwakeLabel": "Éveillé",
+  "sleepScoreCardTitle": "Qualité du sommeil",
+  "sleepScoreUnavailableForNight": "Score indisponible pour cette soirée.",
+  "sleepScoreCompletenessLabel": "Complétude du score : {value}",
+  "@sleepScoreCompletenessLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepQualityGood": "Bien",
+  "sleepQualityAverage": "Moyenne",
+  "sleepQualityPoor": "Pauvre",
+  "sleepQualityUnavailable": "Indisponible",
+  "sleepQualitySubtitleGood": "La reprise a semblé forte du jour au lendemain.",
+  "sleepQualitySubtitleAverage": "Le sommeil était correct et pouvait être amélioré.",
+  "sleepQualitySubtitlePoor": "Les signaux de reprise étaient faibles ce soir.",
+  "sleepQualitySubtitleUnavailable": "Pas assez de données pour marquer ce soir.",
+  "sleepQualityRegularityNotContributing": "La régularité n'a pas contribué (<5 jours valables).",
+  "sleepQualityRegularityPreliminary": "La régularité est préliminaire (5-6 jours valables).",
+  "sleepQualityRegularityStable": "La régularité est stable ({days} jours).",
+  "@sleepQualityRegularityStable": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepRegularityNightView": "{count}-vue de nuit",
+  "@sleepRegularityNightView": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepMetricUnavailable": "Indisponible",
+  "sleepMetricDurationTitle": "Durée",
+  "sleepMetricHeartRateTitle": "Fréquence cardiaque",
+  "sleepMetricRegularityTitle": "Régularité",
+  "sleepMetricDepthTitle": "Profondeur",
+  "sleepMetricInterruptionsTitle": "Interruptions du sommeil",
+  "sleepMetricDepthLowConfidence": "Faible confiance",
+  "sleepMetricDepthStagesAvailable": "Étapes disponibles",
+  "sleepDurationUnavailable": "Les données de durée ne sont pas disponibles.",
+  "sleepDurationStatusWithinTarget": "Dans la cible",
+  "sleepDurationStatusBelowTarget": "En dessous de l'objectif",
+  "sleepDurationSubtitle": "Votre durée totale de sommeil pour cette nuit.",
+  "sleepDurationBenchmarkHint": "Les adultes réussissent souvent mieux avec environ 7 à 9 heures. Cette référence vous aide à voir où se situe votre nuit dans cette plage.",
+  "sleepDepthUnavailable": "Les données de profondeur ne sont pas disponibles.",
+  "sleepDepthConfidenceTooLow": "La confiance dans la scène est trop faible pour une analyse fiable de la profondeur.",
+  "sleepDepthBreakdownUnavailable": "La répartition de la durée de l'étape n'est pas disponible pour cette nuit.",
+  "sleepDepthRatingRestorative": "Réparateur",
+  "sleepDepthRatingLightLeaning": "Tendance à la lumière",
+  "sleepDepthStageConfidenceLabel": "Confiance de l'étape : {value}",
+  "@sleepDepthStageConfidenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepDepthSubtitle": "Distribution des étapes basée sur des segments de chronologie dérivés.",
+  "sleepInterruptionsUnavailable": "Les données sur les interruptions ne sont pas disponibles.",
+  "sleepInterruptionsStatusNoneDetected": "Aucun détecté",
+  "sleepInterruptionsStatusDetected": "Détecté",
+  "sleepInterruptionsSubtitle": "Interruptions de réveil qualificatives pendant la nuit.",
+  "sleepInterruptionsTotalWakeDuration": "Durée totale de réveil",
+  "sleepInterruptionsFootnote": "Cette vue inclut uniquement les interruptions qualifiées des sorties d’analyse dérivées.",
+  "sleepRegularityUnavailable": "Les données de régularité ne sont pas disponibles.",
+  "sleepRegularityNightRange": "Plage de {count} nuit",
+  "@sleepRegularityNightRange": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepRegularityStatusSufficientTrend": "Données de tendance suffisantes",
+  "sleepRegularityStatusLimitedTrend": "Données de tendance limitées",
+  "sleepRegularitySubtitle": "Fenêtres d’heure de coucher et de réveil pour les nuits récentes.",
+  "sleepRegularityAverageBedtime": "Heure moyenne du coucher",
+  "sleepRegularityAverageWake": "Sillage moyen",
+  "sleepHeartRateUnavailable": "Les données de fréquence cardiaque pendant le sommeil ne sont pas disponibles.",
+  "sleepHeartRateStatusNoSampleSeries": "Aucune série d'échantillons pour cette nuit",
+  "sleepHeartRateStatusBaselineNotEstablished": "Base de référence non établie",
+  "sleepHeartRateStatusComparisonUnavailable": "Comparaison de base indisponible",
+  "sleepHeartRateStatusBelowBaseline": "En dessous de la ligne de base",
+  "sleepHeartRateStatusAboveBaseline": "Au-dessus de la ligne de base",
+  "sleepHeartRateNoSamplesText": "Aucun échantillon persistant de fréquence cardiaque pendant le sommeil n'est disponible pour cette nuit.",
+  "sleepHeartRateBaselineNotEstablishedText": "Base de référence pas encore établie. Ceci est neutre et attendu dès le début.",
+  "sleepHeartRateComparisonUnavailableText": "La comparaison de base n'est actuellement pas disponible pour cette nuit.",
+  "sleepHeartRateDeltaText": "Votre FC de sommeil est la référence de {direction} par {delta} {unit}.",
+  "@sleepHeartRateDeltaText": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      },
+      "delta": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepHeartRateDirectionBelow": "ci-dessous",
+  "sleepHeartRateDirectionAbove": "au-dessus de",
+  "sleepHeartRateComparedBaselineSubtitle": "Par rapport à votre base de sommeil établie.",
+  "sleepHeartRateNoBaselineSubtitle": "La ligne de base n’est pas encore établie. C'est neutre.",
+  "sleepHeartRateSamplesUnavailable": "Aucun échantillon de fréquence cardiaque n'a été stocké pour cette nuit. Le graphique de tendance n'est pas disponible.",
+  "sleepHeartRateDashedLineHint": "La ligne pointillée montre la ligne de base ({value} {unit}).",
+  "@sleepHeartRateDashedLineHint": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepBpmUnit": "bpm",
+  "sleepRawImportImportedAt": "Importé à",
+  "sleepRawImportStatus": "Statut",
+  "sleepRawImportSource": "Source d’importation",
+  "sleepRawImportApp": "Application",
+  "sleepRawImportConfidence": "Confiance",
+  "sleepRawImportPayload": "Charge utile",
+  "adaptiveBodyweightTargetSectionTitle": "Objectif de poids corporel adaptatif",
+  "adaptiveRecommendationSettingsSectionTitle": "Paramètres de recommandation",
+  "adaptiveGoalDirectionLabel": "Direction du but",
+  "adaptiveGoalLose": "Perdre du poids",
+  "adaptiveGoalMaintain": "Maintenir le poids",
+  "adaptiveGoalGain": "Prendre du poids",
+  "adaptiveRatePerWeek": "{value} kg/semaine",
+  "@adaptiveRatePerWeek": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptivePriorActivityLabel": "Activité quotidienne de base",
+  "adaptivePriorActivityLow": "Faible activité",
+  "adaptivePriorActivityModerate": "Activité modérée",
+  "adaptivePriorActivityHigh": "Haute activité",
+  "adaptivePriorActivityVeryHigh": "Très forte activité",
+  "adaptivePriorActivityHelpIntro": "Activité quotidienne de base uniquement (séparée du cardio supplémentaire) :",
+  "adaptivePriorActivityHelpLowLine": "Faible : principalement assis, étudiant/élève ou routine de bureau.",
+  "adaptivePriorActivityHelpModerateLine": "Modéré : mixte assis, marchant et debout.",
+  "adaptivePriorActivityHelpHighLine": "Élevé : beaucoup de temps debout/marché ou un travail physiquement actif.",
+  "adaptivePriorActivityHelpVeryHighLine": "Très élevé : routine/travail très exigeant en mouvements avec une activité quotidienne constamment élevée.",
+  "adaptiveExtraCardioLabel": "Cardio/endurance supplémentaire en dehors de l'application",
+  "adaptiveExtraCardioOption0": "0 h/semaine",
+  "adaptiveExtraCardioOption1": "1h/semaine",
+  "adaptiveExtraCardioOption2": "2h/semaine",
+  "adaptiveExtraCardioOption3": "3h/semaine",
+  "adaptiveExtraCardioOption5": "5h/semaine",
+  "adaptiveExtraCardioOption7Plus": "7+ heures/semaine",
+  "adaptiveExtraCardioHelp": "Incluez le jogging, la course à pied, le vélo, la natation ou d'autres séances d'endurance non enregistrées comme entraînements Train Libre.",
+  "onboardingAdaptiveGoalTitle": "Recommandation nutritionnelle adaptative",
+  "onboardingAdaptiveGoalSubtitle": "Définissez votre direction et votre tarif hebdomadaire. Nous créons une recommandation de départ conservatrice et l'adaptons avec vos journaux.",
+  "adaptiveRecommendationGenerating": "Générateur...",
+  "adaptiveRecommendationRefresh": "Actualiser la recommandation",
+  "onboardingAdaptiveSummaryEmpty": "Définissez vos objectifs et appuyez sur Actualiser pour prévisualiser votre recommandation de départ.",
+  "onboardingAdaptiveSummaryTitle": "Aperçu de la recommandation",
+  "onboardingAdaptiveSummaryCalories": "Calories : {value} kcal",
+  "@onboardingAdaptiveSummaryCalories": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryProtein": "Protéine : {value} g",
+  "@onboardingAdaptiveSummaryProtein": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryCarbs": "Glucides : {value} g",
+  "@onboardingAdaptiveSummaryCarbs": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryFat": "Graisse : {value} g",
+  "@onboardingAdaptiveSummaryFat": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryConfidence": "Base de données : {value}",
+  "@onboardingAdaptiveSummaryConfidence": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryApply": "Appliquer aux objectifs quotidiens",
+  "onboardingAdaptiveSummaryApplied": "Appliqué aux objectifs quotidiens",
+  "onboardingBodyFatPageTitle": "% de graisse corporelle",
+  "onboardingBodyFatPageSubtitle": "Étape facultative : saisissez une estimation approximative si vous la connaissez.",
+  "onboardingBodyFatOptionalLabel": "% de graisse corporelle (facultatif)",
+  "onboardingBodyFatOptionalHelper": "Facultatif : ne saisissez cette valeur que si vous connaissez à peu près votre valeur. Le laisser vide, c'est bien. Cela permet de personnaliser la recommandation initiale.",
+  "onboardingBodyFatHelpAction": "Comment puis-je estimer cela ?",
+  "bodyFatGuidanceTitle": "% de graisse corporelle",
+  "bodyFatGuidanceIntro": "Le pourcentage de graisse corporelle ne peut être estimé qu’approximativement à partir de l’apparence. Il s'agit uniquement d'une orientation, pas d'un diagnostic précis.",
+  "bodyFatGuidanceDisclaimer": "L'apparence peut varier considérablement pour un même niveau de graisse corporelle en raison de la masse musculaire, de la répartition des graisses, de la génétique, de la rétention d'eau, de la posture et de l'éclairage.",
+  "bodyFatGuidanceSexLabel": "Sexe de référence",
+  "bodyFatGuidancePercent": "{percent}%",
+  "@bodyFatGuidancePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "bodyFatGuidanceMale10": "Définition très simple et claire.",
+  "bodyFatGuidanceMale15": "Athlétique, visiblement défini.",
+  "bodyFatGuidanceMale20": "Sportif, légèrement plus doux.",
+  "bodyFatGuidanceMale25": "Moins de définition, plus de douceur à la taille et au ventre.",
+  "bodyFatGuidanceMale30": "Clairement plus doux, plus rond.",
+  "bodyFatGuidanceMale35": "Très doux, presque aucune définition visible.",
+  "bodyFatGuidanceMale40": "Aspect fortement plus rond, pas de définition visible.",
+  "bodyFatGuidanceFemale15": "Très maigre, très défini.",
+  "bodyFatGuidanceFemale20": "Mince et athlétique.",
+  "bodyFatGuidanceFemale25": "Ajusté, légèrement doux.",
+  "bodyFatGuidanceFemale30": "Gamme moyenne athlétique à normale, douce et d'apparence saine.",
+  "bodyFatGuidanceFemale35": "Visiblement plus doux.",
+  "bodyFatGuidanceFemale40": "Aspect général nettement plus doux et plus rond.",
+  "adaptiveRecommendationCardTitle": "Recommandation adaptative",
+  "adaptiveRecommendationEmptyBody": "Suivez votre poids et votre nutrition pendant environ une semaine pour débloquer votre première recommandation hebdomadaire.",
+  "adaptiveRecommendationGoalLine": "Objectif : {goal} ({rate})",
+  "@adaptiveRecommendationGoalLine": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationMaintenanceLine": "Estimation d'entretien : {value} kcal",
+  "@adaptiveRecommendationMaintenanceLine": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationMaintenanceRangeLine": "Fourchette probable : {lower} - {upper} kcal",
+  "@adaptiveRecommendationMaintenanceRangeLine": {
+    "placeholders": {
+      "lower": {
+        "type": "int"
+      },
+      "upper": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationUncertaintyHintNarrow": "Votre plage de maintenance probable est assez étroite. De petits quarts de travail quotidiens sont normaux.",
+  "adaptiveRecommendationUncertaintyHintModerate": "Votre plage de maintenance probable est modérée en ce moment. Certains mouvements de semaine en semaine sont normaux.",
+  "adaptiveRecommendationUncertaintyHintWide": "Votre marge de maintenance probable est encore large. C'est normal pendant que nous collectons des données plus stables.",
+  "adaptiveRecommendationStabilizingHint": "Nous sommes encore en train de nous adapter à votre phase récente, cette estimation peut donc bouger plus que d'habitude.",
+  "adaptiveRecommendationCaloriesValue": "{value} kcal",
+  "@adaptiveRecommendationCaloriesValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationProteinValue": "{value} g",
+  "@adaptiveRecommendationProteinValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationCarbsValue": "{value} g",
+  "@adaptiveRecommendationCarbsValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationFatValue": "{value} g",
+  "@adaptiveRecommendationFatValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationConfidenceLine": "Base de données : {value}",
+  "@adaptiveRecommendationConfidenceLine": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationDataBasisLine": "Base de données : {windowDays} jours, {weightLogs} journaux de poids, {intakeDays} jours de prise",
+  "@adaptiveRecommendationDataBasisLine": {
+    "placeholders": {
+      "windowDays": {
+        "type": "int"
+      },
+      "weightLogs": {
+        "type": "int"
+      },
+      "intakeDays": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationActiveCaloriesLine": "Calories actives actuelles : {value} kcal",
+  "@adaptiveRecommendationActiveCaloriesLine": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationCalculatedAtLine": "Calculé à : {value}",
+  "@adaptiveRecommendationCalculatedAtLine": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationNextDueLine": "Prochaine recommandation adaptative attendue : {value}",
+  "@adaptiveRecommendationNextDueLine": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationNextDueShort": "Suivant {value}",
+  "@adaptiveRecommendationNextDueShort": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationDueNowLine": "Une nouvelle recommandation adaptative est attendue cette semaine.",
+  "adaptiveRecommendationDueNowShort": "À rendre cette semaine",
+  "adaptiveRecommendationMaintenanceLabel": "Entretien estimé",
+  "adaptiveRecommendationMaintenanceSourceLabel": "Profils journaux antérieurs et récents",
+  "adaptiveRecommendationMaintenanceUnit": "kcal/jour",
+  "adaptiveRecommendationMacroTargetsLabel": "Cibles recommandées",
+  "adaptiveRecommendationTargetCaloriesLabel": "Kcal cible",
+  "adaptiveRecommendationDataQualityLabel": "Qualité des données",
+  "adaptiveRecommendationRecalculateNowAction": "Recalculer maintenant",
+  "adaptiveRecommendationRecalculating": "Recalculer...",
+  "adaptiveRecommendationApplying": "Candidature...",
+  "adaptiveRecommendationApplyAction": "Appliquer la recommandation aux objectifs actifs",
+  "adaptiveRecommendationWarningCalorieFloor": "Recommandation limitée par un seuil minimum de sécurité calorique. Examinez les données de profil et les journaux récents avant de postuler.",
+  "adaptiveRecommendationWarningUnresolvedFood": "Certaines entrées nutritionnelles n'ont pas pu être entièrement résolues pour les calories. Vérifiez les journaux récents avant de postuler.",
+  "adaptiveRecommendationWarningLargeAdjustment": "Ajustement important détecté. Veuillez vérifier l'intégralité de votre journalisation récente avant de postuler.",
+  "adaptiveRecommendationWarningMacroConstrained": "La répartition macro était limitée par le budget calorique. Vérifiez si votre taux cible est trop agressif.",
+  "adaptiveRecommendationWarningConservative": "Examen suggéré : la recommandation a été ajustée de manière conservatrice en raison de la variabilité des données.",
+  "adaptiveRecommendationDataBasisHintDefault": "Construit à partir des journaux récents et de leur exhaustivité.",
+  "adaptiveRecommendationDataBasisHintPriorOnly": "Basé uniquement sur le profil/les données antérieures. Ajoutez des journaux de poids et de consommation récents pour un ajustement adaptatif.",
+  "adaptiveRecommendationDataBasisHintSparseWeight": "Les journaux de poids récents sont rares, la qualité des tendances est donc limitée.",
+  "adaptiveRecommendationDataBasisHintSparseIntake": "Les journaux d’admission récents sont rares, donc l’inférence de maintenance est limitée.",
+  "adaptiveRecommendationDataBasisHintSparseWeightAndIntake": "Les registres récents de poids et de consommation sont rares, cette recommandation est donc plus conservatrice.",
+  "adaptiveConfidenceNotEnoughData": "Profil/antérieur seulement",
+  "adaptiveConfidenceLow": "Journaux récents limités",
+  "adaptiveConfidenceMedium": "Journaux récents utilisables",
+  "adaptiveConfidenceHigh": "Journaux récents solides",
+  "adaptiveRecommendationRecalculatedSnack": "Recommandation recalculée.",
+  "adaptiveRecommendationAppliedToGoalsSnack": "Recommandation appliquée aux objectifs actifs.",
+  "adaptiveRecommendationNotAvailableSnack": "Aucune recommandation disponible pour postuler.",
+  "settingsSectionApp": "Application",
+  "settingsAppearanceSubtitle": "Ajustez le thème, le style visuel et l'haptique",
+  "settingsShowSugarInDiaryOverviewTitle": "Afficher le sucre dans l'aperçu du journal",
+  "settingsShowSugarInDiaryOverviewSubtitle": "Affiche le sucre dans la section supérieure d'aperçu quotidien",
+  "settingsSectionHealthTracking": "Santé et suivi",
+  "settingsStepsSubtitle": "Suivi, politique de source et fournisseurs",
+  "settingsSleepSubtitle": "Importation, autorisations et état de veille",
+  "settingsPulseSubtitle": "Analyse du pouls et accès à la fréquence cardiaque en option",
+  "settingsHealthExportSubtitle": "Gérer l’exportation Apple Health et Health Connect",
+  "settingsSectionNutritionAndData": "Nutrition et données",
+  "settingsSectionSupportAbout": "Assistance / À propos",
+  "settingsHapticFeedbackTitle": "Retour haptique",
+  "settingsHapticFeedbackSubtitle": "Vibrations légères pour les confirmations et l'attente de l'IA",
+  "stepsSettingsEnableTrackingTitle": "Activer le suivi des étapes",
+  "stepsSettingsEnableTrackingSubtitle": "Lire les données d'étape d'Apple Health / Health Connect",
+  "stepsSettingsSourcePolicyTitle": "Politique de source",
+  "stepsSettingsSourcePolicyAutoDominant": "Automatique (source dominante)",
+  "stepsSettingsSourcePolicyAutoDominantSubtitle": "Recommandé : utilisez une source par jour pour éviter les chevauchements d'inflation.",
+  "stepsSettingsSourcePolicyMaxPerHour": "Fusionner (maximum par heure)",
+  "stepsSettingsSourcePolicyMaxPerHourSubtitle": "Combinez les sources en prenant la tranche horaire la plus élevée.",
+  "stepsSettingsProviderFilterTitle": "Filtre de fournisseur",
+  "pulseTitle": "Impulsion",
+  "pulseChartTitle": "Pouls au fil du temps",
+  "pulseRangeLabel": "Gamme",
+  "pulseAverageLabel": "Moyenne",
+  "pulseRestingLabel": "Repos",
+  "pulseInsufficientData": "Trop peu d'échantillons d'impulsions pour un graphique fiable.",
+  "pulseMethodNote": "Le pouls moyen est pondéré dans le temps. Le pouls au repos est une estimation prudente à partir des 20 % d’échantillons les plus bas de la période sélectionnée.",
+  "pulseSampleCount": "{count, plural, =0{Aucun echantillon} one{1 echantillon} other{{count} échantillons}}}",
+  "@pulseSampleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "No": {}
+    }
+  },
+  "pulseQualityReady": "Bonne couverture",
+  "pulseQualityLimited": "Données limitées",
+  "pulseQualityInsufficient": "Très clairsemé",
+  "pulseQualityNoData": "Aucune donnée",
+  "pulseNoDataDisabled": "L'analyse du pouls est désactivée dans les paramètres.",
+  "pulseNoDataPermissionDenied": "Une autorisation de fréquence cardiaque est requise pour afficher l'analyse du pouls.",
+  "pulseNoDataUnavailable": "Les données de pouls ne sont actuellement pas disponibles sur cet appareil.",
+  "pulseNoDataQueryFailed": "Impossible de lire les données de pouls.",
+  "pulseNoDataDefault": "Aucun échantillon de légumineuses n’a été trouvé pour cette période.",
+  "pulseSettingsEnableTitle": "Activer l'analyse du pouls",
+  "pulseSettingsEnableSubtitle": "Lit les données de fréquence cardiaque pour l'affichage du pouls uniquement lorsque vous l'activez.",
+  "pulseSettingsPermissionTitle": "Autoriser l'accès à la fréquence cardiaque",
+  "pulseSettingsPermissionSubtitle": "Ouvre Apple Health ou Health Connect pour que Train Libre puisse lire des échantillons de pouls.",
+  "pulseSettingsAnalysisSubtitle": "Affiche la plage, la moyenne pondérée dans le temps et une estimation prudente du pouls au repos. Pas un diagnostic médical.",
+  "pulseSettingsPermissionGranted": "L'accès à la fréquence cardiaque est prêt.",
+  "pulseSettingsPermissionFailed": "L'accès à la fréquence cardiaque n'a pas été accordé.",
+  "pulseOptInChip": "S'inscrire",
+  "statisticsPulseDescription": "Plage, moyenne pondérée dans le temps et pouls au repos pour les périodes sélectionnées.",
+  "statisticsPulseOpenCaption": "Ouvre l'analyse du pouls",
+  "healthExportTitle": "Exportation de santé",
+  "healthExportAppleHealthTitle": "Exportation Apple Santé",
+  "healthExportHealthConnectTitle": "Exportation Connexion Santé",
+  "healthExportDomainNutritionHydration": "Nutrition & hydratation",
+  "healthExportDomainWorkouts": "Entraînements",
+  "healthExportStateIdle": "Inactif",
+  "healthExportStateExporting": "Exportation",
+  "healthExportStateSuccess": "Succès",
+  "healthExportStateFailed": "Échoué",
+  "healthExportStateDisabled": "Désactivé",
+  "healthExportResultComplete": "Exportation terminée",
+  "healthExportResultFailed": "Échec de l'exportation",
+  "healthExportAppleHealthSubtitle": "Exportation unidirectionnelle de Train Libre vers Apple Health",
+  "healthExportHealthConnectSubtitle": "Exportation unidirectionnelle de Train Libre vers Health Connect",
+  "healthExportAppleHealthStatusTitle": "Statut d'exportation d'Apple Health",
+  "healthExportHealthConnectStatusTitle": "Statut d'exportation de Health Connect",
+  "settingsBaseFoodLanguageTitle": "Langue d'affichage des aliments",
+  "settingsBaseFoodLanguageSubtitle": "Choisissez la langue à utiliser pour les noms des aliments de base.",
+  "settingsBaseFoodLanguageFollowApp": "Suivre la langue de l'application",
+  "settingsBaseFoodLanguageEnglish": "Anglais",
+  "settingsBaseFoodLanguageGerman": "Allemand",
+  "settingsBaseFoodLanguageFrench": "Français",
+  "settingsBaseFoodLanguageItalian": "Italien",
+  "settingsBaseFoodLanguageJapanese": "Japonais",
   "aiModelLabel": "Modèle",
-  
-  "legal_section": "Mentions légales et confidentialité",
+  "autoBackupStoragePickerUnavailable": "Sélecteur de stockage indisponible. Veuillez redémarrer/réinstaller complètement l'application après la mise à jour.",
+  "autoBackupFolderPickerFailed": "Échec du sélecteur de dossier : {error}",
+  "@autoBackupFolderPickerFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "healthExportPermissionDenied": "Autorisation refusée",
+  "healthExportAdapterUnavailable": "Adaptateur indisponible",
+  "healthExportPlatformUnavailable": "Plateforme indisponible",
+  "healthExportPlatformNotInstalled": "Plateforme non installée",
+  "healthExportExportDisabled": "Exportation désactivée",
+  "onboardingMacrosStepTitle": "Macronutriments",
+  "onboardingMacrosStepSubtitle": "Comment est composée votre alimentation ?",
+  "statisticsProviderAppleHealth": "Pomme Santé",
+  "statisticsProviderHealthConnect": "Connexion Santé",
+  "statisticsProviderWithings": "Withings",
+  "statisticsProviderGarmin": "Garmin",
+  "statisticsProviderFitbit": "Fitbit",
+  "statisticsProviderLocal": "Locale",
+  "unit_milliliters": "ml",
+  "unit_kilograms": "kilos",
+  "mealEditorHintExample": "par ex. Bol de poulet",
+  "mealEditorNoIngredientsYet": "Aucun pour l'instant – à venir plus tard",
+  "foodDetailSavedBaseDb": "Enregistré (base de données de base)",
+  "foodDetailExportError": "Erreur d'exportation : {error}",
+  "@foodDetailExportError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "stepsModulePrevious": "Précédent",
+  "stepsModuleNext": "Suivant",
+  "stepsModuleTotalSteps": "Nombre total d'étapes",
+  "stepsModuleThisWeek": "Cette semaine",
+  "stepsModuleThisMonth": "Ce mois-ci",
+  "stepsModuleUpdated": "Mis à jour {time}",
+  "@stepsModuleUpdated": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "stepsModuleScopeSwitcherSemantics": "Changer la portée de l'étape",
+  "stepsModuleDay": "Jour",
+  "stepsModuleWeek": "Semaine",
+  "stepsModuleMonth": "Mois",
+  "stepsModuleHourlyTimeline": "Chronologie horaire",
+  "stepsModuleTotal": "Total",
+  "stepsModuleActiveHours": "Heures d'activité",
+  "stepsModulePeakHour": "Heure de pointe",
+  "stepsModuleAvgPerDay": "Moy. / Jour",
+  "stepsModuleGoalHit": "Objectif atteint",
+  "stepsModuleGoalDays": "Jours d'objectif",
+  "diarySyncingSteps": "Étapes de synchronisation...",
+  "diaryLoadingSleep": "Chargement du sommeil...",
+  "unit_milligrams": "mg",
+  "scannerPermissionRequired": "L'accès à la caméra est requis pour scanner les codes-barres.",
+  "scannerPermissionPermanentlyDenied": "L'accès à la caméra est définitivement refusé. Veuillez l'activer dans les paramètres pour scanner les codes-barres.",
+  "scannerOpenSettings": "Ouvrir les paramètres",
+  "scannerGrantPermission": "Accorder l'autorisation",
+  "scannerAlignInstruction": "Alignez le code-barres horizontalement à l'intérieur de la ligne laser rouge",
+  "about_train_libre": "À propos de Train Libre",
   "legal_notice": "Mentions légales",
   "privacy_policy": "Charte de confidentialité",
   "terms_of_service": "Conditions d'utilisation",
+  "view_in_browser": "Afficher dans le navigateur",
   "legal_document_version": "Version du document",
   "legal_document_last_updated": "Dernière mise à jour",
-  "view_in_browser": "Afficher dans le navigateur"
+  "used_libraries": "Bibliothèques utilisées",
+  "licensing_info": "Informations sur la licence",
+  "project_website": "Site Web du projet",
+  "github_repository": "Dépôt GitHub",
+  "health_permission_dialog_title": "Données de santé et confidentialité",
+  "health_permission_dialog_body": "Train Libre doit lire vos données de pas pour afficher des statistiques quotidiennes/hebdomadaires. Vos données restent localement sur votre appareil ; il n'y a pas de serveur externe.",
+  "health_permission_continue": "Continuer",
+  "health_permission_not_now": "Pas maintenant",
+  "welcome_privacy_title": "Bienvenue et confidentialité",
+  "welcome_privacy_body": "En utilisant Train Libre, vous acceptez le traitement de vos données tel que décrit dans notre Politique de confidentialité et Mentions légales.",
+  "i_agree_to_privacy_policy": "J'ai lu et j'accepte le traitement de mes données de santé tel que décrit dans la politique de confidentialité.",
+  "acceptTermsPrompt": "J'accepte les conditions d'utilisation",
+  "viewTermsInline": "Conditions d'utilisation",
+  "accept_and_get_started": "Accepter et commencer",
+  "about_section": "À propos",
+  "legal_section": "Mentions légales et confidentialité",
+  "aiSettingsInstructionTitle": "Comment fonctionne la reconnaissance des repas par l'IA",
+  "aiSettingsInstructionBody": "Cette fonctionnalité utilise l'IA pour analyser les images d'aliments et fournir des estimations des nutriments. Vos images ne sont envoyées au fournisseur d'IA sélectionné que lorsque vous utilisez la fonctionnalité. Il s'appuie sur une architecture Bring-Your-Own-Key (BYOK), conservant vos données localement sur votre appareil jusqu'à leur analyse.",
+  "aiSettingsSetupGuideTitle": "Guide de configuration",
+  "aiSettingsSetupGuideBody": "Pour utiliser cette fonctionnalité, vous avez besoin d'une clé API d'un fournisseur d'IA. Google Gemini est utilisé comme exemple principal car il propose actuellement un niveau gratuit pour les développeurs et les utilisateurs.",
+  "aiSettingsGetApiKeyButton": "Afficher le guide de configuration",
+  "legal_document_version_value": "1.2",
+  "legal_document_last_updated_value": "20 mai 2026",
+  "muscleChest": "Poitrine",
+  "muscleBack": "Dos",
+  "muscleShoulders": "Épaules",
+  "muscleBiceps": "Biceps",
+  "muscleTriceps": "Triceps",
+  "muscleQuads": "Quadriceps",
+  "muscleHamstrings": "Ischio-jambiers",
+  "muscleGlutes": "Fessiers",
+  "muscleCalves": "Veaux",
+  "muscleLowerBack": "Lombes",
+  "muscleAbs": "Abdos",
+  "muscleAdductors": "Adducteurs",
+  "muscleForearms": "Avant-bras",
+  "sleepDetailAnalysisHeader": "Analyse détaillée",
+  "sleepMetricDurationLabel": "Durée du sommeil",
+  "sleepMetricContinuityLabel": "Continuité (WASO/SE)",
+  "sleepMetricDepthLabel": "Profondeur du stade du sommeil",
+  "sleepMetricTimingLabel": "Synchronisation circadienne",
+  "sleepMetricRegularityLabel": "Régularité",
+  "sleepBannerTstBottleneck": "Pénalité de durée de sommeil active : votre volume total de sommeil était inférieur à l'optimum de régénération de 6,5 heures, ce qui limite la libération d'hormones anabolisantes.",
+  "sleepBannerRemBottleneck": "Pénalité de déficit de sommeil paradoxal : votre sommeil paradoxal était inférieur à 60 minutes. Cela altère la récupération neuronale et la fraîcheur mentale.",
+  "sleepBannerN3Bottleneck": "Pénalité de déficit de sommeil profond : manque critique de sommeil profond N3 (<70 min). La réparation physique des tissus musculaires est sous-optimale.",
+  "sleepBannerTimingBottleneck": "Pénalité de déphasage circadien : votre sommeil en plein milieu s'est produit après 05h30. Dormir contre l’horloge interne réduit la qualité du sommeil et la sensibilité à l’insuline.",
+  "sleepBannerDefaultPenalty": "Frein de protection clinique actif : votre volume de sommeil était sous-optimal (<6 h) ou le rythme circadien (début du sommeil) était gravement modifié. Le score total a été limité.",
+  "infoTdeeTitle": "Estimateur adaptatif de calories et TDEE",
+  "infoTdeeExplanation": "Estimation de votre dépense énergétique quotidienne totale (TDEE) en fonction de votre profil, des repas enregistrés et des changements de poids corporel.",
+  "infoTdeeKeyPoints": "• Lisse les fluctuations de poids quotidiennes à l'aide d'un modèle de tendance récursif.\n• Utilise une approche d'inspiration bayésienne pour adapter les objectifs hebdomadaires de manière conservatrice.\n• Vous alerte si la cohérence de votre journalisation est trop rare pour des mises à jour de haute confiance.",
+  "infoTdeeTechnicalTitle": "Filtrage récursif bayésien et lissage métabolique",
+  "infoTdeeTechnicalExplanation": "Plutôt que de s'appuyer sur des formules statiques, Train Libre modélise votre métabolisme comme un « état caché » dynamique estimé de manière récursive. L'entretien quotidien observé est calculé en ajustant l'apport en fonction des changements de masse corporelle. Un coefficient de bruit de processus est ajouté les jours non enregistrés pour augmenter l'incertitude de l'estimation, ce qui atténue les mises à jour et empêche les distorsions dues à la rétention d'eau à court terme.",
+  "infoRecoveryTitle": "Estimateur de récupération musculaire",
+  "infoRecoveryExplanation": "Estimation des courbes de préparation et de récupération spécifiques aux muscles en fonction du volume d'entraînement, de l'intensité et de la proximité de l'échec.",
+  "infoRecoveryKeyPoints": "• Tient compte du stress musculaire qui se chevauche (par exemple, le développé couché compte pour la poitrine, les triceps et les épaules).\n• Ajuste la vitesse de récupération en fonction du RIR/RPE et étend la fenêtre pour les ensembles mis en échec.\n• Calibre les fenêtres de récupération de base en fonction de la taille du groupe musculaire et des propriétés métaboliques.",
+  "infoRecoveryTechnicalTitle": "Modèle équivalent de fatigue et de décroissance par morceaux",
+  "infoRecoveryTechnicalExplanation": "Calcule la préparation dynamique via des courbes de décroissance non linéaires. Le suivi du volume répartit automatiquement la charge entre les groupes musculaires primaires et secondaires. La vitesse de récupération évolue en fonction de la proximité de la défaillance (RIR) et applique une extension de délai stricte pour les ensembles amenés à une défaillance absolue.",
+  "infoAiMealTitle": "Centre de capture de repas IA",
+  "infoAiMealExplanation": "Convertit les photos de repas ou les descriptions textuelles en entrées de journal structurées et les compare à votre base de données de produits privée.",
+  "infoAiMealKeyPoints": "• Traduit des descriptions imprécises (par exemple, « une tranche de pain ») en estimations de poids métriques.\n• Fait correspondre les suggestions d'IA hors ligne avec la base de données de produits locale sur votre appareil.\n• Calcule la nutrition localement au lieu de déléguer les calculs à des serveurs externes.",
+  "infoAiMealTechnicalTitle": "Hybride BYOK AI et correspondance Jaro-Winkler",
+  "infoAiMealTechnicalExplanation": "Utilise un modèle de confidentialité Bring-Your-Own-Key (BYOK). L’IA fonctionne strictement comme une couche de suggestions. La correspondance est effectuée hors ligne à l'aide d'un filtre Jaro-Winkler tokenisé par rapport à la base de données SQLite locale. Il est strictement interdit au fournisseur d'IA d'effectuer des calculs nutritionnels via les invites du système.",
+  "infoSleepTitle": "Qualité du sommeil (SHS v3.5)",
+  "infoSleepExplanation": "Calcule un indice de sommeil complet à partir de la quantité, de la continuité, de la profondeur, du timing et de la régularité quotidienne.",
+  "infoSleepKeyPoints": "• Regroupe cinq dimensions cliniques à l'aide d'une somme pondérée.\n• Ajuste automatiquement les exigences si votre portable ne fournit pas d'étapes spécifiques ou de données d'efficacité.\n• Vous protège via des multiplicateurs à plafond souple qui limitent le score total si un domaine critique (comme le sommeil paradoxal ou profond) est compromis.",
+  "infoSleepTechnicalTitle": "Base de référence pondérée et soft-caps continus",
+  "infoSleepTechnicalExplanation": "Agrége cinq domaines principaux à l'aide d'une somme linéaire pondérée : durée (30 %), continuité (20 %), architecture (25 %), synchronisation (15 %) et régularité (10 %). Pour éviter des moyennes trompeuses lorsqu'un domaine clinique est compromis, le score final est dégradé si des goulots d'étranglement importants sont détectés au cours des phases de sommeil ou du timing circadien.",
+  "tdeeRecalculationNotificationTitle": "TDEE recalculé",
+  "tdeeRecalculationNotificationBody": "Nouveaux objectifs quotidiens : {calories} kcal | {protein}g Protéine | {carbs}g Glucides | {fat}g Graisse",
+  "@tdeeRecalculationNotificationBody": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendationBannerText": "Nouveaux objectifs disponibles ({delta} kcal).",
+  "@recommendationBannerText": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "recommendationBannerApply": "Appliquer"
 }

@@ -1,37 +1,897 @@
 {
   "@@locale": "ja",
   "appTitle": "Train Libre",
-  "settingsTitle": "設定",
+  "bannerText": "推奨事項 / 現在のトレーニング",
+  "calories": "カロリー",
+  "water": "水分",
   "protein": "タンパク質",
   "carbs": "炭水化物",
   "fat": "脂質",
-  "calories": "カロリー",
-  "water": "水分",
   "steps": "歩数",
+  "daily": "毎日",
+  "today": "今日",
+  "workoutSection": "ワークアウトセクション - まだ実装されていません",
+  "addMenuTitle": "何を追加したいですか?",
+  "addFoodOption": "食べ物を追加する",
+  "addLiquidOption": "液体を追加します",
+  "searchHintText": "検索...",
+  "mealtypeBreakfast": "朝食",
+  "mealtypeLunch": "ランチ",
+  "mealtypeDinner": "夕食",
+  "mealtypeSnack": "スナック",
+  "waterHeader": "水と飲み物",
+  "openFoodFactsSource": "オープンな食品事実から得たデータ",
+  "tabRecent": "最近の",
+  "tabSearch": "検索",
+  "tabFavorites": "お気に入り",
+  "fabCreateOwnFood": "カスタムフード",
+  "recentEmptyState": "最近使用した食品\nここに表示されます。",
+  "favoritesEmptyState": "まだお気に入りがありません。\n食べ物にハートのアイコンを付けると、ここに表示されます。",
+  "searchInitialHint": "検索語を入力してください。",
+  "searchNoResults": "結果が見つかりませんでした。",
+  "createFoodScreenTitle": "カスタムフードの作成",
+  "formFieldName": "食べ物の名前",
+  "formFieldBrand": "ブランド (オプション)",
+  "formSectionMainNutrients": "主な栄養成分（100gあたり）",
+  "formFieldCalories": "カロリー(kcal)",
+  "formFieldProtein": "たんぱく質(g)",
+  "formFieldCarbs": "炭水化物(g)",
+  "formFieldFat": "脂肪(g)",
+  "formSectionOptionalNutrients": "追加の栄養素（オプション、100gあたり）",
+  "formFieldSugar": "うち糖質(g)",
+  "formFieldFiber": "食物繊維(g)",
+  "formFieldKj": "キロジュール (kJ)",
+  "formFieldSalt": "食塩(g)",
+  "formFieldSodium": "ナトリウム(mg)",
+  "formFieldCalcium": "カルシウム(mg)",
+  "buttonSave": "保存",
+  "validatorPleaseEnterName": "名前を入力してください。",
+  "validatorPleaseEnterNumber": "有効な番号を入力してください。",
+  "snackbarSaveSuccess": "{foodName} は正常に保存されました。",
+  "@snackbarSaveSuccess": {
+    "placeholders": {
+      "foodName": {
+        "type": "String"
+      }
+    }
+  },
+  "foodDetailSegmentPortion": "部分",
+  "foodDetailSegment100g": "100g",
+  "sugar": "砂糖",
+  "fiber": "ファイバ",
+  "salt": "塩",
+  "caffeine": "カフェイン",
+  "explorerScreenTitle": "フードエクスプローラー",
+  "nutritionScreenTitle": "栄養分析",
+  "entriesForDateRangeLabel": "のエントリー",
+  "noEntriesForPeriod": "この期間にはまだエントリーがありません。",
+  "waterEntryTitle": "水",
+  "profileScreenTitle": "プロフィール",
+  "profileDailyGoals": "毎日の目標",
+  "profileDailyGoalsCL": "毎日の目標",
+  "snackbarGoalsSaved": "目標は正常に保存されました!",
+  "measurementsScreenTitle": "測定",
+  "measurementsEmptyState": "まだ測定値は記録されていません。\n「+」ボタンから始めます。",
+  "addMeasurementDialogTitle": "新しい測定値を追加",
+  "formFieldMeasurementType": "測定の種類",
+  "formFieldMeasurementValue": "値 ({unit})",
+  "validatorPleaseEnterValue": "値を入力してください",
+  "measurementWeight": "体重",
+  "measurementFatPercent": "体脂肪",
+  "measurementNeck": "ネック",
+  "measurementShoulder": "ショルダー",
+  "measurementChest": "胸",
+  "measurementLeftBicep": "左上腕二頭筋",
+  "measurementRightBicep": "右上腕二頭筋",
+  "measurementLeftForearm": "左前腕",
+  "measurementRightForearm": "右前腕",
+  "measurementAbdomen": "腹部",
+  "measurementWaist": "ウエスト",
+  "measurementHips": "ヒップ",
+  "measurementLeftThigh": "左太もも",
+  "measurementRightThigh": "右太もも",
+  "measurementLeftCalf": "左ふくらはぎ",
+  "measurementRightCalf": "右ふくらはぎ",
+  "drawerMenuTitle": "トレインリブレメニュー",
+  "drawerDashboard": "ダッシュボード",
+  "drawerFoodExplorer": "フードエクスプローラー",
+  "drawerDataManagement": "データのバックアップ",
+  "drawerMeasurements": "測定",
+  "dataManagementTitle": "データのバックアップ",
+  "exportCardTitle": "データのエクスポート",
+  "exportCardDescription": "すべての日記エントリ、お気に入り、カスタム食品を 1 つのバックアップ ファイルに保存します。",
+  "exportCardButton": "バックアップの作成",
+  "importCardTitle": "データのインポート",
+  "importCardDescription": "以前に作成したバックアップ ファイルからデータを復元します。警告: 現在アプリに保存されているデータはすべて上書きされます。",
+  "importCardButton": "バックアップを復元する",
+  "recommendationDefault": "初めての食事の記録をしましょう！",
+  "recommendationOverTarget": "過去 {count} 日間: +{difference} kcal が目標を上回りました",
+  "@recommendationOverTarget": {
+    "placeholders": {
+      "count": {},
+      "difference": {}
+    }
+  },
+  "recommendationUnderTarget": "過去 {count} 日間: {difference} kcal が目標を下回りました",
+  "@recommendationUnderTarget": {
+    "placeholders": {
+      "count": {},
+      "difference": {}
+    }
+  },
+  "recommendationOnTarget": "過去 {count} 日間: 目標を達成しました ✅",
+  "@recommendationOnTarget": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "recommendationFirstEntry": "完了しました。最初のエントリが記録されました。",
+  "dialogConfirmTitle": "確認が必要です",
+  "dialogConfirmImportContent": "本当にこのバックアップからデータを復元しますか?\n\n警告: 現在のエントリ、お気に入り、カスタム フードはすべて完全に削除され、置き換えられます。",
+  "dialogButtonCancel": "キャンセル",
+  "dialogButtonOverwrite": "はい、すべて上書きします",
+  "snackbarNoFileSelected": "ファイルが選択されていません。",
+  "snackbarImportSuccessTitle": "インポートが成功しました。",
+  "snackbarImportSuccessContent": "データが復元されました。正しく表示するためにアプリを再起動することをお勧めします。",
+  "snackbarButtonOK": "わかりました",
+  "snackbarImportError": "データのインポート中にエラーが発生しました。",
+  "snackbarExportSuccess": "バックアップ ファイルがシステムに渡されました。保存する場所を選択してください。",
+  "snackbarExportFailed": "エクスポートがキャンセルされたか失敗しました。",
+  "profileUserHeight": "身長(cm)",
+  "workoutRoutinesTitle": "ルーチン",
+  "workoutHistoryTitle": "トレーニング履歴",
+  "workoutHistoryButton": "歴史",
+  "emptyRoutinesTitle": "ルーチンが見つかりません",
+  "emptyRoutinesSubtitle": "最初のルーチンを作成するか、空のワークアウトを開始します。",
+  "createFirstRoutineButton": "最初のルーチンを作成する",
+  "startEmptyWorkoutButton": "無料のトレーニング",
+  "editRoutineSubtitle": "タップして編集するか、ワークアウトを開始します。",
+  "startButton": "始める",
+  "addRoutineButton": "新しいルーチン",
+  "freeWorkoutTitle": "無料のトレーニング",
+  "finishWorkoutButton": "仕上げる",
+  "addSetButton": "セットの追加",
+  "addExerciseToWorkoutButton": "ワークアウトにエクササイズを追加",
+  "lastTimeLabel": "前回",
+  "setLabel": "セット",
+  "kgLabel": "重量(kg)",
+  "repsLabel": "担当者",
+  "cardioDistanceLabel": "距離(km)",
+  "cardioTimeLabel": "時間(分)",
+  "cardioIntensityLabel": "インテンス。",
+  "cardioIntensityShortLabel": "内部。",
+  "restTimerLabel": "休む",
+  "skipButton": "スキップ",
+  "appInitStarting": "アプリを起動しています...",
+  "appInitInitializing": "初期化中...",
+  "appInitFinalizing": "ファイナライズ中",
+  "appInitCheckingBackups": "バックアップを確認しています...",
+  "appInitSkipDownload": "ダウンロードをスキップする",
+  "appInitSkippingRemoteDownload": "リモートダウンロードをスキップしています...",
+  "emptyHistory": "まだ完了したワークアウトはありません。",
+  "workoutDetailsTitle": "トレーニングの詳細",
+  "workoutHeartRateSectionTitle": "心拍",
+  "workoutHeartRateAverageLabel": "平均",
+  "workoutHeartRateMaxLabel": "マックス",
+  "workoutHeartRateMinLabel": "分",
+  "workoutHeartRateQualityReady": "良好なカバレッジ",
+  "workoutHeartRateQualityLimited": "限られたデータ",
+  "workoutHeartRateQualityInsufficient": "非常にまばら",
+  "workoutHeartRateQualityNoData": "データなし",
+  "workoutHeartRateNoDataGeneral": "このワークアウト ウィンドウでは心拍数サンプルが見つかりませんでした。",
+  "workoutHeartRateNoDataPermission": "ワークアウトの HR を表示するには、心拍数の許可が必要です。",
+  "workoutHeartRateNoDataUnavailable": "現在、このデバイスでは心拍数データを利用できません。",
+  "workoutHeartRateNoDataWorkoutNotFinished": "ワークアウト終了後に心拍数の概要が表示されます。",
+  "workoutHeartRateNoDataInvalidWindow": "ワークアウトの時間枠が無効であるため、HR を分析できません。",
+  "workoutHeartRateNoDataQueryFailed": "このワークアウトの心拍数データを読み取ることができませんでした。",
+  "workoutHeartRateLimitedChartHint": "信頼できるグラフを作成するには、一貫したサンプルが十分ではありません。",
+  "workoutHeartRateSampleCount": "{count, plural, =0{} one{1} other{{count} サンプル}}}",
+  "@workoutHeartRateSampleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "No": {}
+    }
+  },
+  "workoutNotFound": "ワークアウトが見つかりません。",
+  "totalVolumeLabel": "総量",
+  "notesLabel": "注意事項",
+  "workoutImportTitle": "外部ワークアウトのインポート",
+  "workoutImportDescription": "CSV または Excel エクスポート ファイルからトレーニング履歴をインポートします。",
+  "workoutImportButton": "ワークアウトデータのインポート",
+  "workoutImportSuccess": "{count} 個のワークアウトを正常にインポートしました。",
+  "@workoutImportSuccess": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "workoutImportFailed": "インポートに失敗しました。ファイルを確認してください。",
+  "importUnitSelectionTitle": "輸入単位",
+  "importUnitSelectionDescription": "提供されるファイルのデータはどの単位で表示されますか?",
+  "unitMetricLabel": "メートル法(kg)",
+  "unitImperialLabel": "インペリアル (ポンド)",
+  "excelExportButton": "Excel エクスポート (.xlsx)",
+  "exportWorkoutHistory": "トレーニング履歴",
+  "exportNutritionDiary": "栄養日記",
+  "exportMeasurements": "測定",
+  "startWorkout": "ワークアウトを開始する",
+  "addMeasurement": "測定の追加",
+  "filterToday": "今日",
+  "filter7Days": "7日間",
+  "filter30Days": "30日",
+  "filterAll": "全て",
+  "showLess": "表示を少なくする",
+  "showMoreDetails": "さらに詳細を表示",
+  "deleteConfirmTitle": "削除の確認",
+  "deleteConfirmContent": "本当にこのエントリを削除してもよろしいですか?",
   "cancel": "キャンセル",
-  "save": "保存",
   "delete": "削除",
-  
-  "settingsBaseFoodLanguageTitle": "食品表示言語",
-  "settingsBaseFoodLanguageSubtitle": "基本食品名に使用する言語を選択します。",
-  "settingsBaseFoodLanguageFollowApp": "アプリの言語に合わせる",
-  "settingsBaseFoodLanguageEnglish": "英語",
-  "settingsBaseFoodLanguageGerman": "ドイツ語",
-  "settingsBaseFoodLanguageFrench": "フランス語",
-  "settingsBaseFoodLanguageItalian": "イタリア語",
-  "settingsBaseFoodLanguageJapanese": "日本語",
-  
+  "save": "保存",
+  "unsavedChangesTitle": "未保存の変更",
+  "unsavedChangesContent": "未保存の変更があります。出発する前に保存しますか?",
+  "share": "共有",
+  "shareWorkout": "ワークアウトを共有する",
+  "shareRoutine": "ルーチンを共有する",
+  "shareAsImage": "画像として共有",
+  "shareAsText": "テキストとして共有する",
+  "sharedFromTrainLibre": "トレイン・リブレから共有",
+  "sharedWithTrainLibre": "トレイン・リブレと共用",
+  "shareImageSummary": "まとめ",
+  "shareImageExercises": "演習",
+  "shareImageMuscleFocus": "筋肉の集中",
+  "shareImageMinimal": "最小限",
+  "volume": "音量",
+  "moreExercises": "+ {count} 個以上のエクササイズ",
+  "@moreExercises": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareSetNumber": "{number} を設定します",
+  "@shareSetNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "repsShort": "担当者",
+  "shareFailed": "共有に失敗しました",
+  "workoutShareTitle": "いい結果",
+  "routineShareTitle": "ルーティーン",
+  "setTypeWarmup": "準備し始める",
+  "setTypeWork": "ワークセット",
+  "setTypeFailure": "失敗",
+  "setTypeDropset": "ドロップセット",
+  "setTypeSuperset": "スーパーセット",
+  "setTypeOther": "他の",
+  "setTypeWarmupSuffix": "準備し始める",
+  "setTypeFailureSuffix": "失敗",
+  "setTypeDropsetSuffix": "ドロップセット",
+  "setTypeSupersetSuffix": "スーパーセット",
+  "setTypeOtherSuffix": "他の",
+  "warmupSetCount": "{count, plural, =1{1} other{{count} ウォームアップ セット}}}",
+  "workSetCount": "{count, plural, =1{1} other{{count} ワークセット}}}",
+  "failureSetCount": "{count, plural, =1{1 } other{{count} 障害セット}}}",
+  "dropsetCount": "{count, plural, =1{1} other{{count} ドロップセット}}}",
+  "supersetSetCount": "{count, plural, =1{1 } other{{count} スーパーセット}}}",
+  "otherSetCount": "{count, plural, =1{1} other{{count} 他のセット}}}",
+  "warmupCompactCount": "{count, plural, =1{1 } other{{count} ウォームアップ}}}",
+  "workCompactCount": "{count, plural, =1{1} other{{count} の作業}}}",
+  "failureCompactCount": "{count, plural, =1{1 } other{{count} の失敗}}}",
+  "dropsetCompactCount": "{count, plural, =1{1} other{{count} ドロップセット}}}",
+  "supersetCompactCount": "{count, plural, =1{1 } other{{count} スーパーセット}}}",
+  "otherCompactCount": "{count, plural, =1{1} other{{count} その他}}}",
+  "shareExercisesLabel": "演習",
+  "shareSetsLabel": "セット",
+  "shareSetLabel": "セット",
+  "tabBaseFoods": "ベースフード",
+  "baseFoodsEmptyState": "このセクションには、果物、野菜などの基本的な食品の厳選されたリストが間もなく追加される予定です。",
+  "noBrand": "ノーブランド",
+  "unknown": "未知",
+  "backupFileSubject": "Libre アプリのバックアップを訓練する - {timestamp}",
+  "@backupFileSubject": {
+    "placeholders": {
+      "timestamp": {
+        "type": "String"
+      }
+    }
+  },
+  "foodItemSubtitle": "{brand} - {calories} kcal / 100g",
+  "@foodItemSubtitle": {
+    "placeholders": {
+      "brand": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "foodListSubtitle": "{grams}g - {time}",
+  "@foodListSubtitle": {
+    "placeholders": {
+      "grams": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "foodListTrailingKcal": "{calories} kcal",
+  "@foodListTrailingKcal": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "waterListTrailingMl": "{milliliters} ml",
+  "@waterListTrailingMl": {
+    "placeholders": {
+      "milliliters": {
+        "type": "int"
+      }
+    }
+  },
+  "exerciseCatalogTitle": "エクササイズカタログ",
+  "filterByMuscle": "筋肉グループによるフィルター",
+  "noExercisesFound": "演習が見つかりません。",
+  "noDescriptionAvailable": "説明はありません。",
+  "filterByCategory": "カテゴリでフィルタリングする",
+  "edit": "編集",
+  "repsLabelShort": "担当者",
+  "titleNewRoutine": "新しいルーチン",
+  "titleEditRoutine": "ルーチンの編集",
+  "validatorPleaseEnterRoutineName": "ルーチンの名前を入力してください。",
+  "snackbarRoutineCreated": "ルーチンが作成されました。次に、いくつかの演習を追加します。",
+  "snackbarRoutineSaved": "ルーチンが保存されました。",
+  "saveAsRoutineButton": "ルーチンとして保存",
+  "saveAsRoutineTitle": "ルーチンとして保存",
+  "saveAsRoutinePrompt": "新しいルーチンの名前を入力してください:",
+  "saveAsRoutineSuccess": "ルーティンができました！",
+  "snackbarRoutineSavedAction": "ビュー",
+  "formFieldRoutineName": "ルーチンの名前",
+  "emptyStateAddFirstExercise": "最初の演習を追加します。",
+  "setCount": "{count, plural, =1{1} other{{count} セット}}}",
+  "@setCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fabAddExercise": "エクササイズを追加",
+  "kgLabelShort": "kg",
+  "drawerExerciseCatalog": "エクササイズカタログ",
+  "lastWorkoutTitle": "最後のトレーニング",
+  "repeatButton": "繰り返す",
+  "weightHistoryTitle": "体重履歴",
+  "hideSummary": "概要を隠す",
+  "showSummary": "概要を表示",
+  "exerciseDataAttribution": "wger からの運動データ",
+  "duplicate": "重複",
+  "deleteRoutineConfirmContent": "ルーチン「{routineName}」を完全に削除してもよろしいですか?",
+  "@deleteRoutineConfirmContent": {
+    "placeholders": {
+      "routineName": {
+        "type": "String"
+      }
+    }
+  },
+  "editPauseTimeTitle": "一時停止時間を編集する",
+  "pauseInSeconds": "数秒で一時停止します",
+  "editPauseTime": "編集一時停止",
+  "pauseDuration": "{seconds}秒の一時停止",
+  "@pauseDuration": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "maxPauseDuration": "最大 {seconds}秒まで一時停止します",
+  "@maxPauseDuration": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteWorkoutConfirmContent": "このワークアウト ログを完全に削除してもよろしいですか?",
+  "removeExercise": "エクササイズを削除する",
+  "deleteExerciseConfirmTitle": "エクササイズを削除しますか?",
+  "deleteExerciseConfirmContent": "このルーチンから「{exerciseName}」を削除してもよろしいですか?",
+  "@deleteExerciseConfirmContent": {
+    "placeholders": {
+      "exerciseName": {
+        "type": "String"
+      }
+    }
+  },
+  "doneButtonLabel": "終わり",
+  "setRestTimeButton": "休憩時間を設定する",
+  "deleteExerciseButton": "練習の削除",
+  "restOverLabel": "一時停止が終わりました",
+  "workoutRunningLabel": "トレーニングはアクティブです…",
+  "continueButton": "続く",
+  "discardButton": "破棄",
+  "workoutStatsTitle": "研修（7日間）",
+  "workoutsLabel": "トレーニング",
+  "durationLabel": "間隔",
+  "@durationLabel": {
+    "description": "Label for workout duration summary"
+  },
+  "volumeLabel": "音量",
+  "setsLabel": "セット",
+  "@setsLabel": {
+    "description": "Label for number of sets summary"
+  },
+  "muscleSplitLabel": "筋肉の分割",
+  "@muscleSplitLabel": {
+    "description": "Label for muscle split bar chart"
+  },
+  "snackbar_could_not_open_open_link": "リンクを開けませんでした",
+  "chart_no_data_for_period": "この期間のチャート データはありません",
+  "amount_in_milliliters": "ミリリットル単位の量",
+  "amount_in_grams": "グラム単位の量",
+  "meal_label": "食事",
+  "add_to_water_intake": "水分摂取量に加える",
+  "create_exercise_screen_title": "カスタム演習の作成",
+  "exercise_name_label": "エクササイズ名",
+  "category_label": "カテゴリ",
+  "description_optional_label": "説明 (オプション)",
+  "primary_muscles_label": "一次筋肉",
+  "primary_muscles_hint": "例えば胸、上腕三頭筋",
+  "secondary_muscles_label": "二次筋肉 (オプション)",
+  "secondary_muscles_hint": "例えば肩",
+  "fluidNameLabel": "名前",
+  "sugarPer100mlLabel": "砂糖(g/100ml)",
+  "set_type_normal": "普通",
+  "set_type_warmup": "準備し始める",
+  "set_type_failure": "失敗",
+  "set_type_dropset": "ドロップセット",
+  "set_reps_hint": "8-12",
+  "data_export_button": "輸出",
+  "data_import_button": "輸入",
+  "snackbar_button_ok": "わかりました",
+  "measurement_session_detail_view": "測定セッションの詳細図",
+  "unit_grams": "g",
+  "unit_kcal": "kcal",
+  "delete_profile_picture_button": "プロフィール写真を削除する",
+  "attribution_title": "帰属",
+  "add_liquid_title": "液体を追加する",
+  "add_button": "追加",
+  "discard_button": "破棄",
+  "continue_workout_button": "続く",
+  "soon_available_snackbar": "この画面は近日公開予定です",
+  "start_button": "始める",
+  "today_overview_text": "今日に注目",
+  "quick_add_text": "クイック追加",
+  "scann_barcode_capslock": "バーコードをスキャンする",
+  "protocol_today_capslock": "今日のプロトコル",
+  "my_plans_capslock": "私の計画",
+  "overview_capslock": "概要",
+  "manage_all_plans": "すべての計画を管理する",
+  "workoutSectionStart": "始める",
+  "workoutSectionMyPlans": "私の計画",
+  "workoutSectionHistoryLibrary": "歴史と図書館",
+  "workoutAllRoutines": "すべてのルーチン",
+  "workoutEntryWorkouts": "トレーニング",
+  "free_training": "無料のトレーニング",
+  "my_consistency": "私の一貫性",
+  "calendar_currently_not_available": "カレンダー ビューは近日中に利用できるようになる予定です。",
+  "in_depth_analysis": "徹底した分析",
+  "body_measurements": "身体測定",
+  "measurements_description": "体重、体脂肪率、周囲径を分析します。",
+  "nutrition_description": "マクロ、カロリー、トレンドを評価します。",
+  "training_analysis": "トレーニング分析",
+  "training_analysis_description": "ボリューム、強さ、進行状況を追跡します。",
+  "load_dots": "読み込み中...",
+  "profile_capslock": "プロフィール",
+  "settings_capslock": "設定",
+  "settingsTitle": "設定",
+  "settingsUpdateFoodDatabase": "食品データベースを更新する",
+  "settingsUpdateFoodDatabaseSubtitle": "Open Food Facts データベースの更新を手動で確認します。",
+  "settingsUpdateFoodDatabaseSuccess": "食品データベースが正常に更新されました。",
+  "settingsUpdateFoodDatabaseError": "データベース更新エラー: {error}",
+  "@settingsUpdateFoodDatabaseError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsGuidedTourSectionTitle": "ガイド付きツアー",
+  "settingsRestartAppTourTitle": "アプリツアーを再開する",
+  "settingsRestartAppTourSubtitle": "アプリ内の短いウォークスルーを再度実行します。",
+  "my_goals": "私の目標",
+  "my_goals_description": "カロリー、マクロ、水を調整します。",
+  "backup_and_import": "データのバックアップとインポート",
+  "backup_and_import_description": "データのバックアップ、復元、インポートを作成します。",
+  "feedbackReportSettingsSectionTitle": "サポート",
+  "feedbackReportSettingsEntryTitle": "フィードバックを送信する",
+  "feedbackReportSettingsEntrySubtitle": "ローカル診断レポートを作成し、それを共有する方法を選択します。",
+  "about_and_legal_capslock": "概要と法的事項",
+  "feedbackReportScreenTitle": "フィードバックレポート",
+  "feedbackReportPrivacyTitle": "プライバシー第一",
+  "feedbackReportPrivacyBody": "このレポートはデバイス上でローカルに生成されます。何も自動的には送信されません。コピー、保存、共有、または電子メールを選択した場合、プレビューに表示されている内容のみが含まれます。電子メールを送信すると、feedback@schotte.me 宛ての下書きが開かれるため、送信前に確認、編集、またはキャンセルできます。",
+  "feedbackReportOptionalNoteTitle": "オプションのメモ",
+  "feedbackReportOptionalNoteLabel": "あなたのメモ (オプション)",
+  "feedbackReportOptionalNoteHint": "何が起こったのか、予想される動作、再現手順を説明します。",
+  "feedbackReportIncludeSectionTitle": "レポートに含める",
+  "feedbackReportIncludeAdaptiveNutrition": "適応栄養診断",
+  "feedbackReportIncludeBackupRestore": "バックアップ/復元診断",
+  "feedbackReportIncludeUserNote": "ユーザーメモ",
+  "feedbackReportGeneratePreview": "プレビューの生成",
+  "feedbackReportPreviewTitle": "プレビュー",
+  "feedbackReportActionCopy": "コピー",
+  "feedbackReportActionSave": "保存",
+  "feedbackReportActionShare": "共有",
+  "feedbackReportActionEmail": "電子メール",
+  "feedbackReportCopied": "レポートがクリップボードにコピーされました。",
+  "feedbackReportSavedToTemporaryFile": "一時レポート ファイルに保存されます。",
+  "feedbackReportShareCompleted": "共有シートが開きました。",
+  "feedbackReportShareCanceled": "共有がキャンセルされました。",
+  "feedbackReportEmailOpenFailed": "メールアプリを開けませんでした。",
+  "feedbackReportEmailSubject": "Train Libre フィードバック レポート",
+  "feedbackReportReportTitle": "Train Libre フィードバック レポート",
+  "feedbackReportReportGeneratedAt": "生成された",
+  "feedbackReportReportAppVersion": "アプリのバージョン",
+  "feedbackReportReportBuildNumber": "ビルド番号",
+  "feedbackReportReportPlatform": "プラットフォーム",
+  "feedbackReportReportOsVersion": "OSバージョン",
+  "feedbackReportUnavailable": "利用不可",
+  "feedbackReportSectionUserNote": "ユーザーメモ",
+  "feedbackReportSectionAdaptiveNutrition": "適応栄養診断",
+  "feedbackReportSectionBackupRestore": "バックアップ/復元診断",
+  "attribution_and_license": "帰属とライセンス",
+  "data_from_off_and_wger": "Open Food Facts と調査からのデータ。",
+  "app_version": "アプリのバージョン",
+  "all_measurements": "すべての測定値",
+  "all_measurements_no_cap": "すべての測定値",
+  "date_and_time_of_measurement": "測定日時",
+  "onbWelcomeTitle": "トレイン・リブレへようこそ",
+  "@onbWelcomeTitle": {
+    "description": "Onboarding slide 1 title"
+  },
+  "onbWelcomeBody": "まずはトレーニングと栄養の指針となる個人的な目標を設定しましょう。",
+  "@onbWelcomeBody": {
+    "description": "Onboarding slide 1 description"
+  },
+  "onbTrackTitle": "すべてを追跡する",
+  "@onbTrackTitle": {
+    "description": "Onboarding slide 2 title"
+  },
+  "onbTrackBody": "栄養、トレーニング、測定値をすべて 1 か所で記録します。",
+  "@onbTrackBody": {
+    "description": "Onboarding slide 2 description"
+  },
+  "onbPrivacyTitle": "オフラインファーストとプライバシー",
+  "@onbPrivacyTitle": {
+    "description": "Onboarding slide 3 title"
+  },
+  "onbPrivacyBody": "データはデバイス上に残ります。クラウド アカウントもバックグラウンド同期もありません。",
+  "@onbPrivacyBody": {
+    "description": "Onboarding slide 3 description"
+  },
+  "onbFinishTitle": "準備完了",
+  "@onbFinishTitle": {
+    "description": "Onboarding final slide title"
+  },
+  "onbFinishBody": "アプリを探索する準備ができました。いつでも設定を調整できます。",
+  "@onbFinishBody": {
+    "description": "Onboarding final slide description"
+  },
+  "onbFinishCta": "さあ行こう！",
+  "@onbFinishCta": {
+    "description": "Final button label to finish onboarding"
+  },
+  "onbShowTutorialAgain": "オンボーディングを再度表示する",
+  "@onbShowTutorialAgain": {
+    "description": "Settings item to reopen onboarding"
+  },
+  "appTourOfferTitle": "簡単なアプリ ツアーに参加しますか?",
+  "appTourOfferBody": "アプリの主要な領域について簡単に説明します。ここでスキップして、後で [設定] で再起動することができます。",
+  "appTourOfferStart": "ツアーを開始します",
+  "appTourOfferSkip": "たぶん後で",
+  "appTourSkip": "スキップ",
+  "appTourNext": "次",
+  "appTourDone": "終わり",
+  "appTourStepNavigationTitle": "メインナビゲーション",
+  "appTourStepNavigationBody": "下部のタブを使用して、日記、ワークアウト、統計、栄養の間を移動します。",
+  "appTourStepQuickActionsTitle": "クイックアクション",
+  "appTourStepQuickActionsBody": "プラスボタンをタップすると、食事、水分、測定値、トレーニングなどをすぐに追加できます。",
+  "appTourStepDiaryTitle": "日記",
+  "appTourStepDiaryBody": "日記はあなたの毎日の概要です。食事、水分補給、サプリメント、一日の記録を一目で確認できます。",
+  "appTourStepWorkoutTitle": "いい結果",
+  "appTourStepWorkoutBody": "ワークアウトでは、セッションを開始し、ルーチンを管理し、トレーニング履歴を確認します。",
+  "appTourStepNutritionTitle": "栄養",
+  "appTourStepNutritionBody": "Nutrition は、食事を計画し、目標を確認し、食事テンプレートなどのツールにアクセスするのに役立ちます。",
+  "appTourStepStatisticsTitle": "統計",
+  "appTourStepStatisticsBody": "統計は傾向と進捗状況を示すため、時間の経過とともにデータがどのように変化するかを理解できます。",
+  "onbSetGoalsCta": "目標を設定する",
+  "@onbSetGoalsCta": {
+    "description": "Optional CTA linking to Goals screen from onboarding"
+  },
+  "onbHeaderTitle": "チュートリアル",
+  "@onbHeaderTitle": {
+    "description": "Onboarding header title"
+  },
+  "onbHeaderSkip": "スキップ",
+  "@onbHeaderSkip": {
+    "description": "Skip button label in onboarding header"
+  },
+  "onbBack": "戻る",
+  "@onbBack": {
+    "description": "Back button in onboarding footer"
+  },
+  "onbNext": "次",
+  "@onbNext": {
+    "description": "Next button in onboarding footer"
+  },
+  "onbGuideTitle": "このチュートリアルの仕組み",
+  "@onbGuideTitle": {
+    "description": "Guide banner title in onboarding"
+  },
+  "onbGuideBody": "スライド間をスワイプするか、「次へ」を使用します。各スライドのボタンをタップして機能を試してください。スキップでいつでも終了できます。",
+  "@onbGuideBody": {
+    "description": "Guide banner description in onboarding"
+  },
+  "onbCtaOpenNutrition": "オープン栄養学",
+  "@onbCtaOpenNutrition": {
+    "description": "CTA to open nutrition tracking from onboarding"
+  },
+  "onbCtaLearnMore": "もっと詳しく知る",
+  "@onbCtaLearnMore": {
+    "description": "CTA to learn more about privacy/offline"
+  },
+  "onbBadgeDone": "終わり",
+  "@onbBadgeDone": {
+    "description": "Badge label shown after completing CTA"
+  },
+  "onbTipSetGoals": "ヒント: 最初にターゲットを調整します",
+  "@onbTipSetGoals": {
+    "description": "Hint text on goals slide"
+  },
+  "onbTipAddEntry": "ヒント: 今すぐエントリーを 1 つ追加してください",
+  "@onbTipAddEntry": {
+    "description": "Hint text on nutrition slide"
+  },
+  "onbTipLocalControl": "すべてのデータをローカルで管理します",
+  "@onbTipLocalControl": {
+    "description": "Hint on privacy slide about local data control"
+  },
+  "onbTrackHowBody": "栄養を記録する方法:\n• [食品]タブを開きます。\n• ＋ボタンをタップします。\n• 製品を検索するか、バーコードをスキャンします。\n• 分量と時間を調整します。\n• 日記に保存します。",
+  "@onbTrackHowBody": {
+    "description": "Onboarding slide 2 replacement body: step-by-step nutrition logging instructions"
+  },
+  "onbMeasureTitle": "測定を追跡する",
+  "@onbMeasureTitle": {
+    "description": "Onboarding slide title for measurements"
+  },
+  "onbMeasureBody": "測定値を追加する方法:\n• [統計] タブを開きます。\n• ＋ボタンをタップします。\n• 測定基準 (体重、ウエスト、体脂肪など) を選択します。\n• 値と時間を入力します。\n• 履歴に保存します。",
+  "@onbMeasureBody": {
+    "description": "Step-by-step instructions for adding measurements"
+  },
+  "onbTipMeasureToday": "ヒント: 今日の体重を追加してグラフを開始します",
+  "@onbTipMeasureToday": {
+    "description": "Hint for measurements slide"
+  },
+  "onbTrainTitle": "ルーチンでトレーニングする",
+  "@onbTrainTitle": {
+    "description": "Onboarding slide title for training routines"
+  },
+  "onbTrainBody": "ルーチンを作成してワークアウトを開始します。\n• [トレイン] タブを開きます。\n• [ルーチンの作成] をタップして、エクササイズとセットを追加します。\n• ルーチンを保存します。\n• [開始] をタップして開始するか、[空のワークアウトを開始] を使用します。",
+  "@onbTrainBody": {
+    "description": "Instructions for creating a routine and starting a workout"
+  },
+  "onbTipStartWorkout": "ヒント: 空のワークアウトを開始して、簡単なセッションを記録します。",
+  "@onbTipStartWorkout": {
+    "description": "Hint for training slide"
+  },
+  "unitsSection": "単位",
+  "weightUnit": "重量単位",
+  "lengthUnit": "長さの単位",
+  "comingSoon": "近日公開",
+  "noFavorites": "お気に入りがありません",
+  "nothingTrackedYet": "まだ何も追跡されていません",
+  "snackbarBarcodeNotFound": "バーコード「{barcode}」に対応する商品が見つかりませんでした。",
+  "@snackbarBarcodeNotFound": {
+    "placeholders": {
+      "barcode": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryHint": "例えば胸、背中、脚…",
+  "validatorPleaseEnterCategory": "カテゴリを入力してください。",
+  "dialogEnterPasswordImport": "バックアップをインポートするにはパスワードを入力してください",
+  "dataManagementBackupTitle": "トレイン リブレ データ バックアップ",
+  "dataManagementBackupDescription": "すべてのアプリデータをバックアップまたは復元します。機種変更に最適です。",
+  "exportEncrypted": "暗号化してエクスポート",
+  "dialogPasswordForExport": "暗号化エクスポート用のパスワード",
+  "snackbarEncryptedBackupShared": "暗号化されたバックアップが共有されました。",
+  "exportFailed": "エクスポートに失敗しました。",
+  "csvExportTitle": "データエクスポート(CSV)",
+  "csvExportDescription": "他のプログラムで分析できるように、データの一部を CSV ファイルとしてエクスポートします。",
+  "snackbarSharingNutrition": "栄養日記を共有...",
+  "snackbarExportFailedNoEntries": "エクスポートに失敗しました。まだエントリーがない可能性があります。",
+  "snackbarSharingMeasurements": "測定値を共有しています...",
+  "snackbarSharingWorkouts": "ワークアウト履歴を共有しています...",
+  "mapExercisesTitle": "地図演習",
+  "mapExercisesDescription": "ログから未知の名前を wger 演習にマッピングします。",
+  "mapExercisesButton": "マッピングの開始",
+  "autoBackupTitle": "自動バックアップ",
+  "autoBackupDescription": "定期的にバックアップをフォルダーに保存します。現在のフォルダー:",
+  "autoBackupDefaultFolder": "アプリ - ドキュメント/バックアップ (デフォルト)",
+  "autoBackupChooseFolder": "フォルダーの選択",
+  "autoBackupCopyPath": "パスのコピー",
+  "autoBackupRunNow": "今すぐ自動バックアップを確認して実行",
+  "autoBackupRequestAccessSubtitle": "データを自動的にバックアップするには、Train Libre は選択したフォルダーにアクセスする必要があります。バックアップはそこに保存されます。",
+  "snackbarAutoBackupSuccess": "自動バックアップが完了しました。",
+  "snackbarAutoBackupFailed": "自動バックアップが失敗したか、キャンセルされました。",
+  "localDataDeletionCardTitle": "ローカルアプリデータ",
+  "localDataDeletionCardDescription": "このデバイスに保存されているユーザー所有のデータを完全に削除し、Train Libre を新しいローカル状態にリセットします。",
+  "deleteAllLocalAppData": "ローカルアプリのデータをすべて削除する",
+  "localDataDeletionConfirmTitle": "ローカルアプリのデータをすべて削除しますか?",
+  "localDataDeletionConfirmBody": "これにより、ローカルに保存されたワークアウト、栄養ログ、測定値、サプリメント、設定/状態、キャッシュされた分析、ローカル アプリ データが完全に削除されます。\n\nこれによって、すでに Apple Health または Health Connect にエクスポートされたデータは削除されません。\n\nこれにより、外部プロバイダー データやリモート パブリック カタログ ソースは削除されません。バンドルされたアプリのアセットと必要なデフォルトのカタログは、リセット後にアプリを起動できるように保持または再作成されます。",
+  "localDataDeletionTypeDeleteLabel": "「DELETE」と入力して確認します",
+  "localDataDeletionSuccessTitle": "ローカルデータが削除されました",
+  "localDataDeletionSuccessBody": "Train Libre は初期設定状態に戻ります。",
+  "localDataDeletionFailed": "ローカルデータを削除できませんでした。もう一度試してください。",
+  "noUnknownExercisesFound": "不明な演習は見つかりませんでした",
+  "snackbarAutoBackupFolderSet": "自動バックアップフォルダーセット:\n{path}",
+  "@snackbarAutoBackupFolderSet": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "snackbarPathCopied": "コピーされたパス",
+  "passwordLabel": "パスワード",
+  "descriptionLabel": "説明",
+  "involvedMuscles": "関与する筋肉",
+  "primaryLabel": "主要な：",
+  "secondaryLabel": "二次:",
+  "noMusclesSpecified": "筋肉の指定はありません。",
+  "frontLabel": "フロント",
+  "backLabel": "戻る",
+  "noSelection": "選択なし",
+  "selectButton": "選択",
+  "applyingChanges": "変更を適用しています...",
+  "applyMapping": "マッピングを適用する",
+  "mappingSuggestions": "提案",
+  "mappingSuggestionsEmpty": "一致する演習が見つかりませんでした",
+  "personalData": "個人データ",
+  "personalDataCL": "個人データ",
+  "macroDistribution": "主要栄養素の分布",
+  "dialogFinishWorkoutBody": "このワークアウトを終了してもよろしいですか?",
+  "attributionText": "このアプリは外部ソースからのデータを使用します。\n\n● CC-BY-SA 4.0 に基づいてライセンス供与された wger (wger.de) からのエクササイズ データと画像。\n\n● Open Food Facts (openfoodfacts.org) の食品データベース。Open Database License (ODbL) に基づいて利用できます。",
+  "errorRoutineNotFound": "ルーチンが見つかりません",
+  "workoutHistoryEmptyTitle": "あなたの履歴は空です",
+  "workoutSummaryTitle": "ワークアウト完了",
+  "workoutSummaryExerciseOverview": "演習の概要",
+  "nutritionDiary": "日記",
+  "detailedNutrientGoals": "詳しい栄養素",
+  "detailedNutrientGoalsCL": "詳しい栄養素",
+  "supplementTrackerTitle": "サプリメントトラッカー",
+  "supplementTrackerDescription": "目標、制限、摂取量を追跡します。",
+  "createSupplementTitle": "サプリメントの作成",
+  "supplementNameLabel": "サプリメント名",
+  "defaultDoseLabel": "デフォルトの投与量",
+  "unitLabel": "ユニット",
+  "dailyGoalLabel": "毎日の目標 (オプション)",
+  "dailyLimitLabel": "1 日あたりの制限 (オプション)",
+  "dailyProgressTitle": "日々の進歩",
+  "todaysLogTitle": "今日のログ",
+  "logIntakeTitle": "ログの取り込み",
+  "emptySupplementGoals": "ここでサプリメントの目標または制限を設定して、進捗状況を確認します。",
+  "emptySupplementLogs": "今日の摂取量はまだ記録されていません。",
+  "doseLabel": "用量",
+  "settingsDescription": "テーマ、単元、データなど",
+  "settingsAppearance": "外観",
+  "themeSystem": "システム",
+  "themeLight": "ライト",
+  "themeDark": "暗い",
+  "caffeinePrompt": "カフェイン (オプション)",
+  "caffeineUnit": "100mlあたりmg",
+  "profile": "プロフィール",
+  "measurementWeightCapslock": "体重",
+  "diary": "日記",
+  "analysis": "分析",
+  "yesterday": "昨日",
+  "dayBeforeYesterday": "2日前",
+  "statistics": "統計",
+  "workout": "いい結果",
+  "addFoodTitle": "食べ物を追加する",
+  "nutritionExplorerTitle": "栄養探検家",
+  "myMeals": "私の食事",
+  "myMealsCL": "私の食事",
+  "nutritionSectionTodayInFocus": "今日の焦点",
+  "nutritionSectionMyMeals": "私の食事",
+  "nutritionSectionToolsAndLibrary": "ツールとライブラリ",
+  "supplement_caffeine": "カフェイン",
+  "supplement_creatine_monohydrate": "クレアチン一水和物",
+  "manageSupplementsTitle": "サプリメントの管理",
+  "deleted": "削除されました",
+  "operationNotAllowed": "この操作は許可されていません",
+  "emptySupplements": "サプリメントは利用できません",
+  "undo": "元に戻す",
+  "deleteSupplementConfirm": "この補足を削除してもよろしいですか?すべての履歴データは失われます。\n\nヒント: 代わりにサプリメントを編集することで、追跡を解除することができます。",
+  "fieldRequired": "必須",
+  "unitNotSupported": "ユニットはサポートされていません。",
+  "caffeineUnitLocked": "カフェインの場合、単位は mg に固定されています。",
+  "caffeineMustBeMg": "カフェインはmg単位で記録する必要があります。",
+  "tabCatalogSearch": "カタログ",
+  "tabMeals": "食事",
+  "emptyCategory": "エントリはありません",
+  "searchSectionBase": "ベースフード",
+  "searchSectionOther": "その他の結果",
+  "mealsComingSoonTitle": "お食事（近日公開予定）",
+  "mealsComingSoonBody": "すぐに、複数の食品から独自の食事を作成できるようになります。",
+  "mealsEmptyTitle": "食事テンプレートが保存されていません",
+  "mealsEmptyBody": "食事を作成して、複数の食品を一度にすばやく記録します。",
+  "mealsEmptyBodyWithShortcut": "日記で、朝食または夕食の下にある「食事として保存」オプションを使用して、一般的な食事の組み合わせを簡単なテンプレートとして保存します。",
+  "mealsCreateManually": "食事を手動で作成する",
+  "saveMealTemplateShortcut": "食事として保存",
+  "mealsCreate": "食事を作る",
+  "mealsEdit": "食事を編集する",
+  "mealsDelete": "食事を削除する",
+  "mealsAddToDiary": "食べ物を追加する",
+  "mealNameLabel": "食事名",
+  "mealNotesLabel": "注意事項",
+  "mealIngredientsTitle": "材料",
+  "mealAddIngredient": "成分を追加する",
+  "mealIngredientAmountLabel": "額",
+  "mealDeleteConfirmTitle": "食事を削除する",
+  "mealDeleteConfirmBody": "食事「{name}」を削除してもよろしいですか?その成分もすべて除去されます。",
+  "mealAddedToDiary": "食事「{name}」が日記に追加されました。",
+  "mealSaved": "食事は節約されました。",
+  "mealDeleted": "食事を削除しました。",
+  "confirm": "確認する",
+  "addMealToDiaryTitle": "日記に追加",
+  "mealTypeLabel": "食事",
+  "amountLabel": "額",
+  "mealAddedToDiarySuccess": "日記に食事を追加しました",
+  "error": "エラー",
+  "mealsViewTitle": "食事ビュータイトル",
+  "noNotes": "メモはありません",
+  "ingredientsCapsLock": "材料",
+  "nutritionSectionLabel": "栄養成分表",
+  "nutritionCalculatedForCurrentAmounts": "現在の数量について",
+  "startCapsLock": "始める",
+  "nutritionHubSubtitle": "ここですぐに洞察を発見し、食事を追跡し、栄養計画を立てましょう。",
+  "nutritionHubTitle": "栄養",
+  "nutrition": "栄養",
+  "changeSetTypTitle": "セットタイプの変更",
+  "settingsVisualStyleTitle": "ビジュアルスタイル",
+  "settingsVisualStyleStandard": "すりガラス",
+  "settingsVisualStyleLiquid": "液体ガラス（液体）",
+  "settingsVisualStyleLiquidDesc": "丸みを帯びたフローティング UI 要素",
+  "settingsMaterialColorsTitle": "素材の色",
+  "settingsMaterialColorsSubtitle": "Train Libre ブランド アクセントの代わりに Android のダイナミック カラー (マテリアル ユー) を使用する",
+  "settingsFoodDbSectionTitle": "食品データベース",
   "settingsFoodDbRegionTitle": "食品データベース地域",
   "settingsFoodDbRegionSubtitle": "検索に使用するOpen Food Facts製品カタログの地域を選択します。",
+  "settingsFoodDbRegionCurrent": "現在の地域",
   "settingsFoodDbRegionDialogTitle": "食品データベース地域を選択",
   "settingsFoodDbRegionDialogSubtitle": "製品検索で使用されるOpen Food Factsカタログソースが変更されます。",
+  "settingsFoodDbRegionIssueHint": "あなたの国がまだリストされていない場合は、お気軽に GitHub の問題を開いてサポートをリクエストしてください。",
   "settingsFoodDbRegionGermany": "ドイツ (DE)",
   "settingsFoodDbRegionSwitzerland": "スイス (CH)",
   "settingsFoodDbRegionUnitedStates": "米国 (US)",
-  "settingsFoodDbRegionUnitedKingdom": "英国 (UK)",
   "settingsFoodDbRegionFrance": "フランス (FR)",
   "settingsFoodDbRegionItaly": "イタリア (IT)",
   "settingsFoodDbRegionJapan": "日本 (JP)",
+  "settingsColorfulMacroBadgesTitle": "カラフルなマクロバッジ",
+  "settingsColorfulMacroBadgesSubtitle": "AI検証による色分けされたバッジデザインをダイアリーにも採用。",
+  "settingsFoodDbRegionUnitedKingdom": "英国 (UK)",
   "settingsFoodDbRegionChanged": "データベースの地域を {region} に設定しました。変更は次回のインポート時に適用されます。",
   "@settingsFoodDbRegionChanged": {
     "placeholders": {
@@ -40,17 +900,1347 @@
       }
     }
   },
-  
+  "searchBaseFoodHint": "ベースとなる食品を探す",
+  "searchNoHits": "ヒットはありません。",
+  "onbSubtitleWelcome": "フィットネス、栄養、進歩のための中心的なツール。",
+  "onbBodyWelcome": "私たちはあなたの目標の設定と追跡をお手伝いします。ワークアウト、栄養、サプリメント、身体測定値を効率的に記録します。",
+  "onbBodyNutritionVisual": "数回クリックするだけで食事を記録できます。カロリー、主要栄養素、水分に注目して、目標を簡単に追跡しましょう。",
+  "onbBodyMeasurementsVisual": "自分の進歩を視覚化します。体重と周囲長のグラフにより、成功が目に見えるようになり、モチベーションが維持されます。",
+  "onbBodyWorkoutVisual": "ルーチンを作成して、数秒でトレーニングを開始できます。最大限の進歩のために、セット、ウェイト、休憩を記録します。",
+  "onbTitleAppLayout": "ナビゲーションとクイック追加",
+  "onbBodyAppLayout": "下部のバーを使用すると、エリアをすばやく切り替えることができます。大きな [+] ボタンを使用すると、すべてを即座に記録できます。",
+  "dataHubTitle": "データハブ",
+  "resumeButton": "再開する",
+  "onboardingWelcomeTitle": "トレイン・リブレへようこそ",
+  "onboardingWelcomeSubtitle": "最良の結果を得るためにプロフィールを設定しましょう。",
+  "onboardingNameTitle": "あなたの名前は何ですか？",
+  "onboardingNameLabel": "あなたの名前",
+  "onboardingNameError": "あなたの名前を入力してください",
+  "onboardingDobTitle": "生年月日は何ですか？",
+  "onboardingDobLabel": "生年月日",
+  "onboardingDobError": "生年月日を選択してください",
+  "onboardingWeightTitle": "現在の体重",
+  "onboardingWeightLabel": "重さ",
+  "onboardingWeightError": "有効な体重を入力してください",
+  "onboardingGoalsTitle": "あなたの栄養目標",
+  "onboardingGoalsSubtitle": "これらは後で設定で変更できます。",
+  "onboardingGoalCalories": "1日のカロリー(kcal)",
+  "onboardingGoalProtein": "たんぱく質(g)",
+  "onboardingGoalCarbs": "炭水化物 (g)",
+  "onboardingGoalFat": "脂肪(g)",
+  "onboardingGoalWater": "水",
+  "onboardingNext": "次",
+  "onboardingBack": "戻る",
+  "onboardingFinish": "追跡を開始する",
+  "onboardingUnitSystemTitle": "単位系を選択してください",
+  "onboardingUnitSystemSubtitle": "これは後から「設定」で変更できます。",
+  "onboardingUnitMetric": "メトリック",
+  "onboardingUnitMetricSubtitle": "kg、cm、ml",
+  "onboardingUnitImperial": "インペリアル",
+  "onboardingUnitImperialSubtitle": "ポンド、インチ、液量オンス",
+  "onboardingHeightLabel": "身長",
+  "onboardingGenderLabel": "性別",
+  "genderMale": "男",
+  "genderFemale": "女性",
+  "genderDiverse": "多様な",
+  "vegan": "ビーガン",
+  "vegetarian": "ベジタリアン",
+  "ingredients": "材料",
   "aiSettingsTitle": "AI食事認識",
   "aiSettingsDescription": "AI支援食事検出の設定を行います。",
+  "aiProviderSection": "AIプロバイダー",
   "aiProviderLabel": "プロバイダー",
+  "aiApiKeySection": "APIキー",
+  "aiApiKeyLabel": "APIキー",
+  "aiApiKeyHint": "ここに API キーを貼り付けてください",
+  "aiSaveKey": "キーの保存",
+  "aiTestConnection": "テスト",
+  "aiTestSuccess": "接続成功！",
+  "aiKeySaved": "API キーは安全に保存されています。",
+  "aiPrivacySection": "プライバシー",
+  "aiPrivacyDisclosure": "画像、テキスト、生成されたプロンプトは、AI アクションを使用する場合にのみ、選択した AI プロバイダーに送信されます。プロバイダーの保持と処理は、そのプロバイダーの規約に従います。 API キーはこのデバイスにのみ暗号化されて保存されます。",
+  "aiMealCapture": "AIミール",
+  "aiCaptureTitle": "AI 食事キャプチャ",
+  "aiCaptureTabPhoto": "写真",
+  "aiCaptureTabText": "文章",
+  "aiCapturePhotoHint": "食事の写真を最大 4 枚まで撮影または選択します。",
+  "aiCaptureTextHint": "食事について説明してください (例: 「グリルチキンとライスとサラダ」)...",
+  "aiAnalyzeButton": "分析する",
+  "aiAnalyzing": "食事を分析中...",
+  "aiReviewTitle": "提案を確認する",
+  "aiReviewFoundItems": "AI が {count} 個のアイテムを見つけました",
+  "@aiReviewFoundItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiReviewNoMatch": "一致しません — タップして検索します",
+  "aiReviewConfidence": "自信",
+  "aiReviewAddItem": "項目を手動で追加する",
+  "aiReviewReplaceItem": "アイテムを交換する",
+  "aiReviewSaveToDiary": "日記に保存",
+  "aiReviewFeedbackHint": "AI が何を間違えたのか説明してください...",
+  "aiReviewRetryButton": "フィードバック付きで再試行",
+  "aiReviewFeedbackSection": "修正",
+  "aiErrorNoKey": "API キーが設定されていません。 「設定」→「AI食事キャプチャ」で設定してください。",
+  "aiErrorNetwork": "ネットワークエラー。接続を確認して、もう一度試してください。",
+  "aiErrorAuth": "認証に失敗しました。 API キーを確認してください。",
+  "aiErrorParse": "AIの反応が理解できなかった。もう一度試してください。",
+  "aiErrorRateLimit": "リクエストが多すぎます。しばらくお待ちください。",
+  "aiEnableTitle": "AI 機能を有効にする",
+  "aiEnableSubtitle": "AIを利用した食事認識が可能になります。これを無効にすると、アプリ内のすべての AI ボタン​​が非表示になります。",
+  "aiCustomInstructionsTitle": "グローバル AI 命令",
+  "aiCustomInstructionsSubtitle": "AI に固定ルール (アレルギー、「ボウル禁止」などの持ち込み禁止の食品、不耐性など) を与え、キャプチャごとに従うようにします。",
+  "aiValidationNoMatchedItemsSaveYet": "一致するアイテムはまだ保存できません。",
+  "aiValidationNoMatchedIngredientsSaveYet": "一致する材料はまだ保存できません。",
+  "aiValidationSomeItemsNeedReviewTitle": "一部の項目はレビューが必要です",
+  "aiValidationSomeIngredientsNeedReviewTitle": "一部の成分は見直しが必要です",
+  "aiValidationSaveMatchedItemsButton": "一致したアイテムを保存する",
+  "aiValidationSaveMatchedIngredientsButton": "一致した材料を保存する",
+  "aiValidationValidationPassedTitle": "検証に合格しました",
+  "aiValidationReviewSuggestedTitle": "レビューの提案",
+  "aiValidationMacroFitValidatedTitle": "マクロフィットが検証されました",
+  "aiValidationNeedsReviewTitle": "見直しが必要",
+  "aiValidationRepairLimitReachedReview": "自動修復の制限に達しました。保存する前に確認してください。",
+  "aiValidationRecentMealContextIncluded": "最近の食事の内容も含まれていました。",
+  "aiValidationGeneratedWithoutRecentMealHistory": "最近の食事履歴なしで生成されました。",
+  "aiValidationApiKeyRequiredTitle": "APIキーが必要です",
+  "aiValidationScoreLabel": "スコア {score}/100",
+  "@aiValidationScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationDeltaSummary": "デルタ: {kcalDelta} kcal · {proteinDelta}g タンパク質 · {carbsDelta}g 炭水化物 · {fatDelta}g 脂肪",
+  "@aiValidationDeltaSummary": {
+    "placeholders": {
+      "kcalDelta": {
+        "type": "int"
+      },
+      "proteinDelta": {
+        "type": "int"
+      },
+      "carbsDelta": {
+        "type": "int"
+      },
+      "fatDelta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationPartialSaveItemsMessage": "{unmatchedCount, plural, =1{1  } other{{unmatchedCount} 項目はローカル データベースに一致しないため、保存されません。}}",
+  "@aiValidationPartialSaveItemsMessage": {
+    "placeholders": {
+      "unmatchedCount": {
+        "type": "int"
+      },
+      "matchedCount": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationPartialSaveIngredientsMessage": "{unmatchedCount, plural, =1{1  } other{{unmatchedCount} 成分はローカル データベースに一致しないため、保存されません。}}",
+  "@aiValidationPartialSaveIngredientsMessage": {
+    "placeholders": {
+      "unmatchedCount": {
+        "type": "int"
+      },
+      "matchedCount": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationEmptyItemName": "アイテムには食べ物の名前がありません。",
+  "aiValidationDuplicateItemMerged": "重複した「{name}」エントリは検証前にマージされました。",
+  "@aiValidationDuplicateItemMerged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aiValidationInvalidQuantity": "量は 0g より大きくなければなりません。",
+  "aiValidationTinyQuantity": "量は非常に少ないです。グラム量を見直してください。",
+  "aiValidationExtremeQuantity": "1品の量としては信じられないほど多いです。",
+  "aiValidationLargeQuantity": "量が異常に多い。グラム量を見直してください。",
+  "aiValidationLowAiConfidence": "この項目に対する AI の信頼度は低いです。",
+  "aiValidationUnmatchedItem": "ローカル データベースに一致するものが見つかりませんでした。",
+  "aiValidationWeakDbMatch": "ローカルデータベースの一致は弱いです。",
+  "aiValidationPartialDbMatch": "ローカル データベースの一致は部分的です。",
+  "aiValidationAmbiguousDbMatch": "いくつかのローカル データベースの一致も同様に妥当であるように見えます。",
+  "aiValidationStateMismatch": "AI アイテムの状態がデータベース エントリと一致しない可能性があります。",
+  "aiValidationZeroNutritionMatch": "一致したデータベース エントリには、使用できる栄養データがありません。",
+  "aiValidationImplausibleFoodDensity": "マッチした食べ物は100gあたりのkcalが異常に高いです。",
+  "aiValidationMacroEnergyMismatch": "一致する食品マクロは kcal とうまく一致しません。",
+  "aiValidationImplausibleItemNutrition": "この量の栄養価は異常に高いです。",
+  "aiValidationEmptyMeal": "AI は食事アイテムを返しませんでした。",
+  "aiValidationAllItemsUnmatched": "地元の食品データベースと一致する項目はありませんでした。",
+  "aiValidationPartialUnmatchedItems": "{count, plural, =1{1 } other{{count} 項目は一致するまで保存できません。}}}",
+  "@aiValidationPartialUnmatchedItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationZeroTotalKcal": "一致するアイテムの消費カロリーは0kcalです。",
+  "aiValidationCaptureTotalKcalExtreme": "摂取した 1 回の食事の総 kcal は信じられないほど高くなります。",
+  "aiValidationCaptureTotalKcalHigh": "総カロリーが異常に高い。部分を見直します。",
+  "aiValidationMacroTotalExtreme": "マクロの合計は信じられないほど多くなります。",
+  "aiValidationMacroTotalHigh": "マクロの合計が異常に多い。部分を見直します。",
+  "aiValidationTargetKcalMismatch": "カロリーは目標を {delta} kcal も下回っています。",
+  "@aiValidationTargetKcalMismatch": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationTargetProteinMismatch": "タンパク質は、{delta}g だけターゲットを外します。",
+  "@aiValidationTargetProteinMismatch": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationTargetCarbsMismatch": "炭水化物は目標値を {delta}g 逃します。",
+  "@aiValidationTargetCarbsMismatch": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationTargetFatMismatch": "脂肪は {delta}g だけターゲットを外します。",
+  "@aiValidationTargetFatMismatch": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "aiValidationUnknownIssue": "検証の問題: {code}",
+  "@aiValidationUnknownIssue": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "currentlyTracking": "現在",
+  "currentlyTrackingDesc": "デイリートラッカーハブに表示",
+  "filter3Months": "3ヶ月",
+  "filter6Months": "6ヶ月",
+  "sectionConsistency": "一貫性と頻度",
+  "metricsWorkoutsWeek": "ワークアウト (週)",
+  "metricsCurrentStreak": "現在の連続数",
+  "metricsActiveWeeks": "アクティブな週",
+  "placeholderCalendarHeatmap": "カレンダーヒートマップビジュアル",
+  "consistencyTrackerTitle": "一貫性トラッカー",
+  "consistencyTrackerComingSoon": "一貫性と習慣のトラッカー (近日公開予定)",
+  "sectionMuscleVolume": "筋肉群と体積",
+  "metricsTopTrained": "トップトレーニング済み",
+  "metricsMostNeglected": "最も無視されている",
+  "placeholderMuscleHeatmap": "マッスルヒートマップビジュアル",
+  "muscleAnalyticsTitle": "筋肉グループの分析",
+  "muscleAnalyticsComingSoon": "筋肉量とヒートマップ (近日公開予定)",
+  "sectionPerformance": "パフォーマンスとPR",
+  "metricsRecentPrs": "最近のPR",
+  "metricsVolumeLifted": "ボリュームアップ",
+  "metricsMostImproved": "最も改善された",
+  "exerciseAnalyticsTitle": "運動分析",
+  "exerciseAnalyticsSubtitle": "特定の演習を検索して分析する",
+  "prDashboardTitle": "PRダッシュボード",
+  "prDashboardComingSoon": "記録と進捗状況 (近日公開予定)",
+  "exerciseAnalyticsComingSoon": "エクササイズの検索と特定のトレンド (近日公開)",
+  "sectionRecovery": "回復",
+  "metricsMuscleReadiness": "筋肉の準備状態",
+  "recoveryTrackerTitle": "回復トラッカー",
+  "recoveryTrackerComingSoon": "筋肉の準備と疲労 (近日公開予定)",
+  "recoveryOverallMostlyRecovered": "ほとんど回復しました",
+  "recoveryOverallMixed": "混合回復状態",
+  "recoveryOverallSeveralRecovering": "いくつかの筋肉群はまだ回復中",
+  "recoveryOverallInsufficientData": "回復に関する洞察を得るにはまだ十分なデータがありません",
+  "recoveryHubCountsSummary": "回復中: {recovering} 準備完了: {ready} 新鮮: {fresh}",
+  "@recoveryHubCountsSummary": {
+    "placeholders": {
+      "recovering": {
+        "type": "int"
+      },
+      "ready": {
+        "type": "int"
+      },
+      "fresh": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryHubNoDataSummary": "ワークアウトを記録し続けて、回復に関する洞察を引き出します。",
+  "recoveryByMuscleTitle": "筋肉による回復",
+  "recoveryStateRecovering": "回復",
+  "recoveryStateReady": "準備ができて",
+  "recoveryStateFresh": "新鮮な",
+  "recoveryStateUnknown": "未知",
+  "recoveryLastLoadedHours": "最後に大幅に読み込まれた: {hours} 時間前",
+  "@recoveryLastLoadedHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryFatigueContextHigh": "疲労の状況: 高いセッション疲労",
+  "recoveryFatigueContextBaseline": "疲労のコンテキスト: ベースラインセッション疲労",
+  "recoveryExplanationWithHighFatigue": "{muscle}: 最後に大幅にロードされたのは {hours} 時間前で、セッション疲労が高くなっています。",
+  "@recoveryExplanationWithHighFatigue": {
+    "placeholders": {
+      "muscle": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryExplanationBasic": "{muscle}: 最後に大幅にロードされたのは {hours} 時間前です。",
+  "@recoveryExplanationBasic": {
+    "placeholders": {
+      "muscle": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryHeuristicDisclaimer": "これは、最近の大幅な読み込みとセッションの労力に基づいた保守的なヒューリスティックです。これは医学的な回復測定ではありません。",
+  "recoveryReadinessLabel": "準備完了",
+  "recoveryRecentLoad": "最終ロード: {sets} 個の同等のセット",
+  "@recoveryRecentLoad": {
+    "placeholders": {
+      "sets": {
+        "type": "String"
+      }
+    }
+  },
+  "recoveryLastLoadPressure": "最終負荷圧力: {level}",
+  "@recoveryLastLoadPressure": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "recoveryPressureLow": "低い",
+  "recoveryPressureModerate": "適度",
+  "recoveryPressureHigh": "高い",
+  "recoveryPressureVeryHigh": "非常に高い",
+  "recoveryCurrentWindow": "現在のウィンドウ: 約 {recoveringUpper} 時間まで回復中、約 {readyUpper} 時間まで準備完了。",
+  "@recoveryCurrentWindow": {
+    "placeholders": {
+      "recoveringUpper": {
+        "type": "int"
+      },
+      "readyUpper": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryWindowHeuristic": "現在の時間枠: 約 {from} 時間まで回復中、約 {to} 時間まで準備完了。",
+  "@recoveryWindowHeuristic": {
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "recoveryRadarHeuristicCaption": "筋肉ごとの現在の準備状態のレーダー概要。ステータス バッジは依然として主要なシグナルです。",
+  "recoveryNoDataBody": "筋肉の回復を推定するには、十分なトレーニング負荷がまだ記録されていません。",
+  "sectionBodyNutrition": "身体と栄養",
+  "statisticsSectionTraining": "トレーニング",
+  "statisticsSectionBody": "体",
+  "statisticsEnableStepTrackingHint": "設定で歩数追跡を有効にする",
+  "statisticsNoStepDataYet": "まだ歩数データが​​ありません",
+  "statisticsTotalSteps": "総ステップ数",
+  "statisticsLast7Days": "過去 7 日間",
+  "statisticsLast30Days": "過去 30 日間",
+  "statisticsLast3Months": "過去 3 か月",
+  "statisticsLast6Months": "過去6ヶ月",
+  "metricsCurrentWeight": "現在の体重",
+  "metricsAvgCalories": "平均カロリー",
+  "placeholderWeightTrend": "重量傾向折れ線グラフ",
+  "exerciseAnalyticsPrsLabel": "個人記録",
+  "exerciseAnalyticsTrendsLabel": "トレンド",
+  "exerciseAnalyticsNoData": "この演習には追跡データがありません。",
+  "exerciseAnalyticsNotEnoughData": "データが不十分です",
+  "exerciseAnalyticsChartWeight": "経時的な重量 (kg)",
+  "exerciseAnalyticsChartVolume": "経時的な体積 (kg)",
+  "exerciseAnalyticsChartSets": "時間の経過に伴うセット",
+  "exerciseMetricMaxWeight": "最大重量",
+  "exerciseMetricVolume": "音量",
+  "exerciseMetricEst1RM": "EST（東部基準時。 1RM",
+  "prBannerBestMaxWeight": "ベスト最大体重",
+  "prBannerBestVolumeSet": "ベストボリュームセット",
+  "prBannerBest1RM": "ベスト 1-Rep Max",
+  "newPersonalRecordLabel": "新しい自己記録",
+  "prBadgeTooltip": "自己新記録更新！",
+  "workoutSummaryNewRecordsTitle": "新しい記録",
+  "allTimeRecordsLabel": "歴代記録",
+  "recentActivityLabel": "最近の活動",
+  "prsByRepRangeLabel": "担当範囲別のベストセット",
+  "volumeAnalyticsTitle": "ボリューム分析",
+  "weeklyTonnageLabel": "週間トン数",
+  "volumeByMuscleLabel": "筋肉グループ別",
+  "topExercisesLabel": "トップのエクササイズ",
+  "thisWeekLabel": "今週",
+  "avgPerWeekLabel": "平均/週",
+  "streakLabel": "ストリーク",
+  "trainingCalendarLabel": "トレーニングカレンダー",
+  "workoutsPerWeekLabel": "週あたりのワークアウト数",
+  "totalWorkoutsLabel": "合計",
+  "weeksLabel": "週間",
+  "tonnageKgLabel": "トン数(kg)",
+  "noWorkoutDataLabel": "まだトレーニングデータがありません。ログを開始して統計を確認します。",
+  "analyticsSectionVolumeMuscles": "ボリュームと筋肉グループ",
+  "analyticsSectionPerformanceRecords": "パフォーマンスと記録",
+  "analyticsTopVolume": "トップトレーニング済み",
+  "analyticsLowestVolume": "最低音量",
+  "analyticsRecentRecords": "最近の記録",
+  "analyticsPerfWithReps": "{weight} kg x {reps}",
+  "@analyticsPerfWithReps": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsKgThisWeek": "kg（今週）",
+  "analyticsRecoverySummary": "3 回復中、8 準備完了",
+  "analyticsViewDetails": "詳細を見る",
+  "analyticsRepRangeSuffix": "担当者",
+  "analyticsNoRecordYet": "まだ記録がありません",
+  "analyticsNotableImprovements": "注目すべき改善点",
+  "analyticsNoPrTrendInWindow": "この分野ではまだ明確な PR 傾向はありません。",
+  "analyticsE1rmProgress": "e1RM {previous} -> {recent} kg",
+  "@analyticsE1rmProgress": {
+    "placeholders": {
+      "previous": {
+        "type": "String"
+      },
+      "recent": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsUnitKg": "kg",
+  "analyticsUnitSets": "セット",
+  "analyticsViewLabel": "ビュー",
+  "analyticsViewWeek": "週",
+  "analyticsViewMonth": "月",
+  "analyticsViewByExercise": "運動による",
+  "analyticsViewByMuscle": "筋肉グループ別",
+  "analyticsMetricLabel": "メトリック",
+  "analyticsMovedWeightKg": "移動重量(kg)",
+  "analyticsWorkSets": "ワークセット",
+  "analyticsVolumeContextWithSets": "移動重量 = 重量 x 回数カウントベースのロードのワークセットに切り替えます。",
+  "analyticsVolumeContextTonnageOnly": "このビューでは、移動した重量 (重量 x 回数) を使用します。",
+  "analyticsKpisHeader": "KPI",
+  "analyticsTrainingDaysPerWeek": "トレーニング日 / 週",
+  "analyticsLast4Weeks": "過去4週間",
+  "analyticsRhythm": "リズム",
+  "analyticsVsPrior4Weeks": "過去 4 週間との比較",
+  "analyticsRollingConsistency": "ローリング一貫性",
+  "analyticsWeeksAtLeast2Workouts": "少なくとも2回のセッションで週に1回",
+  "analyticsCalendarExplainer": "色の濃さは 1 日あたりのセッションを反映しており、これが真の一貫性マップになります。",
+  "analyticsSelectDayPrompt": "セッション数を検査する日を選択します。",
+  "analyticsSelectedDayWorkouts": "{date}: {count} セッション",
+  "@analyticsSelectedDayWorkouts": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsTotalSessions": "合計セッション数",
+  "analyticsPlaceholderWeightValue": "体重値",
+  "analyticsPlaceholderWeightTrend": "体重傾向",
+  "analyticsPlaceholderCaloriesValue": "カロリー値",
+  "analyticsPlaceholderCaloriesUnit": "kcal/日",
+  "analyticsMuscleWeeklySets": "ウィークリーセット",
+  "analyticsMuscleTopFrequency": "トップ周波数",
+  "analyticsPerWeekAbbrev": "週",
+  "analyticsKeepTrackingUnlockInsights": "追跡を続けて洞察を引き出します。",
+  "analyticsGuidanceNoClearWeakPoint": "ガイダンス: この時期に明確な弱点はありません。",
+  "analyticsGuidanceLowerEmphasis": "ガイダンス: 最近では {muscles} に重点を置きます。",
+  "@analyticsGuidanceLowerEmphasis": {
+    "placeholders": {
+      "muscles": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsPeriodLabel": "期間",
+  "analyticsEquivalentSetsExplainer": "同等のハード セットでは、プライマリ x1.0 とセカンダリ x0.3 の重み付けが使用されます。頻度は、同等のセットが 1.0 以上に達した日のみをカウントします。",
+  "analyticsWeeklySetsByMuscle": "筋肉別ウィークリーセット",
+  "analyticsFrequencyByMuscle": "筋肉別の頻度",
+  "analyticsRecentDistributionHeatmap": "最近の配布ヒートマップ",
+  "analyticsRadarOverviewTitle": "レーダーの概要",
+  "analyticsRadarVolumeCaption": "筋肉全体の相対的な体積分布を表示して、一目でわかる概要を示します。",
+  "analyticsGuidanceTitle": "ガイダンス",
+  "analyticsGuidanceDirectionalDisclaimer": "これは、最新のセット分布に基づいた方向性のガイダンスであり、絶対的な診断ではありません。",
+  "analyticsGuidanceSoftenedDisclaimer": "十分なデータが利用可能になるまで、洞察は意図的に緩和されます。",
+  "analyticsWeekTotalEquivalentSets": "週合計: {value} 個の同等セット",
+  "@analyticsWeekTotalEquivalentSets": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsFrequencyRuleFooter": "頻度は、筋肉が同等のセット数 >= 1.0 に達した日のみをカウントします。",
+  "liveWorkoutE1rmCurrentSet": "e1RM {value} kg",
+  "@liveWorkoutE1rmCurrentSet": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "liveWorkoutE1rmBestSession": "このセッションの最高の e1RM: {value} kg",
+  "@liveWorkoutE1rmBestSession": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "liveWorkoutE1rmVsLastSession": "前回のセッションとの比較: {delta} kg",
+  "@liveWorkoutE1rmVsLastSession": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "bodyNutritionCorrelationTitle": "身体と栄養のトレンド",
+  "metricsWeightChange": "体重の変化",
+  "analyticsKcalPerDay": "kcal/日",
+  "analyticsDaysWithWeightData": "体重が重い日々",
+  "analyticsDayUnitLabel": "日",
+  "analyticsPerDayLabel": "1日あたり",
+  "analyticsEffectiveRangeLabel": "有効範囲",
+  "analyticsAxisXLabel": "×",
+  "analyticsAxisYLabel": "Y",
+  "analyticsHighConfidenceLabel": "より信頼性の高いパターン",
+  "analyticsLowConfidenceLabel": "信頼度の低いパターン",
+  "analyticsObservedPatternLabel": "観察されたパターン",
+  "analyticsBodyNutritionTrendContext": "経時的な体重とカロリー",
+  "analyticsBodyNutritionTrendContextHint": "グラフは、同じ空間に収まるように各系列を拡大縮小します。ツールチップには生の kg と kcal の値が表示されます。",
+  "analyticsBodyNutritionNormalizedHint": "グラフは、同じスペースに収まるように体重とカロリーをスケールします。ツールチップには生の kg と kcal の値が表示されます。",
+  "analyticsBodyNutritionTotalWeightLabel": "総重量(kg)",
+  "analyticsBodyNutritionTotalCaloriesLabel": "総カロリー（kcal）",
+  "analyticsWeightTrendLabel": "重量(kg)",
+  "analyticsCaloriesTrendLabel": "カロリー(kcal)",
+  "analyticsInterpretationTitle": "解釈",
+  "analyticsBodyNutritionConfidenceHighHint": "この範囲のデータ カバレッジは、より信頼性の高いパターン読み取りに十分な強度を持っています。",
+  "analyticsBodyNutritionConfidenceModerateHint": "データ範囲は中程度です。傾向は便利なコンテキストですが、より強い確信を得るためにログを記録し続けてください。",
+  "analyticsBodyNutritionConfidenceLowHint": "この範囲のデータ範囲はまだ限られているため、これを初期のコンテキストとして扱ってください。",
+  "analyticsBodyNutritionLowConfidenceNudge": "自信を高めるために、体重とカロリーを定期的に記録してください。",
+  "analyticsBodyNutritionInterpretationConfidenceHigh": "解釈の信頼度: 高い。これは、直接の原因を説明するものではなく、傾向のコンテキストとして使用してください。",
+  "analyticsBodyNutritionInterpretationConfidenceLow": "解釈の信頼度: 低い。これを初期のパターン信号として使用し、追跡を続けます。",
+  "analyticsCorrelationDisclaimer": "このビューはトレンドのコンテキストを提供します。カロリーの変化が体重の変化を直接引き起こしたということは証明されていません。",
+  "analyticsInsightStableWeightCaloriesUp": "体重の傾向は安定していますが、平均カロリーは増加しています。",
+  "analyticsInsightWeightUpCaloriesUp": "平均摂取カロリーの増加に伴い、体重も増加傾向にあります。",
+  "analyticsInsightCaloriesDownWeightStable": "最近のカロリー削減では、体重の傾向はまだ明確に変化していません。",
+  "analyticsInsightWeightDownCaloriesDown": "平均摂取カロリーの低下に伴い、体重も減少傾向にあります。",
+  "analyticsInsightMixedPattern": "体重とカロリーの傾向は混在しており、まだ明確な関係はありません。",
+  "analyticsInsightNotEnoughData": "意味のある傾向を読み取るには、まだ十分な一貫したデータがありません。",
+  "analyticsModerateConfidenceLabel": "中程度の信頼パターン",
+  "analyticsInsufficientConfidenceLabel": "データの信頼性が不十分",
+  "analyticsTrendRising": "上昇中",
+  "analyticsTrendFalling": "落ちる",
+  "analyticsTrendStable": "安定した",
+  "analyticsTrendUnclear": "不明瞭",
+  "analyticsRelationshipAlignedCut": "摂取量の低下と体重の減少は一致します。",
+  "analyticsRelationshipAlignedBulk": "摂取量の増加と体重の増加は一致しています。",
+  "analyticsRelationshipStableMaintenance": "体重と摂取量は概ね安定しているようだ。",
+  "analyticsRelationshipMixed": "信号が混在しているか遅延しています。",
+  "analyticsRelationshipInsufficient": "パターンを分類するにはまだ十分な一貫した重複がありません。",
+  "analyticsBasedOnDataCoverage": "{weightDays} 回の体重測定と {calorieDays} 回のカロリー日数に基づきます",
+  "@analyticsBasedOnDataCoverage": {
+    "placeholders": {
+      "weightDays": {
+        "type": "int"
+      },
+      "calorieDays": {
+        "type": "int"
+      }
+    }
+  },
+  "restTimerNotificationTitle": "休憩終了",
+  "restTimerNotificationBody": "一時停止タイマーが終了しました。次のセットに向けて準備完了。",
+  "onboardingContinueSetup": "プロファイルのセットアップ",
+  "onboardingRestoreFromBackup": "バックアップから復元",
+  "onboardingRestoreImporting": "バックアップをインポートしています...",
+  "onboardingRestoreSuccess": "バックアップが正常に復元されました。",
+  "onboardingRestoreFailed": "インポートに失敗しました。ファイルを確認して再試行してください。",
+  "finishWorkoutTitleLabel": "ワークアウトのタイトル",
+  "finishWorkoutNotesLabel": "注記 (オプション)",
+  "finishWorkoutNotesHint": "トレーニングはどうでしたか？",
+  "sleepSectionTitle": "寝る",
+  "sleepSectionSubtitleDayEntry": "一日の概要と詳細のドリルダウン",
+  "sleepSectionSubtitleAllEntry": "睡眠の日、週、月のビューはこのエントリから利用できます",
+  "sleepScopeDay": "日",
+  "sleepScopeWeek": "週",
+  "sleepScopeMonth": "月",
+  "sleepWeekSummaryTitle": "週の概要",
+  "sleepMonthSummaryTitle": "月の概要",
+  "sleepSleepWindowTitle": "スリープウィンドウ",
+  "sleepDailyScoreTitle": "毎日のスコア",
+  "sleepMonthDailyScoreStatesTitle": "毎日のスコアの状態",
+  "sleepMeanScoreLabel": "平均スコア: {value}",
+  "@sleepMeanScoreLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepHubScoreLabel": "睡眠スコア",
+  "sleepHubAverageLabel": "平均",
+  "sleepHubBedtimeLabel": "就寝時間",
+  "sleepHubInterruptionsLabel": "中断",
+  "sleepHubInterruptionsSummary": "{count} 回の目覚め、合計 {duration}",
+  "@sleepHubInterruptionsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWeekdayAvgDurationLabel": "平日の平均所要時間: {value}",
+  "@sleepWeekdayAvgDurationLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWeekendAvgDurationLabel": "週末の平均所要時間: {value}",
+  "@sleepWeekendAvgDurationLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWeekNoScoredNights": "今週はまだ獲得可能な睡眠日数がありません。",
+  "sleepMonthNoScoredNights": "今月はまだスコア付き睡眠を利用できません。",
+  "sleepSettingsSectionTitle": "寝る",
+  "sleepEnableTrackingTitle": "睡眠追跡を有効にする",
+  "sleepEnableTrackingSubtitle": "Health Connect / HealthKit から睡眠と夜間の心拍数を読み取る",
+  "sleepHealthConnectionStatusTitle": "ヘルス接続ステータス",
+  "sleepRequestAccessTitle": "アクセスをリクエストする",
+  "sleepRequestAccessSubtitle": "睡眠/心拍数の許可をリクエストまたは再リクエストする",
+  "sleepImportNowTitle": "今すぐ睡眠データをインポートする",
+  "sleepImportNowSubtitle": "利用可能なすべての睡眠データをインポートします (常時)",
+  "sleepRawImportsTitle": "未加工の睡眠インポートを表示する",
+  "sleepRawImportsSubtitle": "最近のヘルスコネクト ペイロードを表示する",
+  "sleepDataStatusTitle": "データステータス",
+  "sleepDataStatusSubtitle": "許可が付与されました。まだスリープが表示されない場合は、以下の手動インポートを実行します。",
+  "sleepNoPermissionTitle": "許可がありません",
+  "sleepNoPermissionSubtitle": "睡眠データをインポートするには、睡眠と心拍数の権限が必要です。",
+  "sleepFeatureUnavailableTitle": "利用できない機能",
+  "sleepFeatureUnavailableSubtitle": "このデバイスでは睡眠のインポートが利用できないか、ヘルスコネクトがインストールされていません。",
+  "sleepNoRawImportsFound": "未加工の睡眠インポートはまだ見つかりません。",
+  "sleepRawImportsSheetTitle": "Raw 睡眠インポート (最新)",
+  "sleepImportFinishedSessions": "睡眠のインポートが完了しました ({count} セッション)。",
+  "@sleepImportFinishedSessions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepImportUnavailableCheckPermissions": "睡眠インポートは利用できません。権限を確認してください。",
+  "sleepStatusChecking": "許可ステータスを確認しています…",
+  "sleepStatusReady": "準備ができて",
+  "sleepStatusDenied": "拒否されました",
+  "sleepStatusPartial": "部分的なアクセス",
+  "sleepStatusUnavailable": "このデバイスでは利用できません",
+  "sleepStatusNotInstalled": "ヘルスコネクトがインストールされていません",
+  "sleepStatusTechnicalError": "技術的なエラー",
+  "sleepConnectHealthDataTitle": "健康データを接続する",
+  "sleepConnectHealthDataMessage": "HealthKit または Health Connect に接続して睡眠記録をインポートします。",
+  "sleepPermissionDeniedTitle": "許可が拒否されました",
+  "sleepPermissionDeniedMessage": "スリープ許可が拒否されます。設定を開いてアクセスを許可します。",
+  "sleepSourceUnavailableTitle": "ソースが利用できません",
+  "sleepSourceUnavailableMessage": "睡眠データ ソースが利用できないか、このデバイスにインストールされていません。",
+  "sleepEmptyDayNoData": "この日の睡​​眠データはありません。",
+  "sleepEmptyDayConnectMessage": "設定で Health Connect/HealthKit に接続し、最近の睡眠データをインポートします。",
+  "sleepOpenSettingsButton": "設定を開く",
+  "sleepImportNowButton": "今すぐインポート",
+  "sleepImportFinishedRefreshing": "睡眠のインポートが完了しました。爽やかな...",
+  "sleepImportUnavailableSettingsHint": "睡眠インポートは利用できません。設定で権限を確認してください。",
+  "sleepTimelineTitle": "タイムライン",
+  "sleepTimelineUnavailable": "この夜のステージタイムラインはありません。",
+  "sleepSessionTypeCore": "コアスリープ",
+  "sleepSessionTypeNap": "昼寝",
+  "sleepIntervalsDrawerTitle": "睡眠間隔",
+  "sleepStageDeepLabel": "深い",
+  "sleepStageLightLabel": "ライト",
+  "sleepStageRemLabel": "レム",
+  "sleepStageAwakeLabel": "起きている",
+  "sleepScoreCardTitle": "睡眠の質",
+  "sleepScoreUnavailableForNight": "この夜のスコアは利用できません。",
+  "sleepScoreCompletenessLabel": "スコアの完全性: {value}",
+  "@sleepScoreCompletenessLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepQualityGood": "良い",
+  "sleepQualityAverage": "平均",
+  "sleepQualityPoor": "貧しい",
+  "sleepQualityUnavailable": "利用不可",
+  "sleepQualitySubtitleGood": "一夜にして回復は堅調に見えた。",
+  "sleepQualitySubtitleAverage": "睡眠はまあまあでしたが、改善の余地がありました。",
+  "sleepQualitySubtitlePoor": "今夜の回復シグナルは弱かった。",
+  "sleepQualitySubtitleUnavailable": "今夜得点するにはデータが足りません。",
+  "sleepQualityRegularityNotContributing": "規則性は寄与しませんでした (有効日が 5 日未満)。",
+  "sleepQualityRegularityPreliminary": "定期性は暫定的なものです (5 ～ 6 日間有効)。",
+  "sleepQualityRegularityStable": "規則性は安定しています ({days} 日)。",
+  "@sleepQualityRegularityStable": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepRegularityNightView": "{count}-夜景",
+  "@sleepRegularityNightView": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepMetricUnavailable": "利用不可",
+  "sleepMetricDurationTitle": "間隔",
+  "sleepMetricHeartRateTitle": "心拍",
+  "sleepMetricRegularityTitle": "規則性",
+  "sleepMetricDepthTitle": "深さ",
+  "sleepMetricInterruptionsTitle": "中断",
+  "sleepMetricDepthLowConfidence": "低い信頼性",
+  "sleepMetricDepthStagesAvailable": "利用可能なステージ",
+  "sleepDurationUnavailable": "期間データは利用できません。",
+  "sleepDurationStatusWithinTarget": "目標内",
+  "sleepDurationStatusBelowTarget": "目標を下回る",
+  "sleepDurationSubtitle": "この夜の合計睡眠時間。",
+  "sleepDurationBenchmarkHint": "成人の場合、通常は約 7 ～ 9 時間で最も効果が得られます。このベンチマークは、あなたの夜がその範囲内に位置するかを確認するのに役立ちます。",
+  "sleepDepthUnavailable": "深度データは利用できません。",
+  "sleepDepthConfidenceTooLow": "ステージの信頼性が低すぎるため、信頼性の高い深さの内訳が得られません。",
+  "sleepDepthBreakdownUnavailable": "この夜のステージ時間の内訳は表示されません。",
+  "sleepDepthRatingRestorative": "回復力のある",
+  "sleepDepthRatingLightLeaning": "ライト寄り",
+  "sleepDepthStageConfidenceLabel": "ステージの信頼度: {value}",
+  "@sleepDepthStageConfidenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepDepthSubtitle": "派生したタイムライン セグメントに基づいたステージ配信。",
+  "sleepInterruptionsUnavailable": "中断データは利用できません。",
+  "sleepInterruptionsStatusNoneDetected": "何も検出されませんでした",
+  "sleepInterruptionsStatusDetected": "検出されました",
+  "sleepInterruptionsSubtitle": "予選のウェイク中断は一晩中。",
+  "sleepInterruptionsTotalWakeDuration": "合計ウェイク持続時間",
+  "sleepInterruptionsFootnote": "このビューには、派生解析出力からの適格な割り込みのみが含まれます。",
+  "sleepRegularityUnavailable": "規則性データは利用できません。",
+  "sleepRegularityNightRange": "{count} 泊の範囲",
+  "@sleepRegularityNightRange": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepRegularityStatusSufficientTrend": "十分なトレンドデータ",
+  "sleepRegularityStatusLimitedTrend": "限られたトレンドデータ",
+  "sleepRegularitySubtitle": "最近の夜の就寝時間と起床時間帯。",
+  "sleepRegularityAverageBedtime": "平均就寝時間",
+  "sleepRegularityAverageWake": "平均航跡",
+  "sleepHeartRateUnavailable": "睡眠時の心拍数データは利用できません。",
+  "sleepHeartRateStatusNoSampleSeries": "この夜のサンプル シリーズはありません",
+  "sleepHeartRateStatusBaselineNotEstablished": "ベースラインが確立されていない",
+  "sleepHeartRateStatusComparisonUnavailable": "ベースライン比較は利用できません",
+  "sleepHeartRateStatusBelowBaseline": "ベースラインを下回る",
+  "sleepHeartRateStatusAboveBaseline": "ベースラインより上",
+  "sleepHeartRateNoSamplesText": "この夜の持続睡眠心拍数サンプルは利用できません。",
+  "sleepHeartRateBaselineNotEstablishedText": "ベースラインはまだ確立されていません。これは中立的なものであり、早い段階で予想されています。",
+  "sleepHeartRateComparisonUnavailableText": "現在、今夜のベースライン比較は利用できません。",
+  "sleepHeartRateDeltaText": "あなたの睡眠心拍数は、{delta} {unit} による {direction} ベースラインです。",
+  "@sleepHeartRateDeltaText": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      },
+      "delta": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepHeartRateDirectionBelow": "下に",
+  "sleepHeartRateDirectionAbove": "その上",
+  "sleepHeartRateComparedBaselineSubtitle": "確立された睡眠ベースラインと比較します。",
+  "sleepHeartRateNoBaselineSubtitle": "ベースラインはまだ確立されていません。これは中立です。",
+  "sleepHeartRateSamplesUnavailable": "この夜の心拍数サンプルは保存されませんでした。トレンドチャートは使用できません。",
+  "sleepHeartRateDashedLineHint": "破線はベースライン ({value} {unit}) を示します。",
+  "@sleepHeartRateDashedLineHint": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepBpmUnit": "BPM",
+  "sleepRawImportImportedAt": "輸入先",
+  "sleepRawImportStatus": "状態",
+  "sleepRawImportSource": "ソース",
+  "sleepRawImportApp": "アプリ",
+  "sleepRawImportConfidence": "自信",
+  "sleepRawImportPayload": "ペイロード",
+  "adaptiveBodyweightTargetSectionTitle": "適応体重目標",
+  "adaptiveRecommendationSettingsSectionTitle": "おすすめ設定",
+  "adaptiveGoalDirectionLabel": "目標の方向性",
+  "adaptiveGoalLose": "体重を減らす",
+  "adaptiveGoalMaintain": "体重を維持する",
+  "adaptiveGoalGain": "体重が増える",
+  "adaptiveRatePerWeek": "{value} kg/週",
+  "@adaptiveRatePerWeek": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptivePriorActivityLabel": "ベースラインの毎日の活動",
+  "adaptivePriorActivityLow": "低活性",
+  "adaptivePriorActivityModerate": "中程度の活動",
+  "adaptivePriorActivityHigh": "高い活性",
+  "adaptivePriorActivityVeryHigh": "非常に高い活性",
+  "adaptivePriorActivityHelpIntro": "ベースラインの毎日のアクティビティのみ (追加の有酸素運動とは別に):",
+  "adaptivePriorActivityHelpLowLine": "低: ほとんどが座って、学生/生徒またはオフィスでの日常生活。",
+  "adaptivePriorActivityHelpModerateLine": "中程度: 座る、歩く、立つの混合。",
+  "adaptivePriorActivityHelpHighLine": "高: 立ったり歩いたりすることが多い、または身体を動かす仕事。",
+  "adaptivePriorActivityHelpVeryHighLine": "非常に高い: 非常に動きの多い日常/仕事で、毎日の活動量が一貫して多い。",
+  "adaptiveExtraCardioLabel": "アプリ外での追加の有酸素運動/持久力",
+  "adaptiveExtraCardioOption0": "0時間/週",
+  "adaptiveExtraCardioOption1": "1時間/週",
+  "adaptiveExtraCardioOption2": "2時間/週",
+  "adaptiveExtraCardioOption3": "3時間/週",
+  "adaptiveExtraCardioOption5": "5時間/週",
+  "adaptiveExtraCardioOption7Plus": "週7時間以上",
+  "adaptiveExtraCardioHelp": "Train Libre ワークアウトとして記録されないジョギング、ランニング、サイクリング、水泳、またはその他の持久力セッションを含めます。",
+  "onboardingAdaptiveGoalTitle": "適応型栄養学の推奨事項",
+  "onboardingAdaptiveGoalSubtitle": "方向性と週次レートを設定します。控えめな開始推奨事項を作成し、それをログに合わせて調整します。",
+  "adaptiveRecommendationGenerating": "生成中...",
+  "adaptiveRecommendationRefresh": "更新の推奨",
+  "onboardingAdaptiveSummaryEmpty": "目標入力を設定し、更新をタップして開始時の推奨事項をプレビューします。",
+  "onboardingAdaptiveSummaryTitle": "推奨事項のプレビュー",
+  "onboardingAdaptiveSummaryCalories": "カロリー: {value} kcal",
+  "@onboardingAdaptiveSummaryCalories": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryProtein": "タンパク質: {value} g",
+  "@onboardingAdaptiveSummaryProtein": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryCarbs": "炭水化物: {value} g",
+  "@onboardingAdaptiveSummaryCarbs": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryFat": "脂肪: {value} g",
+  "@onboardingAdaptiveSummaryFat": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryConfidence": "データベース: {value}",
+  "@onboardingAdaptiveSummaryConfidence": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingAdaptiveSummaryApply": "毎日の目標に適用する",
+  "onboardingAdaptiveSummaryApplied": "毎日の目標に適用される",
+  "onboardingBodyFatPageTitle": "体脂肪率",
+  "onboardingBodyFatPageSubtitle": "オプションのステップ: おおよその見積もりがわかっている場合は入力します。",
+  "onboardingBodyFatOptionalLabel": "体脂肪率 (オプション)",
+  "onboardingBodyFatOptionalHelper": "オプション: 値がおおよそわかっている場合にのみこれを入力します。空のままでも大丈夫です。最初の推奨事項をパーソナライズするのに役立ちます。",
+  "onboardingBodyFatHelpAction": "これはどのように推定すればよいでしょうか?",
+  "bodyFatGuidanceTitle": "体脂肪率の目安",
+  "bodyFatGuidanceIntro": "体脂肪率は見た目からは大まかにしか推定できません。これは単なるオリエンテーションであり、正確な診断ではありません。",
+  "bodyFatGuidanceDisclaimer": "筋肉量、脂肪分布、遺伝、水分保持、姿勢、照明などにより、同じ体脂肪レベルでも外観は大きく異なります。",
+  "bodyFatGuidanceSexLabel": "参照性別",
+  "bodyFatGuidancePercent": "{percent}％",
+  "@bodyFatGuidancePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "bodyFatGuidanceMale10": "非常に無駄がなく、明確な定義。",
+  "bodyFatGuidanceMale15": "アスレチック、目に見えて定義されています。",
+  "bodyFatGuidanceMale20": "スポーティで少し柔らかめ。",
+  "bodyFatGuidanceMale25": "鮮明度は低くなり、ウエストとお腹が柔らかくなります。",
+  "bodyFatGuidanceMale30": "明らかに柔らかく、丸くなりました。",
+  "bodyFatGuidanceMale35": "非常に柔らかく、目に見える鮮明さはほとんどありません。",
+  "bodyFatGuidanceMale40": "非常に丸い外観で、目に見える輪郭はありません。",
+  "bodyFatGuidanceFemale15": "非常に無駄がなく、非常に明確です。",
+  "bodyFatGuidanceFemale20": "スリムで運動能力が高い。",
+  "bodyFatGuidanceFemale25": "フィット感があり、軽く柔らかい。",
+  "bodyFatGuidanceFemale30": "柔らかく、健康的に見える平均的な運動能力から正常範囲。",
+  "bodyFatGuidanceFemale35": "明らかに柔らかくなりました。",
+  "bodyFatGuidanceFemale40": "全体的に明らかに柔らかく、丸みのある外観になります。",
+  "adaptiveRecommendationCardTitle": "適応型レコメンデーション",
+  "adaptiveRecommendationEmptyBody": "約 1 週間体重と栄養を追跡して、週ごとの最初の推奨事項を解除します。",
+  "adaptiveRecommendationGoalLine": "目標: {goal} ({rate})",
+  "@adaptiveRecommendationGoalLine": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationMaintenanceLine": "メンテナンスの推定値: {value} kcal",
+  "@adaptiveRecommendationMaintenanceLine": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationMaintenanceRangeLine": "推定範囲: {lower}～{upper} kcal",
+  "@adaptiveRecommendationMaintenanceRangeLine": {
+    "placeholders": {
+      "lower": {
+        "type": "int"
+      },
+      "upper": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationUncertaintyHintNarrow": "おそらくメンテナンス範囲はかなり狭いと思われます。少人数の日勤は通常のことです。",
+  "adaptiveRecommendationUncertaintyHintModerate": "現時点ではおそらくメンテナンス範囲は中程度です。毎週ある程度の動きは正常です。",
+  "adaptiveRecommendationUncertaintyHintWide": "おそらくメンテナンスの範囲はまだ広いです。より安定したデータを収集している間は、これは正常な現象です。",
+  "adaptiveRecommendationStabilizingHint": "私たちはお客様の最近の段階にまだ適応している段階であるため、この見積もりは通常よりも変動する可能性があります。",
+  "adaptiveRecommendationCaloriesValue": "{value} kcal",
+  "@adaptiveRecommendationCaloriesValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationProteinValue": "{value} g",
+  "@adaptiveRecommendationProteinValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationCarbsValue": "{value} g",
+  "@adaptiveRecommendationCarbsValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationFatValue": "{value} g",
+  "@adaptiveRecommendationFatValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationConfidenceLine": "データベース: {value}",
+  "@adaptiveRecommendationConfidenceLine": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationDataBasisLine": "データ基準: {windowDays} 日、{weightLogs} 体重ログ、{intakeDays} 摂取日",
+  "@adaptiveRecommendationDataBasisLine": {
+    "placeholders": {
+      "windowDays": {
+        "type": "int"
+      },
+      "weightLogs": {
+        "type": "int"
+      },
+      "intakeDays": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationActiveCaloriesLine": "現在のアクティブカロリー: {value} kcal",
+  "@adaptiveRecommendationActiveCaloriesLine": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationCalculatedAtLine": "計算値: {value}",
+  "@adaptiveRecommendationCalculatedAtLine": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationNextDueLine": "次回の適応推奨事項の期限: {value}",
+  "@adaptiveRecommendationNextDueLine": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationNextDueShort": "次の {value}",
+  "@adaptiveRecommendationNextDueShort": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "adaptiveRecommendationDueNowLine": "新しい適応推奨事項は今週発表される予定です。",
+  "adaptiveRecommendationDueNowShort": "今週締め切り",
+  "adaptiveRecommendationMaintenanceLabel": "メンテナンスの目安",
+  "adaptiveRecommendationMaintenanceSourceLabel": "プロファイルの以前のログと最近のログ",
+  "adaptiveRecommendationMaintenanceUnit": "kcal/日",
+  "adaptiveRecommendationMacroTargetsLabel": "推奨ターゲット",
+  "adaptiveRecommendationTargetCaloriesLabel": "目標kcal",
+  "adaptiveRecommendationDataQualityLabel": "データ品質",
+  "adaptiveRecommendationRecalculateNowAction": "今すぐ再計算してください",
+  "adaptiveRecommendationRecalculating": "再計算中...",
+  "adaptiveRecommendationApplying": "申請中...",
+  "adaptiveRecommendationApplyAction": "推奨事項をアクティブな目標に適用する",
+  "adaptiveRecommendationWarningCalorieFloor": "推奨事項は、最小カロリー安全下限によって制限されます。申請する前に、プロフィール データと最近のログを確認してください。",
+  "adaptiveRecommendationWarningUnresolvedFood": "一部の栄養エントリはカロリーを完全に解決できませんでした。適用する前に最近のログを確認してください。",
+  "adaptiveRecommendationWarningLargeAdjustment": "大きな調整が検出されました。申請する前に、最近のログ記録の完了状況を確認してください。",
+  "adaptiveRecommendationWarningMacroConstrained": "マクロ分割はカロリー予算によって制約されました。目標レートが強すぎるかどうかを確認してください。",
+  "adaptiveRecommendationWarningConservative": "レビューの提案: データのばらつきのため、推奨事項は保守的に調整されました。",
+  "adaptiveRecommendationDataBasisHintDefault": "最近のログとその完全性に基づいて構築されています。",
+  "adaptiveRecommendationDataBasisHintPriorOnly": "プロフィール/以前のデータのみに基づいています。適応的な調整のために、最近の体重と摂取量のログを追加します。",
+  "adaptiveRecommendationDataBasisHintSparseWeight": "最近の体重ログはまばらであるため、傾向の品質は限られています。",
+  "adaptiveRecommendationDataBasisHintSparseIntake": "最近の取り込みログはまばらであるため、メンテナンスの推論には限界があります。",
+  "adaptiveRecommendationDataBasisHintSparseWeightAndIntake": "最近の体重と摂取量のログがまばらであるため、この推奨事項はより保守的です。",
+  "adaptiveConfidenceNotEnoughData": "プロフィール/以前のみ",
+  "adaptiveConfidenceLow": "限定された最近のログ",
+  "adaptiveConfidenceMedium": "使用可能な最近のログ",
+  "adaptiveConfidenceHigh": "強力な最近のログ",
+  "adaptiveRecommendationRecalculatedSnack": "推奨事項が再計算されました。",
+  "adaptiveRecommendationAppliedToGoalsSnack": "アクティブな目標に適用される推奨事項。",
+  "adaptiveRecommendationNotAvailableSnack": "申請できる推薦はありません。",
+  "settingsSectionApp": "アプリ",
+  "settingsAppearanceSubtitle": "テーマ、ビジュアルスタイル、ハプティクスを調整する",
+  "settingsShowSugarInDiaryOverviewTitle": "日記の概要に砂糖を表示",
+  "settingsShowSugarInDiaryOverviewSubtitle": "上部の毎日の概要セクションに砂糖が表示されます",
+  "settingsSectionHealthTracking": "健康状態と追跡",
+  "settingsStepsSubtitle": "追跡、ソースポリシー、およびプロバイダー",
+  "settingsSleepSubtitle": "インポート、権限、スリープ状態",
+  "settingsPulseSubtitle": "オプトインの脈拍分析と心拍数へのアクセス",
+  "settingsHealthExportSubtitle": "Apple Health と Health Connect のエクスポートを管理する",
+  "settingsSectionNutritionAndData": "栄養とデータ",
+  "settingsSectionSupportAbout": "サポート / 概要",
+  "settingsHapticFeedbackTitle": "触覚フィードバック",
+  "settingsHapticFeedbackSubtitle": "軽い振動で確認とAI待機",
+  "stepsSettingsEnableTrackingTitle": "歩数追跡を有効にする",
+  "stepsSettingsEnableTrackingSubtitle": "Apple Health / Health Connect から歩数データを読み取る",
+  "stepsSettingsSourcePolicyTitle": "ソースポリシー",
+  "stepsSettingsSourcePolicyAutoDominant": "自動 (主要なソース)",
+  "stepsSettingsSourcePolicyAutoDominantSubtitle": "推奨: 重複したインフレを避けるために、1 日あたり 1 つのソースを使用します。",
+  "stepsSettingsSourcePolicyMaxPerHour": "マージ (1 時間あたりの最大)",
+  "stepsSettingsSourcePolicyMaxPerHourSubtitle": "最も高い時間単位のバケットを取得してソースを結合します。",
+  "stepsSettingsProviderFilterTitle": "プロバイダーフィルター",
+  "pulseTitle": "脈",
+  "pulseChartTitle": "経時的なパルス",
+  "pulseRangeLabel": "範囲",
+  "pulseAverageLabel": "平均",
+  "pulseRestingLabel": "休憩中",
+  "pulseInsufficientData": "信頼できるグラフを作成するにはパルス サンプルが少なすぎます。",
+  "pulseMethodNote": "平均パルスは時間重み付けされます。安静時脈拍は、選択した期間のサンプルの下位 20% からの控えめな推定値です。",
+  "pulseSampleCount": "{count, plural, =0{} one{1} other{{count} サンプル}}}",
+  "@pulseSampleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "No": {}
+    }
+  },
+  "pulseQualityReady": "良好なカバレッジ",
+  "pulseQualityLimited": "限られたデータ",
+  "pulseQualityInsufficient": "非常にまばら",
+  "pulseQualityNoData": "データなし",
+  "pulseNoDataDisabled": "パルス分析は設定で無効になっています。",
+  "pulseNoDataPermissionDenied": "脈拍分析を表示するには、心拍数の許可が必要です。",
+  "pulseNoDataUnavailable": "現在、このデバイスではパルス データを利用できません。",
+  "pulseNoDataQueryFailed": "パルスデータを読み取れませんでした。",
+  "pulseNoDataDefault": "この期間ではパルス サンプルは見つかりませんでした。",
+  "pulseSettingsEnableTitle": "パルス分析を有効にする",
+  "pulseSettingsEnableSubtitle": "これをオンにした場合のみ、パルスビューの心拍数データを読み取ります。",
+  "pulseSettingsPermissionTitle": "心拍数へのアクセスを許可する",
+  "pulseSettingsPermissionSubtitle": "Apple Health または Health Connect を開くと、Train Libre が脈拍サンプルを読み取ることができます。",
+  "pulseSettingsAnalysisSubtitle": "範囲、時間加重平均、および控えめな安静時脈拍推定値を表示します。医学的な診断ではありません。",
+  "pulseSettingsPermissionGranted": "心拍数へのアクセスの準備ができました。",
+  "pulseSettingsPermissionFailed": "心拍数へのアクセスが許可されませんでした。",
+  "pulseOptInChip": "オプトイン",
+  "statisticsPulseDescription": "選択した期間の範囲、時間加重平均、および安静時の脈拍。",
+  "statisticsPulseOpenCaption": "脈拍分析を開きます",
+  "healthExportTitle": "健康輸出",
+  "healthExportAppleHealthTitle": "Apple Health のエクスポート",
+  "healthExportHealthConnectTitle": "ヘルスコネクトのエクスポート",
+  "healthExportDomainNutritionHydration": "栄養と水分補給",
+  "healthExportDomainWorkouts": "トレーニング",
+  "healthExportStateIdle": "アイドル状態",
+  "healthExportStateExporting": "輸出中",
+  "healthExportStateSuccess": "成功",
+  "healthExportStateFailed": "失敗した",
+  "healthExportStateDisabled": "無効",
+  "healthExportResultComplete": "エクスポートが完了しました",
+  "healthExportResultFailed": "エクスポートに失敗しました",
+  "healthExportAppleHealthSubtitle": "Train Libre から Apple Health への片道エクスポート",
+  "healthExportHealthConnectSubtitle": "Train Libre から Health Connect への一方向エクスポート",
+  "healthExportAppleHealthStatusTitle": "Apple Health の輸出状況",
+  "healthExportHealthConnectStatusTitle": "ヘルスコネクトのエクスポートステータス",
+  "settingsBaseFoodLanguageTitle": "食品表示言語",
+  "settingsBaseFoodLanguageSubtitle": "基本食品名に使用する言語を選択します。",
+  "settingsBaseFoodLanguageFollowApp": "アプリの言語に合わせる",
+  "settingsBaseFoodLanguageEnglish": "英語",
+  "settingsBaseFoodLanguageGerman": "ドイツ語",
+  "settingsBaseFoodLanguageFrench": "フランス語",
+  "settingsBaseFoodLanguageItalian": "イタリア語",
+  "settingsBaseFoodLanguageJapanese": "日本語",
   "aiModelLabel": "モデル",
-  
-  "legal_section": "法的通知とプライバシー",
+  "autoBackupStoragePickerUnavailable": "ストレージ ピッカーは使用できません。アップデート後はアプリを完全に再起動/再インストールしてください。",
+  "autoBackupFolderPickerFailed": "フォルダーピッカーが失敗しました: {error}",
+  "@autoBackupFolderPickerFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "healthExportPermissionDenied": "許可が拒否されました",
+  "healthExportAdapterUnavailable": "アダプターが使用できません",
+  "healthExportPlatformUnavailable": "プラットフォームが利用できません",
+  "healthExportPlatformNotInstalled": "プラットフォームがインストールされていません",
+  "healthExportExportDisabled": "エクスポートが無効になっています",
+  "onboardingMacrosStepTitle": "主要栄養素",
+  "onboardingMacrosStepSubtitle": "あなたの栄養はどのように構成されていますか？",
+  "statisticsProviderAppleHealth": "アップルヘルス",
+  "statisticsProviderHealthConnect": "ヘルスコネクト",
+  "statisticsProviderWithings": "ウィジングズ",
+  "statisticsProviderGarmin": "ガーミン",
+  "statisticsProviderFitbit": "フィットビット",
+  "statisticsProviderLocal": "地元",
+  "unit_milliliters": "ミリリットル",
+  "unit_kilograms": "kg",
+  "mealEditorHintExample": "例えばチキン丼",
+  "mealEditorNoIngredientsYet": "まだありません - 後で公開します",
+  "foodDetailSavedBaseDb": "保存済み（ベースDB）",
+  "foodDetailExportError": "エクスポート エラー: {error}",
+  "@foodDetailExportError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "stepsModulePrevious": "前の",
+  "stepsModuleNext": "次",
+  "stepsModuleTotalSteps": "合計ステップ数",
+  "stepsModuleThisWeek": "今週",
+  "stepsModuleThisMonth": "今月",
+  "stepsModuleUpdated": "{time} を更新しました",
+  "@stepsModuleUpdated": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "stepsModuleScopeSwitcherSemantics": "ステップスコープの切り替え",
+  "stepsModuleDay": "日",
+  "stepsModuleWeek": "週",
+  "stepsModuleMonth": "月",
+  "stepsModuleHourlyTimeline": "時間ごとのタイムライン",
+  "stepsModuleTotal": "合計",
+  "stepsModuleActiveHours": "活動時間",
+  "stepsModulePeakHour": "ピーク時間帯",
+  "stepsModuleAvgPerDay": "平均/日",
+  "stepsModuleGoalHit": "ゴールヒット",
+  "stepsModuleGoalDays": "目標日",
+  "diarySyncingSteps": "ステップを同期しています...",
+  "diaryLoadingSleep": "睡眠を読み込んでいます...",
+  "unit_milligrams": "mg",
+  "scannerPermissionRequired": "バーコードをスキャンするにはカメラへのアクセスが必要です。",
+  "scannerPermissionPermanentlyDenied": "カメラへのアクセスは永久に拒否されます。バーコードをスキャンするには設定で有効にしてください。",
+  "scannerOpenSettings": "設定を開く",
+  "scannerGrantPermission": "許可を与える",
+  "scannerAlignInstruction": "赤いレーザーラインの内側にバーコードを水平に配置します。",
+  "about_train_libre": "トレイン・リブレについて",
   "legal_notice": "法的通知",
   "privacy_policy": "プライバシーポリシー",
   "terms_of_service": "利用規約",
+  "view_in_browser": "ブラウザで表示",
   "legal_document_version": "ドキュメントバージョン",
   "legal_document_last_updated": "最終更新日",
-  "view_in_browser": "ブラウザで表示"
+  "used_libraries": "使用済みライブラリ",
+  "licensing_info": "ライセンス情報",
+  "project_website": "プロジェクトのウェブサイト",
+  "github_repository": "GitHub リポジトリ",
+  "health_permission_dialog_title": "健康データとプライバシー",
+  "health_permission_dialog_body": "Train Libre は、毎日/毎週の統計を表示するために歩数データを読み取る必要があります。データはデバイス上にローカルに残ります。外部サーバーはありません。",
+  "health_permission_continue": "続く",
+  "health_permission_not_now": "今じゃない",
+  "welcome_privacy_title": "ようこそとプライバシー",
+  "welcome_privacy_body": "Train Libre を使用すると、当社のプライバシー ポリシーと法的通知に記載されているとおりにデータが処理されることに同意したものとみなされます。",
+  "i_agree_to_privacy_policy": "私はプライバシー ポリシーに記載されているとおりに自分の健康データを処理することを読み、これに同意します。",
+  "acceptTermsPrompt": "利用規約に同意します",
+  "viewTermsInline": "利用規約",
+  "accept_and_get_started": "同意して始めましょう",
+  "about_section": "について",
+  "legal_section": "法的通知とプライバシー",
+  "aiSettingsInstructionTitle": "AI 食事認識の仕組み",
+  "aiSettingsInstructionBody": "この機能は、AI を使用して食品の画像を分析し、栄養素の推定値を提供します。この機能を使用する場合、画像は選択した AI プロバイダーにのみ送信されます。これは Bring-Your-Own-Key (BYOK) アーキテクチャに依存しており、分析までデータをデバイス上にローカルに保持します。",
+  "aiSettingsSetupGuideTitle": "セットアップガイド",
+  "aiSettingsSetupGuideBody": "この機能を使用するには、AI プロバイダーからの API キーが必要です。現在、開発者とユーザーに無料利用枠を提供している Google Gemini が主な例として使用されています。",
+  "aiSettingsGetApiKeyButton": "セットアップガイドを見る",
+  "legal_document_version_value": "1.2",
+  "legal_document_last_updated_value": "2026 年 5 月 20 日",
+  "muscleChest": "胸",
+  "muscleBack": "戻る",
+  "muscleShoulders": "肩",
+  "muscleBiceps": "上腕二頭筋",
+  "muscleTriceps": "上腕三頭筋",
+  "muscleQuads": "大腿四頭筋",
+  "muscleHamstrings": "ハムストリングス",
+  "muscleGlutes": "大臀筋",
+  "muscleCalves": "子牛",
+  "muscleLowerBack": "腰部",
+  "muscleAbs": "腹筋",
+  "muscleAdductors": "内転筋",
+  "muscleForearms": "前腕",
+  "sleepDetailAnalysisHeader": "詳細な分析",
+  "sleepMetricDurationLabel": "睡眠時間",
+  "sleepMetricContinuityLabel": "継続性 (WASO/SE)",
+  "sleepMetricDepthLabel": "睡眠段階の深さ",
+  "sleepMetricTimingLabel": "概日タイミング",
+  "sleepMetricRegularityLabel": "規則性",
+  "sleepBannerTstBottleneck": "睡眠時間ペナルティが有効です: 合計睡眠量が、同化ホルモンの放出を制限する最適再生時間である 6.5 時間を下回りました。",
+  "sleepBannerRemBottleneck": "レム睡眠不足ペナルティ: レム睡眠が 60 分未満でした。これにより、神経細胞の回復と精神的な新鮮さが損なわれます。",
+  "sleepBannerN3Bottleneck": "深い睡眠不足のペナルティ: N3 の深い睡眠が重大に欠如している (<70 分)。物理的な筋肉組織の修復は最適ではありません。",
+  "sleepBannerTimingBottleneck": "概日位相シフトのペナルティ: 睡眠中は午前 5 時 30 分を過ぎていました。体内時計に逆らって眠ると、睡眠の質が低下し、インスリン感受性が低下します。",
+  "sleepBannerDefaultPenalty": "臨床的保護ブレーキが作動中: 睡眠量が最適ではなかった (6 時間未満) か、概日タイミング (入眠) が大きくずれていました。合計スコアには制限があります。",
+  "infoTdeeTitle": "適応型カロリーと TDEE 推定ツール",
+  "infoTdeeExplanation": "プロフィール、記録された食事、体重の変化に基づいて、1 日の総エネルギー消費量 (TDEE) を推定します。",
+  "infoTdeeKeyPoints": "• 再帰的傾向モデルを使用して毎日の体重変動を平準化します。\n• ベイジアンにヒントを得たアプローチを使用して、毎週の目標を保守的に調整します。\n• ログの整合性が希薄すぎて、信頼性の高い更新ができない場合に警告を発します。",
+  "infoTdeeTechnicalTitle": "ベイジアン再帰フィルタリングと代謝平滑化",
+  "infoTdeeTechnicalExplanation": "Train Libre は、静的な公式に依存するのではなく、再帰的に推定される動的な「隠れた状態」として代謝をモデル化します。毎日観察される維持量は、体重の変化に対して摂取量を調整することによって計算されます。ログが記録されていない日にプロセス ノイズ係数が追加され、推定の不確実性が増加します。これにより、更新が抑制され、短期的な水の滞留による歪みが防止されます。",
+  "infoRecoveryTitle": "筋肉回復推定ツール",
+  "infoRecoveryExplanation": "トレーニング量、強度、失敗への近さに基づいて、筋肉固有の準備状況と回復曲線を推定します。",
+  "infoRecoveryKeyPoints": "• 重複する筋肉ストレスを考慮します (胸部、上腕三頭筋、肩のベンチプレス数など)。\n• RIR/RPE に基づいて回復速度を調整し、障害が発生するセットのウィンドウを拡張します。\n• 筋肉グループのサイズと代謝特性に基づいてベースライン回復ウィンドウを調整します。",
+  "infoRecoveryTechnicalTitle": "等価集合疲労および区分的減衰モデル",
+  "infoRecoveryTechnicalExplanation": "非線形減衰曲線を介して動的準備状況を計算します。ボリューム追跡により、一次筋群と二次筋群の間で負荷が自動的に分散されます。回復速度は障害近接度 (RIR) に基づいて調整され、絶対的な障害に至るまでのセットに対して厳密なタイムライン延長が適用されます。",
+  "infoAiMealTitle": "AIミールキャプチャハブ",
+  "infoAiMealExplanation": "食事の写真やテキストの説明を構造化された日記エントリに変換し、プライベート製品データベースと照合します。",
+  "infoAiMealKeyPoints": "• 不正確な説明 (例: 「パンのスライス」) をメートル単位の重量推定値に変換します。\n• AI の提案をオフラインでデバイス上のローカル製品データベースと照合します。\n• 外部サーバーに計算を委任するのではなく、ローカルで栄養を計算します。",
+  "infoAiMealTechnicalTitle": "ハイブリッド BYOK AI と Jaro-Winkler マッチング",
+  "infoAiMealTechnicalExplanation": "Bring-Your-Own-Key (BYOK) プライバシー モデルを使用します。 AI は厳密に提案レイヤーとして機能します。マッチングは、ローカル SQLite データベースに対してトークン化された Jaro-Winkler フィルターを使用してオフラインで実行されます。 AI プロバイダーは、システム プロンプトを介して栄養計算を実行することを固く禁じられています。",
+  "infoSleepTitle": "睡眠の質 (SHS v3.5)",
+  "infoSleepExplanation": "量、継続性、深さ、タイミング、毎日の規則性から総合的な睡眠指数を計算します。",
+  "infoSleepKeyPoints": "• 加重合計を使用して 5 つの臨床的側面を集計します。\n• ウェアラブルが特定の段階や効率データを提供しない場合、要件を自動的にスケールします。\n• 重要なドメイン (REM やディープ スリープなど) が侵害された場合に、合計スコアを制限するソフト キャップ乗数によってユーザーを保護します。",
+  "infoSleepTechnicalTitle": "加重ベースラインと連続ソフトキャップ",
+  "infoSleepTechnicalExplanation": "加重線形和を使用して 5 つのプライマリ ドメインを集計します: 期間 (30%)、継続性 (20%)、アーキテクチャ (25%)、タイミング (15%)、および規則性 (10%)。臨床領域が侵害された場合に誤解を招く平均値を防ぐため、睡眠段階または概日タイミングで重大なボトルネックが検出された場合、最終スコアは低下します。",
+  "tdeeRecalculationNotificationTitle": "TDEEの再計算",
+  "tdeeRecalculationNotificationBody": "新しい 1 日の目標: {calories} kcal | {protein}g プロテイン | {carbs}g 炭水化物 | {fat}g 脂肪",
+  "@tdeeRecalculationNotificationBody": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendationBannerText": "新しい目標が利用可能です ({delta} kcal)。",
+  "@recommendationBannerText": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "recommendationBannerApply": "適用する"
 }

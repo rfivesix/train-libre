@@ -12,7 +12,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get appTitle => 'Train Libre';
 
   @override
-  String get bannerText => 'Recommendation / Current Workout';
+  String get bannerText => 'Raccomandazione/Allenamento attuale';
 
   @override
   String get calories => 'Calorie';
@@ -33,584 +33,588 @@ class AppLocalizationsIt extends AppLocalizations {
   String get steps => 'Passi';
 
   @override
-  String get daily => 'Daily';
+  String get daily => 'Quotidiano';
 
   @override
-  String get today => 'Today';
+  String get today => 'Oggi';
 
   @override
-  String get workoutSection => 'Workout section - not yet implemented';
+  String get workoutSection => 'Sezione allenamento - non ancora implementata';
 
   @override
-  String get addMenuTitle => 'What do you want to add?';
+  String get addMenuTitle => 'Cosa vuoi aggiungere?';
 
   @override
-  String get addFoodOption => 'add Food';
+  String get addFoodOption => 'aggiungere cibo';
 
   @override
-  String get addLiquidOption => 'add Liquid';
+  String get addLiquidOption => 'aggiungere liquido';
 
   @override
-  String get searchHintText => 'Search...';
+  String get searchHintText => 'Ricerca...';
 
   @override
-  String get mealtypeBreakfast => 'Breakfast';
+  String get mealtypeBreakfast => 'Colazione';
 
   @override
-  String get mealtypeLunch => 'Lunch';
+  String get mealtypeLunch => 'Pranzo';
 
   @override
-  String get mealtypeDinner => 'Dinner';
+  String get mealtypeDinner => 'Cena';
 
   @override
-  String get mealtypeSnack => 'Snack';
+  String get mealtypeSnack => 'Spuntino';
 
   @override
-  String get waterHeader => 'Water & Drinks';
+  String get waterHeader => 'Acqua e bevande';
 
   @override
-  String get openFoodFactsSource => 'Data from Open Food Facts';
+  String get openFoodFactsSource => 'Dati da Open Food Facts';
 
   @override
-  String get tabRecent => 'Recent';
+  String get tabRecent => 'Recente';
 
   @override
-  String get tabSearch => 'Search';
+  String get tabSearch => 'Ricerca';
 
   @override
-  String get tabFavorites => 'Favorites';
+  String get tabFavorites => 'Preferiti';
 
   @override
-  String get fabCreateOwnFood => 'Custom Food';
+  String get fabCreateOwnFood => 'Cibo personalizzato';
 
   @override
   String get recentEmptyState =>
-      'Your recently used food items\nwill appear here.';
+      'I tuoi prodotti alimentari usati di recente\napparirà qui.';
 
   @override
   String get favoritesEmptyState =>
-      'You don\'t have any favorites yet.\nMark a food with the heart icon to see it here.';
+      'Non hai ancora nessun preferito.\nContrassegna un alimento con l\'icona del cuore per vederlo qui.';
 
   @override
-  String get searchInitialHint => 'Please enter a search term.';
+  String get searchInitialHint => 'Inserisci un termine di ricerca.';
 
   @override
-  String get searchNoResults => 'No results found.';
+  String get searchNoResults => 'Nessun risultato trovato';
 
   @override
-  String get createFoodScreenTitle => 'Create Custom Food';
+  String get createFoodScreenTitle => 'Crea cibo personalizzato';
 
   @override
-  String get formFieldName => 'Name of the food';
+  String get formFieldName => 'Nome del cibo';
 
   @override
-  String get formFieldBrand => 'Brand (optional)';
+  String get formFieldBrand => 'Marchio (facoltativo)';
 
   @override
-  String get formSectionMainNutrients => 'Main Nutrients (per 100g)';
+  String get formSectionMainNutrients => 'Principali nutrienti (per 100 g)';
 
   @override
-  String get formFieldCalories => 'Calories (kcal)';
+  String get formFieldCalories => 'Calorie (kcal)';
 
   @override
-  String get formFieldProtein => 'Protein (g)';
+  String get formFieldProtein => 'Proteine ​​(g)';
 
   @override
-  String get formFieldCarbs => 'Carbohydrates (g)';
+  String get formFieldCarbs => 'Carboidrati (g)';
 
   @override
-  String get formFieldFat => 'Fat (g)';
+  String get formFieldFat => 'Grassi (g)';
 
   @override
   String get formSectionOptionalNutrients =>
-      'Additional Nutrients (optional, per 100g)';
+      'Nutrienti aggiuntivi (facoltativi, per 100 g)';
 
   @override
-  String get formFieldSugar => 'Of which sugars (g)';
+  String get formFieldSugar => 'Di cui zuccheri (g)';
 
   @override
-  String get formFieldFiber => 'Fiber (g)';
+  String get formFieldFiber => 'Fibra (g)';
 
   @override
-  String get formFieldKj => 'Kilojoules (kJ)';
+  String get formFieldKj => 'Kilojoule (kJ)';
 
   @override
-  String get formFieldSalt => 'Salt (g)';
+  String get formFieldSalt => 'Sale (g)';
 
   @override
-  String get formFieldSodium => 'Sodium (mg)';
+  String get formFieldSodium => 'Sodio (mg)';
 
   @override
-  String get formFieldCalcium => 'Calcium (mg)';
+  String get formFieldCalcium => 'Calcio (mg)';
 
   @override
-  String get buttonSave => 'Save';
+  String get buttonSave => 'Salva';
 
   @override
-  String get validatorPleaseEnterName => 'Please enter a name.';
+  String get validatorPleaseEnterName => 'Inserisci un nome.';
 
   @override
-  String get validatorPleaseEnterNumber => 'Please enter a valid number.';
+  String get validatorPleaseEnterNumber => 'Inserisci un numero valido.';
 
   @override
   String snackbarSaveSuccess(String foodName) {
-    return '$foodName was saved successfully.';
+    return '$foodName è stato salvato correttamente.';
   }
 
   @override
-  String get foodDetailSegmentPortion => 'Portion';
+  String get foodDetailSegmentPortion => 'Porzione';
 
   @override
-  String get foodDetailSegment100g => '100g';
+  String get foodDetailSegment100g => '100 g';
 
   @override
-  String get sugar => 'Sugar';
+  String get sugar => 'Zucchero';
 
   @override
-  String get fiber => 'Fiber';
+  String get fiber => 'Fibra';
 
   @override
-  String get salt => 'Salt';
+  String get salt => 'Sale';
 
   @override
-  String get caffeine => 'Caffeine';
+  String get caffeine => 'Caffeina';
 
   @override
-  String get explorerScreenTitle => 'Food Explorer';
+  String get explorerScreenTitle => 'Esploratore del cibo';
 
   @override
-  String get nutritionScreenTitle => 'Nutrition Analysis';
+  String get nutritionScreenTitle => 'Analisi nutrizionale';
 
   @override
-  String get entriesForDateRangeLabel => 'Entries for';
+  String get entriesForDateRangeLabel => 'Voci per';
 
   @override
-  String get noEntriesForPeriod => 'No entries for this period yet.';
+  String get noEntriesForPeriod => 'Nessuna voce per questo periodo ancora.';
 
   @override
-  String get waterEntryTitle => 'Water';
+  String get waterEntryTitle => 'Acqua';
 
   @override
-  String get profileScreenTitle => 'Profile';
+  String get profileScreenTitle => 'Profilo';
 
   @override
-  String get profileDailyGoals => 'Daily Goals';
+  String get profileDailyGoals => 'Obiettivi giornalieri';
 
   @override
-  String get profileDailyGoalsCL => 'DAILY GOALS';
+  String get profileDailyGoalsCL => 'OBIETTIVI GIORNALIERI';
 
   @override
-  String get snackbarGoalsSaved => 'Goals saved successfully!';
+  String get snackbarGoalsSaved => 'Gol salvati con successo!';
 
   @override
-  String get measurementsScreenTitle => 'Measurements';
+  String get measurementsScreenTitle => 'Misure';
 
   @override
   String get measurementsEmptyState =>
-      'No measurements recorded yet.\nStart with the \'+\' button.';
+      'Nessuna misurazione ancora registrata.\nInizia con il pulsante \"+\".';
 
   @override
-  String get addMeasurementDialogTitle => 'Add New Measurement';
+  String get addMeasurementDialogTitle => 'Aggiungi nuova misurazione';
 
   @override
-  String get formFieldMeasurementType => 'Type of Measurement';
+  String get formFieldMeasurementType => 'Tipo di misurazione';
 
   @override
   String formFieldMeasurementValue(Object unit) {
-    return 'Value ($unit)';
+    return 'Valore ($unit)';
   }
 
   @override
-  String get validatorPleaseEnterValue => 'Please enter a value';
+  String get validatorPleaseEnterValue => 'Inserisci un valore';
 
   @override
-  String get measurementWeight => 'Body Weight';
+  String get measurementWeight => 'Peso corporeo';
 
   @override
-  String get measurementFatPercent => 'Body Fat';
+  String get measurementFatPercent => 'Grasso corporeo';
 
   @override
-  String get measurementNeck => 'Neck';
+  String get measurementNeck => 'Collo';
 
   @override
-  String get measurementShoulder => 'Shoulder';
+  String get measurementShoulder => 'Spalla';
 
   @override
-  String get measurementChest => 'Chest';
+  String get measurementChest => 'Petto';
 
   @override
-  String get measurementLeftBicep => 'Left Bicep';
+  String get measurementLeftBicep => 'Bicipite sinistro';
 
   @override
-  String get measurementRightBicep => 'Right Bicep';
+  String get measurementRightBicep => 'Bicipite destro';
 
   @override
-  String get measurementLeftForearm => 'Left Forearm';
+  String get measurementLeftForearm => 'Avambraccio sinistro';
 
   @override
-  String get measurementRightForearm => 'Right Forearm';
+  String get measurementRightForearm => 'Avambraccio destro';
 
   @override
-  String get measurementAbdomen => 'Abdomen';
+  String get measurementAbdomen => 'Addome';
 
   @override
-  String get measurementWaist => 'Waist';
+  String get measurementWaist => 'Vita';
 
   @override
-  String get measurementHips => 'Hips';
+  String get measurementHips => 'Fianchi';
 
   @override
-  String get measurementLeftThigh => 'Left Thigh';
+  String get measurementLeftThigh => 'Coscia sinistra';
 
   @override
-  String get measurementRightThigh => 'Right Thigh';
+  String get measurementRightThigh => 'Coscia destra';
 
   @override
-  String get measurementLeftCalf => 'Left Calf';
+  String get measurementLeftCalf => 'Vitello sinistro';
 
   @override
-  String get measurementRightCalf => 'Right Calf';
+  String get measurementRightCalf => 'Vitello destro';
 
   @override
-  String get drawerMenuTitle => 'Train Libre Menu';
+  String get drawerMenuTitle => 'Menù Treno Libero';
 
   @override
-  String get drawerDashboard => 'Dashboard';
+  String get drawerDashboard => 'Pannello di controllo';
 
   @override
-  String get drawerFoodExplorer => 'Food Explorer';
+  String get drawerFoodExplorer => 'Esploratore del cibo';
 
   @override
-  String get drawerDataManagement => 'Data Backup';
+  String get drawerDataManagement => 'Backup dei dati';
 
   @override
-  String get drawerMeasurements => 'Measurements';
+  String get drawerMeasurements => 'Misure';
 
   @override
-  String get dataManagementTitle => 'Data Backup';
+  String get dataManagementTitle => 'Backup dei dati';
 
   @override
-  String get exportCardTitle => 'Export Data';
+  String get exportCardTitle => 'Esporta dati';
 
   @override
   String get exportCardDescription =>
-      'Saves all your journal entries, favorites, and custom foods into a single backup file.';
+      'Salva tutte le voci del diario, i preferiti e gli alimenti personalizzati in un unico file di backup.';
 
   @override
-  String get exportCardButton => 'Create Backup';
+  String get exportCardButton => 'Crea backup';
 
   @override
-  String get importCardTitle => 'Import Data';
+  String get importCardTitle => 'Importa dati';
 
   @override
   String get importCardDescription =>
-      'Restores your data from a previously created backup file. WARNING: All data currently stored in the app will be overwritten!';
+      'Ripristina i tuoi dati da un file di backup creato in precedenza. ATTENZIONE: tutti i dati attualmente memorizzati nell\'app verranno sovrascritti!';
 
   @override
-  String get importCardButton => 'Restore Backup';
+  String get importCardButton => 'Ripristina backup';
 
   @override
-  String get recommendationDefault => 'Track your first meal!';
+  String get recommendationDefault => 'Tieni traccia del tuo primo pasto!';
 
   @override
   String recommendationOverTarget(Object count, Object difference) {
-    return 'Last $count days: +$difference kcal over target';
+    return 'Ultimi $count giorni: +$difference kcal rispetto al target';
   }
 
   @override
   String recommendationUnderTarget(Object count, Object difference) {
-    return 'Last $count days: $difference kcal under target';
+    return 'Ultimi $count giorni: $difference kcal sotto il target';
   }
 
   @override
   String recommendationOnTarget(Object count) {
-    return 'Last $count days: Target achieved ✅';
+    return 'Ultimi $count giorni: obiettivo raggiunto ✅';
   }
 
   @override
-  String get recommendationFirstEntry => 'Great, your first entry is logged!';
+  String get recommendationFirstEntry =>
+      'Ottimo, il tuo primo ingresso è stato registrato!';
 
   @override
-  String get dialogConfirmTitle => 'Confirmation Required';
+  String get dialogConfirmTitle => 'Conferma richiesta';
 
   @override
   String get dialogConfirmImportContent =>
-      'Do you really want to restore data from this backup?\n\nWARNING: All your current entries, favorites, and custom foods will be permanently deleted and replaced.';
+      'Vuoi davvero ripristinare i dati da questo backup?\n\nATTENZIONE: tutte le voci correnti, i preferiti e gli alimenti personalizzati verranno eliminati e sostituiti in modo permanente.';
 
   @override
-  String get dialogButtonCancel => 'Cancel';
+  String get dialogButtonCancel => 'Cancellare';
 
   @override
-  String get dialogButtonOverwrite => 'Yes, overwrite all';
+  String get dialogButtonOverwrite => 'Sì, sovrascrivi tutto';
 
   @override
-  String get snackbarNoFileSelected => 'No file selected.';
+  String get snackbarNoFileSelected => 'Nessun file selezionato.';
 
   @override
-  String get snackbarImportSuccessTitle => 'Import successful!';
+  String get snackbarImportSuccessTitle => 'Importazione riuscita!';
 
   @override
   String get snackbarImportSuccessContent =>
-      'Your data has been restored. It is recommended to restart the app for a correct display.';
+      'I tuoi dati sono stati ripristinati. Si consiglia di riavviare l\'app per una corretta visualizzazione.';
 
   @override
   String get snackbarButtonOK => 'OK';
 
   @override
-  String get snackbarImportError => 'Error while importing data.';
+  String get snackbarImportError => 'Errore durante l\'importazione dei dati.';
 
   @override
   String get snackbarExportSuccess =>
-      'Backup file has been passed to the system. Please choose a location to save.';
+      'Il file di backup è stato passato al sistema. Scegli una posizione in cui salvare.';
 
   @override
-  String get snackbarExportFailed => 'Export canceled or failed.';
+  String get snackbarExportFailed => 'Esportazione annullata o non riuscita.';
 
   @override
-  String get profileUserHeight => 'Height (cm)';
+  String get profileUserHeight => 'Altezza (cm)';
 
   @override
-  String get workoutRoutinesTitle => 'Routines';
+  String get workoutRoutinesTitle => 'Routine';
 
   @override
-  String get workoutHistoryTitle => 'Workout History';
+  String get workoutHistoryTitle => 'Cronologia degli allenamenti';
 
   @override
-  String get workoutHistoryButton => 'History';
+  String get workoutHistoryButton => 'Storia';
 
   @override
-  String get emptyRoutinesTitle => 'No Routines Found';
+  String get emptyRoutinesTitle => 'Nessuna routine trovata';
 
   @override
   String get emptyRoutinesSubtitle =>
-      'Create your first routine or start a blank workout.';
+      'Crea la tua prima routine o inizia un allenamento vuoto.';
 
   @override
-  String get createFirstRoutineButton => 'Create First Routine';
+  String get createFirstRoutineButton => 'Crea la prima routine';
 
   @override
-  String get startEmptyWorkoutButton => 'Free Workout';
+  String get startEmptyWorkoutButton => 'Allenamento gratuito';
 
   @override
-  String get editRoutineSubtitle => 'Tap to edit, or start the workout.';
+  String get editRoutineSubtitle =>
+      'Tocca per modificare o avviare l\'allenamento.';
 
   @override
-  String get startButton => 'Start';
+  String get startButton => 'Inizio';
 
   @override
-  String get addRoutineButton => 'New Routine';
+  String get addRoutineButton => 'Nuova routine';
 
   @override
-  String get freeWorkoutTitle => 'Free Workout';
+  String get freeWorkoutTitle => 'Allenamento gratuito';
 
   @override
-  String get finishWorkoutButton => 'Finish';
+  String get finishWorkoutButton => 'Fine';
 
   @override
-  String get addSetButton => 'Add Set';
+  String get addSetButton => 'Aggiungi insieme';
 
   @override
-  String get addExerciseToWorkoutButton => 'Add Exercise to Workout';
+  String get addExerciseToWorkoutButton =>
+      'Aggiungi esercizio all\'allenamento';
 
   @override
-  String get lastTimeLabel => 'Last Time';
+  String get lastTimeLabel => 'L\'ultima volta';
 
   @override
-  String get setLabel => 'Set';
+  String get setLabel => 'Impostato';
 
   @override
-  String get kgLabel => 'Weight (kg)';
+  String get kgLabel => 'Peso (kg)';
 
   @override
-  String get repsLabel => 'Reps';
+  String get repsLabel => 'Rappresentanti';
 
   @override
-  String get cardioDistanceLabel => 'Distance (km)';
+  String get cardioDistanceLabel => 'Distanza (km)';
 
   @override
-  String get cardioTimeLabel => 'Time (min)';
+  String get cardioTimeLabel => 'Tempo (minuti)';
 
   @override
-  String get cardioIntensityLabel => 'Intens.';
+  String get cardioIntensityLabel => 'Intensi.';
 
   @override
-  String get cardioIntensityShortLabel => 'Int.';
+  String get cardioIntensityShortLabel => 'interno';
 
   @override
-  String get restTimerLabel => 'Rest';
+  String get restTimerLabel => 'Riposo';
 
   @override
-  String get skipButton => 'Skip';
+  String get skipButton => 'Saltare';
 
   @override
-  String get appInitStarting => 'Starting app...';
+  String get appInitStarting => 'Avvio dell\'app...';
 
   @override
-  String get appInitInitializing => 'Initializing...';
+  String get appInitInitializing => 'Inizializzazione...';
 
   @override
-  String get appInitFinalizing => 'Finalizing';
+  String get appInitFinalizing => 'Finalizzazione';
 
   @override
-  String get appInitCheckingBackups => 'Checking backups...';
+  String get appInitCheckingBackups => 'Controllo dei backup...';
 
   @override
-  String get appInitSkipDownload => 'Skip download';
+  String get appInitSkipDownload => 'Salta il download';
 
   @override
-  String get appInitSkippingRemoteDownload => 'Skipping remote download...';
+  String get appInitSkippingRemoteDownload => 'Salto download remoto...';
 
   @override
-  String get emptyHistory => 'No completed workouts yet.';
+  String get emptyHistory => 'Nessun allenamento ancora completato.';
 
   @override
-  String get workoutDetailsTitle => 'Workout Details';
+  String get workoutDetailsTitle => 'Dettagli allenamento';
 
   @override
-  String get workoutHeartRateSectionTitle => 'Heart Rate';
+  String get workoutHeartRateSectionTitle => 'Frequenza cardiaca';
 
   @override
-  String get workoutHeartRateAverageLabel => 'Avg';
+  String get workoutHeartRateAverageLabel => 'Media';
 
   @override
-  String get workoutHeartRateMaxLabel => 'Max';
+  String get workoutHeartRateMaxLabel => 'Massimo';
 
   @override
-  String get workoutHeartRateMinLabel => 'Min';
+  String get workoutHeartRateMinLabel => 'minimo';
 
   @override
-  String get workoutHeartRateQualityReady => 'Good coverage';
+  String get workoutHeartRateQualityReady => 'Buona copertura';
 
   @override
-  String get workoutHeartRateQualityLimited => 'Limited data';
+  String get workoutHeartRateQualityLimited => 'Dati limitati';
 
   @override
-  String get workoutHeartRateQualityInsufficient => 'Very sparse';
+  String get workoutHeartRateQualityInsufficient => 'Molto scarso';
 
   @override
-  String get workoutHeartRateQualityNoData => 'No data';
+  String get workoutHeartRateQualityNoData => 'Nessun dato';
 
   @override
   String get workoutHeartRateNoDataGeneral =>
-      'No heart-rate samples were found for this workout window.';
+      'Nessun campione di frequenza cardiaca trovato per questa finestra di allenamento.';
 
   @override
   String get workoutHeartRateNoDataPermission =>
-      'Heart-rate permission is required to show workout HR.';
+      'Per visualizzare la frequenza cardiaca dell\'allenamento è necessaria l\'autorizzazione relativa alla frequenza cardiaca.';
 
   @override
   String get workoutHeartRateNoDataUnavailable =>
-      'Heart-rate data is currently unavailable on this device.';
+      'I dati sulla frequenza cardiaca non sono attualmente disponibili su questo dispositivo.';
 
   @override
   String get workoutHeartRateNoDataWorkoutNotFinished =>
-      'Heart-rate summary appears after a finished workout.';
+      'Il riepilogo della frequenza cardiaca viene visualizzato al termine dell\'allenamento.';
 
   @override
   String get workoutHeartRateNoDataInvalidWindow =>
-      'Workout time window is invalid, so HR cannot be analyzed.';
+      'La finestra temporale dell\'allenamento non è valida, quindi la FC non può essere analizzata.';
 
   @override
   String get workoutHeartRateNoDataQueryFailed =>
-      'Could not read heart-rate data for this workout.';
+      'Impossibile leggere i dati sulla frequenza cardiaca per questo allenamento.';
 
   @override
   String get workoutHeartRateLimitedChartHint =>
-      'Not enough consistent samples for a reliable chart.';
+      'Campioni coerenti non sufficienti per un grafico affidabile.';
 
   @override
   String workoutHeartRateSampleCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count samples',
-      one: '1 sample',
-      zero: 'No samples',
+      other: '$count campioni',
+      one: '1 campione',
+      zero: 'Nessun campione',
     );
     return '$_temp0';
   }
 
   @override
-  String get workoutNotFound => 'Workout not found.';
+  String get workoutNotFound => 'Allenamento non trovato.';
 
   @override
-  String get totalVolumeLabel => 'Total Volume';
+  String get totalVolumeLabel => 'Volume totale';
 
   @override
-  String get notesLabel => 'Notes';
+  String get notesLabel => 'Note';
 
   @override
-  String get workoutImportTitle => 'External Workout Import';
+  String get workoutImportTitle => 'Importazione di allenamenti esterni';
 
   @override
   String get workoutImportDescription =>
-      'Import your training history from a CSV or Excel export file.';
+      'Importa la cronologia dei tuoi allenamenti da un file di esportazione CSV o Excel.';
 
   @override
-  String get workoutImportButton => 'Import Workout Data';
+  String get workoutImportButton => 'Importa dati di allenamento';
 
   @override
   String workoutImportSuccess(Object count) {
-    return 'Successfully imported $count workouts!';
+    return '$count allenamenti importati con successo!';
   }
 
   @override
-  String get workoutImportFailed => 'Import failed. Please check the file.';
+  String get workoutImportFailed =>
+      'Importazione non riuscita. Si prega di controllare il file.';
 
   @override
-  String get importUnitSelectionTitle => 'Import Unit';
+  String get importUnitSelectionTitle => 'Unità di importazione';
 
   @override
   String get importUnitSelectionDescription =>
-      'In which unit is the data in the file provided?';
+      'In quale unità vengono forniti i dati nel file?';
 
   @override
-  String get unitMetricLabel => 'Metric (kg)';
+  String get unitMetricLabel => 'Metrico (kg)';
 
   @override
-  String get unitImperialLabel => 'Imperial (lbs)';
+  String get unitImperialLabel => 'Imperiale (libbre)';
 
   @override
-  String get excelExportButton => 'Excel Export (.xlsx)';
+  String get excelExportButton => 'Esportazione in Excel (.xlsx)';
 
   @override
-  String get exportWorkoutHistory => 'Workout History';
+  String get exportWorkoutHistory => 'Cronologia degli allenamenti';
 
   @override
-  String get exportNutritionDiary => 'Nutrition Diary';
+  String get exportNutritionDiary => 'Diario nutrizionale';
 
   @override
-  String get exportMeasurements => 'Measurements';
+  String get exportMeasurements => 'Misure';
 
   @override
-  String get startWorkout => 'Start Workout';
+  String get startWorkout => 'Inizia l\'allenamento';
 
   @override
-  String get addMeasurement => 'Add Measurement';
+  String get addMeasurement => 'Aggiungi misurazione';
 
   @override
-  String get filterToday => 'Today';
+  String get filterToday => 'Oggi';
 
   @override
-  String get filter7Days => '7 Days';
+  String get filter7Days => '7 giorni';
 
   @override
-  String get filter30Days => '30 Days';
+  String get filter30Days => '30 giorni';
 
   @override
-  String get filterAll => 'All';
+  String get filterAll => 'Tutto';
 
   @override
-  String get showLess => 'Show less';
+  String get showLess => 'Mostra meno';
 
   @override
-  String get showMoreDetails => 'Show more details';
+  String get showMoreDetails => 'Mostra più dettagli';
 
   @override
-  String get deleteConfirmTitle => 'Confirm Deletion';
+  String get deleteConfirmTitle => 'Conferma l\'eliminazione';
 
   @override
-  String get deleteConfirmContent => 'Do you really want to delete this entry?';
+  String get deleteConfirmContent => 'Vuoi davvero eliminare questa voce?';
 
   @override
   String get cancel => 'Annulla';
@@ -622,110 +626,110 @@ class AppLocalizationsIt extends AppLocalizations {
   String get save => 'Salva';
 
   @override
-  String get unsavedChangesTitle => 'Unsaved Changes';
+  String get unsavedChangesTitle => 'Modifiche non salvate';
 
   @override
   String get unsavedChangesContent =>
-      'You have unsaved changes. Do you want to save them before leaving?';
+      'Sono presenti modifiche non salvate. Vuoi salvarli prima di partire?';
 
   @override
-  String get share => 'Share';
+  String get share => 'Condividere';
 
   @override
-  String get shareWorkout => 'Share workout';
+  String get shareWorkout => 'Condividi allenamento';
 
   @override
-  String get shareRoutine => 'Share routine';
+  String get shareRoutine => 'Condividi la routine';
 
   @override
-  String get shareAsImage => 'Share as image';
+  String get shareAsImage => 'Condividi come immagine';
 
   @override
-  String get shareAsText => 'Share as text';
+  String get shareAsText => 'Condividi come testo';
 
   @override
-  String get sharedFromTrainLibre => 'Shared from Train Libre';
+  String get sharedFromTrainLibre => 'Condiviso da Train Libre';
 
   @override
-  String get sharedWithTrainLibre => 'Shared with Train Libre';
+  String get sharedWithTrainLibre => 'Condiviso con Train Libre';
 
   @override
-  String get shareImageSummary => 'Summary';
+  String get shareImageSummary => 'Riepilogo';
 
   @override
-  String get shareImageExercises => 'Exercises';
+  String get shareImageExercises => 'Esercizi';
 
   @override
-  String get shareImageMuscleFocus => 'Muscle focus';
+  String get shareImageMuscleFocus => 'Concentrazione muscolare';
 
   @override
-  String get shareImageMinimal => 'Minimal';
+  String get shareImageMinimal => 'Minimo';
 
   @override
   String get volume => 'Volume';
 
   @override
   String moreExercises(int count) {
-    return '+ $count more exercises';
+    return '+ $count altri esercizi';
   }
 
   @override
   String shareSetNumber(int number) {
-    return 'Set $number';
+    return 'Imposta $number';
   }
 
   @override
-  String get repsShort => 'reps';
+  String get repsShort => 'ripetizioni';
 
   @override
-  String get shareFailed => 'Sharing failed';
+  String get shareFailed => 'Condivisione non riuscita';
 
   @override
-  String get workoutShareTitle => 'Workout';
+  String get workoutShareTitle => 'Allenamento';
 
   @override
   String get routineShareTitle => 'Routine';
 
   @override
-  String get setTypeWarmup => 'Warm-up';
+  String get setTypeWarmup => 'Riscaldamento';
 
   @override
-  String get setTypeWork => 'Work sets';
+  String get setTypeWork => 'Set di lavoro';
 
   @override
-  String get setTypeFailure => 'Failure';
+  String get setTypeFailure => 'Fallimento';
 
   @override
   String get setTypeDropset => 'Dropset';
 
   @override
-  String get setTypeSuperset => 'Superset';
+  String get setTypeSuperset => 'Superinsieme';
 
   @override
-  String get setTypeOther => 'Other';
+  String get setTypeOther => 'Altro';
 
   @override
-  String get setTypeWarmupSuffix => 'Warm-up';
+  String get setTypeWarmupSuffix => 'Riscaldamento';
 
   @override
-  String get setTypeFailureSuffix => 'Failure';
+  String get setTypeFailureSuffix => 'Fallimento';
 
   @override
   String get setTypeDropsetSuffix => 'Dropset';
 
   @override
-  String get setTypeSupersetSuffix => 'Superset';
+  String get setTypeSupersetSuffix => 'Superinsieme';
 
   @override
-  String get setTypeOtherSuffix => 'Other';
+  String get setTypeOtherSuffix => 'Altro';
 
   @override
   String warmupSetCount(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count warm-up sets',
-      one: '1 warm-up set',
+      other: '$count serie di riscaldamento',
+      one: '1 set di riscaldamento',
     );
     return '$_temp0';
   }
@@ -735,8 +739,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count work sets',
-      one: '1 work set',
+      other: '$count set di lavoro',
+      one: '1 set da lavoro',
     );
     return '$_temp0';
   }
@@ -746,8 +750,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count failure sets',
-      one: '1 failure set',
+      other: '$count set di errori',
+      one: '1 set di errori',
     );
     return '$_temp0';
   }
@@ -757,8 +761,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dropsets',
-      one: '1 dropset',
+      other: '$count dropset',
+      one: '1 set di gocce',
     );
     return '$_temp0';
   }
@@ -768,8 +772,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count supersets',
-      one: '1 superset',
+      other: '$count superset',
+      one: '1 superserie',
     );
     return '$_temp0';
   }
@@ -779,8 +783,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count other sets',
-      one: '1 other set',
+      other: '$count altri set',
+      one: '1 altro set',
     );
     return '$_temp0';
   }
@@ -790,8 +794,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count warm-up',
-      one: '1 warm-up',
+      other: '$count riscaldamento',
+      one: '1 riscaldamento',
     );
     return '$_temp0';
   }
@@ -801,8 +805,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count work',
-      one: '1 work',
+      other: '$count lavoro',
+      one: '1 opera',
     );
     return '$_temp0';
   }
@@ -812,8 +816,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count failure',
-      one: '1 failure',
+      other: '$count errore',
+      one: '1 fallimento',
     );
     return '$_temp0';
   }
@@ -823,8 +827,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dropsets',
-      one: '1 dropset',
+      other: '$count dropset',
+      one: '1 set di gocce',
     );
     return '$_temp0';
   }
@@ -834,8 +838,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count supersets',
-      one: '1 superset',
+      other: '$count superset',
+      one: '1 superserie',
     );
     return '$_temp0';
   }
@@ -845,42 +849,42 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count other',
-      one: '1 other',
+      other: '$count altro',
+      one: '1 altro',
     );
     return '$_temp0';
   }
 
   @override
-  String get shareExercisesLabel => 'exercises';
+  String get shareExercisesLabel => 'esercizi';
 
   @override
-  String get shareSetsLabel => 'sets';
+  String get shareSetsLabel => 'insiemi';
 
   @override
-  String get shareSetLabel => 'set';
+  String get shareSetLabel => 'impostato';
 
   @override
-  String get tabBaseFoods => 'Base Foods';
+  String get tabBaseFoods => 'Alimenti base';
 
   @override
   String get baseFoodsEmptyState =>
-      'This section will soon be filled with a curated list of base foods like fruits, vegetables, and more.';
+      'Questa sezione sarà presto riempita con un elenco curato di alimenti base come frutta, verdura e altro ancora.';
 
   @override
-  String get noBrand => 'No Brand';
+  String get noBrand => 'Nessun marchio';
 
   @override
-  String get unknown => 'Unknown';
+  String get unknown => 'Sconosciuto';
 
   @override
   String backupFileSubject(String timestamp) {
-    return 'Train Libre App Backup - $timestamp';
+    return 'Backup dell\'app Train Libre - $timestamp';
   }
 
   @override
   String foodItemSubtitle(String brand, int calories) {
-    return '$brand - $calories kcal / 100g';
+    return '$brand - $calories kcal / 100 g';
   }
 
   @override
@@ -899,239 +903,241 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get exerciseCatalogTitle => 'Exercise Catalog';
+  String get exerciseCatalogTitle => 'Catalogo degli esercizi';
 
   @override
-  String get filterByMuscle => 'Filter by muscle group';
+  String get filterByMuscle => 'Filtra per gruppo muscolare';
 
   @override
-  String get noExercisesFound => 'No exercises found.';
+  String get noExercisesFound => 'Nessun esercizio trovato.';
 
   @override
-  String get noDescriptionAvailable => 'No description available.';
+  String get noDescriptionAvailable => 'Nessuna descrizione disponibile.';
 
   @override
-  String get filterByCategory => 'Filter by category';
+  String get filterByCategory => 'Filtra per categoria';
 
   @override
-  String get edit => 'Edit';
+  String get edit => 'Modificare';
 
   @override
-  String get repsLabelShort => 'reps';
+  String get repsLabelShort => 'ripetizioni';
 
   @override
-  String get titleNewRoutine => 'New Routine';
+  String get titleNewRoutine => 'Nuova routine';
 
   @override
-  String get titleEditRoutine => 'Edit Routine';
+  String get titleEditRoutine => 'Modifica routine';
 
   @override
   String get validatorPleaseEnterRoutineName =>
-      'Please enter a name for the routine.';
+      'Inserisci un nome per la routine.';
 
   @override
   String get snackbarRoutineCreated =>
-      'Routine created. Now add some exercises.';
+      'Routine creata. Ora aggiungi alcuni esercizi.';
 
   @override
-  String get snackbarRoutineSaved => 'Routine saved.';
+  String get snackbarRoutineSaved => 'Routine salvata.';
 
   @override
-  String get saveAsRoutineButton => 'Save as routine';
+  String get saveAsRoutineButton => 'Salva come routine';
 
   @override
-  String get saveAsRoutineTitle => 'Save as Routine';
+  String get saveAsRoutineTitle => 'Salva come routine';
 
   @override
-  String get saveAsRoutinePrompt => 'Please enter a name for the new routine:';
+  String get saveAsRoutinePrompt => 'Inserisci un nome per la nuova routine:';
 
   @override
-  String get saveAsRoutineSuccess => 'Routine created!';
+  String get saveAsRoutineSuccess => 'Routine creata!';
 
   @override
-  String get snackbarRoutineSavedAction => 'View';
+  String get snackbarRoutineSavedAction => 'Visualizzazione';
 
   @override
-  String get formFieldRoutineName => 'Name of the routine';
+  String get formFieldRoutineName => 'Nome della routine';
 
   @override
-  String get emptyStateAddFirstExercise => 'Add your first exercise.';
+  String get emptyStateAddFirstExercise => 'Aggiungi il tuo primo esercizio.';
 
   @override
   String setCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sets',
+      other: '$count imposta',
       one: '1 set',
     );
     return '$_temp0';
   }
 
   @override
-  String get fabAddExercise => 'Add Exercise';
+  String get fabAddExercise => 'Aggiungi esercizio';
 
   @override
   String get kgLabelShort => 'kg';
 
   @override
-  String get drawerExerciseCatalog => 'Exercise Catalog';
+  String get drawerExerciseCatalog => 'Catalogo degli esercizi';
 
   @override
-  String get lastWorkoutTitle => 'Last Workout';
+  String get lastWorkoutTitle => 'Ultimo allenamento';
 
   @override
-  String get repeatButton => 'Repeat';
+  String get repeatButton => 'Ripetere';
 
   @override
-  String get weightHistoryTitle => 'Weight History';
+  String get weightHistoryTitle => 'Cronologia del peso';
 
   @override
-  String get hideSummary => 'Hide Summary';
+  String get hideSummary => 'Nascondi riepilogo';
 
   @override
-  String get showSummary => 'Show Summary';
+  String get showSummary => 'Mostra riepilogo';
 
   @override
-  String get exerciseDataAttribution => 'Exercise data from wger';
+  String get exerciseDataAttribution => 'Dati dell\'esercizio da wger';
 
   @override
-  String get duplicate => 'Duplicate';
+  String get duplicate => 'Duplicato';
 
   @override
   String deleteRoutineConfirmContent(String routineName) {
-    return 'Are you sure you want to permanently delete the routine \'$routineName\'?';
+    return 'Vuoi eliminare definitivamente la routine \"$routineName\"?';
   }
 
   @override
-  String get editPauseTimeTitle => 'Edit Pause Duration';
+  String get editPauseTimeTitle => 'Modifica la durata della pausa';
 
   @override
-  String get pauseInSeconds => 'Pause in seconds';
+  String get pauseInSeconds => 'Pausa in pochi secondi';
 
   @override
-  String get editPauseTime => 'Edit Pause';
+  String get editPauseTime => 'Modifica pausa';
 
   @override
   String pauseDuration(int seconds) {
-    return '$seconds second pause';
+    return '$seconds seconda pausa';
   }
 
   @override
   String maxPauseDuration(int seconds) {
-    return 'Pauses up to ${seconds}s';
+    return 'Pausa fino a $seconds s';
   }
 
   @override
   String get deleteWorkoutConfirmContent =>
-      'Are you sure you want to permanently delete this workout log?';
+      'Sei sicuro di voler eliminare definitivamente questo registro degli allenamenti?';
 
   @override
-  String get removeExercise => 'Remove Exercise';
+  String get removeExercise => 'Rimuovi esercizio';
 
   @override
-  String get deleteExerciseConfirmTitle => 'Remove Exercise?';
+  String get deleteExerciseConfirmTitle => 'Rimuovere l\'esercizio?';
 
   @override
   String deleteExerciseConfirmContent(String exerciseName) {
-    return 'Are you sure you want to remove \'$exerciseName\' from this routine?';
+    return 'Sei sicuro di voler rimuovere \"$exerciseName\" da questa routine?';
   }
 
   @override
-  String get doneButtonLabel => 'Done';
+  String get doneButtonLabel => 'Fatto';
 
   @override
-  String get setRestTimeButton => 'Set rest time';
+  String get setRestTimeButton => 'Imposta il tempo di riposo';
 
   @override
-  String get deleteExerciseButton => 'Delete exercise';
+  String get deleteExerciseButton => 'Elimina esercizio';
 
   @override
-  String get restOverLabel => 'Pause is over';
+  String get restOverLabel => 'La pausa è finita';
 
   @override
-  String get workoutRunningLabel => 'Workout is active …';
+  String get workoutRunningLabel => 'L’allenamento è attivo…';
 
   @override
-  String get continueButton => 'Continue';
+  String get continueButton => 'Continuare';
 
   @override
-  String get discardButton => 'Discard';
+  String get discardButton => 'Scartare';
 
   @override
-  String get workoutStatsTitle => 'Training (7 days)';
+  String get workoutStatsTitle => 'Formazione (7 giorni)';
 
   @override
-  String get workoutsLabel => 'Workouts';
+  String get workoutsLabel => 'Allenamenti';
 
   @override
-  String get durationLabel => 'Duration';
+  String get durationLabel => 'Durata';
 
   @override
   String get volumeLabel => 'Volume';
 
   @override
-  String get setsLabel => 'Sets';
+  String get setsLabel => 'Imposta';
 
   @override
-  String get muscleSplitLabel => 'Muscle Split';
+  String get muscleSplitLabel => 'Divisione muscolare';
 
   @override
-  String get snackbar_could_not_open_open_link => 'Could not open link';
+  String get snackbar_could_not_open_open_link =>
+      'Impossibile aprire il collegamento';
 
   @override
-  String get chart_no_data_for_period => 'No chart data for this period';
+  String get chart_no_data_for_period =>
+      'Nessun dato grafico per questo periodo';
 
   @override
-  String get amount_in_milliliters => 'Amount in milliliters';
+  String get amount_in_milliliters => 'Quantità in millilitri';
 
   @override
-  String get amount_in_grams => 'Amount in grams';
+  String get amount_in_grams => 'Quantità in grammi';
 
   @override
-  String get meal_label => 'Meal';
+  String get meal_label => 'Pasto';
 
   @override
-  String get add_to_water_intake => 'Add to water intake';
+  String get add_to_water_intake => 'Aggiungere all\'assunzione di acqua';
 
   @override
-  String get create_exercise_screen_title => 'Create Custom Exercise';
+  String get create_exercise_screen_title => 'Crea esercizio personalizzato';
 
   @override
-  String get exercise_name_label => 'Exercise name';
+  String get exercise_name_label => 'Nome dell\'esercizio';
 
   @override
-  String get category_label => 'Category';
+  String get category_label => 'Categoria';
 
   @override
-  String get description_optional_label => 'Description (optional)';
+  String get description_optional_label => 'Descrizione (facoltativa)';
 
   @override
-  String get primary_muscles_label => 'Primary muscles';
+  String get primary_muscles_label => 'Muscoli primari';
 
   @override
-  String get primary_muscles_hint => 'e.g. Chest, Triceps';
+  String get primary_muscles_hint => 'per esempio. Petto, Tricipiti';
 
   @override
-  String get secondary_muscles_label => 'Secondary muscles (optional)';
+  String get secondary_muscles_label => 'Muscoli secondari (facoltativo)';
 
   @override
-  String get secondary_muscles_hint => 'e.g. Shoulders';
+  String get secondary_muscles_hint => 'per esempio. Spalle';
 
   @override
-  String get fluidNameLabel => 'Name';
+  String get fluidNameLabel => 'Nome';
 
   @override
-  String get sugarPer100mlLabel => 'Sugar (g / 100ml)';
+  String get sugarPer100mlLabel => 'Zucchero (g/100ml)';
 
   @override
-  String get set_type_normal => 'Normal';
+  String get set_type_normal => 'Normale';
 
   @override
-  String get set_type_warmup => 'Warmup';
+  String get set_type_warmup => 'Riscaldamento';
 
   @override
-  String get set_type_failure => 'Failure';
+  String get set_type_failure => 'Fallimento';
 
   @override
   String get set_type_dropset => 'Dropset';
@@ -1140,996 +1146,1013 @@ class AppLocalizationsIt extends AppLocalizations {
   String get set_reps_hint => '8-12';
 
   @override
-  String get data_export_button => 'Export';
+  String get data_export_button => 'Esportare';
 
   @override
-  String get data_import_button => 'Import';
+  String get data_import_button => 'Importare';
 
   @override
   String get snackbar_button_ok => 'OK';
 
   @override
   String get measurement_session_detail_view =>
-      'Detailview of measurement session';
+      'Visualizzazione dettagliata della sessione di misurazione';
 
   @override
-  String get unit_grams => 'g';
+  String get unit_grams => 'G';
 
   @override
   String get unit_kcal => 'kcal';
 
   @override
-  String get delete_profile_picture_button => 'Delete profile picture';
+  String get delete_profile_picture_button => 'Elimina l\'immagine del profilo';
 
   @override
-  String get attribution_title => 'Attribution';
+  String get attribution_title => 'Attribuzione';
 
   @override
-  String get add_liquid_title => 'Add fluid';
+  String get add_liquid_title => 'Aggiungi fluido';
 
   @override
-  String get add_button => 'Add';
+  String get add_button => 'Aggiungere';
 
   @override
-  String get discard_button => 'Discard';
+  String get discard_button => 'Scartare';
 
   @override
-  String get continue_workout_button => 'Continue';
+  String get continue_workout_button => 'Continuare';
 
   @override
-  String get soon_available_snackbar => 'This screen will be available soon';
+  String get soon_available_snackbar =>
+      'Questa schermata sarà presto disponibile';
 
   @override
-  String get start_button => 'Start';
+  String get start_button => 'Inizio';
 
   @override
-  String get today_overview_text => 'TODAY IN FOCUS';
+  String get today_overview_text => 'OGGI IN FOCUS';
 
   @override
-  String get quick_add_text => 'QUICK ADD';
+  String get quick_add_text => 'AGGIUNTA VELOCE';
 
   @override
-  String get scann_barcode_capslock => 'Scan barcode';
+  String get scann_barcode_capslock => 'Scansiona il codice a barre';
 
   @override
-  String get protocol_today_capslock => 'TODAY\'S PROTOCOL';
+  String get protocol_today_capslock => 'IL PROTOCOLLO DI OGGI';
 
   @override
-  String get my_plans_capslock => 'MY PLANS';
+  String get my_plans_capslock => 'I MIEI PIANI';
 
   @override
-  String get overview_capslock => 'OVERVIEW';
+  String get overview_capslock => 'PANORAMICA';
 
   @override
-  String get manage_all_plans => 'Manage all plans';
+  String get manage_all_plans => 'Gestisci tutti i piani';
 
   @override
-  String get workoutSectionStart => 'Start';
+  String get workoutSectionStart => 'Inizio';
 
   @override
-  String get workoutSectionMyPlans => 'My plans';
+  String get workoutSectionMyPlans => 'I miei piani';
 
   @override
-  String get workoutSectionHistoryLibrary => 'History & library';
+  String get workoutSectionHistoryLibrary => 'Storia e biblioteca';
 
   @override
-  String get workoutAllRoutines => 'All routines';
+  String get workoutAllRoutines => 'Tutte le routine';
 
   @override
-  String get workoutEntryWorkouts => 'Workouts';
+  String get workoutEntryWorkouts => 'Allenamenti';
 
   @override
-  String get free_training => 'free training';
+  String get free_training => 'formazione gratuita';
 
   @override
-  String get my_consistency => 'MY CONSISTENCY';
+  String get my_consistency => 'LA MIA COERENZA';
 
   @override
   String get calendar_currently_not_available =>
-      'The calendar view will be available soon.';
+      'La visualizzazione del calendario sarà presto disponibile.';
 
   @override
-  String get in_depth_analysis => 'IN-DEPTH ANALYSIS';
+  String get in_depth_analysis => 'ANALISI APPROFONDITA';
 
   @override
-  String get body_measurements => 'Body measurements';
+  String get body_measurements => 'Misure del corpo';
 
   @override
   String get measurements_description =>
-      'Analyze weight, body fat percentage and circumference.';
+      'Analizzare il peso, la percentuale di grasso corporeo e la circonferenza.';
 
   @override
-  String get nutrition_description => 'Evaluate macros, calories and trends.';
+  String get nutrition_description => 'Valuta macro, calorie e tendenze.';
 
   @override
-  String get training_analysis => 'Training analysis';
+  String get training_analysis => 'Analisi della formazione';
 
   @override
   String get training_analysis_description =>
-      'Track volume, strength and progression.';
+      'Tieni traccia del volume, della forza e della progressione.';
 
   @override
-  String get load_dots => 'loading...';
+  String get load_dots => 'caricamento...';
 
   @override
-  String get profile_capslock => 'PROFILE';
+  String get profile_capslock => 'PROFILO';
 
   @override
-  String get settings_capslock => 'SETTINGS';
+  String get settings_capslock => 'IMPOSTAZIONI';
 
   @override
   String get settingsTitle => 'Impostazioni';
 
   @override
-  String get settingsUpdateFoodDatabase => 'Update Food Database';
+  String get settingsUpdateFoodDatabase =>
+      'Aggiorna il database degli alimenti';
 
   @override
   String get settingsUpdateFoodDatabaseSubtitle =>
-      'Check for updates to the Open Food Facts database manually.';
+      'Controlla manualmente gli aggiornamenti al database Open Food Facts.';
 
   @override
   String get settingsUpdateFoodDatabaseSuccess =>
-      'Food database successfully updated.';
+      'Database degli alimenti aggiornato con successo.';
 
   @override
   String settingsUpdateFoodDatabaseError(String error) {
-    return 'Error updating database: $error';
+    return 'Errore durante l\'aggiornamento del database: $error';
   }
 
   @override
-  String get settingsGuidedTourSectionTitle => 'Guided tour';
+  String get settingsGuidedTourSectionTitle => 'Visita guidata';
 
   @override
-  String get settingsRestartAppTourTitle => 'Restart app tour';
+  String get settingsRestartAppTourTitle => 'Riavvia il tour dell\'app';
 
   @override
   String get settingsRestartAppTourSubtitle =>
-      'Run the short in-app walkthrough again.';
+      'Esegui nuovamente la breve procedura dettagliata in-app.';
 
   @override
-  String get my_goals => 'My goals';
+  String get my_goals => 'I miei obiettivi';
 
   @override
-  String get my_goals_description => 'Adjust calories, macros and water.';
+  String get my_goals_description => 'Regola calorie, macronutrienti e acqua.';
 
   @override
-  String get backup_and_import => 'Data backup & import';
+  String get backup_and_import => 'Backup e importazione dei dati';
 
   @override
   String get backup_and_import_description =>
-      'Create backups, restore, and import data.';
+      'Crea backup, ripristina e importa dati.';
 
   @override
-  String get feedbackReportSettingsSectionTitle => 'Support';
+  String get feedbackReportSettingsSectionTitle => 'Supporto';
 
   @override
-  String get feedbackReportSettingsEntryTitle => 'Send feedback';
+  String get feedbackReportSettingsEntryTitle => 'Invia feedback';
 
   @override
   String get feedbackReportSettingsEntrySubtitle =>
-      'Create a local diagnostic report and choose how to share it.';
+      'Crea un report diagnostico locale e scegli come condividerlo.';
 
   @override
-  String get about_and_legal_capslock => 'ABOUT & LEGAL';
+  String get about_and_legal_capslock => 'INFORMAZIONI E LEGALE';
 
   @override
-  String get feedbackReportScreenTitle => 'Feedback report';
+  String get feedbackReportScreenTitle => 'Rapporto di feedback';
 
   @override
-  String get feedbackReportPrivacyTitle => 'Privacy first';
+  String get feedbackReportPrivacyTitle => 'La privacy prima di tutto';
 
   @override
   String get feedbackReportPrivacyBody =>
-      'This report is generated locally on your device. Nothing is sent automatically. Only what you see in the preview is included when you choose copy, save, share, or email. Email opens a draft to feedback@schotte.me so you can review, edit, or cancel before sending.';
+      'Questo report viene generato localmente sul tuo dispositivo. Niente viene inviato automaticamente. Solo ciò che vedi nell\'anteprima viene incluso quando scegli di copiare, salvare, condividere o inviare tramite email. L\'e-mail apre una bozza a feedback@schotte.me in modo che tu possa rivedere, modificare o annullare prima dell\'invio.';
 
   @override
-  String get feedbackReportOptionalNoteTitle => 'Optional note';
+  String get feedbackReportOptionalNoteTitle => 'Nota facoltativa';
 
   @override
-  String get feedbackReportOptionalNoteLabel => 'Your note (optional)';
+  String get feedbackReportOptionalNoteLabel => 'La tua nota (facoltativo)';
 
   @override
   String get feedbackReportOptionalNoteHint =>
-      'Describe what happened, expected behavior, and steps to reproduce.';
+      'Descrivi cosa è successo, il comportamento previsto e i passaggi da riprodurre.';
 
   @override
-  String get feedbackReportIncludeSectionTitle => 'Include in report';
+  String get feedbackReportIncludeSectionTitle => 'Includi nel rapporto';
 
   @override
   String get feedbackReportIncludeAdaptiveNutrition =>
-      'Adaptive nutrition diagnostics';
+      'Diagnostica nutrizionale adattiva';
 
   @override
   String get feedbackReportIncludeBackupRestore =>
-      'Backup / restore diagnostics';
+      'Backup/ripristino diagnostica';
 
   @override
-  String get feedbackReportIncludeUserNote => 'User note';
+  String get feedbackReportIncludeUserNote => 'Nota per l\'utente';
 
   @override
-  String get feedbackReportGeneratePreview => 'Generate preview';
+  String get feedbackReportGeneratePreview => 'Genera anteprima';
 
   @override
-  String get feedbackReportPreviewTitle => 'Preview';
+  String get feedbackReportPreviewTitle => 'Anteprima';
 
   @override
-  String get feedbackReportActionCopy => 'Copy';
+  String get feedbackReportActionCopy => 'Copia';
 
   @override
-  String get feedbackReportActionSave => 'Save';
+  String get feedbackReportActionSave => 'Salva';
 
   @override
-  String get feedbackReportActionShare => 'Share';
+  String get feedbackReportActionShare => 'Condividere';
 
   @override
-  String get feedbackReportActionEmail => 'Email';
+  String get feedbackReportActionEmail => 'E-mail';
 
   @override
-  String get feedbackReportCopied => 'Report copied to clipboard.';
+  String get feedbackReportCopied => 'Rapporto copiato negli appunti.';
 
   @override
   String get feedbackReportSavedToTemporaryFile =>
-      'Saved to a temporary report file.';
+      'Salvato in un file di rapporto temporaneo.';
 
   @override
-  String get feedbackReportShareCompleted => 'Share sheet opened.';
+  String get feedbackReportShareCompleted => 'Foglio di condivisione aperto.';
 
   @override
-  String get feedbackReportShareCanceled => 'Share canceled.';
+  String get feedbackReportShareCanceled => 'Condivisione annullata.';
 
   @override
-  String get feedbackReportEmailOpenFailed => 'Could not open email app.';
+  String get feedbackReportEmailOpenFailed =>
+      'Impossibile aprire l\'app di posta elettronica.';
 
   @override
-  String get feedbackReportEmailSubject => 'Train Libre feedback report';
+  String get feedbackReportEmailSubject =>
+      'Rapporto di feedback di Train Libre';
 
   @override
-  String get feedbackReportReportTitle => 'Train Libre Feedback Report';
+  String get feedbackReportReportTitle => 'Rapporto di feedback di Train Libre';
 
   @override
-  String get feedbackReportReportGeneratedAt => 'Generated';
+  String get feedbackReportReportGeneratedAt => 'Generato';
 
   @override
-  String get feedbackReportReportAppVersion => 'App version';
+  String get feedbackReportReportAppVersion => 'Versione dell\'app';
 
   @override
-  String get feedbackReportReportBuildNumber => 'Build number';
+  String get feedbackReportReportBuildNumber => 'Numero di costruzione';
 
   @override
-  String get feedbackReportReportPlatform => 'Platform';
+  String get feedbackReportReportPlatform => 'Piattaforma';
 
   @override
-  String get feedbackReportReportOsVersion => 'OS version';
+  String get feedbackReportReportOsVersion => 'Versione del sistema operativo';
 
   @override
-  String get feedbackReportUnavailable => 'unavailable';
+  String get feedbackReportUnavailable => 'non disponibile';
 
   @override
-  String get feedbackReportSectionUserNote => 'User note';
+  String get feedbackReportSectionUserNote => 'Nota per l\'utente';
 
   @override
   String get feedbackReportSectionAdaptiveNutrition =>
-      'Adaptive nutrition diagnostics';
+      'Diagnostica nutrizionale adattiva';
 
   @override
   String get feedbackReportSectionBackupRestore =>
-      'Backup / restore diagnostics';
+      'Backup/ripristino diagnostica';
 
   @override
-  String get attribution_and_license => 'Attribution & Licenses';
+  String get attribution_and_license => 'Attribuzione e licenze';
 
   @override
-  String get data_from_off_and_wger => 'Data from Open Food Facts and wger.';
+  String get data_from_off_and_wger =>
+      'Dati provenienti da Open Food Facts e wger.';
 
   @override
-  String get app_version => 'App version';
+  String get app_version => 'Versione dell\'app';
 
   @override
-  String get all_measurements => 'ALL MEASUREMENTS';
+  String get all_measurements => 'TUTTE LE MISURE';
 
   @override
-  String get all_measurements_no_cap => 'All measurements';
+  String get all_measurements_no_cap => 'Tutte le misurazioni';
 
   @override
-  String get date_and_time_of_measurement => 'Date & time of measurement';
+  String get date_and_time_of_measurement => 'Data e ora della misurazione';
 
   @override
-  String get onbWelcomeTitle => 'Welcome to Train Libre';
+  String get onbWelcomeTitle => 'Benvenuti su Train Libre';
 
   @override
   String get onbWelcomeBody =>
-      'Let’s start by setting personal goals to guide training and nutrition.';
+      'Iniziamo definendo obiettivi personali per guidare l’allenamento e l’alimentazione.';
 
   @override
-  String get onbTrackTitle => 'Track everything';
+  String get onbTrackTitle => 'Tieni traccia di tutto';
 
   @override
   String get onbTrackBody =>
-      'Log nutrition, workouts, and measurements — all in one place.';
+      'Registra nutrizione, allenamenti e misurazioni, tutto in un unico posto.';
 
   @override
-  String get onbPrivacyTitle => 'Offline-first & privacy';
+  String get onbPrivacyTitle => 'Prima offline e privacy';
 
   @override
   String get onbPrivacyBody =>
-      'Your data stays on the device. No cloud accounts, no background sync.';
+      'I tuoi dati rimangono sul dispositivo. Nessun account cloud, nessuna sincronizzazione in background.';
 
   @override
-  String get onbFinishTitle => 'All set';
+  String get onbFinishTitle => 'Tutto pronto';
 
   @override
   String get onbFinishBody =>
-      'You’re ready to explore the app. You can adjust settings anytime.';
+      'Sei pronto per esplorare l\'app. Puoi modificare le impostazioni in qualsiasi momento.';
 
   @override
-  String get onbFinishCta => 'Let’s go!';
+  String get onbFinishCta => 'Andiamo!';
 
   @override
-  String get onbShowTutorialAgain => 'Show onboarding again';
+  String get onbShowTutorialAgain => 'Mostra di nuovo l\'onboarding';
 
   @override
-  String get appTourOfferTitle => 'Take a quick app tour?';
+  String get appTourOfferTitle => 'Vuoi fare un breve tour dell\'app?';
 
   @override
   String get appTourOfferBody =>
-      'Get a short walkthrough of the main app areas. You can skip now and restart later in Settings.';
+      'Ottieni una breve panoramica delle principali aree dell\'app. Puoi saltare ora e riavviare più tardi in Impostazioni.';
 
   @override
-  String get appTourOfferStart => 'Start tour';
+  String get appTourOfferStart => 'Inizia il giro';
 
   @override
-  String get appTourOfferSkip => 'Maybe later';
+  String get appTourOfferSkip => 'Forse più tardi';
 
   @override
-  String get appTourSkip => 'Skip';
+  String get appTourSkip => 'Saltare';
 
   @override
-  String get appTourNext => 'Next';
+  String get appTourNext => 'Prossimo';
 
   @override
-  String get appTourDone => 'Done';
+  String get appTourDone => 'Fatto';
 
   @override
-  String get appTourStepNavigationTitle => 'Main navigation';
+  String get appTourStepNavigationTitle => 'Navigazione principale';
 
   @override
   String get appTourStepNavigationBody =>
-      'Use the bottom tabs to move between Diary, Workout, Statistics, and Nutrition.';
+      'Utilizza le schede in basso per spostarti tra Diario, Allenamento, Statistiche e Nutrizione.';
 
   @override
-  String get appTourStepQuickActionsTitle => 'Quick actions';
+  String get appTourStepQuickActionsTitle => 'Azioni rapide';
 
   @override
   String get appTourStepQuickActionsBody =>
-      'Tap the plus button to quickly add food, fluids, measurements, workouts, and more.';
+      'Tocca il pulsante più per aggiungere rapidamente cibo, liquidi, misurazioni, allenamenti e altro ancora.';
 
   @override
-  String get appTourStepDiaryTitle => 'Diary';
+  String get appTourStepDiaryTitle => 'Diario';
 
   @override
   String get appTourStepDiaryBody =>
-      'Diary is your daily overview. Track meals, hydration, supplements, and your day at a glance.';
+      'Il diario è la tua panoramica quotidiana. Tieni traccia dei pasti, dell\'idratazione, degli integratori e della tua giornata a colpo d\'occhio.';
 
   @override
-  String get appTourStepWorkoutTitle => 'Workout';
+  String get appTourStepWorkoutTitle => 'Allenamento';
 
   @override
   String get appTourStepWorkoutBody =>
-      'Workout is where you start sessions, manage routines, and review your training history.';
+      'Allenamento è il luogo in cui inizi le sessioni, gestisci le routine e rivedi la cronologia degli allenamenti.';
 
   @override
-  String get appTourStepNutritionTitle => 'Nutrition';
+  String get appTourStepNutritionTitle => 'Nutrizione';
 
   @override
   String get appTourStepNutritionBody =>
-      'Nutrition helps you plan meals, review targets, and access tools like meal templates.';
+      'La nutrizione ti aiuta a pianificare i pasti, rivedere gli obiettivi e accedere a strumenti come i modelli di pasto.';
 
   @override
-  String get appTourStepStatisticsTitle => 'Statistics';
+  String get appTourStepStatisticsTitle => 'Statistiche';
 
   @override
   String get appTourStepStatisticsBody =>
-      'Statistics shows trends and progress so you can understand how your data changes over time.';
+      'Le statistiche mostrano tendenze e progressi in modo che tu possa capire come cambiano i tuoi dati nel tempo.';
 
   @override
-  String get onbSetGoalsCta => 'Set goals';
+  String get onbSetGoalsCta => 'Stabilisci obiettivi';
 
   @override
-  String get onbHeaderTitle => 'Tutorial';
+  String get onbHeaderTitle => 'Esercitazione';
 
   @override
-  String get onbHeaderSkip => 'Skip';
+  String get onbHeaderSkip => 'Saltare';
 
   @override
-  String get onbBack => 'Back';
+  String get onbBack => 'Indietro';
 
   @override
-  String get onbNext => 'Next';
+  String get onbNext => 'Prossimo';
 
   @override
-  String get onbGuideTitle => 'How this tutorial works';
+  String get onbGuideTitle => 'Come funziona questo tutorial';
 
   @override
   String get onbGuideBody =>
-      'Swipe between slides or use Next. Tap the buttons on each slide to try features. You can finish anytime with Skip.';
+      'Scorri tra le diapositive o utilizza Successivo. Tocca i pulsanti su ciascuna diapositiva per provare le funzionalità. Puoi terminare in qualsiasi momento con Salta.';
 
   @override
-  String get onbCtaOpenNutrition => 'Open nutrition';
+  String get onbCtaOpenNutrition => 'Nutrizione aperta';
 
   @override
-  String get onbCtaLearnMore => 'Learn more';
+  String get onbCtaLearnMore => 'Saperne di più';
 
   @override
-  String get onbBadgeDone => 'Done';
+  String get onbBadgeDone => 'Fatto';
 
   @override
-  String get onbTipSetGoals => 'Tip: adjust targets first';
+  String get onbTipSetGoals => 'Suggerimento: modifica prima gli obiettivi';
 
   @override
-  String get onbTipAddEntry => 'Tip: add one entry today';
+  String get onbTipAddEntry => 'Suggerimento: aggiungi una voce oggi';
 
   @override
-  String get onbTipLocalControl => 'You control all data locally';
+  String get onbTipLocalControl => 'Puoi controllare tutti i dati localmente';
 
   @override
   String get onbTrackHowBody =>
-      'How to log nutrition:\n• Open the Food tab.\n• Tap the + button.\n• Search products or scan a barcode.\n• Adjust portion and time.\n• Save to your diary.';
+      'Come registrare la nutrizione:\n• Aprire la scheda Cibo.\n• Tocca il pulsante +.\n• Cerca prodotti o scansiona un codice a barre.\n• Modificare porzione e tempo.\n• Salva sul tuo diario.';
 
   @override
-  String get onbMeasureTitle => 'Track measurements';
+  String get onbMeasureTitle => 'Tieni traccia delle misurazioni';
 
   @override
   String get onbMeasureBody =>
-      'How to add measurements:\n• Open the Stats tab.\n• Tap the + button.\n• Choose a metric (e.g., weight, waist, body fat).\n• Enter value and time.\n• Save to your history.';
+      'Come aggiungere misure:\n• Aprire la scheda Statistiche.\n• Tocca il pulsante +.\n• Scegli un parametro (ad esempio peso, vita, grasso corporeo).\n• Immettere valore e ora.\n• Salva nella tua cronologia.';
 
   @override
   String get onbTipMeasureToday =>
-      'Tip: add today’s weight to start your graph';
+      'Suggerimento: aggiungi il peso di oggi per iniziare il grafico';
 
   @override
-  String get onbTrainTitle => 'Train with routines';
+  String get onbTrainTitle => 'Allenati con routine';
 
   @override
   String get onbTrainBody =>
-      'Create a routine and start a workout:\n• Open the Train tab.\n• Tap Create routine to add exercises and sets.\n• Save the routine.\n• Tap Start to begin, or use “Start empty workout”.';
+      'Crea una routine e inizia un allenamento:\n• Apri la scheda Treno.\n• Tocca Crea routine per aggiungere esercizi e serie.\n• Salvare la routine.\n• Tocca Avvia per iniziare oppure utilizza “Inizia allenamento a vuoto”.';
 
   @override
   String get onbTipStartWorkout =>
-      'Tip: start an empty workout to log a quick session';
+      'Suggerimento: avvia un allenamento vuoto per registrare una sessione veloce';
 
   @override
-  String get unitsSection => 'units';
+  String get unitsSection => 'unità';
 
   @override
-  String get weightUnit => 'Weight units';
+  String get weightUnit => 'Unità di peso';
 
   @override
-  String get lengthUnit => 'unit of length';
+  String get lengthUnit => 'unità di lunghezza';
 
   @override
-  String get comingSoon => 'Coming soon';
+  String get comingSoon => 'Prossimamente';
 
   @override
-  String get noFavorites => 'No Favorites';
+  String get noFavorites => 'Nessun preferito';
 
   @override
-  String get nothingTrackedYet => 'Nothing tracked yet';
+  String get nothingTrackedYet => 'Niente ancora tracciato';
 
   @override
   String snackbarBarcodeNotFound(String barcode) {
-    return 'No product found for barcode \"$barcode\".';
+    return 'Nessun prodotto trovato per il codice a barre \"$barcode\".';
   }
 
   @override
-  String get categoryHint => 'e.g. Chest, Back, Legs...';
+  String get categoryHint => 'per esempio. Petto, schiena, gambe...';
 
   @override
-  String get validatorPleaseEnterCategory => 'Please enter a category.';
+  String get validatorPleaseEnterCategory => 'Inserisci una categoria.';
 
   @override
-  String get dialogEnterPasswordImport => 'Enter password to import backup';
+  String get dialogEnterPasswordImport =>
+      'Inserisci la password per importare il backup';
 
   @override
-  String get dataManagementBackupTitle => 'Train Libre Data Backup';
+  String get dataManagementBackupTitle => 'Backup dei dati di Train Libre';
 
   @override
   String get dataManagementBackupDescription =>
-      'Back up or restore all your app data. Ideal for changing devices.';
+      'Esegui il backup o ripristina tutti i dati dell\'app. Ideale per cambiare dispositivo.';
 
   @override
-  String get exportEncrypted => 'Export Encrypted';
+  String get exportEncrypted => 'Esporta crittografato';
 
   @override
-  String get dialogPasswordForExport => 'Password for encrypted export';
+  String get dialogPasswordForExport =>
+      'Password per l\'esportazione crittografata';
 
   @override
-  String get snackbarEncryptedBackupShared => 'Encrypted backup shared.';
+  String get snackbarEncryptedBackupShared => 'Backup crittografato condiviso.';
 
   @override
-  String get exportFailed => 'Export failed.';
+  String get exportFailed => 'Esportazione non riuscita.';
 
   @override
-  String get csvExportTitle => 'Data Export (CSV)';
+  String get csvExportTitle => 'Esportazione dati (CSV)';
 
   @override
   String get csvExportDescription =>
-      'Export parts of your data as a CSV file for analysis in other programs.';
+      'Esporta parti dei tuoi dati come file CSV per l\'analisi in altri programmi.';
 
   @override
-  String get snackbarSharingNutrition => 'Sharing nutrition diary...';
+  String get snackbarSharingNutrition => 'Condivido il diario nutrizionale...';
 
   @override
   String get snackbarExportFailedNoEntries =>
-      'Export failed. There may be no entries yet.';
+      'Esportazione non riuscita. Potrebbero non esserci ancora voci.';
 
   @override
-  String get snackbarSharingMeasurements => 'Sharing measurements...';
+  String get snackbarSharingMeasurements => 'Condivisione delle misurazioni...';
 
   @override
-  String get snackbarSharingWorkouts => 'Sharing workout history...';
+  String get snackbarSharingWorkouts =>
+      'Condivisione della cronologia degli allenamenti...';
 
   @override
-  String get mapExercisesTitle => 'Map Exercises';
+  String get mapExercisesTitle => 'Esercizi sulla mappa';
 
   @override
   String get mapExercisesDescription =>
-      'Map unknown names from logs to wger exercises.';
+      'Mappa i nomi sconosciuti dai log agli esercizi wger.';
 
   @override
-  String get mapExercisesButton => 'Start Mapping';
+  String get mapExercisesButton => 'Inizia la mappatura';
 
   @override
-  String get autoBackupTitle => 'Automatic Backups';
+  String get autoBackupTitle => 'Backup automatici';
 
   @override
   String get autoBackupDescription =>
-      'Periodically saves a backup in the folder. Current folder:';
+      'Salva periodicamente un backup nella cartella. Cartella corrente:';
 
   @override
-  String get autoBackupDefaultFolder => 'App-Documents/Backups (Default)';
+  String get autoBackupDefaultFolder =>
+      'Documenti/backup dell\'app (impostazione predefinita)';
 
   @override
-  String get autoBackupChooseFolder => 'Choose Folder';
+  String get autoBackupChooseFolder => 'Scegli Cartella';
 
   @override
-  String get autoBackupCopyPath => 'Copy Path';
+  String get autoBackupCopyPath => 'Copia percorso';
 
   @override
-  String get autoBackupRunNow => 'Check & Run Auto-Backup Now';
+  String get autoBackupRunNow =>
+      'Controlla ed esegui il backup automatico adesso';
 
   @override
   String get autoBackupRequestAccessSubtitle =>
-      'To automatically back up your data, Train Libre needs access to a folder you choose. Your backups will be stored there.';
+      'Per eseguire il backup automatico dei tuoi dati, Train Libre necessita dell\'accesso a una cartella di tua scelta. I tuoi backup verranno archiviati lì.';
 
   @override
-  String get snackbarAutoBackupSuccess => 'Auto-Backup completed.';
+  String get snackbarAutoBackupSuccess => 'Backup automatico completato.';
 
   @override
-  String get snackbarAutoBackupFailed => 'Auto-Backup failed or was canceled.';
+  String get snackbarAutoBackupFailed =>
+      'Il backup automatico non è riuscito o è stato annullato.';
 
   @override
-  String get localDataDeletionCardTitle => 'Local app data';
+  String get localDataDeletionCardTitle => 'Dati dell\'app locale';
 
   @override
   String get localDataDeletionCardDescription =>
-      'Permanently delete user-owned data stored on this device and reset Train Libre to a fresh local state.';
+      'Elimina definitivamente i dati di proprietà dell\'utente memorizzati su questo dispositivo e ripristina Train Libre a un nuovo stato locale.';
 
   @override
-  String get deleteAllLocalAppData => 'Delete all local app data';
+  String get deleteAllLocalAppData => 'Elimina tutti i dati dell\'app locale';
 
   @override
-  String get localDataDeletionConfirmTitle => 'Delete all local app data?';
+  String get localDataDeletionConfirmTitle =>
+      'Eliminare tutti i dati dell\'app locale?';
 
   @override
   String get localDataDeletionConfirmBody =>
-      'This permanently deletes locally stored workouts, nutrition logs, measurements, supplements, settings/state, cached analytics, and local app data.\n\nThis does not delete data already exported to Apple Health or Health Connect.\n\nThis does not delete external provider data or remote public catalog sources. Bundled app assets and required default catalogs are kept or recreated so the app can launch after reset.';
+      'Questa operazione elimina definitivamente allenamenti, registri nutrizionali, misurazioni, integratori, impostazioni/stato, dati analitici memorizzati nella cache e dati delle app locali memorizzati localmente.\n\nCiò non elimina i dati già esportati su Apple Health o Health Connect.\n\nCiò non elimina i dati del provider esterno o le origini del catalogo pubblico remoto. Le risorse dell\'app in bundle e i cataloghi predefiniti richiesti vengono mantenuti o ricreati in modo che l\'app possa essere avviata dopo il ripristino.';
 
   @override
-  String get localDataDeletionTypeDeleteLabel => 'Type DELETE to confirm';
+  String get localDataDeletionTypeDeleteLabel =>
+      'Digita CANCELLA per confermare';
 
   @override
-  String get localDataDeletionSuccessTitle => 'Local data deleted';
+  String get localDataDeletionSuccessTitle => 'Dati locali cancellati';
 
   @override
   String get localDataDeletionSuccessBody =>
-      'Train Libre will return to its initial setup state.';
+      'Train Libre tornerà al suo stato di configurazione iniziale.';
 
   @override
   String get localDataDeletionFailed =>
-      'Local data could not be deleted. Please try again.';
+      'Impossibile eliminare i dati locali. Per favore riprova.';
 
   @override
-  String get noUnknownExercisesFound => 'No unknown exercises found';
+  String get noUnknownExercisesFound => 'Nessun esercizio sconosciuto trovato';
 
   @override
   String snackbarAutoBackupFolderSet(String path) {
-    return 'Auto-backup folder set:\n$path';
+    return 'Impostazione cartelle per il backup automatico:\n$path';
   }
 
   @override
-  String get snackbarPathCopied => 'Path copied';
+  String get snackbarPathCopied => 'Percorso copiato';
 
   @override
   String get passwordLabel => 'Password';
 
   @override
-  String get descriptionLabel => 'Description';
+  String get descriptionLabel => 'Descrizione';
 
   @override
-  String get involvedMuscles => 'Involved Muscles';
+  String get involvedMuscles => 'Muscoli coinvolti';
 
   @override
-  String get primaryLabel => 'Primary:';
+  String get primaryLabel => 'Primario:';
 
   @override
-  String get secondaryLabel => 'Secondary:';
+  String get secondaryLabel => 'Secondario:';
 
   @override
-  String get noMusclesSpecified => 'No muscles specified.';
+  String get noMusclesSpecified => 'Nessun muscolo specificato.';
 
   @override
-  String get frontLabel => 'Front';
+  String get frontLabel => 'Fronte';
 
   @override
-  String get backLabel => 'Back';
+  String get backLabel => 'Indietro';
 
   @override
-  String get noSelection => 'No selection';
+  String get noSelection => 'Nessuna selezione';
 
   @override
-  String get selectButton => 'Select';
+  String get selectButton => 'Selezionare';
 
   @override
-  String get applyingChanges => 'Applying changes...';
+  String get applyingChanges => 'Applicazione delle modifiche...';
 
   @override
-  String get applyMapping => 'Apply Mapping';
+  String get applyMapping => 'Applica la mappatura';
 
   @override
-  String get mappingSuggestions => 'Suggestions';
+  String get mappingSuggestions => 'Suggerimenti';
 
   @override
-  String get mappingSuggestionsEmpty => 'No matching exercises found';
+  String get mappingSuggestionsEmpty =>
+      'Nessun esercizio corrispondente trovato';
 
   @override
-  String get personalData => 'Personal Data';
+  String get personalData => 'Dati personali';
 
   @override
-  String get personalDataCL => 'PERSONAL DATA';
+  String get personalDataCL => 'DATI PERSONALI';
 
   @override
-  String get macroDistribution => 'Macronutrient Distribution';
+  String get macroDistribution => 'Distribuzione dei macronutrienti';
 
   @override
   String get dialogFinishWorkoutBody =>
-      'Are you sure you want to finish this workout?';
+      'Sei sicuro di voler finire questo allenamento?';
 
   @override
   String get attributionText =>
-      'This app uses data from external sources:\n\n● Exercise data and images from wger (wger.de), licensed under CC-BY-SA 4.0.\n\n● Food database from Open Food Facts (openfoodfacts.org), available under the Open Database License (ODbL).';
+      'Questa app utilizza dati provenienti da fonti esterne:\n\n● Dati e immagini degli esercizi da wger (wger.de), concesso in licenza con CC-BY-SA 4.0.\n\n● Database alimentare di Open Food Facts (openfoodfacts.org), disponibile sotto la licenza Open Database License (ODbL).';
 
   @override
-  String get errorRoutineNotFound => 'Routine not found';
+  String get errorRoutineNotFound => 'Routine non trovata';
 
   @override
-  String get workoutHistoryEmptyTitle => 'Your history is empty';
+  String get workoutHistoryEmptyTitle => 'La tua cronologia è vuota';
 
   @override
-  String get workoutSummaryTitle => 'Workout Complete';
+  String get workoutSummaryTitle => 'Allenamento completato';
 
   @override
-  String get workoutSummaryExerciseOverview => 'Exercise Overview';
+  String get workoutSummaryExerciseOverview => 'Panoramica degli esercizi';
 
   @override
-  String get nutritionDiary => 'Diary';
+  String get nutritionDiary => 'Diario';
 
   @override
-  String get detailedNutrientGoals => 'Detailed Nutrients';
+  String get detailedNutrientGoals => 'Nutrienti dettagliati';
 
   @override
-  String get detailedNutrientGoalsCL => 'DETAILED NUTRIENTS';
+  String get detailedNutrientGoalsCL => 'NUTRIENTI DETTAGLIATI';
 
   @override
-  String get supplementTrackerTitle => 'Supplement Tracker';
+  String get supplementTrackerTitle => 'Monitoraggio degli integratori';
 
   @override
-  String get supplementTrackerDescription => 'Track goals, limits, and intake.';
+  String get supplementTrackerDescription =>
+      'Tieni traccia di obiettivi, limiti e assunzione.';
 
   @override
-  String get createSupplementTitle => 'Create Supplement';
+  String get createSupplementTitle => 'Crea supplemento';
 
   @override
-  String get supplementNameLabel => 'Supplement Name';
+  String get supplementNameLabel => 'Nome del supplemento';
 
   @override
-  String get defaultDoseLabel => 'Default Dose';
+  String get defaultDoseLabel => 'Dose predefinita';
 
   @override
-  String get unitLabel => 'Unit';
+  String get unitLabel => 'Unità';
 
   @override
-  String get dailyGoalLabel => 'Daily Goal (optional)';
+  String get dailyGoalLabel => 'Obiettivo giornaliero (facoltativo)';
 
   @override
-  String get dailyLimitLabel => 'Daily Limit (optional)';
+  String get dailyLimitLabel => 'Limite giornaliero (facoltativo)';
 
   @override
-  String get dailyProgressTitle => 'Daily Progress';
+  String get dailyProgressTitle => 'Progresso quotidiano';
 
   @override
-  String get todaysLogTitle => 'Today\'s Log';
+  String get todaysLogTitle => 'Il diario di oggi';
 
   @override
-  String get logIntakeTitle => 'Log Intake';
+  String get logIntakeTitle => 'Registra l\'assunzione';
 
   @override
   String get emptySupplementGoals =>
-      'Set goals or limits for supplements to see your progress here.';
+      'Imposta obiettivi o limiti per gli integratori per vedere i tuoi progressi qui.';
 
   @override
-  String get emptySupplementLogs => 'No intake logged for today yet.';
+  String get emptySupplementLogs =>
+      'Ancora nessuna assunzione registrata per oggi.';
 
   @override
   String get doseLabel => 'Dose';
 
   @override
-  String get settingsDescription => 'Theme, units, data and more';
+  String get settingsDescription => 'Tema, unità, dati e altro ancora';
 
   @override
-  String get settingsAppearance => 'Appearance';
+  String get settingsAppearance => 'Aspetto';
 
   @override
-  String get themeSystem => 'System';
+  String get themeSystem => 'Sistema';
 
   @override
-  String get themeLight => 'Light';
+  String get themeLight => 'Leggero';
 
   @override
-  String get themeDark => 'Dark';
+  String get themeDark => 'Buio';
 
   @override
-  String get caffeinePrompt => 'Caffeine (optional)';
+  String get caffeinePrompt => 'Caffeina (facoltativa)';
 
   @override
-  String get caffeineUnit => 'mg per 100ml';
+  String get caffeineUnit => 'mg per 100 ml';
 
   @override
-  String get profile => 'Profile';
+  String get profile => 'Profilo';
 
   @override
-  String get measurementWeightCapslock => 'BODY WEIGHT';
+  String get measurementWeightCapslock => 'PESO CORPOREO';
 
   @override
-  String get diary => 'Diary';
+  String get diary => 'Diario';
 
   @override
-  String get analysis => 'Analysis';
+  String get analysis => 'Analisi';
 
   @override
-  String get yesterday => 'Yesterday';
+  String get yesterday => 'Ieri';
 
   @override
-  String get dayBeforeYesterday => 'Two days ago';
+  String get dayBeforeYesterday => 'Due giorni fa';
 
   @override
-  String get statistics => 'Statistics';
+  String get statistics => 'Statistiche';
 
   @override
-  String get workout => 'Workout';
+  String get workout => 'Allenamento';
 
   @override
-  String get addFoodTitle => 'add food';
+  String get addFoodTitle => 'aggiungere cibo';
 
   @override
-  String get nutritionExplorerTitle => 'Nutrition Explorer';
+  String get nutritionExplorerTitle => 'Esploratore della nutrizione';
 
   @override
-  String get myMeals => 'My Meals';
+  String get myMeals => 'I miei pasti';
 
   @override
-  String get myMealsCL => 'MY MEALS';
+  String get myMealsCL => 'I MIEI PASTI';
 
   @override
-  String get nutritionSectionTodayInFocus => 'Today in focus';
+  String get nutritionSectionTodayInFocus => 'Oggi al centro dell\'attenzione';
 
   @override
-  String get nutritionSectionMyMeals => 'My meals';
+  String get nutritionSectionMyMeals => 'I miei pasti';
 
   @override
-  String get nutritionSectionToolsAndLibrary => 'Tools & library';
+  String get nutritionSectionToolsAndLibrary => 'Strumenti e libreria';
 
   @override
-  String get supplement_caffeine => 'Caffeine';
+  String get supplement_caffeine => 'Caffeina';
 
   @override
-  String get supplement_creatine_monohydrate => 'Creatine Monohydrate';
+  String get supplement_creatine_monohydrate => 'Creatina monoidrato';
 
   @override
-  String get manageSupplementsTitle => 'Manage supplements';
+  String get manageSupplementsTitle => 'Gestire gli integratori';
 
   @override
-  String get deleted => 'deleted';
+  String get deleted => 'cancellato';
 
   @override
-  String get operationNotAllowed => 'This operation isn\'t allowed';
+  String get operationNotAllowed => 'Questa operazione non è consentita';
 
   @override
-  String get emptySupplements => 'No supplements available';
+  String get emptySupplements => 'Nessun supplemento disponibile';
 
   @override
-  String get undo => 'Undo';
+  String get undo => 'Disfare';
 
   @override
   String get deleteSupplementConfirm =>
-      'Are you sure you want to delete this supplement? All historical data will be lost.\n\nTip: You can simply untrack it by editing the supplement instead.';
+      'Sei sicuro di voler eliminare questo supplemento? Tutti i dati storici andranno persi.\n\nSuggerimento: puoi semplicemente annullarne la traccia modificando il supplemento.';
 
   @override
-  String get fieldRequired => 'Required';
+  String get fieldRequired => 'Necessario';
 
   @override
-  String get unitNotSupported => 'Unit not supported.';
+  String get unitNotSupported => 'Unità non supportata.';
 
   @override
-  String get caffeineUnitLocked => 'For caffeine the unit is fixed: mg.';
+  String get caffeineUnitLocked => 'Per la caffeina l\'unità è fissa: mg.';
 
   @override
-  String get caffeineMustBeMg => 'Caffeine must be recorded in mg.';
+  String get caffeineMustBeMg => 'La caffeina deve essere registrata in mg.';
 
   @override
-  String get tabCatalogSearch => 'Catalog';
+  String get tabCatalogSearch => 'Catalogare';
 
   @override
-  String get tabMeals => 'Meals';
+  String get tabMeals => 'Pasti';
 
   @override
-  String get emptyCategory => 'No entries';
+  String get emptyCategory => 'Nessuna voce';
 
   @override
-  String get searchSectionBase => 'Base foods';
+  String get searchSectionBase => 'Alimenti base';
 
   @override
-  String get searchSectionOther => 'Other results';
+  String get searchSectionOther => 'Altri risultati';
 
   @override
-  String get mealsComingSoonTitle => 'Meals (coming soon)';
+  String get mealsComingSoonTitle => 'Pasti (disponibili a breve)';
 
   @override
   String get mealsComingSoonBody =>
-      'Soon you will be able to create your own meals from multiple foods.';
+      'Presto sarai in grado di creare i tuoi pasti da più cibi.';
 
   @override
-  String get mealsEmptyTitle => 'No meal templates saved';
+  String get mealsEmptyTitle => 'Nessun modello di pasto salvato';
 
   @override
   String get mealsEmptyBody =>
-      'Create meals to quickly log multiple foods at once.';
+      'Crea pasti per registrare rapidamente più alimenti contemporaneamente.';
 
   @override
   String get mealsEmptyBodyWithShortcut =>
-      'In the diary, use the “Save as meal” option below your Breakfast or Dinner to save common food combinations as a quick template.';
+      'Nel diario, utilizza l\'opzione \"Salva come pasto\" sotto la colazione o la cena per salvare le combinazioni alimentari comuni come modello rapido.';
 
   @override
-  String get mealsCreateManually => 'Create meal manually';
+  String get mealsCreateManually => 'Crea pasto manualmente';
 
   @override
-  String get saveMealTemplateShortcut => 'Save as meal';
+  String get saveMealTemplateShortcut => 'Salva come pasto';
 
   @override
-  String get mealsCreate => 'Create meal';
+  String get mealsCreate => 'Crea pasto';
 
   @override
-  String get mealsEdit => 'Edit meal';
+  String get mealsEdit => 'Modifica pasto';
 
   @override
-  String get mealsDelete => 'Delete meal';
+  String get mealsDelete => 'Elimina pasto';
 
   @override
-  String get mealsAddToDiary => 'Add food';
+  String get mealsAddToDiary => 'Aggiungi cibo';
 
   @override
-  String get mealNameLabel => 'Meal name';
+  String get mealNameLabel => 'Nome del pasto';
 
   @override
-  String get mealNotesLabel => 'Notes';
+  String get mealNotesLabel => 'Note';
 
   @override
-  String get mealIngredientsTitle => 'Ingredients';
+  String get mealIngredientsTitle => 'Ingredienti';
 
   @override
-  String get mealAddIngredient => 'Add ingredient';
+  String get mealAddIngredient => 'Aggiungi ingrediente';
 
   @override
-  String get mealIngredientAmountLabel => 'Amount';
+  String get mealIngredientAmountLabel => 'Quantità';
 
   @override
-  String get mealDeleteConfirmTitle => 'Delete meal';
+  String get mealDeleteConfirmTitle => 'Elimina pasto';
 
   @override
   String mealDeleteConfirmBody(Object name) {
-    return 'Are you sure you want to delete the meal \'$name\'? All its ingredients will also be removed.';
+    return 'Sei sicuro di voler eliminare il pasto \'$name\'? Verranno rimossi anche tutti i suoi ingredienti.';
   }
 
   @override
   String mealAddedToDiary(Object name) {
-    return 'Meal \'$name\' has been added to your diary.';
+    return 'Il pasto \'$name\' è stato aggiunto al tuo diario.';
   }
 
   @override
-  String get mealSaved => 'Meal saved.';
+  String get mealSaved => 'Pasto salvato.';
 
   @override
-  String get mealDeleted => 'Meal deleted.';
+  String get mealDeleted => 'Pasto eliminato.';
 
   @override
-  String get confirm => 'Confirm';
+  String get confirm => 'Confermare';
 
   @override
-  String get addMealToDiaryTitle => 'Add to diary';
+  String get addMealToDiaryTitle => 'Aggiungi al diario';
 
   @override
-  String get mealTypeLabel => 'Meal';
+  String get mealTypeLabel => 'Pasto';
 
   @override
-  String get amountLabel => 'Amount';
+  String get amountLabel => 'Quantità';
 
   @override
-  String get mealAddedToDiarySuccess => 'Meal added to diary';
+  String get mealAddedToDiarySuccess => 'Pasto aggiunto al diario';
 
   @override
-  String get error => 'Error';
+  String get error => 'Errore';
 
   @override
-  String get mealsViewTitle => 'mealsViewTitle';
+  String get mealsViewTitle => 'pastiViewTitle';
 
   @override
-  String get noNotes => 'No notes';
+  String get noNotes => 'Nessuna nota';
 
   @override
-  String get ingredientsCapsLock => 'INGREDIENTS';
+  String get ingredientsCapsLock => 'INGREDIENTI';
 
   @override
-  String get nutritionSectionLabel => 'NUTRITION FACTS';
+  String get nutritionSectionLabel => 'FATTI NUTRIZIONALI';
 
   @override
-  String get nutritionCalculatedForCurrentAmounts => 'for current quantities';
+  String get nutritionCalculatedForCurrentAmounts => 'per le quantità attuali';
 
   @override
-  String get startCapsLock => 'START';
+  String get startCapsLock => 'INIZIO';
 
   @override
   String get nutritionHubSubtitle =>
-      'Discover insights, track meals, and plan your nutrition here soon.';
+      'Scopri approfondimenti, monitora i pasti e pianifica la tua alimentazione qui presto.';
 
   @override
-  String get nutritionHubTitle => 'Nutrition';
+  String get nutritionHubTitle => 'Nutrizione';
 
   @override
-  String get nutrition => 'nutrition';
+  String get nutrition => 'nutrizione';
 
   @override
-  String get changeSetTypTitle => 'Change set type';
+  String get changeSetTypTitle => 'Cambia tipo di set';
 
   @override
-  String get settingsVisualStyleTitle => 'Visual Style';
+  String get settingsVisualStyleTitle => 'Stile visivo';
 
   @override
-  String get settingsVisualStyleStandard => 'Frosted Glass';
+  String get settingsVisualStyleStandard => 'Vetro smerigliato';
 
   @override
-  String get settingsVisualStyleLiquid => 'Liquid Glass (Fluid)';
+  String get settingsVisualStyleLiquid => 'Vetro liquido (fluido)';
 
   @override
-  String get settingsVisualStyleLiquidDesc => 'Rounded, floating UI elements';
+  String get settingsVisualStyleLiquidDesc =>
+      'Elementi dell\'interfaccia utente arrotondati e mobili';
 
   @override
-  String get settingsMaterialColorsTitle => 'Material colors';
+  String get settingsMaterialColorsTitle => 'Colori dei materiali';
 
   @override
   String get settingsMaterialColorsSubtitle =>
-      'Use Android dynamic colors (Material You) instead of the Train Libre brand accent';
+      'Utilizza i colori dinamici Android (Material You) invece dell\'accento del marchio Train Libre';
 
   @override
-  String get settingsFoodDbSectionTitle => 'Food database';
+  String get settingsFoodDbSectionTitle => 'Banca dati alimentare';
 
   @override
   String get settingsFoodDbRegionTitle => 'Regione del database';
@@ -2139,7 +2162,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Seleziona la regione del catalogo prodotti Open Food Facts utilizzata.';
 
   @override
-  String get settingsFoodDbRegionCurrent => 'Current region';
+  String get settingsFoodDbRegionCurrent => 'Regione attuale';
 
   @override
   String get settingsFoodDbRegionDialogTitle =>
@@ -2151,7 +2174,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionIssueHint =>
-      'If your country is not listed yet, feel free to open a GitHub issue and request support.';
+      'Se il tuo Paese non è ancora nell\'elenco, non esitare ad aprire un problema su GitHub e richiedere supporto.';
 
   @override
   String get settingsFoodDbRegionGermany => 'Germania (DE)';
@@ -2172,11 +2195,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settingsFoodDbRegionJapan => 'Giappone (JP)';
 
   @override
-  String get settingsColorfulMacroBadgesTitle => 'Colorful Macro Badges';
+  String get settingsColorfulMacroBadgesTitle => 'Distintivi macro colorati';
 
   @override
   String get settingsColorfulMacroBadgesSubtitle =>
-      'Uses the color-coded badge design from AI verification in the diary as well.';
+      'Utilizza anche il design del badge con codice colore della verifica AI nel diario.';
 
   @override
   String get settingsFoodDbRegionUnitedKingdom => 'Regno Unito (UK)';
@@ -2187,151 +2210,151 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get searchBaseFoodHint => 'Search base foods';
+  String get searchBaseFoodHint => 'Cerca alimenti di base';
 
   @override
-  String get searchNoHits => 'No hits.';
+  String get searchNoHits => 'Nessun successo.';
 
   @override
   String get onbSubtitleWelcome =>
-      'Your central tool for fitness, nutrition & progress.';
+      'Il tuo strumento centrale per fitness, nutrizione e progresso.';
 
   @override
   String get onbBodyWelcome =>
-      'We help you set and track your goals. Efficiently log workouts, nutrition, supplements, and body measurements.';
+      'Ti aiutiamo a definire e monitorare i tuoi obiettivi. Registra in modo efficiente allenamenti, alimentazione, integratori e misurazioni del corpo.';
 
   @override
   String get onbBodyNutritionVisual =>
-      'Log meals with just a few clicks. Keep an eye on calories, macros, and water to effortlessly track your goal.';
+      'Registra i pasti con pochi clic. Tieni d\'occhio calorie, macronutrienti e acqua per monitorare facilmente il tuo obiettivo.';
 
   @override
   String get onbBodyMeasurementsVisual =>
-      'Visualize your progress. The weight and circumference chart makes your success visible and keeps you motivated.';
+      'Visualizza i tuoi progressi. La tabella del peso e della circonferenza rende visibile il tuo successo e ti mantiene motivato.';
 
   @override
   String get onbBodyWorkoutVisual =>
-      'Create routines and start your training in seconds. Log sets, weights, and rests for maximum progression.';
+      'Crea routine e inizia il tuo allenamento in pochi secondi. Set di tronchi, pesi e pause per la massima progressione.';
 
   @override
-  String get onbTitleAppLayout => 'Navigation & Quick-Add';
+  String get onbTitleAppLayout => 'Navigazione e aggiunta rapida';
 
   @override
   String get onbBodyAppLayout =>
-      'The bottom bar allows quick switching between areas. Use the large [+] button to log everything instantly.';
+      'La barra inferiore consente il passaggio rapido da un\'area all\'altra. Utilizza il pulsante grande [+] per registrare tutto all\'istante.';
 
   @override
-  String get dataHubTitle => 'Data Hub';
+  String get dataHubTitle => 'Hub dati';
 
   @override
-  String get resumeButton => 'Resume';
+  String get resumeButton => 'Riprendere';
 
   @override
-  String get onboardingWelcomeTitle => 'Welcome to Train Libre';
+  String get onboardingWelcomeTitle => 'Benvenuti su Train Libre';
 
   @override
   String get onboardingWelcomeSubtitle =>
-      'Let\'s set up your profile to get the best results.';
+      'Impostiamo il tuo profilo per ottenere i migliori risultati.';
 
   @override
-  String get onboardingNameTitle => 'What\'s your name?';
+  String get onboardingNameTitle => 'Come ti chiami?';
 
   @override
-  String get onboardingNameLabel => 'Your Name';
+  String get onboardingNameLabel => 'Il tuo nome';
 
   @override
-  String get onboardingNameError => 'Please enter your name';
+  String get onboardingNameError => 'Per favore inserisci il tuo nome';
 
   @override
-  String get onboardingDobTitle => 'When were you born?';
+  String get onboardingDobTitle => 'Quando sei nato?';
 
   @override
-  String get onboardingDobLabel => 'Date of Birth';
+  String get onboardingDobLabel => 'Data di nascita';
 
   @override
-  String get onboardingDobError => 'Please select your date of birth';
+  String get onboardingDobError => 'Seleziona la tua data di nascita';
 
   @override
-  String get onboardingWeightTitle => 'Current Weight';
+  String get onboardingWeightTitle => 'Peso attuale';
 
   @override
-  String get onboardingWeightLabel => 'Weight';
+  String get onboardingWeightLabel => 'Peso';
 
   @override
-  String get onboardingWeightError => 'Please enter a valid weight';
+  String get onboardingWeightError => 'Inserisci un peso valido';
 
   @override
-  String get onboardingGoalsTitle => 'Your Nutrition Goals';
+  String get onboardingGoalsTitle => 'I tuoi obiettivi nutrizionali';
 
   @override
   String get onboardingGoalsSubtitle =>
-      'You can change these later in settings.';
+      'Puoi modificarli in seguito nelle impostazioni.';
 
   @override
-  String get onboardingGoalCalories => 'Daily Calories (kcal)';
+  String get onboardingGoalCalories => 'Calorie giornaliere (kcal)';
 
   @override
-  String get onboardingGoalProtein => 'Protein (g)';
+  String get onboardingGoalProtein => 'Proteine ​​(g)';
 
   @override
-  String get onboardingGoalCarbs => 'Carbs (g)';
+  String get onboardingGoalCarbs => 'Carboidrati (g)';
 
   @override
-  String get onboardingGoalFat => 'Fat (g)';
+  String get onboardingGoalFat => 'Grassi (g)';
 
   @override
-  String get onboardingGoalWater => 'Water';
+  String get onboardingGoalWater => 'Acqua';
 
   @override
-  String get onboardingNext => 'Next';
+  String get onboardingNext => 'Prossimo';
 
   @override
-  String get onboardingBack => 'Back';
+  String get onboardingBack => 'Indietro';
 
   @override
-  String get onboardingFinish => 'Start Tracking';
+  String get onboardingFinish => 'Inizia il monitoraggio';
 
   @override
-  String get onboardingUnitSystemTitle => 'Choose your Unit System';
+  String get onboardingUnitSystemTitle => 'Scegli il tuo sistema di unità';
 
   @override
   String get onboardingUnitSystemSubtitle =>
-      'You can change this later in Settings.';
+      'Puoi modificarlo in seguito in Impostazioni.';
 
   @override
-  String get onboardingUnitMetric => 'Metric';
+  String get onboardingUnitMetric => 'Metrico';
 
   @override
-  String get onboardingUnitMetricSubtitle => 'kg, cm, ml';
+  String get onboardingUnitMetricSubtitle => 'chilogrammi, centimetri, ml';
 
   @override
-  String get onboardingUnitImperial => 'Imperial';
+  String get onboardingUnitImperial => 'Imperiale';
 
   @override
-  String get onboardingUnitImperialSubtitle => 'lbs, in, fl oz';
+  String get onboardingUnitImperialSubtitle => 'libbre, pollici, fl oz';
 
   @override
-  String get onboardingHeightLabel => 'Height';
+  String get onboardingHeightLabel => 'Altezza';
 
   @override
-  String get onboardingGenderLabel => 'Gender';
+  String get onboardingGenderLabel => 'Genere';
 
   @override
-  String get genderMale => 'Male';
+  String get genderMale => 'Maschio';
 
   @override
-  String get genderFemale => 'Female';
+  String get genderFemale => 'Femmina';
 
   @override
-  String get genderDiverse => 'Diverse';
+  String get genderDiverse => 'Diverso';
 
   @override
-  String get vegan => 'Vegan';
+  String get vegan => 'Vegano';
 
   @override
-  String get vegetarian => 'Vegetarian';
+  String get vegetarian => 'Vegetariano';
 
   @override
-  String get ingredients => 'Ingredients';
+  String get ingredients => 'Ingredienti';
 
   @override
   String get aiSettingsTitle => 'Riconoscimento pasti tramite IA';
@@ -2341,187 +2364,194 @@ class AppLocalizationsIt extends AppLocalizations {
       'Configura il rilevamento dei pasti assistito da IA.';
 
   @override
-  String get aiProviderSection => 'AI Provider';
+  String get aiProviderSection => 'Fornitore di intelligenza artificiale';
 
   @override
   String get aiProviderLabel => 'Fornitore';
 
   @override
-  String get aiApiKeySection => 'API Key';
+  String get aiApiKeySection => 'Chiave API';
 
   @override
-  String get aiApiKeyLabel => 'API Key';
+  String get aiApiKeyLabel => 'Chiave API';
 
   @override
-  String get aiApiKeyHint => 'Paste your API key here';
+  String get aiApiKeyHint => 'Incolla qui la tua chiave API';
 
   @override
-  String get aiSaveKey => 'Save Key';
+  String get aiSaveKey => 'Salva chiave';
 
   @override
   String get aiTestConnection => 'Test';
 
   @override
-  String get aiTestSuccess => 'Connection successful!';
+  String get aiTestSuccess => 'Connessione riuscita!';
 
   @override
-  String get aiKeySaved => 'API key saved securely.';
+  String get aiKeySaved => 'Chiave API salvata in modo sicuro.';
 
   @override
-  String get aiPrivacySection => 'Privacy';
+  String get aiPrivacySection => 'Privacy AI';
 
   @override
   String get aiPrivacyDisclosure =>
-      'Images, text, and generated prompts are sent to the selected AI provider only when you use an AI action. Provider retention and processing follow that provider\'s terms. Your API key is stored encrypted on this device only.';
+      'Immagini, testo e prompt generati vengono inviati al provider AI selezionato solo quando utilizzi un\'azione AI. La conservazione e l\'elaborazione del fornitore seguono i termini di tale fornitore. La tua chiave API è archiviata crittografata solo su questo dispositivo.';
 
   @override
-  String get aiMealCapture => 'AI Meal';
+  String get aiMealCapture => 'Pasto AI';
 
   @override
-  String get aiCaptureTitle => 'AI Meal Capture';
+  String get aiCaptureTitle => 'Cattura pasto AI';
 
   @override
-  String get aiCaptureTabPhoto => 'Photo';
+  String get aiCaptureTabPhoto => 'Foto';
 
   @override
-  String get aiCaptureTabText => 'Text';
+  String get aiCaptureTabText => 'Testo';
 
   @override
   String get aiCapturePhotoHint =>
-      'Take or select up to 4 photos of your meal.';
+      'Scatta o seleziona fino a 4 foto del tuo pasto.';
 
   @override
   String get aiCaptureTextHint =>
-      'Describe your meal (e.g. \"Grilled chicken with rice and salad\")...';
+      'Descrivi il tuo pasto (es. \"Pollo alla griglia con riso e insalata\")...';
 
   @override
-  String get aiAnalyzeButton => 'Analyze';
+  String get aiAnalyzeButton => 'Analizzare';
 
   @override
-  String get aiAnalyzing => 'Analyzing your meal...';
+  String get aiAnalyzing => 'Analizzando il tuo pasto...';
 
   @override
-  String get aiReviewTitle => 'Review Suggestions';
+  String get aiReviewTitle => 'Suggerimenti per la revisione';
 
   @override
   String aiReviewFoundItems(int count) {
-    return 'AI found $count items';
+    return 'L\'intelligenza artificiale ha trovato $count elementi';
   }
 
   @override
-  String get aiReviewNoMatch => 'No match — tap to search';
+  String get aiReviewNoMatch => 'Nessuna corrispondenza: tocca per cercare';
 
   @override
-  String get aiReviewConfidence => 'Confidence';
+  String get aiReviewConfidence => 'Fiducia';
 
   @override
-  String get aiReviewAddItem => 'Add item manually';
+  String get aiReviewAddItem => 'Aggiungi l\'articolo manualmente';
 
   @override
-  String get aiReviewReplaceItem => 'Replace item';
+  String get aiReviewReplaceItem => 'Sostituisci l\'articolo';
 
   @override
-  String get aiReviewSaveToDiary => 'Save to Diary';
+  String get aiReviewSaveToDiary => 'Salva nel diario';
 
   @override
-  String get aiReviewFeedbackHint => 'Describe what the AI got wrong...';
+  String get aiReviewFeedbackHint =>
+      'Descrivi cosa ha sbagliato l\'intelligenza artificiale...';
 
   @override
-  String get aiReviewRetryButton => 'Retry with Feedback';
+  String get aiReviewRetryButton => 'Riprova con feedback';
 
   @override
-  String get aiReviewFeedbackSection => 'Correction';
+  String get aiReviewFeedbackSection => 'Correzione';
 
   @override
   String get aiErrorNoKey =>
-      'No API key configured. Please set one in Settings → AI Meal Capture.';
+      'Nessuna chiave API configurata. Impostane uno in Impostazioni → Acquisizione pasto AI.';
 
   @override
   String get aiErrorNetwork =>
-      'Network error. Please check your connection and try again.';
+      'Errore di rete. Controlla la connessione e riprova.';
 
   @override
-  String get aiErrorAuth => 'Authentication failed. Please check your API key.';
+  String get aiErrorAuth =>
+      'Autenticazione non riuscita. Controlla la tua chiave API.';
 
   @override
   String get aiErrorParse =>
-      'Could not understand the AI response. Please try again.';
+      'Impossibile comprendere la risposta dell\'IA. Per favore riprova.';
 
   @override
-  String get aiErrorRateLimit => 'Too many requests. Please wait a moment.';
+  String get aiErrorRateLimit =>
+      'Troppe richieste. Per favore aspetta un momento.';
 
   @override
-  String get aiEnableTitle => 'Enable AI Features';
+  String get aiEnableTitle => 'Abilita funzionalità AI';
 
   @override
   String get aiEnableSubtitle =>
-      'Allows the use of AI for meal recognition. Disabling this hides all AI buttons in the app.';
+      'Consente l\'uso dell\'intelligenza artificiale per il riconoscimento dei pasti. Disabilitando questa opzione si nascondono tutti i pulsanti AI nell\'app.';
 
   @override
-  String get aiCustomInstructionsTitle => 'Global AI Instructions';
+  String get aiCustomInstructionsTitle =>
+      'Istruzioni globali sull\'intelligenza artificiale';
 
   @override
   String get aiCustomInstructionsSubtitle =>
-      'Give the AI fixed rules (e.g., allergies, no-go foods like \'no bowls\', or intolerances) to be followed with every capture.';
+      'Fornisci all\'IA regole fisse (ad esempio allergie, cibi vietati come \"niente ciotole\" o intolleranze) da seguire ad ogni cattura.';
 
   @override
   String get aiValidationNoMatchedItemsSaveYet =>
-      'No matched items can be saved yet.';
+      'Nessun elemento corrispondente può ancora essere salvato.';
 
   @override
   String get aiValidationNoMatchedIngredientsSaveYet =>
-      'No matched ingredients can be saved yet.';
+      'Nessun ingrediente abbinato può ancora essere salvato.';
 
   @override
-  String get aiValidationSomeItemsNeedReviewTitle => 'Some items need review';
+  String get aiValidationSomeItemsNeedReviewTitle =>
+      'Alcuni articoli necessitano di revisione';
 
   @override
   String get aiValidationSomeIngredientsNeedReviewTitle =>
-      'Some ingredients need review';
+      'Alcuni ingredienti necessitano di revisione';
 
   @override
-  String get aiValidationSaveMatchedItemsButton => 'Save matched items';
+  String get aiValidationSaveMatchedItemsButton =>
+      'Salva gli elementi abbinati';
 
   @override
   String get aiValidationSaveMatchedIngredientsButton =>
-      'Save matched ingredients';
+      'Salva gli ingredienti abbinati';
 
   @override
-  String get aiValidationValidationPassedTitle => 'Validation passed';
+  String get aiValidationValidationPassedTitle => 'Convalida superata';
 
   @override
-  String get aiValidationReviewSuggestedTitle => 'Review suggested';
+  String get aiValidationReviewSuggestedTitle => 'Recensione suggerita';
 
   @override
-  String get aiValidationMacroFitValidatedTitle => 'Macro fit validated';
+  String get aiValidationMacroFitValidatedTitle =>
+      'Adattamento macro convalidato';
 
   @override
-  String get aiValidationNeedsReviewTitle => 'Needs review';
+  String get aiValidationNeedsReviewTitle => 'Necessita di revisione';
 
   @override
   String get aiValidationRepairLimitReachedReview =>
-      'Automatic repair limit reached. Please review before saving.';
+      'Limite di riparazione automatica raggiunto. Si prega di rivedere prima di salvare.';
 
   @override
   String get aiValidationRecentMealContextIncluded =>
-      'Recent meal context was included.';
+      'È stato incluso il contesto del pasto recente.';
 
   @override
   String get aiValidationGeneratedWithoutRecentMealHistory =>
-      'Generated without recent meal history.';
+      'Generato senza cronologia recente dei pasti.';
 
   @override
-  String get aiValidationApiKeyRequiredTitle => 'API Key Required';
+  String get aiValidationApiKeyRequiredTitle => 'Chiave API obbligatoria';
 
   @override
   String aiValidationScoreLabel(int score) {
-    return 'Score $score/100';
+    return 'Punteggio $score/100';
   }
 
   @override
   String aiValidationDeltaSummary(
       int kcalDelta, int proteinDelta, int carbsDelta, int fatDelta) {
-    return 'Delta: $kcalDelta kcal · ${proteinDelta}g Protein · ${carbsDelta}g Carbs · ${fatDelta}g Fat';
+    return 'Delta: $kcalDelta kcal · ${proteinDelta}g Proteine ​​· ${carbsDelta}g Carboidrati · ${fatDelta}g Grassi';
   }
 
   @override
@@ -2531,10 +2561,11 @@ class AppLocalizationsIt extends AppLocalizations {
       unmatchedCount,
       locale: localeName,
       other:
-          '$unmatchedCount items do not have a local database match and will not be saved.',
-      one: '1 item does not have a local database match and will not be saved.',
+          'Gli elementi $unmatchedCount non hanno una corrispondenza nel database locale e non verranno salvati.',
+      one:
+          '1 elemento non ha una corrispondenza nel database locale e non verra salvato.',
     );
-    return '$_temp0 Save the $matchedCount matched item(s) only?';
+    return '$_temp0';
   }
 
   @override
@@ -2544,490 +2575,500 @@ class AppLocalizationsIt extends AppLocalizations {
       unmatchedCount,
       locale: localeName,
       other:
-          '$unmatchedCount ingredients do not have a local database match and will not be saved.',
+          'Gli ingredienti $unmatchedCount non hanno una corrispondenza nel database locale e non verranno salvati.',
       one:
-          '1 ingredient does not have a local database match and will not be saved.',
+          '1 ingrediente non ha una corrispondenza nel database locale e non verra salvato.',
     );
-    return '$_temp0 Save the $matchedCount matched ingredient(s) only?';
+    return '$_temp0';
   }
 
   @override
-  String get aiValidationEmptyItemName => 'An item has no food name.';
+  String get aiValidationEmptyItemName =>
+      'Un articolo non ha un nome alimentare.';
 
   @override
   String aiValidationDuplicateItemMerged(String name) {
-    return 'Duplicate \"$name\" entries were merged before validation.';
+    return 'Le voci \"$name\" duplicate sono state unite prima della convalida.';
   }
 
   @override
-  String get aiValidationInvalidQuantity => 'Quantity must be greater than 0g.';
+  String get aiValidationInvalidQuantity =>
+      'La quantità deve essere maggiore di 0 g.';
 
   @override
   String get aiValidationTinyQuantity =>
-      'Quantity is very small; review the gram amount.';
+      'La quantità è molto piccola; rivedere la quantità in grammi.';
 
   @override
   String get aiValidationExtremeQuantity =>
-      'Quantity is implausibly high for one meal item.';
+      'La quantità è incredibilmente alta per un pasto.';
 
   @override
   String get aiValidationLargeQuantity =>
-      'Quantity is unusually large; review the gram amount.';
+      'La quantità è insolitamente grande; rivedere la quantità in grammi.';
 
   @override
   String get aiValidationLowAiConfidence =>
-      'AI confidence is low for this item.';
+      'La fiducia dell\'IA è bassa per questo elemento.';
 
   @override
-  String get aiValidationUnmatchedItem => 'No local database match was found.';
+  String get aiValidationUnmatchedItem =>
+      'Non è stata trovata alcuna corrispondenza nel database locale.';
 
   @override
-  String get aiValidationWeakDbMatch => 'The local database match is weak.';
+  String get aiValidationWeakDbMatch =>
+      'La corrispondenza del database locale è debole.';
 
   @override
   String get aiValidationPartialDbMatch =>
-      'The local database match is partial.';
+      'La corrispondenza del database locale è parziale.';
 
   @override
   String get aiValidationAmbiguousDbMatch =>
-      'Several local database matches look similarly plausible.';
+      'Diverse corrispondenze di database locali sembrano altrettanto plausibili.';
 
   @override
   String get aiValidationStateMismatch =>
-      'The AI item state may not match the database entry.';
+      'Lo stato dell\'elemento AI potrebbe non corrispondere alla voce del database.';
 
   @override
   String get aiValidationZeroNutritionMatch =>
-      'The matched database entry has no usable nutrition data.';
+      'La voce del database corrispondente non contiene dati nutrizionali utilizzabili.';
 
   @override
   String get aiValidationImplausibleFoodDensity =>
-      'Matched food has unusually high kcal per 100g.';
+      'Il cibo abbinato ha kcal insolitamente elevate per 100 g.';
 
   @override
   String get aiValidationMacroEnergyMismatch =>
-      'Matched food macros do not align well with kcal.';
+      'I macronutrienti alimentari abbinati non si allineano bene con le kcal.';
 
   @override
   String get aiValidationImplausibleItemNutrition =>
-      'Nutrition for this quantity is unusually high.';
+      'La nutrizione per questa quantità è insolitamente alta.';
 
   @override
-  String get aiValidationEmptyMeal => 'The AI returned no meal items.';
+  String get aiValidationEmptyMeal => 'L\'IA non ha restituito alcun pasto.';
 
   @override
   String get aiValidationAllItemsUnmatched =>
-      'No item could be matched to the local food database.';
+      'Nessun articolo può essere abbinato al database alimentare locale.';
 
   @override
   String aiValidationPartialUnmatchedItems(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items cannot be saved until matched.',
-      one: '1 item cannot be saved until matched.',
+      other:
+          'Gli elementi $count non possono essere salvati finché non vengono abbinati.',
+      one: '1 elemento non puo essere salvato finche non viene abbinato.',
     );
     return '$_temp0';
   }
 
   @override
-  String get aiValidationZeroTotalKcal => 'Matched items produce 0 kcal.';
+  String get aiValidationZeroTotalKcal =>
+      'Gli articoli abbinati producono 0 kcal.';
 
   @override
   String get aiValidationCaptureTotalKcalExtreme =>
-      'Total kcal is implausibly high for one captured meal.';
+      'Le kcal totali sono incredibilmente alte per un pasto catturato.';
 
   @override
   String get aiValidationCaptureTotalKcalHigh =>
-      'Total kcal is unusually high; review portions.';
+      'Le kcal totali sono insolitamente alte; rivedere porzioni.';
 
   @override
   String get aiValidationMacroTotalExtreme =>
-      'Total macros are implausibly high.';
+      'I macro totali sono incredibilmente alti.';
 
   @override
   String get aiValidationMacroTotalHigh =>
-      'Total macros are unusually high; review portions.';
+      'I macro totali sono insolitamente alti; rivedere porzioni.';
 
   @override
   String aiValidationTargetKcalMismatch(int delta) {
-    return 'Calories miss the target by $delta kcal.';
+    return 'Le calorie mancano l\'obiettivo di $delta kcal.';
   }
 
   @override
   String aiValidationTargetProteinMismatch(int delta) {
-    return 'Protein misses the target by ${delta}g.';
+    return 'Le proteine ​​mancano il bersaglio di ${delta}g.';
   }
 
   @override
   String aiValidationTargetCarbsMismatch(int delta) {
-    return 'Carbs miss the target by ${delta}g.';
+    return 'I carboidrati mancano l\'obiettivo di ${delta}g.';
   }
 
   @override
   String aiValidationTargetFatMismatch(int delta) {
-    return 'Fat misses the target by ${delta}g.';
+    return 'Fat manca il bersaglio di ${delta}g.';
   }
 
   @override
   String aiValidationUnknownIssue(String code) {
-    return 'Validation issue: $code';
+    return 'Problema di convalida: $code';
   }
 
   @override
-  String get currentlyTracking => 'Currently';
+  String get currentlyTracking => 'Attualmente';
 
   @override
-  String get currentlyTrackingDesc => 'Show in daily tracker hub';
+  String get currentlyTrackingDesc =>
+      'Mostra nell\'hub di monitoraggio giornaliero';
 
   @override
-  String get filter3Months => '3 Months';
+  String get filter3Months => '3 mesi';
 
   @override
-  String get filter6Months => '6 Months';
+  String get filter6Months => '6 mesi';
 
   @override
-  String get sectionConsistency => 'Consistency & Frequency';
+  String get sectionConsistency => 'Coerenza e frequenza';
 
   @override
-  String get metricsWorkoutsWeek => 'Workouts (Week)';
+  String get metricsWorkoutsWeek => 'Allenamenti (settimana)';
 
   @override
-  String get metricsCurrentStreak => 'Current Streak';
+  String get metricsCurrentStreak => 'Serie attuale';
 
   @override
-  String get metricsActiveWeeks => 'weeks active';
+  String get metricsActiveWeeks => 'settimane attive';
 
   @override
-  String get placeholderCalendarHeatmap => 'Calendar Heatmap Visual';
+  String get placeholderCalendarHeatmap =>
+      'Visualizzazione della mappa termica del calendario';
 
   @override
-  String get consistencyTrackerTitle => 'Consistency Tracker';
+  String get consistencyTrackerTitle => 'Monitoraggio della coerenza';
 
   @override
   String get consistencyTrackerComingSoon =>
-      'Consistency & Habit Tracker (Coming Soon)';
+      'Monitoraggio della coerenza e delle abitudini (disponibile a breve)';
 
   @override
-  String get sectionMuscleVolume => 'Muscle Groups & Volume';
+  String get sectionMuscleVolume => 'Gruppi muscolari e volume';
 
   @override
-  String get metricsTopTrained => 'Top Trained';
+  String get metricsTopTrained => 'I più preparati';
 
   @override
-  String get metricsMostNeglected => 'Most Neglected';
+  String get metricsMostNeglected => 'I più trascurati';
 
   @override
-  String get placeholderMuscleHeatmap => 'Muscle Heatmap Visual';
+  String get placeholderMuscleHeatmap => 'Mappa termica muscolare visiva';
 
   @override
-  String get muscleAnalyticsTitle => 'Muscle Group Analytics';
+  String get muscleAnalyticsTitle => 'Analisi dei gruppi muscolari';
 
   @override
   String get muscleAnalyticsComingSoon =>
-      'Muscle Volume & Heatmaps (Coming Soon)';
+      'Volume muscolare e mappe di calore (disponibile a breve)';
 
   @override
-  String get sectionPerformance => 'Performance & PRs';
+  String get sectionPerformance => 'Prestazioni e PR';
 
   @override
-  String get metricsRecentPrs => 'Recent PRs';
+  String get metricsRecentPrs => 'PR recenti';
 
   @override
-  String get metricsVolumeLifted => 'Volume Lifted';
+  String get metricsVolumeLifted => 'Volume sollevato';
 
   @override
-  String get metricsMostImproved => 'Most Improved';
+  String get metricsMostImproved => 'Molto migliorato';
 
   @override
-  String get exerciseAnalyticsTitle => 'Exercise Analytics';
+  String get exerciseAnalyticsTitle => 'Analisi degli esercizi';
 
   @override
-  String get exerciseAnalyticsSubtitle =>
-      'Search and analyze specific exercises';
+  String get exerciseAnalyticsSubtitle => 'Cerca e analizza esercizi specifici';
 
   @override
-  String get prDashboardTitle => 'PR Dashboard';
+  String get prDashboardTitle => 'Cruscotto PR';
 
   @override
-  String get prDashboardComingSoon => 'Records & Progress (Coming Soon)';
+  String get prDashboardComingSoon =>
+      'Record e progressi (disponibile a breve)';
 
   @override
   String get exerciseAnalyticsComingSoon =>
-      'Exercise search & specific trends (Coming Soon)';
+      'Ricerca degli esercizi e tendenze specifiche (disponibile a breve)';
 
   @override
-  String get sectionRecovery => 'Recovery';
+  String get sectionRecovery => 'Recupero';
 
   @override
-  String get metricsMuscleReadiness => 'Muscle Readiness';
+  String get metricsMuscleReadiness => 'Prontezza muscolare';
 
   @override
-  String get recoveryTrackerTitle => 'Recovery Tracker';
+  String get recoveryTrackerTitle => 'Monitoraggio del recupero';
 
   @override
   String get recoveryTrackerComingSoon =>
-      'Muscle readiness & fatigue (Coming Soon)';
+      'Prontezza muscolare e affaticamento (disponibile a breve)';
 
   @override
-  String get recoveryOverallMostlyRecovered => 'Mostly recovered';
+  String get recoveryOverallMostlyRecovered => 'Per lo più recuperato';
 
   @override
-  String get recoveryOverallMixed => 'Mixed recovery state';
+  String get recoveryOverallMixed => 'Stato di recupero misto';
 
   @override
   String get recoveryOverallSeveralRecovering =>
-      'Several muscle groups still recovering';
+      'Diversi gruppi muscolari ancora in recupero';
 
   @override
   String get recoveryOverallInsufficientData =>
-      'Not enough data for recovery insight yet';
+      'Dati insufficienti per informazioni dettagliate sul recupero';
 
   @override
   String recoveryHubCountsSummary(int recovering, int ready, int fresh) {
-    return 'Recovering: $recovering  Ready: $ready  Fresh: $fresh';
+    return 'In recupero: $recovering Pronto: $ready Fresco: $fresh';
   }
 
   @override
   String get recoveryHubNoDataSummary =>
-      'Keep logging workouts to unlock recovery insights.';
+      'Continua a registrare gli allenamenti per sbloccare informazioni dettagliate sul recupero.';
 
   @override
-  String get recoveryByMuscleTitle => 'Recovery by Muscle';
+  String get recoveryByMuscleTitle => 'Recupero muscolare';
 
   @override
-  String get recoveryStateRecovering => 'Recovering';
+  String get recoveryStateRecovering => 'Recupero';
 
   @override
-  String get recoveryStateReady => 'Ready';
+  String get recoveryStateReady => 'Pronto';
 
   @override
-  String get recoveryStateFresh => 'Fresh';
+  String get recoveryStateFresh => 'Fresco';
 
   @override
-  String get recoveryStateUnknown => 'Unknown';
+  String get recoveryStateUnknown => 'Sconosciuto';
 
   @override
   String recoveryLastLoadedHours(int hours) {
-    return 'Last significantly loaded: $hours h ago';
+    return 'Ultimo caricamento significativo: $hours h fa';
   }
 
   @override
   String get recoveryFatigueContextHigh =>
-      'Fatigue context: high session fatigue';
+      'Contesto di affaticamento: affaticamento elevato della sessione';
 
   @override
   String get recoveryFatigueContextBaseline =>
-      'Fatigue context: baseline session fatigue';
+      'Contesto della fatica: fatica della sessione di base';
 
   @override
   String recoveryExplanationWithHighFatigue(String muscle, int hours) {
-    return '$muscle: last significantly loaded $hours h ago, with high session fatigue.';
+    return '$muscle: ultimo carico significativo $hours h fa, con affaticamento elevato durante la sessione.';
   }
 
   @override
   String recoveryExplanationBasic(String muscle, int hours) {
-    return '$muscle: last significantly loaded $hours h ago.';
+    return '$muscle: l\'ultimo carico significativo $hours h fa.';
   }
 
   @override
   String get recoveryHeuristicDisclaimer =>
-      'This is a conservative heuristic based on recent significant loading and session effort. It is not a medical recovery measurement.';
+      'Si tratta di un\'euristica conservativa basata sul recente caricamento significativo e sullo sforzo della sessione. Non è una misurazione del recupero medico.';
 
   @override
-  String get recoveryReadinessLabel => 'Readiness';
+  String get recoveryReadinessLabel => 'Prontezza';
 
   @override
   String recoveryRecentLoad(String sets) {
-    return 'Last load: $sets equivalent sets';
+    return 'Ultimo caricamento: $sets set equivalenti';
   }
 
   @override
   String recoveryLastLoadPressure(String level) {
-    return 'Last load pressure: $level';
+    return 'Ultima pressione di carico: $level';
   }
 
   @override
-  String get recoveryPressureLow => 'low';
+  String get recoveryPressureLow => 'Basso';
 
   @override
-  String get recoveryPressureModerate => 'moderate';
+  String get recoveryPressureModerate => 'moderare';
 
   @override
-  String get recoveryPressureHigh => 'high';
+  String get recoveryPressureHigh => 'alto';
 
   @override
-  String get recoveryPressureVeryHigh => 'very high';
+  String get recoveryPressureVeryHigh => 'molto alto';
 
   @override
   String recoveryCurrentWindow(int recoveringUpper, int readyUpper) {
-    return 'Current window: recovering until about $recoveringUpper h, ready until about $readyUpper h.';
+    return 'Finestra corrente: recupero fino alle $recoveringUpper h circa, pronto fino alle $readyUpper h circa.';
   }
 
   @override
   String recoveryWindowHeuristic(int from, int to) {
-    return 'Current window: recovering until about $from h, ready until about $to h.';
+    return 'Finestra attuale: recupero fino alle $from h circa, pronto fino alle $to h circa.';
   }
 
   @override
   String get recoveryRadarHeuristicCaption =>
-      'Radar overview of current readiness by muscle. Status badges remain the primary signal.';
+      'Panoramica radar della prontezza attuale per muscolo. I badge di stato rimangono il segnale principale.';
 
   @override
   String get recoveryNoDataBody =>
-      'Not enough significant training load has been logged yet to estimate muscle recovery.';
+      'Non è stato ancora registrato un carico di allenamento significativo sufficiente per stimare il recupero muscolare.';
 
   @override
-  String get sectionBodyNutrition => 'Body & Nutrition';
+  String get sectionBodyNutrition => 'Corpo e nutrizione';
 
   @override
-  String get statisticsSectionTraining => 'Training';
+  String get statisticsSectionTraining => 'Formazione';
 
   @override
-  String get statisticsSectionBody => 'Body';
+  String get statisticsSectionBody => 'Corpo';
 
   @override
   String get statisticsEnableStepTrackingHint =>
-      'Enable step tracking in Settings';
+      'Abilita il monitoraggio dei passi nelle Impostazioni';
 
   @override
-  String get statisticsNoStepDataYet => 'No step data yet';
+  String get statisticsNoStepDataYet => 'Nessun dato sui passi ancora';
 
   @override
-  String get statisticsTotalSteps => 'Total steps';
+  String get statisticsTotalSteps => 'Passi totali';
 
   @override
-  String get statisticsLast7Days => 'Last 7 days';
+  String get statisticsLast7Days => 'Ultimi 7 giorni';
 
   @override
-  String get statisticsLast30Days => 'Last 30 days';
+  String get statisticsLast30Days => 'Ultimi 30 giorni';
 
   @override
-  String get statisticsLast3Months => 'Last 3 months';
+  String get statisticsLast3Months => 'Ultimi 3 mesi';
 
   @override
-  String get statisticsLast6Months => 'Last 6 months';
+  String get statisticsLast6Months => 'Ultimi 6 mesi';
 
   @override
-  String get metricsCurrentWeight => 'Current Weight';
+  String get metricsCurrentWeight => 'Peso attuale';
 
   @override
-  String get metricsAvgCalories => 'Avg. Calories';
+  String get metricsAvgCalories => 'Media Calorie';
 
   @override
-  String get placeholderWeightTrend => 'Weight Trend Line Chart';
+  String get placeholderWeightTrend =>
+      'Grafico della linea di tendenza del peso';
 
   @override
-  String get exerciseAnalyticsPrsLabel => 'PERSONAL RECORDS';
+  String get exerciseAnalyticsPrsLabel => 'DOCUMENTI PERSONALI';
 
   @override
-  String get exerciseAnalyticsTrendsLabel => 'TRENDS';
+  String get exerciseAnalyticsTrendsLabel => 'TENDENZE';
 
   @override
-  String get exerciseAnalyticsNoData => 'No tracking data for this exercise.';
+  String get exerciseAnalyticsNoData =>
+      'Nessun dato di tracciamento per questo esercizio.';
 
   @override
-  String get exerciseAnalyticsNotEnoughData => 'Not enough data';
+  String get exerciseAnalyticsNotEnoughData => 'Dati insufficienti';
 
   @override
-  String get exerciseAnalyticsChartWeight => 'Weight Over Time (kg)';
+  String get exerciseAnalyticsChartWeight => 'Peso nel tempo (kg)';
 
   @override
-  String get exerciseAnalyticsChartVolume => 'Volume Over Time (kg)';
+  String get exerciseAnalyticsChartVolume => 'Volume nel tempo (kg)';
 
   @override
-  String get exerciseAnalyticsChartSets => 'Sets Over Time';
+  String get exerciseAnalyticsChartSets => 'Imposta nel tempo';
 
   @override
-  String get exerciseMetricMaxWeight => 'Max Weight';
+  String get exerciseMetricMaxWeight => 'Peso massimo';
 
   @override
   String get exerciseMetricVolume => 'Volume';
 
   @override
-  String get exerciseMetricEst1RM => 'Est. 1RM';
+  String get exerciseMetricEst1RM => '1RM Stimato';
 
   @override
-  String get prBannerBestMaxWeight => 'Best Max Weight';
+  String get prBannerBestMaxWeight => 'Miglior peso massimo';
 
   @override
-  String get prBannerBestVolumeSet => 'Best Volume Set';
+  String get prBannerBestVolumeSet => 'Miglior set di volumi';
 
   @override
-  String get prBannerBest1RM => 'Best 1-Rep Max';
+  String get prBannerBest1RM => 'Miglior 1 ripetizione max';
 
   @override
-  String get newPersonalRecordLabel => 'New Personal Record';
+  String get newPersonalRecordLabel => 'Nuovo record personale';
 
   @override
-  String get prBadgeTooltip => 'New Personal Record!';
+  String get prBadgeTooltip => 'Nuovo record personale!';
 
   @override
-  String get workoutSummaryNewRecordsTitle => 'New Records';
+  String get workoutSummaryNewRecordsTitle => 'Nuovi record';
 
   @override
-  String get allTimeRecordsLabel => 'All-Time Records';
+  String get allTimeRecordsLabel => 'Record di tutti i tempi';
 
   @override
-  String get recentActivityLabel => 'Recent Activity';
+  String get recentActivityLabel => 'Attività recente';
 
   @override
-  String get prsByRepRangeLabel => 'Best Set by Rep Range';
+  String get prsByRepRangeLabel => 'Miglior set per intervallo di ripetizioni';
 
   @override
-  String get volumeAnalyticsTitle => 'Volume Analytics';
+  String get volumeAnalyticsTitle => 'Analisi del volume';
 
   @override
-  String get weeklyTonnageLabel => 'Weekly Tonnage';
+  String get weeklyTonnageLabel => 'Tonnellaggio settimanale';
 
   @override
-  String get volumeByMuscleLabel => 'By Muscle Group';
+  String get volumeByMuscleLabel => 'Per gruppo muscolare';
 
   @override
-  String get topExercisesLabel => 'Top Exercises';
+  String get topExercisesLabel => 'I migliori esercizi';
 
   @override
-  String get thisWeekLabel => 'This Week';
+  String get thisWeekLabel => 'Questa settimana';
 
   @override
-  String get avgPerWeekLabel => 'Avg / Week';
+  String get avgPerWeekLabel => 'Media/settimana';
 
   @override
-  String get streakLabel => 'Streak';
+  String get streakLabel => 'Strisciante';
 
   @override
-  String get trainingCalendarLabel => 'Training Calendar';
+  String get trainingCalendarLabel => 'Calendario della formazione';
 
   @override
-  String get workoutsPerWeekLabel => 'Workouts per Week';
+  String get workoutsPerWeekLabel => 'Allenamenti a settimana';
 
   @override
-  String get totalWorkoutsLabel => 'Total';
+  String get totalWorkoutsLabel => 'Totale';
 
   @override
-  String get weeksLabel => 'Weeks';
+  String get weeksLabel => 'Settimane';
 
   @override
-  String get tonnageKgLabel => 'Tonnage (kg)';
+  String get tonnageKgLabel => 'Tonnellaggio (kg)';
 
   @override
   String get noWorkoutDataLabel =>
-      'No workout data yet. Start logging to see stats.';
+      'Nessun dato di allenamento ancora. Inizia la registrazione per vedere le statistiche.';
 
   @override
-  String get analyticsSectionVolumeMuscles => 'Volume & Muscle Groups';
+  String get analyticsSectionVolumeMuscles => 'Gruppi di volume e muscoli';
 
   @override
-  String get analyticsSectionPerformanceRecords => 'Performance & Records';
+  String get analyticsSectionPerformanceRecords => 'Prestazioni e record';
 
   @override
-  String get analyticsTopVolume => 'Top Trained';
+  String get analyticsTopVolume => 'I più preparati';
 
   @override
-  String get analyticsLowestVolume => 'Lowest Volume';
+  String get analyticsLowestVolume => 'Volume più basso';
 
   @override
-  String get analyticsRecentRecords => 'Recent Records';
+  String get analyticsRecentRecords => 'Record recenti';
 
   @override
   String analyticsPerfWithReps(String weight, int reps) {
@@ -3035,26 +3076,26 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get analyticsKgThisWeek => 'kg (this week)';
+  String get analyticsKgThisWeek => 'kg (questa settimana)';
 
   @override
-  String get analyticsRecoverySummary => '3 recovering, 8 ready';
+  String get analyticsRecoverySummary => '3 in convalescenza, 8 pronti';
 
   @override
-  String get analyticsViewDetails => 'View details';
+  String get analyticsViewDetails => 'Visualizza i dettagli';
 
   @override
-  String get analyticsRepRangeSuffix => ' reps';
+  String get analyticsRepRangeSuffix => 'ripetizioni';
 
   @override
-  String get analyticsNoRecordYet => 'No record yet';
+  String get analyticsNoRecordYet => 'Nessun record ancora';
 
   @override
-  String get analyticsNotableImprovements => 'Notable Improvements';
+  String get analyticsNotableImprovements => 'Miglioramenti notevoli';
 
   @override
   String get analyticsNoPrTrendInWindow =>
-      'There is no clear PR trend in this window yet.';
+      'Non esiste ancora una chiara tendenza delle PR in questa finestra.';
 
   @override
   String analyticsE1rmProgress(String previous, String recent) {
@@ -3065,154 +3106,155 @@ class AppLocalizationsIt extends AppLocalizations {
   String get analyticsUnitKg => 'kg';
 
   @override
-  String get analyticsUnitSets => 'sets';
+  String get analyticsUnitSets => 'insiemi';
 
   @override
-  String get analyticsViewLabel => 'View';
+  String get analyticsViewLabel => 'Visualizzazione';
 
   @override
-  String get analyticsViewWeek => 'Week';
+  String get analyticsViewWeek => 'Settimana';
 
   @override
-  String get analyticsViewMonth => 'Month';
+  String get analyticsViewMonth => 'Mese';
 
   @override
-  String get analyticsViewByExercise => 'By Exercise';
+  String get analyticsViewByExercise => 'Per esercizio';
 
   @override
-  String get analyticsViewByMuscle => 'By Muscle Group';
+  String get analyticsViewByMuscle => 'Per gruppo muscolare';
 
   @override
-  String get analyticsMetricLabel => 'Metric';
+  String get analyticsMetricLabel => 'Metrico';
 
   @override
-  String get analyticsMovedWeightKg => 'Moved Weight (kg)';
+  String get analyticsMovedWeightKg => 'Peso spostato (kg)';
 
   @override
-  String get analyticsWorkSets => 'Work Sets';
+  String get analyticsWorkSets => 'Set di lavoro';
 
   @override
   String get analyticsVolumeContextWithSets =>
-      'Moved weight = weight x reps. Switch to work sets for count-based load.';
+      'Peso spostato = peso x ripetizioni. Passa ai set di lavoro per il carico basato sul conteggio.';
 
   @override
   String get analyticsVolumeContextTonnageOnly =>
-      'This view uses moved weight (weight x reps).';
+      'Questa visualizzazione utilizza il peso spostato (peso x ripetizioni).';
 
   @override
-  String get analyticsKpisHeader => 'KPIs';
+  String get analyticsKpisHeader => 'KPI';
 
   @override
-  String get analyticsTrainingDaysPerWeek => 'Training Days / Week';
+  String get analyticsTrainingDaysPerWeek => 'Giorni/settimana di allenamento';
 
   @override
-  String get analyticsLast4Weeks => 'last 4 weeks';
+  String get analyticsLast4Weeks => 'ultime 4 settimane';
 
   @override
-  String get analyticsRhythm => 'Rhythm';
+  String get analyticsRhythm => 'Ritmo';
 
   @override
-  String get analyticsVsPrior4Weeks => 'vs the previous 4 weeks';
+  String get analyticsVsPrior4Weeks => 'rispetto alle 4 settimane precedenti';
 
   @override
-  String get analyticsRollingConsistency => 'Rolling Consistency';
+  String get analyticsRollingConsistency => 'Consistenza del rotolamento';
 
   @override
-  String get analyticsWeeksAtLeast2Workouts => 'weeks with at least 2 sessions';
+  String get analyticsWeeksAtLeast2Workouts =>
+      'settimane con almeno 2 sessioni';
 
   @override
   String get analyticsCalendarExplainer =>
-      'Color intensity reflects sessions per day, making this a true consistency map.';
+      'L\'intensità del colore riflette le sessioni giornaliere, rendendola una vera mappa di coerenza.';
 
   @override
   String get analyticsSelectDayPrompt =>
-      'Select a day to inspect session count.';
+      'Seleziona un giorno per controllare il conteggio delle sessioni.';
 
   @override
   String analyticsSelectedDayWorkouts(String date, int count) {
-    return '$date: $count sessions';
+    return '$date: $count sessioni';
   }
 
   @override
-  String get analyticsTotalSessions => 'Total Sessions';
+  String get analyticsTotalSessions => 'Sessioni totali';
 
   @override
-  String get analyticsPlaceholderWeightValue => '82.5';
+  String get analyticsPlaceholderWeightValue => '82,5';
 
   @override
-  String get analyticsPlaceholderWeightTrend => 'kg (-0.5)';
+  String get analyticsPlaceholderWeightTrend => 'chilogrammo (-0,5)';
 
   @override
-  String get analyticsPlaceholderCaloriesValue => '2,450';
+  String get analyticsPlaceholderCaloriesValue => '2.450';
 
   @override
-  String get analyticsPlaceholderCaloriesUnit => 'kcal/day';
+  String get analyticsPlaceholderCaloriesUnit => 'kcal/giorno';
 
   @override
-  String get analyticsMuscleWeeklySets => 'Weekly Sets';
+  String get analyticsMuscleWeeklySets => 'Set settimanali';
 
   @override
-  String get analyticsMuscleTopFrequency => 'Top Frequency';
+  String get analyticsMuscleTopFrequency => 'Frequenza massima';
 
   @override
-  String get analyticsPerWeekAbbrev => 'wk';
+  String get analyticsPerWeekAbbrev => 'sett';
 
   @override
   String get analyticsKeepTrackingUnlockInsights =>
-      'Keep tracking to unlock insights.';
+      'Continua a monitorare per sbloccare approfondimenti.';
 
   @override
   String get analyticsGuidanceNoClearWeakPoint =>
-      'Guidance: No clear weak point in this period.';
+      'Guida: nessun chiaro punto debole in questo periodo.';
 
   @override
   String analyticsGuidanceLowerEmphasis(String muscles) {
-    return 'Guidance: Lower recent emphasis on $muscles.';
+    return 'Guida: ridurre l\'enfasi recente sui $muscles.';
   }
 
   @override
-  String get analyticsPeriodLabel => 'Period';
+  String get analyticsPeriodLabel => 'Periodo';
 
   @override
   String get analyticsEquivalentSetsExplainer =>
-      'Equivalent hard sets use primary x1.0 and secondary x0.3 weighting. Frequency counts only days reaching >= 1.0 equivalent sets.';
+      'I set hard equivalenti utilizzano la ponderazione primaria x1.0 e secondaria x0.3. La frequenza conta solo i giorni che raggiungono >= 1,0 set equivalenti.';
 
   @override
-  String get analyticsWeeklySetsByMuscle => 'Weekly Sets by Muscle';
+  String get analyticsWeeklySetsByMuscle => 'Set settimanali di Muscle';
 
   @override
-  String get analyticsFrequencyByMuscle => 'Frequency by Muscle';
+  String get analyticsFrequencyByMuscle => 'Frequenza per muscolo';
 
   @override
   String get analyticsRecentDistributionHeatmap =>
-      'Recent Distribution Heatmap';
+      'Mappa termica della distribuzione recente';
 
   @override
-  String get analyticsRadarOverviewTitle => 'Radar Overview';
+  String get analyticsRadarOverviewTitle => 'Panoramica del radar';
 
   @override
   String get analyticsRadarVolumeCaption =>
-      'Shows relative volume distribution across muscles for a quick at-a-glance summary.';
+      'Mostra la distribuzione relativa del volume tra i muscoli per un rapido riepilogo a colpo d\'occhio.';
 
   @override
-  String get analyticsGuidanceTitle => 'Guidance';
+  String get analyticsGuidanceTitle => 'Guida';
 
   @override
   String get analyticsGuidanceDirectionalDisclaimer =>
-      'This is directional guidance based on your recent set distribution, not an absolute diagnosis.';
+      'Questa è una guida direzionale basata sulla recente distribuzione del set, non una diagnosi assoluta.';
 
   @override
   String get analyticsGuidanceSoftenedDisclaimer =>
-      'Insights are intentionally softened until enough data is available.';
+      'Gli approfondimenti vengono intenzionalmente attenuati finché non sono disponibili dati sufficienti.';
 
   @override
   String analyticsWeekTotalEquivalentSets(String value) {
-    return 'Week total: $value equivalent sets';
+    return 'Totale settimana: $value set equivalenti';
   }
 
   @override
   String get analyticsFrequencyRuleFooter =>
-      'Frequency counts only days where the muscle reached >= 1.0 equivalent sets.';
+      'La frequenza conta solo i giorni in cui il muscolo ha raggiunto >= 1,0 serie equivalenti.';
 
   @override
   String liveWorkoutE1rmCurrentSet(String value) {
@@ -3221,34 +3263,35 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String liveWorkoutE1rmBestSession(String value) {
-    return 'Best e1RM this session: $value kg';
+    return 'Miglior e1RM di questa sessione: $value kg';
   }
 
   @override
   String liveWorkoutE1rmVsLastSession(String delta) {
-    return 'vs last session: $delta kg';
+    return 'rispetto all\'ultima sessione: $delta kg';
   }
 
   @override
-  String get bodyNutritionCorrelationTitle => 'Body & Nutrition Trends';
+  String get bodyNutritionCorrelationTitle =>
+      'Tendenze corporee e nutrizionali';
 
   @override
-  String get metricsWeightChange => 'Weight Change';
+  String get metricsWeightChange => 'Variazione di peso';
 
   @override
-  String get analyticsKcalPerDay => 'kcal/day';
+  String get analyticsKcalPerDay => 'kcal/giorno';
 
   @override
-  String get analyticsDaysWithWeightData => 'days with weight';
+  String get analyticsDaysWithWeightData => 'giorni con peso';
 
   @override
-  String get analyticsDayUnitLabel => 'days';
+  String get analyticsDayUnitLabel => 'giorni';
 
   @override
-  String get analyticsPerDayLabel => 'per day';
+  String get analyticsPerDayLabel => 'al giorno';
 
   @override
-  String get analyticsEffectiveRangeLabel => 'Effective range';
+  String get analyticsEffectiveRangeLabel => 'Portata effettiva';
 
   @override
   String get analyticsAxisXLabel => 'X';
@@ -3257,822 +3300,845 @@ class AppLocalizationsIt extends AppLocalizations {
   String get analyticsAxisYLabel => 'Y';
 
   @override
-  String get analyticsHighConfidenceLabel => 'Higher-confidence pattern';
+  String get analyticsHighConfidenceLabel =>
+      'Modello con confidenza più elevata';
 
   @override
-  String get analyticsLowConfidenceLabel => 'Lower-confidence pattern';
+  String get analyticsLowConfidenceLabel => 'Modello di fiducia inferiore';
 
   @override
-  String get analyticsObservedPatternLabel => 'Observed pattern';
+  String get analyticsObservedPatternLabel => 'Modello osservato';
 
   @override
-  String get analyticsBodyNutritionTrendContext =>
-      'Weight and calories over time';
+  String get analyticsBodyNutritionTrendContext => 'Peso e calorie nel tempo';
 
   @override
   String get analyticsBodyNutritionTrendContextHint =>
-      'The chart scales each series to fit the same space; tooltips show raw kg and kcal values.';
+      'Il grafico ridimensiona ciascuna serie per adattarla allo stesso spazio; i suggerimenti mostrano i valori grezzi di kg e kcal.';
 
   @override
   String get analyticsBodyNutritionNormalizedHint =>
-      'The chart scales weight and calories to fit the same space; tooltips show raw kg and kcal values.';
+      'Il grafico ridimensiona peso e calorie per adattarli allo stesso spazio; i suggerimenti mostrano i valori grezzi di kg e kcal.';
 
   @override
-  String get analyticsBodyNutritionTotalWeightLabel => 'Total weight (kg)';
+  String get analyticsBodyNutritionTotalWeightLabel => 'Peso totale (kg)';
 
   @override
   String get analyticsBodyNutritionTotalCaloriesLabel =>
-      'Total calories (kcal)';
+      'Calorie totali (kcal)';
 
   @override
-  String get analyticsWeightTrendLabel => 'Weight (kg)';
+  String get analyticsWeightTrendLabel => 'Peso (kg)';
 
   @override
-  String get analyticsCaloriesTrendLabel => 'Calories (kcal)';
+  String get analyticsCaloriesTrendLabel => 'Calorie (kcal)';
 
   @override
-  String get analyticsInterpretationTitle => 'Interpretation';
+  String get analyticsInterpretationTitle => 'Interpretazione';
 
   @override
   String get analyticsBodyNutritionConfidenceHighHint =>
-      'Data coverage in this range is strong enough for a more reliable pattern read.';
+      'La copertura dei dati in questo intervallo è sufficientemente forte per una lettura del modello più affidabile.';
 
   @override
   String get analyticsBodyNutritionConfidenceModerateHint =>
-      'Data coverage is moderate. Trends are useful context, but keep logging for stronger confidence.';
+      'La copertura dei dati è moderata. Le tendenze rappresentano un contesto utile, ma continua a registrarle per una maggiore sicurezza.';
 
   @override
   String get analyticsBodyNutritionConfidenceLowHint =>
-      'Data coverage in this range is still limited, so treat this as early context.';
+      'La copertura dei dati in questo intervallo è ancora limitata, quindi consideralo come un contesto iniziale.';
 
   @override
   String get analyticsBodyNutritionLowConfidenceNudge =>
-      'Keep logging weight and calories regularly to improve confidence.';
+      'Continua a registrare regolarmente peso e calorie per aumentare la sicurezza.';
 
   @override
   String get analyticsBodyNutritionInterpretationConfidenceHigh =>
-      'Interpretation confidence: higher. Use this as trend context, not a direct cause statement.';
+      'Fiducia nell\'interpretazione: più alta. Usalo come contesto di tendenza, non come dichiarazione di causa diretta.';
 
   @override
   String get analyticsBodyNutritionInterpretationConfidenceLow =>
-      'Interpretation confidence: lower. Use this as an early pattern signal and keep tracking.';
+      'Fiducia nell\'interpretazione: inferiore. Usalo come segnale di pattern iniziale e continua a monitorarlo.';
 
   @override
   String get analyticsCorrelationDisclaimer =>
-      'This view provides trend context. It does not prove that calorie changes directly caused weight changes.';
+      'Questa visualizzazione fornisce il contesto della tendenza. Ciò non dimostra che i cambiamenti calorici abbiano causato direttamente cambiamenti di peso.';
 
   @override
   String get analyticsInsightStableWeightCaloriesUp =>
-      'Weight trend is stable while average calories increased.';
+      'L’andamento del peso è stabile mentre le calorie medie sono in aumento.';
 
   @override
   String get analyticsInsightWeightUpCaloriesUp =>
-      'Weight is trending upward alongside higher average calorie intake.';
+      'Il peso tende ad aumentare insieme ad un apporto calorico medio più elevato.';
 
   @override
   String get analyticsInsightCaloriesDownWeightStable =>
-      'Recent calorie reduction has not yet clearly changed the weight trend.';
+      'La recente riduzione delle calorie non ha ancora cambiato nettamente l’andamento del peso.';
 
   @override
   String get analyticsInsightWeightDownCaloriesDown =>
-      'Weight is trending downward alongside lower average calorie intake.';
+      'Il peso tende al ribasso insieme ad un apporto calorico medio inferiore.';
 
   @override
   String get analyticsInsightMixedPattern =>
-      'Weight and calorie trends are mixed without a clear relationship yet.';
+      'Gli andamenti del peso e delle calorie sono contrastanti senza ancora una relazione chiara.';
 
   @override
   String get analyticsInsightNotEnoughData =>
-      'Not enough consistent data yet for a meaningful trend read.';
+      'Dati coerenti non ancora sufficienti per una lettura significativa della tendenza.';
 
   @override
-  String get analyticsModerateConfidenceLabel => 'Moderate-confidence pattern';
+  String get analyticsModerateConfidenceLabel => 'Modello di fiducia moderata';
 
   @override
   String get analyticsInsufficientConfidenceLabel =>
-      'Insufficient data confidence';
+      'Confidenza dei dati insufficiente';
 
   @override
-  String get analyticsTrendRising => 'Rising';
+  String get analyticsTrendRising => 'In aumento';
 
   @override
-  String get analyticsTrendFalling => 'Falling';
+  String get analyticsTrendFalling => 'Cadente';
 
   @override
-  String get analyticsTrendStable => 'Stable';
+  String get analyticsTrendStable => 'Stabile';
 
   @override
-  String get analyticsTrendUnclear => 'Unclear';
+  String get analyticsTrendUnclear => 'Non chiaro';
 
   @override
   String get analyticsRelationshipAlignedCut =>
-      'Lower intake and falling bodyweight are aligned.';
+      'Il basso apporto e la diminuzione del peso corporeo sono allineati.';
 
   @override
   String get analyticsRelationshipAlignedBulk =>
-      'Higher intake and rising bodyweight are aligned.';
+      'Un apporto maggiore e l’aumento del peso corporeo sono allineati.';
 
   @override
   String get analyticsRelationshipStableMaintenance =>
-      'Weight and intake look broadly stable.';
+      'Il peso e l\'assunzione sembrano sostanzialmente stabili.';
 
   @override
-  String get analyticsRelationshipMixed => 'Signals are mixed or delayed.';
+  String get analyticsRelationshipMixed =>
+      'I segnali sono mescolati o ritardati.';
 
   @override
   String get analyticsRelationshipInsufficient =>
-      'Not enough consistent overlap to classify the pattern yet.';
+      'La sovrapposizione coerente non è ancora sufficiente per classificare il modello.';
 
   @override
   String analyticsBasedOnDataCoverage(int weightDays, int calorieDays) {
-    return 'Based on $weightDays weigh-ins and $calorieDays calorie days';
+    return 'Basato su $weightDays pesate e $calorieDays giorni di calorie';
   }
 
   @override
-  String get restTimerNotificationTitle => 'Rest finished';
+  String get restTimerNotificationTitle => 'Resto finito';
 
   @override
   String get restTimerNotificationBody =>
-      'Your pause timer is over. Ready for the next set.';
+      'Il timer della pausa è scaduto. Pronti per il prossimo set.';
 
   @override
-  String get onboardingContinueSetup => 'Set Up Profile';
+  String get onboardingContinueSetup => 'Imposta profilo';
 
   @override
-  String get onboardingRestoreFromBackup => 'Restore from Backup';
+  String get onboardingRestoreFromBackup => 'Ripristina dal backup';
 
   @override
-  String get onboardingRestoreImporting => 'Importing backup...';
+  String get onboardingRestoreImporting => 'Importazione backup...';
 
   @override
-  String get onboardingRestoreSuccess => 'Backup restored successfully!';
+  String get onboardingRestoreSuccess => 'Backup ripristinato con successo!';
 
   @override
   String get onboardingRestoreFailed =>
-      'Import failed. Please check the file and try again.';
+      'Importazione non riuscita. Controlla il file e riprova.';
 
   @override
-  String get finishWorkoutTitleLabel => 'Workout Title';
+  String get finishWorkoutTitleLabel => 'Titolo dell\'allenamento';
 
   @override
-  String get finishWorkoutNotesLabel => 'Notes (optional)';
+  String get finishWorkoutNotesLabel => 'Note (facoltativo)';
 
   @override
-  String get finishWorkoutNotesHint => 'How did the workout go?';
+  String get finishWorkoutNotesHint => 'Com\'è andato l\'allenamento?';
 
   @override
-  String get sleepSectionTitle => 'Sleep';
+  String get sleepSectionTitle => 'Sonno';
 
   @override
   String get sleepSectionSubtitleDayEntry =>
-      'Day overview and detail drill-downs';
+      'Panoramica giornaliera e approfondimenti dettagliati';
 
   @override
   String get sleepSectionSubtitleAllEntry =>
-      'Sleep day, week, and month views are available from this entry';
+      'Da questa voce sono disponibili le visualizzazioni del giorno, della settimana e del mese del sonno';
 
   @override
-  String get sleepScopeDay => 'Day';
+  String get sleepScopeDay => 'Giorno';
 
   @override
-  String get sleepScopeWeek => 'Week';
+  String get sleepScopeWeek => 'Settimana';
 
   @override
-  String get sleepScopeMonth => 'Month';
+  String get sleepScopeMonth => 'Mese';
 
   @override
-  String get sleepWeekSummaryTitle => 'Week summary';
+  String get sleepWeekSummaryTitle => 'Riepilogo della settimana';
 
   @override
-  String get sleepMonthSummaryTitle => 'Month summary';
+  String get sleepMonthSummaryTitle => 'Riepilogo del mese';
 
   @override
-  String get sleepSleepWindowTitle => 'Sleep window';
+  String get sleepSleepWindowTitle => 'Finestra per dormire';
 
   @override
-  String get sleepDailyScoreTitle => 'Daily score';
+  String get sleepDailyScoreTitle => 'Punteggio giornaliero';
 
   @override
-  String get sleepMonthDailyScoreStatesTitle => 'Daily score states';
+  String get sleepMonthDailyScoreStatesTitle =>
+      'Stati del punteggio giornaliero';
 
   @override
   String sleepMeanScoreLabel(String value) {
-    return 'Mean score: $value';
+    return 'Punteggio medio: $value';
   }
 
   @override
-  String get sleepHubScoreLabel => 'Sleep score';
+  String get sleepHubScoreLabel => 'Punteggio del sonno';
 
   @override
-  String get sleepHubAverageLabel => 'Average';
+  String get sleepHubAverageLabel => 'Media';
 
   @override
-  String get sleepHubBedtimeLabel => 'Bedtime';
+  String get sleepHubBedtimeLabel => 'Ora di andare a dormire';
 
   @override
-  String get sleepHubInterruptionsLabel => 'Interruptions';
+  String get sleepHubInterruptionsLabel => 'Interruzioni';
 
   @override
   String sleepHubInterruptionsSummary(int count, String duration) {
-    return '$count wake-ups, $duration total';
+    return '$count risvegli, $duration totale';
   }
 
   @override
   String sleepWeekdayAvgDurationLabel(String value) {
-    return 'Weekday avg duration: $value';
+    return 'Durata media del giorno feriale: $value';
   }
 
   @override
   String sleepWeekendAvgDurationLabel(String value) {
-    return 'Weekend avg duration: $value';
+    return 'Durata media del fine settimana: $value';
   }
 
   @override
   String get sleepWeekNoScoredNights =>
-      'No scored sleep nights available in this week yet.';
+      'Non sono ancora disponibili notti di sonno conteggiate in questa settimana.';
 
   @override
   String get sleepMonthNoScoredNights =>
-      'No scored sleep nights available this month yet.';
+      'Non sono ancora disponibili notti di sonno conteggiate questo mese.';
 
   @override
-  String get sleepSettingsSectionTitle => 'Sleep';
+  String get sleepSettingsSectionTitle => 'Sonno';
 
   @override
-  String get sleepEnableTrackingTitle => 'Enable sleep tracking';
+  String get sleepEnableTrackingTitle => 'Abilita il monitoraggio del sonno';
 
   @override
   String get sleepEnableTrackingSubtitle =>
-      'Read sleep and overnight heart rate from Health Connect / HealthKit';
+      'Leggi il sonno e la frequenza cardiaca notturna da Health Connect / HealthKit';
 
   @override
-  String get sleepHealthConnectionStatusTitle => 'Health connection status';
+  String get sleepHealthConnectionStatusTitle =>
+      'Stato della connessione sanitaria';
 
   @override
-  String get sleepRequestAccessTitle => 'Request access';
+  String get sleepRequestAccessTitle => 'Richiedi l\'accesso';
 
   @override
   String get sleepRequestAccessSubtitle =>
-      'Request or re-request sleep/heart-rate permissions';
+      'Richiedere o richiedere nuovamente le autorizzazioni relative al sonno/frequenza cardiaca';
 
   @override
-  String get sleepImportNowTitle => 'Import sleep data now';
+  String get sleepImportNowTitle => 'Importa ora i dati del sonno';
 
   @override
   String get sleepImportNowSubtitle =>
-      'Import all available sleep data (all time)';
+      'Importa tutti i dati sul sonno disponibili (tutto il tempo)';
 
   @override
-  String get sleepRawImportsTitle => 'View raw sleep imports';
+  String get sleepRawImportsTitle =>
+      'Visualizza le importazioni del sonno non elaborato';
 
   @override
-  String get sleepRawImportsSubtitle => 'Show recent Health Connect payloads';
+  String get sleepRawImportsSubtitle =>
+      'Mostra i payload recenti di Health Connect';
 
   @override
-  String get sleepDataStatusTitle => 'Data status';
+  String get sleepDataStatusTitle => 'Stato dei dati';
 
   @override
   String get sleepDataStatusSubtitle =>
-      'Permissions granted. If no sleep appears yet, run a manual import below.';
+      'Autorizzazioni concesse. Se non viene ancora visualizzato lo stato di sospensione, esegui un\'importazione manuale di seguito.';
 
   @override
-  String get sleepNoPermissionTitle => 'No permission';
+  String get sleepNoPermissionTitle => 'Nessun permesso';
 
   @override
   String get sleepNoPermissionSubtitle =>
-      'Sleep and heart-rate permissions are required to import sleep data.';
+      'Per importare i dati del sonno sono necessarie le autorizzazioni relative al sonno e alla frequenza cardiaca.';
 
   @override
-  String get sleepFeatureUnavailableTitle => 'Feature unavailable';
+  String get sleepFeatureUnavailableTitle => 'Funzionalità non disponibile';
 
   @override
   String get sleepFeatureUnavailableSubtitle =>
-      'Sleep import is unavailable on this device or Health Connect is not installed.';
+      'L\'importazione del sonno non è disponibile su questo dispositivo oppure Health Connect non è installato.';
 
   @override
-  String get sleepNoRawImportsFound => 'No raw sleep imports found yet.';
+  String get sleepNoRawImportsFound =>
+      'Nessuna importazione di sonno grezzo ancora trovata.';
 
   @override
-  String get sleepRawImportsSheetTitle => 'Raw sleep imports (latest)';
+  String get sleepRawImportsSheetTitle =>
+      'Importazioni del sonno non elaborato (più recenti)';
 
   @override
   String sleepImportFinishedSessions(int count) {
-    return 'Sleep import finished ($count sessions).';
+    return 'Importazione del sonno terminata ($count sessioni).';
   }
 
   @override
   String get sleepImportUnavailableCheckPermissions =>
-      'Sleep import unavailable. Check permissions.';
+      'Importazione del sonno non disponibile. Controlla i permessi.';
 
   @override
-  String get sleepStatusChecking => 'Checking permission status…';
+  String get sleepStatusChecking =>
+      'Verifica dello stato delle autorizzazioni…';
 
   @override
-  String get sleepStatusReady => 'Ready';
+  String get sleepStatusReady => 'Pronto';
 
   @override
-  String get sleepStatusDenied => 'Denied';
+  String get sleepStatusDenied => 'Negato';
 
   @override
-  String get sleepStatusPartial => 'Partial access';
+  String get sleepStatusPartial => 'Accesso parziale';
 
   @override
-  String get sleepStatusUnavailable => 'Unavailable on this device';
+  String get sleepStatusUnavailable => 'Non disponibile su questo dispositivo';
 
   @override
-  String get sleepStatusNotInstalled => 'Health Connect not installed';
+  String get sleepStatusNotInstalled => 'Connessione Salute non installata';
 
   @override
-  String get sleepStatusTechnicalError => 'Technical error';
+  String get sleepStatusTechnicalError => 'Errore tecnico';
 
   @override
-  String get sleepConnectHealthDataTitle => 'Connect health data';
+  String get sleepConnectHealthDataTitle => 'Connetti i dati sanitari';
 
   @override
   String get sleepConnectHealthDataMessage =>
-      'Connect HealthKit or Health Connect to import sleep records.';
+      'Connetti HealthKit o Health Connect per importare i registri del sonno.';
 
   @override
-  String get sleepPermissionDeniedTitle => 'Permission denied';
+  String get sleepPermissionDeniedTitle => 'Autorizzazione negata';
 
   @override
   String get sleepPermissionDeniedMessage =>
-      'Sleep permissions are denied. Open settings to grant access.';
+      'Le autorizzazioni per il sonno sono negate. Apri le impostazioni per concedere l\'accesso.';
 
   @override
-  String get sleepSourceUnavailableTitle => 'Source unavailable';
+  String get sleepSourceUnavailableTitle => 'Fonte non disponibile';
 
   @override
   String get sleepSourceUnavailableMessage =>
-      'Sleep data source is unavailable or not installed on this device.';
+      'L\'origine dati del sonno non è disponibile o non è installata su questo dispositivo.';
 
   @override
-  String get sleepEmptyDayNoData => 'No sleep data available for this day.';
+  String get sleepEmptyDayNoData =>
+      'Nessun dato sul sonno disponibile per questo giorno.';
 
   @override
   String get sleepEmptyDayConnectMessage =>
-      'Connect Health Connect/HealthKit in Settings and import recent sleep data.';
+      'Connect Health Connect/HealthKit in Impostazioni e importa i dati recenti sul sonno.';
 
   @override
-  String get sleepOpenSettingsButton => 'Open settings';
+  String get sleepOpenSettingsButton => 'Apri le impostazioni';
 
   @override
-  String get sleepImportNowButton => 'Import now';
+  String get sleepImportNowButton => 'Importa ora';
 
   @override
   String get sleepImportFinishedRefreshing =>
-      'Sleep import finished. Refreshing...';
+      'Importazione del sonno terminata. Rinfrescante...';
 
   @override
   String get sleepImportUnavailableSettingsHint =>
-      'Sleep import not available. Check permissions in Settings.';
+      'Importazione del sonno non disponibile. Controlla le autorizzazioni in Impostazioni.';
 
   @override
-  String get sleepTimelineTitle => 'Timeline';
+  String get sleepTimelineTitle => 'Cronologia';
 
   @override
   String get sleepTimelineUnavailable =>
-      'No stage timeline available for this night.';
+      'Nessuna cronologia del palco disponibile per questa notte.';
 
   @override
-  String get sleepSessionTypeCore => 'Core Sleep';
+  String get sleepSessionTypeCore => 'Sonno fondamentale';
 
   @override
-  String get sleepSessionTypeNap => 'Nap';
+  String get sleepSessionTypeNap => 'Pisolino';
 
   @override
-  String get sleepIntervalsDrawerTitle => 'Sleep Intervals';
+  String get sleepIntervalsDrawerTitle => 'Intervalli di sonno';
 
   @override
-  String get sleepStageDeepLabel => 'Deep';
+  String get sleepStageDeepLabel => 'Profondo';
 
   @override
-  String get sleepStageLightLabel => 'Light';
+  String get sleepStageLightLabel => 'Leggero';
 
   @override
   String get sleepStageRemLabel => 'REM';
 
   @override
-  String get sleepStageAwakeLabel => 'Awake';
+  String get sleepStageAwakeLabel => 'Sveglio';
 
   @override
-  String get sleepScoreCardTitle => 'Sleep quality';
+  String get sleepScoreCardTitle => 'Qualità del sonno';
 
   @override
   String get sleepScoreUnavailableForNight =>
-      'Score unavailable for this night.';
+      'Punteggio non disponibile per questa notte.';
 
   @override
   String sleepScoreCompletenessLabel(String value) {
-    return 'Score completeness: $value';
+    return 'Completezza del punteggio: $value';
   }
 
   @override
-  String get sleepQualityGood => 'Good';
+  String get sleepQualityGood => 'Bene';
 
   @override
-  String get sleepQualityAverage => 'Average';
+  String get sleepQualityAverage => 'Media';
 
   @override
-  String get sleepQualityPoor => 'Poor';
+  String get sleepQualityPoor => 'Povero';
 
   @override
-  String get sleepQualityUnavailable => 'Unavailable';
+  String get sleepQualityUnavailable => 'Non disponibile';
 
   @override
-  String get sleepQualitySubtitleGood => 'Recovery looked strong overnight.';
+  String get sleepQualitySubtitleGood =>
+      'La ripresa è apparsa forte durante la notte.';
 
   @override
   String get sleepQualitySubtitleAverage =>
-      'Sleep was okay with room for improvement.';
+      'Il sonno era ok con margini di miglioramento.';
 
   @override
-  String get sleepQualitySubtitlePoor => 'Recovery signals were weak tonight.';
+  String get sleepQualitySubtitlePoor =>
+      'I segnali di ripresa stasera sono stati deboli.';
 
   @override
   String get sleepQualitySubtitleUnavailable =>
-      'Not enough data to score this night.';
+      'Dati insufficienti per segnare questa notte.';
 
   @override
   String get sleepQualityRegularityNotContributing =>
-      'Regularity did not contribute (<5 valid days).';
+      'La regolarità non ha contribuito (<5 giorni validi).';
 
   @override
   String get sleepQualityRegularityPreliminary =>
-      'Regularity is preliminary (5-6 valid days).';
+      'La regolarità è preliminare (5-6 giorni validi).';
 
   @override
   String sleepQualityRegularityStable(int days) {
-    return 'Regularity is stable ($days days).';
+    return 'La regolarità è stabile ($days giorni).';
   }
 
   @override
   String sleepRegularityNightView(int count) {
-    return '$count-night view';
+    return '$count-vista notturna';
   }
 
   @override
-  String get sleepMetricUnavailable => 'Unavailable';
+  String get sleepMetricUnavailable => 'Non disponibile';
 
   @override
-  String get sleepMetricDurationTitle => 'Duration';
+  String get sleepMetricDurationTitle => 'Durata';
 
   @override
-  String get sleepMetricHeartRateTitle => 'Heart rate';
+  String get sleepMetricHeartRateTitle => 'Frequenza cardiaca';
 
   @override
-  String get sleepMetricRegularityTitle => 'Regularity';
+  String get sleepMetricRegularityTitle => 'Regolarità';
 
   @override
-  String get sleepMetricDepthTitle => 'Depth';
+  String get sleepMetricDepthTitle => 'Profondità';
 
   @override
-  String get sleepMetricInterruptionsTitle => 'Interruptions';
+  String get sleepMetricInterruptionsTitle => 'Interruzioni';
 
   @override
-  String get sleepMetricDepthLowConfidence => 'Low confidence';
+  String get sleepMetricDepthLowConfidence => 'Bassa fiducia';
 
   @override
-  String get sleepMetricDepthStagesAvailable => 'Stages available';
+  String get sleepMetricDepthStagesAvailable => 'Stage disponibili';
 
   @override
-  String get sleepDurationUnavailable => 'Duration data is unavailable.';
+  String get sleepDurationUnavailable =>
+      'I dati sulla durata non sono disponibili.';
 
   @override
-  String get sleepDurationStatusWithinTarget => 'Within target';
+  String get sleepDurationStatusWithinTarget => 'All\'interno dell\'obiettivo';
 
   @override
-  String get sleepDurationStatusBelowTarget => 'Below target';
+  String get sleepDurationStatusBelowTarget => 'Sotto l\'obiettivo';
 
   @override
   String get sleepDurationSubtitle =>
-      'Your total sleep duration for this night.';
+      'La durata totale del tuo sonno per questa notte.';
 
   @override
   String get sleepDurationBenchmarkHint =>
-      'Adults often do best with roughly 7–9 hours. This benchmark helps you see where your night sits in that range.';
+      'Gli adulti spesso ottengono risultati migliori con circa 7-9 ore. Questo benchmark ti aiuta a vedere dove si trova la tua notte in quell\'intervallo.';
 
   @override
-  String get sleepDepthUnavailable => 'Depth data is unavailable.';
+  String get sleepDepthUnavailable =>
+      'I dati sulla profondità non sono disponibili.';
 
   @override
   String get sleepDepthConfidenceTooLow =>
-      'Stage confidence is too low for a reliable depth breakdown.';
+      'La confidenza dello stage è troppo bassa per un\'analisi approfondita affidabile.';
 
   @override
   String get sleepDepthBreakdownUnavailable =>
-      'Stage duration breakdown is unavailable for this night.';
+      'La ripartizione della durata della fase non è disponibile per questa notte.';
 
   @override
-  String get sleepDepthRatingRestorative => 'Restorative';
+  String get sleepDepthRatingRestorative => 'Restaurativo';
 
   @override
-  String get sleepDepthRatingLightLeaning => 'Light-leaning';
+  String get sleepDepthRatingLightLeaning => 'Leggero';
 
   @override
   String sleepDepthStageConfidenceLabel(String value) {
-    return 'Stage confidence: $value';
+    return 'Confidenza della fase: $value';
   }
 
   @override
   String get sleepDepthSubtitle =>
-      'Stage distribution based on derived timeline segments.';
+      'Distribuzione delle fasi basata su segmenti della timeline derivati.';
 
   @override
   String get sleepInterruptionsUnavailable =>
-      'Interruptions data is unavailable.';
+      'I dati sulle interruzioni non sono disponibili.';
 
   @override
-  String get sleepInterruptionsStatusNoneDetected => 'None detected';
+  String get sleepInterruptionsStatusNoneDetected => 'Nessuno rilevato';
 
   @override
-  String get sleepInterruptionsStatusDetected => 'Detected';
+  String get sleepInterruptionsStatusDetected => 'Rilevato';
 
   @override
   String get sleepInterruptionsSubtitle =>
-      'Qualifying wake interruptions overnight.';
+      'Interruzioni della scia qualificanti durante la notte.';
 
   @override
-  String get sleepInterruptionsTotalWakeDuration => 'Total wake duration';
+  String get sleepInterruptionsTotalWakeDuration => 'Durata totale della scia';
 
   @override
   String get sleepInterruptionsFootnote =>
-      'This view includes only qualifying interruptions from derived analysis outputs.';
+      'Questa visualizzazione include solo le interruzioni qualificanti provenienti dagli output dell\'analisi derivati.';
 
   @override
-  String get sleepRegularityUnavailable => 'Regularity data is unavailable.';
+  String get sleepRegularityUnavailable =>
+      'I dati sulla regolarità non sono disponibili.';
 
   @override
   String sleepRegularityNightRange(int count) {
-    return '$count-night range';
+    return '$count-intervallo di notti';
   }
 
   @override
-  String get sleepRegularityStatusSufficientTrend => 'Sufficient trend data';
+  String get sleepRegularityStatusSufficientTrend =>
+      'Dati di tendenza sufficienti';
 
   @override
-  String get sleepRegularityStatusLimitedTrend => 'Limited trend data';
+  String get sleepRegularityStatusLimitedTrend => 'Dati di tendenza limitati';
 
   @override
   String get sleepRegularitySubtitle =>
-      'Bedtime and wake windows for recent nights.';
+      'Finestre dell\'ora di andare a dormire e di svegliarsi per le notti recenti.';
 
   @override
-  String get sleepRegularityAverageBedtime => 'Average bedtime';
+  String get sleepRegularityAverageBedtime =>
+      'Orario medio di andare a dormire';
 
   @override
-  String get sleepRegularityAverageWake => 'Average wake';
+  String get sleepRegularityAverageWake => 'Sveglia media';
 
   @override
   String get sleepHeartRateUnavailable =>
-      'Sleep heart-rate data is unavailable.';
+      'I dati sulla frequenza cardiaca del sonno non sono disponibili.';
 
   @override
   String get sleepHeartRateStatusNoSampleSeries =>
-      'No sample series for this night';
+      'Nessuna serie di campioni per questa notte';
 
   @override
   String get sleepHeartRateStatusBaselineNotEstablished =>
-      'Baseline not established';
+      'Linea di base non stabilita';
 
   @override
   String get sleepHeartRateStatusComparisonUnavailable =>
-      'Baseline comparison unavailable';
+      'Confronto di riferimento non disponibile';
 
   @override
-  String get sleepHeartRateStatusBelowBaseline => 'Below baseline';
+  String get sleepHeartRateStatusBelowBaseline =>
+      'Al di sotto della linea di base';
 
   @override
-  String get sleepHeartRateStatusAboveBaseline => 'Above baseline';
+  String get sleepHeartRateStatusAboveBaseline => 'Sopra la linea di base';
 
   @override
   String get sleepHeartRateNoSamplesText =>
-      'No persisted sleep heart-rate samples are available for this night.';
+      'Per questa notte non sono disponibili campioni di frequenza cardiaca del sonno persistente.';
 
   @override
   String get sleepHeartRateBaselineNotEstablishedText =>
-      'Baseline not established yet. This is neutral and expected early on.';
+      'Linea di base non ancora stabilita. Questo è neutrale e previsto nella fase iniziale.';
 
   @override
   String get sleepHeartRateComparisonUnavailableText =>
-      'Baseline comparison is currently unavailable for this night.';
+      'Il confronto di riferimento non è attualmente disponibile per questa notte.';
 
   @override
   String sleepHeartRateDeltaText(String direction, String delta, String unit) {
-    return 'Your sleep HR is $direction baseline by $delta $unit.';
+    return 'La tua frequenza cardiaca del sonno è pari al valore basale $direction di $delta $unit.';
   }
 
   @override
-  String get sleepHeartRateDirectionBelow => 'below';
+  String get sleepHeartRateDirectionBelow => 'sotto';
 
   @override
-  String get sleepHeartRateDirectionAbove => 'above';
+  String get sleepHeartRateDirectionAbove => 'Sopra';
 
   @override
   String get sleepHeartRateComparedBaselineSubtitle =>
-      'Compared with your established sleep baseline.';
+      'Rispetto al valore di riferimento del sonno stabilito.';
 
   @override
   String get sleepHeartRateNoBaselineSubtitle =>
-      'Baseline is not established yet. This is neutral.';
+      'La linea di base non è ancora stata stabilita. Questo è neutro.';
 
   @override
   String get sleepHeartRateSamplesUnavailable =>
-      'No heart-rate samples were stored for this night. Trend chart is unavailable.';
+      'Nessun campione di frequenza cardiaca è stato memorizzato per questa notte. Il grafico delle tendenze non è disponibile.';
 
   @override
   String sleepHeartRateDashedLineHint(String value, String unit) {
-    return 'Dashed line shows baseline ($value $unit).';
+    return 'La linea tratteggiata mostra la linea di base ($value $unit).';
   }
 
   @override
   String get sleepBpmUnit => 'bpm';
 
   @override
-  String get sleepRawImportImportedAt => 'Imported at';
+  String get sleepRawImportImportedAt => 'Importato a';
 
   @override
-  String get sleepRawImportStatus => 'Status';
+  String get sleepRawImportStatus => 'Stato';
 
   @override
-  String get sleepRawImportSource => 'Source';
+  String get sleepRawImportSource => 'Fonte';
 
   @override
   String get sleepRawImportApp => 'App';
 
   @override
-  String get sleepRawImportConfidence => 'Confidence';
+  String get sleepRawImportConfidence => 'Fiducia';
 
   @override
-  String get sleepRawImportPayload => 'Payload';
+  String get sleepRawImportPayload => 'Carico utile';
 
   @override
   String get adaptiveBodyweightTargetSectionTitle =>
-      'Adaptive bodyweight target';
+      'Obiettivo di peso corporeo adattivo';
 
   @override
   String get adaptiveRecommendationSettingsSectionTitle =>
-      'Recommendation settings';
+      'Impostazioni dei consigli';
 
   @override
-  String get adaptiveGoalDirectionLabel => 'Goal direction';
+  String get adaptiveGoalDirectionLabel => 'Direzione dell\'obiettivo';
 
   @override
-  String get adaptiveGoalLose => 'Lose weight';
+  String get adaptiveGoalLose => 'Perdere peso';
 
   @override
-  String get adaptiveGoalMaintain => 'Maintain weight';
+  String get adaptiveGoalMaintain => 'Mantenere il peso';
 
   @override
-  String get adaptiveGoalGain => 'Gain weight';
+  String get adaptiveGoalGain => 'Aumentare di peso';
 
   @override
   String adaptiveRatePerWeek(String value) {
-    return '$value kg/week';
+    return '$value kg/settimana';
   }
 
   @override
-  String get adaptivePriorActivityLabel => 'Baseline daily activity';
+  String get adaptivePriorActivityLabel => 'Attività quotidiana di base';
 
   @override
-  String get adaptivePriorActivityLow => 'Low activity';
+  String get adaptivePriorActivityLow => 'Bassa attività';
 
   @override
-  String get adaptivePriorActivityModerate => 'Moderate activity';
+  String get adaptivePriorActivityModerate => 'Attività moderata';
 
   @override
-  String get adaptivePriorActivityHigh => 'High activity';
+  String get adaptivePriorActivityHigh => 'Alta attività';
 
   @override
-  String get adaptivePriorActivityVeryHigh => 'Very high activity';
+  String get adaptivePriorActivityVeryHigh => 'Attività molto elevata';
 
   @override
   String get adaptivePriorActivityHelpIntro =>
-      'Baseline daily activity only (separate from extra cardio):';
+      'Solo attività quotidiana di base (separata dall\'attività cardio extra):';
 
   @override
   String get adaptivePriorActivityHelpLowLine =>
-      'Low: mostly sitting, student/pupil or office routine.';
+      'Basso: per lo più seduto, studente/alunno o routine in ufficio.';
 
   @override
   String get adaptivePriorActivityHelpModerateLine =>
-      'Moderate: mixed sitting, walking, and standing.';
+      'Moderato: misto seduto, camminato e in piedi.';
 
   @override
   String get adaptivePriorActivityHelpHighLine =>
-      'High: lots of standing/walking or a physically active job.';
+      'Alto: stare molto in piedi/camminare o fare un lavoro fisicamente attivo.';
 
   @override
   String get adaptivePriorActivityHelpVeryHighLine =>
-      'Very high: very movement-heavy routine/job with consistently high daily activity.';
+      'Molto alto: routine/lavoro molto intenso con attività quotidiana costantemente elevata.';
 
   @override
   String get adaptiveExtraCardioLabel =>
-      'Extra cardio/endurance outside the app';
+      'Cardio/resistenza extra fuori dall\'app';
 
   @override
-  String get adaptiveExtraCardioOption0 => '0 h/week';
+  String get adaptiveExtraCardioOption0 => '0 ore/settimana';
 
   @override
-  String get adaptiveExtraCardioOption1 => '1 h/week';
+  String get adaptiveExtraCardioOption1 => '1 ora/settimana';
 
   @override
-  String get adaptiveExtraCardioOption2 => '2 h/week';
+  String get adaptiveExtraCardioOption2 => '2 ore/settimana';
 
   @override
-  String get adaptiveExtraCardioOption3 => '3 h/week';
+  String get adaptiveExtraCardioOption3 => '3 ore/settimana';
 
   @override
-  String get adaptiveExtraCardioOption5 => '5 h/week';
+  String get adaptiveExtraCardioOption5 => '5 ore/settimana';
 
   @override
-  String get adaptiveExtraCardioOption7Plus => '7+ h/week';
+  String get adaptiveExtraCardioOption7Plus => '7+ ore/settimana';
 
   @override
   String get adaptiveExtraCardioHelp =>
-      'Include jogging, running, cycling, swimming, or other endurance sessions not logged as Train Libre workouts.';
+      'Includere sessioni di jogging, corsa, ciclismo, nuoto o altre sessioni di resistenza non registrate come allenamenti Train Libre.';
 
   @override
-  String get onboardingAdaptiveGoalTitle => 'Adaptive nutrition recommendation';
+  String get onboardingAdaptiveGoalTitle =>
+      'Raccomandazione nutrizionale adattiva';
 
   @override
   String get onboardingAdaptiveGoalSubtitle =>
-      'Set your direction and weekly rate. We create a conservative starting recommendation and adapt it with your logs.';
+      'Imposta la direzione e la tariffa settimanale. Creiamo una raccomandazione iniziale conservativa e la adattiamo con i tuoi log.';
 
   @override
-  String get adaptiveRecommendationGenerating => 'Generating...';
+  String get adaptiveRecommendationGenerating => 'Generazione...';
 
   @override
-  String get adaptiveRecommendationRefresh => 'Refresh recommendation';
+  String get adaptiveRecommendationRefresh => 'Aggiorna la raccomandazione';
 
   @override
   String get onboardingAdaptiveSummaryEmpty =>
-      'Set your goal inputs and tap refresh to preview your starting recommendation.';
+      'Imposta gli input dell\'obiettivo e tocca Aggiorna per visualizzare in anteprima il tuo consiglio iniziale.';
 
   @override
-  String get onboardingAdaptiveSummaryTitle => 'Recommendation preview';
+  String get onboardingAdaptiveSummaryTitle =>
+      'Anteprima della raccomandazione';
 
   @override
   String onboardingAdaptiveSummaryCalories(int value) {
-    return 'Calories: $value kcal';
+    return 'Calorie: $value kcal';
   }
 
   @override
   String onboardingAdaptiveSummaryProtein(int value) {
-    return 'Protein: $value g';
+    return 'Proteine: $value g';
   }
 
   @override
   String onboardingAdaptiveSummaryCarbs(int value) {
-    return 'Carbs: $value g';
+    return 'Carboidrati: $value g';
   }
 
   @override
   String onboardingAdaptiveSummaryFat(int value) {
-    return 'Fat: $value g';
+    return 'Grassi: $value g';
   }
 
   @override
   String onboardingAdaptiveSummaryConfidence(String value) {
-    return 'Data basis: $value';
+    return 'Base dati: $value';
   }
 
   @override
-  String get onboardingAdaptiveSummaryApply => 'Apply to daily goals';
+  String get onboardingAdaptiveSummaryApply =>
+      'Applicare agli obiettivi giornalieri';
 
   @override
-  String get onboardingAdaptiveSummaryApplied => 'Applied to daily goals';
+  String get onboardingAdaptiveSummaryApplied =>
+      'Applicato agli obiettivi giornalieri';
 
   @override
-  String get onboardingBodyFatPageTitle => 'Body fat %';
+  String get onboardingBodyFatPageTitle => '% di grasso corporeo';
 
   @override
   String get onboardingBodyFatPageSubtitle =>
-      'Optional step: enter a rough estimate if you know it.';
+      'Passaggio facoltativo: inserisci una stima approssimativa se la conosci.';
 
   @override
-  String get onboardingBodyFatOptionalLabel => 'Body fat % (optional)';
+  String get onboardingBodyFatOptionalLabel =>
+      '% di grasso corporeo (facoltativo)';
 
   @override
   String get onboardingBodyFatOptionalHelper =>
-      'Optional: only enter this if you roughly know your value. Leaving it empty is okay. It helps personalize the initial recommendation.';
+      'Facoltativo: inseriscilo solo se conosci approssimativamente il tuo valore. Lasciarlo vuoto va bene. Aiuta a personalizzare la raccomandazione iniziale.';
 
   @override
-  String get onboardingBodyFatHelpAction => 'How do I estimate this?';
+  String get onboardingBodyFatHelpAction => 'Come posso stimarlo?';
 
   @override
-  String get bodyFatGuidanceTitle => 'Body fat % guidance';
+  String get bodyFatGuidanceTitle =>
+      'Guida alla percentuale di grasso corporeo';
 
   @override
   String get bodyFatGuidanceIntro =>
-      'Body-fat percentage can only be estimated roughly from appearance. This is orientation only, not a precise diagnosis.';
+      'La percentuale di grasso corporeo può essere stimata solo approssimativamente dall’apparenza. Questo è solo un orientamento, non una diagnosi precisa.';
 
   @override
   String get bodyFatGuidanceDisclaimer =>
-      'Appearance can vary strongly at the same body-fat level due to muscle mass, fat distribution, genetics, water retention, posture, and lighting.';
+      'L\'aspetto può variare notevolmente allo stesso livello di grasso corporeo a causa della massa muscolare, della distribuzione del grasso, della genetica, della ritenzione idrica, della postura e dell\'illuminazione.';
 
   @override
-  String get bodyFatGuidanceSexLabel => 'Reference sex';
+  String get bodyFatGuidanceSexLabel => 'Sesso di riferimento';
 
   @override
   String bodyFatGuidancePercent(int percent) {
@@ -4080,86 +4146,86 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get bodyFatGuidanceMale10 => 'Very lean, clear definition.';
+  String get bodyFatGuidanceMale10 => 'Definizione molto snella e chiara.';
 
   @override
-  String get bodyFatGuidanceMale15 => 'Athletic, visibly defined.';
+  String get bodyFatGuidanceMale15 => 'Atletico, visibilmente definito.';
 
   @override
-  String get bodyFatGuidanceMale20 => 'Sporty, slightly softer.';
+  String get bodyFatGuidanceMale20 => 'Sportivo, leggermente più morbido.';
 
   @override
   String get bodyFatGuidanceMale25 =>
-      'Less definition, more waist and belly softness.';
+      'Meno definizione, più morbidezza in vita e ventre.';
 
   @override
-  String get bodyFatGuidanceMale30 => 'Clearly softer, rounder.';
+  String get bodyFatGuidanceMale30 => 'Chiaramente più morbido, più rotondo.';
 
   @override
   String get bodyFatGuidanceMale35 =>
-      'Very soft, almost no visible definition.';
+      'Molto morbido, quasi nessuna definizione visibile.';
 
   @override
   String get bodyFatGuidanceMale40 =>
-      'Strongly rounder appearance, no visible definition.';
+      'Aspetto fortemente più rotondo, nessuna definizione visibile.';
 
   @override
-  String get bodyFatGuidanceFemale15 => 'Very lean, very defined.';
+  String get bodyFatGuidanceFemale15 => 'Molto magro, molto definito.';
 
   @override
-  String get bodyFatGuidanceFemale20 => 'Lean and athletic.';
+  String get bodyFatGuidanceFemale20 => 'Magro e atletico.';
 
   @override
-  String get bodyFatGuidanceFemale25 => 'Fit, lightly soft.';
+  String get bodyFatGuidanceFemale25 => 'Vestibilità, leggermente morbida.';
 
   @override
   String get bodyFatGuidanceFemale30 =>
-      'Soft, healthy-looking average athletic-to-normal range.';
+      'Gamma media da atletico a normale morbida e dall\'aspetto sano.';
 
   @override
-  String get bodyFatGuidanceFemale35 => 'Noticeably softer.';
+  String get bodyFatGuidanceFemale35 => 'Notevolmente più morbido.';
 
   @override
   String get bodyFatGuidanceFemale40 =>
-      'Clearly softer, rounder overall appearance.';
+      'Aspetto generale chiaramente più morbido e rotondo.';
 
   @override
-  String get adaptiveRecommendationCardTitle => 'Adaptive recommendation';
+  String get adaptiveRecommendationCardTitle => 'Raccomandazione adattiva';
 
   @override
   String get adaptiveRecommendationEmptyBody =>
-      'Track weight and nutrition for about a week to unlock your first weekly recommendation.';
+      'Tieni traccia del peso e dell\'alimentazione per circa una settimana per sbloccare il tuo primo consiglio settimanale.';
 
   @override
   String adaptiveRecommendationGoalLine(String goal, String rate) {
-    return 'Goal: $goal ($rate)';
+    return 'Obiettivo: $goal ($rate)';
   }
 
   @override
   String adaptiveRecommendationMaintenanceLine(int value) {
-    return 'Maintenance estimate: $value kcal';
+    return 'Stima di mantenimento: $value kcal';
   }
 
   @override
   String adaptiveRecommendationMaintenanceRangeLine(int lower, int upper) {
-    return 'Likely range: $lower-$upper kcal';
+    return 'Intervallo probabile: $lower-$upper kcal';
   }
 
   @override
   String get adaptiveRecommendationUncertaintyHintNarrow =>
-      'Your likely maintenance range is fairly tight. Small day-to-day shifts are normal.';
+      'Il tuo probabile intervallo di manutenzione è abbastanza ristretto. Piccoli spostamenti giornalieri sono normali.';
 
   @override
   String get adaptiveRecommendationUncertaintyHintModerate =>
-      'Your likely maintenance range is moderate right now. Some movement week to week is normal.';
+      'Il tuo probabile intervallo di mantenimento è moderato in questo momento. Qualche movimento di settimana in settimana è normale.';
 
   @override
   String get adaptiveRecommendationUncertaintyHintWide =>
-      'Your likely maintenance range is still wide. This is normal while we gather more steady data.';
+      'Il tuo probabile intervallo di manutenzione è ancora ampio. Questo è normale mentre raccogliamo dati più costanti.';
 
   @override
   String get adaptiveRecommendationStabilizingHint =>
-      'We are still adapting to your recent phase, so this estimate can move more than usual.';
+      'Ci stiamo ancora adattando alla tua fase recente, quindi questa stima può variare più del solito.';
 
   @override
   String adaptiveRecommendationCaloriesValue(int value) {
@@ -4183,360 +4249,370 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String adaptiveRecommendationConfidenceLine(String value) {
-    return 'Data basis: $value';
+    return 'Base dati: $value';
   }
 
   @override
   String adaptiveRecommendationDataBasisLine(
       int windowDays, int weightLogs, int intakeDays) {
-    return 'Data basis: $windowDays days, $weightLogs weight logs, $intakeDays intake days';
+    return 'Base dati: $windowDays giorni, $weightLogs registri del peso, $intakeDays giorni di assunzione';
   }
 
   @override
   String adaptiveRecommendationActiveCaloriesLine(int value) {
-    return 'Current active calories: $value kcal';
+    return 'Calorie attive attuali: $value kcal';
   }
 
   @override
   String adaptiveRecommendationCalculatedAtLine(String value) {
-    return 'Calculated at: $value';
+    return 'Calcolato a: $value';
   }
 
   @override
   String adaptiveRecommendationNextDueLine(String value) {
-    return 'Next adaptive recommendation due: $value';
+    return 'Prossimo consiglio adattivo in scadenza: $value';
   }
 
   @override
   String adaptiveRecommendationNextDueShort(String value) {
-    return 'Next $value';
+    return 'Successivo $value';
   }
 
   @override
   String get adaptiveRecommendationDueNowLine =>
-      'A new adaptive recommendation is due this week.';
+      'Questa settimana è prevista una nuova raccomandazione adattiva.';
 
   @override
-  String get adaptiveRecommendationDueNowShort => 'Due this week';
+  String get adaptiveRecommendationDueNowShort =>
+      'In scadenza questa settimana';
 
   @override
-  String get adaptiveRecommendationMaintenanceLabel => 'Estimated maintenance';
+  String get adaptiveRecommendationMaintenanceLabel => 'Manutenzione stimata';
 
   @override
   String get adaptiveRecommendationMaintenanceSourceLabel =>
-      'Profile prior + recent logs';
+      'Profilo precedenti + registri recenti';
 
   @override
-  String get adaptiveRecommendationMaintenanceUnit => 'kcal/day';
+  String get adaptiveRecommendationMaintenanceUnit => 'kcal/giorno';
 
   @override
-  String get adaptiveRecommendationMacroTargetsLabel => 'Recommended targets';
+  String get adaptiveRecommendationMacroTargetsLabel => 'Obiettivi consigliati';
 
   @override
-  String get adaptiveRecommendationTargetCaloriesLabel => 'Target kcal';
+  String get adaptiveRecommendationTargetCaloriesLabel => 'Obiettivo kcal';
 
   @override
-  String get adaptiveRecommendationDataQualityLabel => 'Data quality';
+  String get adaptiveRecommendationDataQualityLabel => 'Qualità dei dati';
 
   @override
-  String get adaptiveRecommendationRecalculateNowAction => 'Recalculate now';
+  String get adaptiveRecommendationRecalculateNowAction => 'Ricalcola ora';
 
   @override
-  String get adaptiveRecommendationRecalculating => 'Recalculating...';
+  String get adaptiveRecommendationRecalculating => 'Ricalcolo in corso...';
 
   @override
-  String get adaptiveRecommendationApplying => 'Applying...';
+  String get adaptiveRecommendationApplying => 'Applicazione...';
 
   @override
   String get adaptiveRecommendationApplyAction =>
-      'Apply recommendation to active goals';
+      'Applicare il consiglio agli obiettivi attivi';
 
   @override
   String get adaptiveRecommendationWarningCalorieFloor =>
-      'Recommendation constrained by a minimum calorie safety floor. Review profile data and recent logs before applying.';
+      'Raccomandazione vincolata da un livello minimo di sicurezza calorica. Esamina i dati del profilo e i registri recenti prima di candidarti.';
 
   @override
   String get adaptiveRecommendationWarningUnresolvedFood =>
-      'Some nutrition entries could not be fully resolved for calories. Check recent logs before applying.';
+      'Non è stato possibile risolvere completamente alcune voci nutrizionali per le calorie. Controlla i registri recenti prima di applicare.';
 
   @override
   String get adaptiveRecommendationWarningLargeAdjustment =>
-      'Large adjustment detected. Please review your recent logging completeness before applying.';
+      'Rilevata grande regolazione. Si prega di verificare la completezza della registrazione recente prima di presentare domanda.';
 
   @override
   String get adaptiveRecommendationWarningMacroConstrained =>
-      'Macro split was constrained by the calorie budget. Check if your target rate is too aggressive.';
+      'La macrosuddivisione è stata vincolata dal budget calorico. Controlla se la tua tariffa target è troppo aggressiva.';
 
   @override
   String get adaptiveRecommendationWarningConservative =>
-      'Review suggested: recommendation was adjusted conservatively due to data variability.';
+      'Revisione suggerita: la raccomandazione è stata modificata in modo conservativo a causa della variabilità dei dati.';
 
   @override
   String get adaptiveRecommendationDataBasisHintDefault =>
-      'Built from recent logs and their completeness.';
+      'Costruito a partire dai registri recenti e dalla loro completezza.';
 
   @override
   String get adaptiveRecommendationDataBasisHintPriorOnly =>
-      'Based on profile/prior data only. Add recent weight and intake logs for adaptive adjustment.';
+      'Basato solo sul profilo/dati precedenti. Aggiungi i registri recenti del peso e dell\'assunzione per un adeguamento adattivo.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeight =>
-      'Recent weight logs are sparse, so trend quality is limited.';
+      'I registri recenti del peso sono scarsi, quindi la qualità dei trend è limitata.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseIntake =>
-      'Recent intake logs are sparse, so maintenance inference is limited.';
+      'I registri di assunzione recenti sono scarsi, quindi le deduzioni sulla manutenzione sono limitate.';
 
   @override
   String get adaptiveRecommendationDataBasisHintSparseWeightAndIntake =>
-      'Recent weight and intake logs are sparse, so this recommendation is more conservative.';
+      'I registri recenti del peso e dell\'assunzione sono scarsi, quindi questa raccomandazione è più conservativa.';
 
   @override
-  String get adaptiveConfidenceNotEnoughData => 'Profile/prior only';
+  String get adaptiveConfidenceNotEnoughData => 'Solo profilo/precedente';
 
   @override
-  String get adaptiveConfidenceLow => 'Limited recent logs';
+  String get adaptiveConfidenceLow => 'Registri recenti limitati';
 
   @override
-  String get adaptiveConfidenceMedium => 'Usable recent logs';
+  String get adaptiveConfidenceMedium => 'Registri recenti utilizzabili';
 
   @override
-  String get adaptiveConfidenceHigh => 'Strong recent logs';
+  String get adaptiveConfidenceHigh => 'Registri recenti forti';
 
   @override
   String get adaptiveRecommendationRecalculatedSnack =>
-      'Recommendation recalculated.';
+      'Raccomandazione ricalcolata.';
 
   @override
   String get adaptiveRecommendationAppliedToGoalsSnack =>
-      'Recommendation applied to active goals.';
+      'Raccomandazione applicata agli obiettivi attivi.';
 
   @override
   String get adaptiveRecommendationNotAvailableSnack =>
-      'No recommendation available to apply.';
+      'Nessuna raccomandazione disponibile per l\'applicazione.';
 
   @override
   String get settingsSectionApp => 'App';
 
   @override
   String get settingsAppearanceSubtitle =>
-      'Adjust theme, visual style, and haptics';
+      'Modifica il tema, lo stile visivo e l\'aspetto tattile';
 
   @override
   String get settingsShowSugarInDiaryOverviewTitle =>
-      'Show sugar in Diary overview';
+      'Mostra lo zucchero nella panoramica del diario';
 
   @override
   String get settingsShowSugarInDiaryOverviewSubtitle =>
-      'Shows sugar in the top daily overview section';
+      'Mostra lo zucchero nella sezione panoramica giornaliera in alto';
 
   @override
-  String get settingsSectionHealthTracking => 'Health & Tracking';
+  String get settingsSectionHealthTracking => 'Salute e monitoraggio';
 
   @override
-  String get settingsStepsSubtitle => 'Tracking, source policy, and providers';
+  String get settingsStepsSubtitle =>
+      'Monitoraggio, policy di origine e fornitori';
 
   @override
-  String get settingsSleepSubtitle => 'Import, permissions, and sleep status';
+  String get settingsSleepSubtitle =>
+      'Importazione, autorizzazioni e stato di sospensione';
 
   @override
   String get settingsPulseSubtitle =>
-      'Opt-in pulse analysis and heart-rate access';
+      'Attiva l\'analisi del polso e l\'accesso alla frequenza cardiaca';
 
   @override
   String get settingsHealthExportSubtitle =>
-      'Manage Apple Health and Health Connect export';
+      'Gestisci l\'esportazione di Apple Health e Health Connect';
 
   @override
-  String get settingsSectionNutritionAndData => 'Nutrition & Data';
+  String get settingsSectionNutritionAndData => 'Nutrizione e dati';
 
   @override
-  String get settingsSectionSupportAbout => 'Support / About';
+  String get settingsSectionSupportAbout => 'Supporto/Informazioni';
 
   @override
-  String get settingsHapticFeedbackTitle => 'Haptic feedback';
+  String get settingsHapticFeedbackTitle => 'Feedback tattile';
 
   @override
   String get settingsHapticFeedbackSubtitle =>
-      'Light vibrations for confirmations and AI waiting';
+      'Vibrazioni leggere per conferme e attesa dell\'IA';
 
   @override
-  String get stepsSettingsEnableTrackingTitle => 'Enable steps tracking';
+  String get stepsSettingsEnableTrackingTitle =>
+      'Abilita il monitoraggio dei passaggi';
 
   @override
   String get stepsSettingsEnableTrackingSubtitle =>
-      'Read step data from Apple Health / Health Connect';
+      'Leggi i dati sui passi da Apple Health/Health Connect';
 
   @override
-  String get stepsSettingsSourcePolicyTitle => 'Source policy';
+  String get stepsSettingsSourcePolicyTitle => 'Politica delle fonti';
 
   @override
-  String get stepsSettingsSourcePolicyAutoDominant => 'Auto (dominant source)';
+  String get stepsSettingsSourcePolicyAutoDominant =>
+      'Auto (sorgente dominante)';
 
   @override
   String get stepsSettingsSourcePolicyAutoDominantSubtitle =>
-      'Recommended: use one source per day to avoid overlap inflation.';
+      'Consigliato: utilizzare una fonte al giorno per evitare sovrapposizioni di inflazione.';
 
   @override
-  String get stepsSettingsSourcePolicyMaxPerHour => 'Merge (max per hour)';
+  String get stepsSettingsSourcePolicyMaxPerHour => 'Unisci (massimo all\'ora)';
 
   @override
   String get stepsSettingsSourcePolicyMaxPerHourSubtitle =>
-      'Combine sources by taking the highest hourly bucket.';
+      'Combina le fonti prendendo il periodo orario più alto.';
 
   @override
-  String get stepsSettingsProviderFilterTitle => 'Provider filter';
+  String get stepsSettingsProviderFilterTitle => 'Filtro fornitore';
 
   @override
-  String get pulseTitle => 'Pulse';
+  String get pulseTitle => 'Impulso';
 
   @override
-  String get pulseChartTitle => 'Pulse over time';
+  String get pulseChartTitle => 'Pulsare nel tempo';
 
   @override
-  String get pulseRangeLabel => 'Range';
+  String get pulseRangeLabel => 'Allineare';
 
   @override
-  String get pulseAverageLabel => 'Average';
+  String get pulseAverageLabel => 'Media';
 
   @override
-  String get pulseRestingLabel => 'Resting';
+  String get pulseRestingLabel => 'Riposare';
 
   @override
   String get pulseInsufficientData =>
-      'Too few pulse samples for a reliable chart.';
+      'Troppi pochi campioni di impulsi per un grafico affidabile.';
 
   @override
   String get pulseMethodNote =>
-      'Average pulse is time-weighted. Resting pulse is a conservative estimate from the lowest 20% of samples in the selected period.';
+      'Il polso medio è ponderato nel tempo. Il polso a riposo è una stima conservativa del 20% più basso dei campioni nel periodo selezionato.';
 
   @override
   String pulseSampleCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count samples',
-      one: '1 sample',
-      zero: 'No samples',
+      other: '$count campioni',
+      one: '1 campione',
+      zero: 'Nessun campione',
     );
     return '$_temp0';
   }
 
   @override
-  String get pulseQualityReady => 'Good coverage';
+  String get pulseQualityReady => 'Buona copertura';
 
   @override
-  String get pulseQualityLimited => 'Limited data';
+  String get pulseQualityLimited => 'Dati limitati';
 
   @override
-  String get pulseQualityInsufficient => 'Very sparse';
+  String get pulseQualityInsufficient => 'Molto scarso';
 
   @override
-  String get pulseQualityNoData => 'No data';
+  String get pulseQualityNoData => 'Nessun dato';
 
   @override
-  String get pulseNoDataDisabled => 'Pulse analysis is disabled in Settings.';
+  String get pulseNoDataDisabled =>
+      'L\'analisi del polso è disabilitata nelle Impostazioni.';
 
   @override
   String get pulseNoDataPermissionDenied =>
-      'Heart-rate permission is required to show pulse analysis.';
+      'Per mostrare l\'analisi del polso è necessaria l\'autorizzazione relativa alla frequenza cardiaca.';
 
   @override
   String get pulseNoDataUnavailable =>
-      'Pulse data is currently unavailable on this device.';
+      'I dati sulle pulsazioni non sono al momento disponibili su questo dispositivo.';
 
   @override
-  String get pulseNoDataQueryFailed => 'Could not read pulse data.';
+  String get pulseNoDataQueryFailed =>
+      'Impossibile leggere i dati sulle pulsazioni.';
 
   @override
   String get pulseNoDataDefault =>
-      'No pulse samples were found for this period.';
+      'Nessun campione di polso è stato trovato per questo periodo.';
 
   @override
-  String get pulseSettingsEnableTitle => 'Enable pulse analysis';
+  String get pulseSettingsEnableTitle => 'Abilita l\'analisi del polso';
 
   @override
   String get pulseSettingsEnableSubtitle =>
-      'Reads heart-rate data for the pulse view only when you turn this on.';
+      'Legge i dati sulla frequenza cardiaca per la visualizzazione del polso solo quando la attivi.';
 
   @override
-  String get pulseSettingsPermissionTitle => 'Allow heart-rate access';
+  String get pulseSettingsPermissionTitle =>
+      'Consenti l\'accesso alla frequenza cardiaca';
 
   @override
   String get pulseSettingsPermissionSubtitle =>
-      'Opens Apple Health or Health Connect so Train Libre can read pulse samples.';
+      'Apre Apple Health o Health Connect in modo che Train Libre possa leggere campioni di pulsazioni.';
 
   @override
   String get pulseSettingsAnalysisSubtitle =>
-      'Shows range, time-weighted average, and a conservative resting-pulse estimate. Not a medical diagnosis.';
+      'Mostra l\'intervallo, la media ponderata nel tempo e una stima conservativa del polso a riposo. Non una diagnosi medica.';
 
   @override
-  String get pulseSettingsPermissionGranted => 'Heart-rate access is ready.';
+  String get pulseSettingsPermissionGranted =>
+      'L\'accesso alla frequenza cardiaca è pronto.';
 
   @override
   String get pulseSettingsPermissionFailed =>
-      'Heart-rate access was not granted.';
+      'L\'accesso alla frequenza cardiaca non è stato concesso.';
 
   @override
-  String get pulseOptInChip => 'Opt-in';
+  String get pulseOptInChip => 'Accettazione';
 
   @override
   String get statisticsPulseDescription =>
-      'Range, time-weighted average, and resting pulse for selected periods.';
+      'Intervallo, media ponderata nel tempo e polso a riposo per periodi selezionati.';
 
   @override
-  String get statisticsPulseOpenCaption => 'Opens pulse analysis';
+  String get statisticsPulseOpenCaption => 'Apre l\'analisi del polso';
 
   @override
-  String get healthExportTitle => 'Health export';
+  String get healthExportTitle => 'Esportazione della salute';
 
   @override
-  String get healthExportAppleHealthTitle => 'Apple Health export';
+  String get healthExportAppleHealthTitle => 'Esportazione di Apple Salute';
 
   @override
-  String get healthExportHealthConnectTitle => 'Health Connect export';
+  String get healthExportHealthConnectTitle => 'Esportazione di Health Connect';
 
   @override
-  String get healthExportDomainNutritionHydration => 'Nutrition & hydration';
+  String get healthExportDomainNutritionHydration => 'Nutrizione e idratazione';
 
   @override
-  String get healthExportDomainWorkouts => 'Workouts';
+  String get healthExportDomainWorkouts => 'Allenamenti';
 
   @override
-  String get healthExportStateIdle => 'Idle';
+  String get healthExportStateIdle => 'Oziare';
 
   @override
-  String get healthExportStateExporting => 'Exporting';
+  String get healthExportStateExporting => 'Esportazione';
 
   @override
-  String get healthExportStateSuccess => 'Success';
+  String get healthExportStateSuccess => 'Successo';
 
   @override
-  String get healthExportStateFailed => 'Failed';
+  String get healthExportStateFailed => 'Fallito';
 
   @override
-  String get healthExportStateDisabled => 'Disabled';
+  String get healthExportStateDisabled => 'Disabilitato';
 
   @override
-  String get healthExportResultComplete => 'Export complete';
+  String get healthExportResultComplete => 'Esportazione completata';
 
   @override
-  String get healthExportResultFailed => 'Export failed';
+  String get healthExportResultFailed => 'Esportazione non riuscita';
 
   @override
   String get healthExportAppleHealthSubtitle =>
-      'One-way export from Train Libre to Apple Health';
+      'Esportazione di sola andata da Train Libre ad Apple Health';
 
   @override
   String get healthExportHealthConnectSubtitle =>
-      'One-way export from Train Libre to Health Connect';
+      'Esportazione unidirezionale da Train Libre a Health Connect';
 
   @override
-  String get healthExportAppleHealthStatusTitle => 'Apple Health export status';
+  String get healthExportAppleHealthStatusTitle =>
+      'Stato dell\'esportazione di Apple Health';
 
   @override
   String get healthExportHealthConnectStatusTitle =>
-      'Health Connect export status';
+      'Stato dell\'esportazione di Health Connect';
 
   @override
   String get settingsBaseFoodLanguageTitle => 'Lingua di visualizzazione cibo';
@@ -4569,39 +4645,40 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get autoBackupStoragePickerUnavailable =>
-      'Storage picker unavailable. Please fully restart/reinstall the app after updating.';
+      'Selettore di archiviazione non disponibile. Riavviare/reinstallare completamente l\'app dopo l\'aggiornamento.';
 
   @override
   String autoBackupFolderPickerFailed(Object error) {
-    return 'Folder picker failed: $error';
+    return 'Selezione cartella non riuscita: $error';
   }
 
   @override
-  String get healthExportPermissionDenied => 'Permission denied';
+  String get healthExportPermissionDenied => 'Autorizzazione negata';
 
   @override
-  String get healthExportAdapterUnavailable => 'Adapter unavailable';
+  String get healthExportAdapterUnavailable => 'Adattatore non disponibile';
 
   @override
-  String get healthExportPlatformUnavailable => 'Platform unavailable';
+  String get healthExportPlatformUnavailable => 'Piattaforma non disponibile';
 
   @override
-  String get healthExportPlatformNotInstalled => 'Platform not installed';
+  String get healthExportPlatformNotInstalled => 'Piattaforma non installata';
 
   @override
-  String get healthExportExportDisabled => 'Export disabled';
+  String get healthExportExportDisabled => 'Esportazione disabilitata';
 
   @override
-  String get onboardingMacrosStepTitle => 'Macronutrients';
+  String get onboardingMacrosStepTitle => 'Macronutrienti';
 
   @override
-  String get onboardingMacrosStepSubtitle => 'How is your nutrition composed?';
+  String get onboardingMacrosStepSubtitle =>
+      'Come è composta la tua alimentazione?';
 
   @override
-  String get statisticsProviderAppleHealth => 'Apple Health';
+  String get statisticsProviderAppleHealth => 'Salute delle mele';
 
   @override
-  String get statisticsProviderHealthConnect => 'Health Connect';
+  String get statisticsProviderHealthConnect => 'Connessione sanitaria';
 
   @override
   String get statisticsProviderWithings => 'Withings';
@@ -4613,7 +4690,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get statisticsProviderFitbit => 'Fitbit';
 
   @override
-  String get statisticsProviderLocal => 'Local';
+  String get statisticsProviderLocal => 'Locale';
 
   @override
   String get unit_milliliters => 'ml';
@@ -4622,101 +4699,102 @@ class AppLocalizationsIt extends AppLocalizations {
   String get unit_kilograms => 'kg';
 
   @override
-  String get mealEditorHintExample => 'e.g. Chicken bowl';
+  String get mealEditorHintExample => 'per esempio. Ciotola di pollo';
 
   @override
-  String get mealEditorNoIngredientsYet => 'None yet – coming later';
+  String get mealEditorNoIngredientsYet => 'Nessuno ancora, in arrivo';
 
   @override
-  String get foodDetailSavedBaseDb => 'Saved (base DB)';
+  String get foodDetailSavedBaseDb => 'Salvato (DB base)';
 
   @override
   String foodDetailExportError(Object error) {
-    return 'Export error: $error';
+    return 'Errore di esportazione: $error';
   }
 
   @override
-  String get stepsModulePrevious => 'Previous';
+  String get stepsModulePrevious => 'Precedente';
 
   @override
-  String get stepsModuleNext => 'Next';
+  String get stepsModuleNext => 'Prossimo';
 
   @override
-  String get stepsModuleTotalSteps => 'Total Steps';
+  String get stepsModuleTotalSteps => 'Passi totali';
 
   @override
-  String get stepsModuleThisWeek => 'This Week';
+  String get stepsModuleThisWeek => 'Questa settimana';
 
   @override
-  String get stepsModuleThisMonth => 'This Month';
+  String get stepsModuleThisMonth => 'Questo mese';
 
   @override
   String stepsModuleUpdated(String time) {
-    return 'Updated $time';
+    return '$time aggiornato';
   }
 
   @override
-  String get stepsModuleScopeSwitcherSemantics => 'Switch step scope';
+  String get stepsModuleScopeSwitcherSemantics =>
+      'Cambia l\'ambito del passaggio';
 
   @override
-  String get stepsModuleDay => 'Day';
+  String get stepsModuleDay => 'Giorno';
 
   @override
-  String get stepsModuleWeek => 'Week';
+  String get stepsModuleWeek => 'Settimana';
 
   @override
-  String get stepsModuleMonth => 'Month';
+  String get stepsModuleMonth => 'Mese';
 
   @override
-  String get stepsModuleHourlyTimeline => 'Hourly Timeline';
+  String get stepsModuleHourlyTimeline => 'Cronologia oraria';
 
   @override
-  String get stepsModuleTotal => 'Total';
+  String get stepsModuleTotal => 'Totale';
 
   @override
-  String get stepsModuleActiveHours => 'Active Hours';
+  String get stepsModuleActiveHours => 'Orari attivi';
 
   @override
-  String get stepsModulePeakHour => 'Peak Hour';
+  String get stepsModulePeakHour => 'Ora di punta';
 
   @override
-  String get stepsModuleAvgPerDay => 'Avg / Day';
+  String get stepsModuleAvgPerDay => 'Media/Giorno';
 
   @override
-  String get stepsModuleGoalHit => 'Goal Hit';
+  String get stepsModuleGoalHit => 'Obiettivo colpito';
 
   @override
-  String get stepsModuleGoalDays => 'Goal Days';
+  String get stepsModuleGoalDays => 'Giorni di goal';
 
   @override
-  String get diarySyncingSteps => 'Syncing steps...';
+  String get diarySyncingSteps => 'Sincronizzazione dei passaggi...';
 
   @override
-  String get diaryLoadingSleep => 'Loading sleep...';
+  String get diaryLoadingSleep => 'Caricamento sonno...';
 
   @override
   String get unit_milligrams => 'mg';
 
   @override
   String get scannerPermissionRequired =>
-      'Camera access is required to scan barcodes.';
+      'Per eseguire la scansione dei codici a barre è necessario l\'accesso alla fotocamera.';
 
   @override
   String get scannerPermissionPermanentlyDenied =>
-      'Camera access is permanently denied. Please enable it in settings to scan barcodes.';
+      'L\'accesso alla telecamera è permanentemente negato. Abilitalo nelle impostazioni per scansionare i codici a barre.';
 
   @override
-  String get scannerOpenSettings => 'Open Settings';
+  String get scannerOpenSettings => 'Apri Impostazioni';
 
   @override
-  String get scannerGrantPermission => 'Grant Permission';
+  String get scannerGrantPermission => 'Concedere l\'autorizzazione';
 
   @override
   String get scannerAlignInstruction =>
-      'Align barcode horizontally inside the red laser line';
+      'Allinea il codice a barre orizzontalmente all\'interno della linea laser rossa';
 
   @override
-  String get about_train_libre => 'About Train Libre';
+  String get about_train_libre => 'A proposito di Train Libre';
 
   @override
   String get legal_notice => 'Note legali';
@@ -4737,246 +4815,248 @@ class AppLocalizationsIt extends AppLocalizations {
   String get legal_document_last_updated => 'Ultimo aggiornamento';
 
   @override
-  String get used_libraries => 'Used Libraries';
+  String get used_libraries => 'Biblioteche usate';
 
   @override
-  String get licensing_info => 'Licensing Information';
+  String get licensing_info => 'Informazioni sulla licenza';
 
   @override
-  String get project_website => 'Project Website';
+  String get project_website => 'Sito web del progetto';
 
   @override
-  String get github_repository => 'GitHub Repository';
+  String get github_repository => 'Repository GitHub';
 
   @override
-  String get health_permission_dialog_title => 'Health Data & Privacy';
+  String get health_permission_dialog_title => 'Dati sanitari e privacy';
 
   @override
   String get health_permission_dialog_body =>
-      'Train Libre needs to read your step data to show daily/weekly statistics. Your data stays locally on your device; there is no external server.';
+      'Train Libre deve leggere i dati dei tuoi passi per mostrare le statistiche giornaliere/settimanali. I tuoi dati rimangono localmente sul tuo dispositivo; non esiste un server esterno.';
 
   @override
-  String get health_permission_continue => 'Continue';
+  String get health_permission_continue => 'Continuare';
 
   @override
-  String get health_permission_not_now => 'Not now';
+  String get health_permission_not_now => 'Non adesso';
 
   @override
-  String get welcome_privacy_title => 'Welcome & Privacy';
+  String get welcome_privacy_title => 'Benvenuto e privacy';
 
   @override
   String get welcome_privacy_body =>
-      'By using Train Libre, you agree to the processing of your data as described in our Privacy Policy and Legal Notice.';
+      'Utilizzando Train Libre, accetti il ​​trattamento dei tuoi dati come descritto nella nostra Informativa sulla privacy e nelle Note legali.';
 
   @override
   String get i_agree_to_privacy_policy =>
-      'I have read and agree to the processing of my health data as described in the Privacy Policy.';
+      'Ho letto e acconsento al trattamento dei miei dati sanitari come descritto nella Privacy Policy.';
 
   @override
-  String get acceptTermsPrompt => 'I accept the Terms of Service';
+  String get acceptTermsPrompt => 'Accetto i Termini di servizio';
 
   @override
-  String get viewTermsInline => 'Terms of Service';
+  String get viewTermsInline => 'Termini di servizio';
 
   @override
-  String get accept_and_get_started => 'Accept & Get Started';
+  String get accept_and_get_started => 'Accetta e inizia';
 
   @override
-  String get about_section => 'About';
+  String get about_section => 'Di';
 
   @override
   String get legal_section => 'Informazioni legali e privacy';
 
   @override
-  String get aiSettingsInstructionTitle => 'How AI Meal Recognition Works';
+  String get aiSettingsInstructionTitle =>
+      'Come funziona il riconoscimento dei pasti tramite intelligenza artificiale';
 
   @override
   String get aiSettingsInstructionBody =>
-      'This feature uses AI to analyze food images and provide nutrient estimates. Your images are only sent to the selected AI provider when you use the feature. It relies on a Bring-Your-Own-Key (BYOK) architecture, keeping your data locally on your device until analysis.';
+      'Questa funzionalità utilizza l\'intelligenza artificiale per analizzare le immagini degli alimenti e fornire stime sui nutrienti. Le tue immagini vengono inviate solo al fornitore AI selezionato quando utilizzi la funzione. Si basa su un\'architettura Bring-Your-Own-Key (BYOK), mantenendo i tuoi dati localmente sul tuo dispositivo fino all\'analisi.';
 
   @override
-  String get aiSettingsSetupGuideTitle => 'Setup Guide';
+  String get aiSettingsSetupGuideTitle => 'Guida all\'installazione';
 
   @override
   String get aiSettingsSetupGuideBody =>
-      'To use this feature, you need an API key from an AI provider. Google Gemini is used as a primary example because it currently offers a free tier for developers and users.';
+      'Per utilizzare questa funzionalità, è necessaria una chiave API di un fornitore di intelligenza artificiale. Google Gemini viene utilizzato come esempio principale perché attualmente offre un livello gratuito per sviluppatori e utenti.';
 
   @override
-  String get aiSettingsGetApiKeyButton => 'View Setup Guide';
+  String get aiSettingsGetApiKeyButton =>
+      'Visualizza la guida all\'installazione';
 
   @override
   String get legal_document_version_value => '1.2';
 
   @override
-  String get legal_document_last_updated_value => 'May 20, 2026';
+  String get legal_document_last_updated_value => '20 maggio 2026';
 
   @override
-  String get muscleChest => 'Chest';
+  String get muscleChest => 'Petto';
 
   @override
-  String get muscleBack => 'Back';
+  String get muscleBack => 'Indietro';
 
   @override
-  String get muscleShoulders => 'Shoulders';
+  String get muscleShoulders => 'Spalle';
 
   @override
-  String get muscleBiceps => 'Biceps';
+  String get muscleBiceps => 'Bicipite';
 
   @override
-  String get muscleTriceps => 'Triceps';
+  String get muscleTriceps => 'Tricipiti';
 
   @override
-  String get muscleQuads => 'Quads';
+  String get muscleQuads => 'Quad';
 
   @override
-  String get muscleHamstrings => 'Hamstrings';
+  String get muscleHamstrings => 'Tendini del ginocchio';
 
   @override
-  String get muscleGlutes => 'Glutes';
+  String get muscleGlutes => 'Glutei';
 
   @override
-  String get muscleCalves => 'Calves';
+  String get muscleCalves => 'Vitelli';
 
   @override
-  String get muscleLowerBack => 'Lower Back';
+  String get muscleLowerBack => 'Parte bassa della schiena';
 
   @override
-  String get muscleAbs => 'Abs';
+  String get muscleAbs => 'Ass';
 
   @override
-  String get muscleAdductors => 'Adductors';
+  String get muscleAdductors => 'Adduttori';
 
   @override
-  String get muscleForearms => 'Forearms';
+  String get muscleForearms => 'Avambracci';
 
   @override
-  String get sleepDetailAnalysisHeader => 'Detailed Analysis';
+  String get sleepDetailAnalysisHeader => 'Analisi dettagliata';
 
   @override
-  String get sleepMetricDurationLabel => 'Sleep Duration';
+  String get sleepMetricDurationLabel => 'Durata del sonno';
 
   @override
-  String get sleepMetricContinuityLabel => 'Continuity (WASO/SE)';
+  String get sleepMetricContinuityLabel => 'Continuità (WASO/SE)';
 
   @override
-  String get sleepMetricDepthLabel => 'Sleep Stage Depth';
+  String get sleepMetricDepthLabel => 'Profondità della fase del sonno';
 
   @override
-  String get sleepMetricTimingLabel => 'Circadian Timing';
+  String get sleepMetricTimingLabel => 'Tempi circadiani';
 
   @override
-  String get sleepMetricRegularityLabel => 'Regularity';
+  String get sleepMetricRegularityLabel => 'Regolarità';
 
   @override
   String get sleepBannerTstBottleneck =>
-      'Sleep duration penalty active: Your total sleep volume was below the regenerative optimum of 6.5 hours, which restricts anabolic hormone release.';
+      'Penalità della durata del sonno attiva: il volume totale del sonno era inferiore all\'ottimale rigenerativo di 6,5 ore, il che limita il rilascio dell\'ormone anabolico.';
 
   @override
   String get sleepBannerRemBottleneck =>
-      'REM sleep deficiency penalty: Your REM sleep was below 60 minutes. This impairs neuronal recovery and mental freshness.';
+      'Penalità per carenza di sonno REM: il tuo sonno REM è stato inferiore a 60 minuti. Ciò compromette il recupero neuronale e la freschezza mentale.';
 
   @override
   String get sleepBannerN3Bottleneck =>
-      'Deep sleep deficiency penalty: Critical lack of N3 deep sleep (<70 min). Physical muscle tissue repair is suboptimal.';
+      'Penalità per carenza di sonno profondo: mancanza critica di sonno profondo N3 (<70 min). La riparazione fisica del tessuto muscolare non è ottimale.';
 
   @override
   String get sleepBannerTimingBottleneck =>
-      'Circadian phase shift penalty: Your mid-sleep was after 05:30 AM. Sleeping against the inner clock reduces sleep quality and insulin sensitivity.';
+      'Penalità di spostamento di fase circadiana: il tuo sonno intermedio è avvenuto dopo le 05:30. Dormire contro l’orologio interno riduce la qualità del sonno e la sensibilità all’insulina.';
 
   @override
   String get sleepBannerDefaultPenalty =>
-      'Clinical protective brake active: Your sleep volume was suboptimal (<6h) or circadian timing (sleep onset) was severely shifted. The total score has been limited.';
+      'Freno protettivo clinico attivo: il volume del sonno non era ottimale (<6 ore) o i tempi circadiani (inizio del sonno) erano notevolmente spostati. Il punteggio totale è stato limitato.';
 
   @override
-  String get infoTdeeTitle => 'Adaptive Calorie & TDEE Estimator';
+  String get infoTdeeTitle => 'Stima adattiva delle calorie e del TDEE';
 
   @override
   String get infoTdeeExplanation =>
-      'Estimates your Total Daily Energy Expenditure (TDEE) based on your profile, logged meals, and bodyweight changes.';
+      'Stima la tua spesa energetica giornaliera totale (TDEE) in base al tuo profilo, ai pasti registrati e alle variazioni di peso corporeo.';
 
   @override
   String get infoTdeeKeyPoints =>
-      '• Smooths out daily weight fluctuations using a recursive trend model.\n• Uses a Bayesian-inspired approach to adapt weekly targets conservatively.\n• Alerts you if your logging consistency is too sparse for high-confidence updates.';
+      '• Appiana le fluttuazioni giornaliere del peso utilizzando un modello di trend ricorsivo.\n• Utilizza un approccio di ispirazione bayesiana per adattare in modo conservativo gli obiettivi settimanali.\n• Avvisa se la coerenza della registrazione è troppo scarsa per aggiornamenti ad alta affidabilità.';
 
   @override
   String get infoTdeeTechnicalTitle =>
-      'Bayesian Recursive Filtering & Metabolic Smoothing';
+      'Filtraggio ricorsivo bayesiano e livellamento metabolico';
 
   @override
   String get infoTdeeTechnicalExplanation =>
-      'Rather than relying on static formulas, Train Libre models your metabolism as a dynamic \'hidden state\' estimated recursively. Daily observed maintenance is computed by adjusting intake against body mass changes. A process noise coefficient is added on unlogged days to increase the estimation uncertainty, which dampens updates and prevents skewing from short-term water retention.';
+      'Piuttosto che fare affidamento su formule statiche, Train Libre modella il tuo metabolismo come uno \"stato nascosto\" dinamico stimato ricorsivamente. Il mantenimento giornaliero osservato viene calcolato aggiustando l\'assunzione rispetto ai cambiamenti della massa corporea. Un coefficiente di rumore del processo viene aggiunto nei giorni non registrati per aumentare l’incertezza della stima, che smorza gli aggiornamenti e previene la distorsione dovuta alla ritenzione idrica a breve termine.';
 
   @override
-  String get infoRecoveryTitle => 'Muscle Recovery Estimator';
+  String get infoRecoveryTitle => 'Stima del recupero muscolare';
 
   @override
   String get infoRecoveryExplanation =>
-      'Estimates muscle-specific readiness and recovery curves based on training volume, intensity, and proximity to failure.';
+      'Stima le curve di preparazione e recupero specifiche del muscolo in base al volume di allenamento, all\'intensità e alla prossimità al cedimento.';
 
   @override
   String get infoRecoveryKeyPoints =>
-      '• Accounts for overlapping muscle stress (e.g., Bench Press counts for Chest, Triceps, and Shoulders).\n• Scales recovery speed based on RIR/RPE and extends the window for sets taken to failure.\n• Calibrates baseline recovery windows based on muscle group size and metabolic properties.';
+      '• Tiene conto dello stress muscolare sovrapposto (ad esempio, la distensione su panca conta per petto, tricipiti e spalle).\n• Ridimensiona la velocità di recupero in base a RIR/RPE ed estende la finestra per i set portati al fallimento.\n• Calibra le finestre di recupero di base in base alle dimensioni del gruppo muscolare e alle proprietà metaboliche.';
 
   @override
   String get infoRecoveryTechnicalTitle =>
-      'Equivalent Set Fatigue & Piecewise Decay Model';
+      'Modello di fatica dell\'insieme equivalente e di decadimento a pezzi';
 
   @override
   String get infoRecoveryTechnicalExplanation =>
-      'Calculates dynamic readiness via non-linear decay curves. Volume tracking automatically distributes load between primary and secondary muscle groups. Recovery speed scales based on proximity to failure (RIR) and applies a strict timeline extension for sets taken to absolute failure.';
+      'Calcola la prontezza dinamica tramite curve di decadimento non lineari. Il monitoraggio del volume distribuisce automaticamente il carico tra i gruppi muscolari primari e secondari. La velocità di recupero scala in base alla prossimità al fallimento (RIR) e applica una rigorosa estensione temporale per i set portati al fallimento assoluto.';
 
   @override
-  String get infoAiMealTitle => 'AI Meal Capture Hub';
+  String get infoAiMealTitle => 'Hub di acquisizione pasti AI';
 
   @override
   String get infoAiMealExplanation =>
-      'Converts meal photos or text descriptions into structured diary entries and matches them against your private product database.';
+      'Converte le foto dei pasti o le descrizioni testuali in voci di diario strutturato e le confronta con il database dei prodotti privato.';
 
   @override
   String get infoAiMealKeyPoints =>
-      '• Translates imprecise descriptions (e.g., \'a slice of bread\') into metric weight estimates.\n• Matches AI suggestions offline against the local product database on your device.\n• Computes nutrition locally instead of delegating calculations to external servers.';
+      '• Traduce descrizioni imprecise (ad esempio, \"una fetta di pane\") in stime di peso metrico.\n• Confronta i suggerimenti dell\'intelligenza artificiale offline con il database dei prodotti locali sul tuo dispositivo.\n• Calcola la nutrizione localmente invece di delegare i calcoli a server esterni.';
 
   @override
   String get infoAiMealTechnicalTitle =>
-      'Hybrid BYOK AI & Jaro-Winkler Matching';
+      'Ibrida BYOK AI e abbinamento Jaro-Winkler';
 
   @override
   String get infoAiMealTechnicalExplanation =>
-      'Uses a Bring-Your-Own-Key (BYOK) privacy model. The AI functions strictly as a suggestion layer. Matching is performed offline using a tokenized Jaro-Winkler filter against the local SQLite database. The AI provider is strictly prohibited from performing nutritional calculations via system prompts.';
+      'Utilizza un modello di privacy Bring-Your-Own-Key (BYOK). L\'intelligenza artificiale funziona strettamente come un livello di suggerimento. La corrispondenza viene eseguita offline utilizzando un filtro Jaro-Winkler tokenizzato rispetto al database SQLite locale. Al fornitore di intelligenza artificiale è severamente vietato eseguire calcoli nutrizionali tramite istruzioni di sistema.';
 
   @override
-  String get infoSleepTitle => 'Sleep Quality (SHS v3.5)';
+  String get infoSleepTitle => 'Qualità del sonno (SHS v3.5)';
 
   @override
   String get infoSleepExplanation =>
-      'Calculates a comprehensive sleep index from quantity, continuity, depth, timing, and daily regularity.';
+      'Calcola un indice del sonno completo in base a quantità, continuità, profondità, tempistica e regolarità quotidiana.';
 
   @override
   String get infoSleepKeyPoints =>
-      '• Aggregates five clinical dimensions using a weighted sum.\n• Automatically scales requirements if your wearable does not provide specific stages or efficiency data.\n• Protects you via soft-cap multipliers that limit the total score if a critical domain (like REM or Deep sleep) is compromised.';
+      '• Aggrega cinque dimensioni cliniche utilizzando una somma ponderata.\n• Ridimensiona automaticamente i requisiti se il tuo dispositivo indossabile non fornisce fasi specifiche o dati sull\'efficienza.\n• Ti protegge tramite moltiplicatori soft-cap che limitano il punteggio totale se un dominio critico (come REM o sonno profondo) è compromesso.';
 
   @override
   String get infoSleepTechnicalTitle =>
-      'Weighted Baseline & Continuous Soft-Caps';
+      'Baseline ponderata e soft-cap continui';
 
   @override
   String get infoSleepTechnicalExplanation =>
-      'Aggregates five primary domains using a weighted linear sum: Duration (30%), Continuity (20%), Architecture (25%), Timing (15%), and Regularity (10%). To prevent misleading averages when a clinical domain is compromised, the final score is degraded if significant bottlenecks are detected in sleep stages or circadian timing.';
+      'Aggrega cinque domini primari utilizzando una somma lineare ponderata: Durata (30%), Continuità (20%), Architettura (25%), Tempistica (15%) e Regolarità (10%). Per evitare medie fuorvianti quando un dominio clinico è compromesso, il punteggio finale viene degradato se vengono rilevati colli di bottiglia significativi nelle fasi del sonno o nei tempi circadiani.';
 
   @override
-  String get tdeeRecalculationNotificationTitle => 'TDEE Recalculated';
+  String get tdeeRecalculationNotificationTitle => 'TDEE ricalcolato';
 
   @override
   String tdeeRecalculationNotificationBody(
       int calories, int protein, int carbs, int fat) {
-    return 'New daily targets: $calories kcal | ${protein}g Protein | ${carbs}g Carbs | ${fat}g Fat';
+    return 'Nuovi obiettivi giornalieri: $calories kcal | ${protein}g Proteine ​​| ${carbs}g Carboidrati | ${fat}g Grasso';
   }
 
   @override
   String recommendationBannerText(String delta) {
-    return 'New targets available ($delta kcal).';
+    return 'Nuovi target disponibili ($delta kcal).';
   }
 
   @override
-  String get recommendationBannerApply => 'Apply';
+  String get recommendationBannerApply => 'Fare domanda a';
 }
