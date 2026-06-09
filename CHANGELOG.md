@@ -4,13 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [0.9.24] - 2026-06-09
+## [0.9.24-beta.1] - 2026-06-09
 ### Added
 - **Nested Locked Glassmorphic Adaptive Scopes**: Introduced nested, locked `GlassAdaptiveScope` wrappers (`minQuality: GlassQuality.premium, maxQuality: GlassQuality.premium`) around the bottom navigation bar, workout overlay, and FAB. This prevents these core elements from being downgraded by the performance-driven global adaptive quality ceiling during frame-dropping screen transitions.
+* **Global App Localization (FR, IT, JA):** Expanded native multi-language support across the entire frontend architecture, incorporating over 1,300 fully translated keys per language (`app_fr.arb`, `app_it.arb`, `app_ja.arb`).
+* **Dynamic Web Template i18n:** Implemented client-side localized script dictionaries within `docs/script.js` and expanded selection dropdowns across all HTML compliance pages (landing page, privacy, terms, recovery, etc.).
+* **Targeted Country Pipelines:** Upgraded the Open Food Facts pipeline (`create_off_food_db.py`) to generate dedicated localized SQLite asset databases for France (`fr`), Italy (`it`), and Japan (`jp`), prioritizing local language tags.
+
+### Changed
+* **Relational Database Migration (v22 -> v23):** Refactored the rigid, fixed-column translation model into a highly scalable, modular **1:N relational schema** for exercises and user-food overrides (`exercise_translations` and `user_food_override_translations`).
+* **Relational Fallback Resolvers:** Replaced old static queries with robust SQLite `LEFT JOIN` and `COALESCE` statements to dynamically resolve active UI strings with graceful fallback chains down to English and German.
+* **Automated Catalog Workflows:** Updated the weekly `wger` Python catalog fetcher (`create_wger_exercise_db.py`) and corresponding GitHub Actions to automatically export into the new 1:N relational layout.
+* **Web Screenshot Fallbacks:** Configured the localized web templates to dynamically map `fr`, `it`, and `ja` screenshots directly to the existing verified `en-US` directory, avoiding duplicate storage overhead.
 
 ### Fixed
 - **Bottom Navigation Bar Quality Degradation**: Fixed a bug where returning from route transitions (such as speed dial option screens) demoted the navigation bar to medium quality (frosted fallback) while leaving the sibling action button in premium quality.
 - **Static Analysis Cleanup**: Resolved all remaining static analysis warnings by removing the unused `_isRouteActive` field, deleting redundant `didPushNext()` and `didPop()` overrides, cleaning up unnecessary `dart:ui` imports, and globally suppressing `experimental_member_use` warnings for the liquid glass widgets API.
+* **Recovery Screen Muscle Tracking:** Patched the muscle fatigue calculation algorithm by updating the workout history queries to join the new `exercise_translations` table, resolving a bug where exercise names evaluated to null.
+* **Base Food Language Toggle:** Fixed a localization lock in the settings menu by refactoring `BasisDataManager._performBatchImport` to correctly ingest the precompiled flat columns (`name_fr`, `category_ja`, etc.) from `train_libre_base_foods.db` and adding dynamic runtime entity getters.
 
 ## [0.9.23] - 2026-06-08
 ### Changed
