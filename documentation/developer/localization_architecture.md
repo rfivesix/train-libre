@@ -404,7 +404,7 @@ def process_and_create_db(db_out="train_libre_training.db", ...):
 The python script `script/create_off_food_db.py` filters Open Food Facts parquet exports to compile country-specific SQLite databases.
 
 **Required Updates**:
-Register configuration objects for `jp` (Japan), `fr` (France), and `it` (Italy) in the country map to specify preferred language scans.
+Register configuration objects for Japan (`jp`), France (`fr`), and Italy (`it`) in the country map to support parquet-to-SQLite filtering, correctly prioritizing respective local language tags (`ja`, `fr`, `it`) during extraction.
 
 ```python
 # script/create_off_food_db.py
@@ -422,11 +422,11 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
         "preferred_languages": ("en",),
         "country_tags": ("en:united-kingdom", "en:uk", "en:great-britain"),
     },
-    # --- ADDED LOCALES ---
-    "jp": {
-        "preferred_languages": ("ja", "en"),
-        "country_tags": ("en:japan", "en:jp"),
+    "ch": {
+        "preferred_languages": ("de", "fr", "it", "en"),
+        "country_tags": ("en:switzerland", "en:ch", "en:suisse", "en:schweiz"),
     },
+    # --- ADDED TARGET COUNTRIES ---
     "fr": {
         "preferred_languages": ("fr", "en"),
         "country_tags": ("en:france", "en:fr"),
@@ -434,27 +434,105 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
     "it": {
         "preferred_languages": ("it", "en"),
         "country_tags": ("en:italy", "en:it"),
+    },
+    "jp": {
+        "preferred_languages": ("ja", "en"),
+        "country_tags": ("en:japan", "en:jp"),
     }
 }
 ```
 
 ### Base Food Database Pipeline (User-Generated)
 
-The base food SQLite database `train_libre_base_foods.db` is manually compiled and managed. Currently, it only stores name strings for German and English. 
+The base food SQLite database `train_libre_base_foods.db` is manually compiled and managed. Rather than using relational translation tables, it uses a flat-column schema to store translations for target languages.
 
-**Required Base Food Updates**:
-1. **Source Translations**: During the compilation of the base food database, translations for Japanese (`ja`), French (`fr`), and Italian (`it`) must be inserted into the base food SQLite database's translation schema.
-2. **Translation Schema**: The user-generated database schema must reflect the normalized table layout. It must contain the `product_translations` relational table populated with `product_id`, `language_code` (`de`, `en`, `ja`, `fr`, `it`), and the translated `name`.
-3. **Import Logic Adaptation**:
-   In `BasisDataManager._performBatchImport`, when parsing `BatchImportType.productsBase`, the mapping logic must load associated rows from the base database's `product_translations` table and insert them into the app database's `product_translations` table:
-   ```dart
-   // When copying base products, we insert structural rows into `products`
-   // and all associated localized rows into `product_translations`
-   ```
+**Required Base Food Updates & Verified Schema**:
+The physical schema in `train_libre_base_foods.db` contains flat column names matching the newly integrated French, Italian, and Japanese locales:
+
+#### `categories` table schema
+```sql
+CREATE TABLE categories (
+  key      TEXT PRIMARY KEY,
+  name_de  TEXT NOT NULL,
+  name_en  TEXT NOT NULL,
+  emoji    TEXT,
+  name_fr  TEXT,
+  name_it  TEXT,
+  name_ja  TEXT
+);
+```
+
+#### `products` table schema
+```sql
+CREATE TABLE products (
+  barcode                      TEXT PRIMARY KEY,
+  name                         TEXT NOT NULL,
+  name_de                      TEXT NOT NULL,
+  name_en                      TEXT NOT NULL,
+  category                     TEXT NOT NULL REFERENCES categories(key),
+  category_de                  TEXT NOT NULL,
+  category_en                  TEXT NOT NULL,
+  calories                     INTEGER,
+  protein                      REAL,
+  carbs                        REAL,
+  fat                          REAL,
+  kj_100g                      INTEGER,
+  fiber                        REAL,
+  sugar                        REAL,
+  salt                         REAL,
+  sodium_100g                  REAL,
+  calcium_100g                 REAL,
+  caffeine_mg_per_100g         REAL,
+  ingredients_analysis_tags    TEXT,
+  additives_tags               TEXT,
+  product_quantity             REAL,
+  product_quantity_unit        TEXT,
+  is_fluid                     INTEGER,
+  name_fr                      TEXT,
+  category_fr                  TEXT,
+  name_it                      TEXT,
+  category_it                  TEXT,
+  name_ja                      TEXT,
+  category_ja                  TEXT
+);
+```
+
+During database v23 migration, `BasisDataManager._performBatchImport` reads these exact columns from `train_libre_base_foods.db` and copies them directly into the app's localized Drift database schemas.
 
 ---
 
-## 4. The "Infinite Localization" Master Checklist
+## 4. Legal & Compliance Localization (Web & App Stores)
+
+To deploy Train Libre updates in the French, Italian, and Japanese App Stores and Google Play Stores, all legally required user-facing compliance documentation must be translated and served directly on the official website.
+
+### Dynamic Client-Side i18n Architecture
+
+Unlike static sites that generate separate HTML files for each language version, the Train Libre website uses a single-page localized template system driven by client-side Javascript.
+
+1. **Static Templates**: All compliance pages (`docs/privacy.html`, `docs/terms.html`, `docs/impressum.html`, and `docs/privacy-policy/index.html`) write structural nodes once, embedding descriptive `data-i18n` translation keys on all translatable elements.
+2. **Translation Registry**: A central dictionary (`TRANSLATIONS` inside [script.js](file:///Users/richardgeorgschotte/Projekte/train-libre/docs/script.js)) stores translation strings nested under each locale key (`en`, `de`, `fr`, `it`, `ja`).
+3. **Dropdown Menu Navigation**: Each compliance page hosts a language selection dropdown. To support new locales, dropdown items must be appended to the menu list:
+   ```html
+   <!-- Example: French language selector added to all docs/*.html pages -->
+   <button class="dropdown-item" data-lang="fr">
+     <span>Français</span>
+     <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+       <polyline points="20 6 9 17 4 12"></polyline>
+     </svg>
+   </button>
+   ```
+4. **Active State & Screenshot Mapping**: Upon selecting a language, `script.js` updates translation elements, caches the choice in `localStorage`, and maps localized screenshot directory paths (`assets/screenshots/iOS/fr-FR/`, etc.) dynamically.
+
+### Privacy-Hardened & Offline-First Philosophies
+
+Train Libre enforces sandboxed local storage. The translated Privacy Policy and ToS documents must unmissably convey to international users that:
+1. **Local Sandbox**: All calorie logs, consumed food entries, workout notes, routine templates, and physiological measurements are stored exclusively inside the local, sandboxed SQLite database on the device.
+2. **No Cloud Synchronization**: There is no mandatory cloud backend. Data is never uploaded to Train Libre servers or third-party cloud aggregators unless explicitly exported manually by the user via file backup.
+3. **Hardware Isolation**: The architecture relies completely on local execution, aligning perfectly with security-hardened OS setups (like GrapheneOS) that isolate process network scopes.
+
+---
+
+## 5. The "Infinite Localization" Master Checklist
 *How to add a new language (e.g., Spanish `es`) in under 15 minutes.*
 
 ### Step 1: Add App UI String Translations
@@ -484,9 +562,15 @@ The base food SQLite database `train_libre_base_foods.db` is manually compiled a
      }
      ```
 - **For Base Foods (user-generated)**:
-  1. When compiling/updating `train_libre_base_foods.db`, add Spanish translations to the `product_translations` table using the locale code `es`.
+  1. Update the flat columns (`name_es`, `category_es`) directly in the `products` and `categories` tables of `train_libre_base_foods.db`.
 
-### Step 4: Recompile and Run
+### Step 4: Localize Web Compliance Pages (script.js & HTML)
+1. Open [script.js](file:///Users/richardgeorgschotte/Projekte/train-libre/docs/script.js).
+2. Append `es: { ... }` block containing all translated keys for ToS, Privacy Policy, and landing strings.
+3. Open all compliance templates in `docs/` (`index.html`, `privacy.html`, `terms.html`, etc.) and append the Spanish `<button class="dropdown-item" data-lang="es">` item inside the `.dropdown-menu` container.
+4. Add the Spanish code to the `langFolder` mapping in `script.js` (e.g. `es: "es-ES"`).
+
+### Step 5: Recompile and Run
 1. Run local translation compilation:
    ```bash
    flutter gen-l10n
