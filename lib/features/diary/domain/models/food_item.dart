@@ -25,6 +25,15 @@ class FoodItem {
   /// The name of the food item in English.
   final String nameEn; // New
 
+  /// The name of the food item in French.
+  final String nameFr;
+
+  /// The name of the food item in Italian.
+  final String nameIt;
+
+  /// The name of the food item in Japanese.
+  final String nameJa;
+
   /// The brand or manufacturer of the food item.
   final String brand;
 
@@ -97,6 +106,9 @@ class FoodItem {
     required this.name,
     this.nameDe = '', // New
     this.nameEn = '', // New
+    this.nameFr = '',
+    this.nameIt = '',
+    this.nameJa = '',
     this.brand = '',
     required this.calories,
     required this.protein,
@@ -124,20 +136,32 @@ class FoodItem {
   /// Returns the name of the food item localized to the user's language.
   ///
   /// If [languageCode] is provided it takes precedence over the app locale.
-  /// Priority: [nameDe] for German, [nameEn] for other languages, then [name] as fallback.
+  /// Priority: the matching translated name, then English, then German, then [name].
   String getLocalizedName(BuildContext? context, {String? languageCode}) {
-    final lang = languageCode ??
-        (context != null
-            ? Localizations.localeOf(context).languageCode
-            : 'de');
-    if (lang == 'de' && nameDe.isNotEmpty) {
-      return nameDe;
+    final lang = _normalizeLanguageCode(
+      languageCode ??
+          (context != null
+              ? Localizations.localeOf(context).languageCode
+              : 'de'),
+    );
+
+    final localizedName = switch (lang) {
+      'de' => nameDe,
+      'en' => nameEn,
+      'fr' => nameFr,
+      'it' => nameIt,
+      'ja' => nameJa,
+      _ => '',
+    };
+
+    if (localizedName.isNotEmpty) {
+      return localizedName;
     }
-    // Fall back to English if 'en' exists or the language is not German
-    if (nameEn.isNotEmpty) {
-      return nameEn;
-    }
-    // Final fallback to the generic name
+    if (nameEn.isNotEmpty) return nameEn;
+    if (nameDe.isNotEmpty) return nameDe;
+    if (nameFr.isNotEmpty) return nameFr;
+    if (nameIt.isNotEmpty) return nameIt;
+    if (nameJa.isNotEmpty) return nameJa;
     return name;
   }
 
@@ -154,6 +178,9 @@ class FoodItem {
       name: map['name'] ?? '',
       nameDe: map['name_de'] ?? map['name'] ?? '',
       nameEn: map['name_en'] ?? map['name'] ?? '',
+      nameFr: map['name_fr'] ?? map['nameFr'] ?? map['name'] ?? '',
+      nameIt: map['name_it'] ?? map['nameIt'] ?? map['name'] ?? '',
+      nameJa: map['name_ja'] ?? map['nameJa'] ?? map['name'] ?? '',
       brand: map['brand'] ?? '',
       calories: (map['calories_100g'] as num?)?.round() ?? 0,
       protein: (map['protein_100g'] as num?)?.toDouble() ?? 0.0,
@@ -191,6 +218,9 @@ class FoodItem {
       'name': name,
       'name_de': nameDe, // New
       'name_en': nameEn, // New
+      'name_fr': nameFr,
+      'name_it': nameIt,
+      'name_ja': nameJa,
       'brand': brand,
       'calories_100g': calories,
       'protein_100g': protein,
@@ -260,5 +290,10 @@ class FoodItem {
   static String? _listToJson(List<String>? list) {
     if (list == null) return null;
     return '[${list.map((e) => '"$e"').join(',')}]';
+  }
+
+  static String _normalizeLanguageCode(String code) {
+    final cleaned = code.trim().toLowerCase().replaceAll('_', '-');
+    return cleaned.split('-').first;
   }
 }

@@ -192,6 +192,31 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     if (mounted) setState(() {});
   }
 
+  String _resolveBaseCategoryTitle(
+    Map<String, dynamic> category,
+    String baseFoodLang,
+  ) {
+    final key = category['key'] as String;
+    final de = (category['name_de'] as String?)?.trim();
+    final en = (category['name_en'] as String?)?.trim();
+    final fr = (category['name_fr'] as String?)?.trim();
+    final it = (category['name_it'] as String?)?.trim();
+    final ja = (category['name_ja'] as String?)?.trim();
+
+    String? pick(String? value) => value?.isNotEmpty == true ? value : null;
+
+    final localized = switch (baseFoodLang) {
+      'de' => pick(de) ?? pick(en),
+      'en' => pick(en) ?? pick(de),
+      'fr' => pick(fr) ?? pick(en) ?? pick(de),
+      'it' => pick(it) ?? pick(en) ?? pick(de),
+      'ja' => pick(ja) ?? pick(en) ?? pick(de),
+      _ => pick(en) ?? pick(de),
+    };
+
+    return localized ?? key;
+  }
+
   Future<void> _loadCategoryItems(String key) async {
     if (_catItems.containsKey(key) || _loadingCats.contains(key)) return;
     _loadingCats.add(key);
@@ -767,19 +792,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                     choice: themeService.baseFoodLanguage,
                     context: context,
                   );
-                  final title = () {
-                    final de = (cat['name_de'] as String?)?.trim();
-                    final en = (cat['name_en'] as String?)?.trim();
-                    if (baseFoodLang == 'de') {
-                      return (de?.isNotEmpty == true)
-                          ? de!
-                          : (en?.isNotEmpty == true ? en! : key);
-                    } else {
-                      return (en?.isNotEmpty == true)
-                          ? en!
-                          : (de?.isNotEmpty == true ? de! : key);
-                    }
-                  }();
+                  final title = _resolveBaseCategoryTitle(cat, baseFoodLang);
 
                   return CatalogCategoryTile(
                     categoryKey: key,

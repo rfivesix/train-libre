@@ -83,7 +83,8 @@ void main() {
       category: 'fruit',
     );
 
-    test('insertProduct, updateProduct, and getProductByBarcode mappings', () async {
+    test('insertProduct, updateProduct, and getProductByBarcode mappings',
+        () async {
       // 1. Insert product
       await dataSource.insertProduct(testUserItem);
 
@@ -115,6 +116,58 @@ void main() {
       expect(retrievedUpdated, isNotNull);
       expect(retrievedUpdated!.calories, 55);
       expect(retrievedUpdated.name, 'Apfel Elstar Bio');
+    });
+
+    test('getProductByBarcode preserves all localized base food names',
+        () async {
+      final localizedItem = FoodItem(
+        barcode: 'fr-ja-it-0001',
+        name: 'Pasta',
+        nameDe: 'Nudeln',
+        nameEn: 'Pasta',
+        nameFr: 'Pates',
+        nameIt: 'Pasta',
+        nameJa: 'パスタ',
+        brand: 'Casa',
+        calories: 120,
+        protein: 4.0,
+        carbs: 24.0,
+        fat: 1.5,
+        source: FoodItemSource.base,
+        category: 'grains',
+      );
+
+      await dataSource.insertProduct(localizedItem);
+
+      final retrieved = await dataSource.getProductByBarcode('fr-ja-it-0001');
+      expect(retrieved, isNotNull);
+      expect(retrieved!.nameFr, 'Pates');
+      expect(retrieved.nameIt, 'Pasta');
+      expect(retrieved.nameJa, 'パスタ');
+      expect(retrieved.getLocalizedName(null, languageCode: 'fr'), 'Pates');
+      expect(retrieved.getLocalizedName(null, languageCode: 'it'), 'Pasta');
+      expect(retrieved.getLocalizedName(null, languageCode: 'ja'), 'パスタ');
+    });
+
+    test('getBaseCategories returns localized category labels', () async {
+      await database.into(database.foodCategories).insert(
+            db.FoodCategoriesCompanion(
+              key: const drift.Value('dessert'),
+              nameDe: const drift.Value('Nachspeise'),
+              nameEn: const drift.Value('Dessert'),
+              nameFr: const drift.Value('Dessert FR'),
+              nameIt: const drift.Value('Dessert IT'),
+              nameJa: const drift.Value('デザート'),
+              emoji: const drift.Value('🍮'),
+            ),
+          );
+
+      final categories = await dataSource.getBaseCategories();
+      expect(categories, isNotEmpty);
+      final category = categories.firstWhere((c) => c['key'] == 'dessert');
+      expect(category['name_fr'], 'Dessert FR');
+      expect(category['name_it'], 'Dessert IT');
+      expect(category['name_ja'], 'デザート');
     });
 
     test('Favorite management CRUD operations', () async {
@@ -149,10 +202,12 @@ void main() {
       expect(await dataSource.getFavoriteBarcodes(), ['444444']);
     });
 
-    test('searchProducts ranks exact, prefix, user/base, and off matches correctly', () async {
+    test(
+        'searchProducts ranks exact, prefix, user/base, and off matches correctly',
+        () async {
       await dataSource.insertProduct(testUserItem); // Apfel Elstar (user)
-      await dataSource.insertProduct(testOffItem);  // Apfelmus ungezuckert (off)
-      
+      await dataSource.insertProduct(testOffItem); // Apfelmus ungezuckert (off)
+
       // Apfel (base)
       await dataSource.insertProduct(FoodItem(
         barcode: '666666',
@@ -181,10 +236,13 @@ void main() {
       expect(searchResults[2].barcode, '555555');
     });
 
-    test('getBaseFoods filters by category and search keyword, sorted by usage', () async {
-      await dataSource.insertProduct(testBaseItem1); // Brokkoli frisch (vegetables, base)
-      await dataSource.insertProduct(testUserItem);  // Apfel Elstar (fruit, user - should be ignored)
-      
+    test('getBaseFoods filters by category and search keyword, sorted by usage',
+        () async {
+      await dataSource
+          .insertProduct(testBaseItem1); // Brokkoli frisch (vegetables, base)
+      await dataSource.insertProduct(
+          testUserItem); // Apfel Elstar (fruit, user - should be ignored)
+
       // Karotte (vegetables, base)
       await dataSource.insertProduct(FoodItem(
         barcode: '777777',
@@ -199,19 +257,21 @@ void main() {
       ));
 
       // 1. Retrieve vegetables category
-      final baseFoods = await dataSource.getBaseFoods(categoryKey: 'vegetables');
+      final baseFoods =
+          await dataSource.getBaseFoods(categoryKey: 'vegetables');
       expect(baseFoods.length, 2);
-      expect(baseFoods.map((f) => f.name), unorderedEquals(['Brokkoli frisch', 'Karotte']));
+      expect(baseFoods.map((f) => f.name),
+          unorderedEquals(['Brokkoli frisch', 'Karotte']));
 
       // 2. Retrieve base categories metadata
       await database.into(database.foodCategories).insert(
-        const db.FoodCategoriesCompanion(
-          key: drift.Value('vegetables'),
-          nameDe: drift.Value('Gemüse'),
-          nameEn: drift.Value('Vegetables'),
-          emoji: drift.Value('🥦'),
-        ),
-      );
+            const db.FoodCategoriesCompanion(
+              key: drift.Value('vegetables'),
+              nameDe: drift.Value('Gemüse'),
+              nameEn: drift.Value('Vegetables'),
+              emoji: drift.Value('🥦'),
+            ),
+          );
 
       final categories = await dataSource.getBaseCategories();
       expect(categories.length, 1);
@@ -220,31 +280,38 @@ void main() {
       expect(categories[0]['emoji'], '🥦');
     });
 
-    test('fuzzyMatchCandidatesForRepair re-ranks using raw and cooked stateHints correctly', () async {
+    test(
+        'fuzzyMatchCandidatesForRepair re-ranks using raw and cooked stateHints correctly',
+        () async {
       await dataSource.insertProduct(testBaseItem1); // Brokkoli frisch
-      await dataSource.insertProduct(testBaseItem2); // Brokkoli gekocht (cooked)
+      await dataSource
+          .insertProduct(testBaseItem2); // Brokkoli gekocht (cooked)
       await dataSource.insertProduct(testBaseItem3); // Brokkoli roh (raw)
 
       // 1. Without hint (should rank by text/exact/source priority)
-      final normalCandidates = await dataSource.fuzzyMatchCandidatesForRepair('Brokkoli');
+      final normalCandidates =
+          await dataSource.fuzzyMatchCandidatesForRepair('Brokkoli');
       expect(normalCandidates.isNotEmpty, isTrue);
 
       // 2. With 'cooked' hint (should boost 'Brokkoli gekocht')
-      final cookedCandidates = await dataSource.fuzzyMatchCandidatesForRepair('Brokkoli', stateHint: 'cooked');
+      final cookedCandidates = await dataSource
+          .fuzzyMatchCandidatesForRepair('Brokkoli', stateHint: 'cooked');
       expect(cookedCandidates.length, 3);
       expect(cookedCandidates[0].name, 'Brokkoli gekocht'); // Top rank boosted
       // 'Brokkoli roh' has 'raw' keyword, so it should be penalized to the bottom (last)
       expect(cookedCandidates[2].name, 'Brokkoli roh');
 
       // 3. With 'raw' hint (should boost 'Brokkoli roh')
-      final rawCandidates = await dataSource.fuzzyMatchCandidatesForRepair('Brokkoli', stateHint: 'raw');
+      final rawCandidates = await dataSource
+          .fuzzyMatchCandidatesForRepair('Brokkoli', stateHint: 'raw');
       expect(rawCandidates.length, 3);
       expect(rawCandidates[0].name, 'Brokkoli roh'); // Top rank boosted
       // 'Brokkoli gekocht' has 'cooked' keyword, so it should be penalized to the bottom (last)
       expect(rawCandidates[2].name, 'Brokkoli gekocht');
     });
 
-    test('fuzzyMatchForAi delegates to matching logics and re-ranking', () async {
+    test('fuzzyMatchForAi delegates to matching logics and re-ranking',
+        () async {
       await dataSource.insertProduct(testBaseItem1);
 
       final candidates = await dataSource.fuzzyMatchForAi('Brokkoli');
@@ -254,31 +321,34 @@ void main() {
       }
     });
 
-    test('getRecentProducts orders products descending by usage history', () async {
+    test('getRecentProducts orders products descending by usage history',
+        () async {
       await dataSource.insertProduct(testBaseItem1); // Brokkoli frisch
-      await dataSource.insertProduct(testUserItem);  // Apfel Elstar
+      await dataSource.insertProduct(testUserItem); // Apfel Elstar
 
       // Insert recent consumption logs
       final now = DateTime.now();
       await database.into(database.nutritionLogs).insert(
-        db.NutritionLogsCompanion(
-          id: const drift.Value('log1'),
-          legacyBarcode: const drift.Value('111111'),
-          consumedAt: drift.Value(now.subtract(const Duration(minutes: 30))),
-          amount: const drift.Value(150.0),
-          mealType: const drift.Value('Breakfast'),
-        ),
-      );
+            db.NutritionLogsCompanion(
+              id: const drift.Value('log1'),
+              legacyBarcode: const drift.Value('111111'),
+              consumedAt:
+                  drift.Value(now.subtract(const Duration(minutes: 30))),
+              amount: const drift.Value(150.0),
+              mealType: const drift.Value('Breakfast'),
+            ),
+          );
 
       await database.into(database.nutritionLogs).insert(
-        db.NutritionLogsCompanion(
-          id: const drift.Value('log2'),
-          legacyBarcode: const drift.Value('444444'),
-          consumedAt: drift.Value(now.subtract(const Duration(minutes: 5))), // more recent!
-          amount: const drift.Value(200.0),
-          mealType: const drift.Value('Lunch'),
-        ),
-      );
+            db.NutritionLogsCompanion(
+              id: const drift.Value('log2'),
+              legacyBarcode: const drift.Value('444444'),
+              consumedAt: drift.Value(
+                  now.subtract(const Duration(minutes: 5))), // more recent!
+              amount: const drift.Value(200.0),
+              mealType: const drift.Value('Lunch'),
+            ),
+          );
 
       final recent = await dataSource.getRecentProducts();
       expect(recent.length, 2);
@@ -288,9 +358,13 @@ void main() {
       expect(recent[1].barcode, '111111');
     });
 
-    test('searchProducts implements multi-token word order invariance and recency rescoring', () async {
-      await dataSource.insertProduct(testUserItem); // Apfel Elstar (user, barcode '444444')
-      await dataSource.insertProduct(testOffItem);  // Apfelmus ungezuckert (off, barcode '555555')
+    test(
+        'searchProducts implements multi-token word order invariance and recency rescoring',
+        () async {
+      await dataSource
+          .insertProduct(testUserItem); // Apfel Elstar (user, barcode '444444')
+      await dataSource.insertProduct(
+          testOffItem); // Apfelmus ungezuckert (off, barcode '555555')
 
       // 1. Test word-order invariance: "Elstar Apfel" should match "Apfel Elstar"
       final invariantResults = await dataSource.searchProducts('Elstar Apfel');
@@ -307,24 +381,28 @@ void main() {
 
       // Now, log "Apfelmus ungezuckert" (off) within the past 30 days.
       await database.into(database.nutritionLogs).insert(
-        db.NutritionLogsCompanion(
-          id: const drift.Value('log_mus'),
-          productId: const drift.Value(null),
-          legacyBarcode: const drift.Value('555555'),
-          consumedAt: drift.Value(DateTime.now().subtract(const Duration(days: 5))),
-          amount: const drift.Value(100.0),
-        ),
-      );
+            db.NutritionLogsCompanion(
+              id: const drift.Value('log_mus'),
+              productId: const drift.Value(null),
+              legacyBarcode: const drift.Value('555555'),
+              consumedAt:
+                  drift.Value(DateTime.now().subtract(const Duration(days: 5))),
+              amount: const drift.Value(100.0),
+            ),
+          );
 
       // Now, search again. "Apfelmus ungezuckert" should be prioritized above "Apfel Elstar"
       // because its history score is 10, while "Apfel Elstar" history score is 0.
       final searchAfterLog = await dataSource.searchProducts('Apfel');
       expect(searchAfterLog.length, 2);
-      expect(searchAfterLog[0].barcode, '555555'); // Apfelmus ungezuckert (now first!)
+      expect(searchAfterLog[0].barcode,
+          '555555'); // Apfelmus ungezuckert (now first!)
       expect(searchAfterLog[1].barcode, '444444'); // Apfel Elstar
     });
 
-    test('searchProducts implements exact/prefix match boosting and German plural stem fallback', () async {
+    test(
+        'searchProducts implements exact/prefix match boosting and German plural stem fallback',
+        () async {
       await dataSource.insertProduct(FoodItem(
         barcode: '888888',
         name: 'Eiercreme',

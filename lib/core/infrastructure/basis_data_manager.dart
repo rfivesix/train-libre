@@ -69,7 +69,8 @@ List<dynamic> _parseBatchInIsolate(_BatchImportPayload payload) {
     case BatchImportType.productsBase:
       return payload.rows
           .map((r) => BasisDataManager._mapProductRow(r,
-              sourceLabel: 'base', preferredLanguage: payload.preferredLanguage))
+              sourceLabel: 'base',
+              preferredLanguage: payload.preferredLanguage))
           .toList();
     case BatchImportType.productsOff:
       return payload.rows
@@ -93,7 +94,8 @@ class BasisDataManager {
   static const String _fallbackInstalledVersion = '000000000001';
 
   static int _parseInt(dynamic value) => (value as num?)?.toInt() ?? 0;
-  static double _parseDouble(dynamic value) => (value as num?)?.toDouble() ?? 0.0;
+  static double _parseDouble(dynamic value) =>
+      (value as num?)?.toDouble() ?? 0.0;
   static String _parseString(dynamic value) => value?.toString() ?? '';
 
   /// Checks for updates to the basis data and performs an import if necessary.
@@ -625,8 +627,10 @@ class BasisDataManager {
       );
 
       // Exercise bundles need two passes: first insert exercises, then translations.
-      final exerciseBundles = mappedCompanions.whereType<_ExerciseBundle>().toList();
-      final otherCompanions = mappedCompanions.where((c) => c is! _ExerciseBundle).toList();
+      final exerciseBundles =
+          mappedCompanions.whereType<_ExerciseBundle>().toList();
+      final otherCompanions =
+          mappedCompanions.where((c) => c is! _ExerciseBundle).toList();
 
       await mainDb.batch((batch) {
         for (final companion in otherCompanions) {
@@ -662,9 +666,12 @@ class BasisDataManager {
               final fields = bundle.exerciseFields;
               final exerciseCompanion = ExercisesCompanion(
                 id: drift.Value(_parseString(fields['id'])),
-                categoryName: drift.Value(_parseString(fields['category_name'])),
-                musclesPrimary: drift.Value(_parseString(fields['muscles_primary'])),
-                musclesSecondary: drift.Value(_parseString(fields['muscles_secondary'])),
+                categoryName:
+                    drift.Value(_parseString(fields['category_name'])),
+                musclesPrimary:
+                    drift.Value(_parseString(fields['muscles_primary'])),
+                musclesSecondary:
+                    drift.Value(_parseString(fields['muscles_secondary'])),
                 isCustom: const drift.Value(false),
                 createdBy: const drift.Value('system'),
                 source: const drift.Value('wger'),
@@ -705,7 +712,8 @@ class BasisDataManager {
                   ),
                 );
               } catch (e) {
-                debugPrint('Skipping malformed exercise translation for $taskLabel: $e');
+                debugPrint(
+                    'Skipping malformed exercise translation for $taskLabel: $e');
               }
             }
           }
@@ -753,8 +761,10 @@ class BasisDataManager {
   }
 
   @visibleForTesting
-  dynamic mapProductRowForTesting(Map<String, dynamic> row, {required String sourceLabel, String? preferredLanguage}) {
-    return _mapProductRow(row, sourceLabel: sourceLabel, preferredLanguage: preferredLanguage);
+  dynamic mapProductRowForTesting(Map<String, dynamic> row,
+      {required String sourceLabel, String? preferredLanguage}) {
+    return _mapProductRow(row,
+        sourceLabel: sourceLabel, preferredLanguage: preferredLanguage);
   }
 
   // --- Mapping functions (unchanged) ---
@@ -781,12 +791,24 @@ class BasisDataManager {
     // Always persist both language variants when available.
     final rawNameDe = row['name_de']?.toString();
     final rawNameEn = row['name_en']?.toString();
+    final rawNameFr = row['name_fr']?.toString();
+    final rawNameIt = row['name_it']?.toString();
+    final rawNameJa = row['name_ja']?.toString();
     final rawName = row['name']?.toString() ?? '';
 
     // Select the display name (for the legacy `name` column) based on preference.
     String displayName;
     if (preferredLanguage == 'en') {
       displayName = _parseString(rawNameEn ?? rawNameDe ?? rawName);
+    } else if (preferredLanguage == 'fr') {
+      displayName =
+          _parseString(rawNameFr ?? rawNameEn ?? rawNameDe ?? rawName);
+    } else if (preferredLanguage == 'it') {
+      displayName =
+          _parseString(rawNameIt ?? rawNameEn ?? rawNameDe ?? rawName);
+    } else if (preferredLanguage == 'ja') {
+      displayName =
+          _parseString(rawNameJa ?? rawNameEn ?? rawNameDe ?? rawName);
     } else {
       displayName = _parseString(rawNameDe ?? rawNameEn ?? rawName);
     }
@@ -829,6 +851,9 @@ class BasisDataManager {
       name: drift.Value(displayName),
       nameDe: drift.Value(rawNameDe),
       nameEn: drift.Value(rawNameEn),
+      nameFr: drift.Value(rawNameFr),
+      nameIt: drift.Value(rawNameIt),
+      nameJa: drift.Value(rawNameJa),
       brand: drift.Value(_parseString(row['brand'])),
       calories: drift.Value(_parseInt(row['calories'])),
       protein: drift.Value(_parseDouble(row['protein'])),
@@ -919,7 +944,8 @@ class BasisDataManager {
 
     // Flat-column format (current wger asset DB)
     if (row.containsKey('name_de') || row.containsKey('name_en')) {
-      addTranslation('de', row['name_de'] ?? row['name_en'], row['description_de']);
+      addTranslation(
+          'de', row['name_de'] ?? row['name_en'], row['description_de']);
       addTranslation('en', row['name_en'], row['description_en']);
       addTranslation('fr', row['name_fr'], row['description_fr']);
       addTranslation('it', row['name_it'], row['description_it']);
@@ -931,6 +957,4 @@ class BasisDataManager {
       translationFields: translations,
     );
   }
-
-
 }
