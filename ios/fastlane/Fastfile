@@ -29,9 +29,14 @@ platform :ios do
       xcodeproj: "Runner.xcodeproj"
     )
 
-    # Search recursively for the IPA artifact to prevent folder naming mismatches
-    ipa_path = Dir["../build/ios/ipa/**/*.ipa"].first
+    # Get the absolute path to the project root
+    project_root = File.expand_path("../..", __FILE__)
+    
+    # Search deeply inside the build directory using the absolute path
+    ipa_path = Dir[File.join(project_root, "build", "ios", "ipa", "**", "*.ipa")].first
+    
     UI.user_error!("No compiled IPA file found in build/ios/ipa/") unless ipa_path
+    UI.message("Found compiled IPA at: #{ipa_path}")
 
     # Upload the IPA to TestFlight
     upload_to_testflight(
