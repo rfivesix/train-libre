@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Manual Deep History Sync:** Explicitly delegated historical syncs (90 days) to a manual action via the Sleep Settings screen using a new `forceFullSync` parameter.
 
 ### Fixed
+- **Android Predictive Back Gestures:** Resolved a platform-specific issue where the native predictive back gesture would fail or freeze on Android/GrapheneOS devices. Refactored the core Android container `MainActivity` to inherit from the standard `FlutterActivity` instead of `FlutterFragmentActivity`, eliminating fragment lifecycle dispatcher conflicts. Ported the internal Health Connect permissions launcher and Storage Access Framework directory picker launcher to use the base SDK `startActivityForResult` and `onActivityResult` callbacks to maintain full compile-time compatibility with standard activity lifecycles.
 - **Sleep Data Import Ingestion (7 out of 90 nights):** Resolved a critical bug causing long historical imports to starve or skip valid entries by correcting lookback window truncations.
 - **Idempotent Sleep Session Overlaps:** Refactored overlapping session rules to prevent shorter naps or duplicate records from being completely discarded. Non-enveloping sleep sessions can now safely coexist, and identical boundaries trigger precise updates instead of omissions.
 

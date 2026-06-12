@@ -2,6 +2,7 @@
 
 package com.rfivesix.trainlibre
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -27,7 +28,7 @@ import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
 import androidx.health.connect.client.units.Percentage
 import androidx.health.connect.client.units.Volume
-import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -39,13 +40,15 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.ZoneOffset
 
-class MainActivity : FlutterFragmentActivity() {
+class MainActivity : FlutterActivity() {
     private companion object {
         private const val exportDebugTag = "HealthExportHC"
         private const val exportIntervalSeconds = 1L
         private const val maxExportBatchSize = 1000
         private const val quotaRetryAttempts = 2
         private const val quotaRetryBackoffMs = 300L
+        private const val REQUEST_CODE_HEALTH_CONNECT_PERMISSIONS = 1001
+        private const val REQUEST_CODE_DIRECTORY_PICKER = 1002
     }
 
     private val healthChannelName = "trainlibre.health/steps"
@@ -77,43 +80,59 @@ class MainActivity : FlutterFragmentActivity() {
         "com.samsung.android.app.health",
     )
 
-    private val permissionLauncher = registerForActivityResult(
-        PermissionController.createRequestPermissionResultContract(),
-    ) { _: Set<String> ->
-        val result = pendingPermissionResult ?: return@registerForActivityResult
-        val requestedPermissions = pendingPermissionRequestSet ?: requiredPermissions
-        pendingPermissionResult = null
-        pendingPermissionRequestSet = null
-        CoroutineScope(Dispatchers.IO).launch {
-            val granted = hasPermissions(requestedPermissions)
-            withContext(Dispatchers.Main) {
-                result.success(granted)
-            }
+    private val permissionLauncher = object {
+        fun launch(permissions: Set<String>) {
+            val intent = PermissionController.createRequestPermissionResultContract()
+                .createIntent(this@MainActivity, permissions)
+            this@MainActivity.startActivityForResult(intent, REQUEST_CODE_HEALTH_CONNECT_PERMISSIONS)
         }
     }
 
-    private val directoryPickerLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocumentTree(),
-    ) { uri: Uri? ->
-        val result = pendingDirectoryPickerResult ?: return@registerForActivityResult
-        pendingDirectoryPickerResult = null
-        if (uri == null) {
-            result.success(null)
-            return@registerForActivityResult
+    private val directoryPickerLauncher = object {
+        fun launch(input: Uri?) {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            this@MainActivity.startActivityForResult(intent, REQUEST_CODE_DIRECTORY_PICKER)
         }
-        try {
-            val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            contentResolver.takePersistableUriPermission(uri, flags)
-        } catch (_: Exception) {
-            // Persistable permission is best-effort (some providers may reject it).
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQUEST_CODE_HEALTH_CONNECT_PERMISSIONS -> {
+                val result = pendingPermissionResult ?: return
+                val requestedPermissions = pendingPermissionRequestSet ?: requiredPermissions
+                pendingPermissionResult = null
+                pendingPermissionRequestSet = null
+                CoroutineScope(Dispatchers.IO).launch {
+                    val granted = hasPermissions(requestedPermissions)
+                    withContext(Dispatchers.Main) {
+                        result.success(granted)
+                    }
+                }
+            }
+            REQUEST_CODE_DIRECTORY_PICKER -> {
+                val result = pendingDirectoryPickerResult ?: return
+                pendingDirectoryPickerResult = null
+                val uri = data?.data
+                if (uri == null || resultCode != Activity.RESULT_OK) {
+                    result.success(null)
+                    return
+                }
+                try {
+                    val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    contentResolver.takePersistableUriPermission(uri, flags)
+                } catch (_: Exception) {
+                    // Persistable permission is best-effort (some providers may reject it).
+                }
+                result.success(
+                    mapOf(
+                        "treeUri" to uri.toString(),
+                        "displayPath" to treeUriToDisplayPath(uri),
+                    ),
+                )
+            }
         }
-        result.success(
-            mapOf(
-                "treeUri" to uri.toString(),
-                "displayPath" to treeUriToDisplayPath(uri),
-            ),
-        )
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
