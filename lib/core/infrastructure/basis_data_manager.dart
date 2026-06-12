@@ -98,6 +98,63 @@ class BasisDataManager {
       (value as num?)?.toDouble() ?? 0.0;
   static String _parseString(dynamic value) => value?.toString() ?? '';
 
+  /// Public method to trigger the exercise catalog check and update process.
+  Future<void> importExerciseCatalog({
+    bool force = false,
+    ProgressCallback? onProgress,
+    RemoteCatalogProgressCallback? onRemoteProgress,
+    RemoteCatalogSkipRequested? isRemoteSkipRequested,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (force) {
+      await prefs.remove(_keyVersionTraining);
+    }
+
+    String? remoteTrainingDbPath;
+    final installedTrainingVersion =
+        prefs.getString(_keyVersionTraining) ?? '0';
+    try {
+      onProgress?.call(
+        "Prüfe Übungen...",
+        "Suche nach Remote-Katalog-Updates...",
+        0.0,
+      );
+      final remoteCandidate =
+          await ExerciseCatalogRefreshService.instance.prepareUpdateCandidate(
+        installedVersion: installedTrainingVersion,
+        force: force,
+        onProgress: onRemoteProgress,
+        isSkipRequested: isRemoteSkipRequested,
+      );
+      if (remoteCandidate != null) {
+        remoteTrainingDbPath = remoteCandidate.localDbPath;
+        onProgress?.call(
+          "Update Übungen",
+          "Remote-Katalog ${remoteCandidate.version} gefunden.",
+          0.02,
+        );
+      }
+    } catch (e) {
+      debugPrint('Remote exercise catalog check skipped safely: $e');
+    }
+
+    await _updateDatabaseFromSource(
+      assetPath: AppDataSources.trainingAssetDbPath,
+      sourceFilePath: remoteTrainingDbPath,
+      prefKey: _keyVersionTraining,
+      prefs: prefs,
+      tableName: 'exercises',
+      driftTableName: null,
+      legacyAssetPath: AppDataSources.legacyTrainingAssetDbPath,
+      importType: BatchImportType.exercises,
+      preferredLanguage: null,
+      taskLabel: 'Übungen',
+      onProgress: onProgress,
+      forceImport: force,
+      enableOffReplacementRetention: false,
+    );
+  }
+
   /// Checks for updates to the basis data and performs an import if necessary.
   ///
   /// The [force] parameter triggers a re-import regardless of version mismatch.
@@ -111,10 +168,16 @@ class BasisDataManager {
     final prefs = await SharedPreferences.getInstance();
 
     if (force) {
-      await prefs.remove(_keyVersionTraining);
       await prefs.remove(_keyVersionFood);
       await _clearOffVersionPreferences(prefs);
       await prefs.remove(_keyVersionCats);
+
+      await importExerciseCatalog(
+        force: true,
+        onProgress: onProgress,
+        onRemoteProgress: onRemoteProgress,
+        isRemoteSkipRequested: isRemoteSkipRequested,
+      );
     }
 
     final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
@@ -168,45 +231,6 @@ class BasisDataManager {
         enableOffReplacementRetention: enableOffReplacementRetention,
       );
     }
-
-    String? remoteTrainingDbPath;
-    final installedTrainingVersion =
-        prefs.getString(_keyVersionTraining) ?? '0';
-    try {
-      onProgress?.call(
-        "Prüfe Übungen...",
-        "Suche nach Remote-Katalog-Updates...",
-        0.0,
-      );
-      final remoteCandidate =
-          await ExerciseCatalogRefreshService.instance.prepareUpdateCandidate(
-        installedVersion: installedTrainingVersion,
-        force: force,
-        onProgress: onRemoteProgress,
-        isSkipRequested: isRemoteSkipRequested,
-      );
-      if (remoteCandidate != null) {
-        remoteTrainingDbPath = remoteCandidate.localDbPath;
-        onProgress?.call(
-          "Update Übungen",
-          "Remote-Katalog ${remoteCandidate.version} gefunden.",
-          0.02,
-        );
-      }
-    } catch (e) {
-      debugPrint('Remote exercise catalog check skipped safely: $e');
-    }
-
-    // 1. Exercises (remote candidate when available, otherwise asset)
-    await process(
-      'Übungen',
-      AppDataSources.trainingAssetDbPath,
-      _keyVersionTraining,
-      'exercises',
-      BatchImportType.exercises,
-      sourceFilePath: remoteTrainingDbPath,
-      legacyAssetPath: AppDataSources.legacyTrainingAssetDbPath,
-    );
 
     // 2a. Base Foods
     // Read the preferred display language once before import.

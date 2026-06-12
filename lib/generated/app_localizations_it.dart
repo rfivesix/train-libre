@@ -1268,20 +1268,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settingsTitle => 'Impostazioni';
 
   @override
-  String get settingsUpdateFoodDatabase =>
-      'Aggiorna il database degli alimenti';
+  String get settingsUpdateFoodDatabase => 'Aggiorna i database';
 
   @override
   String get settingsUpdateFoodDatabaseSubtitle =>
-      'Controlla manualmente gli aggiornamenti al database Open Food Facts.';
+      'Verifica manualmente gli aggiornamenti dei database di alimenti ed esercizi.';
 
   @override
   String get settingsUpdateFoodDatabaseSuccess =>
-      'Database degli alimenti aggiornato con successo.';
+      'Database aggiornati con successo.';
 
   @override
   String settingsUpdateFoodDatabaseError(String error) {
-    return 'Errore durante l\'aggiornamento del database: $error';
+    return 'Errore durante l\'aggiornamento dei database: $error';
   }
 
   @override

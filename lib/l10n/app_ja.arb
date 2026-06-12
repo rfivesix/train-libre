@@ -495,10 +495,10 @@
   "profile_capslock": "プロフィール",
   "settings_capslock": "設定",
   "settingsTitle": "設定",
-  "settingsUpdateFoodDatabase": "食品データベースを更新する",
-  "settingsUpdateFoodDatabaseSubtitle": "Open Food Facts データベースの更新を手動で確認します。",
-  "settingsUpdateFoodDatabaseSuccess": "食品データベースが正常に更新されました。",
-  "settingsUpdateFoodDatabaseError": "データベース更新エラー: {error}",
+  "settingsUpdateFoodDatabase": "データベースを更新",
+  "settingsUpdateFoodDatabaseSubtitle": "食品およびエクササイズデータベースの更新を手動で確認します。",
+  "settingsUpdateFoodDatabaseSuccess": "データベースが正常に更新されました。",
+  "settingsUpdateFoodDatabaseError": "データベースの更新中にエラーが発生しました: {error}",
   "@settingsUpdateFoodDatabaseError": {
     "placeholders": {
       "error": {

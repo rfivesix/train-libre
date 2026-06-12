@@ -5,8 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.25] - 2026-06-12
+### Changed
+- **Decoupled Exercise / Wger Catalog Sync:** Extracted the exercise database sync and update logic from the default automatic startup path (`checkForBasisDataUpdate()`) into a new public `importExerciseCatalog()` method. The exercise database is now only updated when manually triggered by the user or during database initialization, preventing startup slowdowns.
+- **Unified Settings Sync Action:** Combined the exercise update action with the manual food database update card in Settings, which now triggers a sequential update of both the food and exercise databases with unified progress tracking.
+
 ### Fixed
 - **Sleep Sync Freeze & Progress Bar Repair:** Resolved a database deadlock that froze the manual 90-day Sleep Sync at the last iteration (e.g. "Importing Night 58/58...") by removing nested `_db.transaction(...)` blocks from the custom sleep database access objects (`SleepRawImportsDao`, `SleepCanonicalSessionsDao`, `SleepCanonicalStageSegmentsDao`, `SleepCanonicalHeartRateSamplesDao`, `SleepNightlyAnalysesDao`). Refined the pipeline progress calculation to allocate `totalSessions + 5` total steps and report an out-of-bounds progress value (`-1.0`) at initialization, enabling an active indeterminate scanning animation during heavy background isolate calculations before transitioning to determinate progress updates through the database writing phase.
+- **Multilingual Database Sync Labels:** Updated settings database sync labels (`settingsUpdateFoodDatabase`, `settingsUpdateFoodDatabaseSubtitle`, `settingsUpdateFoodDatabaseSuccess`, `settingsUpdateFoodDatabaseError`) in Japanese (`app_ja.arb`) to refer to both the food and exercise databases rather than just the food database, aligning with German, English, French, and Italian translations.
 
 ## [0.9.24] - 2026-06-12
 ### Added

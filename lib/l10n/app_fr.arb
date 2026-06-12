@@ -495,10 +495,10 @@
   "profile_capslock": "PROFIL",
   "settings_capslock": "PARAMÈTRES",
   "settingsTitle": "Paramètres",
-  "settingsUpdateFoodDatabase": "Mettre à jour la base de données alimentaire",
-  "settingsUpdateFoodDatabaseSubtitle": "Vérifiez manuellement les mises à jour de la base de données Open Food Facts.",
-  "settingsUpdateFoodDatabaseSuccess": "Base de données alimentaire mise à jour avec succès.",
-  "settingsUpdateFoodDatabaseError": "Erreur lors de la mise à jour de la base de données : {error}",
+  "settingsUpdateFoodDatabase": "Mettre à jour les bases de données",
+  "settingsUpdateFoodDatabaseSubtitle": "Vérifier manuellement les mises à jour des bases de données d'aliments et d'exercices.",
+  "settingsUpdateFoodDatabaseSuccess": "Bases de données mises à jour avec succès.",
+  "settingsUpdateFoodDatabaseError": "Erreur lors de la mise à jour des bases de données : {error}",
   "@settingsUpdateFoodDatabaseError": {
     "placeholders": {
       "error": {
