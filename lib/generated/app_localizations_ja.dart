@@ -4848,4 +4848,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String progressImportingTable(String table) {
     return '$table を復元中...';
   }
+
+  @override
+  String get shareDailyLogTitle => '一日の記録';
+
+  @override
+  String get shareSleepStartTime => '就寝時刻';
+
+  @override
+  String get shareSleepEndTime => '起床時刻';
+
+  @override
+  String get shareSleepDeep => '深い睡眠';
+
+  @override
+  String get shareSleepLight => '浅い睡眠';
+
+  @override
+  String get shareSleepRem => 'レム睡眠';
+
+  @override
+  String get shareSleepAwake => '覚醒/中途覚醒';
+
+  @override
+  String get shareTotalWater => '水分摂取量合計';
+
+  @override
+  String get shareNutritionSummary => '栄養サマリー';
+
+  @override
+  String get shareSleepEfficiency => '効率';
+
+  @override
+  String get shareSleepRestingHeartRate => '安静時心拍数';
 }

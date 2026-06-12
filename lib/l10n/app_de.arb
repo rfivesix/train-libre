@@ -2273,5 +2273,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "shareDailyLogTitle": "Tagesprotokoll",
+  "shareSleepStartTime": "Einschlafzeit",
+  "shareSleepEndTime": "Aufwachzeit",
+  "shareSleepDeep": "Tiefschlaf",
+  "shareSleepLight": "Leichtschlaf",
+  "shareSleepRem": "REM-Schlaf",
+  "shareSleepAwake": "Wach/Unterbrechungen",
+  "shareTotalWater": "Flüssigkeitszufuhr gesamt",
+  "shareNutritionSummary": "Ernährungszusammenfassung",
+  "shareSleepEfficiency": "Effizienz",
+  "shareSleepRestingHeartRate": "Ruhepuls"
 }

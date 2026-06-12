@@ -805,6 +805,13 @@ class _MainScreenState extends State<MainScreen>
                 _tagebuchKey.currentState?.navigateDay(true);
               },
             ),
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              tooltip: l10n.share,
+              onPressed: () {
+                _tagebuchKey.currentState?.showShareMenu();
+              },
+            ),
             _profileAppBarButton(context),
           ],
         );

@@ -2273,5 +2273,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "shareDailyLogTitle": "Journal quotidien",
+  "shareSleepStartTime": "Heure de coucher",
+  "shareSleepEndTime": "Heure de réveil",
+  "shareSleepDeep": "Sommeil profond",
+  "shareSleepLight": "Sommeil léger",
+  "shareSleepRem": "Sommeil paradoxal",
+  "shareSleepAwake": "Éveillé/Interruptions",
+  "shareTotalWater": "Total eau/fluides",
+  "shareNutritionSummary": "Résumé de la nutrition",
+  "shareSleepEfficiency": "Efficacité",
+  "shareSleepRestingHeartRate": "Fréquence cardiaque au repos"
 }

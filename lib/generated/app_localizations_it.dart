@@ -5085,4 +5085,37 @@ class AppLocalizationsIt extends AppLocalizations {
   String progressImportingTable(String table) {
     return 'Ripristino di $table...';
   }
+
+  @override
+  String get shareDailyLogTitle => 'Registro giornaliero';
+
+  @override
+  String get shareSleepStartTime => 'Ora di inizio';
+
+  @override
+  String get shareSleepEndTime => 'Ora di fine';
+
+  @override
+  String get shareSleepDeep => 'Sonno profondo';
+
+  @override
+  String get shareSleepLight => 'Sonno leggero';
+
+  @override
+  String get shareSleepRem => 'Sonno REM';
+
+  @override
+  String get shareSleepAwake => 'Veglia/Interruzioni';
+
+  @override
+  String get shareTotalWater => 'Acqua/fluidi totali';
+
+  @override
+  String get shareNutritionSummary => 'Riepilogo nutrizione';
+
+  @override
+  String get shareSleepEfficiency => 'Efficienza';
+
+  @override
+  String get shareSleepRestingHeartRate => 'Frequenza cardiaca a riposo';
 }

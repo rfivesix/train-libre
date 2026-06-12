@@ -37,6 +37,7 @@ import 'widgets/food_entry_tile.dart';
 import 'widgets/fluid_entry_tile.dart';
 import 'widgets/recommendation_banner.dart';
 import 'meal_screen.dart';
+import '../../../core/infrastructure/share_service.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
 ///
@@ -71,9 +72,52 @@ class _DiaryScreenContent extends StatefulWidget {
 }
 
 class DiaryScreenState extends State<_DiaryScreenContent> {
+  final GlobalKey _macroSummaryKey = GlobalKey();
+  final ShareService _shareService = const ShareService();
+
   DiaryViewModel get viewModel => context.read<DiaryViewModel>();
   ValueNotifier<DateTime> get selectedDateNotifier =>
       viewModel.selectedDateNotifier;
+
+  Future<void> showShareMenu() async {
+    final l10n = AppLocalizations.of(context)!;
+    await showGlassBottomMenu<void>(
+      context: context,
+      title: l10n.share,
+      actions: [
+        GlassMenuAction(
+          icon: Icons.image_outlined,
+          label: l10n.shareAsImage,
+          onTap: () async {
+            try {
+              await _shareService.shareWidgetAsImage(_macroSummaryKey);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.shareFailed)),
+                );
+              }
+            }
+          },
+        ),
+        GlassMenuAction(
+          icon: Icons.notes_outlined,
+          label: '${l10n.shareAsText} / kopieren',
+          onTap: () async {
+            try {
+              await _shareService.shareDailyLogAsText(viewModel.selectedDate, l10n: l10n);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.shareFailed)),
+                );
+              }
+            }
+          },
+        ),
+      ],
+    );
+  }
 
   void setSelectedDate(DateTime date) {
     context.read<DiaryViewModel>().setSelectedDate(date);
@@ -614,11 +658,14 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   ),
                 AppSectionHeader(title: l10n.today_overview_text),
                 if (viewModel.dailyNutrition != null)
-                  NutritionSummaryWidget(
-                    nutritionData: viewModel.dailyNutrition!,
-                    l10n: l10n,
-                    isExpandedView: false,
-                    showSugarInOverview: viewModel.showSugarInOverview,
+                  RepaintBoundary(
+                    key: _macroSummaryKey,
+                    child: NutritionSummaryWidget(
+                      nutritionData: viewModel.dailyNutrition!,
+                      l10n: l10n,
+                      isExpandedView: false,
+                      showSugarInOverview: viewModel.showSugarInOverview,
+                    ),
                   ),
 
                 const SizedBox(height: DesignConstants.spacingXS),

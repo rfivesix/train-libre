@@ -2273,5 +2273,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "shareDailyLogTitle": "Registro giornaliero",
+  "shareSleepStartTime": "Ora di inizio",
+  "shareSleepEndTime": "Ora di fine",
+  "shareSleepDeep": "Sonno profondo",
+  "shareSleepLight": "Sonno leggero",
+  "shareSleepRem": "Sonno REM",
+  "shareSleepAwake": "Veglia/Interruzioni",
+  "shareTotalWater": "Acqua/fluidi totali",
+  "shareNutritionSummary": "Riepilogo nutrizione",
+  "shareSleepEfficiency": "Efficienza",
+  "shareSleepRestingHeartRate": "Frequenza cardiaca a riposo"
 }

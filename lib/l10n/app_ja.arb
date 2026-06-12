@@ -2273,5 +2273,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "shareDailyLogTitle": "一日の記録",
+  "shareSleepStartTime": "就寝時刻",
+  "shareSleepEndTime": "起床時刻",
+  "shareSleepDeep": "深い睡眠",
+  "shareSleepLight": "浅い睡眠",
+  "shareSleepRem": "レム睡眠",
+  "shareSleepAwake": "覚醒/中途覚醒",
+  "shareTotalWater": "水分摂取量合計",
+  "shareNutritionSummary": "栄養サマリー",
+  "shareSleepEfficiency": "効率",
+  "shareSleepRestingHeartRate": "安静時心拍数"
 }

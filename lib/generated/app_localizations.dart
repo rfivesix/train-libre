@@ -8820,6 +8820,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restoring {table}...'**
   String progressImportingTable(String table);
+
+  /// No description provided for @shareDailyLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Log'**
+  String get shareDailyLogTitle;
+
+  /// No description provided for @shareSleepStartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time'**
+  String get shareSleepStartTime;
+
+  /// No description provided for @shareSleepEndTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End time'**
+  String get shareSleepEndTime;
+
+  /// No description provided for @shareSleepDeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep Sleep'**
+  String get shareSleepDeep;
+
+  /// No description provided for @shareSleepLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light Sleep'**
+  String get shareSleepLight;
+
+  /// No description provided for @shareSleepRem.
+  ///
+  /// In en, this message translates to:
+  /// **'REM Sleep'**
+  String get shareSleepRem;
+
+  /// No description provided for @shareSleepAwake.
+  ///
+  /// In en, this message translates to:
+  /// **'Awake/Interruptions'**
+  String get shareSleepAwake;
+
+  /// No description provided for @shareTotalWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Water/Fluids'**
+  String get shareTotalWater;
+
+  /// No description provided for @shareNutritionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Nutrition Summary'**
+  String get shareNutritionSummary;
+
+  /// No description provided for @shareSleepEfficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency'**
+  String get shareSleepEfficiency;
+
+  /// No description provided for @shareSleepRestingHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Resting Heart Rate'**
+  String get shareSleepRestingHeartRate;
 }
 
 class _AppLocalizationsDelegate

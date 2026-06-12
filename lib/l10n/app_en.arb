@@ -2089,5 +2089,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "shareDailyLogTitle": "Daily Log",
+  "shareSleepStartTime": "Start time",
+  "shareSleepEndTime": "End time",
+  "shareSleepDeep": "Deep Sleep",
+  "shareSleepLight": "Light Sleep",
+  "shareSleepRem": "REM Sleep",
+  "shareSleepAwake": "Awake/Interruptions",
+  "shareTotalWater": "Total Water/Fluids",
+  "shareNutritionSummary": "Total Nutrition Summary",
+  "shareSleepEfficiency": "Efficiency",
+  "shareSleepRestingHeartRate": "Resting Heart Rate"
 }
