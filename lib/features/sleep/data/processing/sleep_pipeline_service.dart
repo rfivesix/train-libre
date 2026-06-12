@@ -106,6 +106,8 @@ class SleepPipelineService {
       );
     }
 
+    final totalSessions = normalizedBatch.sessions.length;
+
     final importedAt = DateTime.now().toUtc();
     final from = recomputeFromInclusive ??
         normalizedBatch.sessions
@@ -186,6 +188,8 @@ class SleepPipelineService {
 
     token?.throwIfCancelled();
 
+    onProgress?.call(0, totalSessions + 5);
+
     // Offload heavy processing to background isolate
     final result = await compute(
       _runSleepPipelineBackground,
@@ -206,11 +210,10 @@ class SleepPipelineService {
     await _database.transaction(() async {
       final skipSessionIds = <String>{};
       final rawImportIdsToDelete = <String>[];
-      final totalSessions = normalizedBatch.sessions.length;
 
       for (var i = 0; i < totalSessions; i++) {
         token?.throwIfCancelled();
-        onProgress?.call(i + 1, totalSessions);
+        onProgress?.call(i + 1, totalSessions + 5);
         final session = normalizedBatch.sessions[i];
 
         final overlapping = await _sessionsDao.findByDateRange(
@@ -294,10 +297,15 @@ class SleepPipelineService {
       token?.throwIfCancelled();
 
       await _rawDao.upsertBatch(filteredRawRows);
+      onProgress?.call(totalSessions + 1, totalSessions + 5);
       await _sessionsDao.upsertBatch(filteredSessionRows);
+      onProgress?.call(totalSessions + 2, totalSessions + 5);
       await _segmentsDao.upsertBatch(filteredSegmentRows);
+      onProgress?.call(totalSessions + 3, totalSessions + 5);
       await _hrDao.upsertBatch(filteredHrRows);
+      onProgress?.call(totalSessions + 4, totalSessions + 5);
       await _analysesDao.upsertBatch(filteredAnalysisRows);
+      onProgress?.call(totalSessions + 5, totalSessions + 5);
       insertedSessions = filteredSessionRows.length;
     });
 

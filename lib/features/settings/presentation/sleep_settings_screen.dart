@@ -311,8 +311,12 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                               forceFullSync: true,
                               token: token,
                               onProgress: (index, total) {
-                                final statusText = l10n.progressImportingNight(index, total);
-                                final progressValue = total > 0 ? index / total : 0.0;
+                                final statusText = index == 0
+                                    ? l10n.sleepSyncTitle
+                                    : l10n.progressImportingNight(index, total);
+                                final progressValue = index == 0
+                                    ? -1.0
+                                    : (total > 0 ? index / total : 0.0);
                                 updateProgress(statusText, progressValue);
                               },
                             );

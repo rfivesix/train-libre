@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.25] - 2026-06-12
+### Fixed
+- **Sleep Sync Freeze & Progress Bar Repair:** Resolved a database deadlock that froze the manual 90-day Sleep Sync at the last iteration (e.g. "Importing Night 58/58...") by removing nested `_db.transaction(...)` blocks from the custom sleep database access objects (`SleepRawImportsDao`, `SleepCanonicalSessionsDao`, `SleepCanonicalStageSegmentsDao`, `SleepCanonicalHeartRateSamplesDao`, `SleepNightlyAnalysesDao`). Refined the pipeline progress calculation to allocate `totalSessions + 5` total steps and report an out-of-bounds progress value (`-1.0`) at initialization, enabling an active indeterminate scanning animation during heavy background isolate calculations before transitioning to determinate progress updates through the database writing phase.
+
 ## [0.9.24] - 2026-06-12
 ### Added
 - **Unified Long-Running Operation UI & Cooperative Cancellation:** Introduced a reusable progress overlay (`LongRunningOperationOverlay`) wrapping operations in `PopScope(canPop: false)` to prevent route popping. Added `CancellationToken` and `OperationCanceledException` utilities to support cooperative cancellation of intensive background tasks.

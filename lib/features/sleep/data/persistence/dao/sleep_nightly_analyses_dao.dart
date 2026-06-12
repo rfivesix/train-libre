@@ -71,11 +71,9 @@ class SleepNightlyAnalysesDao {
   }
 
   Future<void> upsertBatch(List<SleepNightlyAnalysisCompanion> rows) async {
-    await _db.transaction(() async {
-      for (final row in rows) {
-        await upsert(row);
-      }
-    });
+    for (final row in rows) {
+      await upsert(row);
+    }
   }
 
   Future<List<SleepNightlyAnalysisRecord>> findByNightRange({
