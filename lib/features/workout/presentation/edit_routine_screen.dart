@@ -524,7 +524,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   void _editPauseTime(RoutineExercise re) async {
     final l10n = AppLocalizations.of(context)!;
 
-    final result = await showGlassBottomMenu<int?>(
+    final result = await showGlassBottomMenu<({bool saved, int? value})>(
       context: context,
       title: l10n.editPauseTimeTitle,
       contentBuilder: (ctx, close) {
@@ -532,18 +532,18 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           initialPauseSeconds: re.pauseSeconds,
           onSave: (seconds) {
             close();
-            Navigator.of(ctx).pop(seconds);
+            Navigator.of(ctx).pop((saved: true, value: seconds));
           },
           onCancel: () {
             close();
-            Navigator.of(ctx).pop(null);
+            Navigator.of(ctx).pop((saved: false, value: null));
           },
         );
       },
     );
 
-    if (result != null) {
-      await WorkoutLocalDataSource.instance.updatePauseTime(re.id!, result);
+    if (result != null && result.saved) {
+      await WorkoutLocalDataSource.instance.updatePauseTime(re.id!, result.value);
       _loadExercisesForRoutine();
     }
   }

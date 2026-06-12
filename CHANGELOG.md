@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.27] - 2026-06-13
+### Added
+- **Microwave-Style Digit Entry Pattern:** Implemented a new intuitive microwave-style digit entry pattern for workout rest timers in both the active workout edit dialog and the routine builder edit dialog. It restricts inputs to digits using a numeric keypad and automatically formats inputs right-to-left (e.g. typing `5` formats to `00:05`, `130` to `01:30`).
+- **Rest Timer Suffix Clear Button:** Added a red accent clear button (`Icons.clear` with `Colors.redAccent`) inside the duration input field decoration. Tapping it instantly clears the text and disables the rest timer.
+
+### Changed
+- **Routine Editor Rest Timer Alignment:** Replaced the separate text display and timer icon in the routine builder exercise card with a unified rest timer button (matching the active workout screen's design) which displays the formatted rest duration text button (e.g. `01:30`) if configured, or the standard timer icon button if empty.
+- **Global Rest Duration Format:** Updated all rest timer duration displays and labels across both active workout and routine building screens to show formatted minutes and seconds (`mm:ss` like `01:30` and `00:10`) instead of raw seconds (like `90s` and `10s`).
+
+### Fixed
+- **Foreground Rest Timer Notifications:** Configured local notifications shown when the app is in the foreground to play sound and vibrate without presenting a visual heads-up drop-down banner (via `DarwinNotificationDetails` alert silencing on iOS, and a dedicated auto-canceling channel with default importance and priority on Android).
+- **Foreground Sound Cut-off:** Extended the auto-cancel delay for foreground notifications to 10 seconds to allow the notification sound and vibration pattern to play to completion before the notification is cleared from the system.
+- **Vibration Settings Compliance:** Wired rest timer notification details to retrieve and check the global `haptics_enabled` preference from `SharedPreferences`, ensuring notification vibrations respect the user's settings.
+- **Routine Builder Clear Rest Timer:** Fixed a bug in the routine builder edit dialog where saving an empty rest duration did not update the database, preventing users from clearing and disabling configured rest timers.
+
 ## [0.9.26] - 2026-06-12
 ### Changed
 - **Global Lucide Icons Migration:** Replaced all 387+ instances of legacy native Material icons across the entire `lib/` directory with crisp, unified vector icons from the Lucide Icons library via an automated regex refactoring pipeline. This eliminates platform-dependent emoji rendering discrepancies, enforces a cohesive, modern visual language across all feature tabs (Diary, Workout, Settings, Profile, Analytics), and significantly streamlines the application's minimalist design identity.

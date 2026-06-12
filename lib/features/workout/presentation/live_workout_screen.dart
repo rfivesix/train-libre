@@ -3,6 +3,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
@@ -27,7 +28,11 @@ import 'widgets/pr_celebration_banner.dart';
 import 'widgets/exercise_e1rm_summary.dart';
 import 'widgets/live_workout_set_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-// Used when vibration is enabled.
+
+import '../../../util/time_util.dart';
+
+String _formatPauseTime(int? seconds) => formatPauseDuration(seconds);
+int? _parsePauseTime(String text) => parsePauseDuration(text);
 
 /// The active workout tracking screen, managing the real-time session state.
 ///
@@ -367,12 +372,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         children: [
           _buildHeader(l10n.setLabel, flex: 2), // Set Nr.
           _buildHeader(l10n.lastTimeLabel, flex: 3), // History/Last
-          _buildHeader(l10n.cardioDistanceLabel, flex: 4), // More space
-          const SizedBox(width: 8),
-          _buildHeader(l10n.cardioTimeLabel, flex: 4), // More space
-          const SizedBox(width: 8),
+          _buildHeader(l10n.cardioDistanceLabel, flex: 4),
+          _buildHeader(l10n.cardioTimeLabel, flex: 4),
           _buildHeader(l10n.cardioIntensityLabel, flex: 2),
-          const SizedBox(width: 48), // Space for checkbox
+          const SizedBox(
+              width: 56), // Space for checkbox (48 width + 8 padding)
         ],
       );
     }
@@ -385,7 +389,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         _buildHeader(unitService.suffixFor(UnitDimension.weight), flex: 2),
         _buildHeader(l10n.repsLabel, flex: 2),
         _buildHeader("RIR", flex: 1),
-        const SizedBox(width: 48),
+        const SizedBox(width: 56), // Space for checkbox (48 width + 8 padding)
       ],
     );
   }
@@ -502,58 +506,75 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     void editPauseTime(RoutineExercise routineExercise) async {
       final currentPause = manager.pauseTimes[routineExercise.id!];
       final controller = TextEditingController(
-        text: currentPause?.toString() ?? '',
+        text: currentPause == null || currentPause == 0
+            ? ''
+            : _formatPauseTime(currentPause),
       );
 
-      final result = await showGlassBottomMenu<int?>(
+      final result = await showGlassBottomMenu<({bool saved, int? value})>(
         context: context,
         title: l10n.editPauseTimeTitle,
         contentBuilder: (ctx, close) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: controller,
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: l10n.pauseInSeconds,
-                  hintText: "z.B. 90",
-                  suffixText: "s",
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
+          return StatefulBuilder(
+            builder: (ctx, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        close();
-                        Navigator.of(ctx).pop(null);
-                      },
-                      child: Text(l10n.cancel),
+                  TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.number,
+                    autofocus: true,
+                    inputFormatters: [TimerInputFormatter()],
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      labelText: l10n.restTimerLabel,
+                      hintText: "00:00",
+                      suffixIcon: controller.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear,
+                                  color: Colors.redAccent),
+                              onPressed: () {
+                                controller.clear();
+                                setState(() {});
+                              },
+                            )
+                          : null,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () {
-                        final val = int.tryParse(controller.text);
-                        close();
-                        Navigator.of(ctx).pop(val);
-                      },
-                      child: Text(l10n.save),
-                    ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            close();
+                            Navigator.of(ctx).pop((saved: false, value: null));
+                          },
+                          child: Text(l10n.cancel),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () {
+                            final val = _parsePauseTime(controller.text);
+                            close();
+                            Navigator.of(ctx).pop((saved: true, value: val));
+                          },
+                          child: Text(l10n.save),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
+              );
+            },
           );
         },
       );
 
-      if (result != null) {
-        manager.updatePauseTime(routineExercise.id!, result);
+      if (result != null && result.saved) {
+        manager.updatePauseTime(routineExercise.id!, result.value ?? 0);
       }
     }
 
@@ -567,6 +588,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       manager.syncControllers();
     }
 
+    final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
+    final double fabBottomPadding =
+        manager.remainingRestSeconds > 0 || manager.showRestDone
+            ? bottomSafeArea - 22 // + 94.0
+            : bottomSafeArea - 22; // + 28.0;
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -578,6 +605,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         },
         child: Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          extendBody: true,
           appBar: AppBar(
             automaticallyImplyLeading:
                 false, // We will provide our own back button
@@ -632,8 +660,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           child: manager.exercises.isEmpty
                               ? _buildEmptyState(l10n)
                               : ReorderableListView.builder(
-                                  padding: const EdgeInsets.only(
-                                    bottom: DesignConstants.bottomContentSpacer,
+                                  padding: EdgeInsets.only(
+                                    bottom: manager.remainingRestSeconds > 0 ||
+                                            manager.showRestDone
+                                        ? 180.0
+                                        : DesignConstants.bottomContentSpacer,
                                   ),
                                   onReorder: _onReorder,
                                   itemCount: manager.exercises.length,
@@ -642,6 +673,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                         manager.exercises[index];
                                     final showE1rmSummary =
                                         !_isCardio(routineExercise);
+                                    final pauseVal =
+                                        manager.pauseTimes[routineExercise.id!];
+                                    final hasPause =
+                                        pauseVal != null && pauseVal > 0;
                                     return WorkoutCard(
                                       key: ValueKey(routineExercise.id),
                                       child: Column(
@@ -693,31 +728,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             trailing: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                if (manager.pauseTimes[
-                                                            routineExercise
-                                                                .id!] !=
-                                                        null &&
-                                                    manager.pauseTimes[
-                                                            routineExercise
-                                                                .id!]! >
-                                                        0)
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                      right: 4.0,
-                                                    ),
-                                                    child: Text(
-                                                      "${manager.pauseTimes[routineExercise.id!]}s",
-                                                      style: textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                        color:
-                                                            colorScheme.primary,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
                                                 IconButton(
                                                   icon: const Icon(
                                                     LucideIcons.pencil,
@@ -728,16 +738,43 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                           context,
                                                           routineExercise),
                                                 ),
-                                                IconButton(
-                                                  icon: const Icon(
-                                                    LucideIcons.timer,
+                                                if (hasPause)
+                                                  TextButton(
+                                                    style: TextButton.styleFrom(
+                                                      minimumSize:
+                                                          const Size(48, 48),
+                                                      padding: EdgeInsets.zero,
+                                                    ),
+                                                    onPressed: () =>
+                                                        editPauseTime(
+                                                            routineExercise),
+                                                    child: Text(
+                                                      _formatPauseTime(
+                                                          pauseVal),
+                                                      style: textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                        color:
+                                                            colorScheme.primary,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize:
+                                                            DesignConstants
+                                                                .spacingL,
+                                                      ),
+                                                    ),
+                                                  )
+                                                else
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      LucideIcons.timer,
+                                                    ),
+                                                    tooltip: l10n.editPauseTime,
+                                                    onPressed: () =>
+                                                        editPauseTime(
+                                                      routineExercise,
+                                                    ),
                                                   ),
-                                                  tooltip: l10n.editPauseTime,
-                                                  onPressed: () =>
-                                                      editPauseTime(
-                                                    routineExercise,
-                                                  ),
-                                                ),
                                                 IconButton(
                                                   icon: const Icon(
                                                     LucideIcons.trash_2,
@@ -967,32 +1004,44 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 ),
           floatingActionButton: MediaQuery.of(context).viewInsets.bottom > 0
               ? null
-              : GlassFab(
-                  label: l10n.fabAddExercise,
-                  onPressed: _addExercise,
+              : Padding(
+                  padding: EdgeInsets.only(bottom: fabBottomPadding),
+                  child: GlassFab(
+                    label: l10n.fabAddExercise,
+                    onPressed: _addExercise,
+                  ),
                 ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          bottomNavigationBar: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              AnimatedBuilder(
-                animation: manager,
-                builder: (context, _) {
-                  final bar = _buildRestBottomBar(l10n, colorScheme, manager);
-                  return bar ?? const SizedBox.shrink();
-                },
-              ),
-              if (manager.remainingRestSeconds <= 0 && !manager.showRestDone)
+          bottomNavigationBar: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                AnimatedBuilder(
+                  animation: manager,
+                  builder: (context, _) {
+                    final bar = _buildRestBottomBar(l10n, colorScheme, manager);
+                    return bar ?? const SizedBox.shrink();
+                  },
+                ),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
+                  padding: const EdgeInsets.only(bottom: 4.0, top: 0.0),
                   child: WgerAttributionWidget(
                     textStyle: textTheme.bodySmall?.copyWith(
                       color: Colors.grey[600],
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 2.0),
+                          offset: const Offset(1, 1),
+                          blurRadius: 2.0,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -1007,67 +1056,252 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final isRunning = manager.remainingRestSeconds > 0;
     final isDoneBanner = !isRunning && manager.showRestDone;
     if (!isRunning && !isDoneBanner) return null;
+
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final Color neutralTint = isDark
+        ? theme.colorScheme.surface.withValues(alpha: 0.70)
+        : theme.colorScheme.surface.withValues(alpha: 0.82);
+    final Color effectiveGlass = DesignConstants.glassColor(isDark);
+    const double r = 20;
+
     if (isRunning) {
-      return BottomAppBar(
-        color: colorScheme.surface,
-        elevation: 0,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "${l10n.restTimerLabel}: ${manager.remainingRestSeconds}s",
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.primary,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  manager.cancelRest();
-                },
-                child: Text(l10n.skipButton),
+      final restSeconds = manager.remainingRestSeconds;
+      final minutes = restSeconds ~/ 60;
+      final seconds = restSeconds % 60;
+      final timerStr =
+          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(r),
+            child: AdaptiveGlass(
+              settings: LiquidGlassSettings(
+                thickness: 0,
+                blur: 8.0,
+                glassColor: effectiveGlass,
+                lightIntensity: 0.1,
+                saturation: 1.20,
+              ),
+              shape: const LiquidRoundedSuperellipse(borderRadius: r),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  color: neutralTint,
+                  borderRadius: BorderRadius.circular(r),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : Colors.black.withValues(alpha: 0.08),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // -15 Button
+                    SizedBox(
+                      height: 38,
+                      width: 48,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          backgroundColor: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.06),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.05),
+                            ),
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                        onPressed: () => manager.adjustRestTime(-15),
+                        child: Text(
+                          "-15",
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Timer Text
+                    Container(
+                      height: 38,
+                      alignment: Alignment.center,
+                      child: Text(
+                        timerStr,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // +15 Button
+                    SizedBox(
+                      height: 38,
+                      width: 48,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          backgroundColor: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.06),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.05),
+                            ),
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                        onPressed: () => manager.adjustRestTime(15),
+                        child: Text(
+                          "+15",
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    // Skip Button
+                    SizedBox(
+                      height: 38,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        onPressed: () => manager.cancelRest(),
+                        child: Text(
+                          l10n.skipButton,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       );
     }
-    return BottomAppBar(
-      color: Colors.green.shade600,
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Row(
-              children: [
-                Icon(LucideIcons.circle_check, color: Colors.white),
-                SizedBox(width: 8),
-                Text(
-                  "Pause vorbei!",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
-            TextButton(
-              onPressed: () {
-                manager.cancelRest();
-              },
-              child: Text(
-                l10n.snackbar_button_ok,
-                style: const TextStyle(color: Colors.white),
-              ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(r),
+          child: AdaptiveGlass(
+            settings: LiquidGlassSettings(
+              thickness: 0,
+              blur: 8.0,
+              glassColor: Colors.green.withValues(alpha: 0.2),
+              lightIntensity: 0.1,
+              saturation: 1.20,
+            ),
+            shape: const LiquidRoundedSuperellipse(borderRadius: r),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.85),
+                borderRadius: BorderRadius.circular(r),
+                border: Border.all(
+                  color: Colors.green.withValues(alpha: 0.3),
+                  width: 1.2,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(LucideIcons.circle_check, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.restOverLabel, //"Pause vorbei!",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 38,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      onPressed: () => manager.cancelRest(),
+                      child: Text(
+                        l10n.snackbar_button_ok,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

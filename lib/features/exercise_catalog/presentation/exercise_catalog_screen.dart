@@ -351,7 +351,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       ),
       child: IconButton(
         icon: Icon(
-          LucideIcons.funnel,
+          LucideIcons.list_filter,
           color: iconColor,
           size: 22,
         ),

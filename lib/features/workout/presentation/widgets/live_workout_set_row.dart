@@ -227,6 +227,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
     final unitService = context.read<UnitService>();
 
     final isLightMode = Theme.of(context).brightness == Brightness.light;
+    final Color? textColor =
+        isCompleted ? (isLightMode ? Colors.black : Colors.white) : null;
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
     final Color rowColor = isColoredRow
         ? (isLightMode
@@ -269,7 +271,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
               child: Text(
                 _getSetDisplayText(setLog.setType, setIndex),
                 style: TextStyle(
-                  color: _getSetTypeColor(setLog.setType),
+                  color: isCompleted
+                      ? (setLog.setType == 'normal'
+                          ? (isLightMode ? Colors.black : Colors.white)
+                          : _getSetTypeColor(setLog.setType))
+                      : _getSetTypeColor(setLog.setType),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -342,7 +348,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
             textAlign: TextAlign.center,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textInputAction: TextInputAction.next,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
             decoration: InputDecoration(
               border: InputBorder.none,
               isDense: true,
@@ -403,7 +413,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.next,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
             decoration: InputDecoration(
               border: InputBorder.none,
               isDense: true,
@@ -481,7 +495,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) =>
                 FocusManager.instance.primaryFocus?.unfocus(),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
             decoration: InputDecoration(
               border: InputBorder.none,
               isDense: true,
@@ -513,9 +531,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 width: 48,
                 child: IconButton(
                   icon: Icon(
-                    isCompleted
-                        ? LucideIcons.circle_check
-                        : LucideIcons.circle_check,
+                    isCompleted ? LucideIcons.circle_check : LucideIcons.circle,
                     color: isCompleted ? Colors.green : Colors.grey,
                   ),
                   onPressed: () async {
@@ -623,7 +639,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
           Positioned.fill(
             child: Container(
               color:
-                  isCompleted ? Colors.green.withValues(alpha: 0.2) : rowColor,
+                  isCompleted ? Colors.green.withValues(alpha: 0.3) : rowColor,
             ),
           ),
           rowWithSubInfo,

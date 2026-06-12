@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../util/time_util.dart';
 
 class RoutinePauseTimeDialog extends StatefulWidget {
   final int? initialPauseSeconds;
@@ -24,7 +25,9 @@ class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
   void initState() {
     super.initState();
     _controller = TextEditingController(
-      text: widget.initialPauseSeconds?.toString() ?? '',
+      text: widget.initialPauseSeconds == null || widget.initialPauseSeconds == 0
+          ? ''
+          : formatPauseDuration(widget.initialPauseSeconds),
     );
   }
 
@@ -46,15 +49,25 @@ class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
           controller: _controller,
           keyboardType: TextInputType.number,
           autofocus: true,
+          inputFormatters: [TimerInputFormatter()],
+          onChanged: (_) => setState(() {}),
           textInputAction: TextInputAction.done,
           onSubmitted: (_) {
-            final seconds = int.tryParse(_controller.text);
+            final seconds = parsePauseDuration(_controller.text);
             widget.onSave(seconds);
           },
           decoration: InputDecoration(
-            labelText: l10n.pauseInSeconds,
-            hintText: "z.B. 90",
-            suffixText: "s",
+            labelText: l10n.restTimerLabel,
+            hintText: "00:00",
+            suffixIcon: _controller.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.redAccent),
+                    onPressed: () {
+                      _controller.clear();
+                      setState(() {});
+                    },
+                  )
+                : null,
             filled: true,
             fillColor: brightness == Brightness.dark
                 ? Colors.white.withValues(alpha: 0.05)
@@ -78,7 +91,7 @@ class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
             Expanded(
               child: FilledButton(
                 onPressed: () {
-                  final seconds = int.tryParse(_controller.text);
+                  final seconds = parsePauseDuration(_controller.text);
                   widget.onSave(seconds);
                 },
                 child: Text(l10n.save),
