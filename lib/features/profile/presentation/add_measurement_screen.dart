@@ -11,6 +11,7 @@ import '../../../util/design_constants.dart';
 import '../../../services/unit_service.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for recording new body measurements.
 class AddMeasurementScreen extends StatefulWidget {
@@ -255,7 +256,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
                         onTap: _selectDate,
                         child: Row(
                           children: [
-                            const Icon(Icons.calendar_today, size: 20),
+                            const Icon(LucideIcons.calendar, size: 20),
                             const SizedBox(width: 8),
                             Text(
                               formattedDate,
@@ -268,7 +269,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
                         onTap: _selectTime,
                         child: Row(
                           children: [
-                            const Icon(Icons.access_time, size: 20),
+                            const Icon(LucideIcons.clock, size: 20),
                             const SizedBox(width: 8),
                             Text(
                               formattedTime,

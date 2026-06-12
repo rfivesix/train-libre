@@ -1268,20 +1268,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsTitle => 'Einstellungen';
 
   @override
-  String get settingsUpdateFoodDatabase =>
-      'Lebensmittel-Datenbank aktualisieren';
+  String get settingsUpdateFoodDatabase => 'Datenbanken aktualisieren';
 
   @override
   String get settingsUpdateFoodDatabaseSubtitle =>
-      'Manuell nach Updates für die Open Food Facts Datenbank suchen.';
+      'Prüfe manuell auf Aktualisierungen für die Lebensmittel- und Übungsdatenbanken.';
 
   @override
   String get settingsUpdateFoodDatabaseSuccess =>
-      'Lebensmittel-Datenbank erfolgreich aktualisiert.';
+      'Datenbanken erfolgreich aktualisiert.';
 
   @override
   String settingsUpdateFoodDatabaseError(String error) {
-    return 'Fehler beim Aktualisieren: $error';
+    return 'Fehler beim Aktualisieren der Datenbanken: $error';
   }
 
   @override
@@ -2172,6 +2171,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionUnitedStates => 'Vereinigte Staaten (US)';
+
+  @override
+  String get settingsFoodDbRegionFrance => 'Frankreich (FR)';
+
+  @override
+  String get settingsFoodDbRegionItaly => 'Italien (IT)';
+
+  @override
+  String get settingsFoodDbRegionJapan => 'Japan (JP)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Bunte Nährwert-Badges';
@@ -4585,6 +4593,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsBaseFoodLanguageGerman => 'Deutsch';
 
   @override
+  String get settingsBaseFoodLanguageFrench => 'Französisch';
+
+  @override
+  String get settingsBaseFoodLanguageItalian => 'Italienisch';
+
+  @override
+  String get settingsBaseFoodLanguageJapanese => 'Japanisch';
+
+  @override
   String get aiModelLabel => 'Modell';
 
   @override
@@ -5002,4 +5019,64 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get recommendationBannerApply => 'Anwenden';
+
+  @override
+  String get cancelingAndRollingBack => 'Abbrechen, sicheres Zurückrollen...';
+
+  @override
+  String get sleepSyncTitle => 'Schlafdaten synchronisieren...';
+
+  @override
+  String get backupExportTitle => 'Backup exportieren...';
+
+  @override
+  String get backupImportTitle => 'Backup importieren...';
+
+  @override
+  String progressImportingNight(int index, int total) {
+    return 'Importiere Nacht $index/$total...';
+  }
+
+  @override
+  String progressExportingTable(String table) {
+    return 'Exportiere $table...';
+  }
+
+  @override
+  String progressImportingTable(String table) {
+    return 'Stelle $table wieder her...';
+  }
+
+  @override
+  String get shareDailyLogTitle => 'Tagesprotokoll';
+
+  @override
+  String get shareSleepStartTime => 'Einschlafzeit';
+
+  @override
+  String get shareSleepEndTime => 'Aufwachzeit';
+
+  @override
+  String get shareSleepDeep => 'Tiefschlaf';
+
+  @override
+  String get shareSleepLight => 'Leichtschlaf';
+
+  @override
+  String get shareSleepRem => 'REM-Schlaf';
+
+  @override
+  String get shareSleepAwake => 'Wach/Unterbrechungen';
+
+  @override
+  String get shareTotalWater => 'Flüssigkeitszufuhr gesamt';
+
+  @override
+  String get shareNutritionSummary => 'Ernährungszusammenfassung';
+
+  @override
+  String get shareSleepEfficiency => 'Effizienz';
+
+  @override
+  String get shareSleepRestingHeartRate => 'Ruhepuls';
 }

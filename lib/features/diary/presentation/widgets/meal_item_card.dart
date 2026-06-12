@@ -5,6 +5,7 @@ import '../../../../services/theme_service.dart';
 import '../../../../widgets/common/macro_badge_row.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../add_food_screen.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class MealItemCard extends StatelessWidget {
   final Map<String, dynamic> meal;
@@ -34,7 +35,8 @@ class MealItemCard extends StatelessWidget {
 
     return SummaryCard(
       onTap: onTap,
-      padding: const EdgeInsets.only(left: 16.0, right: 8.0, top: 16.0, bottom: 16.0),
+      padding: const EdgeInsets.only(
+          left: 16.0, right: 8.0, top: 16.0, bottom: 16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -98,17 +100,17 @@ class MealItemCard extends StatelessWidget {
             children: [
               IconButton(
                 tooltip: AppLocalizations.of(context)!.mealsAddToDiary,
-                icon: Icon(Icons.add_circle_outline, color: color.primary),
+                icon: Icon(LucideIcons.circle_plus, color: color.primary),
                 onPressed: onAdd,
               ),
               IconButton(
                 tooltip: AppLocalizations.of(context)!.mealsEdit,
-                icon: const Icon(Icons.edit),
+                icon: const Icon(LucideIcons.pencil),
                 onPressed: onEdit,
               ),
               IconButton(
                 tooltip: AppLocalizations.of(context)!.mealsDelete,
-                icon: const Icon(Icons.delete_outline),
+                icon: const Icon(LucideIcons.trash_2),
                 onPressed: onDelete,
               ),
             ],

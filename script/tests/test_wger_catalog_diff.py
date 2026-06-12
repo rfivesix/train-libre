@@ -19,55 +19,111 @@ def _create_catalog(
     path: Path,
     ids: Iterable[str],
     overrides: Optional[Dict[str, Dict[str, Any]]] = None,
+    relational: bool = False,
 ) -> None:
     overrides = overrides or {}
     conn = sqlite3.connect(path)
     try:
         conn.execute("CREATE TABLE metadata (key TEXT, value TEXT)")
         conn.execute(
-            """
-            CREATE TABLE exercises (
-                id TEXT PRIMARY KEY,
-                name_de TEXT,
-                name_en TEXT,
-                description_de TEXT,
-                description_en TEXT,
-                category_name TEXT,
-                muscles_primary TEXT,
-                muscles_secondary TEXT
-            )
-            """
-        )
-        conn.execute(
             "INSERT INTO metadata(key, value) VALUES ('version', 'test-version')"
         )
-        for raw_id in ids:
-            exercise_id = str(raw_id)
-            override = overrides.get(exercise_id, {})
+        if relational:
             conn.execute(
                 """
-                INSERT INTO exercises(
-                    id,
-                    name_de,
-                    name_en,
-                    description_de,
-                    description_en,
-                    category_name,
-                    muscles_primary,
-                    muscles_secondary
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    exercise_id,
-                    override.get("name_de", f"DE {exercise_id}"),
-                    override.get("name_en", f"EN {exercise_id}"),
-                    override.get("description_de", "desc de"),
-                    override.get("description_en", "desc en"),
-                    override.get("category_name", "cat"),
-                    override.get("muscles_primary", "[]"),
-                    override.get("muscles_secondary", "[]"),
-                ),
+                CREATE TABLE exercises (
+                    id TEXT PRIMARY KEY,
+                    category_name TEXT,
+                    muscles_primary TEXT,
+                    muscles_secondary TEXT
+                )
+                """
             )
+            conn.execute(
+                """
+                CREATE TABLE exercise_translations (
+                    id TEXT PRIMARY KEY,
+                    exercise_id TEXT,
+                    language_code TEXT,
+                    name TEXT,
+                    description TEXT,
+                    FOREIGN KEY(exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
+                )
+                """
+            )
+            for raw_id in ids:
+                exercise_id = str(raw_id)
+                override = overrides.get(exercise_id, {})
+                conn.execute(
+                    """
+                    INSERT INTO exercises(
+                        id,
+                        category_name,
+                        muscles_primary,
+                        muscles_secondary
+                    ) VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        exercise_id,
+                        override.get("category_name", "cat"),
+                        override.get("muscles_primary", "[]"),
+                        override.get("muscles_secondary", "[]"),
+                    ),
+                )
+                name_de = override.get("name_de", f"DE {exercise_id}")
+                if name_de is not None:
+                    conn.execute(
+                        "INSERT INTO exercise_translations(id, exercise_id, language_code, name, description) VALUES (?, ?, ?, ?, ?)",
+                        (f"{exercise_id}_de", exercise_id, "de", name_de, override.get("description_de", "desc de")),
+                    )
+                name_en = override.get("name_en", f"EN {exercise_id}")
+                if name_en is not None:
+                    conn.execute(
+                        "INSERT INTO exercise_translations(id, exercise_id, language_code, name, description) VALUES (?, ?, ?, ?, ?)",
+                        (f"{exercise_id}_en", exercise_id, "en", name_en, override.get("description_en", "desc en")),
+                    )
+        else:
+            conn.execute(
+                """
+                CREATE TABLE exercises (
+                    id TEXT PRIMARY KEY,
+                    name_de TEXT,
+                    name_en TEXT,
+                    description_de TEXT,
+                    description_en TEXT,
+                    category_name TEXT,
+                    muscles_primary TEXT,
+                    muscles_secondary TEXT
+                )
+                """
+            )
+            for raw_id in ids:
+                exercise_id = str(raw_id)
+                override = overrides.get(exercise_id, {})
+                conn.execute(
+                    """
+                    INSERT INTO exercises(
+                        id,
+                        name_de,
+                        name_en,
+                        description_de,
+                        description_en,
+                        category_name,
+                        muscles_primary,
+                        muscles_secondary
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        exercise_id,
+                        override.get("name_de", f"DE {exercise_id}"),
+                        override.get("name_en", f"EN {exercise_id}"),
+                        override.get("description_de", "desc de"),
+                        override.get("description_en", "desc en"),
+                        override.get("category_name", "cat"),
+                        override.get("muscles_primary", "[]"),
+                        override.get("muscles_secondary", "[]"),
+                    ),
+                )
         conn.commit()
     finally:
         conn.close()
@@ -211,6 +267,49 @@ class WgerCatalogDiffThresholdTests(unittest.TestCase):
                 for reason in reasons
             )
         )
+
+    def test_relational_schema_comparison(self):
+        old_ids = {"1", "2", "3"}
+        new_ids = {"1", "2", "4"}
+        
+        _create_catalog(self.old_db, old_ids, relational=True)
+        _create_catalog(self.new_db, new_ids, overrides={
+            "2": {"category_name": "new_cat"}
+        }, relational=True)
+        
+        old_catalog = MODULE.load_catalog(str(self.old_db))
+        new_catalog = MODULE.load_catalog(str(self.new_db))
+        
+        report = MODULE.compare_catalogs(
+            old_catalog,
+            new_catalog,
+            self._args()
+        )
+        
+        self.assertEqual(1, report["summary"]["removed_count"])
+        self.assertEqual(1, report["summary"]["added_count"])
+        self.assertEqual(["3"], report["removed_ids"])
+        self.assertEqual(["4"], report["added_ids"])
+        self.assertEqual("new_cat", report["changed_fields_by_id"]["2"]["category_name"]["new"])
+
+    def test_relational_to_flat_comparison(self):
+        old_ids = {"1", "2"}
+        new_ids = {"1", "2"}
+        
+        _create_catalog(self.old_db, old_ids, relational=False)
+        _create_catalog(self.new_db, new_ids, overrides={
+            "2": {"name_de": "New DE 2"}
+        }, relational=True)
+        
+        old_catalog = MODULE.load_catalog(str(self.old_db))
+        new_catalog = MODULE.load_catalog(str(self.new_db))
+        
+        report = MODULE.compare_catalogs(
+            old_catalog,
+            new_catalog,
+            self._args()
+        )
+        self.assertEqual("New DE 2", report["changed_fields_by_id"]["2"]["name_de"]["new"])
 
 
 if __name__ == "__main__":

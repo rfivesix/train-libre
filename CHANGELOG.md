@@ -4,6 +4,74 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.26] - 2026-06-12
+### Changed
+- **Global Lucide Icons Migration:** Replaced all 387+ instances of legacy native Material icons across the entire `lib/` directory with crisp, unified vector icons from the Lucide Icons library via an automated regex refactoring pipeline. This eliminates platform-dependent emoji rendering discrepancies, enforces a cohesive, modern visual language across all feature tabs (Diary, Workout, Settings, Profile, Analytics), and significantly streamlines the application's minimalist design identity.
+
+### Fixed
+- **Markdown Export Accuracy:** Fixed a critical bug where beverage nutrition (calories, sugar, carbs) was double-counted when logged as both food and fluid.
+- **Fluid Calorie Calculation:** Corrected an error in the share service where fluid calories were incorrectly scaled by quantity, leading to inflated totals.
+- **Nutrition Summary Metrics:** Added daily user targets (Calories, Protein, Carbs, Fat, Sugar, Water) to the Markdown export summary, matching the interactive Diary UI format.
+- **Date-Specific Goals:** Ensured the Markdown export uses historical goal snapshots from the database to reflect the targets active on the specific day shared.
+
+## [0.9.25] - 2026-06-12
+### Added
+- **Diary Day Export & Sharing Hub:** Introduced a comprehensive "Day Export" feature directly accessible via a new context sheet in the Diary screen, allowing users to share their daily logs in two distinct formats:
+  - **Visual Image Export:** Generates a high-resolution PNG snapshot of the top macro, calorie, water, and sugar summary cards using a native `RepaintBoundary` composition render tree, routing it seamlessly into the native system share sheet.
+  - **Granular Localized Markdown Export:** Compiles a deep-dive, human- and LLM-readable Markdown document containing full nutritional breakdowns per food item (including sugar, salt, and fiber), total fluid intake tracking, complete workout logs with routine names, weights, and RIR/RPE metrics, as well as a full sleep analysis.
+- **Detailed Sleep Phase & Timing Mapping:** Enhanced the text export data engine to fetch and extract exact falling-asleep and waking-up timestamps alongside floating-point duration metrics for all tracked sleep phases (Deep, Light, REM, and Awake/Interruptions).
+- **Multi-Region Localization Strings:** Fully localized all day-sharing components, summary headers, and placeholder metrics across English, German, French (`app_fr.arb`), Italian (`app_it.arb`), and Japanese (`app_ja.arb`) resource bundles to ensure strict compliance with the global localization pipeline.
+
+### Changed
+- **Decoupled Exercise / Wger Catalog Sync:** Extracted the exercise database sync and update logic from the default automatic startup path (`checkForBasisDataUpdate()`) into a new public `importExerciseCatalog()` method. The exercise database is now only updated when manually triggered by the user or during database initialization, preventing startup slowdowns.
+- **Unified Settings Sync Action:** Combined the exercise update action with the manual food database update card in Settings, which now triggers a sequential update of both the food and exercise databases with unified progress tracking.
+- **Refactored Interactive Diary AppBar:** Streamlined the top navigation layout of the main Diary scaffold to maximize interactive ergonomics and reduce visual noise:
+  - Transformed the static date title into a fully interactive core navigation control, wrapping the left and right date-increment chevrons (`Icons.chevron_left` / `Icons.chevron_right`) directly around the central date string.
+  - Converted the date string itself into a trigger target that invokes the primary calendar date picker sheet upon touch, completely eliminating the redundant central calendar icon button.
+  - Relocated and consolidated all primary trailing actions cleanly into the right header container, positioning the new `Icons.share_outlined` button immediately to the left of the static profile picture avatar.
+
+### Fixed
+- **Sleep Sync Freeze & Progress Bar Repair:** Resolved a database deadlock that froze the manual 90-day Sleep Sync at the last iteration (e.g. "Importing Night 58/58...") by removing nested `_db.transaction(...)` blocks from the custom sleep database access objects (`SleepRawImportsDao`, `SleepCanonicalSessionsDao`, `SleepCanonicalStageSegmentsDao`, `SleepCanonicalHeartRateSamplesDao`, `SleepNightlyAnalysesDao`). Refined the pipeline progress calculation to allocate `totalSessions + 5` total steps and report an out-of-bounds progress value (`-1.0`) at initialization, enabling an active indeterminate scanning animation during heavy background isolate calculations before transitioning to determinate progress updates through the database writing phase.
+- **Multilingual Database Sync Labels:** Updated settings database sync labels (`settingsUpdateFoodDatabase`, `settingsUpdateFoodDatabaseSubtitle`, `settingsUpdateFoodDatabaseSuccess`, `settingsUpdateFoodDatabaseError`) in Japanese (`app_ja.arb`) to refer to both the food and exercise databases rather than just the food database, aligning with German, English, French, and Italian translations.
+
+## [0.9.24] - 2026-06-12
+### Added
+- **Unified Long-Running Operation UI & Cooperative Cancellation:** Introduced a reusable progress overlay (`LongRunningOperationOverlay`) wrapping operations in `PopScope(canPop: false)` to prevent route popping. Added `CancellationToken` and `OperationCanceledException` utilities to support cooperative cancellation of intensive background tasks.
+- **Multilingual Support for Progress States:** Integrated fully localized progress strings across German, English, French, Italian, and Japanese resource bundles for all long-running stages.
+
+### Changed
+- **Optimized Sleep Import Windowing:** Re-introduced a rolling 72-hour delta-sync lookback window for standard UI and Diary interactions to keep page transitions fluid and prevent main-thread lag.
+- **Manual Deep History Sync:** Explicitly delegated historical syncs (90 days) to a manual action via the Sleep Settings screen using a new `forceFullSync` parameter.
+- **Transactional Backup & Import Safety:** Updated the database backup export/import features to accept cancellation tokens and report table-level progress. Extended backup import to execute inside a single Drift SQLite transaction with savepoints to guarantee an atomic database rollback if canceled.
+- **Preferences State Rollback:** Implemented automatic state restoration for `SharedPreferences` if a backup import operation is cancelled mid-way.
+- **Test Suite Realignment:** Updated mock test classes (`FakeSleepImportService` and `_FakeSleepSettingsService`) across the widget and unit test suites to align with the updated `importRecent` method signature.
+
+### Fixed
+- **Health Connect Permissions Crash (`ActivityNotFoundException`):** Patched a native Android runtime crash caused by unsupported contract intents when requesting permissions under the standard `FlutterActivity`. Refactored `MainActivity.kt` to dispatch requests using the native `ActivityCompat.requestPermissions` utility and handle results uniformly in `onRequestPermissionsResult` and `onActivityResult`.
+- **Static Analysis Warnings:** Resolved unused fields and variables (`_isFullBackupRunning`, `_isSleepImporting`, and `unknown` exercise list) and addressed `use_build_context_synchronously` warnings across settings screens using `context.mounted`.
+- **Android Predictive Back Gestures:** Resolved a platform-specific issue where the native predictive back gesture would fail or freeze on Android/GrapheneOS devices. Refactored the core Android container `MainActivity` to inherit from the standard `FlutterActivity` instead of `FlutterFragmentActivity`, eliminating fragment lifecycle dispatcher conflicts. Ported the internal Health Connect permissions launcher and Storage Access Framework directory picker launcher to use the base SDK `startActivityForResult` and `onActivityResult` callbacks to maintain full compile-time compatibility with standard activity lifecycles.
+- **Sleep Data Import Ingestion (7 out of 90 nights):** Resolved a critical bug causing long historical imports to starve or skip valid entries by correcting lookback window truncations.
+- **Idempotent Sleep Session Overlaps:** Refactored overlapping session rules to prevent shorter naps or duplicate records from being completely discarded. Non-enveloping sleep sessions can now safely coexist, and identical boundaries trigger precise updates instead of omissions.
+
+## [0.9.24-beta.1] - 2026-06-09
+### Added
+- **Nested Locked Glassmorphic Adaptive Scopes**: Introduced nested, locked `GlassAdaptiveScope` wrappers (`minQuality: GlassQuality.premium, maxQuality: GlassQuality.premium`) around the bottom navigation bar, workout overlay, and FAB. This prevents these core elements from being downgraded by the performance-driven global adaptive quality ceiling during frame-dropping screen transitions.
+* **Global App Localization (FR, IT, JA):** Expanded native multi-language support across the entire frontend architecture, incorporating over 1,300 fully translated keys per language (`app_fr.arb`, `app_it.arb`, `app_ja.arb`).
+* **Dynamic Web Template i18n:** Implemented client-side localized script dictionaries within `docs/script.js` and expanded selection dropdowns across all HTML compliance pages (landing page, privacy, terms, recovery, etc.).
+* **Targeted Country Pipelines:** Upgraded the Open Food Facts pipeline (`create_off_food_db.py`) to generate dedicated localized SQLite asset databases for France (`fr`), Italy (`it`), and Japan (`jp`), prioritizing local language tags.
+
+### Changed
+* **Relational Database Migration (v22 -> v23):** Refactored the rigid, fixed-column translation model into a highly scalable, modular **1:N relational schema** for exercises and user-food overrides (`exercise_translations` and `user_food_override_translations`).
+* **Relational Fallback Resolvers:** Replaced old static queries with robust SQLite `LEFT JOIN` and `COALESCE` statements to dynamically resolve active UI strings with graceful fallback chains down to English and German.
+* **Automated Catalog Workflows:** Updated the weekly `wger` Python catalog fetcher (`create_wger_exercise_db.py`) and corresponding GitHub Actions to automatically export into the new 1:N relational layout.
+* **Web Screenshot Fallbacks:** Configured the localized web templates to dynamically map `fr`, `it`, and `ja` screenshots directly to the existing verified `en-US` directory, avoiding duplicate storage overhead.
+
+### Fixed
+- **Bottom Navigation Bar Quality Degradation**: Fixed a bug where returning from route transitions (such as speed dial option screens) demoted the navigation bar to medium quality (frosted fallback) while leaving the sibling action button in premium quality.
+- **Static Analysis Cleanup**: Resolved all remaining static analysis warnings by removing the unused `_isRouteActive` field, deleting redundant `didPushNext()` and `didPop()` overrides, cleaning up unnecessary `dart:ui` imports, and globally suppressing `experimental_member_use` warnings for the liquid glass widgets API.
+* **Recovery Screen Muscle Tracking:** Patched the muscle fatigue calculation algorithm by updating the workout history queries to join the new `exercise_translations` table, resolving a bug where exercise names evaluated to null.
+* **Base Food Language Toggle:** Fixed a localization lock in the settings menu by refactoring `BasisDataManager._performBatchImport` to correctly ingest the precompiled flat columns (`name_fr`, `category_ja`, etc.) from `train_libre_base_foods.db` and adding dynamic runtime entity getters.
+
 ## [0.9.23] - 2026-06-08
 ### Changed
 - **SpeedDial Overlay Quality Isolation**: Decoupled the speed dial action buttons from dynamic performance telemetry and forced them to render with standard quality (`GlassQuality.standard`), eliminating dynamic quality degradation or toggling.

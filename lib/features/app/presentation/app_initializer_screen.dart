@@ -11,6 +11,7 @@ import 'main_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A splash screen responsible for app-wide initialization.
 ///
@@ -176,7 +177,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
           children: [
             // Icon shown during startup.
             Icon(
-              Icons.system_update_alt_rounded,
+              LucideIcons.download,
               size: 64,
               color: theme.colorScheme.primary,
             ),
@@ -227,7 +228,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
                       _currentDetail = l10n.appInitSkippingRemoteDownload;
                     });
                   },
-                  icon: const Icon(Icons.skip_next_rounded),
+                  icon: const Icon(LucideIcons.skip_forward),
                   label: Text(l10n.appInitSkipDownload),
                 ),
               ),

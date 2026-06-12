@@ -20,6 +20,7 @@ import '../../../widgets/common/global_app_bar.dart';
 
 import '../../../widgets/common/macro_badge_row.dart';
 import '../../../widgets/common/swipe_action_background.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A comprehensive screen for viewing and editing a meal and its ingredients.
 ///
@@ -70,10 +71,14 @@ class _MealScreenState extends State<MealScreen> {
     // Leave name/notes blank when launched via the diary shortcut so the user
     // must consciously choose a template title.
     _nameCtrl = TextEditingController(
-      text: widget.prefillItems != null ? '' : (widget.meal['name'] as String? ?? ''),
+      text: widget.prefillItems != null
+          ? ''
+          : (widget.meal['name'] as String? ?? ''),
     );
     _notesCtrl = TextEditingController(
-      text: widget.prefillItems != null ? '' : (widget.meal['notes'] as String? ?? ''),
+      text: widget.prefillItems != null
+          ? ''
+          : (widget.meal['notes'] as String? ?? ''),
     );
     _loadItems();
   }
@@ -266,7 +271,8 @@ class _MealScreenState extends State<MealScreen> {
                     protein: _items.isEmpty ? null : _totalP,
                     carbs: _items.isEmpty ? null : _totalC,
                     fat: _items.isEmpty ? null : _totalF,
-                    useBadges: Provider.of<ThemeService>(context).useColorfulMacroBadges,
+                    useBadges: Provider.of<ThemeService>(context)
+                        .useColorfulMacroBadges,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -320,7 +326,6 @@ class _MealScreenState extends State<MealScreen> {
             ),
     );
   }
-
 
   Future<void> _save() async {
     if (_saving) return;
@@ -380,7 +385,8 @@ class _MealScreenState extends State<MealScreen> {
     int quantity = -1;
 
     // Ask for amount
-    final displayName = pickedProduct.name.isNotEmpty ? pickedProduct.name : barcode;
+    final displayName =
+        pickedProduct.name.isNotEmpty ? pickedProduct.name : barcode;
     if (!mounted) return;
 
     final qtyResult = await showGlassBottomMenu<int?>(
@@ -545,7 +551,7 @@ class _MealScreenState extends State<MealScreen> {
                             children: [
                               const Padding(
                                 padding: EdgeInsets.only(top: 14),
-                                child: Icon(Icons.lunch_dining),
+                                child: Icon(LucideIcons.sandwich),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -822,7 +828,7 @@ class _IngredientCard extends StatelessWidget {
       background: const SizedBox.shrink(),
       secondaryBackground: const SwipeActionBackground(
         color: Colors.redAccent,
-        icon: Icons.delete,
+        icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),
       confirmDismiss: (direction) async {

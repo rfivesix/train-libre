@@ -11,6 +11,67 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     return row?.id;
   }
 
+  Future<_ExerciseMuscleLookup> _loadExerciseMuscleLookup(
+    db.AppDatabase dbInstance,
+  ) async {
+    final exerciseRows = await dbInstance.select(dbInstance.exercises).get();
+    final translationRows =
+        await dbInstance.select(dbInstance.exerciseTranslations).get();
+
+    final byId = <String, _ExerciseMuscleProfile>{
+      for (final exerciseRow in exerciseRows)
+        exerciseRow.id: _ExerciseMuscleProfile(
+          primary: _parseMuscles(exerciseRow.musclesPrimary),
+          secondary: _parseMuscles(exerciseRow.musclesSecondary),
+        ),
+    };
+
+    final byName = <String, _ExerciseMuscleProfile>{};
+    for (final translationRow in translationRows) {
+      final profile = byId[translationRow.exerciseId];
+      if (profile == null) continue;
+
+      final normalizedName = _normalizeExerciseName(translationRow.name);
+      if (normalizedName.isEmpty) continue;
+      byName.putIfAbsent(normalizedName, () => profile);
+    }
+
+    return _ExerciseMuscleLookup(byId: byId, byName: byName);
+  }
+
+  _ExerciseMuscleProfile? _resolveExerciseMuscleProfile({
+    required _ExerciseMuscleLookup lookup,
+    db.Exercise? exerciseRow,
+    String? exerciseNameSnapshot,
+  }) {
+    if (exerciseRow != null) {
+      final profile = lookup.byId[exerciseRow.id];
+      if (profile != null) {
+        return profile;
+      }
+
+      return _ExerciseMuscleProfile(
+        primary: _parseMuscles(exerciseRow.musclesPrimary),
+        secondary: _parseMuscles(exerciseRow.musclesSecondary),
+      );
+    }
+
+    final normalizedSnapshot = _normalizeExerciseName(exerciseNameSnapshot);
+    if (normalizedSnapshot.isEmpty) return null;
+    return lookup.byName[normalizedSnapshot];
+  }
+
+  static List<String> _parseMuscles(String? rawMuscles) {
+    return WorkoutLocalDataSource._parseMuscleList(rawMuscles)
+        .map((muscle) => muscle.trim())
+        .where((muscle) => muscle.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static String _normalizeExerciseName(String? value) {
+    return value?.trim().toLowerCase() ?? '';
+  }
+
   /// Builds a Drift expression that matches set_logs by exercise name snapshot
   /// (nameDe, optional nameEn) or by exercise UUID.
   drift.Expression<bool> _buildExerciseMatchCondition(
@@ -469,44 +530,65 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final now = DateTime.now();
     final since = now.subtract(Duration(days: daysBack));
     final dbInstance = await database;
+    final muscleLookup = await _loadExerciseMuscleLookup(dbInstance);
 
-    final query = '''
-      SELECT 
-        COALESCE(j.value, 'Other') as muscleGroup,
-        SUM(s.weight * s.reps) as tonnage
-      FROM set_logs s
-      INNER JOIN workout_logs w ON w.id = s.workout_log_id
-      LEFT JOIN exercises e ON e.id = s.exercise_id
-      LEFT JOIN json_each(
-        CASE 
-          WHEN e.muscles_primary IS NULL OR e.muscles_primary = '' THEN '["Other"]'
-          WHEN e.muscles_primary LIKE '[%' THEN e.muscles_primary
-          ELSE '["' || e.muscles_primary || '"]'
-        END
-      ) j ON 1=1
-      WHERE s.is_completed = 1 
-        AND s.set_type != 'warmup'
-        AND s.weight > 0 
-        AND s.reps > 0
-        AND w.status = 'completed'
-        AND w.start_time >= ?
-        AND w.start_time <= ?
-      GROUP BY COALESCE(j.value, 'Other')
-      ORDER BY tonnage DESC
-    ''';
+    final query = dbInstance.select(dbInstance.setLogs).join([
+      drift.innerJoin(
+        dbInstance.workoutLogs,
+        dbInstance.workoutLogs.id.equalsExp(
+          dbInstance.setLogs.workoutLogId,
+        ),
+      ),
+      drift.leftOuterJoin(
+        dbInstance.exercises,
+        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+      ),
+    ])
+      ..where(
+        dbInstance.setLogs.isCompleted.equals(true) &
+            dbInstance.setLogs.setType.isNotIn(['warmup']) &
+            dbInstance.setLogs.weight.isBiggerThanValue(0) &
+            dbInstance.setLogs.reps.isBiggerThanValue(0) &
+            dbInstance.workoutLogs.status.equals('completed') &
+            dbInstance.workoutLogs.startTime.isBetweenValues(
+              since,
+              now.add(const Duration(days: 1)),
+            ),
+      );
 
-    final rows = await dbInstance.customSelect(
-      query,
-      variables: [
-        drift.Variable.withDateTime(since),
-        drift.Variable.withDateTime(now.add(const Duration(days: 1))),
-      ],
-    ).get();
+    final rows = await query.get();
+    final tonnageByMuscle = <String, double>{};
 
-    return rows.map((r) => {
-      'muscleGroup': r.read<String>('muscleGroup'),
-      'tonnage': r.read<double>('tonnage'),
-    }).toList();
+    for (final row in rows) {
+      final setRow = row.readTable(dbInstance.setLogs);
+      final exRow = row.readTableOrNull(dbInstance.exercises);
+      final profile = _resolveExerciseMuscleProfile(
+        lookup: muscleLookup,
+        exerciseRow: exRow,
+        exerciseNameSnapshot: setRow.exerciseNameSnapshot,
+      );
+
+      final tonnage = (setRow.weight ?? 0.0) * (setRow.reps ?? 0);
+      final muscles = profile?.primary ?? const <String>[];
+
+      if (muscles.isEmpty) {
+        tonnageByMuscle['Other'] = (tonnageByMuscle['Other'] ?? 0.0) + tonnage;
+        continue;
+      }
+
+      for (final muscle in muscles) {
+        tonnageByMuscle[muscle] = (tonnageByMuscle[muscle] ?? 0.0) + tonnage;
+      }
+    }
+
+    return tonnageByMuscle.entries
+        .map((entry) => {
+              'muscleGroup': entry.key,
+              'tonnage': entry.value,
+            })
+        .toList()
+      ..sort(
+          (a, b) => (b['tonnage'] as double).compareTo(a['tonnage'] as double));
   }
 
   /// Equivalent hard-set analytics for muscle groups.
@@ -518,6 +600,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final now = DateTime.now();
     final since = now.subtract(Duration(days: daysBack));
     final dbInstance = await database;
+    final muscleLookup = await _loadExerciseMuscleLookup(dbInstance);
 
     final query = dbInstance.select(dbInstance.setLogs).join([
       drift.innerJoin(
@@ -548,11 +631,21 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     // Map QueryRows to simple data objects for Isolate transfer
     final rawData = rows.map((row) {
       final logRow = row.readTable(dbInstance.workoutLogs);
+      final setRow = row.readTable(dbInstance.setLogs);
       final exRow = row.readTableOrNull(dbInstance.exercises);
+      final profile = _resolveExerciseMuscleProfile(
+        lookup: muscleLookup,
+        exerciseRow: exRow,
+        exerciseNameSnapshot: setRow.exerciseNameSnapshot,
+      );
       return MuscleContributionRawData(
         startTime: logRow.startTime,
-        musclesPrimary: exRow?.musclesPrimary,
-        musclesSecondary: exRow?.musclesSecondary,
+        musclesPrimary: profile == null
+            ? exRow?.musclesPrimary
+            : jsonEncode(profile.primary),
+        musclesSecondary: profile == null
+            ? exRow?.musclesSecondary
+            : jsonEncode(profile.secondary),
       );
     }).toList(growable: false);
 
@@ -598,8 +691,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       // Map each raw muscle name to a canonical major group.
       bool anyMapped = false;
       for (final muscle in primary) {
-        final majorGroup =
-            RecoveryDomainService.majorMuscleGroupFor(muscle);
+        final majorGroup = RecoveryDomainService.majorMuscleGroupFor(muscle);
         if (majorGroup == null) continue;
         contributions.add({
           'day': row.startTime,
@@ -610,8 +702,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       }
 
       for (final muscle in secondary) {
-        final majorGroup =
-            RecoveryDomainService.majorMuscleGroupFor(muscle);
+        final majorGroup = RecoveryDomainService.majorMuscleGroupFor(muscle);
         if (majorGroup == null) continue;
         contributions.add({
           'day': row.startTime,
@@ -641,6 +732,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final now = DateTime.now();
     final since = now.subtract(Duration(days: lookbackDays));
     final dbInstance = await database;
+    final muscleLookup = await _loadExerciseMuscleLookup(dbInstance);
 
     final query = dbInstance.select(dbInstance.setLogs).join([
       drift.innerJoin(
@@ -713,21 +805,20 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final logRow = row.readTable(dbInstance.workoutLogs);
       final setRow = row.readTable(dbInstance.setLogs);
       final exRow = row.readTableOrNull(dbInstance.exercises);
+      final profile = _resolveExerciseMuscleProfile(
+        lookup: muscleLookup,
+        exerciseRow: exRow,
+        exerciseNameSnapshot: setRow.exerciseNameSnapshot,
+      );
 
-      if (!WorkoutLocalDataSource._isRecoveryStrengthWorkSet(setRow: setRow, exerciseRow: exRow)) {
+      if (!WorkoutLocalDataSource._isRecoveryStrengthWorkSet(
+          setRow: setRow, exerciseRow: exRow)) {
         continue;
       }
 
-      final primary = <String>{
-        ...WorkoutLocalDataSource._parseMuscleList(
-          exRow?.musclesPrimary,
-        ).map((m) => m.trim()).where((m) => m.isNotEmpty),
-      };
-      final secondary = <String>{
-        ...WorkoutLocalDataSource._parseMuscleList(
-          exRow?.musclesSecondary,
-        ).map((m) => m.trim()).where((m) => m.isNotEmpty),
-      }..removeAll(primary);
+      final primary = profile == null ? <String>{} : profile.primary.toSet();
+      final secondary = profile == null ? <String>{} : profile.secondary.toSet()
+        ..removeAll(primary);
 
       for (final muscle in primary) {
         final majorGroup = RecoveryDomainService.majorMuscleGroupFor(muscle);
@@ -795,7 +886,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final List<Map<String, dynamic>> muscles = [];
 
     for (final entry in significantByMuscle.entries) {
-      final muscle = entry.key; 
+      final muscle = entry.key;
       final sessions = entry.value;
 
       if (sessions.isEmpty) {
@@ -840,10 +931,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
       final rirCount = mostRecentSession['rirCount'] as int;
       final rpeCount = mostRecentSession['rpeCount'] as int;
-      final avgRir =
-          rirCount > 0 ? (mostRecentSession['rirSum'] as double) / rirCount : null;
-      final avgRpe =
-          rpeCount > 0 ? (mostRecentSession['rpeSum'] as double) / rpeCount : null;
+      final avgRir = rirCount > 0
+          ? (mostRecentSession['rirSum'] as double) / rirCount
+          : null;
+      final avgRpe = rpeCount > 0
+          ? (mostRecentSession['rpeSum'] as double) / rpeCount
+          : null;
 
       bool highSessionFatigue = RecoveryDomainService.hasHighSessionFatigue(
         avgRir: avgRir,
@@ -927,7 +1020,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     final result = {
       'hasData': hasData,
-      'overallState': hasData ? overallState : RecoveryDomainService.overallInsufficientData,
+      'overallState': hasData
+          ? overallState
+          : RecoveryDomainService.overallInsufficientData,
       'totals': {
         RecoveryDomainService.stateRecovering: hasData ? recoveringCount : 0,
         RecoveryDomainService.stateReady: hasData ? readyCount : 0,
@@ -1507,8 +1602,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
             ..limit(1))
           .getSingleOrNull();
 
-      final t0 = earliest?.startTime ??
-          now.subtract(const Duration(days: 365)); 
+      final t0 = earliest?.startTime ?? now.subtract(const Duration(days: 365));
       final lifetimeDays = now.difference(t0).inDays;
       final halfDays = (lifetimeDays / 2).floor();
       final midpoint = t0.add(Duration(days: halfDays));
@@ -1621,4 +1715,24 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     if (weeksBack <= 0) return 0;
     return completedCount / weeksBack;
   }
+}
+
+class _ExerciseMuscleLookup {
+  final Map<String, _ExerciseMuscleProfile> byId;
+  final Map<String, _ExerciseMuscleProfile> byName;
+
+  const _ExerciseMuscleLookup({
+    required this.byId,
+    required this.byName,
+  });
+}
+
+class _ExerciseMuscleProfile {
+  final List<String> primary;
+  final List<String> secondary;
+
+  const _ExerciseMuscleProfile({
+    required this.primary,
+    required this.secondary,
+  });
 }

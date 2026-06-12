@@ -22,6 +22,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'widgets/workout_summary_bar.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen providing a summary of a recently finished workout session.
 ///
@@ -236,7 +237,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           if (!_isLoading && _log != null)
             IconButton(
               tooltip: l10n.share,
-              icon: const Icon(Icons.ios_share),
+              icon: const Icon(LucideIcons.share),
               onPressed: () => _shareService.showWorkoutShareSheet(
                 context: context,
                 workout: _log!,
@@ -265,7 +266,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               progress: null,
                             ),
                             const SizedBox(height: DesignConstants.spacingL),
-                            if (_showSyncBanner && _associatedRoutine != null) ...[
+                            if (_showSyncBanner &&
+                                _associatedRoutine != null) ...[
                               _buildSyncBanner(colorScheme, textTheme),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
@@ -315,7 +317,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                 return SummaryCard(
                                   child: ListTile(
                                     leading: const Icon(
-                                      Icons.emoji_events,
+                                      LucideIcons.trophy,
                                       color: Colors.amber,
                                     ),
                                     title: Text(
@@ -490,7 +492,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
   Widget _buildMuscleHeatmap(AppLocalizations l10n) {
     final muscleCounts = <BodyPartSlug, int>{};
-    
+
     for (final ex in _exerciseDetails.values) {
       final exerciseSlugs = <BodyPartSlug>{};
       for (final name in ex.primaryMuscles) {
@@ -510,9 +512,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
     final highlights = muscleCounts.entries.map((e) {
       // Relative intensity: scale to 1-5 based on session max
-      final intensity = maxCount > 0
-          ? (e.value / maxCount * 5).ceil().clamp(1, 5)
-          : 1;
+      final intensity =
+          maxCount > 0 ? (e.value / maxCount * 5).ceil().clamp(1, 5) : 1;
 
       return BodyPartHighlightData(
         slug: e.key,
@@ -539,7 +540,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                 children: [
                   Expanded(
                     child: BodyHighlighter(
-                      gender: context.watch<ProfileService>().gender.toBodyGender(),
+                      gender:
+                          context.watch<ProfileService>().gender.toBodyGender(),
                       side: BodySide.front,
                       intensityColors: const [
                         Color(0xFFFFF176), // Light Yellow
@@ -554,7 +556,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                   ),
                   Expanded(
                     child: BodyHighlighter(
-                      gender: context.watch<ProfileService>().gender.toBodyGender(),
+                      gender:
+                          context.watch<ProfileService>().gender.toBodyGender(),
                       side: BodySide.back,
                       intensityColors: const [
                         Color(0xFFFFF176), // Light Yellow
@@ -601,9 +604,10 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     Map<String, Exercise> exerciseDetails,
   ) {
     final workingSets = log.sets
-        .where((s) => s.isCompleted == true && s.setType.toLowerCase() != 'warmup')
+        .where(
+            (s) => s.isCompleted == true && s.setType.toLowerCase() != 'warmup')
         .toList();
-    
+
     final logExNames = <String>[];
     for (final s in workingSets) {
       if (!logExNames.contains(s.exerciseName)) {
@@ -629,7 +633,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         return true;
       }
 
-      final logSetsForEx = workingSets.where((s) => s.exerciseName == logName).toList();
+      final logSetsForEx =
+          workingSets.where((s) => s.exerciseName == logName).toList();
       if (routineEx.setTemplates.length != logSetsForEx.length) {
         return true;
       }
@@ -677,7 +682,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.sync,
+                      LucideIcons.refresh_cw,
                       color: colorScheme.primary,
                       size: 24,
                     ),
@@ -751,7 +756,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               valueColor: AlwaysStoppedAnimation(Colors.white),
                             ),
                           )
-                        : const Icon(Icons.check, size: 18),
+                        : const Icon(LucideIcons.check, size: 18),
                     label: const Text("Jetzt aktualisieren"),
                   ),
                 ],
@@ -765,7 +770,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
   Future<void> _syncRoutine() async {
     if (_log?.routineId == null || _log?.id == null) return;
-    
+
     setState(() {
       _isSyncing = true;
     });
@@ -796,7 +801,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                 if (updatedRoutine != null) {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => EditRoutineScreen(routine: updatedRoutine),
+                      builder: (context) =>
+                          EditRoutineScreen(routine: updatedRoutine),
                     ),
                   );
                 }

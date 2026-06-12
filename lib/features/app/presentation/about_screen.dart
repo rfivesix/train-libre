@@ -10,6 +10,7 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../util/design_constants.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -79,27 +80,27 @@ class AboutScreen extends StatelessWidget {
                   ),
                   _buildInfoTile(
                     context,
-                    icon: Icons.library_books_outlined,
+                    icon: LucideIcons.library,
                     title: l10n.used_libraries,
                     onTap: () => _openUsedPackages(context),
                   ),
                   _buildInfoTile(
                     context,
-                    icon: Icons.gavel_outlined,
+                    icon: LucideIcons.scale,
                     title: l10n.licensing_info,
                     onTap: () => _launchURL(
                         'https://github.com/rfivesix/train-libre/blob/main/LICENSE'),
                   ),
                   _buildInfoTile(
                     context,
-                    icon: Icons.language_outlined,
+                    icon: LucideIcons.globe,
                     title: l10n.project_website,
                     onTap: () =>
                         _launchURL('https://rfivesix.github.io/train-libre/'),
                   ),
                   _buildInfoTile(
                     context,
-                    icon: Icons.code_outlined,
+                    icon: LucideIcons.code,
                     title: l10n.github_repository,
                     onTap: () =>
                         _launchURL('https://github.com/rfivesix/train-libre'),
@@ -142,7 +143,7 @@ class AboutScreen extends StatelessWidget {
                 .textTheme
                 .bodyLarge
                 ?.copyWith(fontWeight: FontWeight.bold)),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const Icon(LucideIcons.chevron_right),
       ),
     );
   }
@@ -207,7 +208,7 @@ class _UsedPackagesScreen extends StatelessWidget {
                       subtitle: Text(
                         '${package.entries.length} ${title.toLowerCase()}',
                       ),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: const Icon(LucideIcons.chevron_right),
                     ),
                   );
                 },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 enum MealType { breakfast, lunch, dinner, snack }
 
@@ -117,7 +118,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
               title: Text(l10n.mealIngredientsTitle),
               subtitle: Text(l10n.mealEditorNoIngredientsYet),
               trailing: IconButton(
-                icon: const Icon(Icons.add),
+                icon: const Icon(LucideIcons.plus),
                 onPressed: () {
                   // Later: open product picker
                 },

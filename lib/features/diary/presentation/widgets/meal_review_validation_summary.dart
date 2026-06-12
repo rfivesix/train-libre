@@ -4,6 +4,7 @@ import '../../../../services/ai_meal_validation.dart';
 import '../../../../util/ai_validation_localization.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class MealReviewValidationSummary extends StatefulWidget {
   const MealReviewValidationSummary({
@@ -16,10 +17,12 @@ class MealReviewValidationSummary extends StatefulWidget {
   final int itemsCount;
 
   @override
-  State<MealReviewValidationSummary> createState() => _MealReviewValidationSummaryState();
+  State<MealReviewValidationSummary> createState() =>
+      _MealReviewValidationSummaryState();
 }
 
-class _MealReviewValidationSummaryState extends State<MealReviewValidationSummary> {
+class _MealReviewValidationSummaryState
+    extends State<MealReviewValidationSummary> {
   bool _validationExpanded = false;
 
   @override
@@ -27,7 +30,7 @@ class _MealReviewValidationSummaryState extends State<MealReviewValidationSummar
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final validation = widget.validation;
-    
+
     final allActionableIssues = validation.allIssues
         .where((issue) => issue.severity != AiValidationSeverity.info)
         .toList(growable: false);
@@ -37,12 +40,10 @@ class _MealReviewValidationSummaryState extends State<MealReviewValidationSummar
             ? theme.colorScheme.error
             : Colors.orange;
 
-    final shouldAutoExpand =
-        !validation.passed || validation.errors.isNotEmpty;
+    final shouldAutoExpand = !validation.passed || validation.errors.isNotEmpty;
     final isExpanded = _validationExpanded || shouldAutoExpand;
 
-    final compactTotals =
-        '${validation.totals.kcalRounded} kcal · '
+    final compactTotals = '${validation.totals.kcalRounded} kcal · '
         'P${validation.totals.proteinRounded} · '
         'C${validation.totals.carbsRounded} · '
         'F${validation.totals.fatRounded}';
@@ -64,8 +65,8 @@ class _MealReviewValidationSummaryState extends State<MealReviewValidationSummar
                 children: [
                   Icon(
                     validation.passed
-                        ? Icons.verified_rounded
-                        : Icons.warning_amber_rounded,
+                        ? LucideIcons.badge_check
+                        : LucideIcons.triangle_alert,
                     color: color,
                     size: 20,
                   ),
@@ -90,8 +91,8 @@ class _MealReviewValidationSummaryState extends State<MealReviewValidationSummar
                   if (!shouldAutoExpand)
                     Icon(
                       isExpanded
-                          ? Icons.expand_less_rounded
-                          : Icons.expand_more_rounded,
+                          ? LucideIcons.chevron_up
+                          : LucideIcons.chevron_down,
                       color: theme.colorScheme.onSurfaceVariant,
                       size: 20,
                     ),
@@ -103,16 +104,18 @@ class _MealReviewValidationSummaryState extends State<MealReviewValidationSummar
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.toll_rounded,
+                      LucideIcons.circle_dollar_sign,
                       size: 11,
-                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.55),
+                      color: theme.colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.55),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       'Kosten: ~${1200 + (widget.itemsCount * 80)} Tokens',
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 10,
-                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.65),
+                        color: theme.colorScheme.onSurfaceVariant
+                            .withValues(alpha: 0.65),
                       ),
                     ),
                   ],

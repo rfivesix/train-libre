@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../../data/drift_database.dart';
+import '../../../../util/cancellation_token.dart';
 import '../../domain/metrics/nightly_metrics_calculator.dart';
 import '../../domain/metrics/sleep_regularity_index.dart';
 import '../../domain/sleep_domain.dart';
@@ -93,7 +94,10 @@ class SleepPipelineService {
     bool forceRecompute = false,
     DateTime? recomputeFromInclusive,
     DateTime? recomputeToExclusive,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
   }) async {
+    token?.throwIfCancelled();
     final normalizedBatch = _dedupeProgressiveSessions(batch);
     if (normalizedBatch.sessions.isEmpty) {
       return const SleepPipelineRunResult(
@@ -101,6 +105,8 @@ class SleepPipelineService {
         analyzedNights: 0,
       );
     }
+
+    final totalSessions = normalizedBatch.sessions.length;
 
     final importedAt = DateTime.now().toUtc();
     final from = recomputeFromInclusive ??
@@ -112,6 +118,8 @@ class SleepPipelineService {
             .map((s) => s.endAtUtc)
             .reduce((a, b) => a.isAfter(b) ? a : b)
             .add(const Duration(seconds: 1));
+
+    token?.throwIfCancelled();
 
     if (forceRecompute) {
       final sessionsToRecompute = await _sessionsDao.findByDateRange(
@@ -128,6 +136,7 @@ class SleepPipelineService {
           .toSet()
           .toList(growable: false)
         ..sort();
+      token?.throwIfCancelled();
       if (nightDates.isNotEmpty) {
         await _analysesDao.deleteByNightRange(
           fromNightDateInclusive: nightDates.first,
@@ -140,12 +149,16 @@ class SleepPipelineService {
           toNightDateInclusive: _nightKey(toInclusive),
         );
       }
+      token?.throwIfCancelled();
       await _sessionsDao.deleteByDateRange(
         fromInclusive: from,
         toExclusive: to,
       );
+      token?.throwIfCancelled();
       await _rawDao.deleteByIds(rawImportIds);
     }
+
+    token?.throwIfCancelled();
 
     // Pre-fetch lookback data for regularity calculation
     final targetNights = normalizedBatch.sessions
@@ -163,13 +176,19 @@ class SleepPipelineService {
       fromInclusive: lookbackFromInclusive,
       toExclusive: lookbackToExclusive,
     );
+    token?.throwIfCancelled();
     final lookbackSessionIds = lookbackSessions.map((s) => s.id).toList();
     final lookbackSegments =
         await _segmentsDao.findBySessionIds(lookbackSessionIds);
+    token?.throwIfCancelled();
     final lookbackAnalyses = await _analysesDao.findByNightRange(
       fromNightDateInclusive: _nightKey(lookbackFromInclusive),
       toNightDateInclusive: _nightKey(lookbackToExclusive),
     );
+
+    token?.throwIfCancelled();
+
+    onProgress?.call(0, totalSessions + 5);
 
     // Offload heavy processing to background isolate
     final result = await compute(
@@ -185,36 +204,75 @@ class SleepPipelineService {
       ),
     );
 
+    token?.throwIfCancelled();
+
     var insertedSessions = 0;
     await _database.transaction(() async {
       final skipSessionIds = <String>{};
       final rawImportIdsToDelete = <String>[];
-      for (final session in normalizedBatch.sessions) {
+
+      for (var i = 0; i < totalSessions; i++) {
+        token?.throwIfCancelled();
+        onProgress?.call(i + 1, totalSessions + 5);
+        final session = normalizedBatch.sessions[i];
+
         final overlapping = await _sessionsDao.findByDateRange(
           fromInclusive: session.startAtUtc,
           toExclusive: session.endAtUtc,
         );
 
-        final otherOverlapping = overlapping.where((s) => s.id != session.recordId).toList();
-        if (otherOverlapping.isNotEmpty) {
-          final incomingDuration = session.endAtUtc.difference(session.startAtUtc);
-          final maxExistingDuration = otherOverlapping
-              .map((s) => s.endedAt.difference(s.startedAt))
-              .reduce((a, b) => a > b ? a : b);
+        final otherOverlapping =
+            overlapping.where((s) => s.id != session.recordId).toList();
+        bool shouldSkip = false;
 
-          if (incomingDuration > maxExistingDuration) {
-            for (final existing in otherOverlapping) {
+        if (otherOverlapping.isNotEmpty) {
+          final incomingStart = session.startAtUtc;
+          final incomingEnd = session.endAtUtc;
+          final incomingDuration = incomingEnd.difference(incomingStart);
+
+          for (final existing in otherOverlapping) {
+            final existingStart = existing.startedAt;
+            final existingEnd = existing.endedAt;
+            final existingDuration = existingEnd.difference(existingStart);
+
+            // 1. Exact Boundary Match: Allow update/overwrite by deleting existing.
+            if (incomingStart.isAtSameMomentAs(existingStart) &&
+                incomingEnd.isAtSameMomentAs(existingEnd)) {
+              await _sessionsDao.deleteById(existing.id);
+              rawImportIdsToDelete.add('raw:${existing.id}');
+              continue;
+            }
+
+            // 2. Envelopment Logic:
+            // Is incoming session completely enveloped by a superior (longer) existing session?
+            final isEnveloped = !incomingStart.isBefore(existingStart) &&
+                !incomingEnd.isAfter(existingEnd);
+
+            if (isEnveloped && existingDuration > incomingDuration) {
+              shouldSkip = true;
+              break;
+            }
+
+            // Conversely, if incoming session completely envelopes an existing one,
+            // we treat it as a superior replacement and remove the old fragment.
+            final envelopesExisting = !existingStart.isBefore(incomingStart) &&
+                !existingEnd.isAfter(incomingEnd);
+            if (envelopesExisting && incomingDuration > existingDuration) {
               await _sessionsDao.deleteById(existing.id);
               rawImportIdsToDelete.add('raw:${existing.id}');
             }
-          } else {
-            skipSessionIds.add(session.recordId);
-            continue;
           }
+        }
+
+        if (shouldSkip) {
+          skipSessionIds.add(session.recordId);
+          continue;
         }
 
         await _sessionsDao.deleteById(session.recordId);
       }
+
+      token?.throwIfCancelled();
 
       if (rawImportIdsToDelete.isNotEmpty) {
         await _rawDao.deleteByIds(rawImportIdsToDelete);
@@ -236,13 +294,22 @@ class SleepPipelineService {
           .where((row) => !skipSessionIds.contains(row.sessionId))
           .toList(growable: false);
 
+      token?.throwIfCancelled();
+
       await _rawDao.upsertBatch(filteredRawRows);
+      onProgress?.call(totalSessions + 1, totalSessions + 5);
       await _sessionsDao.upsertBatch(filteredSessionRows);
+      onProgress?.call(totalSessions + 2, totalSessions + 5);
       await _segmentsDao.upsertBatch(filteredSegmentRows);
+      onProgress?.call(totalSessions + 3, totalSessions + 5);
       await _hrDao.upsertBatch(filteredHrRows);
+      onProgress?.call(totalSessions + 4, totalSessions + 5);
       await _analysesDao.upsertBatch(filteredAnalysisRows);
+      onProgress?.call(totalSessions + 5, totalSessions + 5);
       insertedSessions = filteredSessionRows.length;
     });
+
+    token?.throwIfCancelled();
 
     _database.notifyUpdates({
       const TableUpdate('sleep_raw_imports'),

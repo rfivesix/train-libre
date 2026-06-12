@@ -52,6 +52,9 @@ class ProductLocalDataSource {
       name: Value(item.name),
       nameDe: Value(item.nameDe),
       nameEn: Value(item.nameEn),
+      nameFr: Value(item.nameFr),
+      nameIt: Value(item.nameIt),
+      nameJa: Value(item.nameJa),
       brand: Value(item.brand),
       calories: Value(item.calories),
       protein: Value(item.protein),
@@ -108,8 +111,11 @@ class ProductLocalDataSource {
     return FoodItem(
       barcode: row.barcode,
       name: overrideRow?.name ?? row.name,
-      nameDe: overrideRow?.nameDe ?? row.nameDe ?? row.name,
-      nameEn: overrideRow?.nameEn ?? row.nameEn ?? row.name,
+      nameDe: overrideRow?.name ?? row.nameDe ?? row.name,
+      nameEn: overrideRow?.name ?? row.nameEn ?? row.name,
+      nameFr: overrideRow?.name ?? row.nameFr ?? row.name,
+      nameIt: overrideRow?.name ?? row.nameIt ?? row.name,
+      nameJa: overrideRow?.name ?? row.nameJa ?? row.name,
       brand: overrideRow?.brand ?? row.brand ?? '',
       calories: overrideRow?.calories ?? row.calories,
       protein: overrideRow?.protein ?? row.protein,
@@ -179,8 +185,6 @@ class ProductLocalDataSource {
     final overrideCompanion = db.UserFoodOverridesCompanion(
       barcode: Value(item.barcode),
       name: Value(item.name),
-      nameDe: Value(item.nameDe),
-      nameEn: Value(item.nameEn),
       brand: Value(item.brand),
       calories: Value(item.calories),
       protein: Value(item.protein),
@@ -276,6 +280,9 @@ class ProductLocalDataSource {
         'key': row.key,
         'name_de': row.nameDe,
         'name_en': row.nameEn,
+        'name_fr': row.nameFr,
+        'name_it': row.nameIt,
+        'name_ja': row.nameJa,
         'emoji': row.emoji,
       };
     }).toList();
@@ -304,7 +311,10 @@ class ProductLocalDataSource {
           (t) =>
               t.name.like('%$term%') |
               t.nameDe.like('%$term%') |
-              t.nameEn.like('%$term%'),
+              t.nameEn.like('%$term%') |
+              t.nameFr.like('%$term%') |
+              t.nameIt.like('%$term%') |
+              t.nameJa.like('%$term%'),
         );
 
       query = query
@@ -315,12 +325,18 @@ class ProductLocalDataSource {
                     CaseWhen(
                         t.name.equals(term) |
                             t.nameDe.equals(term) |
-                            t.nameEn.equals(term),
+                            t.nameEn.equals(term) |
+                            t.nameFr.equals(term) |
+                            t.nameIt.equals(term) |
+                            t.nameJa.equals(term),
                         then: const Constant(0)),
                     CaseWhen(
                         t.name.like('$term%') |
                             t.nameDe.like('$term%') |
-                            t.nameEn.like('$term%'),
+                            t.nameEn.like('$term%') |
+                            t.nameFr.like('$term%') |
+                            t.nameIt.like('$term%') |
+                            t.nameJa.like('$term%'),
                         then: const Constant(1)),
                   ],
                   orElse: const Constant(2),
@@ -371,10 +387,12 @@ class ProductLocalDataSource {
     final productIdCounts = <String, int>{};
     for (final log in recentLogs) {
       if (log.legacyBarcode != null && log.legacyBarcode!.isNotEmpty) {
-        barcodeCounts[log.legacyBarcode!] = (barcodeCounts[log.legacyBarcode!] ?? 0) + 1;
+        barcodeCounts[log.legacyBarcode!] =
+            (barcodeCounts[log.legacyBarcode!] ?? 0) + 1;
       }
       if (log.productId != null && log.productId!.isNotEmpty) {
-        productIdCounts[log.productId!] = (productIdCounts[log.productId!] ?? 0) + 1;
+        productIdCounts[log.productId!] =
+            (productIdCounts[log.productId!] ?? 0) + 1;
       }
     }
 
@@ -398,7 +416,8 @@ class ProductLocalDataSource {
     // Für die Relevanz-Gewichtung im ORDER BY übergeben wir den rohen Suchbegriff
     final rawSearchLower = keyword.trim().toLowerCase();
     variables.add(Variable.withString(rawSearchLower)); // Für exakten Match
-    variables.add(Variable.withString('$rawSearchLower%')); // Für Wortanfang-Match
+    variables
+        .add(Variable.withString('$rawSearchLower%')); // Für Wortanfang-Match
 
     final whereClauses = <String>["p.source IN ('user', 'base', 'off')"];
     for (final token in tokens) {
@@ -447,7 +466,8 @@ class ProductLocalDataSource {
       readsFrom: {dbInstance.products, dbInstance.nutritionLogs},
     ).get();
 
-    final dbProducts = rows.map((row) => dbInstance.products.map(row.data)).toList();
+    final dbProducts =
+        rows.map((row) => dbInstance.products.map(row.data)).toList();
     return _enrichProductsWithOverrides(dbProducts);
   }
 

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class ProfileSlide extends StatelessWidget {
   final TextEditingController nameController;
@@ -41,7 +42,7 @@ class ProfileSlide extends StatelessWidget {
             controller: nameController,
             decoration: InputDecoration(
               labelText: l10n.onboardingNameLabel,
-              prefixIcon: const Icon(Icons.person_outline),
+              prefixIcon: const Icon(LucideIcons.user),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -66,7 +67,7 @@ class ProfileSlide extends StatelessWidget {
             child: InputDecorator(
               decoration: InputDecoration(
                 labelText: l10n.onboardingDobLabel,
-                prefixIcon: const Icon(Icons.cake_outlined),
+                prefixIcon: const Icon(LucideIcons.cake),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

@@ -138,7 +138,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                                 /*
                                 leading: entry.key == _topMomentumIndex
                                     ? Icon(
-                                        Icons.trending_up,
+                                        LucideIcons.trending_up,
                                         color: Theme.of(context)
                                             .colorScheme
                                             .primary,

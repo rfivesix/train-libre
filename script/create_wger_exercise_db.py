@@ -279,6 +279,7 @@ def process_and_create_db(
                 "created_by": "system",
                 "source": "base",
                 "image_path": "",
+                "translations_list": [],
             }
 
         target = processed_exercises[exercise_id]
@@ -287,6 +288,13 @@ def process_and_create_db(
         raw_name_en = normalize_text(target.get("name_en"))
         saw_any_non_empty_title_any_lang = bool(raw_name_de or raw_name_en)
 
+        LANGUAGE_ID_MAP = {
+            1: "de",
+            2: "en",
+            4: "fr",
+            5: "it",
+            8: "ja"
+        }
         for t in translations:
             if not isinstance(t, dict):
                 malformed_translation_count += 1
@@ -298,6 +306,17 @@ def process_and_create_db(
 
             if name:
                 saw_any_non_empty_title_any_lang = True
+                lang_code = LANGUAGE_ID_MAP.get(lang)
+                if lang_code:
+                    if "translations_list" not in target:
+                        target["translations_list"] = []
+                    # check if we already added it to avoid duplicates
+                    if not any(x["language_code"] == lang_code for x in target["translations_list"]):
+                        target["translations_list"].append({
+                            "language_code": lang_code,
+                            "name": name,
+                            "description": desc,
+                        })
 
             if lang == 1:
                 if name:
@@ -406,10 +425,6 @@ def process_and_create_db(
         """
       CREATE TABLE exercises (
         id TEXT PRIMARY KEY,
-        name_de TEXT,
-        name_en TEXT,
-        description_de TEXT,
-        description_en TEXT,
         category_name TEXT,
         muscles_primary TEXT,
         muscles_secondary TEXT,
@@ -420,15 +435,23 @@ def process_and_create_db(
       )"""
     )
 
+    cursor.execute(
+        """
+      CREATE TABLE exercise_translations (
+        id TEXT PRIMARY KEY,
+        exercise_id TEXT,
+        language_code TEXT,
+        name TEXT,
+        description TEXT,
+        FOREIGN KEY(exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
+      )"""
+    )
+
     cursor.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)")
     cursor.execute("INSERT INTO metadata VALUES ('version', ?)", (db_version,))
 
     insert_columns = [
         "id",
-        "name_de",
-        "name_en",
-        "description_de",
-        "description_en",
         "category_name",
         "muscles_primary",
         "muscles_secondary",
@@ -441,12 +464,36 @@ def process_and_create_db(
     cursor.executemany(
         """
         INSERT INTO exercises (
-            id, name_de, name_en, description_de, description_en,
-            category_name, muscles_primary, muscles_secondary,
+            id, category_name, muscles_primary, muscles_secondary,
             image_path, is_custom, created_by, source
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         insert_values,
+    )
+
+    # Insert translations
+    translation_values = []
+    for row in final_rows:
+        ex_id = row["id"]
+        # Ensure de and en are written from row["name_de"] / row["name_en"] since they have fallbacks applied
+        if row.get("name_de"):
+            translation_values.append((f"{ex_id}_de", ex_id, "de", row["name_de"], row["description_de"]))
+        if row.get("name_en"):
+            translation_values.append((f"{ex_id}_en", ex_id, "en", row["name_en"], row["description_en"]))
+        
+        # Write other translations
+        for t in row.get("translations_list", []):
+            if t["language_code"] not in ("de", "en"):
+                lang_code = t["language_code"]
+                translation_values.append((f"{ex_id}_{lang_code}", ex_id, lang_code, t["name"], t["description"]))
+                
+    cursor.executemany(
+        """
+        INSERT OR REPLACE INTO exercise_translations (
+            id, exercise_id, language_code, name, description
+        ) VALUES (?, ?, ?, ?, ?)
+        """,
+        translation_values,
     )
 
     conn.commit()

@@ -10,6 +10,16 @@ class UserPreferencesRepository {
     return prefs.getInt('targetSugar');
   }
 
+  Future<int?> getTargetFiber() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('targetFiber');
+  }
+
+  Future<int?> getTargetSalt() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('targetSalt');
+  }
+
   Future<int?> getTargetCaffeine() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt('targetCaffeine');

@@ -5,6 +5,7 @@ import '../../../../services/base_food_language_service.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../domain/models/food_item.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class FoodItemSearchTile extends StatelessWidget {
   final FoodItem item;
@@ -31,11 +32,11 @@ class FoodItemSearchTile extends StatelessWidget {
     IconData sourceIcon;
     switch (item.source) {
       case FoodItemSource.base:
-        sourceIcon = Icons.star;
+        sourceIcon = LucideIcons.star;
         break;
       case FoodItemSource.off:
       case FoodItemSource.user:
-        sourceIcon = Icons.inventory_2;
+        sourceIcon = LucideIcons.archive;
         break;
     }
 
@@ -59,7 +60,7 @@ class FoodItemSearchTile extends StatelessWidget {
         ),
         trailing: IconButton(
           icon: Icon(
-            Icons.add_circle_outline,
+            LucideIcons.circle_plus,
             color: colorScheme.primary,
             size: 28,
           ),

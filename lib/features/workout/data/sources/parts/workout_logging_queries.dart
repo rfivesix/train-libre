@@ -100,15 +100,8 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
 
     // Search for exercise UUID
     String? exerciseUuid;
-    final exRow = await (dbInstance.select(dbInstance.exercises)
-          ..where(
-            (tbl) =>
-                tbl.nameDe.equals(setLog.exerciseName) |
-                tbl.nameEn.equals(setLog.exerciseName),
-          )
-          ..limit(1))
-        .getSingleOrNull();
-    exerciseUuid = exRow?.id;
+    final exercise = await getExerciseByName(setLog.exerciseName);
+    exerciseUuid = exercise?.uuid;
 
     // Keep existing exercise linkage on updates when name-based lookup fails.
     if (setLog.id != null && (exerciseUuid == null || exerciseUuid.isEmpty)) {
@@ -445,23 +438,16 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           // Check exercise mapping (name -> UUID).
           // Search for the exercise in the DB. If custom and present in the backup, it should already be imported.
           final exModel = re.exercise;
-          final exRow = await (dbInstance.select(dbInstance.exercises)
-                ..where(
-                  (tbl) =>
-                      tbl.nameEn.equals(exModel.nameEn) |
-                      tbl.nameDe.equals(exModel.nameDe),
-                )
-                ..limit(1))
-              .getSingleOrNull();
+          final exercise = await getExerciseByName(exModel.nameEn) ?? await getExerciseByName(exModel.nameDe);
 
-          if (exRow == null) continue;
+          if (exercise == null) continue;
 
           final reRow = await dbInstance
               .into(dbInstance.routineExercises)
               .insertReturning(
                 db.RoutineExercisesCompanion(
                   routineId: drift.Value(newRoutineId),
-                  exerciseId: drift.Value(exRow.id),
+                  exerciseId: drift.Value(exercise.uuid!),
                   orderIndex: drift.Value(orderIndex),
                   pauseSeconds: drift.Value(re.pauseSeconds),
                 ),
@@ -496,20 +482,13 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                 );
 
         for (final s in w.sets) {
-          final exRow = await (dbInstance.select(dbInstance.exercises)
-                ..where(
-                  (tbl) =>
-                      tbl.nameEn.equals(s.exerciseName) |
-                      tbl.nameDe.equals(s.exerciseName),
-                )
-                ..limit(1))
-              .getSingleOrNull();
+          final exercise = await getExerciseByName(s.exerciseName);
 
           await dbInstance.into(dbInstance.setLogs).insert(
                 db.SetLogsCompanion(
                   workoutLogId: drift.Value(wRow.id),
                   exerciseNameSnapshot: drift.Value(s.exerciseName),
-                  exerciseId: drift.Value(exRow?.id),
+                  exerciseId: drift.Value(exercise?.uuid),
                   weight: drift.Value(s.weightKg),
                   reps: drift.Value(s.reps),
                   setType: drift.Value(s.setType),
@@ -551,22 +530,16 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
         final newName = entry.value;
 
         // Find the new exercise UUID
-        final exRow = await (dbInstance.select(dbInstance.exercises)
-              ..where(
-                (tbl) =>
-                    tbl.nameEn.equals(newName) | tbl.nameDe.equals(newName),
-              )
-              ..limit(1))
-            .getSingleOrNull();
+        final exercise = await getExerciseByName(newName);
 
-        if (exRow != null) {
+        if (exercise != null) {
           // Update SetLogs
           await (dbInstance.update(
             dbInstance.setLogs,
           )..where((tbl) => tbl.exerciseNameSnapshot.equals(oldName)))
               .write(
             db.SetLogsCompanion(
-              exerciseId: drift.Value(exRow.id),
+              exerciseId: drift.Value(exercise.uuid!),
               exerciseNameSnapshot: drift.Value(newName),
             ),
           );

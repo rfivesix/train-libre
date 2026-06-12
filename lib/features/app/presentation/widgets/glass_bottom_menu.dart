@@ -3,6 +3,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../util/design_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// Represents an action item within a [showGlassBottomMenu].
 class GlassMenuAction {
@@ -97,7 +98,6 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bottomInset = media.viewPadding.bottom;
-
 
     final Color neutralTint = isDark
         ? theme.colorScheme.surface.withValues(alpha: 0.70)
@@ -210,7 +210,6 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               saturation: 1.20,
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: r),
-            quality: GlassQuality.premium,
             child: Stack(
               children: [
                 Positioned.fill(
@@ -337,7 +336,7 @@ class _GlassTile extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Icon(
-            Icons.chevron_right_rounded,
+            LucideIcons.chevron_right,
             size: 22,
             color: Colors.white.withValues(alpha: 0.8),
           ),
@@ -357,7 +356,6 @@ class _GlassTile extends StatelessWidget {
         saturation: 1.20,
       ),
       shape: const LiquidRoundedSuperellipse(borderRadius: 18),
-      quality: GlassQuality.premium,
       child: Material(
         color: Colors.transparent,
         child: InkWell(

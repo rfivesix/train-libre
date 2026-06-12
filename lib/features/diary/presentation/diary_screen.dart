@@ -37,6 +37,8 @@ import 'widgets/food_entry_tile.dart';
 import 'widgets/fluid_entry_tile.dart';
 import 'widgets/recommendation_banner.dart';
 import 'meal_screen.dart';
+import '../../../core/infrastructure/share_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
 ///
@@ -71,9 +73,53 @@ class _DiaryScreenContent extends StatefulWidget {
 }
 
 class DiaryScreenState extends State<_DiaryScreenContent> {
+  final GlobalKey _macroSummaryKey = GlobalKey();
+  final ShareService _shareService = const ShareService();
+
   DiaryViewModel get viewModel => context.read<DiaryViewModel>();
   ValueNotifier<DateTime> get selectedDateNotifier =>
       viewModel.selectedDateNotifier;
+
+  Future<void> showShareMenu() async {
+    final l10n = AppLocalizations.of(context)!;
+    await showGlassBottomMenu<void>(
+      context: context,
+      title: l10n.share,
+      actions: [
+        GlassMenuAction(
+          icon: LucideIcons.image,
+          label: l10n.shareAsImage,
+          onTap: () async {
+            try {
+              await _shareService.shareWidgetAsImage(_macroSummaryKey);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.shareFailed)),
+                );
+              }
+            }
+          },
+        ),
+        GlassMenuAction(
+          icon: LucideIcons.align_horizontal_justify_start,
+          label: '${l10n.shareAsText} / kopieren',
+          onTap: () async {
+            try {
+              await _shareService.shareDailyLogAsText(viewModel.selectedDate,
+                  l10n: l10n);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.shareFailed)),
+                );
+              }
+            }
+          },
+        ),
+      ],
+    );
+  }
 
   void setSelectedDate(DateTime date) {
     context.read<DiaryViewModel>().setSelectedDate(date);
@@ -393,11 +439,10 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     try {
       final savedItems = await DatabaseHelper.instance.getMealItems(newMealId);
       final meals = await DatabaseHelper.instance.getMeals();
-      final created =
-          meals.cast<Map<String, dynamic>?>().firstWhere(
-                (m) => m?['id'] == newMealId,
-                orElse: () => null,
-              );
+      final created = meals.cast<Map<String, dynamic>?>().firstWhere(
+            (m) => m?['id'] == newMealId,
+            orElse: () => null,
+          );
       if (created != null &&
           (created['name'] as String).isEmpty &&
           savedItems.isEmpty) {
@@ -583,7 +628,6 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     context.read<DiaryViewModel>().navigateDay(forward);
   }
 
-
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<DiaryViewModel>();
@@ -604,7 +648,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
     return viewModel.isLoading
         ? const Center(child: CircularProgressIndicator())
-         : RefreshIndicator(
+        : RefreshIndicator(
             onRefresh: () => syncHealthData(forceStepsRefresh: true),
             child: ListView(
               padding: finalPadding,
@@ -616,11 +660,14 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   ),
                 AppSectionHeader(title: l10n.today_overview_text),
                 if (viewModel.dailyNutrition != null)
-                  NutritionSummaryWidget(
-                    nutritionData: viewModel.dailyNutrition!,
-                    l10n: l10n,
-                    isExpandedView: false,
-                    showSugarInOverview: viewModel.showSugarInOverview,
+                  RepaintBoundary(
+                    key: _macroSummaryKey,
+                    child: NutritionSummaryWidget(
+                      nutritionData: viewModel.dailyNutrition!,
+                      l10n: l10n,
+                      isExpandedView: false,
+                      showSugarInOverview: viewModel.showSugarInOverview,
+                    ),
                   ),
 
                 const SizedBox(height: DesignConstants.spacingXS),
@@ -671,7 +718,6 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
           );
   }
 
-
   // Section headers now use the centralized AppSectionHeader widget.
 
   Widget _buildMealCard(
@@ -704,10 +750,11 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             child: Row(
               children: [
                 Expanded(child: Text(title, style: titleStyle)),
-                Icon(isOpen ? Icons.expand_less : Icons.expand_more),
+                Icon(
+                    isOpen ? LucideIcons.chevron_up : LucideIcons.chevron_down),
                 const SizedBox(width: 4),
                 IconButton(
-                  icon: const Icon(Icons.add_circle),
+                  icon: const Icon(LucideIcons.circle_plus),
                   color: theme.colorScheme.primary,
                   onPressed: () => _addFoodToMeal(mealKey),
                   tooltip: l10n.addFoodOption,
@@ -929,16 +976,20 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             }),
             child: Row(
               children: [
+                /*
                 Icon(
-                  Icons.local_drink_outlined,
+                  LucideIcons.glass_water,
                   color: theme.colorScheme.primary,
+                
                 ),
-                const SizedBox(width: 12),
+                */
+                //const SizedBox(width: 12),
                 Expanded(child: Text(l10n.waterHeader, style: titleStyle)),
-                Icon(isOpen ? Icons.expand_less : Icons.expand_more),
+                Icon(
+                    isOpen ? LucideIcons.chevron_up : LucideIcons.chevron_down),
                 const SizedBox(width: 4),
                 IconButton(
-                  icon: const Icon(Icons.add_circle),
+                  icon: const Icon(LucideIcons.circle_plus),
                   color: theme.colorScheme.primary,
                   onPressed: _showAddFluidMenu,
                   tooltip: l10n.addLiquidOption,
@@ -978,8 +1029,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                     fontWeight: FontWeight.w500,
                   ),
                 );
-                },
-
+              },
             ),
           ],
           AnimatedCrossFade(
@@ -1005,7 +1055,6 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       ),
     );
   }
-
 
   String _getLocalizedMealName(AppLocalizations l10n, String key) {
     switch (key) {
@@ -1083,15 +1132,19 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final titleStyle = Theme.of(
+      context,
+    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900);
 
     if (_notifier == null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Text(
+        padding: const EdgeInsets.only(left: 4.0),
+        child: _DiaryDateNavigator(
           l10n.today,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          titleStyle: titleStyle,
+          onPreviousDay: () => widget.diaryKey.currentState?.navigateDay(false),
+          onPickDate: () => widget.diaryKey.currentState?.pickDate(),
+          onNextDay: () => widget.diaryKey.currentState?.navigateDay(true),
         ),
       );
     }
@@ -1101,15 +1154,78 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
       builder: (context, selectedDate, child) {
         final title = _getAppBarTitle(context, l10n, selectedDate);
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
+          padding: const EdgeInsets.only(left: 4.0),
+          child: _DiaryDateNavigator(
             title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+            titleStyle: titleStyle,
+            onPreviousDay: () =>
+                widget.diaryKey.currentState?.navigateDay(false),
+            onPickDate: () => widget.diaryKey.currentState?.pickDate(),
+            onNextDay: () => widget.diaryKey.currentState?.navigateDay(true),
           ),
         );
       },
+    );
+  }
+}
+
+class _DiaryDateNavigator extends StatelessWidget {
+  final String title;
+  final TextStyle? titleStyle;
+  final VoidCallback onPreviousDay;
+  final VoidCallback onPickDate;
+  final VoidCallback onNextDay;
+
+  const _DiaryDateNavigator(
+    this.title, {
+    required this.titleStyle,
+    required this.onPreviousDay,
+    required this.onPickDate,
+    required this.onNextDay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _compactIconButton(
+          icon: LucideIcons.chevron_left,
+          onPressed: onPreviousDay,
+        ),
+        Flexible(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: onPickDate,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: titleStyle,
+              ),
+            ),
+          ),
+        ),
+        _compactIconButton(
+          icon: LucideIcons.chevron_right,
+          onPressed: onNextDay,
+        ),
+      ],
+    );
+  }
+
+  Widget _compactIconButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      icon: Icon(icon),
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 36, height: 48),
+      onPressed: onPressed,
     );
   }
 }

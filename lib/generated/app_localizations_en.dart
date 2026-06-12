@@ -1261,19 +1261,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get settingsUpdateFoodDatabase => 'Update Food Database';
+  String get settingsUpdateFoodDatabase => 'Update Databases';
 
   @override
   String get settingsUpdateFoodDatabaseSubtitle =>
-      'Check for updates to the Open Food Facts database manually.';
+      'Check for updates to the food and exercise databases manually.';
 
   @override
   String get settingsUpdateFoodDatabaseSuccess =>
-      'Food database successfully updated.';
+      'Databases successfully updated.';
 
   @override
   String settingsUpdateFoodDatabaseError(String error) {
-    return 'Error updating database: $error';
+    return 'Error updating databases: $error';
   }
 
   @override
@@ -2160,6 +2160,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionUnitedStates => 'United States (US)';
+
+  @override
+  String get settingsFoodDbRegionFrance => 'France (FR)';
+
+  @override
+  String get settingsFoodDbRegionItaly => 'Italy (IT)';
+
+  @override
+  String get settingsFoodDbRegionJapan => 'Japan (JP)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Colorful Macro Badges';
@@ -4544,6 +4553,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsBaseFoodLanguageGerman => 'German';
 
   @override
+  String get settingsBaseFoodLanguageFrench => 'French';
+
+  @override
+  String get settingsBaseFoodLanguageItalian => 'Italian';
+
+  @override
+  String get settingsBaseFoodLanguageJapanese => 'Japanese';
+
+  @override
   String get aiModelLabel => 'Model';
 
   @override
@@ -4958,4 +4976,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recommendationBannerApply => 'Apply';
+
+  @override
+  String get cancelingAndRollingBack => 'Canceling, rolling back safely...';
+
+  @override
+  String get sleepSyncTitle => 'Syncing Sleep History...';
+
+  @override
+  String get backupExportTitle => 'Exporting Backup...';
+
+  @override
+  String get backupImportTitle => 'Importing Backup...';
+
+  @override
+  String progressImportingNight(int index, int total) {
+    return 'Importing Night $index/$total...';
+  }
+
+  @override
+  String progressExportingTable(String table) {
+    return 'Exporting $table...';
+  }
+
+  @override
+  String progressImportingTable(String table) {
+    return 'Restoring $table...';
+  }
+
+  @override
+  String get shareDailyLogTitle => 'Daily Log';
+
+  @override
+  String get shareSleepStartTime => 'Start time';
+
+  @override
+  String get shareSleepEndTime => 'End time';
+
+  @override
+  String get shareSleepDeep => 'Deep Sleep';
+
+  @override
+  String get shareSleepLight => 'Light Sleep';
+
+  @override
+  String get shareSleepRem => 'REM Sleep';
+
+  @override
+  String get shareSleepAwake => 'Awake/Interruptions';
+
+  @override
+  String get shareTotalWater => 'Total Water/Fluids';
+
+  @override
+  String get shareNutritionSummary => 'Total Nutrition Summary';
+
+  @override
+  String get shareSleepEfficiency => 'Efficiency';
+
+  @override
+  String get shareSleepRestingHeartRate => 'Resting Heart Rate';
 }

@@ -19,6 +19,7 @@ import '../../exercise_catalog/presentation/widgets/wger_attribution_widget.dart
 import 'widgets/edit_routine_exercise_card.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for creating or modifying a [Routine].
 ///
@@ -349,7 +350,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.snackbarRoutineSaved)));
+      ).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.snackbarRoutineSaved)));
       HapticFeedbackService.instance.confirmationFeedback();
       setState(() {
         _canPop = true;
@@ -599,177 +601,190 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
     return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: PopScope(
-        canPop: _canPop,
-        onPopInvokedWithResult: (didPop, result) async {
-          if (didPop) return;
-          _handlePopAttempt(result);
-        },
-        child: Scaffold(
-        extendBodyBehindAppBar: true,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: GlobalAppBar(
-          automaticallyImplyLeading: false,
-          leading: Navigator.of(context).canPop()
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => _handlePopAttempt(),
-                )
-              : null,
-          title: _isNewRoutine ? l10n.titleNewRoutine : l10n.titleEditRoutine,
-        actions: [
-          if (!_isNewRoutine)
-            IconButton(
-              tooltip: l10n.share,
-              icon: const Icon(Icons.ios_share),
-              onPressed: _shareCurrentRoutine,
-            ),
-          TextButton(
-            onPressed: () => _saveRoutine(),
-            child: Text(
-              l10n.save,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Padding(
-                padding: DesignConstants.cardPadding.copyWith(
-                  top: DesignConstants.cardPadding.top + topPadding,
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: PopScope(
+          canPop: _canPop,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
+            _handlePopAttempt(result);
+          },
+          child: Scaffold(
+            extendBodyBehindAppBar: true,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: GlobalAppBar(
+              automaticallyImplyLeading: false,
+              leading: Navigator.of(context).canPop()
+                  ? IconButton(
+                      icon: const Icon(LucideIcons.arrow_left),
+                      onPressed: () => _handlePopAttempt(),
+                    )
+                  : null,
+              title:
+                  _isNewRoutine ? l10n.titleNewRoutine : l10n.titleEditRoutine,
+              actions: [
+                if (!_isNewRoutine)
+                  IconButton(
+                    tooltip: l10n.share,
+                    icon: const Icon(LucideIcons.share),
+                    onPressed: _shareCurrentRoutine,
+                  ),
+                TextButton(
+                  onPressed: () => _saveRoutine(),
+                  child: Text(
+                    l10n.save,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                child: TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(labelText: l10n.formFieldRoutineName),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return l10n.validatorPleaseEnterRoutineName;
-                    }
-                    return null;
-                  },
+              ],
+            ),
+            body: Stack(
+              children: [
+                Column(
+                  children: [
+                    Padding(
+                      padding: DesignConstants.cardPadding.copyWith(
+                        top: DesignConstants.cardPadding.top + topPadding,
+                      ),
+                      child: TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                            labelText: l10n.formFieldRoutineName),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return l10n.validatorPleaseEnterRoutineName;
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                    ),
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _routineExercises.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    l10n.emptyStateAddFirstExercise,
+                                    style: textTheme.titleMedium,
+                                  ),
+                                )
+                              : ReorderableListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  itemCount: _routineExercises.length,
+                                  proxyDecorator: (Widget child, int index,
+                                      Animation<double> anim) {
+                                    return Material(
+                                      elevation: 4.0,
+                                      color: Theme.of(context)
+                                          .scaffoldBackgroundColor,
+                                      child: child,
+                                    );
+                                  },
+                                  onReorder: _onReorder,
+                                  itemBuilder: (context, index) {
+                                    final routineExercise =
+                                        _routineExercises[index];
+                                    final bool isCardio =
+                                        _isCardio(routineExercise);
+
+                                    return EditRoutineExerciseCard(
+                                      key: ValueKey(routineExercise.id),
+                                      routineExercise: routineExercise,
+                                      index: index,
+                                      isCardio: isCardio,
+                                      repsControllers: _repsControllers,
+                                      weightControllers: _weightControllers,
+                                      rirControllers: _rirControllers,
+                                      onEditNotes: () => _editExerciseNotes(
+                                          context, routineExercise),
+                                      onEditPauseTime: () =>
+                                          _editPauseTime(routineExercise),
+                                      onDeleteExercise: () =>
+                                          _deleteSingleExercise(
+                                              routineExercise),
+                                      onAddSet: () => _addSet(routineExercise),
+                                      onShowSetTypePicker: _showSetTypePicker,
+                                      onRemoveSet: (template, listIndex) =>
+                                          _removeSet(routineExercise,
+                                              template.id!, listIndex),
+                                    );
+                                  },
+                                ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
+                      child: WgerAttributionWidget(
+                        textStyle: textTheme.bodySmall
+                            ?.copyWith(color: Colors.grey[600]),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-              ),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _routineExercises.isEmpty
-                        ? Center(
-                            child: Text(
-                              l10n.emptyStateAddFirstExercise,
-                              style: textTheme.titleMedium,
+                // --- Keyboard Done Accessory Bar ---
+                if (MediaQuery.of(context).viewInsets.bottom > 0)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Material(
+                      elevation: 8.0,
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF1E1E1E)
+                              : const Color(0xFFF5F5F7),
+                          border: Border(
+                            top: BorderSide(
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.white10
+                                  : Colors.black12,
+                              width: 0.5,
                             ),
-                          )
-                        : ReorderableListView.builder(
-                            padding: EdgeInsets.zero,
-                            itemCount: _routineExercises.length,
-                            proxyDecorator:
-                                (Widget child, int index, Animation<double> anim) {
-                              return Material(
-                                elevation: 4.0,
-                                color: Theme.of(context).scaffoldBackgroundColor,
-                                child: child,
-                              );
-                            },
-                            onReorder: _onReorder,
-                            itemBuilder: (context, index) {
-                              final routineExercise = _routineExercises[index];
-                              final bool isCardio = _isCardio(routineExercise);
- 
-                              return EditRoutineExerciseCard(
-                                key: ValueKey(routineExercise.id),
-                                routineExercise: routineExercise,
-                                index: index,
-                                isCardio: isCardio,
-                                repsControllers: _repsControllers,
-                                weightControllers: _weightControllers,
-                                rirControllers: _rirControllers,
-                                onEditNotes: () => _editExerciseNotes(context, routineExercise),
-                                onEditPauseTime: () => _editPauseTime(routineExercise),
-                                onDeleteExercise: () => _deleteSingleExercise(routineExercise),
-                                onAddSet: () => _addSet(routineExercise),
-                                onShowSetTypePicker: _showSetTypePicker,
-                                onRemoveSet: (template, listIndex) => _removeSet(routineExercise, template.id!, listIndex),
-                              );
-                            },
                           ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
-                child: WgerAttributionWidget(
-                  textStyle: textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-                ),
-              ),
-            ],
-          ),
-          // --- Keyboard Done Accessory Bar ---
-          if (MediaQuery.of(context).viewInsets.bottom > 0)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Material(
-                elevation: 8.0,
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFF1E1E1E)
-                        : const Color(0xFFF5F5F7),
-                    border: Border(
-                      top: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white10
-                            : Colors.black12,
-                        width: 0.5,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
+                              child: Text(
+                                l10n.doneButtonLabel,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        child: Text(
-                          l10n.doneButtonLabel,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ),
-                    ],
+              ],
+            ),
+            floatingActionButton: MediaQuery.of(context).viewInsets.bottom > 0
+                ? null
+                : GlassFab(
+                    label: l10n.fabAddExercise,
+                    onPressed: _addExercises,
                   ),
-                ),
-              ),
-            ),
-        ],
-      ),
-      floatingActionButton: MediaQuery.of(context).viewInsets.bottom > 0
-          ? null
-          : GlassFab(
-              label: l10n.fabAddExercise,
-              onPressed: _addExercises,
-            ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      ),
-    )
-  );
-}
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          ),
+        ));
+  }
 }

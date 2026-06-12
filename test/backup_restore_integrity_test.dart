@@ -354,8 +354,6 @@ void main() {
     test('workout set metadata is preserved during restore import', () async {
       await db.into(db.exercises).insert(
             const ExercisesCompanion(
-              nameDe: drift.Value('Kniebeuge'),
-              nameEn: drift.Value('Squat'),
               source: drift.Value('base'),
               isCustom: drift.Value(false),
             ),

@@ -12,6 +12,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -132,11 +133,14 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   Future<void> _saveApiKey() async {
     final key = _keyController.text.trim();
 
-    if (_selectedProvider == AiProvider.custom || _selectedProvider == AiProvider.ollama) {
+    if (_selectedProvider == AiProvider.custom ||
+        _selectedProvider == AiProvider.ollama) {
       final baseUrl = _baseUrlController.text.trim();
       final customModel = _customModelController.text.trim();
-      await AiService.instance.setCustomBaseUrl(baseUrl.isNotEmpty ? baseUrl : null);
-      await AiService.instance.setCustomModel(customModel.isNotEmpty ? customModel : null);
+      await AiService.instance
+          .setCustomBaseUrl(baseUrl.isNotEmpty ? baseUrl : null);
+      await AiService.instance
+          .setCustomModel(customModel.isNotEmpty ? customModel : null);
     }
 
     // Don't save the masked placeholder
@@ -176,8 +180,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
 
   Future<void> _refreshModels() async {
     if (!mounted) return;
-    if (_selectedProvider == AiProvider.ollama || _selectedProvider == AiProvider.custom) {
-      final selectedModel = await AiService.instance.getSelectedModel(_selectedProvider);
+    if (_selectedProvider == AiProvider.ollama ||
+        _selectedProvider == AiProvider.custom) {
+      final selectedModel =
+          await AiService.instance.getSelectedModel(_selectedProvider);
       if (!mounted) return;
       setState(() {
         _selectedModel = selectedModel;
@@ -310,7 +316,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 'https://ai.google.dev/gemini-api/docs/api-key'),
                             mode: LaunchMode.externalApplication,
                           ),
-                          icon: const Icon(Icons.open_in_new),
+                          icon: const Icon(LucideIcons.external_link),
                           label: Text(l10n.aiSettingsGetApiKeyButton),
                         ),
                       ],
@@ -332,7 +338,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                             blendMode: BlendMode.srcIn,
                             shaderCallback: (bounds) =>
                                 createAiGradientShader(bounds),
-                            child: const Icon(Icons.auto_awesome),
+                            child: const Icon(LucideIcons.sparkles),
                           ),
                           title: Text(
                             l10n.aiEnableTitle,
@@ -355,27 +361,30 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 vertical: 8,
                               ),
                             ),
-                             items: AiService.instance
-                                 .getSupportedProviders()
-                                 .map(
-                                   (providerMeta) => DropdownMenuItem(
-                                     value: providerMeta.provider,
-                                     child: Text(providerMeta.displayName),
-                                   ),
-                                 )
-                                 .toList(),
+                            items: AiService.instance
+                                .getSupportedProviders()
+                                .map(
+                                  (providerMeta) => DropdownMenuItem(
+                                    value: providerMeta.provider,
+                                    child: Text(providerMeta.displayName),
+                                  ),
+                                )
+                                .toList(),
                             onChanged: _onProviderChanged,
                           ),
                           const SizedBox(height: 10),
-                          if (_selectedProvider != AiProvider.ollama && _selectedProvider != AiProvider.custom) ...[
+                          if (_selectedProvider != AiProvider.ollama &&
+                              _selectedProvider != AiProvider.custom) ...[
                             _isLoadingModels
-                                ? const Center(child: CircularProgressIndicator())
+                                ? const Center(
+                                    child: CircularProgressIndicator())
                                 : DropdownButtonFormField<String>(
                                     initialValue: _selectedModel,
                                     decoration: InputDecoration(
                                       labelText: l10n.aiModelLabel,
                                       border: const OutlineInputBorder(),
-                                      contentPadding: const EdgeInsets.symmetric(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
                                         horizontal: 12,
                                         vertical: 8,
                                       ),
@@ -459,6 +468,18 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 value: AiMatchingLanguage.de,
                                 child: Text('Deutsch'),
                               ),
+                              DropdownMenuItem(
+                                value: AiMatchingLanguage.fr,
+                                child: Text('Français'),
+                              ),
+                              DropdownMenuItem(
+                                value: AiMatchingLanguage.it,
+                                child: Text('Italiano'),
+                              ),
+                              DropdownMenuItem(
+                                value: AiMatchingLanguage.ja,
+                                child: Text('日本語'),
+                              ),
                             ],
                             onChanged: (v) async {
                               if (v == null) return;
@@ -472,19 +493,23 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'Request Timeout',
-                                      style: theme.textTheme.labelLarge?.copyWith(
+                                      style:
+                                          theme.textTheme.labelLarge?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     Text(
                                       '$_timeoutSeconds seconds',
-                                      style: theme.textTheme.labelMedium?.copyWith(
+                                      style:
+                                          theme.textTheme.labelMedium?.copyWith(
                                         color: theme.colorScheme.primary,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -502,7 +527,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 onChanged: (value) async {
                                   final seconds = value.round();
                                   setState(() => _timeoutSeconds = seconds);
-                                  await AiService.instance.setAiTimeoutSeconds(seconds);
+                                  await AiService.instance
+                                      .setAiTimeoutSeconds(seconds);
                                 },
                               ),
                             ],
@@ -530,8 +556,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                     IconButton(
                                       icon: Icon(
                                         _obscureKey
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
+                                            ? LucideIcons.eye_off
+                                            : LucideIcons.eye,
                                       ),
                                       onPressed: () {
                                         setState(
@@ -541,7 +567,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                     if (_hasKey)
                                       IconButton(
                                         icon: const Icon(
-                                          Icons.delete_outline,
+                                          LucideIcons.trash_2,
                                           color: Colors.red,
                                         ),
                                         onPressed: _deleteApiKey,
@@ -557,16 +583,20 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                               Expanded(
                                 child: FilledButton.icon(
                                   onPressed: _saveApiKey,
-                                  icon: const Icon(Icons.save_outlined),
-                                  label: Text(_selectedProvider == AiProvider.ollama
-                                      ? 'Save Settings'
-                                      : l10n.aiSaveKey),
+                                  icon: const Icon(LucideIcons.save),
+                                  label: Text(
+                                      _selectedProvider == AiProvider.ollama
+                                          ? 'Save Settings'
+                                          : l10n.aiSaveKey),
                                 ),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: OutlinedButton.icon(
-                                  onPressed: ((_hasKey || _selectedProvider == AiProvider.ollama) && !_isTesting)
+                                  onPressed: ((_hasKey ||
+                                              _selectedProvider ==
+                                                  AiProvider.ollama) &&
+                                          !_isTesting)
                                       ? _testConnection
                                       : null,
                                   icon: _isTesting
@@ -577,7 +607,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                             strokeWidth: 2,
                                           ),
                                         )
-                                      : const Icon(Icons.wifi_tethering),
+                                      : const Icon(LucideIcons.wifi),
                                   label: Text(l10n.aiTestConnection),
                                 ),
                               ),
@@ -600,7 +630,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          Icons.shield_outlined,
+                          LucideIcons.shield,
                           color: theme.colorScheme.primary,
                           size: 28,
                         ),

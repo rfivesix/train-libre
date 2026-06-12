@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class ExerciseMappingCard extends StatelessWidget {
   const ExerciseMappingCard({
@@ -36,7 +37,7 @@ class ExerciseMappingCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: const Icon(Icons.rule_folder_outlined),
+                icon: const Icon(LucideIcons.folder_check),
                 label: Text(l10n.mapExercisesButton),
                 onPressed: onMapPressed,
               ),

@@ -8,6 +8,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class AppearanceSettingsScreen extends StatelessWidget {
   const AppearanceSettingsScreen({super.key});
@@ -58,7 +59,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
                 if (isAndroid) ...[
                   const Divider(height: 1),
                   SwitchListTile(
-                    secondary: const Icon(Icons.palette_outlined),
+                    secondary: const Icon(LucideIcons.palette),
                     title: Text(
                       l10n.settingsMaterialColorsTitle,
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -71,19 +72,18 @@ class AppearanceSettingsScreen extends StatelessWidget {
                 ],
                 const Divider(height: 1),
                 SwitchListTile(
-                  secondary: const Icon(Icons.vibration_outlined),
+                  secondary: const Icon(LucideIcons.vibrate),
                   title: Text(
                     l10n.settingsHapticFeedbackTitle,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(l10n.settingsHapticFeedbackSubtitle),
                   value: themeService.hapticsEnabled,
-                  onChanged: (value) =>
-                      themeService.setHapticsEnabled(value),
+                  onChanged: (value) => themeService.setHapticsEnabled(value),
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
-                  secondary: const Icon(Icons.style_outlined),
+                  secondary: const Icon(LucideIcons.layers),
                   title: Text(
                     l10n.settingsColorfulMacroBadgesTitle,
                     style: const TextStyle(fontWeight: FontWeight.bold),

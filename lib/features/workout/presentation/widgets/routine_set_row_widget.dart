@@ -6,6 +6,7 @@ import '../../../../services/unit_service.dart';
 import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_template.dart';
 import 'set_type_chip.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class RoutineSetRowWidget extends StatelessWidget {
   final int setIndex;
@@ -183,7 +184,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                 width: 48,
                 child: IconButton(
                   icon: const Icon(
-                    Icons.delete_outline,
+                    LucideIcons.trash_2,
                     color: Colors.redAccent,
                   ),
                   onPressed: onRemoveSet,

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../data/database_helper.dart';
 import '../../../data/drift_database.dart';
+import '../../../util/cancellation_token.dart';
 import '../data/processing/sleep_pipeline_service.dart';
 import '../data/persistence/dao/sleep_canonical_dao.dart';
 import '../data/persistence/dao/sleep_raw_imports_dao.dart';
@@ -34,7 +35,12 @@ class SleepSyncResult {
 }
 
 abstract class SleepImportService {
-  Future<SleepSyncResult> importRecent({int lookbackDays = 30});
+  Future<SleepSyncResult> importRecent({
+    int lookbackDays = 30,
+    bool forceFullSync = false,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
+  });
   Future<SleepSyncResult?> importRecentIfDue({
     int lookbackDays = 30,
     Duration minInterval = const Duration(hours: 6),
@@ -137,7 +143,12 @@ class SleepSyncService implements SleepSettingsService {
   }
 
   @override
-  Future<SleepSyncResult> importRecent({int lookbackDays = 30}) async {
+  Future<SleepSyncResult> importRecent({
+    int lookbackDays = 30,
+    bool forceFullSync = false,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
+  }) async {
     final trackingEnabled = await isTrackingEnabled();
     if (!trackingEnabled) {
       return const SleepSyncResult(
@@ -161,22 +172,26 @@ class SleepSyncService implements SleepSettingsService {
     }
 
     await _ensureDaos();
+    token?.throwIfCancelled();
 
     final nowUtc = DateTime.now().toUtc();
     final latestEndedAt = await _sessionsDao!.findLatestEndedAt();
 
     // Delta-Sync: Use a rolling delta window (72 hours) behind latestEndedAt if available,
     // to capture any updated or corrected sessions. Otherwise, fallback to the full lookback window.
-    var fromUtc = latestEndedAt != null
+    // Standard updates (!forceFullSync) strictly use the 72-hour window if data exists.
+    var fromUtc = (latestEndedAt != null && !forceFullSync)
         ? latestEndedAt.subtract(const Duration(hours: 72))
         : nowUtc.subtract(Duration(days: lookbackDays));
     if (fromUtc.isAfter(nowUtc)) {
       fromUtc = nowUtc.subtract(const Duration(hours: 72));
     }
 
+    token?.throwIfCancelled();
+
     final result = Platform.isIOS
-        ? await _importWithHealthKit(fromUtc: fromUtc, toUtc: nowUtc)
-        : await _importWithHealthConnect(fromUtc: fromUtc, toUtc: nowUtc);
+        ? await _importWithHealthKit(fromUtc: fromUtc, toUtc: nowUtc, token: token, onProgress: onProgress)
+        : await _importWithHealthConnect(fromUtc: fromUtc, toUtc: nowUtc, token: token, onProgress: onProgress);
 
     if (result.success) {
       lastImportAtListenable.value = DateTime.now().toUtc();
@@ -228,6 +243,8 @@ class SleepSyncService implements SleepSettingsService {
   Future<SleepSyncResult> _importWithHealthConnect({
     required DateTime fromUtc,
     required DateTime toUtc,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
   }) async {
     final permissionService = _androidPermissionsService ??
         const HealthConnectSleepPermissionsService(
@@ -238,6 +255,7 @@ class SleepSyncService implements SleepSettingsService {
       dataSource: _androidDataSource ??
           const HealthConnectSleepMethodChannelDataSource(),
     );
+    token?.throwIfCancelled();
     final import = await adapter.importRange(fromUtc: fromUtc, toUtc: toUtc);
     if (!import.isSuccess) {
       return SleepSyncResult(
@@ -247,7 +265,8 @@ class SleepSyncService implements SleepSettingsService {
         message: import.failure?.message,
       );
     }
-    final run = await _runPipelineImport(import.batch!);
+    token?.throwIfCancelled();
+    final run = await _runPipelineImport(import.batch!, token: token, onProgress: onProgress);
     return SleepSyncResult(
       success: true,
       permissionState: SleepPermissionState.ready,
@@ -258,6 +277,8 @@ class SleepSyncService implements SleepSettingsService {
   Future<SleepSyncResult> _importWithHealthKit({
     required DateTime fromUtc,
     required DateTime toUtc,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
   }) async {
     final permissionService = _iosPermissionsService ??
         const HealthKitSleepPermissionsService(
@@ -268,6 +289,7 @@ class SleepSyncService implements SleepSettingsService {
       dataSource:
           _iosDataSource ?? const HealthKitSleepMethodChannelDataSource(),
     );
+    token?.throwIfCancelled();
     final import = await adapter.importRange(fromUtc: fromUtc, toUtc: toUtc);
     if (!import.isSuccess) {
       return SleepSyncResult(
@@ -277,7 +299,8 @@ class SleepSyncService implements SleepSettingsService {
         message: import.failure?.message,
       );
     }
-    final run = await _runPipelineImport(import.batch!);
+    token?.throwIfCancelled();
+    final run = await _runPipelineImport(import.batch!, token: token, onProgress: onProgress);
     return SleepSyncResult(
       success: true,
       permissionState: SleepPermissionState.ready,
@@ -300,11 +323,17 @@ class SleepSyncService implements SleepSettingsService {
   }
 
   Future<SleepPipelineRunResult> _runPipelineImport(
-    SleepRawIngestionBatch batch,
-  ) async {
+    SleepRawIngestionBatch batch, {
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
+  }) async {
     final db = _database ??= await _databaseFuture;
     final pipeline = SleepPipelineService(database: db);
-    return pipeline.runImport(batch: batch);
+    return pipeline.runImport(
+      batch: batch,
+      token: token,
+      onProgress: onProgress,
+    );
   }
 
   @override

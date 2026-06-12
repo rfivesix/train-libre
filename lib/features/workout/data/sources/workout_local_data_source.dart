@@ -96,31 +96,15 @@ class WorkoutLocalDataSource {
     required db.SetLog setRow,
     required db.Exercise? exerciseRow,
   }) {
+    // nameDe/nameEn are no longer flat columns on exercises — use the snapshot
+    // for cardio classification. categoryName is still available.
     return WorkoutClassification.isRecoveryStrengthWorkSet(
       setType: setRow.setType,
       categoryName: exerciseRow?.categoryName,
-      nameDe: exerciseRow?.nameDe,
-      nameEn: exerciseRow?.nameEn,
+      nameDe: null,
+      nameEn: null,
       exerciseNameSnapshot: setRow.exerciseNameSnapshot,
       reps: setRow.reps ?? 0,
-    );
-  }
-
-  /// Maps a Drift exercise row to the app-level [Exercise] model.
-  Exercise _mapExerciseToModel(db.Exercise row) {
-    return Exercise(
-      id: row.localId,
-      uuid: row.id,
-      source: row.source,
-      replacesExerciseId: row.replacesExerciseId,
-      nameDe: row.nameDe,
-      nameEn: row.nameEn,
-      descriptionDe: row.descriptionDe ?? '',
-      descriptionEn: row.descriptionEn ?? '',
-      categoryName: row.categoryName ?? 'Other',
-      imagePath: row.imagePath,
-      primaryMuscles: _parseMuscleList(row.musclesPrimary),
-      secondaryMuscles: _parseMuscleList(row.musclesSecondary),
     );
   }
 

@@ -6,6 +6,8 @@ import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
 import 'package:train_libre/features/workout/presentation/edit_routine_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:drift/native.dart';
@@ -68,7 +70,7 @@ void main() {
     await openScreen(tester);
 
     // Tap the back button
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byIcon(LucideIcons.arrow_left));
     await tester.pumpAndSettle();
 
     // The screen should pop without a sheet
@@ -84,7 +86,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap the back button
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byIcon(LucideIcons.arrow_left));
     await tester.pumpAndSettle();
 
     // The sheet should appear
@@ -111,7 +113,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap the back button
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byIcon(LucideIcons.arrow_left));
     await tester.pumpAndSettle();
 
     // The sheet should appear

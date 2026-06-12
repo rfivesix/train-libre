@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A premium, glassmorphic sliding banner that celebrates personal records (PRs).
 class PrCelebrationBanner extends StatelessWidget {
@@ -50,7 +51,8 @@ class PrCelebrationBanner extends StatelessWidget {
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: backgroundColor,
                   borderRadius: BorderRadius.circular(16),
@@ -76,7 +78,7 @@ class PrCelebrationBanner extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
-                          Icons.emoji_events,
+                          LucideIcons.trophy,
                           color: Colors.amber,
                           size: 20,
                         ),
@@ -100,7 +102,8 @@ class PrCelebrationBanner extends StatelessWidget {
                                   TextSpan(
                                     text: diffText,
                                     style: TextStyle(
-                                      color: Colors.amber.withValues(alpha: 0.8),
+                                      color:
+                                          Colors.amber.withValues(alpha: 0.8),
                                       fontSize: 14,
                                     ),
                                   ),

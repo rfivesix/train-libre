@@ -9,6 +9,7 @@ import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/frosted_container.dart';
 import '../../../util/design_constants.dart';
 import 'terms_of_service_screen.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class LegalScreen extends StatefulWidget {
   const LegalScreen({super.key});
@@ -202,15 +203,15 @@ class _LegalScreenState extends State<LegalScreen> {
                     child: Text(
                       l10n.terms_of_service,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                        height: 1.25,
-                      ),
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                            height: 1.25,
+                          ),
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingM),
                   Icon(
-                    Icons.arrow_forward_ios,
+                    LucideIcons.chevron_right,
                     color: Theme.of(context).colorScheme.primary,
                     size: DesignConstants.iconSizeS,
                   ),
@@ -227,7 +228,7 @@ class _LegalScreenState extends State<LegalScreen> {
     return ElevatedButton.icon(
       onPressed: () =>
           _handleLink('https://rfivesix.github.io/train-libre/privacy-policy/'),
-      icon: const Icon(Icons.open_in_browser),
+      icon: const Icon(LucideIcons.globe),
       label: Text(l10n.view_in_browser),
       style: ElevatedButton.styleFrom(
         minimumSize: const Size.fromHeight(56),
@@ -290,8 +291,8 @@ class _LegalAccordionState extends State<_LegalAccordion> {
                     const SizedBox(width: DesignConstants.spacingM),
                     Icon(
                       _isExpanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
+                          ? LucideIcons.chevron_up
+                          : LucideIcons.chevron_down,
                       color: theme.colorScheme.primary,
                       size: DesignConstants.iconSizeL,
                     ),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A single row representing a set within an exercise log.
 /// Supports both view mode and edit mode (via nullable text controllers).
@@ -123,7 +124,7 @@ class WorkoutLogSetRow extends StatelessWidget {
                 ),
         ),
         const SizedBox(width: 8),
- 
+
         // 3. INPUT 2: REPS / TIME
         Expanded(
           flex: 2,
@@ -154,7 +155,7 @@ class WorkoutLogSetRow extends StatelessWidget {
                 ),
         ),
         const SizedBox(width: 8),
- 
+
         // 4. INPUT 3: RIR / INTENSITY
         Expanded(
           flex: 2,
@@ -197,12 +198,12 @@ class WorkoutLogSetRow extends StatelessWidget {
             child: isEditMode
                 ? IconButton(
                     icon: const Icon(
-                      Icons.delete_outline,
+                      LucideIcons.trash_2,
                       color: Colors.redAccent,
                     ),
                     onPressed: onDelete,
                   )
-                : const Icon(Icons.check_circle, color: Colors.green),
+                : const Icon(LucideIcons.circle_check, color: Colors.green),
           ),
         ),
       ],
@@ -320,7 +321,7 @@ class WorkoutLogSetRow extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
-            Icons.emoji_events,
+            LucideIcons.trophy,
             color: Colors.amber,
             size: 14,
           ),

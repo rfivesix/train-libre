@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class LocalDataDeletionCard extends StatelessWidget {
   const LocalDataDeletionCard({
@@ -39,7 +40,7 @@ class LocalDataDeletionCard extends StatelessWidget {
               width: double.infinity,
               child: FilledButton.icon(
                 key: const Key('delete_all_local_app_data_button'),
-                icon: const Icon(Icons.delete_forever_outlined),
+                icon: const Icon(LucideIcons.trash_2),
                 label: Text(l10n.deleteAllLocalAppData),
                 style: FilledButton.styleFrom(
                   backgroundColor: theme.colorScheme.error,

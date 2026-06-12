@@ -574,4 +574,59 @@ void main() {
       await db.close();
     },
   );
+
+  test(
+    'pipeline allows non-enveloping overlaps to coexist (e.g. nap starting before main sleep ends)',
+    () async {
+      final db = AppDatabase(
+        NativeDatabase.memory(
+          setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+        ),
+      );
+      final service = SleepPipelineService(database: db);
+
+      // 1. Main Sleep: 22:00 to 06:00 (8 hours)
+      final mainSleep = SleepRawIngestionBatch(
+        sessions: [
+          SleepIngestionSession(
+            recordId: 'main-sleep',
+            startAtUtc: DateTime.utc(2026, 3, 1, 22),
+            endAtUtc: DateTime.utc(2026, 3, 2, 6),
+            platformSessionType: 'sleep',
+            sourcePlatform: 'healthkit',
+          ),
+        ],
+        stageSegments: const [],
+        heartRateSamples: const [],
+      );
+
+      // 2. Overlapping Nap: 05:30 to 07:00 (1.5 hours) - overlaps but not enveloped
+      final overlappingNap = SleepRawIngestionBatch(
+        sessions: [
+          SleepIngestionSession(
+            recordId: 'overlapping-nap',
+            startAtUtc: DateTime.utc(2026, 3, 2, 5, 30),
+            endAtUtc: DateTime.utc(2026, 3, 2, 7),
+            platformSessionType: 'sleep',
+            sourcePlatform: 'healthkit',
+          ),
+        ],
+        stageSegments: const [],
+        heartRateSamples: const [],
+      );
+
+      await service.runImport(batch: mainSleep);
+      final secondResult = await service.runImport(batch: overlappingNap);
+
+      // In the new logic, both should be imported because neither envelopes the other
+      expect(secondResult.importedSessions, 1);
+
+      final sessions = await db
+          .customSelect('SELECT COUNT(*) c FROM sleep_canonical_sessions')
+          .getSingle();
+      expect(sessions.read<int>('c'), 2);
+
+      await db.close();
+    },
+  );
 }

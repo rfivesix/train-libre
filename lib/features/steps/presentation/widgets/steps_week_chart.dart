@@ -7,6 +7,7 @@ import '../../domain/steps_models.dart';
 import 'horizontal_guide_painter.dart';
 import 'steps_chart_utils.dart';
 import 'steps_insight_pill.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class StepsWeekChart extends StatelessWidget {
   const StepsWeekChart({
@@ -183,7 +184,7 @@ class StepsWeekChart extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(3),
                                       ),
                                       child: const Icon(
-                                        Icons.check,
+                                        LucideIcons.check,
                                         size: 10,
                                         color: Colors.white,
                                       ),

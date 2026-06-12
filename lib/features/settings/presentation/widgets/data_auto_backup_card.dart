@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class DataAutoBackupCard extends StatelessWidget {
   const DataAutoBackupCard({
@@ -54,7 +55,7 @@ class DataAutoBackupCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.folder_open),
+                    icon: const Icon(LucideIcons.folder_open),
                     label: Text(l10n.autoBackupChooseFolder),
                     onPressed: onPickDirectory,
                   ),
@@ -62,7 +63,7 @@ class DataAutoBackupCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.copy),
+                    icon: const Icon(LucideIcons.copy),
                     label: Text(l10n.autoBackupCopyPath),
                     onPressed: (autoBackupDir == null || autoBackupDir!.isEmpty)
                         ? null
@@ -75,7 +76,7 @@ class DataAutoBackupCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: const Icon(Icons.backup),
+                icon: const Icon(LucideIcons.cloud_upload),
                 label: Text(l10n.autoBackupRunNow),
                 onPressed: onRunNow,
               ),

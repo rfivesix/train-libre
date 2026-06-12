@@ -190,7 +190,8 @@
     "placeholders": {
       "count": {
         "type": "int"
-      }
+      },
+      "No": {}
     }
   },
   "workoutNotFound": "Workout nicht gefunden.",
@@ -494,10 +495,10 @@
   "profile_capslock": "PROFIL",
   "settings_capslock": "EINSTELLUNGEN",
   "settingsTitle": "Einstellungen",
-  "settingsUpdateFoodDatabase": "Lebensmittel-Datenbank aktualisieren",
-  "settingsUpdateFoodDatabaseSubtitle": "Manuell nach Updates für die Open Food Facts Datenbank suchen.",
-  "settingsUpdateFoodDatabaseSuccess": "Lebensmittel-Datenbank erfolgreich aktualisiert.",
-  "settingsUpdateFoodDatabaseError": "Fehler beim Aktualisieren: {error}",
+  "settingsUpdateFoodDatabase": "Datenbanken aktualisieren",
+  "settingsUpdateFoodDatabaseSubtitle": "Prüfe manuell auf Aktualisierungen für die Lebensmittel- und Übungsdatenbanken.",
+  "settingsUpdateFoodDatabaseSuccess": "Datenbanken erfolgreich aktualisiert.",
+  "settingsUpdateFoodDatabaseError": "Fehler beim Aktualisieren der Datenbanken: {error}",
   "@settingsUpdateFoodDatabaseError": {
     "placeholders": {
       "error": {
@@ -731,7 +732,7 @@
   "autoBackupChooseFolder": "Ordner wählen",
   "autoBackupCopyPath": "Pfad kopieren",
   "autoBackupRunNow": "Jetzt Auto-Backup prüfen & ausführen",
-  "autoBackupRequestAccessSubtitle": "Train Libre benötigt die Berechtigung, die Backup-Datei in das von dir gewählte Verzeichnis zu schreiben.",
+  "autoBackupRequestAccessSubtitle": "Um deine Daten automatisch zu sichern, benötigt Train Libre Zugriff auf einen von dir gewählten Ordner. Deine Backups werden dort gespeichert.",
   "snackbarAutoBackupSuccess": "Auto-Backup durchgeführt.",
   "snackbarAutoBackupFailed": "Auto-Backup fehlgeschlagen oder abgebrochen.",
   "localDataDeletionCardTitle": "Lokale App-Daten",
@@ -777,7 +778,6 @@
   "workoutSummaryTitle": "Workout Abgeschlossen",
   "workoutSummaryExerciseOverview": "Übersicht der Übungen",
   "nutritionDiary": "Ernährungstagebuch",
-  "delete_profile_picture_button": "Profilbild löschen",
   "detailedNutrientGoals": "Detail-Nährwerte",
   "detailedNutrientGoalsCL": "DETAIL-NÄHRWERTE",
   "supplementTrackerTitle": "Supplement-Tracker",
@@ -785,7 +785,7 @@
   "createSupplementTitle": "Supplement erstellen",
   "supplementNameLabel": "Name des Supplements",
   "defaultDoseLabel": "Standard-Dosis",
-  "unitLabel": "Einheit (z.B. g, mg)",
+  "unitLabel": "Einheit",
   "dailyGoalLabel": "Tagesziel (optional)",
   "dailyLimitLabel": "Tageslimit (optional)",
   "dailyProgressTitle": "Tagesfortschritt",
@@ -799,7 +799,6 @@
   "themeSystem": "System",
   "themeLight": "Hell",
   "themeDark": "Dunkel",
-  "doseLabel": "Dosis",
   "caffeinePrompt": "Koffein (optional)",
   "caffeineUnit": "mg pro 100ml",
   "profile": "Profil",
@@ -825,7 +824,6 @@
   "emptySupplements": "Noch keine Supplements vorhanden",
   "undo": "Rückgängig",
   "deleteSupplementConfirm": "Möchtest du dieses Supplement wirklich löschen? Alle historischen Daten gehen verloren.\n\nTipp: Du kannst stattdessen auch einfach das Tracking beenden, indem du das Supplement bearbeitest.",
-  "unitLabel": "Einheit",
   "fieldRequired": "Pflichtfeld",
   "unitNotSupported": "Einheit wird nicht unterstützt.",
   "caffeineUnitLocked": "Bei Koffein ist die Einheit fest: mg.",
@@ -836,10 +834,10 @@
   "searchSectionBase": "Grundnahrungsmittel",
   "searchSectionOther": "Weitere Treffer",
   "mealsComingSoonTitle": "Mahlzeiten (in Vorbereitung)",
-  "mealsComingSoonBody": "Bald kannst du eigene Mahlzeiten aus mehreren Lebensmitteln zusammenstellen und mit einem Tap hinzufügen.",
+  "mealsComingSoonBody": "Bald kannst du eigene Mahlzeiten aus mehreren Lebensmitteln zusammenstellen.",
   "mealsEmptyTitle": "Keine Mahlzeiten gespeichert",
   "mealsEmptyBody": "Lege Mahlzeiten an, um mehrere Lebensmittel mit einem Klick einzutragen.",
-  "mealsEmptyBodyWithShortcut": "Nutze im Tagebuch die Option \u201eAls Mahlzeit sichern\u201c unter deinem Fr\u00fchst\u00fcck oder Abendessen, um h\u00e4ufige Lebensmittel-Kombinationen als schnelle Vorlage zu speichern.",
+  "mealsEmptyBodyWithShortcut": "Nutze im Tagebuch die Option „Als Mahlzeit sichern“ unter deinem Frühstück oder Abendessen, um häufige Lebensmittel-Kombinationen als schnelle Vorlage zu speichern.",
   "mealsCreateManually": "Mahlzeit manuell erstellen",
   "saveMealTemplateShortcut": "Als Mahlzeit sichern",
   "mealsCreate": "Mahlzeit erstellen",
@@ -856,8 +854,6 @@
   "mealAddedToDiary": "Mahlzeit '{name}' wurde ins Tagebuch übernommen.",
   "mealSaved": "Mahlzeit gespeichert.",
   "mealDeleted": "Mahlzeit gelöscht.",
-  "mealsComingSoonTitle": "Mahlzeiten (in Vorbereitung)",
-  "mealsComingSoonBody": "Bald kannst du eigene Mahlzeiten aus mehreren Lebensmitteln zusammenstellen.",
   "confirm": "bestätigen",
   "addMealToDiaryTitle": "Zum Tagebuch hinzufügen",
   "mealTypeLabel": "Mahlzeit",
@@ -890,6 +886,9 @@
   "settingsFoodDbRegionGermany": "Deutschland (DE)",
   "settingsFoodDbRegionSwitzerland": "Schweiz (CH)",
   "settingsFoodDbRegionUnitedStates": "Vereinigte Staaten (US)",
+  "settingsFoodDbRegionFrance": "Frankreich (FR)",
+  "settingsFoodDbRegionItaly": "Italien (IT)",
+  "settingsFoodDbRegionJapan": "Japan (JP)",
   "settingsColorfulMacroBadgesTitle": "Bunte Nährwert-Badges",
   "settingsColorfulMacroBadgesSubtitle": "Nutzt das farbcodierte Badge-Design aus der KI-Prüfung auch im Tagebuch.",
   "settingsFoodDbRegionUnitedKingdom": "Vereinigtes Königreich (UK)",
@@ -2032,7 +2031,8 @@
     "placeholders": {
       "count": {
         "type": "int"
-      }
+      },
+      "No": {}
     }
   },
   "pulseQualityReady": "Gute Abdeckung",
@@ -2075,6 +2075,9 @@
   "settingsBaseFoodLanguageFollowApp": "App-Sprache verwenden",
   "settingsBaseFoodLanguageEnglish": "Englisch",
   "settingsBaseFoodLanguageGerman": "Deutsch",
+  "settingsBaseFoodLanguageFrench": "Französisch",
+  "settingsBaseFoodLanguageItalian": "Italienisch",
+  "settingsBaseFoodLanguageJapanese": "Japanisch",
   "aiModelLabel": "Modell",
   "autoBackupStoragePickerUnavailable": "Speicherordner-Auswahl nicht verfügbar. Bitte die App nach dem Update vollständig neu starten/neu installieren.",
   "autoBackupFolderPickerFailed": "Ordnerauswahl fehlgeschlagen: {error}",
@@ -2162,7 +2165,6 @@
   "accept_and_get_started": "Akzeptieren & Loslegen",
   "about_section": "Über",
   "legal_section": "Rechtliches",
-  "autoBackupRequestAccessSubtitle": "Um deine Daten automatisch zu sichern, benötigt Train Libre Zugriff auf einen von dir gewählten Ordner. Deine Backups werden dort gespeichert.",
   "aiSettingsInstructionTitle": "Wie die KI-Mahlzeitenerkennung funktioniert",
   "aiSettingsInstructionBody": "Diese Funktion nutzt KI zur Analyse von Lebensmittelbildern und liefert Nährwertschätzungen. Deine Bilder werden nur dann an den ausgewählten KI-Anbieter gesendet, wenn du die Funktion nutzt. Sie basiert auf einer Bring-Your-Own-Key (BYOK)-Architektur, wodurch deine Daten lokal auf dem Gerät bleiben, bis sie analysiert werden.",
   "aiSettingsSetupGuideTitle": "Einrichtungs-Anleitung",
@@ -2218,10 +2220,18 @@
   "tdeeRecalculationNotificationBody": "Neue Zielwerte: {calories} kcal | {protein}g Protein | {carbs}g Kohlenhydrate | {fat}g Fett",
   "@tdeeRecalculationNotificationBody": {
     "placeholders": {
-      "calories": { "type": "int" },
-      "protein": { "type": "int" },
-      "carbs": { "type": "int" },
-      "fat": { "type": "int" }
+      "calories": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
     }
   },
   "recommendationBannerText": "Neue Zielwerte verfügbar ({delta} kcal).",
@@ -2232,5 +2242,47 @@
       }
     }
   },
-  "recommendationBannerApply": "Anwenden"
+  "recommendationBannerApply": "Anwenden",
+  "cancelingAndRollingBack": "Abbrechen, sicheres Zurückrollen...",
+  "sleepSyncTitle": "Schlafdaten synchronisieren...",
+  "backupExportTitle": "Backup exportieren...",
+  "backupImportTitle": "Backup importieren...",
+  "progressImportingNight": "Importiere Nacht {index}/{total}...",
+  "@progressImportingNight": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "progressExportingTable": "Exportiere {table}...",
+  "@progressExportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "progressImportingTable": "Stelle {table} wieder her...",
+  "@progressImportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "shareDailyLogTitle": "Tagesprotokoll",
+  "shareSleepStartTime": "Einschlafzeit",
+  "shareSleepEndTime": "Aufwachzeit",
+  "shareSleepDeep": "Tiefschlaf",
+  "shareSleepLight": "Leichtschlaf",
+  "shareSleepRem": "REM-Schlaf",
+  "shareSleepAwake": "Wach/Unterbrechungen",
+  "shareTotalWater": "Flüssigkeitszufuhr gesamt",
+  "shareNutritionSummary": "Ernährungszusammenfassung",
+  "shareSleepEfficiency": "Effizienz",
+  "shareSleepRestingHeartRate": "Ruhepuls"
 }

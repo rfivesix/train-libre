@@ -7,6 +7,9 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_it.dart';
+import 'app_localizations_ja.dart';
 
 // ignore_for_file: type=lint
 
@@ -95,7 +98,10 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('de'),
-    Locale('en')
+    Locale('en'),
+    Locale('fr'),
+    Locale('it'),
+    Locale('ja')
   ];
 
   /// No description provided for @appTitle.
@@ -2255,25 +2261,25 @@ abstract class AppLocalizations {
   /// No description provided for @settingsUpdateFoodDatabase.
   ///
   /// In en, this message translates to:
-  /// **'Update Food Database'**
+  /// **'Update Databases'**
   String get settingsUpdateFoodDatabase;
 
   /// No description provided for @settingsUpdateFoodDatabaseSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Check for updates to the Open Food Facts database manually.'**
+  /// **'Check for updates to the food and exercise databases manually.'**
   String get settingsUpdateFoodDatabaseSubtitle;
 
   /// No description provided for @settingsUpdateFoodDatabaseSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Food database successfully updated.'**
+  /// **'Databases successfully updated.'**
   String get settingsUpdateFoodDatabaseSuccess;
 
   /// No description provided for @settingsUpdateFoodDatabaseError.
   ///
   /// In en, this message translates to:
-  /// **'Error updating database: {error}'**
+  /// **'Error updating databases: {error}'**
   String settingsUpdateFoodDatabaseError(String error);
 
   /// No description provided for @settingsGuidedTourSectionTitle.
@@ -3931,6 +3937,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'United States (US)'**
   String get settingsFoodDbRegionUnitedStates;
+
+  /// No description provided for @settingsFoodDbRegionFrance.
+  ///
+  /// In en, this message translates to:
+  /// **'France (FR)'**
+  String get settingsFoodDbRegionFrance;
+
+  /// No description provided for @settingsFoodDbRegionItaly.
+  ///
+  /// In en, this message translates to:
+  /// **'Italy (IT)'**
+  String get settingsFoodDbRegionItaly;
+
+  /// No description provided for @settingsFoodDbRegionJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Japan (JP)'**
+  String get settingsFoodDbRegionJapan;
 
   /// No description provided for @settingsColorfulMacroBadgesTitle.
   ///
@@ -7986,6 +8010,24 @@ abstract class AppLocalizations {
   /// **'German'**
   String get settingsBaseFoodLanguageGerman;
 
+  /// No description provided for @settingsBaseFoodLanguageFrench.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get settingsBaseFoodLanguageFrench;
+
+  /// No description provided for @settingsBaseFoodLanguageItalian.
+  ///
+  /// In en, this message translates to:
+  /// **'Italian'**
+  String get settingsBaseFoodLanguageItalian;
+
+  /// No description provided for @settingsBaseFoodLanguageJapanese.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese'**
+  String get settingsBaseFoodLanguageJapanese;
+
   /// No description provided for @aiModelLabel.
   ///
   /// In en, this message translates to:
@@ -8736,6 +8778,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get recommendationBannerApply;
+
+  /// No description provided for @cancelingAndRollingBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Canceling, rolling back safely...'**
+  String get cancelingAndRollingBack;
+
+  /// No description provided for @sleepSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing Sleep History...'**
+  String get sleepSyncTitle;
+
+  /// No description provided for @backupExportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting Backup...'**
+  String get backupExportTitle;
+
+  /// No description provided for @backupImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing Backup...'**
+  String get backupImportTitle;
+
+  /// No description provided for @progressImportingNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing Night {index}/{total}...'**
+  String progressImportingNight(int index, int total);
+
+  /// No description provided for @progressExportingTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting {table}...'**
+  String progressExportingTable(String table);
+
+  /// No description provided for @progressImportingTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring {table}...'**
+  String progressImportingTable(String table);
+
+  /// No description provided for @shareDailyLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Log'**
+  String get shareDailyLogTitle;
+
+  /// No description provided for @shareSleepStartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time'**
+  String get shareSleepStartTime;
+
+  /// No description provided for @shareSleepEndTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End time'**
+  String get shareSleepEndTime;
+
+  /// No description provided for @shareSleepDeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep Sleep'**
+  String get shareSleepDeep;
+
+  /// No description provided for @shareSleepLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light Sleep'**
+  String get shareSleepLight;
+
+  /// No description provided for @shareSleepRem.
+  ///
+  /// In en, this message translates to:
+  /// **'REM Sleep'**
+  String get shareSleepRem;
+
+  /// No description provided for @shareSleepAwake.
+  ///
+  /// In en, this message translates to:
+  /// **'Awake/Interruptions'**
+  String get shareSleepAwake;
+
+  /// No description provided for @shareTotalWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Water/Fluids'**
+  String get shareTotalWater;
+
+  /// No description provided for @shareNutritionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Nutrition Summary'**
+  String get shareNutritionSummary;
+
+  /// No description provided for @shareSleepEfficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency'**
+  String get shareSleepEfficiency;
+
+  /// No description provided for @shareSleepRestingHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Resting Heart Rate'**
+  String get shareSleepRestingHeartRate;
 }
 
 class _AppLocalizationsDelegate
@@ -8749,7 +8899,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['de', 'en'].contains(locale.languageCode);
+      <String>['de', 'en', 'fr', 'it', 'ja'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -8762,6 +8912,12 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'it':
+      return AppLocalizationsIt();
+    case 'ja':
+      return AppLocalizationsJa();
   }
 
   throw FlutterError(

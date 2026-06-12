@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/date_util.dart';
 import '../../domain/models/food_item.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class ConfirmLogMealBottomSheet extends StatefulWidget {
   final String mealName;
@@ -100,7 +101,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TextButton.icon(
-              icon: const Icon(Icons.calendar_today, size: 18),
+              icon: const Icon(LucideIcons.calendar, size: 18),
               label: Text(formattedDate),
               onPressed: () async {
                 final picked = await showDatePicker(
@@ -123,7 +124,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
               },
             ),
             TextButton.icon(
-              icon: const Icon(Icons.access_time, size: 18),
+              icon: const Icon(LucideIcons.clock, size: 18),
               label: Text(formattedTime),
               onPressed: () async {
                 final picked = await showTimePicker(
@@ -198,7 +199,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.only(top: 18),
-                    child: Icon(Icons.lunch_dining, size: 20),
+                    child: Icon(LucideIcons.sandwich, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -211,9 +212,10 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                         labelText: displayName,
                         suffixText: unit,
                         filled: true,
-                        fillColor: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.black.withValues(alpha: 0.05),
+                        fillColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -258,7 +260,8 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                     finalQuantities[bc] = qty;
                   }
 
-                  widget.onSave(_selectedDate, _selectedMealType, finalQuantities);
+                  widget.onSave(
+                      _selectedDate, _selectedMealType, finalQuantities);
                   widget.onClose();
                   Navigator.of(context).pop(true);
                 },

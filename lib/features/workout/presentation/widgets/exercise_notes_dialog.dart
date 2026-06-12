@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class ExerciseNotesDialog extends StatefulWidget {
   final String? initialNotes;
@@ -63,10 +64,11 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
         const SizedBox(height: 16),
         Row(
           children: [
-            if (widget.initialNotes != null && widget.initialNotes!.isNotEmpty) ...[
+            if (widget.initialNotes != null &&
+                widget.initialNotes!.isNotEmpty) ...[
               IconButton(
                 icon: Icon(
-                  Icons.delete_outline,
+                  LucideIcons.trash_2,
                   color: Theme.of(context).colorScheme.error,
                 ),
                 tooltip: "Notiz löschen",

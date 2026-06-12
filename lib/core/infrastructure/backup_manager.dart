@@ -24,6 +24,7 @@ import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../features/diary/domain/models/food_item.dart';
 import '../../features/app/domain/models/train_libre_backup.dart';
 import '../../util/encryption_util.dart';
+import '../../util/cancellation_token.dart';
 import '../../features/diary/data/sources/product_local_data_source.dart';
 import '../../services/storage/saf_storage_service.dart';
 
@@ -96,13 +97,33 @@ class BackupManager {
         0, 0, math.max(1, logicalSize.width), math.max(1, logicalSize.height));
   }
 
-  Future<Map<String, dynamic>> generateBackupPayload() async {
+  Future<Map<String, dynamic>> generateBackupPayload([
+    CancellationToken? token,
+    void Function(String tableName, double progress)? onProgress,
+  ]) async {
+    token?.throwIfCancelled();
+    onProgress?.call('food_entries', 0.05);
     final dbInst = _dbHelper.dbInstance;
     final foodEntries = await _diaryDb.getAllFoodEntries();
+    token?.throwIfCancelled();
+
+    onProgress?.call('meals', 0.10);
     final mealTemplates = await _mealDb.getMealTemplatesForBackup();
+    token?.throwIfCancelled();
+
+    onProgress?.call('water', 0.15);
     final fluidEntries = await _diaryDb.getAllFluidEntries();
+    token?.throwIfCancelled();
+
+    onProgress?.call('favorites', 0.20);
     final favoriteBarcodes = await _productDb.getFavoriteBarcodes();
+    token?.throwIfCancelled();
+
+    onProgress?.call('measurements', 0.25);
     final measurementSessions = await _profileDb.getMeasurementSessions();
+    token?.throwIfCancelled();
+
+    onProgress?.call('food_items', 0.30);
     final customProductRows = await (dbInst.select(dbInst.products)
           ..where((t) => t.source.equals('user')))
         .get();
@@ -122,12 +143,29 @@ class BackupManager {
             isLiquid: row.isLiquid,
             category: row.category))
         .toList();
-    final routines = await _workoutDb.getAllRoutinesWithDetails();
-    final workoutLogs = await _workoutDb.getFullWorkoutLogs();
-    final supplements = await _supplementDb.getAllSupplements();
-    final supplementLogs = await _supplementDb.getAllSupplementLogsForBackup();
-    final customExercises = await _workoutDb.getCustomExercises();
+    token?.throwIfCancelled();
 
+    onProgress?.call('routines', 0.35);
+    final routines = await _workoutDb.getAllRoutinesWithDetails();
+    token?.throwIfCancelled();
+
+    onProgress?.call('workouts', 0.40);
+    final workoutLogs = await _workoutDb.getFullWorkoutLogs();
+    token?.throwIfCancelled();
+
+    onProgress?.call('supplements', 0.45);
+    final supplements = await _supplementDb.getAllSupplements();
+    token?.throwIfCancelled();
+
+    onProgress?.call('supplement_logs', 0.50);
+    final supplementLogs = await _supplementDb.getAllSupplementLogsForBackup();
+    token?.throwIfCancelled();
+
+    onProgress?.call('exercises', 0.55);
+    final customExercises = await _workoutDb.getCustomExercises();
+    token?.throwIfCancelled();
+
+    onProgress?.call('goals', 0.60);
     final goalsHistoryRows =
         await dbInst.select(dbInst.dailyGoalsHistory).get();
     final dailyGoalsHistory = goalsHistoryRows
@@ -141,7 +179,9 @@ class BackupManager {
               'createdAt': r.createdAt.toIso8601String(),
             })
         .toList();
+    token?.throwIfCancelled();
 
+    onProgress?.call('supplement_settings', 0.65);
     final suppHistoryRows =
         await dbInst.select(dbInst.supplementSettingsHistory).join([
       drift.leftOuterJoin(
@@ -163,7 +203,9 @@ class BackupManager {
         'createdAt': sHistory.createdAt.toIso8601String(),
       };
     }).toList();
+    token?.throwIfCancelled();
 
+    onProgress?.call('settings', 0.70);
     final settingsRows = await (dbInst.select(dbInst.appSettings)
           ..orderBy([
             (t) => drift.OrderingTerm(
@@ -184,7 +226,9 @@ class BackupManager {
             'targetSteps': settingsRow.targetSteps,
           }
         : null;
+    token?.throwIfCancelled();
 
+    onProgress?.call('profile', 0.75);
     final profileRows = await (dbInst.select(dbInst.profiles)
           ..orderBy([
             (t) => drift.OrderingTerm(
@@ -204,7 +248,9 @@ class BackupManager {
             'profileImagePath': profileRow.profileImagePath,
           }
         : null;
+    token?.throwIfCancelled();
 
+    onProgress?.call('steps', 0.80);
     final healthStepRows = await dbInst.select(dbInst.healthStepSegments).get();
     final healthStepSegments = healthStepRows
         .map((r) => {
@@ -216,6 +262,7 @@ class BackupManager {
               'externalKey': r.externalKey,
             })
         .toList();
+    token?.throwIfCancelled();
 
     final prefs = await _prefsLoader();
     final userPrefs = <String, dynamic>{
@@ -247,17 +294,38 @@ class BackupManager {
     payload['backupFilePrefix'] = currentBackupFilePrefix;
     payload['generatedAtUtc'] = DateTime.now().toUtc().toIso8601String();
 
+    onProgress?.call('sleep_raw_imports', 0.85);
     payload['sleep_raw_imports'] = await _fetchTable('sleep_raw_imports');
+    token?.throwIfCancelled();
+
+    onProgress?.call('sleep_sessions', 0.88);
     payload['sleep_canonical_sessions'] = await _fetchTable('sleep_canonical_sessions');
+    token?.throwIfCancelled();
+
+    onProgress?.call('sleep_stages', 0.90);
     payload['sleep_canonical_stage_segments'] = await _fetchTable('sleep_canonical_stage_segments');
+    token?.throwIfCancelled();
+
+    onProgress?.call('sleep_hr', 0.92);
     payload['sleep_canonical_heart_rate_samples'] = await _fetchTable('sleep_canonical_heart_rate_samples');
+    token?.throwIfCancelled();
+
+    onProgress?.call('sleep_analyses', 0.94);
     payload['sleep_nightly_analyses'] = await _fetchTable('sleep_nightly_analyses');
+    token?.throwIfCancelled();
+
+    onProgress?.call('pulse_data', 0.96);
     payload['pulse_hourly_aggregates'] = await _fetchTable('pulse_hourly_aggregates');
     payload['pulse_aggregate_metadata'] = await _fetchTable('pulse_aggregate_metadata');
+    token?.throwIfCancelled();
+
+    onProgress?.call('cardio_data', 0.98);
     payload['cardio_activities'] = await _fetchTable('cardio_activities');
     payload['cardio_samples'] = await _fetchTable('cardio_samples');
     payload['user_food_overrides'] = await _fetchTable('user_food_overrides');
+    token?.throwIfCancelled();
 
+    onProgress?.call('done', 1.0);
     return payload;
   }
 
@@ -274,29 +342,50 @@ class BackupManager {
   Future<Map<String, dynamic>> generateBackupPayloadForTesting() =>
       generateBackupPayload();
 
-  Future<String> _generateBackupJson() async {
-    final payload = await generateBackupPayload();
+  Future<String> _generateBackupJson([
+    CancellationToken? token,
+    void Function(String tableName, double progress)? onProgress,
+  ]) async {
+    final payload = await generateBackupPayload(token, onProgress);
+    token?.throwIfCancelled();
     return compute(jsonEncode, payload);
   }
 
-  Future<bool> exportFullBackup() async {
+  Future<bool> exportFullBackup([
+    CancellationToken? token,
+    void Function(String tableName, double progress)? onProgress,
+  ]) async {
     try {
-      final jsonString = await _generateBackupJson();
+      final jsonString = await _generateBackupJson(token, onProgress);
+      token?.throwIfCancelled();
       return await _writeAndShareFile(jsonString, currentBackupFilePrefix);
     } catch (e) {
+      if (e is OperationCanceledException) {
+        rethrow;
+      }
       return false;
     }
   }
 
-  Future<bool> exportFullBackupEncrypted(String passphrase) async {
+  Future<bool> exportFullBackupEncrypted(
+    String passphrase, [
+    CancellationToken? token,
+    void Function(String tableName, double progress)? onProgress,
+  ]) async {
     try {
-      final jsonString = await _generateBackupJson();
+      final jsonString = await _generateBackupJson(token, onProgress);
+      token?.throwIfCancelled();
       final wrapper =
           await EncryptionUtil.encryptString(jsonString, passphrase);
+      token?.throwIfCancelled();
       final wrappedJson = await compute(jsonEncode, wrapper);
+      token?.throwIfCancelled();
       return await _writeAndShareFile(
           wrappedJson, '$currentBackupFilePrefix-enc');
     } catch (e) {
+      if (e is OperationCanceledException) {
+        rethrow;
+      }
       return false;
     }
   }
@@ -317,10 +406,19 @@ class BackupManager {
     return res.status == ShareResultStatus.success;
   }
 
-  Future<bool> importFullBackupAuto(String filePath,
-      {String? passphrase}) async {
+  Future<bool> importFullBackupAuto(
+    String filePath, {
+    String? passphrase,
+    CancellationToken? token,
+    void Function(String tableName, double progress)? onProgress,
+  }) async {
     try {
+      token?.throwIfCancelled();
+      onProgress?.call('reading_backup', 0.0);
       final raw = await File(filePath).readAsString();
+      token?.throwIfCancelled();
+
+      onProgress?.call('decrypting_backup', 0.05);
       final jsonMapRaw = await compute(jsonDecode, raw) as Map<String, dynamic>;
       Map<String, dynamic> payload;
       if (jsonMapRaw['enc'] != null) {
@@ -330,8 +428,12 @@ class BackupManager {
       } else {
         payload = jsonMapRaw;
       }
-      return await _importBackupPayload(payload);
+      token?.throwIfCancelled();
+      return await _importBackupPayload(payload, token, onProgress);
     } catch (e) {
+      if (e is OperationCanceledException) {
+        rethrow;
+      }
       return false;
     }
   }
@@ -446,7 +548,11 @@ class BackupManager {
     return sanitized;
   }
 
-  Future<bool> _importBackupPayload(Map<String, dynamic> payload) async {
+  Future<bool> _importBackupPayload(
+    Map<String, dynamic> payload, [
+    CancellationToken? token,
+    void Function(String tableName, double progress)? onProgress,
+  ]) async {
     if (!_isAcceptedBackupMetadata(payload)) {
       debugPrint('Backup metadata rejected.');
       return false;
@@ -454,277 +560,398 @@ class BackupManager {
 
     final backup = TrainLibreBackup.fromJson(payload);
     final prefs = await _prefsLoader();
-    await prefs.clear();
-    await _dbHelper.clearAllUserData();
-    await _workoutDb.clearAllWorkoutData();
+
+    // Capture the original preference state to rollback on failure
+    final originalPrefs = <String, dynamic>{};
+    for (final key in prefs.getKeys()) {
+      originalPrefs[key] = prefs.get(key);
+    }
 
     final dbInst = _dbHelper.dbInstance;
-    await (dbInst.delete(
-      dbInst.products,
-    )..where((t) => t.source.equals('user')))
-        .go();
+    bool success = false;
 
-    for (final entry in backup.userPreferences.entries) {
-      final k = entry.key, v = entry.value;
-      if (v is bool) {
-        await prefs.setBool(k, v);
-      } else if (v is int) {
-        await prefs.setInt(k, v);
-      } else if (v is double) {
-        await prefs.setDouble(k, v);
-      } else if (v is String) {
-        await prefs.setString(k, v);
-      } else if (v is List && v.every((e) => e is String)) {
-        await prefs.setStringList(k, v.cast<String>());
-      }
-    }
+    try {
+      token?.throwIfCancelled();
+      onProgress?.call('preferences', 0.10);
+      await prefs.clear();
 
-    await _dbHelper.importUserData(
-        foodEntries: backup.foodEntries,
-        fluidEntries: backup.fluidEntries,
-        favoriteBarcodes: backup.favoriteBarcodes,
-        measurementSessions: backup.measurementSessions,
-        supplements: backup.supplements,
-        supplementLogs: backup.supplementLogs);
+      await dbInst.transaction(() async {
+        // Defer foreign key checks so tables can be cleared and populated in any order safely
+        await dbInst.customStatement('PRAGMA defer_foreign_keys = ON');
 
-    await dbInst.batch((batch) {
-      for (final item in backup.customFoodItems) {
-        batch.insert(
-          dbInst.products,
-          db.ProductsCompanion(
-            barcode: drift.Value(item.barcode),
-            name: drift.Value(item.name),
-            brand: drift.Value(item.brand),
-            calories: drift.Value(item.calories),
-            protein: drift.Value(item.protein),
-            carbs: drift.Value(item.carbs),
-            fat: drift.Value(item.fat),
-            sugar: drift.Value(item.sugar),
-            fiber: drift.Value(item.fiber),
-            salt: drift.Value(item.salt),
-            source: const drift.Value('user'),
-            isLiquid: drift.Value(item.isLiquid ?? false),
-            category: drift.Value(item.category),
-            id: drift.Value(
-              item.barcode.startsWith('user_')
-                  ? item.barcode
-                  : 'user_${item.barcode}',
-            ),
-            caffeine: drift.Value(item.caffeineMgPer100ml),
-            caffeineMgPer100g: drift.Value(item.caffeineMgPer100g),
-            isFluid: drift.Value(item.isFluid),
-            nameDe: drift.Value(item.nameDe),
-            nameEn: drift.Value(item.nameEn),
-            ingredientsText: drift.Value(item.ingredientsText),
-            ingredientsAnalysisTags: drift.Value(item.ingredientsAnalysisTags != null ? jsonEncode(item.ingredientsAnalysisTags) : null),
-            additivesTags: drift.Value(item.additivesTags != null ? jsonEncode(item.additivesTags) : null),
-            productQuantity: drift.Value(item.productQuantity),
-            productQuantityUnit: drift.Value(item.productQuantityUnit),
-          ),
-          mode: drift.InsertMode.insertOrReplace,
-        );
-      }
-    });
+        token?.throwIfCancelled();
+        onProgress?.call('clear_database', 0.15);
 
-    await _mealDb.importMealTemplates(backup.mealTemplates);
-    await _workoutDb.importWorkoutData(
-        routines: backup.routines, workoutLogs: backup.workoutLogs);
-    await _workoutDb.importCustomExercises(backup.customExercises);
+        // Clear dynamic sleep and pulse tables first
+        await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
+        await dbInst.customStatement('DELETE FROM sleep_canonical_stage_segments');
+        await dbInst.customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
+        await dbInst.customStatement('DELETE FROM sleep_canonical_sessions');
+        await dbInst.customStatement('DELETE FROM sleep_raw_imports');
+        await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
+        await dbInst.customStatement('DELETE FROM pulse_aggregate_metadata');
+        await dbInst.customStatement('DELETE FROM user_food_overrides');
+        await dbInst.delete(dbInst.cardioSamples).go();
+        await dbInst.delete(dbInst.cardioActivities).go();
 
-    // Import DailyGoalsHistory
-    if (backup.dailyGoalsHistory.isNotEmpty) {
-      for (final row in backup.dailyGoalsHistory) {
-        final targetCalories = _asInt(row['targetCalories']);
-        final targetProtein = _asInt(row['targetProtein']);
-        final targetCarbs = _asInt(row['targetCarbs']);
-        final targetFat = _asInt(row['targetFat']);
-        final targetWater = _asInt(row['targetWater']);
-        final createdAt = _asDateTime(row['createdAt']);
-        if (targetCalories == null ||
-            targetProtein == null ||
-            targetCarbs == null ||
-            targetFat == null ||
-            targetWater == null ||
-            createdAt == null) {
-          debugPrint(
-            'Skipping malformed daily_goals_history row during backup import.',
-          );
-          continue;
-        }
-        await dbInst.into(dbInst.dailyGoalsHistory).insert(
-              db.DailyGoalsHistoryCompanion(
-                targetCalories: drift.Value(targetCalories),
-                targetProtein: drift.Value(targetProtein),
-                targetCarbs: drift.Value(targetCarbs),
-                targetFat: drift.Value(targetFat),
-                targetWater: drift.Value(targetWater),
-                targetSteps: drift.Value(
-                  _asInt(row['targetSteps']) ?? 8000,
-                ),
-                createdAt: drift.Value(createdAt),
-              ),
-              mode: drift.InsertMode.insertOrReplace,
-            );
-      }
-    }
+        // Clear general user tables
+        await dbInst.delete(dbInst.dailyGoalsHistory).go();
+        await dbInst.delete(dbInst.supplementSettingsHistory).go();
+        await dbInst.customStatement('DELETE FROM health_step_segments');
+        await dbInst.customStatement('DELETE FROM health_export_records');
+        await dbInst.delete(dbInst.supplementLogs).go();
+        await dbInst.delete(dbInst.fluidLogs).go();
+        await dbInst.delete(dbInst.nutritionLogs).go();
+        await dbInst.delete(dbInst.measurements).go();
+        await dbInst.delete(dbInst.mealItems).go();
+        await dbInst.delete(dbInst.favorites).go();
+        await dbInst.delete(dbInst.supplements).go();
+        await dbInst.delete(dbInst.meals).go();
+        await dbInst.delete(dbInst.appSettings).go();
+        await dbInst.delete(dbInst.profiles).go();
+        await (dbInst.delete(dbInst.products)..where((t) => t.source.equals('user'))).go();
 
-    // Import SupplementSettingsHistory
-    if (backup.supplementSettingsHistory.isNotEmpty) {
-      final supplementRows = await dbInst.select(dbInst.supplements).get();
-      final validSupplementIds = supplementRows.map((s) => s.id).toSet();
-      final supplementIdByLegacyLocalId = <String, String>{
-        for (final row in supplementRows) row.localId.toString(): row.id,
-      };
-      await dbInst.batch((batch) {
-        for (final row in backup.supplementSettingsHistory) {
-          final supplementIdRaw = row['supplementId']?.toString().trim();
-          final legacyLocalIdRaw = row['supplementLegacyLocalId'];
-          final legacyLocalId = _asInt(legacyLocalIdRaw)?.toString() ??
-              legacyLocalIdRaw?.toString().trim();
-          final mappedId = (supplementIdRaw != null &&
-                  validSupplementIds.contains(supplementIdRaw))
-              ? supplementIdRaw
-              : (legacyLocalId != null
-                  ? supplementIdByLegacyLocalId[legacyLocalId]
-                  : null);
-          final isTracked = _asBool(row['isTracked']);
-          final dose = _asDouble(row['dose']);
-          final createdAt = _asDateTime(row['createdAt']);
-          if (mappedId == null ||
-              isTracked == null ||
-              dose == null ||
-              createdAt == null) {
-            debugPrint(
-              'Skipping malformed supplement_settings_history row during backup import.',
-            );
-            continue;
+        // Clear workout tables
+        await dbInst.delete(dbInst.setLogs).go();
+        await dbInst.delete(dbInst.workoutLogs).go();
+        await dbInst.delete(dbInst.routineSetTemplates).go();
+        await dbInst.delete(dbInst.routineExercises).go();
+        await dbInst.delete(dbInst.routines).go();
+        await (dbInst.delete(dbInst.exercises)..where((tbl) => tbl.isCustom.equals(true))).go();
+
+        token?.throwIfCancelled();
+        onProgress?.call('preferences', 0.25);
+
+        for (final entry in backup.userPreferences.entries) {
+          final k = entry.key, v = entry.value;
+          if (v is bool) {
+            await prefs.setBool(k, v);
+          } else if (v is int) {
+            await prefs.setInt(k, v);
+          } else if (v is double) {
+            await prefs.setDouble(k, v);
+          } else if (v is String) {
+            await prefs.setString(k, v);
+          } else if (v is List && v.every((e) => e is String)) {
+            await prefs.setStringList(k, v.cast<String>());
           }
-          batch.insert(
-            dbInst.supplementSettingsHistory,
-            db.SupplementSettingsHistoryCompanion(
-              supplementId: drift.Value(mappedId),
-              isTracked: drift.Value(isTracked),
-              dose: drift.Value(dose),
-              dailyGoal: drift.Value(_asDouble(row['dailyGoal'])),
-              dailyLimit: drift.Value(_asDouble(row['dailyLimit'])),
-              createdAt: drift.Value(createdAt),
-            ),
-            mode: drift.InsertMode.insertOrReplace,
-          );
         }
-      });
-    }
+        token?.throwIfCancelled();
 
-    String? restoredUserId;
+        onProgress?.call('user_data', 0.35);
+        await _dbHelper.importUserData(
+            foodEntries: backup.foodEntries,
+            fluidEntries: backup.fluidEntries,
+            favoriteBarcodes: backup.favoriteBarcodes,
+            measurementSessions: backup.measurementSessions,
+            supplements: backup.supplements,
+            supplementLogs: backup.supplementLogs);
+        token?.throwIfCancelled();
 
-    // Import Profile
-    if (backup.profile != null) {
-      final p = backup.profile!;
-      final profileId = p['id']?.toString().trim();
-      if (profileId != null && profileId.isNotEmpty) {
-        restoredUserId = profileId;
-        await dbInst.into(dbInst.profiles).insert(
-              db.ProfilesCompanion(
-                id: drift.Value(profileId),
-                username: drift.Value(p['username']?.toString()),
-                isCoach: drift.Value(_asBool(p['isCoach']) ?? false),
-                visibility: drift.Value(
-                  p['visibility']?.toString() ?? 'private',
+        onProgress?.call('custom_foods', 0.50);
+        await dbInst.batch((batch) {
+          for (final item in backup.customFoodItems) {
+            batch.insert(
+              dbInst.products,
+              db.ProductsCompanion(
+                barcode: drift.Value(item.barcode),
+                name: drift.Value(item.name),
+                brand: drift.Value(item.brand),
+                calories: drift.Value(item.calories),
+                protein: drift.Value(item.protein),
+                carbs: drift.Value(item.carbs),
+                fat: drift.Value(item.fat),
+                sugar: drift.Value(item.sugar),
+                fiber: drift.Value(item.fiber),
+                salt: drift.Value(item.salt),
+                source: const drift.Value('user'),
+                isLiquid: drift.Value(item.isLiquid ?? false),
+                category: drift.Value(item.category),
+                id: drift.Value(
+                  item.barcode.startsWith('user_')
+                      ? item.barcode
+                      : 'user_${item.barcode}',
                 ),
-                birthday: drift.Value(_asDateTime(p['birthday'])),
-                height: drift.Value(_asInt(p['height'])),
-                gender: drift.Value(p['gender']?.toString()),
-                profileImagePath: drift.Value(
-                  p['profileImagePath']?.toString(),
-                ),
+                caffeine: drift.Value(item.caffeineMgPer100ml),
+                caffeineMgPer100g: drift.Value(item.caffeineMgPer100g),
+                isFluid: drift.Value(item.isFluid),
+                nameDe: drift.Value(item.nameDe),
+                nameEn: drift.Value(item.nameEn),
+                ingredientsText: drift.Value(item.ingredientsText),
+                ingredientsAnalysisTags: drift.Value(item.ingredientsAnalysisTags != null ? jsonEncode(item.ingredientsAnalysisTags) : null),
+                additivesTags: drift.Value(item.additivesTags != null ? jsonEncode(item.additivesTags) : null),
+                productQuantity: drift.Value(item.productQuantity),
+                productQuantityUnit: drift.Value(item.productQuantityUnit),
               ),
               mode: drift.InsertMode.insertOrReplace,
             );
-      }
-    }
+          }
+        });
+        token?.throwIfCancelled();
 
-    // Import AppSettings
-    if (backup.appSettings != null) {
-      final s = backup.appSettings!;
-      final candidateUserId = s['userId']?.toString().trim();
-      if (restoredUserId == null &&
-          candidateUserId != null &&
-          candidateUserId.isNotEmpty) {
-        restoredUserId = candidateUserId;
-      }
+        onProgress?.call('meals', 0.60);
+        await _mealDb.importMealTemplates(backup.mealTemplates);
+        token?.throwIfCancelled();
 
-      if (restoredUserId != null) {
-        final userId = restoredUserId;
-        final existingProfile = await (dbInst.select(
-          dbInst.profiles,
-        )..where((t) => t.id.equals(userId)))
-            .getSingleOrNull();
+        onProgress?.call('workouts', 0.70);
+        await _workoutDb.importWorkoutData(
+            routines: backup.routines, workoutLogs: backup.workoutLogs);
+        token?.throwIfCancelled();
 
-        // Ensure FK target exists even when profile payload is absent.
-        if (existingProfile == null) {
-          await dbInst.into(dbInst.profiles).insert(
-                db.ProfilesCompanion(
-                  id: drift.Value(userId),
-                  visibility: const drift.Value('private'),
-                  isCoach: const drift.Value(false),
+        onProgress?.call('custom_exercises', 0.80);
+        await _workoutDb.importCustomExercises(backup.customExercises);
+        token?.throwIfCancelled();
+
+        // Import DailyGoalsHistory
+        if (backup.dailyGoalsHistory.isNotEmpty) {
+          onProgress?.call('goals_history', 0.85);
+          for (final row in backup.dailyGoalsHistory) {
+            final targetCalories = _asInt(row['targetCalories']);
+            final targetProtein = _asInt(row['targetProtein']);
+            final targetCarbs = _asInt(row['targetCarbs']);
+            final targetFat = _asInt(row['targetFat']);
+            final targetWater = _asInt(row['targetWater']);
+            final createdAt = _asDateTime(row['createdAt']);
+            if (targetCalories == null ||
+                targetProtein == null ||
+                targetCarbs == null ||
+                targetFat == null ||
+                targetWater == null ||
+                createdAt == null) {
+              debugPrint(
+                'Skipping malformed daily_goals_history row during backup import.',
+              );
+              continue;
+            }
+            await dbInst.into(dbInst.dailyGoalsHistory).insert(
+                  db.DailyGoalsHistoryCompanion(
+                    targetCalories: drift.Value(targetCalories),
+                    targetProtein: drift.Value(targetProtein),
+                    targetCarbs: drift.Value(targetCarbs),
+                    targetFat: drift.Value(targetFat),
+                    targetWater: drift.Value(targetWater),
+                    targetSteps: drift.Value(
+                      _asInt(row['targetSteps']) ?? 8000,
+                    ),
+                    createdAt: drift.Value(createdAt),
+                  ),
+                  mode: drift.InsertMode.insertOrReplace,
+                );
+          }
+        }
+        token?.throwIfCancelled();
+
+        // Import SupplementSettingsHistory
+        if (backup.supplementSettingsHistory.isNotEmpty) {
+          onProgress?.call('supplement_history', 0.88);
+          final supplementRows = await dbInst.select(dbInst.supplements).get();
+          final validSupplementIds = supplementRows.map((s) => s.id).toSet();
+          final supplementIdByLegacyLocalId = <String, String>{
+            for (final row in supplementRows) row.localId.toString(): row.id,
+          };
+          await dbInst.batch((batch) {
+            for (final row in backup.supplementSettingsHistory) {
+              final supplementIdRaw = row['supplementId']?.toString().trim();
+              final legacyLocalIdRaw = row['supplementLegacyLocalId'];
+              final legacyLocalId = _asInt(legacyLocalIdRaw)?.toString() ??
+                  legacyLocalIdRaw?.toString().trim();
+              final mappedId = (supplementIdRaw != null &&
+                      validSupplementIds.contains(supplementIdRaw))
+                  ? supplementIdRaw
+                  : (legacyLocalId != null
+                      ? supplementIdByLegacyLocalId[legacyLocalId]
+                      : null);
+              final isTracked = _asBool(row['isTracked']);
+              final dose = _asDouble(row['dose']);
+              final createdAt = _asDateTime(row['createdAt']);
+              if (mappedId == null ||
+                  isTracked == null ||
+                  dose == null ||
+                  createdAt == null) {
+                debugPrint(
+                  'Skipping malformed supplement_settings_history row during backup import.',
+                );
+                continue;
+              }
+              batch.insert(
+                dbInst.supplementSettingsHistory,
+                db.SupplementSettingsHistoryCompanion(
+                  supplementId: drift.Value(mappedId),
+                  isTracked: drift.Value(isTracked),
+                  dose: drift.Value(dose),
+                  dailyGoal: drift.Value(_asDouble(row['dailyGoal'])),
+                  dailyLimit: drift.Value(_asDouble(row['dailyLimit'])),
+                  createdAt: drift.Value(createdAt),
                 ),
                 mode: drift.InsertMode.insertOrReplace,
               );
+            }
+          });
         }
+        token?.throwIfCancelled();
 
-        await dbInst.into(dbInst.appSettings).insert(
-              db.AppSettingsCompanion(
-                userId: drift.Value(userId),
-                themeMode: drift.Value(s['themeMode']?.toString() ?? 'system'),
-                unitSystem:
-                    drift.Value(s['unitSystem']?.toString() ?? 'metric'),
-                targetCalories: drift.Value(
-                  _asInt(s['targetCalories']) ?? 2500,
-                ),
-                targetProtein: drift.Value(_asInt(s['targetProtein']) ?? 180),
-                targetCarbs: drift.Value(_asInt(s['targetCarbs']) ?? 250),
-                targetFat: drift.Value(_asInt(s['targetFat']) ?? 80),
-                targetWater: drift.Value(_asInt(s['targetWater']) ?? 3000),
-                targetSteps: drift.Value(
-                  _asInt(s['targetSteps']) ?? 8000,
-                ),
-              ),
-              mode: drift.InsertMode.insertOrReplace,
-            );
-      }
-    }
+        String? restoredUserId;
 
-    if (backup.healthStepSegments.isNotEmpty) {
-      final sanitizedSegments = _sanitizeHealthSegments(
-        backup.healthStepSegments,
-      );
-      if (sanitizedSegments.isNotEmpty) {
-        final companions = sanitizedSegments.map((row) {
-          return db.HealthStepSegmentsCompanion.insert(
-            provider: row['provider'],
-            sourceId: drift.Value(row['sourceId']),
-            startAt: DateTime.parse(row['startAt']),
-            endAt: DateTime.parse(row['endAt']),
-            stepCount: row['stepCount'],
-            externalKey: row['externalKey'],
+        // Import Profile
+        if (backup.profile != null) {
+          onProgress?.call('profile', 0.90);
+          final p = backup.profile!;
+          final profileId = p['id']?.toString().trim();
+          if (profileId != null && profileId.isNotEmpty) {
+            restoredUserId = profileId;
+            await dbInst.into(dbInst.profiles).insert(
+                  db.ProfilesCompanion(
+                    id: drift.Value(profileId),
+                    username: drift.Value(p['username']?.toString()),
+                    isCoach: drift.Value(_asBool(p['isCoach']) ?? false),
+                    visibility: drift.Value(
+                      p['visibility']?.toString() ?? 'private',
+                    ),
+                    birthday: drift.Value(_asDateTime(p['birthday'])),
+                    height: drift.Value(_asInt(p['height'])),
+                    gender: drift.Value(p['gender']?.toString()),
+                    profileImagePath: drift.Value(
+                      p['profileImagePath']?.toString(),
+                    ),
+                  ),
+                  mode: drift.InsertMode.insertOrReplace,
+                );
+          }
+        }
+        token?.throwIfCancelled();
+
+        // Import AppSettings
+        if (backup.appSettings != null) {
+          onProgress?.call('settings', 0.92);
+          final s = backup.appSettings!;
+          final candidateUserId = s['userId']?.toString().trim();
+          if (restoredUserId == null &&
+              candidateUserId != null &&
+              candidateUserId.isNotEmpty) {
+            restoredUserId = candidateUserId;
+          }
+
+          if (restoredUserId != null) {
+            final userId = restoredUserId;
+            final existingProfile = await (dbInst.select(
+              dbInst.profiles,
+            )..where((t) => t.id.equals(userId)))
+                .getSingleOrNull();
+
+            // Ensure FK target exists even when profile payload is absent.
+            if (existingProfile == null) {
+              await dbInst.into(dbInst.profiles).insert(
+                    db.ProfilesCompanion(
+                      id: drift.Value(userId),
+                      visibility: const drift.Value('private'),
+                      isCoach: const drift.Value(false),
+                    ),
+                    mode: drift.InsertMode.insertOrReplace,
+                  );
+            }
+
+            await dbInst.into(dbInst.appSettings).insert(
+                  db.AppSettingsCompanion(
+                    userId: drift.Value(userId),
+                    themeMode: drift.Value(s['themeMode']?.toString() ?? 'system'),
+                    unitSystem:
+                        drift.Value(s['unitSystem']?.toString() ?? 'metric'),
+                    targetCalories: drift.Value(
+                      _asInt(s['targetCalories']) ?? 2500,
+                    ),
+                    targetProtein: drift.Value(_asInt(s['targetProtein']) ?? 180),
+                    targetCarbs: drift.Value(_asInt(s['targetCarbs']) ?? 250),
+                    targetFat: drift.Value(_asInt(s['targetFat']) ?? 80),
+                    targetWater: drift.Value(_asInt(s['targetWater']) ?? 3000),
+                    targetSteps: drift.Value(
+                      _asInt(s['targetSteps']) ?? 8000,
+                    ),
+                  ),
+                  mode: drift.InsertMode.insertOrReplace,
+                );
+          }
+        }
+        token?.throwIfCancelled();
+
+        if (backup.healthStepSegments.isNotEmpty) {
+          onProgress?.call('health_steps', 0.94);
+          final sanitizedSegments = _sanitizeHealthSegments(
+            backup.healthStepSegments,
           );
-        }).toList();
-        await _stepsDb.upsertHealthStepSegments(companions);
+          if (sanitizedSegments.isNotEmpty) {
+            final companions = sanitizedSegments.map((row) {
+              return db.HealthStepSegmentsCompanion.insert(
+                provider: row['provider'],
+                sourceId: drift.Value(row['sourceId']),
+                startAt: DateTime.parse(row['startAt']),
+                endAt: DateTime.parse(row['endAt']),
+                stepCount: row['stepCount'],
+                externalKey: row['externalKey'],
+              );
+            }).toList();
+            await _stepsDb.upsertHealthStepSegments(companions);
+          }
+        }
+        token?.throwIfCancelled();
+
+        // Restore dynamic sleep/pulse/cardio tables
+        onProgress?.call('sleep_raw_imports', 0.95);
+        await _importTable('sleep_raw_imports', payload['sleep_raw_imports']);
+        token?.throwIfCancelled();
+
+        onProgress?.call('sleep_sessions', 0.96);
+        await _importTable('sleep_canonical_sessions', payload['sleep_canonical_sessions']);
+        token?.throwIfCancelled();
+
+        onProgress?.call('sleep_stages', 0.97);
+        await _importTable('sleep_canonical_stage_segments', payload['sleep_canonical_stage_segments']);
+        token?.throwIfCancelled();
+
+        onProgress?.call('sleep_hr', 0.98);
+        await _importTable('sleep_canonical_heart_rate_samples', payload['sleep_canonical_heart_rate_samples']);
+        token?.throwIfCancelled();
+
+        onProgress?.call('sleep_analyses', 0.99);
+        await _importTable('sleep_nightly_analyses', payload['sleep_nightly_analyses']);
+        token?.throwIfCancelled();
+
+        onProgress?.call('pulse_data', 0.995);
+        await _importTable('pulse_hourly_aggregates', payload['pulse_hourly_aggregates']);
+        await _importTable('pulse_aggregate_metadata', payload['pulse_aggregate_metadata']);
+        token?.throwIfCancelled();
+
+        onProgress?.call('cardio_data', 0.999);
+        await _importTable('cardio_activities', payload['cardio_activities']);
+        await _importTable('cardio_samples', payload['cardio_samples']);
+        await _importTable('user_food_overrides', payload['user_food_overrides']);
+        token?.throwIfCancelled();
+      });
+      success = true;
+    } catch (e) {
+      debugPrint('Backup import failed: $e');
+
+      // Rollback preferences state on failure or cancellation
+      await prefs.clear();
+      for (final entry in originalPrefs.entries) {
+        final k = entry.key, v = entry.value;
+        if (v is bool) {
+          await prefs.setBool(k, v);
+        } else if (v is int) {
+          await prefs.setInt(k, v);
+        } else if (v is double) {
+          await prefs.setDouble(k, v);
+        } else if (v is String) {
+          await prefs.setString(k, v);
+        } else if (v is List && v.every((e) => e is String)) {
+          await prefs.setStringList(k, v.cast<String>());
+        }
       }
+      rethrow;
     }
 
-    // Dynamic dynamic tables restoration
-    await _importTable('sleep_raw_imports', payload['sleep_raw_imports']);
-    await _importTable('sleep_canonical_sessions', payload['sleep_canonical_sessions']);
-    await _importTable('sleep_canonical_stage_segments', payload['sleep_canonical_stage_segments']);
-    await _importTable('sleep_canonical_heart_rate_samples', payload['sleep_canonical_heart_rate_samples']);
-    await _importTable('sleep_nightly_analyses', payload['sleep_nightly_analyses']);
-    await _importTable('pulse_hourly_aggregates', payload['pulse_hourly_aggregates']);
-    await _importTable('pulse_aggregate_metadata', payload['pulse_aggregate_metadata']);
-    await _importTable('cardio_activities', payload['cardio_activities']);
-    await _importTable('cardio_samples', payload['cardio_samples']);
-    await _importTable('user_food_overrides', payload['user_food_overrides']);
-
+    if (success) {
+      onProgress?.call('done', 1.0);
+    }
     debugPrint("Backup import succeeded.");
     return true;
   }

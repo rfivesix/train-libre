@@ -12,6 +12,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class StepsSettingsScreen extends StatefulWidget {
   const StepsSettingsScreen({super.key});
@@ -68,7 +69,7 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
             child: Column(
               children: [
                 SwitchListTile(
-                  secondary: const Icon(Icons.directions_walk_rounded),
+                  secondary: const Icon(LucideIcons.footprints),
                   title: Text(
                     l10n.stepsSettingsEnableTrackingTitle,
                     style: const TextStyle(fontWeight: FontWeight.bold),

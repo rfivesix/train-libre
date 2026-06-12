@@ -31,29 +31,21 @@ void main() {
         () async {
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
-              nameDe: const drift.Value('Bench Press'),
-              nameEn: const drift.Value('Bench Press'),
               categoryName: const drift.Value('Strength'),
             ),
           );
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
-              nameDe: const drift.Value('Running'),
-              nameEn: const drift.Value('Running'),
               categoryName: const drift.Value('Cardio'),
             ),
           );
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
-              nameDe: const drift.Value('Push-up'),
-              nameEn: const drift.Value('Push-up'),
               categoryName: const drift.Value('Strength'),
             ),
           );
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
-              nameDe: const drift.Value('No Category'),
-              nameEn: const drift.Value('No Category'),
               categoryName: const drift.Value(''),
             ),
           );
@@ -211,7 +203,8 @@ void main() {
       expect(result['muscles'], isNotEmpty);
       final muscles = result['muscles'] as List;
       final chestEntry = muscles.firstWhere((e) => e['muscleGroup'] == 'chest');
-      final tricepsEntry = muscles.firstWhere((e) => e['muscleGroup'] == 'triceps');
+      final tricepsEntry =
+          muscles.firstWhere((e) => e['muscleGroup'] == 'triceps');
 
       // Primary muscle gets 1.0 contribution
       expect(chestEntry['equivalentSets'], 1.0);
@@ -220,7 +213,8 @@ void main() {
       expect(tricepsEntry['equivalentSets'], 0.3);
     });
 
-    test('searchExercises applies query + category filters and keeps name order',
+    test(
+        'searchExercises applies query + category filters and keeps name order',
         () async {
       await helper.insertExercise(
         const model.Exercise(
@@ -271,8 +265,6 @@ void main() {
         () async {
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
-              nameDe: const drift.Value('Barbell Row'),
-              nameEn: const drift.Value('Barbell Row'),
               categoryName: const drift.Value('Strength'),
               musclesPrimary: const drift.Value('["lats","biceps"]'),
               musclesSecondary: const drift.Value('rear_delts, traps'),
@@ -280,8 +272,6 @@ void main() {
           );
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
-              nameDe: const drift.Value('Incline Press'),
-              nameEn: const drift.Value('Incline Press'),
               categoryName: const drift.Value('Strength'),
               musclesPrimary: const drift.Value('["chest","front_delts"]'),
               musclesSecondary: const drift.Value('["triceps"]'),
@@ -309,10 +299,6 @@ void main() {
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
               id: const drift.Value('catalog-1'),
-              nameDe: const drift.Value('Bankdruecken Alt'),
-              nameEn: const drift.Value('Bench Press Old'),
-              descriptionDe: const drift.Value('alt'),
-              descriptionEn: const drift.Value('old'),
               categoryName: const drift.Value('Strength'),
               musclesPrimary: const drift.Value('["chest"]'),
               musclesSecondary: const drift.Value('["triceps"]'),
@@ -320,13 +306,25 @@ void main() {
               isCustom: const drift.Value(false),
             ),
           );
+      await database.into(database.exerciseTranslations).insert(
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-1',
+              languageCode: 'de',
+              name: 'Bankdruecken Alt',
+              description: const drift.Value('alt'),
+            ),
+          );
+      await database.into(database.exerciseTranslations).insert(
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-1',
+              languageCode: 'en',
+              name: 'Bench Press Old',
+              description: const drift.Value('old'),
+            ),
+          );
 
       final refreshedCompanion = db.ExercisesCompanion(
         id: const drift.Value('catalog-1'),
-        nameDe: const drift.Value('Bankdruecken Neu'),
-        nameEn: const drift.Value('Bench Press New'),
-        descriptionDe: const drift.Value('neu'),
-        descriptionEn: const drift.Value('new'),
         categoryName: const drift.Value('Strength'),
         musclesPrimary: const drift.Value('["chest"]'),
         musclesSecondary: const drift.Value('["front_delts","triceps"]'),
@@ -339,6 +337,39 @@ void main() {
             onConflict: drift.DoUpdate(
               (_) => refreshedCompanion,
               target: [database.exercises.id],
+            ),
+          );
+      final deCompanion = db.ExerciseTranslationsCompanion.insert(
+        exerciseId: 'catalog-1',
+        languageCode: 'de',
+        name: 'Bankdruecken Neu',
+        description: const drift.Value('neu'),
+      );
+      await database.into(database.exerciseTranslations).insert(
+            deCompanion,
+            onConflict: drift.DoUpdate(
+              (old) => deCompanion,
+              target: [
+                database.exerciseTranslations.exerciseId,
+                database.exerciseTranslations.languageCode
+              ],
+            ),
+          );
+
+      final enCompanion = db.ExerciseTranslationsCompanion.insert(
+        exerciseId: 'catalog-1',
+        languageCode: 'en',
+        name: 'Bench Press New',
+        description: const drift.Value('new'),
+      );
+      await database.into(database.exerciseTranslations).insert(
+            enCompanion,
+            onConflict: drift.DoUpdate(
+              (old) => enCompanion,
+              target: [
+                database.exerciseTranslations.exerciseId,
+                database.exerciseTranslations.languageCode
+              ],
             ),
           );
 
@@ -354,28 +385,50 @@ void main() {
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
               id: const drift.Value('catalog-keep'),
-              nameDe: const drift.Value('Historische Uebung'),
-              nameEn: const drift.Value('Historical Exercise'),
               categoryName: const drift.Value('Strength'),
               source: const drift.Value('base'),
               isCustom: const drift.Value(false),
+            ),
+          );
+      await database.into(database.exerciseTranslations).insert(
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-keep',
+              languageCode: 'de',
+              name: 'Historische Uebung',
+            ),
+          );
+      await database.into(database.exerciseTranslations).insert(
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-keep',
+              languageCode: 'en',
+              name: 'Historical Exercise',
             ),
           );
       await database.into(database.exercises).insert(
             db.ExercisesCompanion(
               id: const drift.Value('catalog-update'),
-              nameDe: const drift.Value('Rudern Alt'),
-              nameEn: const drift.Value('Row Old'),
               categoryName: const drift.Value('Strength'),
               source: const drift.Value('base'),
               isCustom: const drift.Value(false),
             ),
           );
+      await database.into(database.exerciseTranslations).insert(
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-update',
+              languageCode: 'de',
+              name: 'Rudern Alt',
+            ),
+          );
+      await database.into(database.exerciseTranslations).insert(
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-update',
+              languageCode: 'en',
+              name: 'Row Old',
+            ),
+          );
 
       final refreshedCompanion = db.ExercisesCompanion(
         id: const drift.Value('catalog-update'),
-        nameDe: const drift.Value('Rudern Neu'),
-        nameEn: const drift.Value('Row New'),
         categoryName: const drift.Value('Strength'),
         source: const drift.Value('base'),
         isCustom: const drift.Value(false),
@@ -385,6 +438,37 @@ void main() {
             onConflict: drift.DoUpdate(
               (_) => refreshedCompanion,
               target: [database.exercises.id],
+            ),
+          );
+      final deCompanion = db.ExerciseTranslationsCompanion.insert(
+        exerciseId: 'catalog-update',
+        languageCode: 'de',
+        name: 'Rudern Neu',
+      );
+      await database.into(database.exerciseTranslations).insert(
+            deCompanion,
+            onConflict: drift.DoUpdate(
+              (old) => deCompanion,
+              target: [
+                database.exerciseTranslations.exerciseId,
+                database.exerciseTranslations.languageCode
+              ],
+            ),
+          );
+
+      final enCompanion = db.ExerciseTranslationsCompanion.insert(
+        exerciseId: 'catalog-update',
+        languageCode: 'en',
+        name: 'Row New',
+      );
+      await database.into(database.exerciseTranslations).insert(
+            enCompanion,
+            onConflict: drift.DoUpdate(
+              (old) => enCompanion,
+              target: [
+                database.exerciseTranslations.exerciseId,
+                database.exerciseTranslations.languageCode
+              ],
             ),
           );
 
@@ -410,7 +494,8 @@ void main() {
           secondaryMuscles: const ['Glutes'],
         );
 
-        final duplicate = model.Exercise.duplicateAsCustom(original, newUuid: 'new-uuid');
+        final duplicate =
+            model.Exercise.duplicateAsCustom(original, newUuid: 'new-uuid');
 
         expect(duplicate.id, isNull);
         expect(duplicate.uuid, 'new-uuid');
@@ -430,11 +515,23 @@ void main() {
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('system-1'),
-                nameDe: const drift.Value('Bench Press (System)'),
-                nameEn: const drift.Value('Bench Press (System)'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('wger'),
                 isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'system-1',
+                languageCode: 'de',
+                name: 'Bench Press (System)',
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'system-1',
+                languageCode: 'en',
+                name: 'Bench Press (System)',
               ),
             );
 
@@ -447,11 +544,23 @@ void main() {
               db.ExercisesCompanion(
                 id: const drift.Value('custom-override-1'),
                 replacesExerciseId: const drift.Value('system-1'),
-                nameDe: const drift.Value('Bench Press (Custom Override)'),
-                nameEn: const drift.Value('Bench Press (Custom Override)'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('user'),
                 isCustom: const drift.Value(true),
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'custom-override-1',
+                languageCode: 'de',
+                name: 'Bench Press (Custom Override)',
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'custom-override-1',
+                languageCode: 'en',
+                name: 'Bench Press (Custom Override)',
               ),
             );
 
@@ -465,8 +574,6 @@ void main() {
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('system-2'),
-                nameDe: const drift.Value('Squat (System)'),
-                nameEn: const drift.Value('Squat (System)'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('wger'),
                 isCustom: const drift.Value(false),
@@ -483,8 +590,6 @@ void main() {
               db.ExercisesCompanion(
                 id: const drift.Value('custom-override-2'),
                 replacesExerciseId: const drift.Value('system-2'),
-                nameDe: const drift.Value('Squat (Custom)'),
-                nameEn: const drift.Value('Squat (Custom)'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('user'),
                 isCustom: const drift.Value(true),
@@ -498,26 +603,51 @@ void main() {
         expect(resolved?.replacesExerciseId, 'system-2');
       });
 
-      test('getExerciseByName prefers custom/user exercises and overrides', () async {
+      test('getExerciseByName prefers custom/user exercises and overrides',
+          () async {
         // Case A: Custom and system exercise sharing same name (without explicit replacesExerciseId link)
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('system-3a'),
-                nameDe: const drift.Value('Deadlift'),
-                nameEn: const drift.Value('Deadlift'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('wger'),
                 isCustom: const drift.Value(false),
               ),
             );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'system-3a',
+                languageCode: 'de',
+                name: 'Deadlift',
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'system-3a',
+                languageCode: 'en',
+                name: 'Deadlift',
+              ),
+            );
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('custom-3b'),
-                nameDe: const drift.Value('Deadlift'),
-                nameEn: const drift.Value('Deadlift'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('user'),
                 isCustom: const drift.Value(true),
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'custom-3b',
+                languageCode: 'de',
+                name: 'Deadlift',
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'custom-3b',
+                languageCode: 'en',
+                name: 'Deadlift',
               ),
             );
 
@@ -529,22 +659,46 @@ void main() {
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('system-4'),
-                nameDe: const drift.Value('Overhead Press (System)'),
-                nameEn: const drift.Value('Overhead Press (System)'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('wger'),
                 isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'system-4',
+                languageCode: 'de',
+                name: 'Overhead Press (System)',
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'system-4',
+                languageCode: 'en',
+                name: 'Overhead Press (System)',
               ),
             );
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('custom-override-4'),
                 replacesExerciseId: const drift.Value('system-4'),
-                nameDe: const drift.Value('Overhead Press (Custom)'),
-                nameEn: const drift.Value('Overhead Press (Custom)'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('user'),
                 isCustom: const drift.Value(true),
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'custom-override-4',
+                languageCode: 'de',
+                name: 'Overhead Press (Custom)',
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'custom-override-4',
+                languageCode: 'en',
+                name: 'Overhead Press (Custom)',
               ),
             );
 
@@ -554,47 +708,61 @@ void main() {
         expect(resolved?.source, 'user');
       });
 
-      test('updateCustomExercise updates user exercise but throws on wger exercise', () async {
-        final systemRow = await database.into(database.exercises).insertReturning(
-              db.ExercisesCompanion(
-                id: const drift.Value('system-5'),
-                nameDe: const drift.Value('Pullup'),
-                nameEn: const drift.Value('Pullup'),
-                categoryName: const drift.Value('Strength'),
-                source: const drift.Value('wger'),
-                isCustom: const drift.Value(false),
+      test(
+          'updateCustomExercise updates user exercise but throws on wger exercise',
+          () async {
+        final systemRow =
+            await database.into(database.exercises).insertReturning(
+                  db.ExercisesCompanion(
+                    id: const drift.Value('system-5'),
+                    categoryName: const drift.Value('Strength'),
+                    source: const drift.Value('wger'),
+                    isCustom: const drift.Value(false),
+                  ),
+                );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'system-5',
+                languageCode: 'en',
+                name: 'Pullup',
               ),
             );
         final systemModel = model.Exercise.fromMap({
           'id': systemRow.localId,
           'uuid': systemRow.id,
           'source': systemRow.source,
-          'name_de': systemRow.nameDe,
-          'name_en': systemRow.nameEn,
+          'name_de': 'Pullup',
+          'name_en': 'Pullup',
           'category_name': systemRow.categoryName,
         });
 
         final userRow = await database.into(database.exercises).insertReturning(
               db.ExercisesCompanion(
                 id: const drift.Value('custom-5'),
-                nameDe: const drift.Value('Chinup'),
-                nameEn: const drift.Value('Chinup'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('user'),
                 isCustom: const drift.Value(true),
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'custom-5',
+                languageCode: 'en',
+                name: 'Chinup',
               ),
             );
         final userModel = model.Exercise.fromMap({
           'id': userRow.localId,
           'uuid': userRow.id,
           'source': userRow.source,
-          'name_de': userRow.nameDe,
-          'name_en': userRow.nameEn,
+          'name_de': 'Chinup',
+          'name_en': 'Chinup',
           'category_name': userRow.categoryName,
         });
 
         // 1. Try to update wger exercise - should fail
-        final updatedSystemModel = systemModel.copyWith(nameEn: 'Pullup (Updated)');
+        final updatedSystemModel =
+            systemModel.copyWith(nameEn: 'Pullup (Updated)');
         expect(
           () => helper.updateCustomExercise(updatedSystemModel),
           throwsA(isA<Exception>()),
@@ -615,7 +783,9 @@ void main() {
     });
 
     group('Exercise Catalog Search Overhaul', () {
-      test('searchExercises applies tokenization and word-order invariant matching', () async {
+      test(
+          'searchExercises applies tokenization and word-order invariant matching',
+          () async {
         await helper.insertExercise(
           const model.Exercise(
             nameDe: 'Barbell Bench Press',
@@ -640,42 +810,60 @@ void main() {
         );
 
         // Word-order invariant: "Press Bench Barbell"
-        final results = await helper.searchExercises(query: 'Press Bench Barbell');
-        
+        final results =
+            await helper.searchExercises(query: 'Press Bench Barbell');
+
         expect(results.length, 1);
         expect(results.first.nameEn, 'Barbell Bench Press');
       });
 
-      test('searchExercises scores and ranks by 90-day training history and hierarchical priority', () async {
+      test(
+          'searchExercises scores and ranks by 90-day training history and hierarchical priority',
+          () async {
         // Insert system exercises (source = 'wger', isCustom = false)
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('bench-press-uuid'),
-                nameDe: const drift.Value('Bench Press'),
-                nameEn: const drift.Value('Bench Press'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('wger'),
                 isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'bench-press-uuid',
+                languageCode: 'en',
+                name: 'Bench Press',
               ),
             );
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('incline-bench-press-uuid'),
-                nameDe: const drift.Value('Incline Bench Press'),
-                nameEn: const drift.Value('Incline Bench Press'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('wger'),
                 isCustom: const drift.Value(false),
               ),
             );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'incline-bench-press-uuid',
+                languageCode: 'en',
+                name: 'Incline Bench Press',
+              ),
+            );
         await database.into(database.exercises).insert(
               db.ExercisesCompanion(
                 id: const drift.Value('dumbbell-bench-press-uuid'),
-                nameDe: const drift.Value('Dumbbell Bench Press'),
-                nameEn: const drift.Value('Dumbbell Bench Press'),
                 categoryName: const drift.Value('Strength'),
                 source: const drift.Value('wger'),
                 isCustom: const drift.Value(false),
+              ),
+            );
+        await database.into(database.exerciseTranslations).insert(
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'dumbbell-bench-press-uuid',
+                languageCode: 'en',
+                name: 'Dumbbell Bench Press',
               ),
             );
 
@@ -834,6 +1022,48 @@ void main() {
       expect(muscles['glutes']!['lastEquivalentSets'], 0.0);
     });
 
+    test(
+        'getRecoveryAnalytics resolves unlinked sets by exercise name snapshot',
+        () async {
+      final now = DateTime.now();
+      final workoutId = await _insertWorkout(
+        database,
+        id: 'recovery-unlinked-workout',
+        startTime: now.subtract(const Duration(hours: 2)),
+      );
+
+      final exerciseId = await _insertExercise(
+        database,
+        id: 'recovery-unlinked-bench',
+        name: 'Bench Press',
+        category: 'Strength',
+        primaryMuscles: '["chest"]',
+      );
+
+      await database.into(database.exerciseTranslations).insert(
+            db.ExerciseTranslationsCompanion(
+              exerciseId: drift.Value(exerciseId),
+              languageCode: const drift.Value('en'),
+              name: const drift.Value('Bench Press'),
+            ),
+          );
+
+      await _insertSet(
+        database,
+        workoutId: workoutId,
+        exerciseId: null,
+        exerciseName: 'Bench Press',
+        weight: 80,
+        reps: 6,
+      );
+
+      final analytics = await helper.getRecoveryAnalytics(lookbackDays: 30);
+      final muscles = _musclesByName(analytics);
+
+      expect(analytics['hasData'], isTrue);
+      expect(muscles['chest']!['lastEquivalentSets'], 1.0);
+    });
+
     test('getRecoveryAnalytics ignores sub-threshold muscle noise', () async {
       final now = DateTime.now();
       final workoutId = await _insertWorkout(
@@ -925,7 +1155,9 @@ void main() {
       expect(muscles['chest']!['lastEquivalentSets'], 0.0);
     });
 
-    test('syncRoutineWithWorkout preserves correct template set type order (warmups first) when adding warmup sets', () async {
+    test(
+        'syncRoutineWithWorkout preserves correct template set type order (warmups first) when adding warmup sets',
+        () async {
       final routine = await helper.createRoutine('Sync Routine');
       final exercise = await helper.insertExercise(
         const model.Exercise(
@@ -939,7 +1171,8 @@ void main() {
         ),
       );
 
-      final routineEx = await helper.addExerciseToRoutine(routine.id!, exercise.id!);
+      final routineEx =
+          await helper.addExerciseToRoutine(routine.id!, exercise.id!);
       expect(routineEx, isNotNull);
 
       // Setup initial template: 1 warmup, 2 normal sets
@@ -952,17 +1185,17 @@ void main() {
 
       // Start workout log
       final workoutLog = await helper.startWorkout(routineName: 'Sync Routine');
-      
+
       // Associate with routine
       final routineRow = await (database.select(database.routines)
             ..where((tbl) => tbl.localId.equals(routine.id!)))
           .getSingle();
-      
+
       await (database.update(database.workoutLogs)
             ..where((tbl) => tbl.localId.equals(workoutLog.id!)))
           .write(db.WorkoutLogsCompanion(
-            routineId: drift.Value(routineRow.id),
-          ));
+        routineId: drift.Value(routineRow.id),
+      ));
 
       // Insert completed logs (added a warmup set at the end or logged two warmups)
       await helper.insertSetLog(domain_set.SetLog(
@@ -1008,7 +1241,7 @@ void main() {
       final updatedRoutine = await helper.getRoutineById(routine.id!);
       expect(updatedRoutine, isNotNull);
       expect(updatedRoutine!.exercises.length, 1);
-      
+
       final updatedTemplates = updatedRoutine.exercises.first.setTemplates;
       expect(updatedTemplates.length, 4);
       expect(updatedTemplates[0].setType, 'warmup');
@@ -1017,7 +1250,9 @@ void main() {
       expect(updatedTemplates[3].setType, 'normal');
     });
 
-    test('createRoutineFromWorkout correctly creates a routine from a workout log', () async {
+    test(
+        'createRoutineFromWorkout correctly creates a routine from a workout log',
+        () async {
       // 1. Setup exercises
       final squatId = await _insertExercise(
         database,
@@ -1093,7 +1328,8 @@ void main() {
           );
 
       // We need localId (int) of workoutLog. Let's find it.
-      final workoutLog = await database.select(database.workoutLogs).getSingle();
+      final workoutLog =
+          await database.select(database.workoutLogs).getSingle();
 
       // 4. Create routine from workout log
       final routine = await helper.createRoutineFromWorkout(
@@ -1112,11 +1348,11 @@ void main() {
 
       // Verify RoutineExercises
       expect(dbRoutine.exercises.length, 2);
-      
+
       // Exercise 1 (Index 0): Squat
       final squatExercise = dbRoutine.exercises[0];
       expect(squatExercise.exercise.uuid, squatId);
-      
+
       // Check set templates for squat: warmup first (weight 60, reps 8), normal second (weight 100, reps 5)
       expect(squatExercise.setTemplates.length, 2); // Excluded incomplete
       expect(squatExercise.setTemplates[0].setType, 'warmup');
@@ -1151,8 +1387,6 @@ Future<String> _insertExercise(
   final row = await database.into(database.exercises).insertReturning(
         db.ExercisesCompanion(
           id: drift.Value(id),
-          nameDe: drift.Value(name),
-          nameEn: drift.Value(name),
           categoryName: drift.Value(category),
           musclesPrimary: drift.Value(primaryMuscles),
           musclesSecondary: drift.Value(secondaryMuscles),
@@ -1181,7 +1415,7 @@ Future<String> _insertWorkout(
 Future<void> _insertSet(
   db.AppDatabase database, {
   required String workoutId,
-  required String exerciseId,
+  required String? exerciseId,
   required String exerciseName,
   String setType = 'normal',
   double? weight,
@@ -1193,7 +1427,9 @@ Future<void> _insertSet(
   await database.into(database.setLogs).insert(
         db.SetLogsCompanion(
           workoutLogId: drift.Value(workoutId),
-          exerciseId: drift.Value(exerciseId),
+          exerciseId: exerciseId == null
+              ? const drift.Value.absent()
+              : drift.Value(exerciseId),
           exerciseNameSnapshot: drift.Value(exerciseName),
           setType: drift.Value(setType),
           weight:

@@ -15,12 +15,21 @@ enum BaseFoodLanguage {
 
   /// Always show German names.
   de,
+
+  /// Always show French names.
+  fr,
+
+  /// Always show Italian names.
+  it,
+
+  /// Always show Japanese names.
+  ja,
 }
 
 /// Persists and resolves the user's preferred display language for base foods.
 ///
 /// The resolved language considers three inputs:
-/// 1. The explicit user choice (auto / en / de).
+/// 1. The explicit user choice (auto / en / de / fr / it / ja).
 /// 2. The app's current locale (when auto is selected).
 /// 3. The selected food-database region as a sensible fallback.
 class BaseFoodLanguageService {
@@ -58,6 +67,9 @@ class BaseFoodLanguageService {
   }) {
     if (choice == BaseFoodLanguage.en) return 'en';
     if (choice == BaseFoodLanguage.de) return 'de';
+    if (choice == BaseFoodLanguage.fr) return 'fr';
+    if (choice == BaseFoodLanguage.it) return 'it';
+    if (choice == BaseFoodLanguage.ja) return 'ja';
 
     final locale = Localizations.localeOf(context).languageCode;
     return resolveLanguageCodeFromLocale(
@@ -76,15 +88,24 @@ class BaseFoodLanguageService {
   }) {
     if (choice == BaseFoodLanguage.en) return 'en';
     if (choice == BaseFoodLanguage.de) return 'de';
+    if (choice == BaseFoodLanguage.fr) return 'fr';
+    if (choice == BaseFoodLanguage.it) return 'it';
+    if (choice == BaseFoodLanguage.ja) return 'ja';
 
     // Auto mode: follow locale with region fallback.
     if (locale == 'de') return 'de';
+    if (locale == 'fr') return 'fr';
+    if (locale == 'it') return 'it';
+    if (locale == 'ja') return 'ja';
 
     // Non-German locale: check region for a sensible default.
     if (activeCountry == OffCatalogCountry.uk ||
         activeCountry == OffCatalogCountry.us) {
       return 'en';
     }
+    if (activeCountry == OffCatalogCountry.fr) return 'fr';
+    if (activeCountry == OffCatalogCountry.it) return 'it';
+    if (activeCountry == OffCatalogCountry.jp) return 'ja';
 
     // Fallback: use English.
     return 'en';

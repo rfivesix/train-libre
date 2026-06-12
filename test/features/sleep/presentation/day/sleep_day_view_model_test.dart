@@ -5,6 +5,7 @@ import 'package:train_libre/features/sleep/domain/sleep_domain.dart';
 import 'package:train_libre/features/sleep/presentation/day/sleep_day_view_model.dart';
 import 'package:train_libre/features/sleep/platform/permissions/sleep_permission_models.dart';
 import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
+import 'package:train_libre/util/cancellation_token.dart';
 
 class FakeSleepDayDataRepository implements SleepDayDataRepository {
   final StreamController<SleepDayOverviewData?> controller =
@@ -51,7 +52,12 @@ class FakeSleepImportService implements SleepImportService {
   );
 
   @override
-  Future<SleepSyncResult> importRecent({int lookbackDays = 30}) async {
+  Future<SleepSyncResult> importRecent({
+    int lookbackDays = 30,
+    bool forceFullSync = false,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
+  }) async {
     importRecentCalls += 1;
     return mockSyncResult;
   }

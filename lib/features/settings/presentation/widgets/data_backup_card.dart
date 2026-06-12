@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class DataBackupCard extends StatelessWidget {
   const DataBackupCard({
@@ -43,7 +44,7 @@ class DataBackupCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.upload_file),
+                    icon: const Icon(LucideIcons.file_up),
                     label: Text(l10n.data_export_button),
                     onPressed: isFullBackupRunning ? null : onExportPressed,
                   ),
@@ -51,7 +52,7 @@ class DataBackupCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton.icon(
-                    icon: const Icon(Icons.download_for_offline),
+                    icon: const Icon(LucideIcons.circle_arrow_down),
                     label: Text(l10n.data_import_button),
                     style: FilledButton.styleFrom(
                       backgroundColor: theme.colorScheme.error,
@@ -65,9 +66,10 @@ class DataBackupCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                icon: const Icon(Icons.lock_outline),
+                icon: const Icon(LucideIcons.lock),
                 label: Text(l10n.exportEncrypted),
-                onPressed: isFullBackupRunning ? null : onExportEncryptedPressed,
+                onPressed:
+                    isFullBackupRunning ? null : onExportEncryptedPressed,
               ),
             ),
             if (isFullBackupRunning)

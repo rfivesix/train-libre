@@ -8,6 +8,7 @@ import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/models/set_log.dart';
 import '../../domain/models/set_template.dart';
 import '../live_workout_view_model.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// An interactive row representing a single set in an active workout session.
 ///
@@ -199,7 +200,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
-                Icons.emoji_events,
+                LucideIcons.trophy,
                 color: Colors.amber,
                 size: 14,
               ),
@@ -263,7 +264,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
           flex: isCardio ? 2 : 1,
           child: Center(
             child: GestureDetector(
-              onTap: () => isCompleted ? null : _showSetTypePicker(context, templateId),
+              onTap: () =>
+                  isCompleted ? null : _showSetTypePicker(context, templateId),
               child: Text(
                 _getSetDisplayText(setLog.setType, setIndex),
                 style: TextStyle(
@@ -512,8 +514,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 child: IconButton(
                   icon: Icon(
                     isCompleted
-                        ? Icons.check_circle
-                        : Icons.check_circle_outline,
+                        ? LucideIcons.circle_check
+                        : LucideIcons.circle_check,
                     color: isCompleted ? Colors.green : Colors.grey,
                   ),
                   onPressed: () async {
@@ -614,7 +616,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         color: Colors.redAccent,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(LucideIcons.trash_2, color: Colors.white),
       ),
       child: Stack(
         children: [

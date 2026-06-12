@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 enum AppSheetStyle { plain, glass }
 
@@ -198,7 +199,7 @@ class WaterDialogContentState extends State<WaterDialogContent> {
                   padding: DesignConstants.cardMargin,
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 20),
+                      const Icon(LucideIcons.calendar, size: 20),
                       const SizedBox(width: 8),
                       Text(formattedDate, style: const TextStyle(fontSize: 16)),
                     ],
@@ -211,7 +212,7 @@ class WaterDialogContentState extends State<WaterDialogContent> {
                   padding: DesignConstants.cardMargin,
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time, size: 20),
+                      const Icon(LucideIcons.clock, size: 20),
                       const SizedBox(width: 8),
                       Text(formattedTime, style: const TextStyle(fontSize: 16)),
                     ],

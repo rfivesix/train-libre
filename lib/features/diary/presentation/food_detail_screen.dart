@@ -19,6 +19,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 // Dev flag: keep disabled for production or remove dev-only sections entirely.
 const bool kDevEditEnabled = false;
@@ -280,7 +281,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         actions: [
           IconButton(
             icon: Icon(
-              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              _isFavorite ? LucideIcons.heart : LucideIcons.heart,
               color:
                   _isFavorite ? Colors.redAccent : colorScheme.onSurfaceVariant,
             ),
@@ -502,21 +503,21 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: _saveDevEdits,
-                            icon: const Icon(Icons.save),
+                            icon: const Icon(LucideIcons.save),
                             label: Text(l10n.save),
                           ),
                           const SizedBox(width: 12),
                           TextButton.icon(
                             onPressed: () =>
                                 setState(() => _devEditing = false),
-                            icon: const Icon(Icons.close),
+                            icon: const Icon(LucideIcons.x),
                             label: Text(l10n.doneButtonLabel),
                           ),
                           const Spacer(),
                           IconButton(
                             tooltip: 'Basis-DB exportieren',
                             onPressed: _exportBaseDb,
-                            icon: const Icon(Icons.ios_share),
+                            icon: const Icon(LucideIcons.share),
                           ),
                         ],
                       ),

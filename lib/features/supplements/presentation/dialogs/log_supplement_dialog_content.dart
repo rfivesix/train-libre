@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../domain/models/supplement.dart';
 import '../../../../util/design_constants.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A dialog content widget for logging supplement intake.
 ///
@@ -116,7 +117,7 @@ class LogSupplementDialogContentState
                 padding: DesignConstants.cardMargin,
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 20),
+                    const Icon(LucideIcons.calendar, size: 20),
                     const SizedBox(width: 8),
                     Text(formattedDate, style: const TextStyle(fontSize: 16)),
                   ],
@@ -129,7 +130,7 @@ class LogSupplementDialogContentState
                 padding: DesignConstants.cardMargin,
                 child: Row(
                   children: [
-                    const Icon(Icons.access_time, size: 20),
+                    const Icon(LucideIcons.clock, size: 20),
                     const SizedBox(width: 8),
                     Text(formattedTime, style: const TextStyle(fontSize: 16)),
                   ],

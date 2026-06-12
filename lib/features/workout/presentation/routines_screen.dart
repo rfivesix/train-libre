@@ -14,6 +14,7 @@ import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen that displays a list of all saved [Routine] templates.
 ///
@@ -176,7 +177,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 // Same backgrounds as in Nutrition Screen
                 background: const SwipeActionBackground(
                   color: Colors.redAccent,
-                  icon: Icons.delete,
+                  icon: LucideIcons.trash_2,
                   alignment: Alignment.centerRight,
                 ),
 
@@ -203,7 +204,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                     subtitle: Text(l10n.editRoutineSubtitle),
                     trailing: PopupMenuButton<String>(
                       icon: Icon(
-                        Icons.more_vert,
+                        LucideIcons.ellipsis_vertical,
                         color: textTheme.bodyMedium?.color,
                       ),
                       onSelected: (value) {
@@ -261,7 +262,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   ) {
     return SummaryCard(
       child: ListTile(
-        leading: const Icon(Icons.play_circle_fill),
+        leading: const Icon(LucideIcons.circle_play),
         title: Text(
           l10n.startEmptyWorkoutButton,
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -288,7 +289,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.list_alt_outlined,
+              LucideIcons.list_todo,
               size: 80,
               color: Colors.grey.shade400,
             ),
@@ -315,7 +316,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 ),
               ),
               onPressed: _createNewRoutine,
-              icon: const Icon(Icons.add),
+              icon: const Icon(LucideIcons.plus),
               label: Text(
                 l10n.createFirstRoutineButton,
                 style: textTheme.titleMedium?.copyWith(
@@ -335,7 +336,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 ),
               ),
               onPressed: _startEmptyWorkout,
-              icon: const Icon(Icons.play_circle_fill),
+              icon: const Icon(LucideIcons.circle_play),
               label: Text(l10n.startEmptyWorkoutButton),
             ),
           ],

@@ -9,6 +9,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/glass_pill_button.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for mapping unknown exercise names to known database [Exercise] objects.
 class ExerciseMappingScreen extends StatefulWidget {
@@ -50,7 +51,8 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
   Future<void> _pickTarget(String sourceName) async {
     final Exercise? picked = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ExerciseCatalogScreen(isSelectionMode: true, repository: _repository),
+        builder: (_) => ExerciseCatalogScreen(
+            isSelectionMode: true, repository: _repository),
       ),
     );
     if (picked != null && mounted) {
@@ -134,7 +136,7 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                                   ),
                                 ),
                           trailing: IconButton(
-                            icon: const Icon(Icons.search),
+                            icon: const Icon(LucideIcons.search),
                             onPressed: () => _pickTarget(src),
                             tooltip: l10n.selectButton,
                           ),
@@ -201,7 +203,7 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.check),
+                        : const Icon(LucideIcons.check),
                     label: Text(
                       _applying ? l10n.applyingChanges : l10n.applyMapping,
                     ),

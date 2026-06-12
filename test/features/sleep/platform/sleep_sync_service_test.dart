@@ -23,25 +23,35 @@ class _PermissionService implements SleepPermissionsService {
 class _HealthKitSource implements HealthKitDataSource {
   _HealthKitSource(this.batch);
   SleepRawIngestionBatch batch;
+  DateTime? lastFromUtc;
+  DateTime? lastToUtc;
 
   @override
   Future<SleepRawIngestionBatch> readSleepAndHeartRate({
     required DateTime fromUtc,
     required DateTime toUtc,
-  }) async =>
-      batch;
+  }) async {
+    lastFromUtc = fromUtc;
+    lastToUtc = toUtc;
+    return batch;
+  }
 }
 
 class _HealthConnectSource implements HealthConnectDataSource {
   _HealthConnectSource(this.batch);
   SleepRawIngestionBatch batch;
+  DateTime? lastFromUtc;
+  DateTime? lastToUtc;
 
   @override
   Future<SleepRawIngestionBatch> readSleepAndHeartRate({
     required DateTime fromUtc,
     required DateTime toUtc,
-  }) async =>
-      batch;
+  }) async {
+    lastFromUtc = fromUtc;
+    lastToUtc = toUtc;
+    return batch;
+  }
 }
 
 SleepRawIngestionBatch _batch() {
@@ -348,6 +358,90 @@ void main() {
         .get();
     expect(segments.length, 1);
     expect(segments.first.read<String>('id'), 'seg2');
+
+    await db.close();
+  });
+
+  test('importRecent respects large lookbackDays even if data exists (bypasses 72h delta cap)', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+      ),
+    );
+    final kitSource = _HealthKitSource(_batch());
+    final connectSource = _HealthConnectSource(_batch());
+
+    final service = SleepSyncService.withOverrides(
+      iosPermissionsService: const _PermissionService(
+        SleepPermissionOutcome.ready(),
+      ),
+      androidPermissionsService: const _PermissionService(
+        SleepPermissionOutcome.ready(),
+      ),
+      iosDataSource: kitSource,
+      androidDataSource: connectSource,
+      database: db,
+    );
+    await service.setTrackingEnabled(true);
+
+    // 1. Initial import to establish "latestEndedAt"
+    await service.importRecent();
+    
+    // 2. Trigger import with large lookback (e.g. 90 days)
+    final lookback = 90;
+    await service.importRecent(lookbackDays: lookback, forceFullSync: true);
+
+    final lastFromUtc = kitSource.lastFromUtc ?? connectSource.lastFromUtc;
+    expect(lastFromUtc, isNotNull);
+    
+    final now = DateTime.now().toUtc();
+    final expectedFromUtc = now.subtract(Duration(days: lookback));
+    
+    // Allow small delta for execution time
+    expect(
+      lastFromUtc!.difference(expectedFromUtc).inSeconds.abs(), 
+      lessThan(5),
+      reason: 'Should use full 90 day lookback, not 72h delta cap',
+    );
+
+    await db.close();
+  });
+
+  test('importRecent strictly uses 72h window for standard updates when data exists', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
+      ),
+    );
+    final kitSource = _HealthKitSource(_batch());
+    final connectSource = _HealthConnectSource(_batch());
+
+    final service = SleepSyncService.withOverrides(
+      iosPermissionsService: const _PermissionService(
+        SleepPermissionOutcome.ready(),
+      ),
+      androidPermissionsService: const _PermissionService(
+        SleepPermissionOutcome.ready(),
+      ),
+      iosDataSource: kitSource,
+      androidDataSource: connectSource,
+      database: db,
+    );
+    await service.setTrackingEnabled(true);
+
+    // 1. Initial import to establish "latestEndedAt" (s1 ends at 2026-03-30 06:00)
+    await service.importRecent();
+    final latestEndedAt = DateTime.utc(2026, 3, 30, 6);
+
+    // 2. Standard update with large lookback (e.g. 30 days) but forceFullSync=false
+    await service.importRecent(lookbackDays: 30, forceFullSync: false);
+
+    final lastFromUtc = kitSource.lastFromUtc ?? connectSource.lastFromUtc;
+    expect(lastFromUtc, isNotNull);
+    
+    // Expected window is exactly 72 hours before latestEndedAt
+    final expectedFromUtc = latestEndedAt.subtract(const Duration(hours: 72));
+    expect(lastFromUtc, expectedFromUtc);
 
     await db.close();
   });

@@ -20,6 +20,15 @@ enum AiMatchingLanguage {
 
   /// Always match in German.
   de,
+
+  /// Always match in French.
+  fr,
+
+  /// Always match in Italian.
+  it,
+
+  /// Always match in Japanese.
+  ja,
 }
 
 /// Persists and resolves the user's preferred AI matching language.
@@ -60,6 +69,9 @@ class AiMatchingLanguageService {
   }) async {
     if (choice == AiMatchingLanguage.en) return 'en';
     if (choice == AiMatchingLanguage.de) return 'de';
+    if (choice == AiMatchingLanguage.fr) return 'fr';
+    if (choice == AiMatchingLanguage.it) return 'it';
+    if (choice == AiMatchingLanguage.ja) return 'ja';
 
     // Capture locale before async gap to avoid linter warning
     final locale = Localizations.localeOf(context).languageCode;

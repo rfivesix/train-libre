@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class CsvExportCard extends StatelessWidget {
   const CsvExportCard({
@@ -42,23 +43,23 @@ class CsvExportCard extends StatelessWidget {
             ),
             const SizedBox(height: DesignConstants.spacingS),
             _buildExportTile(
-              icon: Icons.table_chart_outlined,
+              icon: LucideIcons.table,
               title: l10n.excelExportButton,
               onTap: isCsvExportRunning ? null : onExcelExportPressed,
             ),
             const Divider(),
             _buildExportTile(
-              icon: Icons.restaurant_menu,
+              icon: LucideIcons.utensils,
               title: l10n.nutritionDiary,
               onTap: isCsvExportRunning ? null : onNutritionExportPressed,
             ),
             _buildExportTile(
-              icon: Icons.monitor_weight_outlined,
+              icon: LucideIcons.scale,
               title: l10n.drawerMeasurements,
               onTap: isCsvExportRunning ? null : onMeasurementsExportPressed,
             ),
             _buildExportTile(
-              icon: Icons.fitness_center,
+              icon: LucideIcons.dumbbell,
               title: l10n.workoutHistoryTitle,
               onTap: isCsvExportRunning ? null : onWorkoutsExportPressed,
             ),
@@ -81,7 +82,7 @@ class CsvExportCard extends StatelessWidget {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: const Icon(LucideIcons.chevron_right),
       onTap: onTap,
       contentPadding: EdgeInsets.zero,
     );

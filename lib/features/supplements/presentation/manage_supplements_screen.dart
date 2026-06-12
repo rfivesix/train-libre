@@ -13,6 +13,7 @@ import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for managing the catalog of available supplements.
 class ManageSupplementsScreen extends StatefulWidget {
@@ -132,7 +133,7 @@ class _ManageSupplementsScreenState extends State<ManageSupplementsScreen> {
 
     final content = SummaryCard(
       child: ListTile(
-        leading: const Icon(Icons.set_meal_outlined),
+        leading: const Icon(LucideIcons.fish),
         title: Text(title),
         subtitle: (s.dailyGoal != null || s.dailyLimit != null)
             ? Text(
@@ -144,7 +145,7 @@ class _ManageSupplementsScreenState extends State<ManageSupplementsScreen> {
                 ].join('  •  '),
               )
             : null,
-        trailing: isBuiltin ? null : const Icon(Icons.chevron_right),
+        trailing: isBuiltin ? null : const Icon(LucideIcons.chevron_right),
         onTap: () => _navigateToEdit(s),
       ),
     );
@@ -156,12 +157,12 @@ class _ManageSupplementsScreenState extends State<ManageSupplementsScreen> {
       direction: DismissDirection.horizontal,
       background: const SwipeActionBackground(
         color: Colors.blueAccent,
-        icon: Icons.edit,
+        icon: LucideIcons.pencil,
         alignment: Alignment.centerLeft,
       ),
       secondaryBackground: const SwipeActionBackground(
         color: Colors.redAccent,
-        icon: Icons.delete,
+        icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),
       confirmDismiss: (direction) async {

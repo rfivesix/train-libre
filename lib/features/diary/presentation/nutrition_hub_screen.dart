@@ -12,6 +12,7 @@ import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A portal for overviewing nutrition and meal planning.
 ///
@@ -203,7 +204,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                 AppSectionHeader(title: l10n.nutritionSectionToolsAndLibrary),
                 _buildNavigationCard(
                   context: context,
-                  icon: Icons.medication_outlined,
+                  icon: LucideIcons.pill,
                   title: l10n.supplementTrackerTitle,
                   subtitle: l10n.supplementTrackerDescription,
                   onTap: () {
@@ -216,7 +217,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                 ),
                 _buildNavigationCard(
                   context: context,
-                  icon: Icons.search,
+                  icon: LucideIcons.search,
                   title: l10n.drawerFoodExplorer,
                   subtitle: l10n.data_from_off_and_wger,
                   onTap: () {
@@ -291,7 +292,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.add_circle_outline,
+                    LucideIcons.circle_plus,
                     size: 40,
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -374,7 +375,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const Icon(LucideIcons.chevron_right),
         onTap: onTap,
       ),
     );

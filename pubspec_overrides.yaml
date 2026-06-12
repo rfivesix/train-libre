@@ -1,5 +1,0 @@
-dependency_overrides:
-  flutter_body_highlighter:
-    path: ../flutter_body_highlighter
-  liquid_glass_widgets:
-    path: ../liquid_glass_widgets

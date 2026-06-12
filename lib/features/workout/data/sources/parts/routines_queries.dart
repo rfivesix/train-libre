@@ -109,7 +109,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
     return RoutineExercise(
       id: reRow.localId,
-      exercise: _mapExerciseToModel(exRow),
+      exercise: await _mapExerciseRowToModel(dbInstance, exRow),
       setTemplates: templates,
     );
   }
@@ -197,7 +197,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
       exercisesList.add(
         RoutineExercise(
           id: reData.localId,
-          exercise: _mapExerciseToModel(exData),
+          exercise: await _mapExerciseRowToModel(dbInstance, exData),
           setTemplates: setTemplates,
           pauseSeconds: reData.pauseSeconds,
           notes: reData.notes,
@@ -325,15 +325,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
     if (workoutLogUuid == null) return;
 
     // Resolve exercise uuid if exists
-    final exRow = await (dbInstance.select(dbInstance.exercises)
-          ..where(
-            (tbl) =>
-                tbl.nameDe.equals(exerciseName) |
-                tbl.nameEn.equals(exerciseName),
-          )
-          ..limit(1))
-        .getSingleOrNull();
-    final exerciseUuid = exRow?.id;
+    final exercise = await getExerciseByName(exerciseName);
+    final exerciseUuid = exercise?.uuid;
 
     // Check if a note already exists for this exercise in this workout
     final existingRow = await (dbInstance.select(dbInstance.workoutExerciseLogs)
@@ -442,13 +435,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         if (set.exerciseId != null && set.exerciseId!.isNotEmpty) {
           return set.exerciseId;
         }
-        final exRow = await (dbInstance.select(dbInstance.exercises)
-              ..where((tbl) =>
-                  tbl.nameDe.equals(set.exerciseNameSnapshot ?? '') |
-                  tbl.nameEn.equals(set.exerciseNameSnapshot ?? ''))
-              ..limit(1))
-            .getSingleOrNull();
-        return exRow?.id;
+        final exercise = await getExerciseByName(set.exerciseNameSnapshot ?? '');
+        return exercise?.uuid;
       }
 
       // 4. Determine unique exercises in the completed session in execution order
@@ -667,13 +655,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         if (set.exerciseId != null && set.exerciseId!.isNotEmpty) {
           return set.exerciseId;
         }
-        final exRow = await (dbInstance.select(dbInstance.exercises)
-              ..where((tbl) =>
-                  tbl.nameDe.equals(set.exerciseNameSnapshot ?? '') |
-                  tbl.nameEn.equals(set.exerciseNameSnapshot ?? ''))
-              ..limit(1))
-            .getSingleOrNull();
-        return exRow?.id;
+        final exercise = await getExerciseByName(set.exerciseNameSnapshot ?? '');
+        return exercise?.uuid;
       }
 
       // 3. Determine unique exercises

@@ -4,6 +4,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_markdown_plus_latex/flutter_markdown_plus_latex.dart';
 import 'package:markdown/markdown.dart' as md;
 import '../../util/design_constants.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A standard premium info button that triggers a detailed bottom sheet about
 /// the underlying algorithm (math under-the-hood, key concepts, and references).
@@ -65,7 +66,7 @@ class AlgorithmInfoButton extends StatelessWidget {
             message: title,
             child: Center(
               child: Icon(
-                Icons.info_outline,
+                LucideIcons.info,
                 color: iconColor ?? theme.colorScheme.primary,
                 size: DesignConstants.iconSizeM,
               ),
@@ -121,7 +122,8 @@ class _AlgorithmInfoBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<_AlgorithmInfoBottomSheet> createState() => _AlgorithmInfoBottomSheetState();
+  State<_AlgorithmInfoBottomSheet> createState() =>
+      _AlgorithmInfoBottomSheetState();
 }
 
 class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
@@ -130,14 +132,19 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
   bool _isLoading = false;
 
   Future<void> _loadMarkdown() async {
-    if (widget.markdownAssetPath == null || _loadedMarkdown != null || _isLoading) return;
+    if (widget.markdownAssetPath == null ||
+        _loadedMarkdown != null ||
+        _isLoading) {
+      return;
+    }
 
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final data = await DefaultAssetBundle.of(context).loadString(widget.markdownAssetPath!);
+      final data = await DefaultAssetBundle.of(context)
+          .loadString(widget.markdownAssetPath!);
       if (mounted) {
         setState(() {
           _loadedMarkdown = data;
@@ -158,7 +165,7 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return DraggableScrollableSheet(
       initialChildSize: 0.65,
       minChildSize: 0.4,
@@ -191,7 +198,7 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                   ),
                 ),
               ),
-              
+
               // Header
               Padding(
                 padding: const EdgeInsets.all(DesignConstants.spacingL),
@@ -208,15 +215,15 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(LucideIcons.x),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
               ),
-              
+
               const Divider(height: 1),
-              
+
               // Content
               Expanded(
                 child: ListView(
@@ -233,12 +240,16 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                       ),
                     ),
                     const SizedBox(height: DesignConstants.spacingL),
-                    
+
                     // Bullet Points Key Features
-                    ...widget.keyPoints.where((p) => p.trim().isNotEmpty).map((point) {
-                      final cleanPoint = point.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), '');
+                    ...widget.keyPoints
+                        .where((p) => p.trim().isNotEmpty)
+                        .map((point) {
+                      final cleanPoint =
+                          point.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), '');
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+                        padding: const EdgeInsets.only(
+                            bottom: DesignConstants.spacingS),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -264,16 +275,17 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                         ),
                       );
                     }),
-                    
+
                     const SizedBox(height: DesignConstants.spacingL),
-                    
+
                     // Expandable Technical Section
                     Container(
                       decoration: BoxDecoration(
-                        color: isDark 
-                            ? const Color(0xFF262626) 
+                        color: isDark
+                            ? const Color(0xFF262626)
                             : cs.surfaceContainerHighest.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                        borderRadius: BorderRadius.circular(
+                            DesignConstants.borderRadiusM),
                         border: Border.all(
                           color: cs.onSurface.withValues(alpha: 0.08),
                         ),
@@ -289,25 +301,30 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                                 _loadMarkdown();
                               }
                             },
-                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                            borderRadius: BorderRadius.circular(
+                                DesignConstants.borderRadiusM),
                             child: Padding(
-                              padding: const EdgeInsets.all(DesignConstants.spacingL),
+                              padding: const EdgeInsets.all(
+                                  DesignConstants.spacingL),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Row(
                                       children: [
                                         Icon(
-                                          Icons.developer_mode,
+                                          LucideIcons.smartphone,
                                           size: DesignConstants.iconSizeM,
                                           color: cs.primary,
                                         ),
-                                        const SizedBox(width: DesignConstants.spacingS),
+                                        const SizedBox(
+                                            width: DesignConstants.spacingS),
                                         Expanded(
                                           child: Text(
                                             widget.technicalTitle,
-                                            style: theme.textTheme.titleMedium?.copyWith(
+                                            style: theme.textTheme.titleMedium
+                                                ?.copyWith(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 14,
                                               color: cs.onSurface,
@@ -318,9 +335,9 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                                     ),
                                   ),
                                   Icon(
-                                    _isTechnicalExpanded 
-                                        ? Icons.expand_less 
-                                        : Icons.expand_more,
+                                    _isTechnicalExpanded
+                                        ? LucideIcons.chevron_up
+                                        : LucideIcons.chevron_down,
                                     color: cs.onSurface.withValues(alpha: 0.6),
                                   ),
                                 ],
@@ -330,35 +347,44 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                           if (_isTechnicalExpanded) ...[
                             const Divider(height: 1),
                             Padding(
-                              padding: const EdgeInsets.all(DesignConstants.spacingL),
-                              child: _isLoading 
+                              padding: const EdgeInsets.all(
+                                  DesignConstants.spacingL),
+                              child: _isLoading
                                   ? const Center(
                                       child: Padding(
-                                        padding: EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: DesignConstants.spacingL),
                                         child: CircularProgressIndicator(),
                                       ),
                                     )
                                   : MarkdownBody(
-                                      data: _loadedMarkdown ?? widget.technicalExplanation,
+                                      data: _loadedMarkdown ??
+                                          widget.technicalExplanation,
                                       selectable: true,
-                                      styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+                                      styleSheet:
+                                          MarkdownStyleSheet.fromTheme(theme)
+                                              .copyWith(
                                         p: theme.textTheme.bodySmall?.copyWith(
                                           fontSize: 13,
                                           height: 1.5,
-                                          color: cs.onSurface.withValues(alpha: 0.85),
+                                          color: cs.onSurface
+                                              .withValues(alpha: 0.85),
                                         ),
-                                        code: theme.textTheme.bodySmall?.copyWith(
+                                        code:
+                                            theme.textTheme.bodySmall?.copyWith(
                                           fontSize: 12,
                                           fontFamily: 'monospace',
-                                          backgroundColor: isDark 
-                                              ? const Color(0xFF1E1E1E) 
-                                              : cs.surfaceContainerHighest.withValues(alpha: 0.3),
+                                          backgroundColor: isDark
+                                              ? const Color(0xFF1E1E1E)
+                                              : cs.surfaceContainerHighest
+                                                  .withValues(alpha: 0.3),
                                           color: cs.primary,
                                         ),
                                       ),
                                       builders: {
                                         'latex': LatexElementBuilder(
-                                          textStyle: theme.textTheme.bodySmall?.copyWith(
+                                          textStyle: theme.textTheme.bodySmall
+                                              ?.copyWith(
                                             fontSize: 13,
                                             color: cs.primary,
                                           ),
@@ -366,11 +392,13 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                                       },
                                       extensionSet: md.ExtensionSet(
                                         [
-                                          ...md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                                          ...md.ExtensionSet.gitHubFlavored
+                                              .blockSyntaxes,
                                           LatexBlockSyntax(),
                                         ],
                                         [
-                                          ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
+                                          ...md.ExtensionSet.gitHubFlavored
+                                              .inlineSyntaxes,
                                           LatexInlineSyntax(),
                                         ],
                                       ),
@@ -391,4 +419,3 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
     );
   }
 }
-

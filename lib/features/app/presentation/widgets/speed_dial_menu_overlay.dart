@@ -123,7 +123,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                           width: 74.0,
                                           height: 74.0,
                                           useOwnLayer: true,
-                                          quality: GlassQuality.standard,
+                                          quality: GlassQuality.minimal,
                                           shape: const LiquidRoundedSuperellipse(
                                             borderRadius: rLiquid,
                                           ),

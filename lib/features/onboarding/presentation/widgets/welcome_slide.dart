@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class WelcomeSlide extends StatelessWidget {
   final bool isRestoring;
@@ -23,7 +24,7 @@ class WelcomeSlide extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.waving_hand_rounded,
+            LucideIcons.hand,
             size: 80,
             color: theme.colorScheme.primary,
           ),
@@ -72,7 +73,7 @@ class WelcomeSlide extends StatelessWidget {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.restore),
+                  : const Icon(LucideIcons.history),
               label: Text(
                 isRestoring
                     ? l10n.onboardingRestoreImporting

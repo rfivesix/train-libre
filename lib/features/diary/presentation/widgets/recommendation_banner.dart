@@ -5,6 +5,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../theme/color_constants.dart';
 import '../../../nutrition_recommendation/data/recommendation_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A premium, glassmorphic dismissible notification banner that alerts the user
 /// when calculated adaptive targets deviate from active goals or are unacknowledged.
@@ -23,11 +24,12 @@ class RecommendationBanner extends StatefulWidget {
   State<RecommendationBanner> createState() => _RecommendationBannerState();
 }
 
-class _RecommendationBannerState extends State<RecommendationBanner> with SingleTickerProviderStateMixin {
+class _RecommendationBannerState extends State<RecommendationBanner>
+    with SingleTickerProviderStateMixin {
   late final AdaptiveNutritionRecommendationService _recommendationService;
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
-  
+
   bool _isDismissed = false;
   bool _shouldShow = false;
   bool _isLoading = true;
@@ -37,7 +39,8 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
   @override
   void initState() {
     super.initState();
-    _recommendationService = widget.recommendationService ?? AdaptiveNutritionRecommendationService();
+    _recommendationService = widget.recommendationService ??
+        AdaptiveNutritionRecommendationService();
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -66,7 +69,8 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
   Future<void> _checkBannerStatus() async {
     try {
       // Load adaptive recommendation state
-      final recState = await _recommendationService.loadState(refreshIfDue: false);
+      final recState =
+          await _recommendationService.loadState(refreshIfDue: false);
       final latestRec = recState.latestGeneratedRecommendation;
       final latestApplied = recState.latestAppliedRecommendation;
 
@@ -80,7 +84,8 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
         return;
       }
 
-      final key = latestRec.dueWeekKey ?? latestRec.generatedAt.toIso8601String();
+      final key =
+          latestRec.dueWeekKey ?? latestRec.generatedAt.toIso8601String();
       final prefs = await SharedPreferences.getInstance();
       final isDismissed = prefs.getBool('dismissed_tdee_banner_$key') ?? false;
 
@@ -100,7 +105,8 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
       final isUnacknowledged = latestApplied == null ||
           latestApplied.dueWeekKey != latestRec.dueWeekKey;
 
-      final currentCaloriesMatch = widget.currentCalories == recommendedCalories;
+      final currentCaloriesMatch =
+          widget.currentCalories == recommendedCalories;
       final shouldShow = !currentCaloriesMatch || isUnacknowledged;
 
       if (mounted) {
@@ -130,7 +136,7 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
       final key = 'dismissed_tdee_banner_$_recommendationKey';
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(key, true);
-      
+
       if (mounted) {
         _fadeController.stop();
         Future.microtask(() {
@@ -148,7 +154,8 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
 
   Future<void> _applyRecommendation() async {
     try {
-      final success = await _recommendationService.applyLatestRecommendationToActiveTargets();
+      final success = await _recommendationService
+          .applyLatestRecommendationToActiveTargets();
       if (success && mounted) {
         _fadeController.stop();
         Future.microtask(() {
@@ -184,7 +191,8 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: DesignConstants.cardPaddingExternal),
+          padding: const EdgeInsets.symmetric(
+              vertical: DesignConstants.cardPaddingExternal),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             child: BackdropFilter(
@@ -192,7 +200,8 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
               child: Container(
                 decoration: BoxDecoration(
                   color: bg.withValues(alpha: 0.75),
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
                   border: Border.all(
                     color: isDark
                         ? Colors.white.withValues(alpha: 0.15)
@@ -201,11 +210,12 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 14.0),
                   child: Row(
                     children: [
                       Icon(
-                        Icons.lightbulb_outline_rounded,
+                        LucideIcons.lightbulb,
                         color: accent,
                         size: DesignConstants.iconSizeL,
                       ),
@@ -230,11 +240,14 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
                           behavior: HitTestBehavior.opaque,
                           onTap: _applyRecommendation,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: accent.withValues(alpha: isDark ? 0.2 : 0.1),
+                              color:
+                                  accent.withValues(alpha: isDark ? 0.2 : 0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: accent.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                  color: accent.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               l10n.recommendationBannerApply,
@@ -257,7 +270,7 @@ class _RecommendationBannerState extends State<RecommendationBanner> with Single
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Icon(
-                              Icons.close,
+                              LucideIcons.x,
                               size: DesignConstants.iconSizeM,
                               color: isDark ? Colors.white60 : Colors.black54,
                             ),

@@ -6,6 +6,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class PulseSettingsScreen extends StatefulWidget {
   const PulseSettingsScreen({
@@ -61,7 +62,7 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
               children: [
                 SwitchListTile(
                   key: const Key('pulse_tracking_toggle'),
-                  secondary: const Icon(Icons.favorite_outline),
+                  secondary: const Icon(LucideIcons.heart),
                   title: Text(
                     copy.enableTitle,
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -72,7 +73,7 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.lock_open_outlined),
+                  leading: const Icon(LucideIcons.lock_open),
                   title: Text(copy.permissionTitle),
                   subtitle: Text(copy.permissionSubtitle),
                   trailing: _requesting
@@ -81,11 +82,11 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.chevron_right),
+                      : const Icon(LucideIcons.chevron_right),
                   onTap: _requesting ? null : _requestAccess,
                 ),
                 ListTile(
-                  leading: const Icon(Icons.info_outline),
+                  leading: const Icon(LucideIcons.info),
                   title: Text(copy.honestTitle),
                   subtitle: Text(copy.honestSubtitle),
                 ),

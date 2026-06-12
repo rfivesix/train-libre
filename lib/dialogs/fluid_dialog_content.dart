@@ -1,6 +1,7 @@
 // lib/dialogs/fluid_dialog_content.dart - replace the entire file
 
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../generated/app_localizations.dart';
@@ -171,12 +172,12 @@ class FluidDialogContentState extends State<FluidDialogContent> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TextButton.icon(
-              icon: const Icon(Icons.calendar_today, size: 20),
+              icon: const Icon(LucideIcons.calendar, size: 20),
               label: Text(formattedDate, style: const TextStyle(fontSize: 16)),
               onPressed: _selectDate,
             ),
             TextButton.icon(
-              icon: const Icon(Icons.access_time, size: 20),
+              icon: const Icon(LucideIcons.clock, size: 20),
               label: Text(formattedTime, style: const TextStyle(fontSize: 16)),
               onPressed: _selectTime,
             ),

@@ -42,7 +42,6 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../navigation/app_route_observer.dart';
 import '../../../services/app_tour_service.dart';
 import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
-import '../../../core/performance/glass_performance_manager.dart';
 
 /// The root scaffold containing the main navigation structure.
 ///
@@ -78,35 +77,6 @@ class _MainScreenState extends State<MainScreen>
   final StepsAggregationRepository _stepsRepository =
       HealthStepsAggregationRepository();
 
-  GlassQuality _currentQuality = GlassQuality.premium;
-  GlassQuality? _pendingQuality;
-  bool _isRouteActive = true;
-
-  int _getQualityLevel(GlassQuality quality) {
-    switch (quality) {
-      case GlassQuality.minimal:
-        return 1;
-      case GlassQuality.standard:
-        return 2;
-      case GlassQuality.premium:
-        return 3;
-    }
-  }
-
-  void _onQualityRecommended() {
-    final recommended = GlassPerformanceManager().qualityNotifier.value;
-    if (recommended != _currentQuality) {
-      if (!_isRouteActive) {
-        setState(() {
-          _currentQuality = recommended;
-          _pendingQuality = null;
-        });
-      } else {
-        _pendingQuality = recommended;
-      }
-    }
-  }
-
   ThemeService get themeService =>
       Provider.of<ThemeService>(context, listen: false);
 
@@ -123,8 +93,6 @@ class _MainScreenState extends State<MainScreen>
   @override
   void initState() {
     super.initState();
-    _currentQuality = GlassPerformanceManager().qualityNotifier.value;
-    GlassPerformanceManager().qualityNotifier.addListener(_onQualityRecommended);
     _currentIndex = widget.initialTabIndex ?? 0;
     _pageController = PageController(initialPage: _currentIndex);
     _menuController = AnimationController(
@@ -148,51 +116,16 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void didPush() {
-    _isRouteActive = true;
     _handlePendingAppTourEntry();
   }
 
   @override
   void didPopNext() {
-    _isRouteActive = true;
-    if (_pendingQuality != null) {
-      final currentLevel = _getQualityLevel(_currentQuality);
-      final pendingLevel = _getQualityLevel(_pendingQuality!);
-      if (pendingLevel > currentLevel) {
-        setState(() {
-          _currentQuality = _pendingQuality!;
-          _pendingQuality = null;
-        });
-      }
-    }
     _handlePendingAppTourEntry();
   }
 
   @override
-  void didPushNext() {
-    _isRouteActive = false;
-    if (_pendingQuality != null) {
-      final currentLevel = _getQualityLevel(_currentQuality);
-      final pendingLevel = _getQualityLevel(_pendingQuality!);
-      if (pendingLevel < currentLevel) {
-        setState(() {
-          _currentQuality = _pendingQuality!;
-          _pendingQuality = null;
-        });
-      }
-    }
-    super.didPushNext();
-  }
-
-  @override
-  void didPop() {
-    _isRouteActive = false;
-    super.didPop();
-  }
-
-  @override
   void dispose() {
-    GlassPerformanceManager().qualityNotifier.removeListener(_onQualityRecommended);
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
     }
@@ -382,7 +315,7 @@ class _MainScreenState extends State<MainScreen>
             },
             child: Row(
               children: [
-                const Icon(Icons.play_arrow_rounded),
+                const Icon(LucideIcons.play),
                 const SizedBox(width: 12),
                 Text(
                   l10n.startEmptyWorkoutButton,
@@ -480,7 +413,7 @@ class _MainScreenState extends State<MainScreen>
                     ),
                     const SizedBox(width: 8),
                     Icon(
-                      Icons.more_vert_rounded,
+                      LucideIcons.ellipsis_vertical,
                       color: Theme.of(ctx).textTheme.bodyMedium?.color,
                     ),
                   ],
@@ -855,21 +788,10 @@ class _MainScreenState extends State<MainScreen>
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.chevron_left),
+              icon: const Icon(LucideIcons.share_2),
+              tooltip: l10n.share,
               onPressed: () {
-                _tagebuchKey.currentState?.navigateDay(false);
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.calendar_today),
-              onPressed: () {
-                _tagebuchKey.currentState?.pickDate();
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              onPressed: () {
-                _tagebuchKey.currentState?.navigateDay(true);
+                _tagebuchKey.currentState?.showShareMenu();
               },
             ),
             _profileAppBarButton(context),
@@ -881,33 +803,33 @@ class _MainScreenState extends State<MainScreen>
   List<Map<String, dynamic>> _getSpeedDialActions(AppLocalizations l10n) {
     return [
       {
-        'icon': Icons.local_drink,
+        'icon': LucideIcons.glass_water,
         'label': l10n.addLiquidOption,
         'action': 'add_liquid',
       },
       {
-        'icon': Icons.restaurant_menu,
+        'icon': LucideIcons.utensils,
         'label': l10n.addFoodOption,
         'action': 'add_food',
       },
       {
-        'icon': Icons.straighten_outlined,
+        'icon': LucideIcons.ruler,
         'label': l10n.addMeasurement,
         'action': 'add_measurement',
       },
       {
-        'icon': Icons.fitness_center,
+        'icon': LucideIcons.dumbbell,
         'label': l10n.startWorkout,
         'action': 'start_workout',
       },
       {
-        'icon': Icons.medication_outlined,
+        'icon': LucideIcons.pill,
         'label': l10n.logIntakeTitle,
         'action': 'log_supplement',
       },
       if (themeService.isAiEnabled)
         {
-          'icon': Icons.auto_awesome,
+          'icon': LucideIcons.sparkles,
           'label': l10n.aiMealCapture,
           'action': 'ai_meal_capture',
           'gradient': true,
@@ -1249,7 +1171,8 @@ class _MainScreenState extends State<MainScreen>
                             ),
                             SizedBox(width: spacing),
                             ClipPath(
-                              clipper: ShadowOuterClipper(borderRadius: 37, isOval: true),
+                              clipper: ShadowOuterClipper(
+                                  borderRadius: 37, isOval: true),
                               child: Container(
                                 width: extraButtonSize,
                                 height: 74.0, // Match barHeight
@@ -1277,96 +1200,107 @@ class _MainScreenState extends State<MainScreen>
                             horizontal: horizontalPadding,
                             vertical: verticalPadding,
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: GlassBottomBar(
-                                  selectedIndex: _currentIndex,
-                                  onTabSelected: _onNavigationTapped,
-                                  barHeight: 74,
-                                  barBorderRadius:
-                                      37, // Half of height for perfectly rounded semi-circle ends
-                                  tabWidth:
-                                      null, // Stretches to occupy all horizontal space
-                                  horizontalPadding: 0.0,
-                                  verticalPadding: 0.0,
-                                  quality: _currentQuality,
-                                  indicatorExpansion: 14,
-                                  selectedIconColor: theme.colorScheme.primary,
-                                  unselectedIconColor:
-                                      isDark ? Colors.white : Colors.black,
-                                  indicatorColor:
-                                      (isDark ? Colors.white : Colors.black)
-                                          .withValues(alpha: 0.15),
-                                  settings: DesignConstants.liquidGlassSettings(isDark),
-                                  tabs: [
-                                    GlassBottomBarTab(
-                                      label: l10n.diary,
-                                      icon: Icon(
-                                        LucideIcons.notebook,
-                                        key: _tourDiaryTabKey,
+                          child: GlassAdaptiveScope(
+                            minQuality: GlassQuality.premium,
+                            maxQuality: GlassQuality.premium,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: GlassBottomBar(
+                                    selectedIndex: _currentIndex,
+                                    onTabSelected: _onNavigationTapped,
+                                    barHeight: 74,
+                                    barBorderRadius:
+                                        37, // Half of height for perfectly rounded semi-circle ends
+                                    tabWidth:
+                                        null, // Stretches to occupy all horizontal space
+                                    horizontalPadding: 0.0,
+                                    verticalPadding: 0.0,
+                                    quality: GlassQuality.premium,
+                                    indicatorExpansion: 14,
+                                    selectedIconColor:
+                                        theme.colorScheme.primary,
+                                    unselectedIconColor:
+                                        isDark ? Colors.white : Colors.black,
+                                    indicatorColor:
+                                        (isDark ? Colors.white : Colors.black)
+                                            .withValues(alpha: 0.15),
+                                    settings:
+                                        DesignConstants.liquidGlassSettings(
+                                            isDark),
+                                    tabs: [
+                                      GlassBottomBarTab(
+                                        label: l10n.diary,
+                                        icon: Icon(
+                                          LucideIcons.notebook,
+                                          key: _tourDiaryTabKey,
+                                        ),
+                                        activeIcon:
+                                            const Icon(LucideIcons.notebook),
                                       ),
-                                      activeIcon:
-                                          const Icon(LucideIcons.notebook),
-                                    ),
-                                    GlassBottomBarTab(
-                                      label: l10n.workout,
-                                      icon: Icon(
-                                        LucideIcons.dumbbell,
-                                        key: _tourWorkoutTabKey,
+                                      GlassBottomBarTab(
+                                        label: l10n.workout,
+                                        icon: Icon(
+                                          LucideIcons.dumbbell,
+                                          key: _tourWorkoutTabKey,
+                                        ),
+                                        activeIcon:
+                                            const Icon(LucideIcons.dumbbell),
                                       ),
-                                      activeIcon:
-                                          const Icon(LucideIcons.dumbbell),
-                                    ),
-                                    GlassBottomBarTab(
-                                      label: l10n.statistics,
-                                      icon: Icon(
-                                        LucideIcons.chart_no_axes_column,
-                                        key: _tourStatisticsTabKey,
+                                      GlassBottomBarTab(
+                                        label: l10n.statistics,
+                                        icon: Icon(
+                                          LucideIcons.chart_no_axes_column,
+                                          key: _tourStatisticsTabKey,
+                                        ),
+                                        activeIcon: const Icon(
+                                            LucideIcons.chart_no_axes_column),
                                       ),
-                                      activeIcon: const Icon(
-                                          LucideIcons.chart_no_axes_column),
-                                    ),
-                                    GlassBottomBarTab(
-                                      label: l10n.nutrition,
-                                      icon: Icon(
-                                        LucideIcons.utensils,
-                                        key: _tourNutritionTabKey,
+                                      GlassBottomBarTab(
+                                        label: l10n.nutrition,
+                                        icon: Icon(
+                                          LucideIcons.utensils,
+                                          key: _tourNutritionTabKey,
+                                        ),
+                                        activeIcon:
+                                            const Icon(LucideIcons.utensils),
                                       ),
-                                      activeIcon:
-                                          const Icon(LucideIcons.utensils),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: spacing),
-                              AdaptiveGlass(
-                                shape: const LiquidOval(),
-                                settings: DesignConstants.liquidGlassSettings(isDark),
-                                quality: _currentQuality,
-                                useOwnLayer: true,
-                                isInteractive: false, // Force blur in minimal quality
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    customBorder: const CircleBorder(),
-                                    onTap: _toggleAddMenu,
-                                    child: SizedBox(
-                                      width: extraButtonSize,
-                                      height: 74.0,
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.add,
-                                          key: _tourFabKey,
-                                          color: isDark ? Colors.white : Colors.black,
-                                          size: 28,
+                                SizedBox(width: spacing),
+                                AdaptiveGlass(
+                                  shape: const LiquidOval(),
+                                  settings: DesignConstants.liquidGlassSettings(
+                                      isDark),
+                                  quality: GlassQuality.premium,
+                                  useOwnLayer: true,
+                                  isInteractive:
+                                      false, // Force blur in minimal quality
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      customBorder: const CircleBorder(),
+                                      onTap: _toggleAddMenu,
+                                      child: SizedBox(
+                                        width: extraButtonSize,
+                                        height: 74.0,
+                                        child: Center(
+                                          child: Icon(
+                                            LucideIcons.plus,
+                                            key: _tourFabKey,
+                                            color: isDark
+                                                ? Colors.white
+                                                : Colors.black,
+                                            size: 28,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -1437,7 +1371,7 @@ class _MainScreenState extends State<MainScreen>
                 ? FileImage(File(profileService.profileImagePath!))
                 : null,
             child: (profileService.profileImagePath == null)
-                ? const Icon(Icons.person, size: 20, color: Colors.black54)
+                ? const Icon(LucideIcons.user, size: 20, color: Colors.black54)
                 : null,
           ),
         ),

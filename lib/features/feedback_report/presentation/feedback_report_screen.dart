@@ -11,6 +11,7 @@ import '../data/adaptive_nutrition_diagnostics_provider.dart';
 import '../data/backup_restore_diagnostics_provider.dart';
 import '../domain/feedback_report_builder.dart';
 import '../domain/feedback_report_models.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class FeedbackReportScreen extends StatefulWidget {
   final FeedbackReportBuilder? reportBuilder;
@@ -277,7 +278,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           AppSectionHeader(title: l10n.feedbackReportScreenTitle),
           SummaryCard(
             child: ListTile(
-              leading: const Icon(Icons.privacy_tip_outlined),
+              leading: const Icon(LucideIcons.shield_alert),
               title: Text(
                 l10n.feedbackReportPrivacyTitle,
                 style: const TextStyle(fontWeight: FontWeight.bold),
@@ -310,7 +311,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
               children: [
                 SwitchListTile(
                   key: const Key('feedback_report_toggle_adaptive'),
-                  secondary: const Icon(Icons.monitor_heart_outlined),
+                  secondary: const Icon(LucideIcons.activity),
                   title: Text(
                     l10n.feedbackReportIncludeAdaptiveNutrition,
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -323,7 +324,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
                 const Divider(height: 1),
                 SwitchListTile(
                   key: const Key('feedback_report_toggle_backup'),
-                  secondary: const Icon(Icons.backup_outlined),
+                  secondary: const Icon(LucideIcons.cloud_upload),
                   title: Text(
                     l10n.feedbackReportIncludeBackupRestore,
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -336,7 +337,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
                 const Divider(height: 1),
                 SwitchListTile(
                   key: const Key('feedback_report_toggle_note'),
-                  secondary: const Icon(Icons.note_alt_outlined),
+                  secondary: const Icon(LucideIcons.sticky_note),
                   title: Text(
                     l10n.feedbackReportIncludeUserNote,
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -361,7 +362,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.visibility_outlined),
+                  : const Icon(LucideIcons.eye),
               label: Text(l10n.feedbackReportGeneratePreview),
             ),
           ),
@@ -391,25 +392,25 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
                 OutlinedButton.icon(
                   key: const Key('feedback_report_action_copy'),
                   onPressed: _isCopying ? null : _copyReport,
-                  icon: const Icon(Icons.copy_outlined),
+                  icon: const Icon(LucideIcons.copy),
                   label: Text(l10n.feedbackReportActionCopy),
                 ),
                 OutlinedButton.icon(
                   key: const Key('feedback_report_action_save'),
                   onPressed: _isSaving ? null : _saveReportFile,
-                  icon: const Icon(Icons.save_alt_outlined),
+                  icon: const Icon(LucideIcons.download),
                   label: Text(l10n.feedbackReportActionSave),
                 ),
                 OutlinedButton.icon(
                   key: const Key('feedback_report_action_share'),
                   onPressed: _isSharing ? null : _shareReport,
-                  icon: const Icon(Icons.ios_share_outlined),
+                  icon: const Icon(LucideIcons.share),
                   label: Text(l10n.feedbackReportActionShare),
                 ),
                 OutlinedButton.icon(
                   key: const Key('feedback_report_action_email'),
                   onPressed: _isEmailing ? null : _openEmailDraft,
-                  icon: const Icon(Icons.email_outlined),
+                  icon: const Icon(LucideIcons.mail),
                   label: Text(l10n.feedbackReportActionEmail),
                 ),
               ],

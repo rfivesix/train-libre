@@ -19,6 +19,7 @@ import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
 import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// Review screen for AI-suggested food items.
 ///
@@ -55,7 +56,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   bool _isMatching = true;
   bool _aiWaitingHapticActive = false;
   AiValidationResult? _validation;
-
 
   // Meal type selection
   late String _selectedMealType;
@@ -469,7 +469,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
                 // Meal type selector removed from here — relocated to bottom bar
 
-
                 // Items list
                 if (_isMatching)
                   const Center(
@@ -504,7 +503,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: OutlinedButton.icon(
                     onPressed: _addManualItem,
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(LucideIcons.plus),
                     label: Text(l10n.aiReviewAddItem),
                   ),
                 ),
@@ -516,7 +515,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   child: Row(
                     children: [
                       Icon(
-                        _showFeedback ? Icons.expand_less : Icons.expand_more,
+                        _showFeedback
+                            ? LucideIcons.chevron_up
+                            : LucideIcons.chevron_down,
                         color: theme.colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
@@ -548,7 +549,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.refresh),
+                        : const Icon(LucideIcons.rotate_cw),
                     label: Text(l10n.aiReviewRetryButton),
                   ),
                 ],
@@ -643,7 +644,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Icon(Icons.check),
+                          : const Icon(LucideIcons.check),
                       label: Text(
                         l10n.aiReviewSaveToDiary,
                         style: const TextStyle(fontSize: 16),

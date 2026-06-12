@@ -53,11 +53,9 @@ class SleepCanonicalSessionsDao {
   }
 
   Future<void> upsertBatch(List<SleepCanonicalSessionCompanion> rows) async {
-    await _db.transaction(() async {
-      for (final row in rows) {
-        await upsert(row);
-      }
-    });
+    for (final row in rows) {
+      await upsert(row);
+    }
   }
 
   Future<List<SleepCanonicalSessionRecord>> findByDateRange({
@@ -195,44 +193,42 @@ class SleepCanonicalStageSegmentsDao {
   Future<void> upsertBatch(
     List<SleepCanonicalStageSegmentCompanion> rows,
   ) async {
-    await _db.transaction(() async {
-      for (final row in rows) {
-        await _db.customStatement(
-          '''
-          INSERT OR REPLACE INTO sleep_canonical_stage_segments (
-            id,
-            session_id,
-            source_platform,
-            source_app_id,
-            source_confidence,
-            source_record_hash,
-            normalization_version,
-            stage,
-            started_at,
-            ended_at,
-            imported_at,
-            normalized_at,
-            updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ''',
-          <Object?>[
-            row.id,
-            row.sessionId,
-            row.sourcePlatform,
-            row.sourceAppId,
-            row.sourceConfidence,
-            row.sourceRecordHash,
-            row.normalizationVersion,
-            row.stage,
-            _toEpochMillis(row.startedAt),
-            _toEpochMillis(row.endedAt),
-            _toEpochMillis(row.importedAt),
-            _toEpochMillis(row.normalizedAt),
-            _toEpochMillis(DateTime.now()),
-          ],
-        );
-      }
-    });
+    for (final row in rows) {
+      await _db.customStatement(
+        '''
+        INSERT OR REPLACE INTO sleep_canonical_stage_segments (
+          id,
+          session_id,
+          source_platform,
+          source_app_id,
+          source_confidence,
+          source_record_hash,
+          normalization_version,
+          stage,
+          started_at,
+          ended_at,
+          imported_at,
+          normalized_at,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''',
+        <Object?>[
+          row.id,
+          row.sessionId,
+          row.sourcePlatform,
+          row.sourceAppId,
+          row.sourceConfidence,
+          row.sourceRecordHash,
+          row.normalizationVersion,
+          row.stage,
+          _toEpochMillis(row.startedAt),
+          _toEpochMillis(row.endedAt),
+          _toEpochMillis(row.importedAt),
+          _toEpochMillis(row.normalizedAt),
+          _toEpochMillis(DateTime.now()),
+        ],
+      );
+    }
   }
 
   Future<List<SleepCanonicalStageSegmentRecord>> findBySessionId(
@@ -307,42 +303,40 @@ class SleepCanonicalHeartRateSamplesDao {
   Future<void> upsertBatch(
     List<SleepCanonicalHeartRateSampleCompanion> rows,
   ) async {
-    await _db.transaction(() async {
-      for (final row in rows) {
-        await _db.customStatement(
-          '''
-          INSERT OR REPLACE INTO sleep_canonical_heart_rate_samples (
-            id,
-            session_id,
-            source_platform,
-            source_app_id,
-            source_confidence,
-            source_record_hash,
-            normalization_version,
-            sampled_at,
-            bpm,
-            imported_at,
-            normalized_at,
-            updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ''',
-          <Object?>[
-            row.id,
-            row.sessionId,
-            row.sourcePlatform,
-            row.sourceAppId,
-            row.sourceConfidence,
-            row.sourceRecordHash,
-            row.normalizationVersion,
-            _toEpochMillis(row.sampledAt),
-            row.bpm,
-            _toEpochMillis(row.importedAt),
-            _toEpochMillis(row.normalizedAt),
-            _toEpochMillis(DateTime.now()),
-          ],
-        );
-      }
-    });
+    for (final row in rows) {
+      await _db.customStatement(
+        '''
+        INSERT OR REPLACE INTO sleep_canonical_heart_rate_samples (
+          id,
+          session_id,
+          source_platform,
+          source_app_id,
+          source_confidence,
+          source_record_hash,
+          normalization_version,
+          sampled_at,
+          bpm,
+          imported_at,
+          normalized_at,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''',
+        <Object?>[
+          row.id,
+          row.sessionId,
+          row.sourcePlatform,
+          row.sourceAppId,
+          row.sourceConfidence,
+          row.sourceRecordHash,
+          row.normalizationVersion,
+          _toEpochMillis(row.sampledAt),
+          row.bpm,
+          _toEpochMillis(row.importedAt),
+          _toEpochMillis(row.normalizedAt),
+          _toEpochMillis(DateTime.now()),
+        ],
+      );
+    }
   }
 
   Future<List<SleepCanonicalHeartRateSampleRecord>> findBySessionId(

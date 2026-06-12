@@ -10,6 +10,8 @@ import 'package:train_libre/features/workout/data/workout_repository.dart';
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
 import 'package:train_libre/features/workout/presentation/workout_log_detail_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -110,7 +112,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap edit button
-    await tester.tap(find.byIcon(Icons.edit));
+    await tester.tap(find.byIcon(LucideIcons.pencil));
     await tester.pumpAndSettle();
 
     // Check it correctly shows 100 before typing

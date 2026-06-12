@@ -494,10 +494,10 @@
   "profile_capslock":"PROFILE",
   "settings_capslock":"SETTINGS",
   "settingsTitle":"Settings",
-  "settingsUpdateFoodDatabase": "Update Food Database",
-  "settingsUpdateFoodDatabaseSubtitle": "Check for updates to the Open Food Facts database manually.",
-  "settingsUpdateFoodDatabaseSuccess": "Food database successfully updated.",
-  "settingsUpdateFoodDatabaseError": "Error updating database: {error}",
+  "settingsUpdateFoodDatabase": "Update Databases",
+  "settingsUpdateFoodDatabaseSubtitle": "Check for updates to the food and exercise databases manually.",
+  "settingsUpdateFoodDatabaseSuccess": "Databases successfully updated.",
+  "settingsUpdateFoodDatabaseError": "Error updating databases: {error}",
   "@settingsUpdateFoodDatabaseError": {
     "placeholders": {
       "error": {
@@ -836,6 +836,9 @@
   "settingsFoodDbRegionGermany": "Germany (DE)",
   "settingsFoodDbRegionSwitzerland": "Switzerland (CH)",
   "settingsFoodDbRegionUnitedStates": "United States (US)",
+  "settingsFoodDbRegionFrance": "France (FR)",
+  "settingsFoodDbRegionItaly": "Italy (IT)",
+  "settingsFoodDbRegionJapan": "Japan (JP)",
   "settingsColorfulMacroBadgesTitle": "Colorful Macro Badges",
   "settingsColorfulMacroBadgesSubtitle": "Uses the color-coded badge design from AI verification in the diary as well.",
   "settingsFoodDbRegionUnitedKingdom": "United Kingdom (UK)",
@@ -1895,6 +1898,9 @@
   ,"settingsBaseFoodLanguageFollowApp": "Follow app language"
   ,"settingsBaseFoodLanguageEnglish": "English"
   ,"settingsBaseFoodLanguageGerman": "German"
+  ,"settingsBaseFoodLanguageFrench": "French"
+  ,"settingsBaseFoodLanguageItalian": "Italian"
+  ,"settingsBaseFoodLanguageJapanese": "Japanese"
   ,"aiModelLabel": "Model"
   ,"autoBackupStoragePickerUnavailable": "Storage picker unavailable. Please fully restart/reinstall the app after updating."
   ,"autoBackupFolderPickerFailed": "Folder picker failed: {error}"
@@ -2052,5 +2058,47 @@
       }
     }
   },
-  "recommendationBannerApply": "Apply"
+  "recommendationBannerApply": "Apply",
+  "cancelingAndRollingBack": "Canceling, rolling back safely...",
+  "sleepSyncTitle": "Syncing Sleep History...",
+  "backupExportTitle": "Exporting Backup...",
+  "backupImportTitle": "Importing Backup...",
+  "progressImportingNight": "Importing Night {index}/{total}...",
+  "@progressImportingNight": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "progressExportingTable": "Exporting {table}...",
+  "@progressExportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "progressImportingTable": "Restoring {table}...",
+  "@progressImportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "shareDailyLogTitle": "Daily Log",
+  "shareSleepStartTime": "Start time",
+  "shareSleepEndTime": "End time",
+  "shareSleepDeep": "Deep Sleep",
+  "shareSleepLight": "Light Sleep",
+  "shareSleepRem": "REM Sleep",
+  "shareSleepAwake": "Awake/Interruptions",
+  "shareTotalWater": "Total Water/Fluids",
+  "shareNutritionSummary": "Total Nutrition Summary",
+  "shareSleepEfficiency": "Efficiency",
+  "shareSleepRestingHeartRate": "Resting Heart Rate"
 }

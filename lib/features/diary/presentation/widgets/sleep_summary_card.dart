@@ -4,6 +4,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../sleep/presentation/sleep_navigation.dart';
 import '../diary_view_model.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class SleepSummaryCard extends StatelessWidget {
   const SleepSummaryCard({super.key});
@@ -100,7 +101,7 @@ class SleepSummaryCard extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Icon(
-              Icons.chevron_right,
+              LucideIcons.chevron_right,
               color: theme.colorScheme.onSurface,
             ),
           ],

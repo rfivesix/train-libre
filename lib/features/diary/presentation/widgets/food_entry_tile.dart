@@ -10,6 +10,7 @@ import '../../domain/models/tracked_food_item.dart';
 import '../../domain/models/food_item.dart';
 import '../food_detail_screen.dart';
 import '../diary_view_model.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class FoodEntryTile extends StatelessWidget {
   final TrackedFoodItem trackedItem;
@@ -37,12 +38,12 @@ class FoodEntryTile extends StatelessWidget {
       key: Key('food_hub_entry_${trackedItem.entry.id}'),
       background: const SwipeActionBackground(
         color: Colors.blueAccent,
-        icon: Icons.edit,
+        icon: LucideIcons.pencil,
         alignment: Alignment.centerLeft,
       ),
       secondaryBackground: const SwipeActionBackground(
         color: Colors.redAccent,
-        icon: Icons.delete,
+        icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),
       confirmDismiss: (direction) async {
@@ -72,8 +73,8 @@ class FoodEntryTile extends StatelessWidget {
           subtitle: Text(
             '${trackedItem.entry.quantityInGrams}${l10n.unit_grams}',
             style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodySmall?.color,
-                ),
+              color: theme.textTheme.bodySmall?.color,
+            ),
           ),
           trailing: Text(
             '${trackedItem.calculatedCalories} ${l10n.unit_kcal}',

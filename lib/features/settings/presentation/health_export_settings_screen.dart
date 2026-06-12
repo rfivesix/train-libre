@@ -11,6 +11,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class HealthExportSettingsScreen extends StatefulWidget {
   const HealthExportSettingsScreen({super.key});
@@ -146,11 +147,11 @@ class _HealthExportSettingsScreenState
 
   IconData _exportStateIcon(HealthExportState state) {
     return switch (state) {
-      HealthExportState.success => Icons.check_circle_outline,
-      HealthExportState.exporting => Icons.sync,
-      HealthExportState.failed => Icons.error_outline,
-      HealthExportState.disabled => Icons.toggle_off_outlined,
-      HealthExportState.idle => Icons.hourglass_empty,
+      HealthExportState.success => LucideIcons.circle_check,
+      HealthExportState.exporting => LucideIcons.refresh_cw,
+      HealthExportState.failed => LucideIcons.triangle_alert,
+      HealthExportState.disabled => LucideIcons.toggle_left,
+      HealthExportState.idle => LucideIcons.hourglass,
     };
   }
 
@@ -216,7 +217,7 @@ class _HealthExportSettingsScreenState
               children: [
                 if (Platform.isIOS) ...[
                   SwitchListTile(
-                    secondary: const Icon(Icons.favorite_outline),
+                    secondary: const Icon(LucideIcons.heart),
                     title: Text(
                       _exportPlatformTitle(
                         HealthExportPlatform.appleHealth,
@@ -266,7 +267,7 @@ class _HealthExportSettingsScreenState
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.chevron_right),
+                        : const Icon(LucideIcons.chevron_right),
                     onTap: _appleExportEnabled
                         ? () => _exportNow(HealthExportPlatform.appleHealth)
                         : null,
@@ -274,7 +275,7 @@ class _HealthExportSettingsScreenState
                 ],
                 if (Platform.isAndroid) ...[
                   SwitchListTile(
-                    secondary: const Icon(Icons.favorite_border),
+                    secondary: const Icon(LucideIcons.heart),
                     title: Text(
                       _exportPlatformTitle(
                         HealthExportPlatform.healthConnect,
@@ -324,7 +325,7 @@ class _HealthExportSettingsScreenState
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.chevron_right),
+                        : const Icon(LucideIcons.chevron_right),
                     onTap: _healthConnectExportEnabled
                         ? () => _exportNow(HealthExportPlatform.healthConnect)
                         : null,
