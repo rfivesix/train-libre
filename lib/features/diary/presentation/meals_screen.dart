@@ -16,6 +16,7 @@ import 'widgets/meal_item_card.dart';
 import 'widgets/confirm_log_meal_bottom_sheet.dart';
 import 'add_food_screen.dart';
 import 'meal_screen.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen that displays a list of the user's saved meals.
 ///
@@ -115,7 +116,8 @@ class _MealsScreenState extends State<MealsScreen> {
               final bc = it['barcode'] as String;
               final qty = quantities[bc] ?? (it['quantity_in_grams'] as int);
 
-              final newFoodEntryId = await DatabaseHelper.instance.insertFoodEntry(
+              final newFoodEntryId =
+                  await DatabaseHelper.instance.insertFoodEntry(
                 FoodEntry(
                   barcode: bc,
                   timestamp: date,
@@ -239,7 +241,8 @@ class _MealsScreenState extends State<MealsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final double topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
+    final double topPadding =
+        MediaQuery.of(context).padding.top + kToolbarHeight;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -271,7 +274,7 @@ class _MealsScreenState extends State<MealsScreen> {
                                 .withValues(alpha: 0.12),
                           ),
                           child: Icon(
-                            Icons.restaurant_menu_outlined,
+                            LucideIcons.utensils,
                             size: 40,
                             color: Theme.of(context).colorScheme.primary,
                           ),
@@ -291,22 +294,20 @@ class _MealsScreenState extends State<MealsScreen> {
                         Text(
                           l10n.mealsEmptyBodyWithShortcut,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant
-                                    .withValues(alpha: 0.75),
-                                height: 1.45,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant
+                                        .withValues(alpha: 0.75),
+                                    height: 1.45,
+                                  ),
                         ),
                         const SizedBox(height: DesignConstants.spacingL),
                         // Outlined CTA to build a template from scratch
                         OutlinedButton.icon(
                           onPressed: () => _createMealAndOpenEditor(l10n),
-                          icon: const Icon(Icons.add),
+                          icon: const Icon(LucideIcons.plus),
                           label: Text(l10n.mealsCreateManually),
                         ),
                       ],
@@ -322,7 +323,8 @@ class _MealsScreenState extends State<MealsScreen> {
                       DesignConstants.screenPaddingHorizontal,
                       96.0,
                     ),
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
                       maxCrossAxisExtent: 400,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
@@ -341,7 +343,8 @@ class _MealsScreenState extends State<MealsScreen> {
                         onEdit: () async {
                           await Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => MealScreen(meal: meal, startInEdit: true),
+                              builder: (_) =>
+                                  MealScreen(meal: meal, startInEdit: true),
                             ),
                           );
                           await _reloadMeals();

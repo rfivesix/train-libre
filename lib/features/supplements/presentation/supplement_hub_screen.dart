@@ -19,6 +19,7 @@ import '../../../widgets/common/glass_progress_bar.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A central dashboard for tracking supplement intake and progress.
 class SupplementHubScreen extends StatelessWidget {
@@ -172,12 +173,12 @@ class _SupplementHubScreenContentState
       direction: DismissDirection.horizontal,
       background: const SwipeActionBackground(
         color: Colors.blueAccent,
-        icon: Icons.edit,
+        icon: LucideIcons.pencil,
         alignment: Alignment.centerLeft,
       ),
       secondaryBackground: const SwipeActionBackground(
         color: Colors.redAccent,
-        icon: Icons.delete,
+        icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),
       confirmDismiss: (direction) async {
@@ -225,7 +226,7 @@ class _SupplementHubScreenContentState
       },
       child: SummaryCard(
         child: ListTile(
-          leading: const Icon(Icons.check_circle, color: Colors.grey),
+          leading: const Icon(LucideIcons.circle_check, color: Colors.grey),
           title: Text(titleText),
           subtitle: Text(DateFormat.Hm().format(log.timestamp)),
           trailing: Text('${log.dose.toStringAsFixed(1)} ${log.unit}'),
@@ -252,7 +253,7 @@ class _SupplementHubScreenContentState
     if (isBuiltin) {
       return SummaryCard(
         child: ListTile(
-          leading: const Icon(Icons.add_circle_outline),
+          leading: const Icon(LucideIcons.circle_plus),
           title: Text(localizeSupplementName(supplement, l10n)),
           onTap: () => _logSupplement(context, model, supplement),
         ),
@@ -264,12 +265,12 @@ class _SupplementHubScreenContentState
       direction: DismissDirection.horizontal,
       background: const SwipeActionBackground(
         color: Colors.blueAccent,
-        icon: Icons.edit,
+        icon: LucideIcons.pencil,
         alignment: Alignment.centerLeft,
       ),
       secondaryBackground: const SwipeActionBackground(
         color: Colors.redAccent,
-        icon: Icons.delete,
+        icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),
       confirmDismiss: (direction) async {
@@ -283,7 +284,7 @@ class _SupplementHubScreenContentState
       },
       child: SummaryCard(
         child: ListTile(
-          leading: const Icon(Icons.add_circle_outline),
+          leading: const Icon(LucideIcons.circle_plus),
           title: Text(localizeSupplementName(supplement, l10n)),
           onTap: () => _logSupplement(context, model, supplement),
         ),
@@ -314,7 +315,7 @@ class _SupplementHubScreenContentState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.chevron_left),
+                  icon: const Icon(LucideIcons.chevron_left),
                   onPressed: () => model.navigateDay(false),
                 ),
                 Expanded(
@@ -341,7 +342,7 @@ class _SupplementHubScreenContentState
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.chevron_right),
+                  icon: const Icon(LucideIcons.chevron_right),
                   onPressed: model.selectedDate.isSameDate(DateTime.now())
                       ? null
                       : () => model.navigateDay(true),

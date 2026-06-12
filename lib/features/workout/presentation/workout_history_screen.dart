@@ -13,6 +13,7 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen displaying a list of all previously completed workout sessions.
 ///
@@ -77,7 +78,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.history_toggle_off_outlined,
+                      LucideIcons.history,
                       size: 80,
                       color: Colors.grey.shade400,
                     ),
@@ -124,7 +125,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                 // FIXED: Only `secondaryBackground` is needed here.
                 background: const SwipeActionBackground(
                   color: Colors.redAccent,
-                  icon: Icons.delete,
+                  icon: LucideIcons.trash_2,
                   alignment: Alignment.centerRight,
                 ),
                 confirmDismiss: (direction) async {
@@ -139,7 +140,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                 },
                 child: SummaryCard(
                   child: ListTile(
-                    leading: const Icon(Icons.event_note, size: 40),
+                    leading: const Icon(LucideIcons.calendar_days, size: 40),
                     title: Text(
                       log.routineName ?? l10n.freeWorkoutTitle,
                       maxLines: 2,
@@ -160,7 +161,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                         Row(
                           children: [
                             Icon(
-                              Icons.monitor_weight_outlined,
+                              LucideIcons.scale,
                               size: 14,
                               color: Colors.grey[600],
                             ),
@@ -178,7 +179,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                             ),
                             const SizedBox(width: DesignConstants.spacingM),
                             Icon(
-                              Icons.replay_circle_filled_outlined,
+                              LucideIcons.rotate_ccw,
                               size: 14,
                               color: Colors.grey[600],
                             ),

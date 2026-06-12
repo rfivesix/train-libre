@@ -6,6 +6,7 @@ import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../domain/models/food_item.dart';
 import 'meal_review_macros_bar.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A card representing an AI suggested meal item compared against database matches.
 class MealReviewComparisonCard extends StatelessWidget {
@@ -62,7 +63,7 @@ class MealReviewComparisonCard extends StatelessWidget {
           color: Colors.red,
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         ),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(LucideIcons.trash_2, color: Colors.white),
       ),
       onDismissed: (_) => onDismissed(),
       child: Padding(
@@ -156,7 +157,7 @@ class MealReviewComparisonCard extends StatelessWidget {
                   // Center-right: swap icon
                   IconButton(
                     icon: Icon(
-                      Icons.swap_horiz_rounded,
+                      LucideIcons.arrow_left_right,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                     tooltip: l10n.aiReviewReplaceItem,

@@ -13,6 +13,7 @@ import '../../../widgets/common/summary_card.dart';
 import 'widgets/wger_attribution_widget.dart';
 import 'create_exercise_screen.dart';
 import '../../../widgets/common/glass_fab.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A searchable list of all available exercises in the database.
 class ExerciseCatalogScreen extends StatefulWidget {
@@ -201,14 +202,14 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                         decoration: InputDecoration(
                           hintText: l10n.searchHintText,
                           prefixIcon: Icon(
-                            Icons.search,
+                            LucideIcons.search,
                             color: colorScheme.onSurfaceVariant,
                             size: 20,
                           ),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
                                   icon: Icon(
-                                    Icons.clear,
+                                    LucideIcons.x,
                                     color: colorScheme.onSurfaceVariant,
                                   ),
                                   onPressed: () => _searchController.clear(),
@@ -246,7 +247,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                           final exercise = _foundExercises[index];
                           return SummaryCard(
                             child: ListTile(
-                              leading: const Icon(Icons.fitness_center),
+                              leading: const Icon(LucideIcons.dumbbell),
                               title: Row(
                                 children: [
                                   Expanded(
@@ -266,14 +267,14 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                               trailing: widget.isSelectionMode
                                   ? IconButton(
                                       icon: Icon(
-                                        Icons.add_circle_outline,
+                                        LucideIcons.circle_plus,
                                         color: colorScheme.primary,
                                       ),
                                       onPressed: () =>
                                           Navigator.of(context).pop(exercise),
                                     )
                                   : const Icon(
-                                      Icons.chevron_right,
+                                      LucideIcons.chevron_right,
                                     ),
                               onTap: () {
                                 if (widget.onExerciseSelected != null) {
@@ -337,9 +338,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                 ? const Color(0xFF1C1C1C)
                 : const Color(0xFFF3F3F3)));
 
-    final iconColor = hasFilter
-        ? colorScheme.onPrimary
-        : colorScheme.onSurfaceVariant;
+    final iconColor =
+        hasFilter ? colorScheme.onPrimary : colorScheme.onSurfaceVariant;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -351,7 +351,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       ),
       child: IconButton(
         icon: Icon(
-          Icons.filter_list,
+          LucideIcons.funnel,
           color: iconColor,
           size: 22,
         ),

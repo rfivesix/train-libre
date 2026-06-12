@@ -7,6 +7,7 @@ import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import 'workout_card.dart';
 import 'workout_log_set_row.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A card widget grouping all set logs for a single exercise.
 /// Displays headers, exercise notes, set lists, and drag handle for reordering.
@@ -64,7 +65,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
             leading: isEditMode
                 ? ReorderableDragStartListener(
                     index: index,
-                    child: const Icon(Icons.drag_handle),
+                    child: const Icon(LucideIcons.grip_vertical),
                   )
                 : null,
             title: InkWell(
@@ -93,21 +94,21 @@ class WorkoutExerciseLogCard extends StatelessWidget {
               children: [
                 if (isEditMode)
                   IconButton(
-                    icon: const Icon(Icons.edit),
+                    icon: const Icon(LucideIcons.pencil),
                     tooltip: "Notizen bearbeiten",
                     onPressed: () => onEditNotes(exerciseName),
                   ),
                 if (isEditMode)
                   IconButton(
                     icon: const Icon(
-                      Icons.delete_outline,
+                      LucideIcons.trash_2,
                       color: Colors.redAccent,
                     ),
                     tooltip: l10n.removeExercise,
                     onPressed: () => onDeleteExercise(exerciseName),
                   )
                 else
-                  const Icon(Icons.info_outline),
+                  const Icon(LucideIcons.info),
               ],
             ),
           ),
@@ -141,7 +142,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        Icons.description_outlined,
+                        LucideIcons.file_text,
                         size: 16,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -224,7 +225,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: TextButton.icon(
                       onPressed: onAddSet,
-                      icon: const Icon(Icons.add),
+                      icon: const Icon(LucideIcons.plus),
                       label: Text(l10n.addSetButton),
                     ),
                   ),

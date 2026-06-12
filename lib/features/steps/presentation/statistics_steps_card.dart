@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../domain/steps_models.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class StatisticsStepsCard extends StatelessWidget {
   final VoidCallback? onTap;
@@ -82,7 +83,7 @@ class StatisticsStepsCard extends StatelessWidget {
                 if (showChevron) ...[
                   const SizedBox(width: 8),
                   Icon(
-                    Icons.chevron_right,
+                    LucideIcons.chevron_right,
                     size: 18,
                     color: theme.colorScheme.outline,
                   ),
@@ -334,7 +335,7 @@ class StatisticsStepsCard extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(3),
                                     ),
                                     child: const Icon(
-                                      Icons.check,
+                                      LucideIcons.check,
                                       size: 9,
                                       color: Colors.white,
                                     ),
@@ -454,9 +455,7 @@ class StatisticsStepsCard extends StatelessWidget {
       }
       final buckets = byWeek.entries.map((e) {
         final count = e.value.length;
-        final avg = count > 0
-            ? e.value.fold(0, (s, v) => s + v) ~/ count
-            : 0;
+        final avg = count > 0 ? e.value.fold(0, (s, v) => s + v) ~/ count : 0;
         return StepsBucket(start: e.key, steps: avg);
       }).toList()
         ..sort((a, b) => a.start.compareTo(b.start));
@@ -473,9 +472,7 @@ class StatisticsStepsCard extends StatelessWidget {
     }
     final buckets = byMonth.entries.map((e) {
       final count = e.value.length;
-      final avg = count > 0
-          ? e.value.fold(0, (s, v) => s + v) ~/ count
-          : 0;
+      final avg = count > 0 ? e.value.fold(0, (s, v) => s + v) ~/ count : 0;
       return StepsBucket(start: e.key, steps: avg);
     }).toList()
       ..sort((a, b) => a.start.compareTo(b.start));

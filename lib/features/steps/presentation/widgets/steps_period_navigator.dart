@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class StepsPeriodNavigator extends StatelessWidget {
   const StepsPeriodNavigator({
@@ -24,7 +25,7 @@ class StepsPeriodNavigator extends StatelessWidget {
         children: [
           IconButton(
             onPressed: onPrevious,
-            icon: const Icon(Icons.chevron_left),
+            icon: const Icon(LucideIcons.chevron_left),
             tooltip: AppLocalizations.of(context)!.stepsModulePrevious,
           ),
           Expanded(
@@ -38,7 +39,7 @@ class StepsPeriodNavigator extends StatelessWidget {
           ),
           IconButton(
             onPressed: canForward ? onNext : null,
-            icon: const Icon(Icons.chevron_right),
+            icon: const Icon(LucideIcons.chevron_right),
             tooltip: AppLocalizations.of(context)!.stepsModuleNext,
           ),
         ],

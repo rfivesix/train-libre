@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
@@ -164,175 +165,177 @@ class _MuscleGroupAnalyticsScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  _sectionLabel(l10n.analyticsPeriodLabel),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: List.generate(_periodOptions.length, (index) {
-                      final days = _periodOptions[index];
-                      final label = days == 7
-                          ? l10n.filter7Days
-                          : days == 30
-                              ? l10n.filter30Days
-                              : days == 90
-                                  ? l10n.filter3Months
-                                  : l10n.filter6Months;
-                      return ChoiceChip(
-                        label: Text(label),
-                        selected: _periodIndex == index,
-                        onSelected: (selected) {
-                          if (!selected) return;
-                          setState(() => _periodIndex = index);
-                          _loadData();
-                        },
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  _sectionLabel(l10n.analyticsRadarOverviewTitle),
-                  SummaryCard(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (radarData.length < 3)
-                            AnalyticsChartDefaults.stateView(
-                              context: context,
-                              l10n: l10n,
-                              status: AnalyticsStatus.empty,
-                              emptyLabel: l10n.noWorkoutDataLabel,
-                            )
-                          else ...[
-                            TabBar(
-                              tabs: [
-                                Tab(
-                                  icon: const Icon(Icons.accessibility_new),
-                                  text: l10n.involvedMuscles,
-                                ),
-                                Tab(
-                                  icon: const Icon(Icons.radar),
-                                  text: l10n.analysis,
-                                ),
-                              ],
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              dividerColor: Colors.transparent,
-                              labelColor: colorScheme.primary,
-                              unselectedLabelColor:
-                                  colorScheme.onSurfaceVariant,
-                              indicatorColor: colorScheme.primary,
-                            ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              height: 320,
-                              child: TabBarView(
-                                physics: const NeverScrollableScrollPhysics(),
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _buildBodyHeatmap(
-                                          context,
-                                          muscles,
-                                          BodySide.front,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: _buildBodyHeatmap(
-                                          context,
-                                          muscles,
-                                          BodySide.back,
-                                        ),
-                                      ),
-                                    ],
+                    _sectionLabel(l10n.analyticsPeriodLabel),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: List.generate(_periodOptions.length, (index) {
+                        final days = _periodOptions[index];
+                        final label = days == 7
+                            ? l10n.filter7Days
+                            : days == 30
+                                ? l10n.filter30Days
+                                : days == 90
+                                    ? l10n.filter3Months
+                                    : l10n.filter6Months;
+                        return ChoiceChip(
+                          label: Text(label),
+                          selected: _periodIndex == index,
+                          onSelected: (selected) {
+                            if (!selected) return;
+                            setState(() => _periodIndex = index);
+                            _loadData();
+                          },
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    _sectionLabel(l10n.analyticsRadarOverviewTitle),
+                    SummaryCard(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (radarData.length < 3)
+                              AnalyticsChartDefaults.stateView(
+                                context: context,
+                                l10n: l10n,
+                                status: AnalyticsStatus.empty,
+                                emptyLabel: l10n.noWorkoutDataLabel,
+                              )
+                            else ...[
+                              TabBar(
+                                tabs: [
+                                  Tab(
+                                    icon: const Icon(LucideIcons.user_round),
+                                    text: l10n.involvedMuscles,
                                   ),
-                                  Center(
-                                    child: MuscleRadarChart(
-                                      data: radarData,
-                                      maxValue: radarMax,
-                                      centerLabel: l10n.metricsVolumeLifted,
-                                    ),
+                                  Tab(
+                                    icon: const Icon(LucideIcons.radar),
+                                    text: l10n.analysis,
                                   ),
                                 ],
+                                indicatorSize: TabBarIndicatorSize.tab,
+                                dividerColor: Colors.transparent,
+                                labelColor: colorScheme.primary,
+                                unselectedLabelColor:
+                                    colorScheme.onSurfaceVariant,
+                                indicatorColor: colorScheme.primary,
                               ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                height: 320,
+                                child: TabBarView(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: _buildBodyHeatmap(
+                                            context,
+                                            muscles,
+                                            BodySide.front,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: _buildBodyHeatmap(
+                                            context,
+                                            muscles,
+                                            BodySide.back,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Center(
+                                      child: MuscleRadarChart(
+                                        data: radarData,
+                                        maxValue: radarMax,
+                                        centerLabel: l10n.metricsVolumeLifted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.analyticsRadarVolumeCaption,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
                             ),
                           ],
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.analyticsRadarVolumeCaption,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  _sectionLabel(
-                    l10n.analyticsWeeklySetsByMuscle,
-                    isPrimary: true,
-                  ),
-                  if (weekly.isNotEmpty) ...[
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(weekly.length, (index) {
-                          final row = weekly[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: ChoiceChip(
-                              label: Text(row['weekLabel'] as String),
-                              selected: _selectedWeekIndex == index,
-                              onSelected: (selected) {
-                                if (!selected) return;
-                                setState(() => _selectedWeekIndex = index);
-                              },
+                    const SizedBox(height: DesignConstants.spacingM),
+                    _sectionLabel(
+                      l10n.analyticsWeeklySetsByMuscle,
+                      isPrimary: true,
+                    ),
+                    if (weekly.isNotEmpty) ...[
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(weekly.length, (index) {
+                            final row = weekly[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ChoiceChip(
+                                label: Text(row['weekLabel'] as String),
+                                selected: _selectedWeekIndex == index,
+                                onSelected: (selected) {
+                                  if (!selected) return;
+                                  setState(() => _selectedWeekIndex = index);
+                                },
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
+                    ],
+                    _buildWeeklySetsCard(selectedWeek),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    _sectionLabel(l10n.analyticsFrequencyByMuscle),
+                    _buildFrequencyCard(muscles),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    _sectionLabel(l10n.analyticsGuidanceTitle),
+                    SummaryCard(
+                      child: Padding(
+                        padding: const EdgeInsets.all(14.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              dataQualityOk
+                                  ? l10n.analyticsGuidanceDirectionalDisclaimer
+                                  : l10n.analyticsGuidanceSoftenedDisclaimer,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
                             ),
-                          );
-                        }),
+                            const SizedBox(height: 8),
+                            Text(
+                              _guidanceLabel(dataQualityOk, undertrained),
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: DesignConstants.spacingS),
                   ],
-                  _buildWeeklySetsCard(selectedWeek),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  _sectionLabel(l10n.analyticsFrequencyByMuscle),
-                  _buildFrequencyCard(muscles),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  _sectionLabel(l10n.analyticsGuidanceTitle),
-                  SummaryCard(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            dataQualityOk
-                                ? l10n.analyticsGuidanceDirectionalDisclaimer
-                                : l10n.analyticsGuidanceSoftenedDisclaimer,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _guidanceLabel(dataQualityOk, undertrained),
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
       ),
     );
   }
@@ -575,7 +578,8 @@ class _MuscleGroupAnalyticsScreenState
 
     final values = items.map((e) => (e['value'] as num).toDouble()).toList();
 
-    final rawMax = values.isEmpty ? 1.0 : values.reduce((a, b) => a > b ? a : b);
+    final rawMax =
+        values.isEmpty ? 1.0 : values.reduce((a, b) => a > b ? a : b);
     final double computedMaxY;
     double tickInterval;
 

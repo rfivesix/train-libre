@@ -3,6 +3,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../statistics_hub_view_model.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class AnalyticsCardBase {
   static const double chipBackgroundOpacity = 0.14;
@@ -109,7 +110,7 @@ class AnalyticsCardBase {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : Icon(
-                  Icons.error_outline,
+                  LucideIcons.triangle_alert,
                   size: 16,
                   color: Theme.of(context).colorScheme.error,
                 ),
@@ -178,7 +179,7 @@ class AnalyticsCardBase {
 
   static Widget buildDrillDownHint(BuildContext context) {
     return Icon(
-      Icons.chevron_right,
+      LucideIcons.chevron_right,
       size: 18,
       color: Theme.of(context).colorScheme.outline,
     );

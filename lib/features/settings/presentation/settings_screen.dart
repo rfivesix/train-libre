@@ -29,6 +29,7 @@ import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../widgets/common/common.dart';
 import '../../app/presentation/app_initializer_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -339,7 +340,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.palette_outlined,
+            icon: LucideIcons.palette,
             title: l10n.settingsAppearance,
             subtitle: l10n.settingsAppearanceSubtitle,
             onTap: () {
@@ -354,7 +355,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SummaryCard(
             child: SwitchListTile(
               secondary: Icon(
-                Icons.icecream_outlined,
+                LucideIcons.candy,
                 size: 36,
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -378,7 +379,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SummaryCard(
             child: SwitchListTile(
               secondary: Icon(
-                Icons.straighten_rounded,
+                LucideIcons.ruler_dimension_line,
                 size: 36,
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -401,7 +402,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.tour_outlined,
+            icon: LucideIcons.compass,
             title: l10n.settingsRestartAppTourTitle,
             subtitle: l10n.settingsRestartAppTourSubtitle,
             tileKey: const Key('settings_restart_app_tour_tile'),
@@ -414,7 +415,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.directions_walk_rounded,
+            icon: LucideIcons.footprints,
             title: l10n.steps,
             subtitle: l10n.settingsStepsSubtitle,
             tileKey: const Key('settings_steps_entry'),
@@ -431,7 +432,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.bedtime_outlined,
+            icon: LucideIcons.moon,
             title: l10n.sleepSettingsSectionTitle,
             subtitle: l10n.settingsSleepSubtitle,
             tileKey: const Key('settings_sleep_entry'),
@@ -451,7 +452,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.favorite_border_rounded,
+            icon: LucideIcons.heart_pulse,
             title: l10n.pulseTitle,
             subtitle: l10n.settingsPulseSubtitle,
             tileKey: const Key('settings_pulse_entry'),
@@ -468,7 +469,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.favorite_outline,
+            icon: LucideIcons.heart,
             title: l10n.healthExportTitle,
             subtitle: l10n.settingsHealthExportSubtitle,
             tileKey: const Key('settings_health_export_entry'),
@@ -490,7 +491,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.auto_awesome,
+            icon: LucideIcons.sparkles,
             title: l10n.aiSettingsTitle,
             subtitle: l10n.aiSettingsDescription,
             useGradientIcon: true,
@@ -505,7 +506,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.import_export_rounded,
+            icon: LucideIcons.database_backup,
             title: l10n.backup_and_import,
             subtitle: l10n.backup_and_import_description,
             tileKey: const Key('settings_backup_import_entry'),
@@ -519,7 +520,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.sync,
+            icon: LucideIcons.cloud_download,
             title: l10n.settingsUpdateFoodDatabase,
             subtitle: l10n.settingsUpdateFoodDatabaseSubtitle,
             tileKey: const Key('settings_sync_off_database'),
@@ -544,7 +545,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SummaryCard(
             child: ListTile(
               leading: Icon(
-                Icons.language_rounded,
+                LucideIcons.earth,
                 size: 36,
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -558,14 +559,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 '${_offCountryLabel(_activeOffCatalogCountry, l10n)}',
               ),
               isThreeLine: true,
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(LucideIcons.chevron_right),
               onTap: _showOffCatalogRegionPicker,
             ),
           ),
           SummaryCard(
             child: ListTile(
               leading: Icon(
-                Icons.translate_rounded,
+                LucideIcons.languages,
                 size: 36,
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -576,7 +577,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: Text(
                 _baseFoodLanguageLabel(_baseFoodLanguage, l10n),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(LucideIcons.chevron_right),
               onTap: _showBaseFoodLanguagePicker,
             ),
           ),
@@ -587,7 +588,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildNavigationCard(
             context: context,
-            icon: Icons.feedback_outlined,
+            icon: LucideIcons.message_square,
             title: l10n.feedbackReportSettingsEntryTitle,
             subtitle: l10n.feedbackReportSettingsEntrySubtitle,
             tileKey: const Key('settings_feedback_entry'),
@@ -626,7 +627,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     width: double.infinity,
                     child: FilledButton.icon(
                       key: const Key('delete_all_local_app_data_button'),
-                      icon: const Icon(Icons.delete_forever_outlined),
+                      icon: const Icon(LucideIcons.trash_2),
                       label: Text(l10n.deleteAllLocalAppData),
                       style: FilledButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.error,
@@ -806,7 +807,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         leading: iconWidget,
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const Icon(LucideIcons.chevron_right),
         onTap: onTap,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),

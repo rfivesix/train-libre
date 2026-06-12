@@ -20,6 +20,7 @@ import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for managing user-specific identity and data.
 class ProfileScreen extends StatefulWidget {
@@ -129,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   controller: nameCtrl,
                   decoration: InputDecoration(
                     labelText: l10n.onboardingNameLabel,
-                    prefixIcon: const Icon(Icons.person_outline),
+                    prefixIcon: const Icon(LucideIcons.user),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -154,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: InputDecorator(
                           decoration: InputDecoration(
                             labelText: l10n.onboardingDobLabel,
-                            prefixIcon: const Icon(Icons.cake_outlined),
+                            prefixIcon: const Icon(LucideIcons.cake),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -237,9 +238,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           );
                           if (selectedGender != null) {
                             await profileService.updateGender(
-                                  UserGender.fromString(selectedGender),
-                                  _repository,
-                                );
+                              UserGender.fromString(selectedGender),
+                              _repository,
+                            );
                           }
                           if (!ctx.mounted) return;
                           close();
@@ -329,7 +330,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           : null,
                                   child: profileService.profileImagePath == null
                                       ? Icon(
-                                          Icons.person,
+                                          LucideIcons.user,
                                           size: 40,
                                           color: theme.colorScheme.primary,
                                         )
@@ -349,7 +350,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     ),
                                     child: const Icon(
-                                      Icons.camera_alt,
+                                      LucideIcons.camera,
                                       size: 12,
                                       color: Colors.white,
                                     ),
@@ -390,7 +391,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           Icon(
-                            Icons.edit_outlined,
+                            LucideIcons.pencil,
                             color: theme.colorScheme.onSurfaceVariant
                                 .withValues(alpha: 0.5),
                           ),
@@ -410,7 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 _buildNavigationCard(
-                  icon: Icons.settings_outlined,
+                  icon: LucideIcons.settings,
                   title: l10n.settingsTitle,
                   subtitle: l10n.settingsDescription,
                   onTap: () async {
@@ -425,7 +426,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                 ),
                 _buildNavigationCard(
-                  icon: Icons.flag_outlined,
+                  icon: LucideIcons.flag,
                   title: l10n.my_goals,
                   subtitle: l10n.my_goals_description,
                   onTap: () {
@@ -441,7 +442,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: DesignConstants.spacingM),
                 AppSectionHeader(title: l10n.about_section),
                 _buildNavigationCard(
-                  icon: Icons.info_outline,
+                  icon: LucideIcons.info,
                   title: l10n.about_train_libre,
                   subtitle: l10n.app_version,
                   onTap: () {
@@ -455,7 +456,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: DesignConstants.spacingM),
                 AppSectionHeader(title: l10n.legal_section),
                 _buildNavigationCard(
-                  icon: Icons.gavel_outlined,
+                  icon: LucideIcons.scale,
                   title: l10n.legal_section,
                   subtitle: '${l10n.legal_notice} & ${l10n.privacy_policy}',
                   onTap: () {
@@ -491,7 +492,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const Icon(LucideIcons.chevron_right),
         onTap: onTap,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24.0),
@@ -504,7 +505,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
     return SummaryCard(
       child: ListTile(
-        leading: Icon(Icons.school_outlined, color: theme.colorScheme.primary),
+        leading: Icon(
+          LucideIcons.graduation_cap,
+          size: 36,
+          color: theme.colorScheme.primary,
+        ),
         title: Text(
           l10n.onbShowTutorialAgain,
           style: theme.textTheme.titleMedium?.copyWith(
@@ -512,7 +517,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         subtitle: Text(l10n.onbFinishBody, style: theme.textTheme.bodyMedium),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const Icon(LucideIcons.chevron_right),
         onTap: () {
           Navigator.of(
             context,

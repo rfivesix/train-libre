@@ -27,6 +27,7 @@ import 'widgets/body_fat_slide.dart';
 import 'widgets/adaptive_goal_slide.dart';
 import 'widgets/macro_slide.dart';
 import 'widgets/water_slide.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -580,7 +581,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onRestore: _restoreFromBackup,
                   ),
                   UnitSystemSlide(
-                    selectedSystem: _selectedUnitSystem ?? context.read<UnitService>().unitSystem,
+                    selectedSystem: _selectedUnitSystem ??
+                        context.read<UnitService>().unitSystem,
                     onSelectSystem: _selectUnitSystem,
                   ),
                   ProfileSlide(
@@ -613,13 +615,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   AdaptiveGoalSlide(
                     selectedGoal: _selectedGoal,
                     selectedPriorActivityLevel: _selectedPriorActivityLevel,
-                    selectedExtraCardioHoursOption: _selectedExtraCardioHoursOption,
+                    selectedExtraCardioHoursOption:
+                        _selectedExtraCardioHoursOption,
                     selectedTargetRateKgPerWeek: _selectedTargetRateKgPerWeek,
                     onGoalChanged: (goal) {
                       setState(() {
                         _selectedGoal = goal;
                         _selectedTargetRateKgPerWeek =
-                            WeeklyTargetRateCatalog.defaultForGoal(goal).kgPerWeek;
+                            WeeklyTargetRateCatalog.defaultForGoal(goal)
+                                .kgPerWeek;
                       });
                       _refreshOnboardingRecommendationPreview();
                     },
@@ -664,7 +668,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   children: [
                     IconButton.filledTonal(
                       onPressed: _prevPage,
-                      icon: const Icon(Icons.arrow_back),
+                      icon: const Icon(LucideIcons.arrow_left),
                     ),
                     const Spacer(),
                     ElevatedButton(

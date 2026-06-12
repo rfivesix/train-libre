@@ -6,6 +6,7 @@ import '../../domain/models/set_log.dart';
 import 'set_type_chip.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// An interactive row for editing a single workout set's weight and repetitions.
 ///
@@ -130,7 +131,7 @@ class _EditableSetRowState extends State<EditableSetRow> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            icon: const Icon(LucideIcons.trash_2, color: Colors.redAccent),
             tooltip: l10n.delete,
             onPressed: widget.onDelete,
           ),

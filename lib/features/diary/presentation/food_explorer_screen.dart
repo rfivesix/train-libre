@@ -10,6 +10,7 @@ import 'food_detail_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/glass_fab.dart';
 import 'widgets/off_attribution_widget.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart'; // Added
 
 /// A screen for exploring and managing the food database independently of tracking.
@@ -203,14 +204,14 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                 decoration: InputDecoration(
                   hintText: l10n.searchHintText,
                   prefixIcon: Icon(
-                    Icons.search,
+                    LucideIcons.search,
                     color: colorScheme.onSurfaceVariant,
                     size: 20,
                   ),
                   suffixIcon: value.text.isNotEmpty
                       ? IconButton(
                           icon: Icon(
-                            Icons.clear,
+                            LucideIcons.x,
                             color: colorScheme.onSurfaceVariant,
                           ),
                           onPressed: () {
@@ -289,11 +290,11 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
     IconData sourceIcon;
     switch (item.source) {
       case FoodItemSource.base:
-        sourceIcon = Icons.star;
+        sourceIcon = LucideIcons.star;
         break;
       case FoodItemSource.off:
       case FoodItemSource.user:
-        sourceIcon = Icons.inventory_2;
+        sourceIcon = LucideIcons.archive;
         break;
     }
 
@@ -313,7 +314,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
         ),
         trailing: IconButton(
           icon: Icon(
-            Icons.add_circle_outline,
+            LucideIcons.circle_plus,
             color: colorScheme.primary,
             size: 28,
           ),

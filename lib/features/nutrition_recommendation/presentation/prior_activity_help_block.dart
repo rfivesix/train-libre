@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class PriorActivityHelpBlock extends StatelessWidget {
   final AppLocalizations l10n;
@@ -50,7 +51,7 @@ class PriorActivityHelpBlock extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(top: 5),
           child: Icon(
-            Icons.circle,
+            LucideIcons.circle,
             size: 6,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),

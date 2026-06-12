@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A bottom sheet menu providing quick access to common entry actions.
 ///
@@ -31,7 +32,7 @@ class AddMenuSheet extends StatelessWidget {
             _buildMenuOption(
               context: context,
               colorScheme: colorScheme,
-              icon: Icons.fitness_center,
+              icon: LucideIcons.dumbbell,
               title: l10n.startWorkout,
               onTap: () => Navigator.of(context).pop('start_workout'),
             ),
@@ -39,7 +40,7 @@ class AddMenuSheet extends StatelessWidget {
             _buildMenuOption(
               context: context,
               colorScheme: colorScheme,
-              icon: Icons.straighten_outlined,
+              icon: LucideIcons.ruler,
               title: l10n.addMeasurement,
               onTap: () => Navigator.of(context).pop('add_measurement'),
             ),
@@ -47,7 +48,7 @@ class AddMenuSheet extends StatelessWidget {
             _buildMenuOption(
               context: context,
               colorScheme: colorScheme,
-              icon: Icons.restaurant_menu,
+              icon: LucideIcons.utensils,
               title: l10n.addFoodOption,
               onTap: () => Navigator.of(context).pop('add_food'),
             ),
@@ -55,7 +56,7 @@ class AddMenuSheet extends StatelessWidget {
             _buildMenuOption(
               context: context,
               colorScheme: colorScheme,
-              icon: Icons.local_drink,
+              icon: LucideIcons.glass_water,
               title: l10n.addLiquidOption,
               onTap: () => Navigator.of(context).pop('add_liquid'),
             ),

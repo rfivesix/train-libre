@@ -315,7 +315,7 @@ class _MainScreenState extends State<MainScreen>
             },
             child: Row(
               children: [
-                const Icon(Icons.play_arrow_rounded),
+                const Icon(LucideIcons.play),
                 const SizedBox(width: 12),
                 Text(
                   l10n.startEmptyWorkoutButton,
@@ -413,7 +413,7 @@ class _MainScreenState extends State<MainScreen>
                     ),
                     const SizedBox(width: 8),
                     Icon(
-                      Icons.more_vert_rounded,
+                      LucideIcons.ellipsis_vertical,
                       color: Theme.of(ctx).textTheme.bodyMedium?.color,
                     ),
                   ],
@@ -803,33 +803,33 @@ class _MainScreenState extends State<MainScreen>
   List<Map<String, dynamic>> _getSpeedDialActions(AppLocalizations l10n) {
     return [
       {
-        'icon': Icons.local_drink,
+        'icon': LucideIcons.glass_water,
         'label': l10n.addLiquidOption,
         'action': 'add_liquid',
       },
       {
-        'icon': Icons.restaurant_menu,
+        'icon': LucideIcons.utensils,
         'label': l10n.addFoodOption,
         'action': 'add_food',
       },
       {
-        'icon': Icons.straighten_outlined,
+        'icon': LucideIcons.ruler,
         'label': l10n.addMeasurement,
         'action': 'add_measurement',
       },
       {
-        'icon': Icons.fitness_center,
+        'icon': LucideIcons.dumbbell,
         'label': l10n.startWorkout,
         'action': 'start_workout',
       },
       {
-        'icon': Icons.medication_outlined,
+        'icon': LucideIcons.pill,
         'label': l10n.logIntakeTitle,
         'action': 'log_supplement',
       },
       if (themeService.isAiEnabled)
         {
-          'icon': Icons.auto_awesome,
+          'icon': LucideIcons.sparkles,
           'label': l10n.aiMealCapture,
           'action': 'ai_meal_capture',
           'gradient': true,
@@ -1287,7 +1287,7 @@ class _MainScreenState extends State<MainScreen>
                                         height: 74.0,
                                         child: Center(
                                           child: Icon(
-                                            Icons.add,
+                                            LucideIcons.plus,
                                             key: _tourFabKey,
                                             color: isDark
                                                 ? Colors.white
@@ -1371,7 +1371,7 @@ class _MainScreenState extends State<MainScreen>
                 ? FileImage(File(profileService.profileImagePath!))
                 : null,
             child: (profileService.profileImagePath == null)
-                ? const Icon(Icons.person, size: 20, color: Colors.black54)
+                ? const Icon(LucideIcons.user, size: 20, color: Colors.black54)
                 : null,
           ),
         ),

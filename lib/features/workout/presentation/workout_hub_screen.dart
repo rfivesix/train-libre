@@ -14,6 +14,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// The central management screen for all workout-related activities.
 ///
@@ -117,7 +118,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.add_circle_outline, size: 28),
+                  const Icon(LucideIcons.circle_plus, size: 28),
                   const SizedBox(width: 12),
                   Text(
                     l10n.startEmptyWorkoutButton,
@@ -158,7 +159,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
         ),
         _buildNavigationTile(
           context: context,
-          icon: Icons.list_alt_rounded,
+          icon: LucideIcons.list,
           title: l10n.workoutAllRoutines,
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(
@@ -170,7 +171,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
         AppSectionHeader(title: l10n.workoutSectionHistoryLibrary),
         _buildNavigationTile(
           context: context,
-          icon: Icons.history,
+          icon: LucideIcons.history,
           title: l10n.workoutEntryWorkouts,
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(
@@ -180,7 +181,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
         ),
         _buildNavigationTile(
           context: context,
-          icon: Icons.folder_open_outlined,
+          icon: LucideIcons.folder_open,
           title: l10n.drawerExerciseCatalog,
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(
@@ -210,7 +211,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.add_circle_outline,
+                    LucideIcons.circle_plus,
                     size: 40,
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -281,7 +282,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       child: ListTile(
         leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const Icon(LucideIcons.chevron_right),
         onTap: onTap,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),

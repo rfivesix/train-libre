@@ -12,6 +12,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class SleepSettingsScreen extends StatefulWidget {
   const SleepSettingsScreen({
@@ -164,13 +165,13 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
 
   IconData _sleepStatusIcon(SleepPermissionState state) {
     return switch (state) {
-      SleepPermissionState.ready => Icons.check_circle_outline,
-      SleepPermissionState.loading => Icons.hourglass_bottom,
-      SleepPermissionState.denied => Icons.block_outlined,
-      SleepPermissionState.partial => Icons.warning_amber_outlined,
-      SleepPermissionState.unavailable => Icons.mobiledata_off_outlined,
-      SleepPermissionState.notInstalled => Icons.download_outlined,
-      SleepPermissionState.technicalError => Icons.error_outline,
+      SleepPermissionState.ready => LucideIcons.circle_check,
+      SleepPermissionState.loading => LucideIcons.hourglass,
+      SleepPermissionState.denied => LucideIcons.ban,
+      SleepPermissionState.partial => LucideIcons.triangle_alert,
+      SleepPermissionState.unavailable => LucideIcons.signal_zero,
+      SleepPermissionState.notInstalled => LucideIcons.download,
+      SleepPermissionState.technicalError => LucideIcons.triangle_alert,
     };
   }
 
@@ -213,7 +214,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                 child: Column(
                   children: [
                     SwitchListTile(
-                      secondary: const Icon(Icons.bedtime_outlined),
+                      secondary: const Icon(LucideIcons.moon),
                       title: Text(
                         l10n.sleepEnableTrackingTitle,
                         style: const TextStyle(fontWeight: FontWeight.bold),
@@ -238,7 +239,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                     ),
                     const Divider(height: 1),
                     ListTile(
-                      leading: const Icon(Icons.health_and_safety_outlined),
+                      leading: const Icon(LucideIcons.shield_check),
                       title: Text(
                         l10n.sleepHealthConnectionStatusTitle,
                         style: const TextStyle(fontWeight: FontWeight.bold),
@@ -251,7 +252,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                     ),
                     if (permission.state == SleepPermissionState.ready)
                       ListTile(
-                        leading: const Icon(Icons.info_outline),
+                        leading: const Icon(LucideIcons.info),
                         title: Text(
                           l10n.sleepDataStatusTitle,
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -261,7 +262,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                     if (permission.state == SleepPermissionState.denied ||
                         permission.state == SleepPermissionState.partial)
                       ListTile(
-                        leading: const Icon(Icons.lock_outline),
+                        leading: const Icon(LucideIcons.lock),
                         title: Text(
                           l10n.sleepNoPermissionTitle,
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -271,7 +272,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                     if (permission.state == SleepPermissionState.unavailable ||
                         permission.state == SleepPermissionState.notInstalled)
                       ListTile(
-                        leading: const Icon(Icons.mobiledata_off_outlined),
+                        leading: const Icon(LucideIcons.signal_zero),
                         title: Text(
                           l10n.sleepFeatureUnavailableTitle,
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -280,10 +281,10 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                       ),
                     const Divider(height: 1),
                     ListTile(
-                      leading: const Icon(Icons.lock_open_outlined),
+                      leading: const Icon(LucideIcons.lock_open),
                       title: Text(l10n.sleepRequestAccessTitle),
                       subtitle: Text(l10n.sleepRequestAccessSubtitle),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: const Icon(LucideIcons.chevron_right),
                       onTap: () async {
                         await _sleepPermissionController.requestAccess(context);
                         if (!mounted) return;
@@ -291,10 +292,10 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                       },
                     ),
                     ListTile(
-                      leading: const Icon(Icons.sync),
+                      leading: const Icon(LucideIcons.refresh_cw),
                       title: Text(l10n.sleepImportNowTitle),
                       subtitle: Text(l10n.sleepImportNowSubtitle),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: const Icon(LucideIcons.chevron_right),
                       onTap: () async {
                         final messenger = ScaffoldMessenger.of(context);
                         final l10n = AppLocalizations.of(context)!;
@@ -304,7 +305,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                           context: context,
                           title: l10n.sleepSyncTitle,
                           initialStatus: l10n.sleepSyncTitle,
-                          icon: Icons.sync,
+                          icon: LucideIcons.refresh_cw,
                           operation: (token, updateProgress) async {
                             importResult = await _sleepSyncService.importRecent(
                               lookbackDays: 90,
@@ -334,8 +335,10 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                             SnackBar(
                               content: Text(
                                 res.success
-                                    ? l10n.sleepImportFinishedSessions(res.importedSessions)
-                                    : (res.message ?? l10n.sleepImportUnavailableCheckPermissions),
+                                    ? l10n.sleepImportFinishedSessions(
+                                        res.importedSessions)
+                                    : (res.message ??
+                                        l10n.sleepImportUnavailableCheckPermissions),
                               ),
                             ),
                           );
@@ -350,7 +353,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                       },
                     ),
                     ListTile(
-                      leading: const Icon(Icons.data_object_outlined),
+                      leading: const Icon(LucideIcons.braces),
                       title: Text(l10n.sleepRawImportsTitle),
                       subtitle: Text(l10n.sleepRawImportsSubtitle),
                       trailing: _isSleepRawLoading
@@ -359,7 +362,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                               height: 18,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Icon(Icons.chevron_right),
+                          : const Icon(LucideIcons.chevron_right),
                       onTap: _isSleepRawLoading ? null : _showRawSleepImports,
                     ),
                   ],

@@ -8,6 +8,7 @@ import '../../domain/models/set_template.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import 'workout_card.dart';
 import 'routine_set_row_widget.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class EditRoutineExerciseCard extends StatelessWidget {
   final RoutineExercise routineExercise;
@@ -76,7 +77,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
             ),
             leading: ReorderableDragStartListener(
               index: index,
-              child: const Icon(Icons.drag_handle),
+              child: const Icon(LucideIcons.grip_vertical),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -94,18 +95,18 @@ class EditRoutineExerciseCard extends StatelessWidget {
                     ),
                   ),
                 IconButton(
-                  icon: const Icon(Icons.edit),
+                  icon: const Icon(LucideIcons.pencil),
                   tooltip: "Notizen bearbeiten",
                   onPressed: onEditNotes,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.timer_outlined),
+                  icon: const Icon(LucideIcons.timer),
                   tooltip: l10n.editPauseTime,
                   onPressed: onEditPauseTime,
                 ),
                 IconButton(
                   icon: const Icon(
-                    Icons.delete_outline,
+                    LucideIcons.trash_2,
                     color: Colors.redAccent,
                   ),
                   tooltip: l10n.removeExercise,
@@ -143,7 +144,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        Icons.description_outlined,
+                        LucideIcons.file_text,
                         size: 16,
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -198,7 +199,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: TextButton.icon(
                     onPressed: onAddSet,
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(LucideIcons.plus),
                     label: Text(l10n.addSetButton),
                   ),
                 ),

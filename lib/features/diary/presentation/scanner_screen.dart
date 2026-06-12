@@ -9,6 +9,7 @@ import '../../../generated/app_localizations.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'dart:developer' as developer;
 import '../../../services/haptic_feedback_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
@@ -83,7 +84,8 @@ class _ScannerScreenState extends State<ScannerScreen>
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
       if (scanData.code != null && !_isDone) {
-        developer.log('Barcode detected: ${scanData.code} (${scanData.format})');
+        developer
+            .log('Barcode detected: ${scanData.code} (${scanData.format})');
         HapticFeedbackService.instance.confirmationFeedback();
         if (mounted) {
           setState(() {
@@ -164,9 +166,11 @@ class _ScannerScreenState extends State<ScannerScreen>
 
           // Compute scan target box size and position dynamically
           final boxWidth = screenWidth * 0.8;
-          final boxHeight = boxWidth * 0.45; // Optimal aspect ratio for barcodes
+          final boxHeight =
+              boxWidth * 0.45; // Optimal aspect ratio for barcodes
           final left = (screenWidth - boxWidth) / 2;
-          final top = (screenHeight - boxHeight) / 2.2; // Optically balanced slightly above center
+          final top = (screenHeight - boxHeight) /
+              2.2; // Optically balanced slightly above center
 
           final scanBox = Rect.fromLTWH(left, top, boxWidth, boxHeight);
 
@@ -177,7 +181,10 @@ class _ScannerScreenState extends State<ScannerScreen>
                 child: QRView(
                   key: qrKey,
                   onQRViewCreated: _onQRViewCreated,
-                  formatsAllowed: const [BarcodeFormat.ean8, BarcodeFormat.ean13],
+                  formatsAllowed: const [
+                    BarcodeFormat.ean8,
+                    BarcodeFormat.ean13
+                  ],
                 ),
               ),
 
@@ -187,7 +194,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                   painter: ScannerOverlayPainter(
                     scanBox: scanBox,
                     barrierColor: Colors.black.withValues(alpha: 0.65),
-                    borderColor: Theme.of(context).colorScheme.primary, // Sleek primary brand border
+                    borderColor: Theme.of(context)
+                        .colorScheme
+                        .primary, // Sleek primary brand border
                     borderRadius: 16.0,
                     borderWidth: 2.5,
                   ),
@@ -259,7 +268,7 @@ class _ScannerScreenState extends State<ScannerScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.camera_alt_outlined, size: 64, color: Colors.grey),
+            const Icon(LucideIcons.camera, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
               _cameraPermissionStatus.isPermanentlyDenied
@@ -309,10 +318,13 @@ class ScannerOverlayPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     // Use Path.combine to cut out the scanBox from the full screen mask
-    final outerPath = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    final outerPath = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
     final innerPath = Path()
-      ..addRRect(RRect.fromRectAndRadius(scanBox, Radius.circular(borderRadius)));
-    final maskPath = Path.combine(PathOperation.difference, outerPath, innerPath);
+      ..addRRect(
+          RRect.fromRectAndRadius(scanBox, Radius.circular(borderRadius)));
+    final maskPath =
+        Path.combine(PathOperation.difference, outerPath, innerPath);
 
     canvas.drawPath(maskPath, paint);
 

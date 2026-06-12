@@ -17,6 +17,7 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../util/l10n_ext.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import '../../../services/unit_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for viewing and analyzing body measurement history.
 class MeasurementsScreen extends StatefulWidget {
@@ -200,7 +201,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             const SizedBox(height: DesignConstants.spacingXL),
             ElevatedButton.icon(
               onPressed: _navigateToCreateMeasurement,
-              icon: const Icon(Icons.add),
+              icon: const Icon(LucideIcons.plus),
               label: Text(l10n.addMeasurement),
             ),
           ],
@@ -251,7 +252,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                     icon: Icon(
-                      Icons.arrow_drop_down,
+                      LucideIcons.chevron_down,
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
@@ -324,7 +325,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       direction: DismissDirection.endToStart,
       background: const SwipeActionBackground(
         color: Colors.redAccent,
-        icon: Icons.delete,
+        icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),
       confirmDismiss: (direction) async {
@@ -352,7 +353,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                 ).add_Hm().format(session.timestamp),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(LucideIcons.chevron_right),
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(l10n.measurement_session_detail_view)),
@@ -441,27 +442,27 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   Icon _getMeasurementIcon(String type) {
     switch (type) {
       case 'weight':
-        return const Icon(Icons.monitor_weight);
+        return const Icon(LucideIcons.scale);
       case 'fat_percent':
-        return const Icon(Icons.fitness_center);
+        return const Icon(LucideIcons.dumbbell);
       case 'neck':
-        return const Icon(Icons.accessibility_new);
+        return const Icon(LucideIcons.person_standing);
       case 'shoulder':
-        return const Icon(Icons.accessibility_new);
+        return const Icon(LucideIcons.person_standing);
       case 'chest':
-        return const Icon(Icons.accessibility_new);
+        return const Icon(LucideIcons.person_standing);
       case 'left_bicep':
-        return const Icon(Icons.accessibility_new);
+        return const Icon(LucideIcons.person_standing);
       case 'right_bicep':
-        return const Icon(Icons.accessibility_new);
+        return const Icon(LucideIcons.person_standing);
       case 'abdomen':
-        return const Icon(Icons.accessibility_new);
+        return const Icon(LucideIcons.person_standing);
       case 'waist':
-        return const Icon(Icons.accessibility_new);
+        return const Icon(LucideIcons.person_standing);
       case 'hips':
-        return const Icon(Icons.accessibility_new);
+        return const Icon(LucideIcons.person_standing);
       default:
-        return const Icon(Icons.straighten);
+        return const Icon(LucideIcons.ruler);
     }
   }
 }

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/time_util.dart';
 import '../../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A summary card specifically for displaying today's workout activity.
 ///
@@ -71,7 +72,7 @@ class TodaysWorkoutSummaryCard extends StatelessWidget {
           ),
         ),
         trailing: Icon(
-          Icons.chevron_right,
+          LucideIcons.chevron_right,
           color: theme.colorScheme.onSurface,
         ),
       ),

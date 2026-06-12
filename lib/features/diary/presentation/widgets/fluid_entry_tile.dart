@@ -4,6 +4,7 @@ import '../../../../widgets/common/swipe_action_background.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/models/fluid_entry.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class FluidEntryTile extends StatelessWidget {
   final FluidEntry entry;
@@ -34,12 +35,12 @@ class FluidEntryTile extends StatelessWidget {
       key: Key('fluid_entry_${entry.id}'),
       background: const SwipeActionBackground(
         color: Colors.blueAccent,
-        icon: Icons.edit,
+        icon: LucideIcons.pencil,
         alignment: Alignment.centerLeft,
       ),
       secondaryBackground: const SwipeActionBackground(
         color: Colors.redAccent,
-        icon: Icons.delete,
+        icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),
       confirmDismiss: (direction) async {

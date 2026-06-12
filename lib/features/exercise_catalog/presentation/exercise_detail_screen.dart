@@ -18,6 +18,7 @@ import '../../../services/unit_service.dart';
 import '../../../services/profile_service.dart';
 import 'create_exercise_screen.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 enum ExerciseMetric { maxWeight, volume, est1rm }
 
@@ -83,10 +84,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         ? await _repository.getExerciseUuidByLocalId(exercise.id!)
         : null;
 
-    final altName = exercise.nameEn.isNotEmpty &&
-            exercise.nameEn != exercise.nameDe
-        ? exercise.nameEn
-        : null;
+    final altName =
+        exercise.nameEn.isNotEmpty && exercise.nameEn != exercise.nameDe
+            ? exercise.nameEn
+            : null;
 
     final prs = await _repository.getExercisePRs(
       exercise.nameDe,
@@ -156,7 +157,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     final body = isDe
         ? "Diese Übung ist vom System bereitgestellt und kann nicht direkt bearbeitet werden. Möchtest du eine Kopie erstellen, um sie anzupassen?"
         : "This exercise is system-provided and cannot be directly edited. Would you like to create a custom copy to edit it?";
-    final buttonLabel = isDe ? "Kopie erstellen & bearbeiten" : "Create copy & edit";
+    final buttonLabel =
+        isDe ? "Kopie erstellen & bearbeiten" : "Create copy & edit";
     final cancelLabel = isDe ? "Abbrechen" : "Cancel";
 
     showGlassBottomMenu(
@@ -168,7 +170,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
               child: Text(
                 body,
                 textAlign: TextAlign.center,
@@ -217,17 +220,19 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         title: _currentExercise.getLocalizedName(context),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: const Icon(LucideIcons.pencil),
             onPressed: () {
               if (_currentExercise.source == 'user') {
-                Navigator.of(context).push(
+                Navigator.of(context)
+                    .push(
                   MaterialPageRoute(
                     builder: (context) => CreateExerciseScreen(
                       repository: _repository,
                       exerciseToEdit: _currentExercise,
                     ),
                   ),
-                ).then((wasSaved) {
+                )
+                    .then((wasSaved) {
                   if (wasSaved == true) {
                     _loadData();
                   }
@@ -269,14 +274,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       borderRadius:
                           BorderRadius.circular(DesignConstants.borderRadiusL),
                     ),
-                    child: const Icon(Icons.image_not_supported_outlined),
+                    child: const Icon(LucideIcons.image_off),
                   ),
                 ),
               ),
             if ((_currentExercise.imagePath ?? '').isNotEmpty)
               const SizedBox(height: DesignConstants.spacingXL),
-
-
             AppSectionHeader(title: l10n.descriptionLabel),
             SummaryCard(
               child: Padding(
@@ -507,7 +510,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   ),
                   const SizedBox(width: 4),
                   Icon(
-                    Icons.keyboard_arrow_down,
+                    LucideIcons.chevron_down,
                     size: 18,
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
@@ -635,8 +638,9 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
       secondaryMuscles: exercise.secondaryMuscles,
     );
 
-    final frontHighlights = BodySlugMapper.forSide(allHighlights, BodySide.front);
-    final backHighlights  = BodySlugMapper.forSide(allHighlights, BodySide.back);
+    final frontHighlights =
+        BodySlugMapper.forSide(allHighlights, BodySide.front);
+    final backHighlights = BodySlugMapper.forSide(allHighlights, BodySide.back);
 
     return SummaryCard(
       child: Padding(
@@ -661,7 +665,10 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
                       SizedBox(
                         height: 200,
                         child: BodyHighlighter(
-                          gender: context.watch<ProfileService>().gender.toBodyGender(),
+                          gender: context
+                              .watch<ProfileService>()
+                              .gender
+                              .toBodyGender(),
                           highlightedParts: frontHighlights,
                           side: BodySide.front,
                           outlineWidth: 0.8,
@@ -684,7 +691,10 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
                       SizedBox(
                         height: 200,
                         child: BodyHighlighter(
-                          gender: context.watch<ProfileService>().gender.toBodyGender(),
+                          gender: context
+                              .watch<ProfileService>()
+                              .gender
+                              .toBodyGender(),
                           highlightedParts: backHighlights,
                           side: BodySide.back,
                           outlineWidth: 0.8,

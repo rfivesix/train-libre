@@ -15,6 +15,7 @@ import 'ai_meal_review_screen.dart';
 import '../../settings/presentation/ai_settings_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// Screen for capturing meal input via photo(s) or text before AI analysis.
 ///
@@ -150,7 +151,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         );
       }
 
-      final validationOutcome = await _validateAndRepair(candidate, languageCode);
+      final validationOutcome =
+          await _validateAndRepair(candidate, languageCode);
 
       if (!mounted) return;
 
@@ -379,7 +381,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white24, width: 1),
               ),
-              child: const Icon(Icons.close, size: 14, color: Colors.white),
+              child: const Icon(LucideIcons.x, size: 14, color: Colors.white),
             ),
           ),
         ),
@@ -441,14 +443,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     IconButton(
                       onPressed:
                           _images.length < _maxImages ? _takePhoto : null,
-                      icon: const Icon(Icons.camera_alt_rounded),
+                      icon: const Icon(LucideIcons.camera),
                       color: theme.colorScheme.primary,
                       tooltip: l10n.aiCaptureTabPhoto,
                     ),
                     IconButton(
                       onPressed:
                           _images.length < _maxImages ? _pickFromGallery : null,
-                      icon: const Icon(Icons.photo_library_rounded),
+                      icon: const Icon(LucideIcons.library),
                       color: theme.colorScheme.primary,
                       tooltip: l10n.tabFavorites,
                     ),
@@ -509,7 +511,7 @@ class _AiAnalyzeButton extends StatelessWidget {
           )
         else
           Icon(
-            Icons.auto_awesome_rounded,
+            LucideIcons.sparkles,
             size: 24,
             color: enabled ? Colors.white : theme.colorScheme.onSurfaceVariant,
           ),

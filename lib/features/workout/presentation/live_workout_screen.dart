@@ -26,6 +26,7 @@ import 'widgets/workout_card.dart';
 import 'widgets/pr_celebration_banner.dart';
 import 'widgets/exercise_e1rm_summary.dart';
 import 'widgets/live_workout_set_row.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 // Used when vibration is enabled.
 
 /// The active workout tracking screen, managing the real-time session state.
@@ -285,7 +286,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 if (re.notes != null && re.notes!.isNotEmpty) ...[
                   IconButton(
                     icon: Icon(
-                      Icons.delete_outline,
+                      LucideIcons.trash_2,
                       color: Theme.of(context).colorScheme.error,
                     ),
                     tooltip: "Notiz löschen",
@@ -451,7 +452,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.add_circle_outline,
+              LucideIcons.circle_plus,
               size: 80,
               color: Colors.grey.shade400,
             ),
@@ -472,7 +473,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             const SizedBox(height: DesignConstants.spacingXL),
             ElevatedButton.icon(
               onPressed: _addExercise,
-              icon: const Icon(Icons.add),
+              icon: const Icon(LucideIcons.plus),
               label: Text(l10n.fabAddExercise),
             ),
           ],
@@ -570,18 +571,18 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: PopScope(
-          canPop: _canPop,
-          onPopInvokedWithResult: (didPop, _) async {
-            if (didPop) return;
-            // The system back swipe won't pop the route automatically because canPop is false.
-          },
-          child: Scaffold(
+        canPop: _canPop,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop) return;
+          // The system back swipe won't pop the route automatically because canPop is false.
+        },
+        child: Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: AppBar(
             automaticallyImplyLeading:
                 false, // We will provide our own back button
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(LucideIcons.arrow_left),
               onPressed: _handleBack,
             ),
             elevation: 0,
@@ -656,8 +657,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             leading:
                                                 ReorderableDragStartListener(
                                               index: index,
-                                              child:
-                                                  const Icon(Icons.drag_handle),
+                                              child: const Icon(
+                                                  LucideIcons.grip_vertical),
                                             ),
                                             title: InkWell(
                                               onTap: () =>
@@ -719,7 +720,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                   ),
                                                 IconButton(
                                                   icon: const Icon(
-                                                    Icons.edit,
+                                                    LucideIcons.pencil,
                                                   ),
                                                   tooltip: "Notizen bearbeiten",
                                                   onPressed: () =>
@@ -729,7 +730,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                 ),
                                                 IconButton(
                                                   icon: const Icon(
-                                                    Icons.timer_outlined,
+                                                    LucideIcons.timer,
                                                   ),
                                                   tooltip: l10n.editPauseTime,
                                                   onPressed: () =>
@@ -739,7 +740,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                 ),
                                                 IconButton(
                                                   icon: const Icon(
-                                                    Icons.delete_outline,
+                                                    LucideIcons.trash_2,
                                                     color: Colors.redAccent,
                                                   ),
                                                   tooltip: l10n.removeExercise,
@@ -869,14 +870,16 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                     rowIndex: setEntry.key,
                                                     templateId: templateId,
                                                     setLog: setLog,
-                                                    lastPerfSets: manager.lastPerformances[
-                                                            routineExercise
-                                                                .exercise
-                                                                .nameEn] ??
-                                                        [],
+                                                    lastPerfSets:
+                                                        manager.lastPerformances[
+                                                                routineExercise
+                                                                    .exercise
+                                                                    .nameEn] ??
+                                                            [],
                                                     template: template,
                                                     manager: manager,
-                                                    isCardio: _isCardio(routineExercise),
+                                                    isCardio: _isCardio(
+                                                        routineExercise),
                                                   );
                                                 }),
                                                 Padding(
@@ -887,7 +890,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                   child: TextButton.icon(
                                                     onPressed: () => _addSet(
                                                         routineExercise),
-                                                    icon: const Icon(Icons.add),
+                                                    icon: const Icon(
+                                                        LucideIcons.plus),
                                                     label:
                                                         Text(l10n.addSetButton),
                                                   ),
@@ -923,12 +927,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           child: Container(
                             height: 44,
                             decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.dark
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? const Color(0xFF1E1E1E)
                                   : const Color(0xFFF5F5F7),
                               border: Border(
                                 top: BorderSide(
-                                  color: Theme.of(context).brightness == Brightness.dark
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
                                       ? Colors.white10
                                       : Colors.black12,
                                   width: 0.5,
@@ -940,8 +946,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 TextButton(
-                                  onPressed: () =>
-                                      FocusManager.instance.primaryFocus?.unfocus(),
+                                  onPressed: () => FocusManager
+                                      .instance.primaryFocus
+                                      ?.unfocus(),
                                   child: Text(
                                     l10n.doneButtonLabel,
                                     style: const TextStyle(
@@ -1039,7 +1046,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
           children: [
             const Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
+                Icon(LucideIcons.circle_check, color: Colors.white),
                 SizedBox(width: 8),
                 Text(
                   "Pause vorbei!",

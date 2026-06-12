@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A floating action button with a premium glass aesthetic.
 ///
@@ -19,7 +20,7 @@ class GlassFab extends StatefulWidget {
   const GlassFab({
     super.key,
     required this.onPressed,
-    this.icon = Icons.add,
+    this.icon = LucideIcons.plus,
     this.label,
   });
 

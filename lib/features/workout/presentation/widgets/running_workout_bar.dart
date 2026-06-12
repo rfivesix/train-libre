@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A compact status bar displayed during an active workout session.
 ///
@@ -32,7 +33,7 @@ class RunningWorkoutBar extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
-              const Icon(Icons.timer_outlined, size: 20),
+              const Icon(LucideIcons.timer, size: 20),
               const SizedBox(width: 6),
               Text(
                 timeText,

@@ -21,6 +21,7 @@ import '../../../widgets/common/glass_progress_bar.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 DateTime resolveSupplementTrackLogTimestamp({
   required DateTime selectedDate,
@@ -185,7 +186,7 @@ class _SupplementTrackScreenContentState
     final l10n = AppLocalizations.of(context)!;
     return SummaryCard(
       child: ListTile(
-        leading: const Icon(Icons.add_circle_outline),
+        leading: const Icon(LucideIcons.circle_plus),
         title: Text(localizeSupplementName(s, l10n)),
         onTap: () => _logSupplement(context, model, s),
       ),
@@ -202,12 +203,12 @@ class _SupplementTrackScreenContentState
       direction: DismissDirection.horizontal,
       background: const SwipeActionBackground(
         color: Colors.blueAccent,
-        icon: Icons.edit,
+        icon: LucideIcons.pencil,
         alignment: Alignment.centerLeft,
       ),
       secondaryBackground: const SwipeActionBackground(
         color: Colors.redAccent,
-        icon: Icons.delete,
+        icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),
       confirmDismiss: (direction) async {
@@ -224,7 +225,7 @@ class _SupplementTrackScreenContentState
       },
       child: SummaryCard(
         child: ListTile(
-          leading: const Icon(Icons.check_circle, color: Colors.grey),
+          leading: const Icon(LucideIcons.circle_check, color: Colors.grey),
           title: Text(titleText),
           subtitle: Text(DateFormat.Hm().format(log.timestamp)),
           trailing: Text('${log.dose.toStringAsFixed(1)} ${log.unit}'),
@@ -249,7 +250,7 @@ class _SupplementTrackScreenContentState
         actions: [
           IconButton(
             tooltip: l10n.manageSupplementsTitle,
-            icon: const Icon(Icons.tune),
+            icon: const Icon(LucideIcons.sliders_horizontal),
             onPressed: () async {
               await Navigator.of(context).push<bool>(
                 MaterialPageRoute(
@@ -280,7 +281,7 @@ class _SupplementTrackScreenContentState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.chevron_left),
+                          icon: const Icon(LucideIcons.chevron_left),
                           onPressed: () => model.navigateDay(false),
                         ),
                         Expanded(
@@ -309,7 +310,7 @@ class _SupplementTrackScreenContentState
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.chevron_right),
+                          icon: const Icon(LucideIcons.chevron_right),
                           onPressed:
                               model.selectedDate.isSameDate(DateTime.now())
                                   ? null

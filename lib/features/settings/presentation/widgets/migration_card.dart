@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class MigrationCard extends StatelessWidget {
   const MigrationCard({
@@ -38,7 +39,7 @@ class MigrationCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: const Icon(Icons.sync_alt),
+                icon: const Icon(LucideIcons.refresh_cw),
                 label: Text(l10n.workoutImportButton),
                 onPressed: isMigrationRunning ? null : onImportPressed,
               ),

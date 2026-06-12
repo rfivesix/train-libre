@@ -20,6 +20,7 @@ import '../widgets/sleep_score_breakdown_card.dart';
 import '../widgets/sleep_score_card.dart';
 import '../widgets/sleep_timeline_card.dart';
 import 'sleep_day_view_model.dart' hide SleepPeriodScope;
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class SleepDayOverviewPage extends StatefulWidget {
   const SleepDayOverviewPage({
@@ -359,9 +360,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
     final countBadgeBg = isDark
         ? const Color(0xFF065F46).withValues(alpha: 0.3)
         : const Color(0xFFD1FAE5);
-    final countBadgeText = isDark
-        ? const Color(0xFF34D399)
-        : const Color(0xFF065F46);
+    final countBadgeText =
+        isDark ? const Color(0xFF34D399) : const Color(0xFF065F46);
 
     return SummaryCard(
       margin: EdgeInsets.zero,
@@ -383,7 +383,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: countBadgeBg,
                       borderRadius: BorderRadius.circular(12),
@@ -400,7 +401,7 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                   AnimatedRotation(
                     turns: _isExpanded ? 0.5 : 0.0,
                     duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.expand_more),
+                    child: const Icon(LucideIcons.chevron_down),
                   ),
                 ],
               ),
@@ -421,16 +422,19 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                     bottom: 16,
                   ),
                   itemCount: sessions.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final session = sessions[index];
                     final startLocal = session.startAtUtc.toLocal();
                     final endLocal = session.endAtUtc.toLocal();
-                    final duration = session.endAtUtc.difference(session.startAtUtc);
-                    
-                    final isCore = session.sessionType == SleepSessionType.mainSleep;
-                    final typeText = isCore 
-                        ? l10n.sleepSessionTypeCore 
+                    final duration =
+                        session.endAtUtc.difference(session.startAtUtc);
+
+                    final isCore =
+                        session.sessionType == SleepSessionType.mainSleep;
+                    final typeText = isCore
+                        ? l10n.sleepSessionTypeCore
                         : l10n.sleepSessionTypeNap;
                     final badgeColor = isCore ? cs.primary : cs.secondary;
 
@@ -441,7 +445,9 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                           height: 24,
                           child: Center(
                             child: Icon(
-                              isCore ? Icons.bedtime_outlined : Icons.snooze_outlined,
+                              isCore
+                                  ? LucideIcons.moon
+                                  : LucideIcons.alarm_clock,
                               size: 20,
                               color: isCore ? cs.primary : cs.secondary,
                             ),
@@ -449,7 +455,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                         ),
                         const SizedBox(width: 12),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: badgeColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
@@ -557,7 +564,7 @@ class _SleepEmptyStateCard extends StatelessWidget {
               children: [
                 OutlinedButton.icon(
                   onPressed: onOpenSettings,
-                  icon: const Icon(Icons.settings_outlined),
+                  icon: const Icon(LucideIcons.settings),
                   label: Text(l10n.sleepOpenSettingsButton),
                 ),
                 FilledButton.icon(
@@ -574,7 +581,7 @@ class _SleepEmptyStateCard extends StatelessWidget {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.sync),
+                  icon: const Icon(LucideIcons.refresh_cw),
                   label: Text(l10n.sleepImportNowButton),
                 ),
               ],

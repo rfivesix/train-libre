@@ -38,6 +38,7 @@ import 'widgets/fluid_entry_tile.dart';
 import 'widgets/recommendation_banner.dart';
 import 'meal_screen.dart';
 import '../../../core/infrastructure/share_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
 ///
@@ -86,7 +87,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       title: l10n.share,
       actions: [
         GlassMenuAction(
-          icon: Icons.image_outlined,
+          icon: LucideIcons.image,
           label: l10n.shareAsImage,
           onTap: () async {
             try {
@@ -101,7 +102,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
           },
         ),
         GlassMenuAction(
-          icon: Icons.notes_outlined,
+          icon: LucideIcons.align_horizontal_justify_start,
           label: '${l10n.shareAsText} / kopieren',
           onTap: () async {
             try {
@@ -749,10 +750,11 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             child: Row(
               children: [
                 Expanded(child: Text(title, style: titleStyle)),
-                Icon(isOpen ? Icons.expand_less : Icons.expand_more),
+                Icon(
+                    isOpen ? LucideIcons.chevron_up : LucideIcons.chevron_down),
                 const SizedBox(width: 4),
                 IconButton(
-                  icon: const Icon(Icons.add_circle),
+                  icon: const Icon(LucideIcons.circle_plus),
                   color: theme.colorScheme.primary,
                   onPressed: () => _addFoodToMeal(mealKey),
                   tooltip: l10n.addFoodOption,
@@ -976,17 +978,18 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               children: [
                 /*
                 Icon(
-                  Icons.local_drink_outlined,
+                  LucideIcons.glass_water,
                   color: theme.colorScheme.primary,
                 
                 ),
                 */
                 //const SizedBox(width: 12),
                 Expanded(child: Text(l10n.waterHeader, style: titleStyle)),
-                Icon(isOpen ? Icons.expand_less : Icons.expand_more),
+                Icon(
+                    isOpen ? LucideIcons.chevron_up : LucideIcons.chevron_down),
                 const SizedBox(width: 4),
                 IconButton(
-                  icon: const Icon(Icons.add_circle),
+                  icon: const Icon(LucideIcons.circle_plus),
                   color: theme.colorScheme.primary,
                   onPressed: _showAddFluidMenu,
                   tooltip: l10n.addLiquidOption,
@@ -1187,7 +1190,7 @@ class _DiaryDateNavigator extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _compactIconButton(
-          icon: Icons.chevron_left,
+          icon: LucideIcons.chevron_left,
           onPressed: onPreviousDay,
         ),
         Flexible(
@@ -1206,7 +1209,7 @@ class _DiaryDateNavigator extends StatelessWidget {
           ),
         ),
         _compactIconButton(
-          icon: Icons.chevron_right,
+          icon: LucideIcons.chevron_right,
           onPressed: onNextDay,
         ),
       ],

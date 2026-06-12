@@ -9,6 +9,7 @@ import 'scanner_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A lightweight, general-purpose food picker that returns a [FoodItem].
 ///
@@ -140,7 +141,9 @@ class _GeneralFoodSelectionScreenState
     return SummaryCard(
       child: ListTile(
         leading: Icon(
-          item.source == FoodItemSource.base ? Icons.star : Icons.inventory_2,
+          item.source == FoodItemSource.base
+              ? LucideIcons.star
+              : LucideIcons.archive,
           color: colorScheme.primary,
         ),
         title: Text(
@@ -151,7 +154,7 @@ class _GeneralFoodSelectionScreenState
         ),
         subtitle: Text(subtitle),
         trailing: IconButton(
-          icon: Icon(Icons.add_circle_outline, color: colorScheme.primary),
+          icon: Icon(LucideIcons.circle_plus, color: colorScheme.primary),
           onPressed: () => Navigator.of(context).pop(item),
         ),
         onTap: () async {
@@ -196,7 +199,7 @@ class _GeneralFoodSelectionScreenState
                       hintText: l10n.searchHintText,
                       isDense: true,
                       prefixIcon: Icon(
-                        Icons.search,
+                        LucideIcons.search,
                         color: colorScheme.onSurfaceVariant,
                         size: 20,
                       ),
@@ -211,7 +214,7 @@ class _GeneralFoodSelectionScreenState
                               child: IconButton(
                                 padding: EdgeInsets.zero,
                                 icon: Icon(
-                                  Icons.clear,
+                                  LucideIcons.x,
                                   color: colorScheme.onSurfaceVariant,
                                   size: 20,
                                 ),
@@ -283,7 +286,9 @@ class _GeneralFoodSelectionScreenState
                                   ).copyWith(dividerColor: Colors.transparent),
                                   child: ExpansionTile(
                                     leading: Text(
-                                      emoji?.isNotEmpty == true ? emoji! : '🗂️',
+                                      emoji?.isNotEmpty == true
+                                          ? emoji!
+                                          : '🗂️',
                                       style: const TextStyle(fontSize: 20),
                                     ),
                                     title: Text(title),
@@ -318,7 +323,8 @@ class _GeneralFoodSelectionScreenState
                                               .copyWith(top: 0),
                                           itemCount: items.length,
                                           itemBuilder: (_, i) =>
-                                              _buildFoodListItem(items[i], l10n),
+                                              _buildFoodListItem(
+                                                  items[i], l10n),
                                         ),
                                     ],
                                   ),

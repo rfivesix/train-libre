@@ -7,6 +7,7 @@ import 'log_supplement_dialog_content.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../domain/models/supplement.dart';
 import '../../../../util/supplement_l10n.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A menu that shows a list of supplements to choose from.
 /// A selection menu for choosing a supplement to log.
@@ -93,10 +94,10 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.medication_outlined),
+                      const Icon(LucideIcons.pill),
                       const SizedBox(width: 12),
                       Expanded(child: Text(localizeSupplementName(s, l10n))),
-                      const Icon(Icons.chevron_right_rounded),
+                      const Icon(LucideIcons.chevron_right),
                     ],
                   ),
                 ),

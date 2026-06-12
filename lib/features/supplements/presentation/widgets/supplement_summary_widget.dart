@@ -3,6 +3,7 @@ import '../../domain/models/tracked_supplement.dart';
 import '../../../../widgets/common/glass_progress_bar.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../util/design_constants.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A widget that displays a list of tracked supplements for the current day.
 ///
@@ -97,7 +98,7 @@ class _CheckmarkCard extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              isDone ? Icons.check_circle : Icons.radio_button_unchecked,
+              isDone ? LucideIcons.circle_check : LucideIcons.circle,
               color: isDone
                   ? theme.colorScheme.primary
                   : theme.colorScheme.onSurface.withValues(alpha: 0.56),

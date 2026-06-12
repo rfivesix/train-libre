@@ -31,6 +31,7 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../../theme/color_constants.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 // lib/screens/add_food_screen.dart
 
@@ -493,7 +494,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.favorite_border,
+                LucideIcons.heart,
                 size: 80,
                 color: Colors.grey.shade400,
               ),
@@ -547,7 +548,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.history, size: 80, color: Colors.grey.shade400),
+              Icon(LucideIcons.history, size: 80, color: Colors.grey.shade400),
               const SizedBox(height: DesignConstants.spacingL),
               Text(
                 l10n.nothingTrackedYet,
@@ -665,7 +666,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   hintText: l10n.searchHintText,
                   isDense: true,
                   prefixIcon: Icon(
-                    Icons.search,
+                    LucideIcons.search,
                     color: colorScheme.onSurfaceVariant,
                     size: 20,
                   ),
@@ -682,7 +683,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             icon: Icon(
-                              Icons.clear,
+                              LucideIcons.x,
                               color: colorScheme.onSurfaceVariant,
                               size: 20,
                             ),
@@ -736,7 +737,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 icon: ShaderMask(
                   blendMode: BlendMode.srcIn,
                   shaderCallback: (bounds) => createAiGradientShader(bounds),
-                  child: const Icon(Icons.auto_awesome, size: 24),
+                  child: const Icon(LucideIcons.sparkles, size: 24),
                 ),
                 onPressed: () async {
                   final result = await Navigator.of(context).push<bool>(
@@ -886,7 +887,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.restaurant_menu,
+                LucideIcons.utensils,
                 size: 80,
                 color: Colors.grey.shade400,
               ),

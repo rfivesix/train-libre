@@ -8,6 +8,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/legal_screen.dart';
 import '../../app/presentation/terms_of_service_screen.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class InitialConsentScreen extends StatefulWidget {
   final Widget nextScreen;
@@ -93,7 +94,7 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.privacy_tip_outlined,
+                      LucideIcons.shield_alert,
                       size: 64,
                       color: theme.colorScheme.primary,
                     ),
@@ -141,7 +142,9 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                           setState(() => _termsAccepted = val ?? false),
                       title: Text.rich(
                         TextSpan(
-                          text: l10n.acceptTermsPrompt.split(l10n.viewTermsInline).first,
+                          text: l10n.acceptTermsPrompt
+                              .split(l10n.viewTermsInline)
+                              .first,
                           style: theme.textTheme.bodySmall,
                           children: [
                             TextSpan(
@@ -154,8 +157,12 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                               recognizer: _termsRecognizer,
                             ),
                             TextSpan(
-                              text: l10n.acceptTermsPrompt.split(l10n.viewTermsInline).length > 1
-                                  ? l10n.acceptTermsPrompt.split(l10n.viewTermsInline)[1]
+                              text: l10n.acceptTermsPrompt
+                                          .split(l10n.viewTermsInline)
+                                          .length >
+                                      1
+                                  ? l10n.acceptTermsPrompt
+                                      .split(l10n.viewTermsInline)[1]
                                   : '',
                               style: theme.textTheme.bodySmall,
                             ),

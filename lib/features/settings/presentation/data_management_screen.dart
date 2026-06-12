@@ -27,7 +27,7 @@ import 'widgets/local_data_deletion_card.dart';
 import 'widgets/csv_export_card.dart';
 import 'widgets/migration_card.dart';
 import 'widgets/exercise_mapping_card.dart';
-
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for managing application data and backups.
 ///
@@ -88,7 +88,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         context: context,
         title: l10n.backupExportTitle,
         initialStatus: l10n.backupExportTitle,
-        icon: Icons.upload,
+        icon: LucideIcons.upload,
         operation: (token, updateProgress) async {
           await BackupManager.instance.exportFullBackup(
             token,
@@ -107,7 +107,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     }
 
     if (success) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.snackbarExportSuccess)));
+      messenger
+          .showSnackBar(SnackBar(content: Text(l10n.snackbarExportSuccess)));
     } else if (!wasCanceled) {
       messenger.showSnackBar(
         SnackBar(
@@ -146,7 +147,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
             context: context,
             title: l10n.backupImportTitle,
             initialStatus: l10n.backupImportTitle,
-            icon: Icons.download,
+            icon: LucideIcons.download,
             operation: (token, updateProgress) async {
               await BackupManager.instance.importFullBackupAuto(
                 filePath,
@@ -355,7 +356,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                 );
                 if (!context.mounted) return;
                 if (pw == null || pw.isEmpty) return;
-                
+
                 bool ok = false;
                 bool wasCanceled = false;
                 try {
@@ -363,13 +364,14 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     context: context,
                     title: l10n.backupExportTitle,
                     initialStatus: l10n.backupExportTitle,
-                    icon: Icons.lock_outline,
+                    icon: LucideIcons.lock,
                     operation: (token, updateProgress) async {
                       await BackupManager.instance.exportFullBackupEncrypted(
                         pw,
                         token,
                         (tableName, progress) {
-                          final statusText = l10n.progressExportingTable(tableName);
+                          final statusText =
+                              l10n.progressExportingTable(tableName);
                           updateProgress(statusText, progress);
                         },
                       );
@@ -627,7 +629,6 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     return result ?? false;
   }
 
-
   Future<void> _pickAutoBackupDirectory() async {
     final l10n = AppLocalizations.of(context)!;
     final prefs = await SharedPreferences.getInstance();
@@ -763,7 +764,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     labelText: l10n.passwordLabel,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        obscure ? Icons.visibility_off : Icons.visibility,
+                        obscure ? LucideIcons.eye_off : LucideIcons.eye,
                       ),
                       onPressed: () => setState(() => obscure = !obscure),
                     ),

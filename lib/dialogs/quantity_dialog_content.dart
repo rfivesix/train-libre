@@ -1,6 +1,7 @@
 // lib/dialogs/quantity_dialog_content.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import '../generated/app_localizations.dart';
 import '../features/diary/domain/models/food_item.dart';
@@ -186,12 +187,12 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TextButton.icon(
-              icon: const Icon(Icons.calendar_today, size: 20),
+              icon: const Icon(LucideIcons.calendar, size: 20),
               label: Text(formattedDate, style: const TextStyle(fontSize: 16)),
               onPressed: _selectDate,
             ),
             TextButton.icon(
-              icon: const Icon(Icons.access_time, size: 20),
+              icon: const Icon(LucideIcons.clock, size: 20),
               label: Text(formattedTime, style: const TextStyle(fontSize: 16)),
               onPressed: _selectTime,
             ),

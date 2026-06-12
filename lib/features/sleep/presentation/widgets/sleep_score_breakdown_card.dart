@@ -4,6 +4,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/app_section_header.dart';
 import '../../../../widgets/common/glass_progress_bar.dart';
 import '../../domain/scoring/sleep_scoring_engine.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class SleepScoreBreakdownCard extends StatelessWidget {
   const SleepScoreBreakdownCard({
@@ -105,7 +106,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            Icons.warning_amber_rounded,
+            LucideIcons.triangle_alert,
             color: colorScheme.onErrorContainer,
           ),
           const SizedBox(width: 12),

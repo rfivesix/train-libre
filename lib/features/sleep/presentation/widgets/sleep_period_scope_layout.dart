@@ -6,6 +6,7 @@ import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/common.dart';
 import '../../../../widgets/common/global_app_bar.dart';
 import '../../../../widgets/common/algorithm_info_sheet.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 enum SleepPeriodScope { day, week, month }
 
@@ -75,7 +76,7 @@ class SleepPeriodScopeLayout extends StatelessWidget {
                 IconButton(
                   key: const Key('sleep-period-prev'),
                   onPressed: () => onShiftPeriod(-1),
-                  icon: const Icon(Icons.chevron_left),
+                  icon: const Icon(LucideIcons.chevron_left),
                 ),
                 Expanded(
                   child: Text(
@@ -90,7 +91,7 @@ class SleepPeriodScopeLayout extends StatelessWidget {
                 IconButton(
                   key: const Key('sleep-period-next'),
                   onPressed: () => onShiftPeriod(1),
-                  icon: const Icon(Icons.chevron_right),
+                  icon: const Icon(LucideIcons.chevron_right),
                 ),
               ],
             ),

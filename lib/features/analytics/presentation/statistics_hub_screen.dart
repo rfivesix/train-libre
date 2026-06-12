@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -213,7 +214,11 @@ class _StatisticsHubScreenView extends StatelessWidget {
     }
     if (section.hasError && !section.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
-          context, l10n, () => viewModel.loadHubAnalytics(), StatisticsHubSectionId.steps, l10n.steps);
+          context,
+          l10n,
+          () => viewModel.loadHubAnalytics(),
+          StatisticsHubSectionId.steps,
+          l10n.steps);
     }
     final range = viewModel.stepsRange;
     final hasData =
@@ -422,8 +427,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
       onRetry: () => viewModel.loadHubAnalytics(),
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
-              builder: (_) => const MuscleGroupAnalyticsScreen()),
+          MaterialPageRoute(builder: (_) => const MuscleGroupAnalyticsScreen()),
         );
       },
     );
@@ -464,7 +468,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              Icons.straighten_rounded,
+              LucideIcons.ruler,
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 12),
@@ -488,7 +492,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right),
+            const Icon(LucideIcons.chevron_right),
           ],
         ),
       ),

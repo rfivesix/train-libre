@@ -5,6 +5,7 @@ import '../../../../widgets/common/summary_card.dart';
 import '../../../pulse/presentation/pulse_analysis_screen.dart';
 import '../../../sleep/presentation/widgets/sleep_period_scope_layout.dart';
 import '../diary_view_model.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class PulseSummaryCard extends StatelessWidget {
   const PulseSummaryCard({super.key});
@@ -107,7 +108,7 @@ class PulseSummaryCard extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Icon(
-              Icons.chevron_right,
+              LucideIcons.chevron_right,
               color: theme.colorScheme.onSurface,
             ),
           ],

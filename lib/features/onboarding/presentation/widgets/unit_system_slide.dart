@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class UnitSystemSlide extends StatelessWidget {
   final UnitSystem selectedSystem;
@@ -26,7 +27,8 @@ class UnitSystemSlide extends StatelessWidget {
           Text(
             l10n.onboardingUnitSystemTitle,
             textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Text(
@@ -40,7 +42,7 @@ class UnitSystemSlide extends StatelessWidget {
           _UnitSystemChoiceCard(
             title: l10n.onboardingUnitMetric,
             subtitle: l10n.onboardingUnitMetricSubtitle,
-            icon: Icons.straighten_rounded,
+            icon: LucideIcons.ruler,
             selected: selectedSystem == UnitSystem.metric,
             onTap: () => onSelectSystem(UnitSystem.metric),
           ),
@@ -48,7 +50,7 @@ class UnitSystemSlide extends StatelessWidget {
           _UnitSystemChoiceCard(
             title: l10n.onboardingUnitImperial,
             subtitle: l10n.onboardingUnitImperialSubtitle,
-            icon: Icons.public_rounded,
+            icon: LucideIcons.globe,
             selected: selectedSystem == UnitSystem.imperial,
             onTap: () => onSelectSystem(UnitSystem.imperial),
           ),
@@ -126,7 +128,7 @@ class _UnitSystemChoiceCard extends StatelessWidget {
                 ),
               ),
               Icon(
-                selected ? Icons.check_circle : Icons.circle_outlined,
+                selected ? LucideIcons.circle_check : LucideIcons.circle,
                 color: selected ? cs.primary : cs.onSurfaceVariant,
               ),
             ],

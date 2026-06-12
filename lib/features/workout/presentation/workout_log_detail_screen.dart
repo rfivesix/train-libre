@@ -30,6 +30,7 @@ import 'widgets/workout_exercise_log_card.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'edit_routine_screen.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A detailed view for a single completed [WorkoutLog].
 ///
@@ -93,14 +94,15 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
     final repo = context.read<IWorkoutRepository>();
     final mutableSets = List<SetLog>.from(updatedSets);
-    await _calculateHistoricalPRs(mutableSets, beforeTimestamp: _log!.startTime);
+    await _calculateHistoricalPRs(mutableSets,
+        beforeTimestamp: _log!.startTime);
 
     final updatedGroups = <String, List<SetLog>>{};
     final updatedDetails = <String, Exercise>{};
 
     for (var set in mutableSets) {
       updatedGroups.putIfAbsent(set.exerciseName, () => []).add(set);
-      
+
       final existing = _exerciseDetails[set.exerciseName];
       if (existing != null) {
         updatedDetails[set.exerciseName] = existing;
@@ -474,9 +476,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   void _showSaveAsRoutineDialog() async {
     final repo = context.read<IWorkoutRepository>();
     final l10n = AppLocalizations.of(context)!;
-    final defaultName = _log!.routineName != null && _log!.routineName!.isNotEmpty
-        ? "${_log!.routineName} (Kopie)"
-        : "Meine neue Routine";
+    final defaultName =
+        _log!.routineName != null && _log!.routineName!.isNotEmpty
+            ? "${_log!.routineName} (Kopie)"
+            : "Meine neue Routine";
 
     final controller = TextEditingController(text: defaultName);
 
@@ -489,7 +492,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Text(
                 l10n.saveAsRoutinePrompt,
                 style: Theme.of(ctx).textTheme.bodyMedium,
@@ -550,7 +554,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           name: routineName,
         );
 
-        final newRoutineWithDetails = await WorkoutLocalDataSource.instance.getRoutineById(newRoutine.id!);
+        final newRoutineWithDetails = await WorkoutLocalDataSource.instance
+            .getRoutineById(newRoutine.id!);
 
         if (mounted) {
           final navigator = Navigator.of(context);
@@ -564,7 +569,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                   if (newRoutineWithDetails != null) {
                     navigator.push(
                       MaterialPageRoute(
-                        builder: (context) => EditRoutineScreen(routine: newRoutineWithDetails),
+                        builder: (context) =>
+                            EditRoutineScreen(routine: newRoutineWithDetails),
                       ),
                     );
                   }
@@ -626,7 +632,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     _exerciseNotes[exerciseName]!.isNotEmpty) ...[
                   IconButton(
                     icon: Icon(
-                      Icons.delete_outline,
+                      LucideIcons.trash_2,
                       color: Theme.of(context).colorScheme.error,
                     ),
                     tooltip: "Notiz löschen",
@@ -705,13 +711,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     ),
                   )
                 : IconButton(
-                    icon: const Icon(Icons.edit),
+                    icon: const Icon(LucideIcons.pencil),
                     onPressed: _toggleEditMode,
                   ),
           if (!_isLoading && _log != null && !_isEditMode)
             IconButton(
               tooltip: l10n.share,
-              icon: const Icon(Icons.ios_share),
+              icon: const Icon(LucideIcons.share),
               onPressed: () => _shareService.showWorkoutShareSheet(
                 context: context,
                 workout: _log!,
@@ -771,7 +777,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                           if (_isEditMode)
                                             IconButton(
                                               icon: Icon(
-                                                Icons.calendar_today,
+                                                LucideIcons.calendar,
                                                 size: 18,
                                                 color: colorScheme.primary,
                                               ),
@@ -815,14 +821,21 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                         Center(
                                           child: TextButton.icon(
                                             onPressed: _showSaveAsRoutineDialog,
-                                            icon: const Icon(Icons.copy_all, size: 18),
+                                            icon: const Icon(LucideIcons.files,
+                                                size: 18),
                                             label: Text(
                                               l10n.saveAsRoutineButton,
-                                              style: const TextStyle(fontWeight: FontWeight.w600),
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w600),
                                             ),
                                             style: TextButton.styleFrom(
-                                              foregroundColor: colorScheme.primary.withValues(alpha: 0.8),
-                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                              foregroundColor: colorScheme
+                                                  .primary
+                                                  .withValues(alpha: 0.8),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 8),
                                             ),
                                           ),
                                         ),
@@ -850,7 +863,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                           if (!_isEditMode)
                             ..._groupedSets.entries.map((entry) {
                               final String exerciseName = entry.key;
-                              final Exercise? exercise = _exerciseDetails[exerciseName];
+                              final Exercise? exercise =
+                                  _exerciseDetails[exerciseName];
                               final List<SetLog> sets = entry.value;
                               final isCardio = _isCardio(exerciseName);
 
@@ -864,13 +878,20 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 repsControllers: _repsControllers,
                                 rirControllers: _rirControllers,
                                 exerciseNote: _exerciseNotes[exerciseName],
-                                onEditNotes: (exName) => _editExerciseNotes(context, exName),
+                                onEditNotes: (exName) =>
+                                    _editExerciseNotes(context, exName),
                                 onDeleteExercise: (exName) {
                                   setState(() {
                                     for (var set in sets) {
-                                      _weightControllers.remove(set.id!)?.dispose();
-                                      _repsControllers.remove(set.id!)?.dispose();
-                                      _rirControllers.remove(set.id!)?.dispose();
+                                      _weightControllers
+                                          .remove(set.id!)
+                                          ?.dispose();
+                                      _repsControllers
+                                          .remove(set.id!)
+                                          ?.dispose();
+                                      _rirControllers
+                                          .remove(set.id!)
+                                          ?.dispose();
                                     }
                                     _groupedSets.remove(exName);
                                     _exerciseNotes.remove(exName);
@@ -903,9 +924,11 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               },
                               itemCount: _groupedSets.length,
                               itemBuilder: (context, index) {
-                                final entry = _groupedSets.entries.elementAt(index);
+                                final entry =
+                                    _groupedSets.entries.elementAt(index);
                                 final String exerciseName = entry.key;
-                                final Exercise? exercise = _exerciseDetails[exerciseName];
+                                final Exercise? exercise =
+                                    _exerciseDetails[exerciseName];
                                 final List<SetLog> sets = entry.value;
                                 final isCardio = _isCardio(exerciseName);
 
@@ -920,13 +943,20 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                   repsControllers: _repsControllers,
                                   rirControllers: _rirControllers,
                                   exerciseNote: _exerciseNotes[exerciseName],
-                                  onEditNotes: (exName) => _editExerciseNotes(context, exName),
+                                  onEditNotes: (exName) =>
+                                      _editExerciseNotes(context, exName),
                                   onDeleteExercise: (exName) {
                                     setState(() {
                                       for (var set in sets) {
-                                        _weightControllers.remove(set.id!)?.dispose();
-                                        _repsControllers.remove(set.id!)?.dispose();
-                                        _rirControllers.remove(set.id!)?.dispose();
+                                        _weightControllers
+                                            .remove(set.id!)
+                                            ?.dispose();
+                                        _repsControllers
+                                            .remove(set.id!)
+                                            ?.dispose();
+                                        _rirControllers
+                                            .remove(set.id!)
+                                            ?.dispose();
                                       }
                                       _groupedSets.remove(exName);
                                       _exerciseNotes.remove(exName);
@@ -942,20 +972,26 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                     );
                                     setState(() {
                                       sets.add(newSet);
-                                      _weightControllers[newSet.id!] = TextEditingController();
-                                      _repsControllers[newSet.id!] = TextEditingController();
-                                      _rirControllers[newSet.id!] = TextEditingController();
+                                      _weightControllers[newSet.id!] =
+                                          TextEditingController();
+                                      _repsControllers[newSet.id!] =
+                                          TextEditingController();
+                                      _rirControllers[newSet.id!] =
+                                          TextEditingController();
                                     });
                                   },
                                   onDeleteSet: (setId) {
                                     setState(() {
                                       sets.removeWhere((s) => s.id == setId);
-                                      _weightControllers.remove(setId)?.dispose();
+                                      _weightControllers
+                                          .remove(setId)
+                                          ?.dispose();
                                       _repsControllers.remove(setId)?.dispose();
                                       _rirControllers.remove(setId)?.dispose();
                                     });
                                   },
-                                  onSetTypeTap: (setId) => _showSetTypePicker(setId),
+                                  onSetTypeTap: (setId) =>
+                                      _showSetTypePicker(setId),
                                   index: index,
                                 );
                               },
@@ -1012,7 +1048,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                     });
                                   }
                                 },
-                                icon: const Icon(Icons.add),
+                                icon: const Icon(LucideIcons.plus),
                                 label: Text(l10n.addExerciseToWorkoutButton),
                               ),
                             ),
@@ -1035,7 +1071,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
   Widget _buildMuscleHeatmap(AppLocalizations l10n) {
     final muscleCounts = <BodyPartSlug, int>{};
-    
+
     for (final name in _groupedSets.keys) {
       final ex = _exerciseDetails[name];
       if (ex == null) continue;
@@ -1058,9 +1094,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
     final highlights = muscleCounts.entries.map((e) {
       // Relative intensity: scale to 1-5 based on session max
-      final intensity = maxCount > 0
-          ? (e.value / maxCount * 5).ceil().clamp(1, 5)
-          : 1;
+      final intensity =
+          maxCount > 0 ? (e.value / maxCount * 5).ceil().clamp(1, 5) : 1;
 
       return BodyPartHighlightData(
         slug: e.key,

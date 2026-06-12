@@ -15,6 +15,7 @@ import 'routine_share_formatter.dart';
 import 'share_card_renderer.dart';
 import 'share_labels.dart';
 import 'workout_share_formatter.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 class ShareService {
   const ShareService({ShareCardRenderer renderer = const ShareCardRenderer()})
@@ -32,7 +33,7 @@ class ShareService {
       title: l10n.shareWorkout,
       actions: [
         GlassMenuAction(
-          icon: Icons.image_outlined,
+          icon: LucideIcons.image,
           label: l10n.shareAsImage,
           onTap: () => _showWorkoutImageLayoutSheet(
             context: context,
@@ -40,7 +41,7 @@ class ShareService {
           ),
         ),
         GlassMenuAction(
-          icon: Icons.notes_outlined,
+          icon: LucideIcons.align_horizontal_justify_start,
           label: l10n.shareAsText,
           onTap: () => shareWorkoutAsText(context: context, workout: workout),
         ),
@@ -58,7 +59,7 @@ class ShareService {
       title: l10n.shareRoutine,
       actions: [
         GlassMenuAction(
-          icon: Icons.image_outlined,
+          icon: LucideIcons.image,
           label: l10n.shareAsImage,
           onTap: () => _showRoutineImageLayoutSheet(
             context: context,
@@ -66,7 +67,7 @@ class ShareService {
           ),
         ),
         GlassMenuAction(
-          icon: Icons.notes_outlined,
+          icon: LucideIcons.align_horizontal_justify_start,
           label: l10n.shareAsText,
           onTap: () => shareRoutineAsText(context: context, routine: routine),
         ),
@@ -84,7 +85,7 @@ class ShareService {
       title: l10n.shareAsImage,
       actions: [
         GlassMenuAction(
-          icon: Icons.dashboard_outlined,
+          icon: LucideIcons.layout_dashboard,
           label: l10n.shareImageSummary,
           onTap: () => shareWorkoutAsImage(
             context: context,
@@ -93,7 +94,7 @@ class ShareService {
           ),
         ),
         GlassMenuAction(
-          icon: Icons.format_list_bulleted,
+          icon: LucideIcons.list,
           label: l10n.shareImageExercises,
           onTap: () => shareWorkoutAsImage(
             context: context,
@@ -102,7 +103,7 @@ class ShareService {
           ),
         ),
         GlassMenuAction(
-          icon: Icons.pie_chart_outline,
+          icon: LucideIcons.chart_pie,
           label: l10n.shareImageMuscleFocus,
           onTap: () => shareWorkoutAsImage(
             context: context,
@@ -111,7 +112,7 @@ class ShareService {
           ),
         ),
         GlassMenuAction(
-          icon: Icons.crop_square,
+          icon: LucideIcons.square,
           label: l10n.shareImageMinimal,
           onTap: () => shareWorkoutAsImage(
             context: context,
@@ -133,7 +134,7 @@ class ShareService {
       title: l10n.shareAsImage,
       actions: [
         GlassMenuAction(
-          icon: Icons.dashboard_outlined,
+          icon: LucideIcons.layout_dashboard,
           label: l10n.shareImageSummary,
           onTap: () => shareRoutineAsImage(
             context: context,
@@ -142,7 +143,7 @@ class ShareService {
           ),
         ),
         GlassMenuAction(
-          icon: Icons.format_list_bulleted,
+          icon: LucideIcons.list,
           label: l10n.shareImageExercises,
           onTap: () => shareRoutineAsImage(
             context: context,
