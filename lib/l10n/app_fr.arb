@@ -2242,5 +2242,36 @@
       }
     }
   },
-  "recommendationBannerApply": "Appliquer"
+  "recommendationBannerApply": "Appliquer",
+  "cancelingAndRollingBack": "Annulation, retour en arrière sécurisé...",
+  "sleepSyncTitle": "Synchronisation de l'historique du sommeil...",
+  "backupExportTitle": "Exportation de la sauvegarde...",
+  "backupImportTitle": "Importation de la sauvegarde...",
+  "progressImportingNight": "Importation de la nuit {index}/{total}...",
+  "@progressImportingNight": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "progressExportingTable": "Exportation de {table}...",
+  "@progressExportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "progressImportingTable": "Restauration de {table}...",
+  "@progressImportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  }
 }

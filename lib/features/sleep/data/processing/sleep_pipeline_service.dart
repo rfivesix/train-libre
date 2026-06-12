@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../../data/drift_database.dart';
+import '../../../../util/cancellation_token.dart';
 import '../../domain/metrics/nightly_metrics_calculator.dart';
 import '../../domain/metrics/sleep_regularity_index.dart';
 import '../../domain/sleep_domain.dart';
@@ -93,7 +94,10 @@ class SleepPipelineService {
     bool forceRecompute = false,
     DateTime? recomputeFromInclusive,
     DateTime? recomputeToExclusive,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
   }) async {
+    token?.throwIfCancelled();
     final normalizedBatch = _dedupeProgressiveSessions(batch);
     if (normalizedBatch.sessions.isEmpty) {
       return const SleepPipelineRunResult(
@@ -113,6 +117,8 @@ class SleepPipelineService {
             .reduce((a, b) => a.isAfter(b) ? a : b)
             .add(const Duration(seconds: 1));
 
+    token?.throwIfCancelled();
+
     if (forceRecompute) {
       final sessionsToRecompute = await _sessionsDao.findByDateRange(
         fromInclusive: from,
@@ -128,6 +134,7 @@ class SleepPipelineService {
           .toSet()
           .toList(growable: false)
         ..sort();
+      token?.throwIfCancelled();
       if (nightDates.isNotEmpty) {
         await _analysesDao.deleteByNightRange(
           fromNightDateInclusive: nightDates.first,
@@ -140,12 +147,16 @@ class SleepPipelineService {
           toNightDateInclusive: _nightKey(toInclusive),
         );
       }
+      token?.throwIfCancelled();
       await _sessionsDao.deleteByDateRange(
         fromInclusive: from,
         toExclusive: to,
       );
+      token?.throwIfCancelled();
       await _rawDao.deleteByIds(rawImportIds);
     }
+
+    token?.throwIfCancelled();
 
     // Pre-fetch lookback data for regularity calculation
     final targetNights = normalizedBatch.sessions
@@ -163,13 +174,17 @@ class SleepPipelineService {
       fromInclusive: lookbackFromInclusive,
       toExclusive: lookbackToExclusive,
     );
+    token?.throwIfCancelled();
     final lookbackSessionIds = lookbackSessions.map((s) => s.id).toList();
     final lookbackSegments =
         await _segmentsDao.findBySessionIds(lookbackSessionIds);
+    token?.throwIfCancelled();
     final lookbackAnalyses = await _analysesDao.findByNightRange(
       fromNightDateInclusive: _nightKey(lookbackFromInclusive),
       toNightDateInclusive: _nightKey(lookbackToExclusive),
     );
+
+    token?.throwIfCancelled();
 
     // Offload heavy processing to background isolate
     final result = await compute(
@@ -185,11 +200,19 @@ class SleepPipelineService {
       ),
     );
 
+    token?.throwIfCancelled();
+
     var insertedSessions = 0;
     await _database.transaction(() async {
       final skipSessionIds = <String>{};
       final rawImportIdsToDelete = <String>[];
-      for (final session in normalizedBatch.sessions) {
+      final totalSessions = normalizedBatch.sessions.length;
+
+      for (var i = 0; i < totalSessions; i++) {
+        token?.throwIfCancelled();
+        onProgress?.call(i + 1, totalSessions);
+        final session = normalizedBatch.sessions[i];
+
         final overlapping = await _sessionsDao.findByDateRange(
           fromInclusive: session.startAtUtc,
           toExclusive: session.endAtUtc,
@@ -246,6 +269,8 @@ class SleepPipelineService {
         await _sessionsDao.deleteById(session.recordId);
       }
 
+      token?.throwIfCancelled();
+
       if (rawImportIdsToDelete.isNotEmpty) {
         await _rawDao.deleteByIds(rawImportIdsToDelete);
       }
@@ -266,6 +291,8 @@ class SleepPipelineService {
           .where((row) => !skipSessionIds.contains(row.sessionId))
           .toList(growable: false);
 
+      token?.throwIfCancelled();
+
       await _rawDao.upsertBatch(filteredRawRows);
       await _sessionsDao.upsertBatch(filteredSessionRows);
       await _segmentsDao.upsertBatch(filteredSegmentRows);
@@ -273,6 +300,8 @@ class SleepPipelineService {
       await _analysesDao.upsertBatch(filteredAnalysisRows);
       insertedSessions = filteredSessionRows.length;
     });
+
+    token?.throwIfCancelled();
 
     _database.notifyUpdates({
       const TableUpdate('sleep_raw_imports'),

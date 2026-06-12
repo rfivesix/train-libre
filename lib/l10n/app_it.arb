@@ -2242,5 +2242,36 @@
       }
     }
   },
-  "recommendationBannerApply": "Fare domanda a"
+  "recommendationBannerApply": "Fare domanda a",
+  "cancelingAndRollingBack": "Annullamento, rollback sicuro...",
+  "sleepSyncTitle": "Sincronizzazione della cronologia del sonno...",
+  "backupExportTitle": "Esportazione del backup...",
+  "backupImportTitle": "Importazione del backup...",
+  "progressImportingNight": "Importazione della notte {index}/{total}...",
+  "@progressImportingNight": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "progressExportingTable": "Esportazione di {table}...",
+  "@progressExportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "progressImportingTable": "Ripristino di {table}...",
+  "@progressImportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  }
 }

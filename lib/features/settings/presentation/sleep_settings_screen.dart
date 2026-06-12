@@ -35,7 +35,6 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
   late final bool _ownsSleepPermissionController;
 
   bool _sleepTrackingEnabled = false;
-  bool _isSleepImporting = false;
   bool _isSleepRawLoading = false;
   bool _hasChanges = false;
 
@@ -295,41 +294,56 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                       leading: const Icon(Icons.sync),
                       title: Text(l10n.sleepImportNowTitle),
                       subtitle: Text(l10n.sleepImportNowSubtitle),
-                      trailing: _isSleepImporting
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.chevron_right),
-                      onTap: _isSleepImporting
-                          ? null
-                          : () async {
-                              setState(() => _isSleepImporting = true);
-                              final result =
-                                  await _sleepSyncService.importRecent(
-                                lookbackDays: 90,
-                                forceFullSync: true,
-                              );
-                              if (!mounted) return;
-                              setState(() {
-                                _isSleepImporting = false;
-                                _hasChanges = true;
-                              });
-                              ScaffoldMessenger.of(this.context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    result.success
-                                        ? l10n.sleepImportFinishedSessions(
-                                            result.importedSessions,
-                                          )
-                                        : (result.message ??
-                                            l10n.sleepImportUnavailableCheckPermissions),
-                                  ),
-                                ),
-                              );
-                              await _sleepPermissionController.refresh();
-                            },
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final l10n = AppLocalizations.of(context)!;
+                        SleepSyncResult? importResult;
+
+                        final success = await LongRunningOperationOverlay.run(
+                          context: context,
+                          title: l10n.sleepSyncTitle,
+                          initialStatus: l10n.sleepSyncTitle,
+                          icon: Icons.sync,
+                          operation: (token, updateProgress) async {
+                            importResult = await _sleepSyncService.importRecent(
+                              lookbackDays: 90,
+                              forceFullSync: true,
+                              token: token,
+                              onProgress: (index, total) {
+                                final statusText = l10n.progressImportingNight(index, total);
+                                final progressValue = total > 0 ? index / total : 0.0;
+                                updateProgress(statusText, progressValue);
+                              },
+                            );
+                          },
+                        );
+
+                        if (!mounted) return;
+                        setState(() {
+                          _hasChanges = true;
+                        });
+
+                        final res = importResult;
+                        if (res != null) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                res.success
+                                    ? l10n.sleepImportFinishedSessions(res.importedSessions)
+                                    : (res.message ?? l10n.sleepImportUnavailableCheckPermissions),
+                              ),
+                            ),
+                          );
+                        } else if (!success) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(l10n.snackbarImportError),
+                            ),
+                          );
+                        }
+                        await _sleepPermissionController.refresh();
+                      },
                     ),
                     ListTile(
                       leading: const Icon(Icons.data_object_outlined),

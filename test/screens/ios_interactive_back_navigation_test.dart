@@ -7,6 +7,7 @@ import 'package:train_libre/features/sleep/platform/permissions/sleep_permission
 import 'package:train_libre/features/sleep/platform/permissions/sleep_permission_models.dart';
 import 'package:train_libre/features/sleep/platform/permissions/sleep_permissions_service.dart';
 import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
+import 'package:train_libre/util/cancellation_token.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/features/settings/presentation/health_export_settings_screen.dart';
 import 'package:train_libre/features/settings/presentation/pulse_settings_screen.dart';
@@ -44,6 +45,8 @@ class _FakeSleepSettingsService implements SleepSettingsService {
   Future<SleepSyncResult> importRecent({
     int lookbackDays = 30,
     bool forceFullSync = false,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
   }) async {
     return const SleepSyncResult(
       success: true,

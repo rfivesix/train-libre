@@ -2242,5 +2242,36 @@
       }
     }
   },
-  "recommendationBannerApply": "Anwenden"
+  "recommendationBannerApply": "Anwenden",
+  "cancelingAndRollingBack": "Abbrechen, sicheres Zurückrollen...",
+  "sleepSyncTitle": "Schlafdaten synchronisieren...",
+  "backupExportTitle": "Backup exportieren...",
+  "backupImportTitle": "Backup importieren...",
+  "progressImportingNight": "Importiere Nacht {index}/{total}...",
+  "@progressImportingNight": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "progressExportingTable": "Exportiere {table}...",
+  "@progressExportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "progressImportingTable": "Stelle {table} wieder her...",
+  "@progressImportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  }
 }

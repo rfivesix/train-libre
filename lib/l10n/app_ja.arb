@@ -2242,5 +2242,36 @@
       }
     }
   },
-  "recommendationBannerApply": "適用する"
+  "recommendationBannerApply": "適用する",
+  "cancelingAndRollingBack": "キャンセル中、安全にロールバックしています...",
+  "sleepSyncTitle": "睡眠履歴を同期中...",
+  "backupExportTitle": "バックアップをエクスポート中...",
+  "backupImportTitle": "バックアップをインポート中...",
+  "progressImportingNight": "夜間のデータ {index}/{total} をインポート中...",
+  "@progressImportingNight": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "progressExportingTable": "{table} をエクスポート中...",
+  "@progressExportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "progressImportingTable": "{table} を復元中...",
+  "@progressImportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -4976,4 +4976,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recommendationBannerApply => 'Apply';
+
+  @override
+  String get cancelingAndRollingBack => 'Canceling, rolling back safely...';
+
+  @override
+  String get sleepSyncTitle => 'Syncing Sleep History...';
+
+  @override
+  String get backupExportTitle => 'Exporting Backup...';
+
+  @override
+  String get backupImportTitle => 'Importing Backup...';
+
+  @override
+  String progressImportingNight(int index, int total) {
+    return 'Importing Night $index/$total...';
+  }
+
+  @override
+  String progressExportingTable(String table) {
+    return 'Exporting $table...';
+  }
+
+  @override
+  String progressImportingTable(String table) {
+    return 'Restoring $table...';
+  }
 }

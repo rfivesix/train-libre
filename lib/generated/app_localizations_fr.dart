@@ -5069,4 +5069,32 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get recommendationBannerApply => 'Appliquer';
+
+  @override
+  String get cancelingAndRollingBack =>
+      'Annulation, retour en arrière sécurisé...';
+
+  @override
+  String get sleepSyncTitle => 'Synchronisation de l\'historique du sommeil...';
+
+  @override
+  String get backupExportTitle => 'Exportation de la sauvegarde...';
+
+  @override
+  String get backupImportTitle => 'Importation de la sauvegarde...';
+
+  @override
+  String progressImportingNight(int index, int total) {
+    return 'Importation de la nuit $index/$total...';
+  }
+
+  @override
+  String progressExportingTable(String table) {
+    return 'Exportation de $table...';
+  }
+
+  @override
+  String progressImportingTable(String table) {
+    return 'Restauration de $table...';
+  }
 }

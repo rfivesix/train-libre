@@ -4821,4 +4821,31 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get recommendationBannerApply => '適用する';
+
+  @override
+  String get cancelingAndRollingBack => 'キャンセル中、安全にロールバックしています...';
+
+  @override
+  String get sleepSyncTitle => '睡眠履歴を同期中...';
+
+  @override
+  String get backupExportTitle => 'バックアップをエクスポート中...';
+
+  @override
+  String get backupImportTitle => 'バックアップをインポート中...';
+
+  @override
+  String progressImportingNight(int index, int total) {
+    return '夜間のデータ $index/$total をインポート中...';
+  }
+
+  @override
+  String progressExportingTable(String table) {
+    return '$table をエクスポート中...';
+  }
+
+  @override
+  String progressImportingTable(String table) {
+    return '$table を復元中...';
+  }
 }

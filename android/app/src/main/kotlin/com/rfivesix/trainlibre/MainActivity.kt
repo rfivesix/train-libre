@@ -8,6 +8,7 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
@@ -82,9 +83,12 @@ class MainActivity : FlutterActivity() {
 
     private val permissionLauncher = object {
         fun launch(permissions: Set<String>) {
-            val intent = PermissionController.createRequestPermissionResultContract()
-                .createIntent(this@MainActivity, permissions)
-            this@MainActivity.startActivityForResult(intent, REQUEST_CODE_HEALTH_CONNECT_PERMISSIONS)
+            // Use the native ActivityCompat helper instead of generating an unsupported contract intent
+            ActivityCompat.requestPermissions(
+                this@MainActivity,
+                permissions.toTypedArray(),
+                REQUEST_CODE_HEALTH_CONNECT_PERMISSIONS
+            )
         }
     }
 
@@ -95,20 +99,35 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun handlePermissionResult() {
+        val result = pendingPermissionResult ?: return
+        val requestedPermissions = pendingPermissionRequestSet ?: requiredPermissions
+        pendingPermissionResult = null
+        pendingPermissionRequestSet = null
+        CoroutineScope(Dispatchers.IO).launch {
+            val granted = hasPermissions(requestedPermissions)
+            withContext(Dispatchers.Main) {
+                result.success(granted)
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_HEALTH_CONNECT_PERMISSIONS) {
+            handlePermissionResult()
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             REQUEST_CODE_HEALTH_CONNECT_PERMISSIONS -> {
-                val result = pendingPermissionResult ?: return
-                val requestedPermissions = pendingPermissionRequestSet ?: requiredPermissions
-                pendingPermissionResult = null
-                pendingPermissionRequestSet = null
-                CoroutineScope(Dispatchers.IO).launch {
-                    val granted = hasPermissions(requestedPermissions)
-                    withContext(Dispatchers.Main) {
-                        result.success(granted)
-                    }
-                }
+                handlePermissionResult()
             }
             REQUEST_CODE_DIRECTORY_PICKER -> {
                 val result = pendingDirectoryPickerResult ?: return

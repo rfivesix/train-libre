@@ -393,11 +393,10 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     try {
       final savedItems = await DatabaseHelper.instance.getMealItems(newMealId);
       final meals = await DatabaseHelper.instance.getMeals();
-      final created =
-          meals.cast<Map<String, dynamic>?>().firstWhere(
-                (m) => m?['id'] == newMealId,
-                orElse: () => null,
-              );
+      final created = meals.cast<Map<String, dynamic>?>().firstWhere(
+            (m) => m?['id'] == newMealId,
+            orElse: () => null,
+          );
       if (created != null &&
           (created['name'] as String).isEmpty &&
           savedItems.isEmpty) {
@@ -583,7 +582,6 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     context.read<DiaryViewModel>().navigateDay(forward);
   }
 
-
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<DiaryViewModel>();
@@ -604,7 +602,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
     return viewModel.isLoading
         ? const Center(child: CircularProgressIndicator())
-         : RefreshIndicator(
+        : RefreshIndicator(
             onRefresh: () => syncHealthData(forceStepsRefresh: true),
             child: ListView(
               padding: finalPadding,
@@ -670,7 +668,6 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             ),
           );
   }
-
 
   // Section headers now use the centralized AppSectionHeader widget.
 
@@ -929,11 +926,14 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             }),
             child: Row(
               children: [
+                /*
                 Icon(
                   Icons.local_drink_outlined,
                   color: theme.colorScheme.primary,
+                
                 ),
-                const SizedBox(width: 12),
+                */
+                //const SizedBox(width: 12),
                 Expanded(child: Text(l10n.waterHeader, style: titleStyle)),
                 Icon(isOpen ? Icons.expand_less : Icons.expand_more),
                 const SizedBox(width: 4),
@@ -978,8 +978,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                     fontWeight: FontWeight.w500,
                   ),
                 );
-                },
-
+              },
             ),
           ],
           AnimatedCrossFade(
@@ -1005,7 +1004,6 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       ),
     );
   }
-
 
   String _getLocalizedMealName(AppLocalizations l10n, String key) {
     switch (key) {

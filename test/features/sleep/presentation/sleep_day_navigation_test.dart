@@ -11,6 +11,7 @@ import 'package:train_libre/features/sleep/presentation/sleep_navigation.dart';
 import 'package:train_libre/features/sleep/presentation/week/sleep_week_overview_page.dart';
 import 'package:train_libre/features/sleep/platform/permissions/sleep_permission_models.dart';
 import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
+import 'package:train_libre/util/cancellation_token.dart';
 import 'package:train_libre/features/profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -48,6 +49,8 @@ class _FakeSleepImportService implements SleepImportService {
   Future<SleepSyncResult> importRecent({
     int lookbackDays = 30,
     bool forceFullSync = false,
+    CancellationToken? token,
+    void Function(int index, int total)? onProgress,
   }) async {
     calls += 1;
     return result;

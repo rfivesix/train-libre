@@ -19,6 +19,8 @@ import 'package:shared_preferences/shared_preferences.dart'; // New
 import 'package:flutter/services.dart'; // New (Clipboard)
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../services/storage/saf_storage_service.dart';
+import '../../../widgets/common/long_running_operation_overlay.dart';
+import '../../../util/cancellation_token.dart';
 import 'widgets/data_backup_card.dart';
 import 'widgets/data_auto_backup_card.dart';
 import 'widgets/local_data_deletion_card.dart';
@@ -48,7 +50,6 @@ class DataManagementScreen extends StatefulWidget {
 
 class _DataManagementScreenState extends State<DataManagementScreen> {
   // Loading states for the different actions
-  bool _isFullBackupRunning = false;
   bool _isCsvExportRunning = false;
   bool _isMigrationRunning = false;
   bool _isLocalResetRunning = false;
@@ -77,18 +78,38 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
 
   // --- Unchanged: full-backup logic ---
   void _performFullExport() async {
-    setState(() => _isFullBackupRunning = true);
-    final success = await BackupManager.instance.exportFullBackup();
-    if (!mounted) return;
-    setState(() => _isFullBackupRunning = false);
-
+    final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context)!;
+    bool success = false;
+    bool wasCanceled = false;
+
+    try {
+      success = await LongRunningOperationOverlay.run(
+        context: context,
+        title: l10n.backupExportTitle,
+        initialStatus: l10n.backupExportTitle,
+        icon: Icons.upload,
+        operation: (token, updateProgress) async {
+          await BackupManager.instance.exportFullBackup(
+            token,
+            (tableName, progress) {
+              final statusText = l10n.progressExportingTable(tableName);
+              updateProgress(statusText, progress);
+            },
+          );
+        },
+      );
+    } catch (e) {
+      if (e is OperationCanceledException) {
+        wasCanceled = true;
+      }
+      success = false;
+    }
+
     if (success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.snackbarExportSuccess)));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(SnackBar(content: Text(l10n.snackbarExportSuccess)));
+    } else if (!wasCanceled) {
+      messenger.showSnackBar(
         SnackBar(
           content: Text(l10n.snackbarExportFailed),
           backgroundColor: Colors.orange,
@@ -98,6 +119,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
   }
 
   void _performFullImport() async {
+    final messenger = ScaffoldMessenger.of(context);
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
@@ -111,45 +133,52 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       context,
       title: l10n.dialogConfirmTitle,
       content: l10n.dialogConfirmImportContent,
-      confirmLabel:
-          l10n.dialogButtonOverwrite, // Red button fits well here (warning)
+      confirmLabel: l10n.dialogButtonOverwrite,
     );
 
     if (confirmed == true) {
-      setState(() => _isFullBackupRunning = true);
-      bool success = await BackupManager.instance.importFullBackupAuto(
-        filePath,
-      );
-      if (!success) {
-        // File may be encrypted; ask for password (empty = try no password).
-        final pw = await _askPassword(title: l10n.dialogEnterPasswordImport);
-        if (pw != null) {
-          // <-- Important: allow empty values.
-          success = await BackupManager.instance.importFullBackupAuto(
-            filePath,
-            passphrase: pw,
+      bool success = false;
+      bool wasCanceled = false;
+
+      Future<bool> runImport([String? passphrase]) async {
+        try {
+          return await LongRunningOperationOverlay.run(
+            context: context,
+            title: l10n.backupImportTitle,
+            initialStatus: l10n.backupImportTitle,
+            icon: Icons.download,
+            operation: (token, updateProgress) async {
+              await BackupManager.instance.importFullBackupAuto(
+                filePath,
+                passphrase: passphrase,
+                token: token,
+                onProgress: (tableName, progress) {
+                  final statusText = l10n.progressImportingTable(tableName);
+                  updateProgress(statusText, progress);
+                },
+              );
+            },
           );
+        } catch (e) {
+          if (e is OperationCanceledException) {
+            wasCanceled = true;
+          }
+          return false;
         }
       }
 
-      if (!mounted) return;
-      setState(() => _isFullBackupRunning = false); // only once
+      success = await runImport();
+
+      if (!success && !wasCanceled) {
+        // File may be encrypted or failed; ask for password
+        final pw = await _askPassword(title: l10n.dialogEnterPasswordImport);
+        if (pw != null) {
+          success = await runImport(pw);
+        }
+      }
 
       if (success) {
-        // New: detect unknown exercise names and offer mapping if needed.
-        final unknown =
-            await WorkoutLocalDataSource.instance.findUnknownExerciseNames();
         if (!mounted) return;
-        if (mounted && unknown.isNotEmpty) {
-          /*final bool? changed = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
-              builder: (_) => ExerciseMappingScreen(unknownNames: unknown),
-            ),
-          );
-          */
-          // Optional: check/refresh again after applying, but not required.
-        }
-
         await showGlassBottomMenu<void>(
           context: context,
           title: l10n.snackbarImportSuccessTitle,
@@ -174,12 +203,14 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.snackbarImportError),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (!wasCanceled) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.snackbarImportError),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -314,28 +345,54 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             DataBackupCard(
-              isFullBackupRunning: _isFullBackupRunning,
+              isFullBackupRunning: false,
               onExportPressed: _performFullExport,
               onImportPressed: _performFullImport,
               onExportEncryptedPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
                 final pw = await _askPassword(
                   title: l10n.dialogPasswordForExport,
                 );
+                if (!context.mounted) return;
                 if (pw == null || pw.isEmpty) return;
-                setState(() => _isFullBackupRunning = true);
-                final ok = await BackupManager.instance
-                    .exportFullBackupEncrypted(pw);
-                if (!mounted) return;
-                setState(() => _isFullBackupRunning = false);
-                ScaffoldMessenger.of(this.context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      ok
-                          ? l10n.snackbarEncryptedBackupShared
-                          : l10n.exportFailed,
+                
+                bool ok = false;
+                bool wasCanceled = false;
+                try {
+                  ok = await LongRunningOperationOverlay.run(
+                    context: context,
+                    title: l10n.backupExportTitle,
+                    initialStatus: l10n.backupExportTitle,
+                    icon: Icons.lock_outline,
+                    operation: (token, updateProgress) async {
+                      await BackupManager.instance.exportFullBackupEncrypted(
+                        pw,
+                        token,
+                        (tableName, progress) {
+                          final statusText = l10n.progressExportingTable(tableName);
+                          updateProgress(statusText, progress);
+                        },
+                      );
+                    },
+                  );
+                } catch (e) {
+                  if (e is OperationCanceledException) {
+                    wasCanceled = true;
+                  }
+                  ok = false;
+                }
+
+                if (!wasCanceled) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        ok
+                            ? l10n.snackbarEncryptedBackupShared
+                            : l10n.exportFailed,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               },
             ),
             const SizedBox(height: DesignConstants.spacingL),

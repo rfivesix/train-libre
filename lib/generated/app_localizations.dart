@@ -8778,6 +8778,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get recommendationBannerApply;
+
+  /// No description provided for @cancelingAndRollingBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Canceling, rolling back safely...'**
+  String get cancelingAndRollingBack;
+
+  /// No description provided for @sleepSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing Sleep History...'**
+  String get sleepSyncTitle;
+
+  /// No description provided for @backupExportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting Backup...'**
+  String get backupExportTitle;
+
+  /// No description provided for @backupImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing Backup...'**
+  String get backupImportTitle;
+
+  /// No description provided for @progressImportingNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing Night {index}/{total}...'**
+  String progressImportingNight(int index, int total);
+
+  /// No description provided for @progressExportingTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting {table}...'**
+  String progressExportingTable(String table);
+
+  /// No description provided for @progressImportingTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring {table}...'**
+  String progressImportingTable(String table);
 }
 
 class _AppLocalizationsDelegate

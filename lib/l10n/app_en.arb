@@ -2058,5 +2058,36 @@
       }
     }
   },
-  "recommendationBannerApply": "Apply"
+  "recommendationBannerApply": "Apply",
+  "cancelingAndRollingBack": "Canceling, rolling back safely...",
+  "sleepSyncTitle": "Syncing Sleep History...",
+  "backupExportTitle": "Exporting Backup...",
+  "backupImportTitle": "Importing Backup...",
+  "progressImportingNight": "Importing Night {index}/{total}...",
+  "@progressImportingNight": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "progressExportingTable": "Exporting {table}...",
+  "@progressExportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "progressImportingTable": "Restoring {table}...",
+  "@progressImportingTable": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  }
 }

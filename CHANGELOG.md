@@ -5,11 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.24] - 2026-06-12
+### Added
+- **Unified Long-Running Operation UI & Cooperative Cancellation:** Introduced a reusable progress overlay (`LongRunningOperationOverlay`) wrapping operations in `PopScope(canPop: false)` to prevent route popping. Added `CancellationToken` and `OperationCanceledException` utilities to support cooperative cancellation of intensive background tasks.
+- **Multilingual Support for Progress States:** Integrated fully localized progress strings across German, English, French, Italian, and Japanese resource bundles for all long-running stages.
+
 ### Changed
 - **Optimized Sleep Import Windowing:** Re-introduced a rolling 72-hour delta-sync lookback window for standard UI and Diary interactions to keep page transitions fluid and prevent main-thread lag.
 - **Manual Deep History Sync:** Explicitly delegated historical syncs (90 days) to a manual action via the Sleep Settings screen using a new `forceFullSync` parameter.
+- **Transactional Backup & Import Safety:** Updated the database backup export/import features to accept cancellation tokens and report table-level progress. Extended backup import to execute inside a single Drift SQLite transaction with savepoints to guarantee an atomic database rollback if canceled.
+- **Preferences State Rollback:** Implemented automatic state restoration for `SharedPreferences` if a backup import operation is cancelled mid-way.
+- **Test Suite Realignment:** Updated mock test classes (`FakeSleepImportService` and `_FakeSleepSettingsService`) across the widget and unit test suites to align with the updated `importRecent` method signature.
 
 ### Fixed
+- **Health Connect Permissions Crash (`ActivityNotFoundException`):** Patched a native Android runtime crash caused by unsupported contract intents when requesting permissions under the standard `FlutterActivity`. Refactored `MainActivity.kt` to dispatch requests using the native `ActivityCompat.requestPermissions` utility and handle results uniformly in `onRequestPermissionsResult` and `onActivityResult`.
+- **Static Analysis Warnings:** Resolved unused fields and variables (`_isFullBackupRunning`, `_isSleepImporting`, and `unknown` exercise list) and addressed `use_build_context_synchronously` warnings across settings screens using `context.mounted`.
 - **Android Predictive Back Gestures:** Resolved a platform-specific issue where the native predictive back gesture would fail or freeze on Android/GrapheneOS devices. Refactored the core Android container `MainActivity` to inherit from the standard `FlutterActivity` instead of `FlutterFragmentActivity`, eliminating fragment lifecycle dispatcher conflicts. Ported the internal Health Connect permissions launcher and Storage Access Framework directory picker launcher to use the base SDK `startActivityForResult` and `onActivityResult` callbacks to maintain full compile-time compatibility with standard activity lifecycles.
 - **Sleep Data Import Ingestion (7 out of 90 nights):** Resolved a critical bug causing long historical imports to starve or skip valid entries by correcting lookback window truncations.
 - **Idempotent Sleep Session Overlaps:** Refactored overlapping session rules to prevent shorter naps or duplicate records from being completely discarded. Non-enveloping sleep sessions can now safely coexist, and identical boundaries trigger precise updates instead of omissions.
