@@ -44,7 +44,10 @@ class _FakeSleepSettingsService implements SleepSettingsService {
   }
 
   @override
-  Future<SleepSyncResult> importRecent({int lookbackDays = 30}) async {
+  Future<SleepSyncResult> importRecent({
+    int lookbackDays = 30,
+    bool forceFullSync = false,
+  }) async {
     importCalls += 1;
     return importResult;
   }

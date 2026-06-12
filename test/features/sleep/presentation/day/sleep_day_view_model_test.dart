@@ -51,7 +51,10 @@ class FakeSleepImportService implements SleepImportService {
   );
 
   @override
-  Future<SleepSyncResult> importRecent({int lookbackDays = 30}) async {
+  Future<SleepSyncResult> importRecent({
+    int lookbackDays = 30,
+    bool forceFullSync = false,
+  }) async {
     importRecentCalls += 1;
     return mockSyncResult;
   }

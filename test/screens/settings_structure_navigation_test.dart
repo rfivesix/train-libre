@@ -43,7 +43,10 @@ class _FakeSleepSettingsService implements SleepSettingsService {
   Future<void> setTrackingEnabled(bool value) async {}
 
   @override
-  Future<SleepSyncResult> importRecent({int lookbackDays = 30}) async {
+  Future<SleepSyncResult> importRecent({
+    int lookbackDays = 30,
+    bool forceFullSync = false,
+  }) async {
     return const SleepSyncResult(
       success: true,
       permissionState: SleepPermissionState.ready,

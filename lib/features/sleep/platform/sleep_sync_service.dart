@@ -34,7 +34,10 @@ class SleepSyncResult {
 }
 
 abstract class SleepImportService {
-  Future<SleepSyncResult> importRecent({int lookbackDays = 30});
+  Future<SleepSyncResult> importRecent({
+    int lookbackDays = 30,
+    bool forceFullSync = false,
+  });
   Future<SleepSyncResult?> importRecentIfDue({
     int lookbackDays = 30,
     Duration minInterval = const Duration(hours: 6),
@@ -137,7 +140,10 @@ class SleepSyncService implements SleepSettingsService {
   }
 
   @override
-  Future<SleepSyncResult> importRecent({int lookbackDays = 30}) async {
+  Future<SleepSyncResult> importRecent({
+    int lookbackDays = 30,
+    bool forceFullSync = false,
+  }) async {
     final trackingEnabled = await isTrackingEnabled();
     if (!trackingEnabled) {
       return const SleepSyncResult(
@@ -167,7 +173,8 @@ class SleepSyncService implements SleepSettingsService {
 
     // Delta-Sync: Use a rolling delta window (72 hours) behind latestEndedAt if available,
     // to capture any updated or corrected sessions. Otherwise, fallback to the full lookback window.
-    var fromUtc = latestEndedAt != null
+    // Standard updates (!forceFullSync) strictly use the 72-hour window if data exists.
+    var fromUtc = (latestEndedAt != null && !forceFullSync)
         ? latestEndedAt.subtract(const Duration(hours: 72))
         : nowUtc.subtract(Duration(days: lookbackDays));
     if (fromUtc.isAfter(nowUtc)) {

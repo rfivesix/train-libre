@@ -308,7 +308,8 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                               setState(() => _isSleepImporting = true);
                               final result =
                                   await _sleepSyncService.importRecent(
-                                lookbackDays: 36500,
+                                lookbackDays: 90,
+                                forceFullSync: true,
                               );
                               if (!mounted) return;
                               setState(() {

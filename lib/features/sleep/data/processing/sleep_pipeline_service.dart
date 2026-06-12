@@ -195,22 +195,52 @@ class SleepPipelineService {
           toExclusive: session.endAtUtc,
         );
 
-        final otherOverlapping = overlapping.where((s) => s.id != session.recordId).toList();
-        if (otherOverlapping.isNotEmpty) {
-          final incomingDuration = session.endAtUtc.difference(session.startAtUtc);
-          final maxExistingDuration = otherOverlapping
-              .map((s) => s.endedAt.difference(s.startedAt))
-              .reduce((a, b) => a > b ? a : b);
+        final otherOverlapping =
+            overlapping.where((s) => s.id != session.recordId).toList();
+        bool shouldSkip = false;
 
-          if (incomingDuration > maxExistingDuration) {
-            for (final existing in otherOverlapping) {
+        if (otherOverlapping.isNotEmpty) {
+          final incomingStart = session.startAtUtc;
+          final incomingEnd = session.endAtUtc;
+          final incomingDuration = incomingEnd.difference(incomingStart);
+
+          for (final existing in otherOverlapping) {
+            final existingStart = existing.startedAt;
+            final existingEnd = existing.endedAt;
+            final existingDuration = existingEnd.difference(existingStart);
+
+            // 1. Exact Boundary Match: Allow update/overwrite by deleting existing.
+            if (incomingStart.isAtSameMomentAs(existingStart) &&
+                incomingEnd.isAtSameMomentAs(existingEnd)) {
+              await _sessionsDao.deleteById(existing.id);
+              rawImportIdsToDelete.add('raw:${existing.id}');
+              continue;
+            }
+
+            // 2. Envelopment Logic:
+            // Is incoming session completely enveloped by a superior (longer) existing session?
+            final isEnveloped = !incomingStart.isBefore(existingStart) &&
+                !incomingEnd.isAfter(existingEnd);
+
+            if (isEnveloped && existingDuration > incomingDuration) {
+              shouldSkip = true;
+              break;
+            }
+
+            // Conversely, if incoming session completely envelopes an existing one,
+            // we treat it as a superior replacement and remove the old fragment.
+            final envelopesExisting = !existingStart.isBefore(incomingStart) &&
+                !existingEnd.isAfter(incomingEnd);
+            if (envelopesExisting && incomingDuration > existingDuration) {
               await _sessionsDao.deleteById(existing.id);
               rawImportIdsToDelete.add('raw:${existing.id}');
             }
-          } else {
-            skipSessionIds.add(session.recordId);
-            continue;
           }
+        }
+
+        if (shouldSkip) {
+          skipSessionIds.add(session.recordId);
+          continue;
         }
 
         await _sessionsDao.deleteById(session.recordId);
