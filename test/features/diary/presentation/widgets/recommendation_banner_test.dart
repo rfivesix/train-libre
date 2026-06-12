@@ -13,6 +13,8 @@ import 'package:train_libre/features/nutrition_recommendation/domain/goal_models
 import 'package:train_libre/features/nutrition_recommendation/domain/recommendation_models.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/adaptive_recommendation_snapshot.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -122,7 +124,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byType(RecommendationBanner), findsOneWidget);
-      expect(find.byIcon(Icons.lightbulb_outline_rounded), findsNothing);
+      expect(find.byIcon(LucideIcons.lightbulb), findsNothing);
     });
 
     testWidgets('renders positive calorie delta correctly', (tester) async {
@@ -147,7 +149,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.lightbulb_outline_rounded), findsOneWidget);
+      expect(find.byIcon(LucideIcons.lightbulb), findsOneWidget);
       expect(find.textContaining('New targets available (+200 kcal).'), findsOneWidget);
       expect(find.text('Apply'), findsOneWidget);
     });
@@ -174,7 +176,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.lightbulb_outline_rounded), findsOneWidget);
+      expect(find.byIcon(LucideIcons.lightbulb), findsOneWidget);
       expect(find.textContaining('New targets available (-120 kcal).'), findsOneWidget);
       expect(find.text('Apply'), findsOneWidget);
     });
@@ -212,7 +214,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       // Banner should disappear
-      expect(find.byIcon(Icons.lightbulb_outline_rounded), findsNothing);
+      expect(find.byIcon(LucideIcons.lightbulb), findsNothing);
 
       // Verify SQLite goals have been updated
       final activeGoals = await dbHelper.getGoalsForDate(DateTime.now());
@@ -245,14 +247,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
 
-      final closeButton = find.byIcon(Icons.close);
+      final closeButton = find.byIcon(LucideIcons.x);
       expect(closeButton, findsOneWidget);
       await tester.tap(closeButton);
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
       // Banner for W22 is now dismissed
-      expect(find.byIcon(Icons.lightbulb_outline_rounded), findsNothing);
+      expect(find.byIcon(LucideIcons.lightbulb), findsNothing);
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('dismissed_tdee_banner_2026-W22'), isTrue);
@@ -281,7 +283,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.lightbulb_outline_rounded), findsOneWidget);
+      expect(find.byIcon(LucideIcons.lightbulb), findsOneWidget);
       expect(find.textContaining('New targets available (+300 kcal).'), findsOneWidget);
     });
   });

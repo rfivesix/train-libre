@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.26] - 2026-06-12
+### Changed
+- **Global Lucide Icons Migration:** Replaced all 387+ instances of legacy native Material icons across the entire `lib/` directory with crisp, unified vector icons from the Lucide Icons library via an automated regex refactoring pipeline. This eliminates platform-dependent emoji rendering discrepancies, enforces a cohesive, modern visual language across all feature tabs (Diary, Workout, Settings, Profile, Analytics), and significantly streamlines the application's minimalist design identity.
+
 ### Fixed
 - **Markdown Export Accuracy:** Fixed a critical bug where beverage nutrition (calories, sugar, carbs) was double-counted when logged as both food and fluid.
 - **Fluid Calorie Calculation:** Corrected an error in the share service where fluid calories were incorrectly scaled by quantity, leading to inflated totals.

@@ -134,7 +134,9 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
   Future<void> _loadMarkdown() async {
     if (widget.markdownAssetPath == null ||
         _loadedMarkdown != null ||
-        _isLoading) return;
+        _isLoading) {
+      return;
+    }
 
     setState(() {
       _isLoading = true;

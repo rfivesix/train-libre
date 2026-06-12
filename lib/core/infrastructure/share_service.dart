@@ -179,7 +179,9 @@ class ShareService {
       double totalCarbs = 0;
       double totalFat = 0;
       double totalSugar = 0;
+      // ignore: unused_local_variable
       double totalSalt = 0;
+      // ignore: unused_local_variable
       double totalFiber = 0;
 
       for (final mealKey in mealOrder) {
