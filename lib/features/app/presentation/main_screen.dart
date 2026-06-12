@@ -788,25 +788,7 @@ class _MainScreenState extends State<MainScreen>
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.chevron_left),
-              onPressed: () {
-                _tagebuchKey.currentState?.navigateDay(false);
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.calendar_today),
-              onPressed: () {
-                _tagebuchKey.currentState?.pickDate();
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              onPressed: () {
-                _tagebuchKey.currentState?.navigateDay(true);
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.share_outlined),
+              icon: const Icon(LucideIcons.share_2),
               tooltip: l10n.share,
               onPressed: () {
                 _tagebuchKey.currentState?.showShareMenu();
@@ -1189,7 +1171,8 @@ class _MainScreenState extends State<MainScreen>
                             ),
                             SizedBox(width: spacing),
                             ClipPath(
-                              clipper: ShadowOuterClipper(borderRadius: 37, isOval: true),
+                              clipper: ShadowOuterClipper(
+                                  borderRadius: 37, isOval: true),
                               child: Container(
                                 width: extraButtonSize,
                                 height: 74.0, // Match barHeight
@@ -1235,13 +1218,16 @@ class _MainScreenState extends State<MainScreen>
                                     verticalPadding: 0.0,
                                     quality: GlassQuality.premium,
                                     indicatorExpansion: 14,
-                                    selectedIconColor: theme.colorScheme.primary,
+                                    selectedIconColor:
+                                        theme.colorScheme.primary,
                                     unselectedIconColor:
                                         isDark ? Colors.white : Colors.black,
                                     indicatorColor:
                                         (isDark ? Colors.white : Colors.black)
                                             .withValues(alpha: 0.15),
-                                    settings: DesignConstants.liquidGlassSettings(isDark),
+                                    settings:
+                                        DesignConstants.liquidGlassSettings(
+                                            isDark),
                                     tabs: [
                                       GlassBottomBarTab(
                                         label: l10n.diary,
@@ -1285,10 +1271,12 @@ class _MainScreenState extends State<MainScreen>
                                 SizedBox(width: spacing),
                                 AdaptiveGlass(
                                   shape: const LiquidOval(),
-                                  settings: DesignConstants.liquidGlassSettings(isDark),
+                                  settings: DesignConstants.liquidGlassSettings(
+                                      isDark),
                                   quality: GlassQuality.premium,
                                   useOwnLayer: true,
-                                  isInteractive: false, // Force blur in minimal quality
+                                  isInteractive:
+                                      false, // Force blur in minimal quality
                                   child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
@@ -1301,7 +1289,9 @@ class _MainScreenState extends State<MainScreen>
                                           child: Icon(
                                             Icons.add,
                                             key: _tourFabKey,
-                                            color: isDark ? Colors.white : Colors.black,
+                                            color: isDark
+                                                ? Colors.white
+                                                : Colors.black,
                                             size: 28,
                                           ),
                                         ),

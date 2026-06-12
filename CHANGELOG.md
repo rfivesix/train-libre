@@ -5,9 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.25] - 2026-06-12
+### Added
+- **Diary Day Export & Sharing Hub:** Introduced a comprehensive "Day Export" feature directly accessible via a new context sheet in the Diary screen, allowing users to share their daily logs in two distinct formats:
+  - **Visual Image Export:** Generates a high-resolution PNG snapshot of the top macro, calorie, water, and sugar summary cards using a native `RepaintBoundary` composition render tree, routing it seamlessly into the native system share sheet.
+  - **Granular Localized Markdown Export:** Compiles a deep-dive, human- and LLM-readable Markdown document containing full nutritional breakdowns per food item (including sugar, salt, and fiber), total fluid intake tracking, complete workout logs with routine names, weights, and RIR/RPE metrics, as well as a full sleep analysis.
+- **Detailed Sleep Phase & Timing Mapping:** Enhanced the text export data engine to fetch and extract exact falling-asleep and waking-up timestamps alongside floating-point duration metrics for all tracked sleep phases (Deep, Light, REM, and Awake/Interruptions).
+- **Multi-Region Localization Strings:** Fully localized all day-sharing components, summary headers, and placeholder metrics across English, German, French (`app_fr.arb`), Italian (`app_it.arb`), and Japanese (`app_ja.arb`) resource bundles to ensure strict compliance with the global localization pipeline.
+
 ### Changed
 - **Decoupled Exercise / Wger Catalog Sync:** Extracted the exercise database sync and update logic from the default automatic startup path (`checkForBasisDataUpdate()`) into a new public `importExerciseCatalog()` method. The exercise database is now only updated when manually triggered by the user or during database initialization, preventing startup slowdowns.
 - **Unified Settings Sync Action:** Combined the exercise update action with the manual food database update card in Settings, which now triggers a sequential update of both the food and exercise databases with unified progress tracking.
+- **Refactored Interactive Diary AppBar:** Streamlined the top navigation layout of the main Diary scaffold to maximize interactive ergonomics and reduce visual noise:
+  - Transformed the static date title into a fully interactive core navigation control, wrapping the left and right date-increment chevrons (`Icons.chevron_left` / `Icons.chevron_right`) directly around the central date string.
+  - Converted the date string itself into a trigger target that invokes the primary calendar date picker sheet upon touch, completely eliminating the redundant central calendar icon button.
+  - Relocated and consolidated all primary trailing actions cleanly into the right header container, positioning the new `Icons.share_outlined` button immediately to the left of the static profile picture avatar.
 
 ### Fixed
 - **Sleep Sync Freeze & Progress Bar Repair:** Resolved a database deadlock that froze the manual 90-day Sleep Sync at the last iteration (e.g. "Importing Night 58/58...") by removing nested `_db.transaction(...)` blocks from the custom sleep database access objects (`SleepRawImportsDao`, `SleepCanonicalSessionsDao`, `SleepCanonicalStageSegmentsDao`, `SleepCanonicalHeartRateSamplesDao`, `SleepNightlyAnalysesDao`). Refined the pipeline progress calculation to allocate `totalSessions + 5` total steps and report an out-of-bounds progress value (`-1.0`) at initialization, enabling an active indeterminate scanning animation during heavy background isolate calculations before transitioning to determinate progress updates through the database writing phase.

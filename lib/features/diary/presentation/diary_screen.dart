@@ -105,7 +105,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
           label: '${l10n.shareAsText} / kopieren',
           onTap: () async {
             try {
-              await _shareService.shareDailyLogAsText(viewModel.selectedDate, l10n: l10n);
+              await _shareService.shareDailyLogAsText(viewModel.selectedDate,
+                  l10n: l10n);
             } catch (e) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1128,15 +1129,19 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final titleStyle = Theme.of(
+      context,
+    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900);
 
     if (_notifier == null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Text(
+        padding: const EdgeInsets.only(left: 4.0),
+        child: _DiaryDateNavigator(
           l10n.today,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          titleStyle: titleStyle,
+          onPreviousDay: () => widget.diaryKey.currentState?.navigateDay(false),
+          onPickDate: () => widget.diaryKey.currentState?.pickDate(),
+          onNextDay: () => widget.diaryKey.currentState?.navigateDay(true),
         ),
       );
     }
@@ -1146,15 +1151,78 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
       builder: (context, selectedDate, child) {
         final title = _getAppBarTitle(context, l10n, selectedDate);
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
+          padding: const EdgeInsets.only(left: 4.0),
+          child: _DiaryDateNavigator(
             title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+            titleStyle: titleStyle,
+            onPreviousDay: () =>
+                widget.diaryKey.currentState?.navigateDay(false),
+            onPickDate: () => widget.diaryKey.currentState?.pickDate(),
+            onNextDay: () => widget.diaryKey.currentState?.navigateDay(true),
           ),
         );
       },
+    );
+  }
+}
+
+class _DiaryDateNavigator extends StatelessWidget {
+  final String title;
+  final TextStyle? titleStyle;
+  final VoidCallback onPreviousDay;
+  final VoidCallback onPickDate;
+  final VoidCallback onNextDay;
+
+  const _DiaryDateNavigator(
+    this.title, {
+    required this.titleStyle,
+    required this.onPreviousDay,
+    required this.onPickDate,
+    required this.onNextDay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _compactIconButton(
+          icon: Icons.chevron_left,
+          onPressed: onPreviousDay,
+        ),
+        Flexible(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: onPickDate,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: titleStyle,
+              ),
+            ),
+          ),
+        ),
+        _compactIconButton(
+          icon: Icons.chevron_right,
+          onPressed: onNextDay,
+        ),
+      ],
+    );
+  }
+
+  Widget _compactIconButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      icon: Icon(icon),
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 36, height: 48),
+      onPressed: onPressed,
     );
   }
 }
