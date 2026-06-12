@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.26] - 2026-06-12
+### Fixed
+- **Markdown Export Accuracy:** Fixed a critical bug where beverage nutrition (calories, sugar, carbs) was double-counted when logged as both food and fluid.
+- **Fluid Calorie Calculation:** Corrected an error in the share service where fluid calories were incorrectly scaled by quantity, leading to inflated totals.
+- **Nutrition Summary Metrics:** Added daily user targets (Calories, Protein, Carbs, Fat, Sugar, Water) to the Markdown export summary, matching the interactive Diary UI format.
+- **Date-Specific Goals:** Ensured the Markdown export uses historical goal snapshots from the database to reflect the targets active on the specific day shared.
+
 ## [0.9.25] - 2026-06-12
 ### Added
 - **Diary Day Export & Sharing Hub:** Introduced a comprehensive "Day Export" feature directly accessible via a new context sheet in the Diary screen, allowing users to share their daily logs in two distinct formats:

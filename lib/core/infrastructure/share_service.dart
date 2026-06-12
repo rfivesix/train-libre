@@ -14,8 +14,8 @@ import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../features/sleep/data/repository/sleep_query_repository.dart';
 import '../../util/date_util.dart';
 import '../../generated/app_localizations.dart';
-
 import '../../features/sleep/data/persistence/dao/sleep_canonical_dao.dart';
+import 'user_preferences_repository.dart';
 
 class ShareService {
   const ShareService();
@@ -90,6 +90,8 @@ class ShareService {
 
     // 6. Fetch Goals
     final goalsData = await dbHelper.getGoalsForDate(targetDate);
+    final targetSugar =
+        await UserPreferencesRepository.instance.getTargetSugar() ?? 50;
 
     // Localized Headers/Titles
     final titleDailyLog =
@@ -228,29 +230,52 @@ class ShareService {
               entry.name.isNotEmpty ? entry.name : (l10n?.water ?? 'Drink');
           final ml = entry.quantityInMl;
           totalWater += ml;
-          final ratio = ml / 100.0;
-          totalKcal += (entry.kcal ?? 0.0) * ratio;
-          totalCarbs += (entry.carbsPer100ml ?? 0.0) * ratio;
-          totalSugar += (entry.sugarPer100ml ?? 0.0) * ratio;
 
-          final kcalStr = entry.kcal != null
-              ? ' (${(entry.kcal! * ratio).round()} $unitKcal)'
+          // Deduplication: Only add calories/macros if not already counted via FoodEntry.
+          // This mirrors the logic in lib/features/diary/domain/calculate_daily_nutrition_use_case.dart
+          final isLinked = entry.linkedFoodEntryId != null;
+          final isDuplicateOfFood = foodEntries.any((food) {
+            if (isLinked) return entry.linkedFoodEntryId == food.id;
+
+            // Heuristic match if not explicitly linked (same time and similar quantity)
+            final timeDiff =
+                entry.timestamp.difference(food.timestamp).inSeconds.abs();
+            return timeDiff < 2 && entry.quantityInMl == food.quantityInGrams;
+          });
+
+          final kcalForDisplay = entry.kcal ?? 0.0;
+          final kcalStr = kcalForDisplay > 0
+              ? ' (${kcalForDisplay.round()} $unitKcal)'
               : '';
           buffer.writeln('- $name: $ml$unitMl$kcalStr');
+
+          if (!isDuplicateOfFood && !isLinked) {
+            totalKcal += entry.kcal ?? 0.0;
+            final ratio = ml / 100.0;
+            totalCarbs += (entry.carbsPer100ml ?? 0.0) * ratio;
+            totalSugar += (entry.sugarPer100ml ?? 0.0) * ratio;
+          }
         }
         buffer.writeln();
       }
 
       // Summary
+      final targetKcal = goalsData?.targetCalories;
+      final targetProtein = goalsData?.targetProtein;
+      final targetCarbs = goalsData?.targetCarbs;
+      final targetFat = goalsData?.targetFat;
+
       buffer.writeln('**$labelSummary:**');
-      buffer.writeln('- $labelCalories: ${totalKcal.round()} $unitKcal');
-      buffer
-          .writeln('- $labelProtein: ${totalProtein.toStringAsFixed(1)}$unitG');
-      buffer.writeln('- $labelCarbs: ${totalCarbs.toStringAsFixed(1)}$unitG');
-      buffer.writeln('- $labelFat: ${totalFat.toStringAsFixed(1)}$unitG');
-      buffer.writeln('- $labelSugar: ${totalSugar.toStringAsFixed(1)}$unitG');
-      buffer.writeln('- $labelSalt: ${totalSalt.toStringAsFixed(1)}$unitG');
-      buffer.writeln('- $labelFiber: ${totalFiber.toStringAsFixed(1)}$unitG');
+      buffer.writeln(
+          '- $labelCalories: ${totalKcal.round()}${targetKcal != null ? ' / $targetKcal' : ''} $unitKcal');
+      buffer.writeln(
+          '- $labelProtein: ${totalProtein.toStringAsFixed(1)}${targetProtein != null ? ' / $targetProtein' : ''}$unitG');
+      buffer.writeln(
+          '- $labelCarbs: ${totalCarbs.toStringAsFixed(1)}${targetCarbs != null ? ' / $targetCarbs' : ''}$unitG');
+      buffer.writeln(
+          '- $labelFat: ${totalFat.toStringAsFixed(1)}${targetFat != null ? ' / $targetFat' : ''}$unitG');
+      buffer.writeln(
+          '- $labelSugar: ${totalSugar.toStringAsFixed(1)} / $targetSugar$unitG');
       final targetWater = goalsData?.targetWater ?? 3000;
       buffer.writeln(
           '- $labelWater: ${totalWater.round()} / $targetWater $unitMl\n');
