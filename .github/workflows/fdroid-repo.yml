@@ -3,6 +3,7 @@ name: Update F-Droid Repository
 on:
   release:
     types: [published]
+  workflow_dispatch: # Ermöglicht den manuellen Start über den "Run workflow" Button
 
 permissions:
   contents: write
@@ -35,8 +36,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Fetch all APKs from the triggered release
-          gh release download ${{ github.event.release.tag_name }} --pattern "*.apk" --dir fdroid/repo
+          # Fallback: Wenn manuell gestartet, nimm den neuesten Release, sonst den auslösenden Release
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          if [ -z "$TAG_NAME" ]; then
+            echo "Manual trigger detected. Fetching assets from the latest release..."
+            gh release download --pattern "*.apk" --dir fdroid/repo
+          else
+            echo "Release trigger detected for tag: $TAG_NAME"
+            gh release download "$TAG_NAME" --pattern "*.apk" --dir fdroid/repo
+          fi
 
       - name: Decode F-Droid Keystore
         env:
@@ -53,24 +61,25 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.FDROID_KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.FDROID_KEY_PASSWORD }}
         run: |
-          # Dynamically set repository URL, Name, and Description based on GitHub context
-          REPO_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/fdroid/repo"
-          REPO_NAME="${{ github.event.repository.name }} F-Droid Repo"
-          REPO_DESC="Automated F-Droid repository for ${{ github.event.repository.name }}"
+          # Robustes Parsing des Repository-Namens
+          REPO_NAME="${{ github.event.repository.name }}"
+          REPO_URL="https://${{ github.repository_owner }}.github.io/$REPO_NAME/fdroid/repo"
+          REPO_DISPLAY_NAME="$REPO_NAME F-Droid Repo"
+          REPO_DESC="Automated F-Droid repository for $REPO_NAME"
           
           cd fdroid
           sed -i "s|REPO_URL_PLACEHOLDER|$REPO_URL|g" config.yml
-          sed -i "s|REPO_NAME_PLACEHOLDER|$REPO_NAME|g" config.yml
+          sed -i "s|REPO_NAME_PLACEHOLDER|$REPO_DISPLAY_NAME|g" config.yml
           sed -i "s|REPO_DESC_PLACEHOLDER|$REPO_DESC|g" config.yml
           
-          # Inject passwords from secrets
+          # Passwörter injizieren
           sed -i "s|KEYSTORE_PASS_PLACEHOLDER|$KEYSTORE_PASSWORD|g" config.yml
           sed -i "s|KEY_PASS_PLACEHOLDER|$KEY_PASSWORD|g" config.yml
 
       - name: Update F-Droid Repository Metadata
         run: |
           cd fdroid
-          # Generate the index and sign the repository
+          # Index generieren und signieren
           fdroid update --create-metadata
 
       - name: Deploy to GitHub Pages
