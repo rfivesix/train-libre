@@ -1032,9 +1032,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       color: Colors.grey[600],
                       shadows: [
                         Shadow(
-                          color: Colors.black.withValues(alpha: 2.0),
+                          color: Colors.black.withValues(alpha: 0.5),
                           offset: const Offset(1, 1),
-                          blurRadius: 2.0,
+                          blurRadius: 4.0,
                         ),
                       ],
                     ),
@@ -1059,7 +1059,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    const double r = 20;
+    const double r = 37;
 
     if (isRunning) {
       final restSeconds = manager.remainingRestSeconds;
@@ -1071,7 +1071,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
         child: SizedBox(
-          height: 62.0,
+          height: 74.0,
           child: Stack(
             children: [
               Positioned.fill(
@@ -1093,11 +1093,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                   shape: const LiquidRoundedSuperellipse(borderRadius: r),
                   quality: GlassQuality.premium,
                   child: GlassGlow(
-                    glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+                    glowColor:
+                        Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
                     glowRadius: 1.0,
                     child: Container(
+                      height: 74.0,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 12.0),
+                          horizontal: 20.0, vertical: 12.0),
                       decoration: BoxDecoration(
                         color: DesignConstants.glassNeutralTint(isDark),
                         borderRadius: BorderRadius.circular(r),
@@ -1157,7 +1159,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: theme.colorScheme.onSurface,
-                                fontFeatures: const [FontFeature.tabularFigures()],
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures()
+                                ],
                               ),
                             ),
                           ),
@@ -1207,7 +1211,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
                               ),
                               onPressed: () => manager.cancelRest(),
                               child: Text(
@@ -1233,7 +1238,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: SizedBox(
-        height: 62.0,
+        height: 74.0,
         child: Stack(
           children: [
             Positioned.fill(
@@ -1254,20 +1259,24 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 settings: LiquidGlassSettings(
                   thickness: 30,
                   blur: 2.0,
-                  glassColor: Colors.green.withValues(alpha: isDark ? 0.20 : 0.25),
+                  glassColor:
+                      Colors.green.withValues(alpha: isDark ? 0.20 : 0.25),
                   lightIntensity: isDark ? 0.55 : 0.80,
                   saturation: 1.20,
                 ),
                 shape: const LiquidRoundedSuperellipse(borderRadius: r),
                 quality: GlassQuality.premium,
                 child: GlassGlow(
-                  glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+                  glowColor:
+                      Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
                   glowRadius: 1.0,
                   child: Container(
+                    height: 74.0,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 12.0),
+                        horizontal: 20.0, vertical: 12.0),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: isDark ? 0.50 : 0.70),
+                      color:
+                          Colors.green.withValues(alpha: isDark ? 0.50 : 0.70),
                       borderRadius: BorderRadius.circular(r),
                     ),
                     foregroundDecoration: BoxDecoration(
@@ -1283,7 +1292,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(LucideIcons.circle_check, color: Colors.white),
+                            const Icon(LucideIcons.circle_check,
+                                color: Colors.white),
                             const SizedBox(width: 8),
                             Text(
                               l10n.restOverLabel, //"Pause vorbei!",
@@ -1302,7 +1312,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                             ),
                             onPressed: () => manager.cancelRest(),
                             child: Text(
