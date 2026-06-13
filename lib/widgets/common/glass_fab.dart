@@ -161,7 +161,7 @@ class _GlassFabState extends State<GlassFab>
           final scale = 1 - _controller.value;
           return Transform.scale(scale: scale, child: child);
         },
-        child: content,
+        child: IntrinsicWidth(child: content),
       ),
     );
   }

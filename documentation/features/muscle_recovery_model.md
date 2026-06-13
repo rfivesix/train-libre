@@ -6,15 +6,30 @@ The **Muscle Recovery Model** in Train Libre is a piecewise linear decay heurist
 
 ## 1. Readiness Score Equation *R*(*t*)
 
-The readiness of a muscle group at time *t* (hours since last load) is modeled as a normalized value between 0.0 (fully fatigued) and 1.0 (fully recovered).
+The readiness of a muscle group at time *t* (hours since last load) is calculated using a 3-phase piecewise interpolation mapping, ensuring a non-linear recovery curve that accounts for acute fatigue, adaptation, and supercompensation.
 
-$$R(t) = \text{clamp}\left( \frac{t - \text{offset}}{\text{window}} , 0.0, 1.0 \right)$$
+### Phase 1: Acute Recovery ($t \leq T_{rec}$)
+During the initial recovery window, readiness scales from 10% to 60%:
+$$R(t) = 10.0 + (60.0 - 10.0) \cdot \frac{t}{T_{rec}}$$
 
-### Recovery Windows
-The time window required for full recovery is dynamic based on session volume and intensity:
-- **Baseline Window**: 48 hours for standard high-intensity sets.
-- **Failure Penalty**: If sets are performed to failure (*RIR* = 0), the baseline is extended by +24 hours.
-- **Volume Scaling**: The window expands linearly as cumulative weekly volume increases beyond metabolic clearing thresholds.
+### Phase 2: Adaptation Window ($T_{rec} < t \leq T_{ready}$)
+As the muscle enters the adaptation phase, readiness scales from 60% to 85%:
+$$R(t) = 60.0 + (85.0 - 60.0) \cdot \frac{t - T_{rec}}{T_{ready} - T_{rec}}$$
+
+### Phase 3: Supercompensation ($t > T_{ready}$)
+Beyond the primary recovery window, the muscle enters supercompensation, scaling from 85% toward 100% over a 48-hour rolling window:
+$$R(t) = \text{clamp}\left( 85.0 + (100.0 - 85.0) \cdot \frac{t - T_{ready}}{48.0}, \; 85.0, \; 100.0 \right)$$
+
+### Dynamic Recovery Windows
+The time thresholds ($T_{rec}$ and $T_{ready}$) are determined by muscle-specific baselines modified by volume and intensity extensions.
+
+- **Muscle Baselines**: Standard groups (e.g., Chest) default to $T_{rec}=48h$ and $T_{ready}=72h$, while smaller groups (e.g., Biceps) use shorter windows (36h/60h), and large posterior chain groups (e.g., Quads/Lower Back) use extended windows (up to 72h/120h).
+- **Volume Extensions**: Training volume beyond metabolic clearing thresholds expands the windows:
+    - 3–5 sets: +6 hours
+    - 5–8 sets: +12 hours
+    - 8–11 sets: +24 hours
+    - 11+ sets: +36 hours
+- **Intensity Extensions**: High-intensity efforts (Session $avgRIR \leq 0.5$ or $avgRPE \geq 8.5$) add a flat +24 hour penalty to both $T_{rec}$ and $T_{ready}$.
 
 ---
 

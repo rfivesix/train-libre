@@ -10,6 +10,10 @@ import 'workout_card.dart';
 import 'routine_set_row_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../../util/time_util.dart';
+
+String _formatPauseTime(int? seconds) => formatPauseDuration(seconds);
+
 class EditRoutineExerciseCard extends StatelessWidget {
   final RoutineExercise routineExercise;
   final int index;
@@ -82,28 +86,34 @@ class EditRoutineExerciseCard extends StatelessWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (routineExercise.pauseSeconds != null &&
-                    routineExercise.pauseSeconds! > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 4.0),
-                    child: Text(
-                      "${routineExercise.pauseSeconds}s",
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
                 IconButton(
                   icon: const Icon(LucideIcons.pencil),
                   tooltip: "Notizen bearbeiten",
                   onPressed: onEditNotes,
                 ),
-                IconButton(
-                  icon: const Icon(LucideIcons.timer),
-                  tooltip: l10n.editPauseTime,
-                  onPressed: onEditPauseTime,
-                ),
+                if (routineExercise.pauseSeconds != null &&
+                    routineExercise.pauseSeconds! > 0)
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      padding: EdgeInsets.zero,
+                    ),
+                    onPressed: onEditPauseTime,
+                    child: Text(
+                      _formatPauseTime(routineExercise.pauseSeconds),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: DesignConstants.spacingL,
+                      ),
+                    ),
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(LucideIcons.timer),
+                    tooltip: l10n.editPauseTime,
+                    onPressed: onEditPauseTime,
+                  ),
                 IconButton(
                   icon: const Icon(
                     LucideIcons.trash_2,

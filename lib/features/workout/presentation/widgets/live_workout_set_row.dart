@@ -9,6 +9,7 @@ import '../../domain/models/set_log.dart';
 import '../../domain/models/set_template.dart';
 import '../live_workout_view_model.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../util/time_util.dart';
 
 /// An interactive row representing a single set in an active workout session.
 ///
@@ -227,6 +228,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
     final unitService = context.read<UnitService>();
 
     final isLightMode = Theme.of(context).brightness == Brightness.light;
+    final Color? textColor =
+        isCompleted ? (isLightMode ? Colors.black : Colors.white) : null;
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
     final Color rowColor = isColoredRow
         ? (isLightMode
@@ -243,7 +246,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     if (isCardio) {
       weightHint = "-"; // Distance Hint
-      repHint = "-"; // Time Hint
+      repHint = "00:00"; // Time Hint
     } else {
       final double tWeight = template.targetWeight ?? 0.0;
       weightHint = tWeight > 0
@@ -269,7 +272,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
               child: Text(
                 _getSetDisplayText(setLog.setType, setIndex),
                 style: TextStyle(
-                  color: _getSetTypeColor(setLog.setType),
+                  color: isCompleted
+                      ? (setLog.setType == 'normal'
+                          ? (isLightMode ? Colors.black : Colors.white)
+                          : _getSetTypeColor(setLog.setType))
+                      : _getSetTypeColor(setLog.setType),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -342,7 +349,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
             textAlign: TextAlign.center,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textInputAction: TextInputAction.next,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
             decoration: InputDecoration(
               border: InputBorder.none,
               isDense: true,
@@ -402,8 +413,13 @@ class LiveWorkoutSetRow extends StatelessWidget {
             controller: manager.repsControllers[templateId],
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
+            inputFormatters: isCardio ? [TimerInputFormatter()] : null,
             textInputAction: TextInputAction.next,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
             decoration: InputDecoration(
               border: InputBorder.none,
               isDense: true,
@@ -417,25 +433,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
             enabled: !isCompleted,
             onChanged: (text) {
               if (isCardio) {
-                final String sanitized = text.replaceAll(',', '.');
-                final double? val;
-                if (sanitized.contains('-')) {
-                  final parts = sanitized.split('-');
-                  if (parts.length == 2) {
-                    final min = double.tryParse(parts[0].trim());
-                    final max = double.tryParse(parts[1].trim());
-                    if (min != null && max != null) {
-                      val = (min + max) / 2;
-                    } else {
-                      val = null;
-                    }
-                  } else {
-                    val = null;
-                  }
-                } else {
-                  val = double.tryParse(sanitized);
-                }
-                final seconds = (val != null) ? (val * 60).round() : null;
+                final seconds = parsePauseDuration(text);
                 final clearDuration = seconds == null && text.isEmpty;
                 if (seconds != manager.setLogs[templateId]?.durationSeconds ||
                     clearDuration) {
@@ -481,7 +479,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) =>
                 FocusManager.instance.primaryFocus?.unfocus(),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
             decoration: InputDecoration(
               border: InputBorder.none,
               isDense: true,
@@ -513,9 +515,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 width: 48,
                 child: IconButton(
                   icon: Icon(
-                    isCompleted
-                        ? LucideIcons.circle_check
-                        : LucideIcons.circle_check,
+                    isCompleted ? LucideIcons.circle_check : LucideIcons.circle,
                     color: isCompleted ? Colors.green : Colors.grey,
                   ),
                   onPressed: () async {
@@ -528,12 +528,13 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           if (updatedSet.distanceKm != null) {
                             manager.weightControllers[templateId]?.text =
                                 updatedSet.distanceKm!
-                                    .toStringAsFixed(1)
-                                    .replaceAll('.0', '');
+                                    .toStringAsFixed(3)
+                                    .replaceAll(RegExp(r'0*$'), '')
+                                    .replaceAll(RegExp(r'\.$'), '');
                           }
                           if (updatedSet.durationSeconds != null) {
                             manager.repsControllers[templateId]?.text =
-                                (updatedSet.durationSeconds! ~/ 60).toString();
+                                formatPauseDuration(updatedSet.durationSeconds);
                           }
                         } else {
                           if (updatedSet.weightKg != null) {
@@ -623,7 +624,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
           Positioned.fill(
             child: Container(
               color:
-                  isCompleted ? Colors.green.withValues(alpha: 0.2) : rowColor,
+                  isCompleted ? Colors.green.withValues(alpha: 0.3) : rowColor,
             ),
           ),
           rowWithSubInfo,

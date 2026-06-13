@@ -56,6 +56,7 @@ class AppDataSources {
     OffCatalogCountry.fr,
     OffCatalogCountry.it,
     OffCatalogCountry.jp,
+    OffCatalogCountry.at,
   ];
 
   /// OFF release-channel/manifest expectations per supported country.
@@ -225,6 +226,29 @@ class AppDataSources {
       legacyLocalCacheDbFileName: null,
       localManifestFileName: 'off_catalog_manifest_jp_cached.json',
     ),
+    OffCatalogCountry.at: OffCatalogRemoteSourceConfig(
+      enabled: true,
+      sourceId: 'off_food_catalog',
+      countryCode: 'at',
+      channel: 'stable',
+      releaseTag: 'off-foods-at-stable',
+      baseUrl:
+          'https://github.com/rfivesix/train-libre/releases/download/off-foods-at-stable/',
+      manifestPath: 'off_catalog_manifest_at.json',
+      defaultDbPath: 'train_libre_off_at.db',
+      legacyDefaultDbPath: null,
+      defaultBuildReportPath: 'off_build_report_at.json',
+      bundledAssetDbPath: 'assets/db/train_libre_prep_at.db',
+      legacyBundledAssetDbPath: null,
+      minimumProductRows: 5000,
+      manifestTimeoutSeconds: 6,
+      downloadTimeoutSeconds: 45,
+      minCheckIntervalHours: 12,
+      localCacheDirectoryName: 'off_catalog_refresh',
+      localCacheDbFileName: 'train_libre_off_at_remote.db',
+      legacyLocalCacheDbFileName: null,
+      localManifestFileName: 'off_catalog_manifest_at_cached.json',
+    ),
   };
 
   static OffCatalogRemoteSourceConfig offCatalogForCountry(
@@ -288,6 +312,7 @@ enum OffCatalogCountry {
   fr,
   it,
   jp,
+  at,
 }
 
 extension OffCatalogCountryX on OffCatalogCountry {
@@ -299,6 +324,7 @@ extension OffCatalogCountryX on OffCatalogCountry {
         OffCatalogCountry.fr => 'fr',
         OffCatalogCountry.it => 'it',
         OffCatalogCountry.jp => 'jp',
+        OffCatalogCountry.at => 'at',
       };
 
   String get upperCode => code.toUpperCase();

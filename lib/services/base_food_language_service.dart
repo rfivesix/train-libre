@@ -103,6 +103,11 @@ class BaseFoodLanguageService {
         activeCountry == OffCatalogCountry.us) {
       return 'en';
     }
+    if (activeCountry == OffCatalogCountry.de ||
+        activeCountry == OffCatalogCountry.ch ||
+        activeCountry == OffCatalogCountry.at) {
+      return 'de';
+    }
     if (activeCountry == OffCatalogCountry.fr) return 'fr';
     if (activeCountry == OffCatalogCountry.it) return 'it';
     if (activeCountry == OffCatalogCountry.jp) return 'ja';

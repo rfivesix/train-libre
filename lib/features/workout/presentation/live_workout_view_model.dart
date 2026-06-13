@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:vibration/vibration.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine_exercise.dart';
 import '../domain/models/set_log.dart';
@@ -11,6 +10,8 @@ import '../domain/repositories/workout_repository.dart';
 import '../domain/detect_personal_record_use_case.dart';
 import '../domain/log_workout_set_use_case.dart';
 import '../../../services/local_notification_service.dart';
+import '../../../services/haptic_feedback_service.dart';
+import '../../../util/time_util.dart';
 
 class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final IWorkoutRepository _repository;
@@ -18,6 +19,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final LogWorkoutSetUseCase _logSetUseCase;
   final bool _registerLifecycleObserver;
 
+  // ignore: unused_field
   AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
 
   LiveWorkoutViewModel({
@@ -85,7 +87,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   bool get isActive => _workoutLog != null && _workoutLog!.endTime == null;
 
   bool get _isAppInForeground =>
-      _appLifecycleState == AppLifecycleState.resumed;
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed ||
+      WidgetsBinding.instance.lifecycleState == null;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -162,7 +165,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> restoreWorkoutSession(WorkoutLog log) async {
     _workoutLog = log;
     final savedSets = await _repository.getSetLogsForWorkout(log.id!);
-    final savedExerciseNotes = await _repository.getWorkoutExerciseNotes(log.id!);
+    final savedExerciseNotes =
+        await _repository.getWorkoutExerciseNotes(log.id!);
 
     _setLogs.clear();
     _exercises.clear();
@@ -244,7 +248,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         _totalSets++;
       }
 
-      final savedNote = savedExerciseNotes[exercise.nameEn] ?? savedExerciseNotes[exercise.nameDe];
+      final savedNote = savedExerciseNotes[exercise.nameEn] ??
+          savedExerciseNotes[exercise.nameDe];
       final re = RoutineExercise(
         id: syntheticReId,
         exercise: exercise,
@@ -296,8 +301,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       if (!weightControllers.containsKey(templateId)) {
         String initText;
         if (isCardio) {
-          initText =
-              setLog.distanceKm?.toStringAsFixed(1).replaceAll('.0', '') ?? '';
+          initText = setLog.distanceKm == null
+              ? ''
+              : setLog.distanceKm!
+                  .toStringAsFixed(3)
+                  .replaceAll(RegExp(r'0*$'), '')
+                  .replaceAll(RegExp(r'\.$'), '');
         } else {
           initText = setLog.weightKg == null
               ? ''
@@ -312,9 +321,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       if (!repsControllers.containsKey(templateId)) {
         String initText;
         if (isCardio) {
-          initText = setLog.durationSeconds != null
-              ? (setLog.durationSeconds! ~/ 60).toString()
-              : '';
+          initText = formatPauseDuration(setLog.durationSeconds);
         } else {
           initText = setLog.reps?.toString() ?? '';
         }
@@ -654,7 +661,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> updateExerciseNotes(String exerciseName, String? notes) async {
     for (int i = 0; i < _exercises.length; i++) {
-      if (_exercises[i].exercise.nameEn == exerciseName || _exercises[i].exercise.nameDe == exerciseName) {
+      if (_exercises[i].exercise.nameEn == exerciseName ||
+          _exercises[i].exercise.nameDe == exerciseName) {
         _exercises[i] = _exercises[i].copyWith(
           notes: notes,
           clearNotes: notes == null || notes.isEmpty,
@@ -689,23 +697,26 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       if (_remainingRestSeconds > 0) {
         _remainingRestSeconds--;
         if (_remainingRestSeconds == 0) {
+          timer.cancel();
+          _showRestDone = true;
           if (_isAppInForeground) {
             LocalNotificationService.instance.cancelRestTimerNotification();
-            unawaited(SystemSound.play(SystemSoundType.alert));
-            Vibration.vibrate(duration: 500);
+            try {
+              unawaited(LocalNotificationService.instance
+                  .showRestTimerDoneNotification(foreground: true));
+            } catch (_) {}
+            try {
+              unawaited(HapticFeedbackService.instance.vibrate());
+            } catch (_) {}
           } else {
             LocalNotificationService.instance.showRestTimerDoneNotification();
           }
+          _restDoneBannerTimer = Timer(const Duration(seconds: 10), () {
+            _showRestDone = false;
+            notifyListeners();
+          });
         }
         notifyListeners();
-      } else {
-        timer.cancel();
-        _showRestDone = true;
-        notifyListeners();
-        _restDoneBannerTimer = Timer(const Duration(seconds: 10), () {
-          _showRestDone = false;
-          notifyListeners();
-        });
       }
     });
     notifyListeners();
@@ -716,6 +727,39 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     LocalNotificationService.instance.cancelRestTimerNotification();
     _remainingRestSeconds = 0;
     _showRestDone = false;
+    notifyListeners();
+  }
+
+  void adjustRestTime(int deltaSeconds) {
+    if (_remainingRestSeconds <= 0) return;
+    _remainingRestSeconds += deltaSeconds;
+    if (_remainingRestSeconds <= 0) {
+      _remainingRestSeconds = 0;
+      _restTimer?.cancel();
+      if (_isAppInForeground) {
+        LocalNotificationService.instance.cancelRestTimerNotification();
+        try {
+          unawaited(LocalNotificationService.instance
+              .showRestTimerDoneNotification(foreground: true));
+        } catch (_) {}
+        try {
+          unawaited(HapticFeedbackService.instance.vibrate());
+        } catch (_) {}
+      } else {
+        LocalNotificationService.instance.showRestTimerDoneNotification();
+      }
+      _showRestDone = true;
+      _restDoneBannerTimer = Timer(const Duration(seconds: 10), () {
+        _showRestDone = false;
+        notifyListeners();
+      });
+    } else {
+      if (!_isAppInForeground) {
+        LocalNotificationService.instance.scheduleRestTimerDoneNotification(
+          secondsFromNow: _remainingRestSeconds,
+        );
+      }
+    }
     notifyListeners();
   }
 

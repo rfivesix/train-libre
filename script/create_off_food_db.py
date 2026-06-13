@@ -60,6 +60,10 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
         "preferred_languages": ("ja", "en"),
         "country_tags": ("en:japan", "en:jp"),
     },
+    "at": {
+        "preferred_languages": ("de", "en"),
+        "country_tags": ("en:austria", "en:at"),
+    },
 }
 
 NUTRIENT_NAME_MAP = {
@@ -156,6 +160,8 @@ def normalize_country_code(raw: str) -> str:
         "gbr": "uk",
         "united-kingdom": "uk",
         "united_kingdom": "uk",
+        "aut": "at",
+        "austria": "at",
     }
     return aliases.get(value, value)
 

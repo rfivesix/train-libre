@@ -15,7 +15,7 @@ This documentation suite is split into highly modular, focused files categorised
 ### 1. Developer Documentation (`documentation/developer/`)
 For software engineers, system architects, and technical contributors.
 
-*   [**System Overview & Testing Philosophy**](developer/overview.md): High-level system purpose, tech stack, and details on our highly stable 107-file, 590+ test suite.
+*   [**System Overview & Testing Philosophy**](developer/overview.md): High-level system purpose, tech stack, and details on our highly stable 116-file, 670+ test suite.
 *   [**System Architecture & SQLite Lifecycle**](developer/architecture.md): Our strict Clean Architecture boundaries (Presentation $\rightarrow$ Domain $\leftarrow$ Data) and thread-safe lazy-initializing private constructor for SQLite.
 *   [**Data Flow & State Lifecycle**](developer/data_flow_and_state.md): Detail on our "Reactive Reads / Imperative Writes" paradigm, reactive Drift stream handlers, subscription lifecycles, and edit-mode user interface input blocking.
 
@@ -25,5 +25,6 @@ For advanced users, mathematical evaluators, and privacy auditors who seek compl
 *   [**Capabilities & Privacy Overview**](features/overview.md): Summary of the app's advanced smart capabilities, local processing model, and native secure storage.
 *   [**Bayesian TDEE Estimator (Kalman Filter)**](features/bayesian_tdee_estimator.md): Full mathematical and algorithmic analysis of the Adaptive Diet Recommendation Engine, including Kalman filter equations, variance boundaries, completeness coefficients, and linear ramps.
 *   [**BYOK AI Meal Capture & Validation**](features/byok_ai_validation.md): Core detail on the local BYOK API integration, system prompts restricting LLM calculations, fuzzy string matching, target-fit verification, and the 3-pass self-repair verification loop.
-*   [**One-Way Native Health Export**](features/health_sync_export.md): Technical overview of the Apple HealthKit and Google Health Connect data syncing pipelines, details on step segment merging, and the SQLite-backed Single Source of Truth (SSOT) idempotency architecture.
+*   [**Native Health Sync & Export**](features/health_sync_export.md): Technical overview of the Apple HealthKit and Google Health Connect data syncing pipelines (bidirectional for vitals), details on step segment merging, and the SQLite-backed Single Source of Truth (SSOT) idempotency architecture.
 *   [**Sleep Health Score Engine (SHS v3.5)**](features/sleep_scoring_engine.md): Complete technical specification of our sleep scoring algorithms, including Gaussian, logistic, and quadratic curves for 5 domains and the continuous soft-cap multiplier penalty logic.
+*   [**Muscle Recovery & Fatigue Modeling**](features/muscle_recovery_model.md): Detailed heuristic for estimating muscle-specific readiness using piecewise interpolation, volume-based recovery windows, and intensity-based fatigue extensions.

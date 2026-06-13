@@ -197,9 +197,32 @@ class BasisDataManager {
 
     final packageInfo = await PackageInfo.fromPlatform();
     final currentAppVersion = packageInfo.version;
+    final currentAppBuild = packageInfo.buildNumber;
     final lastDbSyncAppVersion = prefs.getString('last_db_sync_app_version');
     final bool isEnriched = prefs.getBool(_keyVersionFoodEnrichment) ?? false;
     final bool forceEnrichment = !isEnriched;
+
+    final bool shouldSync =
+        force || currentAppBuild != lastDbSyncAppVersion || forceEnrichment;
+
+    if (!shouldSync) {
+      onProgress?.call(
+        'Basis-Produkte',
+        'Basis-Produkte sind aktuell.',
+        1.0,
+      );
+      onProgress?.call(
+        'Kategorien',
+        'Kategorien sind aktuell.',
+        1.0,
+      );
+      onProgress?.call(
+        'Produktdatenbank (${activeOffCountry.upperCode})',
+        'OFF-Datenbank ist aktuell (Version: $currentAppVersion).',
+        1.0,
+      );
+      return;
+    }
 
     // Helper function to keep the code readable.
     Future<void> process(
@@ -261,18 +284,6 @@ class BasisDataManager {
       legacyAssetPath: AppDataSources.legacyFoodCategoriesAssetDbPath,
     );
 
-    final bool shouldSyncOff =
-        force || currentAppVersion != lastDbSyncAppVersion || forceEnrichment;
-
-    if (!shouldSyncOff) {
-      onProgress?.call(
-        'Produktdatenbank (${activeOffCountry.upperCode})',
-        'OFF-Datenbank ist aktuell (Version: $currentAppVersion).',
-        1.0,
-      );
-      return;
-    }
-
     String? remoteOffDbPath;
     final installedOffVersion = prefs.getString(activeOffVersionKey) ?? '0';
     try {
@@ -311,7 +322,7 @@ class BasisDataManager {
         'Kein OFF-Bundle/Remote verfügbar. Vorhandene lokale OFF-Daten bleiben unverändert.',
         1.0,
       );
-      await prefs.setString('last_db_sync_app_version', currentAppVersion);
+      await prefs.setString('last_db_sync_app_version', currentAppBuild);
       return;
     }
 
@@ -328,7 +339,7 @@ class BasisDataManager {
       forceImportOverride: force || forceEnrichment,
     );
 
-    await prefs.setString('last_db_sync_app_version', currentAppVersion);
+    await prefs.setString('last_db_sync_app_version', currentAppBuild);
   }
 
   /// Exposes a public method that bypasses the version check for manual triggers.
@@ -917,7 +928,7 @@ class BasisDataManager {
     // Auto: derive from the food DB region.
     return switch (offCountry) {
       OffCatalogCountry.us || OffCatalogCountry.uk => 'en',
-      OffCatalogCountry.de || OffCatalogCountry.ch => 'de',
+      OffCatalogCountry.de || OffCatalogCountry.ch || OffCatalogCountry.at => 'de',
       OffCatalogCountry.fr => 'fr',
       OffCatalogCountry.it => 'it',
       OffCatalogCountry.jp => 'ja',

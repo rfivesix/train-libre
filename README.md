@@ -104,7 +104,7 @@ This project features a comprehensive, modular documentation suite split by targ
 *   [Smart Features Overview](documentation/features/overview.md): Overview of algorithmic features and architectural privacy invariants.
 *   [Bayesian TDEE Estimator](documentation/features/bayesian_tdee_estimator.md): Comprehensive mathematical and statistical formulation of the Kalman filter-based adaptive energy expenditure engine.
 *   [BYOK AI Meal Validation](documentation/features/byok_ai_validation.md): AI meal capture pipeline details, fuzzy validation scoring, and the 3-pass self-repair verification loop.
-*   [One-Way Health Sync & Export](documentation/features/health_sync_export.md): Data export pipelines, SQLite-backed idempotency tracking, step segment merging policies, and fault-tolerance patterns.
+*   [**Native Health Sync & Export**](documentation/features/health_sync_export.md): Bidirectional vital synchronization (Steps, Sleep), outbound manual log export pipelines, SQLite-backed idempotency tracking, and fault-tolerance patterns.
 
 For the full interlinked documentation map, see the main [Documentation Entry Point](documentation/README.md).
 

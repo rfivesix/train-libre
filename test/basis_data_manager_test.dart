@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/core/infrastructure/basis_data_manager.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('BasisDataManager.shouldImportAsset', () {
     test('imports on first run with versionless asset when no data exists', () {
       final shouldImport = BasisDataManager.shouldImportAsset(
@@ -61,6 +65,52 @@ void main() {
         assetVersion: '202601010001',
       );
       expect(stored, '202601010001');
+    });
+  });
+
+  group('BasisDataManager.checkForBasisDataUpdate build-bound gating', () {
+    setUp(() {
+      PackageInfo.setMockInitialValues(
+        appName: 'Train Libre',
+        packageName: 'com.rfivesix.trainlibre',
+        version: '0.8.5',
+        buildNumber: '80013',
+        buildSignature: '',
+      );
+    });
+
+    test('skips update entirely when build number matches cached value', () async {
+      SharedPreferences.setMockInitialValues({
+        'last_db_sync_app_version': '80013',
+        'installed_food_enrichment_v1': true,
+      });
+
+      final progressCalls = <Map<String, dynamic>>[];
+
+      await BasisDataManager.instance.checkForBasisDataUpdate(
+        onProgress: (task, detail, progress) {
+          progressCalls.add({
+            'task': task,
+            'detail': detail,
+            'progress': progress,
+          });
+        },
+      );
+
+      // Verify that it skipped and reported completion immediately for all 3 areas
+      expect(progressCalls, hasLength(3));
+
+      expect(progressCalls[0]['task'], 'Basis-Produkte');
+      expect(progressCalls[0]['detail'], 'Basis-Produkte sind aktuell.');
+      expect(progressCalls[0]['progress'], 1.0);
+
+      expect(progressCalls[1]['task'], 'Kategorien');
+      expect(progressCalls[1]['detail'], 'Kategorien sind aktuell.');
+      expect(progressCalls[1]['progress'], 1.0);
+
+      expect(progressCalls[2]['task'], startsWith('Produktdatenbank'));
+      expect(progressCalls[2]['detail'], contains('ist aktuell'));
+      expect(progressCalls[2]['progress'], 1.0);
     });
   });
 }

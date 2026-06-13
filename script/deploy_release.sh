@@ -63,25 +63,27 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
 fi
 
 # ------------------------------------------------------------------------------
-# STEP 3: Clean & Generate All Release Artifacts
+# STEP 3: Clean, Increment pubspec.yaml & Generate All Release Artifacts
 # ------------------------------------------------------------------------------
 echo "Running core build preparation pipeline..."
 flutter clean
+
+OLD_BUILD_NUMBER=${FULL_VERSION#*+}
+NEW_BUILD_NUMBER=$((OLD_BUILD_NUMBER + 1))
+
+echo "Incrementing build number in pubspec.yaml: $OLD_BUILD_NUMBER -> $NEW_BUILD_NUMBER"
+
+sed -i '' "s/version: .*/version: $VERSION_NUMBER+$NEW_BUILD_NUMBER/g" pubspec.yaml
+
 flutter pub get
 flutter gen-l10n
 
-echo "Building Android Production Release Artifacts..."
+echo "Building Android Production Release Artifacts (Build: $NEW_BUILD_NUMBER)..."
 flutter build appbundle --release
 flutter build apk --release --split-per-abi
 flutter build apk --release
 
-echo "Preparing iOS Workspace & Native Pods..."
-cd ios
-pod install
-cd ..
-
-echo "Building iOS Production Release Artifact (IPA)..."
-# Execute flutter build ipa directly in the global shell environment to avoid Ruby path pollution inside Fastlane/Bundler
+echo "Building iOS Production Release Artifact (IPA) (Build: $NEW_BUILD_NUMBER)..."
 flutter build ipa --release
 
 # ------------------------------------------------------------------------------
@@ -153,18 +155,7 @@ done
 # ------------------------------------------------------------------------------
 echo "Triggering Fastlane for iOS Deployment..."
 cd ios
-
-if [ ! -f "Gemfile" ]; then
-  echo "Creating default Gemfile..."
-  echo "source \"https://rubygems.org\"" > Gemfile
-  echo "gem \"fastlane\"" >> Gemfile
-fi
-
-if ! bundle check >/dev/null 2>&1; then
-  bundle install
-fi
-
-bundle exec fastlane beta
+bundle exec fastlane upload_beta
 cd ..
 
 # ------------------------------------------------------------------------------
@@ -176,4 +167,3 @@ git restore ios/Runner.xcodeproj/project.pbxproj ios/Runner/Info.plist
 echo "=============================================================================="
 echo "SUCCESS: Version v$VERSION_NUMBER deployed to GitHub (with Android Assets) & TestFlight!"
 echo "=============================================================================="
-

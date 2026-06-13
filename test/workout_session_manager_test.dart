@@ -682,5 +682,45 @@ void main() {
       expect(manager.exercises, isEmpty);
       expect(manager.isActive, isFalse);
       });
+
+      test('adjustRestTime adds and subtracts remaining rest seconds', () async {
+        final log = await workoutDb.startWorkout(routineName: 'Session');
+        final exerciseA = const model.Exercise(
+          id: 1,
+          nameDe: 'A',
+          nameEn: 'Exercise A',
+          descriptionDe: '',
+          descriptionEn: '',
+          categoryName: 'Strength',
+          primaryMuscles: ['x'],
+          secondaryMuscles: [],
+        );
+        await manager.startWorkout(log, [
+          RoutineExercise(
+            id: 400,
+            exercise: exerciseA,
+            pauseSeconds: 60,
+            setTemplates: [SetTemplate(id: 4001, setType: 'normal')],
+          ),
+        ]);
+        await _waitFor(() => manager.setLogs.length == 1);
+
+        // complete set to trigger rest timer
+        await manager.updateSet(4001, isCompleted: true);
+        expect(manager.remainingRestSeconds, 60);
+
+        // Adjust positive
+        manager.adjustRestTime(15);
+        expect(manager.remainingRestSeconds, 75);
+
+        // Adjust negative
+        manager.adjustRestTime(-30);
+        expect(manager.remainingRestSeconds, 45);
+
+        // Adjust below zero cancels rest
+        manager.adjustRestTime(-50);
+        expect(manager.remainingRestSeconds, 0);
+        expect(manager.showRestDone, isTrue);
+      });
       });
       }

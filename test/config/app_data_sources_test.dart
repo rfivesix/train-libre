@@ -19,6 +19,11 @@ void main() {
     expect(us.defaultDbPath, 'train_libre_off_us.db');
     expect(us.bundledAssetDbPath, 'assets/db/train_libre_prep_us.db');
     expect(us.localCacheDbFileName, 'train_libre_off_us_remote.db');
+
+    final at = AppDataSources.offCatalogForCountry(OffCatalogCountry.at);
+    expect(at.defaultDbPath, 'train_libre_off_at.db');
+    expect(at.bundledAssetDbPath, 'assets/db/train_libre_prep_at.db');
+    expect(at.localCacheDbFileName, 'train_libre_off_at_remote.db');
   });
 
   test('legacy Hypertrack DB filenames remain explicit fallbacks', () {

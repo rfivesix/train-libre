@@ -428,7 +428,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cardioDistanceLabel => 'Distance (km)';
 
   @override
-  String get cardioTimeLabel => 'Time (min)';
+  String get cardioTimeLabel => 'Time';
 
   @override
   String get cardioIntensityLabel => 'Intens.';
@@ -2149,6 +2149,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'This changes the Open Food Facts catalog source used by product search.';
 
   @override
+  String get settingsFoodDbRegionSearchPlaceholder => 'Search region...';
+
+  @override
+  String get settingsFoodDbRegionNoResults => 'No region found';
+
+  @override
   String get settingsFoodDbRegionIssueHint =>
       'If your country is not listed yet, feel free to open a GitHub issue and request support.';
 
@@ -2169,6 +2175,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionJapan => 'Japan (JP)';
+
+  @override
+  String get settingsFoodDbRegionAustria => 'Austria (AT)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Colorful Macro Badges';

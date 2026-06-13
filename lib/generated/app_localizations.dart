@@ -905,7 +905,7 @@ abstract class AppLocalizations {
   /// No description provided for @cardioTimeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Time (min)'**
+  /// **'Time'**
   String get cardioTimeLabel;
 
   /// No description provided for @cardioIntensityLabel.
@@ -3914,6 +3914,18 @@ abstract class AppLocalizations {
   /// **'This changes the Open Food Facts catalog source used by product search.'**
   String get settingsFoodDbRegionDialogSubtitle;
 
+  /// No description provided for @settingsFoodDbRegionSearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search region...'**
+  String get settingsFoodDbRegionSearchPlaceholder;
+
+  /// No description provided for @settingsFoodDbRegionNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No region found'**
+  String get settingsFoodDbRegionNoResults;
+
   /// No description provided for @settingsFoodDbRegionIssueHint.
   ///
   /// In en, this message translates to:
@@ -3955,6 +3967,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Japan (JP)'**
   String get settingsFoodDbRegionJapan;
+
+  /// No description provided for @settingsFoodDbRegionAustria.
+  ///
+  /// In en, this message translates to:
+  /// **'Austria (AT)'**
+  String get settingsFoodDbRegionAustria;
 
   /// No description provided for @settingsColorfulMacroBadgesTitle.
   ///

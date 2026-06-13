@@ -210,6 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       OffCatalogCountry.fr => l10n.settingsFoodDbRegionFrance,
       OffCatalogCountry.it => l10n.settingsFoodDbRegionItaly,
       OffCatalogCountry.jp => l10n.settingsFoodDbRegionJapan,
+      OffCatalogCountry.at => l10n.settingsFoodDbRegionAustria,
     };
   }
 
@@ -219,64 +220,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       title: l10n.settingsFoodDbRegionDialogTitle,
       contentBuilder: (dialogContext, close) {
-        var draftSelection = _activeOffCatalogCountry;
-        return StatefulBuilder(
-          builder: (context, setDialogState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.settingsFoodDbRegionDialogSubtitle),
-              const SizedBox(height: 12),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 320),
-                child: SingleChildScrollView(
-                  child: RadioGroup<OffCatalogCountry>(
-                    groupValue: draftSelection,
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setDialogState(() => draftSelection = value);
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (final country
-                            in AppDataSources.supportedOffCatalogCountries)
-                          RadioListTile<OffCatalogCountry>(
-                            contentPadding: EdgeInsets.zero,
-                            value: country,
-                            title: Text(_offCountryLabel(country, l10n)),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.settingsFoodDbRegionIssueHint,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: Text(l10n.cancel),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () =>
-                          Navigator.of(dialogContext).pop(draftSelection),
-                      child: Text(l10n.save),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        return _OffCatalogRegionPickerContent(
+          initialSelection: _activeOffCatalogCountry,
+          countryLabelResolver: _offCountryLabel,
         );
       },
     );
@@ -813,6 +759,151 @@ class _SettingsScreenState extends State<SettingsScreen> {
           borderRadius: BorderRadius.circular(24),
         ),
       ),
+    );
+  }
+}
+
+class _OffCatalogRegionPickerContent extends StatefulWidget {
+  final OffCatalogCountry initialSelection;
+  final String Function(OffCatalogCountry, AppLocalizations) countryLabelResolver;
+
+  const _OffCatalogRegionPickerContent({
+    required this.initialSelection,
+    required this.countryLabelResolver,
+  });
+
+  @override
+  State<_OffCatalogRegionPickerContent> createState() =>
+      __OffCatalogRegionPickerContentState();
+}
+
+class __OffCatalogRegionPickerContentState
+    extends State<_OffCatalogRegionPickerContent> {
+  late OffCatalogCountry _draftSelection;
+  late final TextEditingController _searchController;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _draftSelection = widget.initialSelection;
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final query = _searchQuery.toLowerCase().trim();
+    final filteredCountries = AppDataSources.supportedOffCatalogCountries.where((country) {
+      if (query.isEmpty) return true;
+      final label = widget.countryLabelResolver(country, l10n).toLowerCase();
+      final code = country.code.toLowerCase();
+      return label.contains(query) || code.contains(query);
+    }).toList();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.settingsFoodDbRegionDialogSubtitle),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: l10n.settingsFoodDbRegionSearchPlaceholder,
+            prefixIcon: Icon(
+              LucideIcons.search,
+              color: colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: Icon(
+                      LucideIcons.x,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _searchQuery = '';
+                      });
+                    },
+                  )
+                : null,
+          ),
+          onChanged: (val) {
+            setState(() {
+              _searchQuery = val;
+            });
+          },
+        ),
+        const SizedBox(height: 12),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 320),
+          child: filteredCountries.isEmpty
+              ? Container(
+                  height: 100,
+                  alignment: Alignment.center,
+                  child: Text(
+                    l10n.settingsFoodDbRegionNoResults,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: RadioGroup<OffCatalogCountry>(
+                    groupValue: _draftSelection,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() => _draftSelection = value);
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final country in filteredCountries)
+                          RadioListTile<OffCatalogCountry>(
+                            contentPadding: EdgeInsets.zero,
+                            value: country,
+                            title: Text(widget.countryLabelResolver(country, l10n)),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.settingsFoodDbRegionIssueHint,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.cancel),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(_draftSelection),
+                child: Text(l10n.save),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

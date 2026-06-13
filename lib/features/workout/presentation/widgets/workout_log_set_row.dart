@@ -5,6 +5,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../util/time_util.dart';
 
 /// A single row representing a set within an exercise log.
 /// Supports both view mode and edit mode (via nullable text controllers).
@@ -51,9 +52,14 @@ class WorkoutLogSetRow extends StatelessWidget {
     // View Values
     String val1Display, val2Display;
     if (isCardio) {
-      val1Display = setLog.distanceKm?.toString() ?? '-';
+      val1Display = setLog.distanceKm == null
+          ? '-'
+          : setLog.distanceKm!
+              .toStringAsFixed(3)
+              .replaceAll(RegExp(r'0*$'), '')
+              .replaceAll(RegExp(r'\.$'), '');
       final sec = setLog.durationSeconds ?? 0;
-      val2Display = sec > 0 ? (sec / 60).round().toString() : '-';
+      val2Display = sec > 0 ? formatPauseDuration(sec) : '-';
     } else {
       val1Display = setLog.weightKg == null
           ? '-'
@@ -93,7 +99,7 @@ class WorkoutLogSetRow extends StatelessWidget {
 
         // 2. INPUT 1: WEIGHT / DISTANCE
         Expanded(
-          flex: 2,
+          flex: isCardio ? 4 : 2,
           child: isEditMode
               ? TextFormField(
                   controller: weightController,
@@ -127,22 +133,23 @@ class WorkoutLogSetRow extends StatelessWidget {
 
         // 3. INPUT 2: REPS / TIME
         Expanded(
-          flex: 2,
+          flex: isCardio ? 4 : 2,
           child: isEditMode
               ? TextFormField(
                   controller: repsController,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
+                  inputFormatters: isCardio ? [TimerInputFormatter()] : null,
                   textInputAction: TextInputAction.next,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     border: InputBorder.none,
                     isDense: true,
                     fillColor: Colors.transparent,
-                    hintText: "-",
+                    hintText: isCardio ? "00:00" : "-",
                   ),
                 )
               : Text(

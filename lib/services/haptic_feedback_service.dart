@@ -44,6 +44,11 @@ class HapticFeedbackService {
     await HapticFeedback.lightImpact();
   }
 
+  Future<void> vibrate() async {
+    if (!_enabled) return;
+    await HapticFeedback.vibrate();
+  }
+
   void startAiWaiting() {
     _aiWaitingDepth += 1;
     if (!_enabled || _aiWaitingTimer != null) return;
