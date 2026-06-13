@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="Private workout and nutrition tracking. No ads. No accounts. Serious analytics. Train Libre is an open-source, offline-first app for logging workouts, calories, macros, bodyweight, and recovery.">
+  <meta name="theme-color" content="#000000">
+  <meta property="og:title" content="Train Libre">
+  <meta property="og:description"
+    content="Private workout and nutrition tracking. No ads. No accounts. Serious analytics. Open-source and offline-first.">
+  <meta property="og:type" content="website">
+  <title>Train Libre | Offline-first fitness tracking</title>
+  <link rel="icon" href="../web/favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="katex.min.css">
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+
+<body>
+  <div class="page">
+    <header class="site-header">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features" data-i18n="nav_features">Features</a>
+          <a href="#intelligence" data-i18n="nav_guidance">AI Guidance</a>
+          <a href="#privacy" data-i18n="nav_privacy">Privacy</a>
+          <a href="#showcase" data-i18n="nav_showcase">Showcase</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank"
+            rel="noreferrer">GitHub</a>
+        </div>
+        <div class="nav-controls">
+          <div class="dropdown" id="lang-dropdown">
+            <button class="control-btn" aria-label="Switch Language" aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+              </svg>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" data-lang="en">
+                <span>English</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+              <button class="dropdown-item" data-lang="de">
+                <span>Deutsch</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+              <button class="dropdown-item" data-lang="fr">
+                <span>Français</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="it">
+                <span>Italiano</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="ja">
+                <span>日本語</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+            </div>
+          </div>
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-stage" aria-hidden="true">
+        <div class="device device-home">
+          <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_diary.png"
+            data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_diary.png"
+            alt="">
+        </div>
+        <div class="device device-workout">
+          <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png"
+            data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png"
+            alt="">
+        </div>
+        <div class="device device-goals">
+          <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
+            data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
+            alt="">
+        </div>
+      </div>
+
+      <div class="hero-content reveal">
+        <h1 id="hero-title">Train Libre</h1>
+        <p class="hero-statement" data-i18n="hero_statement">Own every rep, meal, calorie, and recovery signal.</p>
+        <p class="hero-copy" data-i18n="hero_copy">A private, local-first app for structured workout logging, reviewable
+          AI meal recognition,
+          adaptive calorie guidance, nutrition, hydration, measurements, sleep, pulse, and long-term progress without a
+          mandatory cloud account.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://testflight.apple.com/join/x1UaM6TQ" target="_blank"
+            rel="noreferrer">
+            <svg viewBox="0 0 384 512" fill="currentColor" width="20" height="20" style="margin-bottom: 2px;">
+              <path
+                d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+            </svg>
+            <span data-i18n="hero_cta_ios">iOS TestFlight Beta</span>
+          </a>
+          <a class="button button-secondary"
+            href="http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/rfivesix/train-libre/releases"
+            target="_blank" rel="noreferrer">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+              <path
+                d="M17.523 15.3414c-.5511 0-.9996-.4486-.9996-.9997s.4485-.9997.9996-.9997c.5511 0 .9997.4486.9997.9997s-.4486.9997-.9997.9997zm-11.046 0c-.5511 0-.9997-.4486-.9997-.9997s.4486-.9997.9997-.9997c.5511 0 .9996.4486.9996.9997s-.4485.9997-.9996.9997zm11.445-5.8335l1.8844-3.264a.4545.4545 0 00-.1664-.6208.4545.4545 0 00-.6208.1664l-1.9239 3.3323a11.3328 11.3328 0 00-10.1924 0l-1.9239-3.3323a.4545.4545 0 00-.6208-.1664.4545.4545 0 00-.1664.6208l1.8844 3.264C3.125 11.037 1.306 13.524 1.05 16.3414h21.9c-.256-2.8174-2.075-5.3044-4.628-6.8335z" />
+            </svg>
+            <span data-i18n="hero_cta_android">Android (Obtainium)</span>
+          </a>
+        </div>
+
+      </div>
+
+    </section>
+
+    <main>
+      <section class="section section-tight" id="features" aria-labelledby="features-title">
+        <div class="reveal">
+          <span class="section-kicker" data-i18n="feat_kicker">Feature Highlights</span>
+          <h2 class="section-heading" id="features-title" data-i18n="feat_heading">Built for serious tracking without
+            the noise.</h2>
+          <p class="section-copy" data-i18n="feat_copy">Train Libre keeps the daily surface calm and the underlying data
+            rich, so you can log
+            precisely, review honestly, and understand progress over time.</p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card reveal delay-1" style="--feature: var(--blue); --feature-rgb: 133, 215, 244;">
+            <h3 data-i18n="f1_title">Workout logging that respects training.</h3>
+            <p data-i18n="f1_copy">Log set by set with routines, warm-ups, working sets, failure sets, dropsets, reps,
+              weight, and RIR.</p>
+            <small data-i18n="f1_small">Routines, history, session review</small>
+          </article>
+
+          <article class="feature-card reveal delay-2" style="--feature: var(--red); --feature-rgb: 245, 83, 83;">
+            <h3 data-i18n="f2_title">Nutrition, hydration, and supplements together.</h3>
+            <p data-i18n="f2_copy">Track meals, calories, macros, fluids, caffeine, creatine, and custom supplements in
+              one local diary.
+            </p>
+            <small data-i18n="f2_small">Food, water, macros, doses</small>
+          </article>
+
+          <article class="feature-card reveal delay-3" style="--feature: var(--purple); --feature-rgb: 183, 101, 201;">
+            <h3 data-i18n="f3_title">Body data with context.</h3>
+            <p data-i18n="f3_copy">Log bodyweight and measurements, then read them beside nutrition trends and training
+              consistency.</p>
+            <small data-i18n="f3_small">Measurements, trends, goals</small>
+          </article>
+
+          <article class="feature-card reveal delay-1" style="--feature: var(--green); --feature-rgb: 102, 200, 109;">
+            <h3 data-i18n="f4_title">Recovery, sleep, steps, and pulse insights.</h3>
+            <p data-i18n="f4_copy">Use sleep, steps, heart-rate context, and recovery views where your device data is
+              available.</p>
+            <a href="./recovery/" class="card-link" data-i18n="learn_more">Learn more</a>
+            <small data-i18n="f4_small">Training guidance, not diagnosis</small>
+          </article>
+
+          <article class="feature-card reveal delay-2" style="--feature: var(--accent); --feature-rgb: 221, 255, 0;">
+            <h3 data-i18n="f5_title">Backups, export, and ownership.</h3>
+            <p data-i18n="f5_copy">Create local backups, import and export your data, and use one-way health export
+              without making the
+              cloud your source of truth.</p>
+            <small data-i18n="f5_small">Local-first control</small>
+          </article>
+
+          <article class="feature-card reveal delay-3" style="--feature: var(--orange); --feature-rgb: 255, 155, 5;">
+            <h3 data-i18n="f6_title">AI meal recognition that stays reviewable.</h3>
+            <p data-i18n="f6_copy">Capture meals from photos or text, then review portions, food matches, warnings, and
+              locally computed
+              nutrition before saving.</p>
+            <a href="./ai-nutrition/" class="card-link" data-i18n="learn_more">Learn more</a>
+            <small data-i18n="f6_small">Photo, text, grams, review</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="intelligence-section" id="intelligence" aria-labelledby="intelligence-title">
+        <div class="intelligence-header reveal">
+          <div>
+            <span class="section-kicker" data-i18n="intel_kicker">AI &amp; Diet Guidance</span>
+            <h2 class="section-heading" id="intelligence-title" data-i18n="intel_heading">Helpful intelligence, kept
+              accountable.</h2>
+          </div>
+          <p class="intelligence-intro" data-i18n="intel_intro">Train Libre uses AI where it removes friction, then
+            brings the result back into
+            the app's local data model with review, validation, confidence, and explicit user control.</p>
+        </div>
+
+        <div class="intelligence-grid">
+          <article class="intelligence-card reveal delay-1" style="--intel: var(--orange); --intel-rgb: 255, 155, 5;">
+            <span class="intelligence-label" data-i18n="intel_c1_label">AI meal recognition</span>
+            <h3 data-i18n="intel_c1_title">From plate to log, with a checkpoint.</h3>
+            <p data-i18n="intel_c1_copy">Snap photos or describe a meal. Train Libre asks your chosen AI provider for
+              food names and gram
+              estimates, then matches them against the local food database and rebuilds calories and macros inside the
+              app.</p>
+            <div class="macro-badges">
+              <span class="macro-badge kcal">800 kcal</span>
+              <span class="macro-badge pro">P 40g</span>
+              <span class="macro-badge carb">C 116g</span>
+              <span class="macro-badge fat">F 20g</span>
+            </div>
+            <div class="intelligence-points" aria-label="AI meal recognition details">
+
+              <span data-i18n="intel_c1_p1">Photo and text capture</span>
+              <span data-i18n="intel_c1_p2">Gram estimates</span>
+              <span data-i18n="intel_c1_p3">Local nutrition totals</span>
+              <span data-i18n="intel_c1_p4">Editable review</span>
+            </div>
+            <div style="margin-top: 24px;">
+              <a href="./ai-nutrition/" class="button button-secondary button-small" data-i18n="learn_more">Learn
+                more</a>
+            </div>
+            <div class="ai-phone-preview">
+              <div class="screen">
+                <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
+                  data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
+                  alt="Train Libre AI Meal Capture screen with meal photos, text input, and an Analyze button.">
+              </div>
+            </div>
+          </article>
+
+          <article class="intelligence-card reveal delay-2" style="--intel: var(--accent); --intel-rgb: 221, 255, 0;">
+            <span class="intelligence-label" data-i18n="intel_c2_label">Calorie estimation</span>
+            <h3 data-i18n="intel_c2_title">Diet targets that adapt to your real trend.</h3>
+            <p data-i18n="intel_c2_copy">Train Libre estimates maintenance calories from your profile, logged intake,
+              and smoothed bodyweight
+              trend, then turns that estimate into weekly calorie and macro targets you can apply when ready.</p>
+            <div class="intelligence-points" aria-label="Adaptive calorie guidance details">
+              <span data-i18n="intel_c2_p1">Weekly recommendation</span>
+              <span data-i18n="intel_c2_p2">Confidence range</span>
+              <span data-i18n="intel_c2_p3">Quality warnings</span>
+              <span data-i18n="intel_c2_p4">Manual apply</span>
+            </div>
+            <div style="margin-top: 24px;">
+              <a href="./adaptive-nutrition/" class="button button-secondary button-small" data-i18n="learn_more">Learn
+                more</a>
+            </div>
+
+            <div class="guidance-dashboard" aria-label="Illustrative adaptive calorie guidance preview">
+              <div class="guidance-topline">
+                <div>
+                  <strong data-i18n="dash_maintenance">Estimated maintenance</strong><br>
+                  <span data-i18n="dash_maintenance_copy">Profile prior + recent logs</span>
+                </div>
+                <div data-i18n="dash_fresh">Fresh this week</div>
+              </div>
+              <div class="guidance-value">2640 <span data-i18n="dash_kcal">kcal/day</span></div>
+              <div class="guidance-range">
+                <span data-i18n="dash_range">Likely range 2480-2800</span>
+                <span data-i18n="dash_confidence">Medium confidence</span>
+              </div>
+              <div class="guidance-meter" aria-hidden="true"><span></span></div>
+              <div class="guidance-macros">
+                <div class="guidance-macro">
+                  <strong>2320</strong>
+                  <span data-i18n="macro_kcal">target kcal</span>
+                </div>
+                <div class="guidance-macro">
+                  <strong>164g</strong>
+                  <span data-i18n="macro_protein">protein</span>
+                </div>
+                <div class="guidance-macro">
+                  <strong>275g</strong>
+                  <span data-i18n="macro_carbs">carbs</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="guidance-logic">
+              <div class="guidance-step">
+                <b>1</b>
+                <span data-i18n="step1">Smoothed weight trends reduce day-to-day scale noise before calories are
+                  adjusted.</span>
+              </div>
+              <div class="guidance-step">
+                <b>2</b>
+                <span data-i18n="step2">Sparse logs, unresolved foods, and early diet-phase swings widen uncertainty
+                  instead of
+                  oversteering.</span>
+              </div>
+              <div class="guidance-step">
+                <b>3</b>
+                <span data-i18n="step3">Recommendations show warnings and never replace your active goals until you
+                  apply them.</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="deep-dive-section reveal">
+          <div class="transparency-header">
+            <span class="section-kicker" data-i18n="transparency_kicker">Deep Technical Disclosure</span>
+            <h2 class="section-heading" data-i18n="transparency_title">Algorithmic Transparency</h2>
+          </div>
+          <div class="deep-dive-grid">
+            <div class="deep-dive-card">
+              <h3 data-i18n="ai_meal_deep_t">Algorithmic Details</h3>
+              <p class="deep-dive-intro" data-i18n="ai_meal_deep_c">Algorithmic Invariants & Local Matching Pipeline</p>
+              <ul class="deep-dive-features">
+                <li data-i18n="ai_meal_privacy_t">BYOK Privacy Invariant</li>
+                <li data-i18n="ai_meal_matching_t">Local Deterministic Matching</li>
+                <li data-i18n="ai_meal_retry_t">3-Pass Self-Repair Retry Loop</li>
+                <li data-i18n="ai_meal_ban_t">Strict Nutrient Computation Ban</li>
+              </ul>
+              <div class="deep-dive-link-container">
+                <a href="./ai-nutrition/" class="deep-dive-link" data-i18n="learn_more">Learn more</a>
+              </div>
+            </div>
+
+            <div class="deep-dive-card">
+              <h3 data-i18n="tdee_deep_t">Mathematical Deep-Dive</h3>
+              <p class="deep-dive-intro" data-i18n="tdee_deep_c">Recursive Estimation & Metabolic Smoothing Mechanics
+              </p>
+              <ul class="deep-dive-features">
+                <li data-i18n="tdee_kalman_t">Recursive Kalman Filtering</li>
+                <li data-i18n="tdee_math_t">Observed Maintenance Equation</li>
+                <li data-i18n="tdee_ramp_t">9-Week Linear Energetic Ramp</li>
+                <li data-i18n="tdee_noise_t">Handling Missing Data (Q = 40)</li>
+              </ul>
+              <div class="deep-dive-link-container">
+                <a href="./adaptive-nutrition/" class="deep-dive-link" data-i18n="learn_more">Learn more</a>
+              </div>
+            </div>
+
+            <div class="deep-dive-card">
+              <h3 data-i18n="rec_deep_t">Analytical Infrastructure</h3>
+              <p class="deep-dive-intro" data-i18n="rec_deep_c">Three-Layer Architecture & Composite Indices</p>
+              <ul class="deep-dive-features">
+                <li data-i18n="rec_schema_t">Three-Layer Sleep Schema</li>
+                <li data-i18n="rec_score_t">Sleep Health Score V2</li>
+                <li data-i18n="rec_pulse_t">Hourly Pulse Aggregation</li>
+              </ul>
+              <div class="deep-dive-link-container">
+                <a href="./recovery/" class="deep-dive-link" data-i18n="learn_more">Learn more</a>
+              </div>
+            </div>
+
+            <div class="deep-dive-card">
+              <h3 data-i18n="sleep_score_hero_t">Sleep Health Score v3.5</h3>
+              <p class="deep-dive-intro" data-i18n="sleep_score_hero_c">Continuous Multi-Domain Soft-Cap Evaluation Model</p>
+              <ul class="deep-dive-features">
+                <li data-i18n="sleep_math_base_t">Top-Level Weighted Aggregation</li>
+                <li data-i18n="sleep_math_mult_t">Continuous Soft-Cap Degradation</li>
+                <li data-i18n="sleep_math_lin_t">Linear Bounded Interpolation</li>
+              </ul>
+              <div class="deep-dive-link-container">
+                <a href="./sleep-score/" class="deep-dive-link" data-i18n="learn_more">Learn more</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="privacy-band" id="privacy" aria-labelledby="privacy-title">
+        <div class="privacy-inner">
+          <div class="reveal">
+            <span class="section-kicker" data-i18n="priv_kicker">Privacy &amp; Ownership</span>
+            <h2 class="privacy-heading" id="privacy-title" data-i18n="priv_heading">Your data starts local.</h2>
+            <p class="privacy-copy" data-i18n="priv_copy">Train Libre is offline-first. Your tracking data is handled
+              locally by default, and
+              there is no mandatory Train Libre cloud account. Sharing, export, health integrations, catalog refreshes,
+              AI meal recognition, and provider calls happen only through features you choose to use.</p>
+          </div>
+          <div class="ownership-stack">
+            <article class="ownership-row reveal delay-1">
+              <div class="ownership-number" aria-hidden="true">1</div>
+              <div>
+                <h3 data-i18n="priv_c1_title">Local by default</h3>
+                <p data-i18n="priv_c1_copy">Workouts, meals, measurements, and app state are designed around
+                  device-local
+                  storage.</p>
+              </div>
+            </article>
+            <article class="ownership-row reveal delay-2">
+              <div class="ownership-number" aria-hidden="true">2</div>
+              <div>
+                <h3 data-i18n="priv_c2_title">Portable when needed</h3>
+                <p data-i18n="priv_c2_copy">Backups, imports, exports, and share sheets make data movable without
+                  turning it into a hosted
+                  account.</p>
+              </div>
+            </article>
+            <article class="ownership-row reveal delay-3">
+              <div class="ownership-number" aria-hidden="true">3</div>
+              <div>
+                <h3 data-i18n="priv_c3_title">Clear boundaries</h3>
+                <p data-i18n="priv_c3_copy">Optional AI and health features are separate choices, with your API key and
+                  platform permissions in
+                  your control.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section showcase" id="showcase" aria-labelledby="showcase-title">
+        <div class="showcase-header reveal">
+          <div>
+            <span class="section-kicker" data-i18n="show_kicker">Product Showcase</span>
+            <h2 class="section-heading" id="showcase-title" data-i18n="show_heading">The actual app, framed with care.
+            </h2>
+          </div>
+          <p class="showcase-note" data-i18n="show_note">Dark surfaces, bold typography, glass controls, and restrained
+            color accents carry
+            the same visual language from logging to AI capture to training review.</p>
+        </div>
+
+        <div class="phone-row reveal delay-1">
+          <figure class="showcase-phone">
+            <div class="screen">
+              <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_diary.png"
+                data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_diary.png"
+                alt="Train Libre dark-mode diary dashboard with nutrition, hydration, supplements, steps, and meals.">
+            </div>
+            <figcaption class="phone-caption">
+              <strong data-i18n="show_c1_title">Daily diary</strong>
+              <span data-i18n="show_c1_copy">Nutrition, hydration, supplements, steps, and meals in one calm
+                view.</span>
+            </figcaption>
+          </figure>
+
+          <figure class="showcase-phone">
+            <div class="screen">
+              <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png"
+                data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png"
+                alt="Train Libre live workout screen showing lower body training, duration, volume, sets, RIR, and rest timing.">
+            </div>
+            <figcaption class="phone-caption">
+              <strong data-i18n="show_c2_title">Live workout</strong>
+              <span data-i18n="show_c2_copy">Set-level logging with RIR, rest timing, and session progress.</span>
+            </figcaption>
+          </figure>
+
+          <figure class="showcase-phone">
+            <div class="screen">
+              <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
+                data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
+                alt="Train Libre AI Meal Capture screen showing meal photos, text input, and an Analyze action.">
+            </div>
+            <figcaption class="phone-caption">
+              <strong data-i18n="show_c3_title">AI meal capture</strong>
+              <span data-i18n="show_c3_copy">Photo or text input becomes reviewable food entries, not a black-box
+                save.</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="open-section" aria-labelledby="open-title">
+        <div class="reveal">
+          <span class="section-kicker" data-i18n="open_kicker">Open &amp; Transparent</span>
+          <h2 id="open-title" data-i18n="open_heading">Public code. Public catalogs. Private logs.</h2>
+          <p class="section-copy" data-i18n="open_copy">Train Libre is available on GitHub and built around
+            understandable data flows rather
+            than opaque tracking loops.</p>
+        </div>
+        <div class="open-list">
+          <article class="open-item reveal delay-1">
+            <h3 data-i18n="open_l1_title">Developed in public</h3>
+            <p data-i18n="open_l1_copy">The project source is available on GitHub, with app behavior, catalog tooling,
+              backup logic, and privacy
+              boundaries visible in the repository.</p>
+          </article>
+          <article class="open-item reveal delay-2">
+            <h3 data-i18n="open_l2_title">Open catalog integrations</h3>
+            <p data-i18n="open_l2_copy">Food and exercise coverage is grounded in public sources, including Open Food
+              Facts and wger-based
+              catalog data.</p>
+          </article>
+          <article class="open-item reveal delay-3">
+            <h3 data-i18n="open_l3_title">Transparent analytics</h3>
+            <p data-i18n="open_l3_copy">Progress, recovery, consistency, and nutrition insights are meant to be
+              readable, practical, and grounded
+              in the data you logged.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="#top" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print" data-i18n="footer_medical">Fitness, nutrition, recovery, and pulse features are for
+          personal tracking and training
+          context, not medical diagnosis or treatment.</p>
+      </div>
+      <div class="footer-links">
+        <a href="./ai-nutrition/" data-i18n="intel_c1_label">AI meal recognition</a>
+        <a href="./adaptive-nutrition/" data-i18n="intel_c2_label">Calorie estimation</a>
+        <a href="./recovery/" data-i18n="footer_recovery">Recovery Tracker</a>
+        <a href="./sleep-score/" data-i18n="sleep_score_hero_t">Sleep Health Score</a>
+        <a href="./privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
+        <a href="./terms.html" data-i18n="footer_terms">Terms of Service</a>
+        <a href="./impressum.html" data-i18n="footer_imprint">Imprint</a>
+        <a href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

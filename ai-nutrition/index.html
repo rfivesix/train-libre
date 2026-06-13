@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="Optional AI meal recognition with a review-first approach. No ads. No accounts. Your data stays local by default.">
+  <meta name="theme-color" content="#000000">
+  <title>AI Meal Recognition | Train Libre</title>
+  <link rel="icon" href="../../web/favicon.png">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../katex.min.css">
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+
+<body>
+  <div class="page">
+    <header class="site-header">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="../#top" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features" data-i18n="nav_overview">Overview</a>
+          <a href="#architecture" data-i18n="nav_architecture">Architecture</a>
+          <a href="#limitations" data-i18n="nav_limitations">Limitations</a>
+          <a href="#evidence" data-i18n="nav_evidence">Evidence</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank"
+            rel="noreferrer">GitHub</a>
+        </div>
+        <div class="nav-controls">
+          <div class="dropdown" id="lang-dropdown">
+            <button class="control-btn" aria-label="Switch Language" aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+              </svg>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" data-lang="en">
+                <span>English</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="de">
+                <span>Deutsch</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="fr">
+                <span>Français</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="it">
+                <span>Italiano</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+              <button class="dropdown-item" data-lang="ja">
+                <span>日本語</span>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </button>
+            </div>
+          </div>
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero-minimal">
+        <div class="hero-content reveal">
+          <h1 data-i18n="ai_meal_hero_t">AI Meal Recognition</h1>
+          <p class="hero-copy" data-i18n="ai_meal_hero_c">A review-first approach to capturing nutrition data using large language models as a proposing layer for local deterministic validation.</p>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="feature-grid">
+          <article class="feature-card reveal delay-1" style="--feature: var(--orange); --feature-rgb: 255, 155, 5;">
+            <h3 data-i18n="ai_meal_what_t">What this feature does</h3>
+            <ul class="feature-list">
+                <li data-i18n="ai_meal_what_l1">Proposes food names and weight estimates from photos or text descriptions.</li>
+                <li data-i18n="ai_meal_what_l2">Matches AI suggestions against the app's local database of foods.</li>
+                <li data-i18n="ai_meal_what_l3">Calculates nutrition totals locally using matched product data.</li>
+                <li data-i18n="ai_meal_what_l4">Provides a manual review interface to edit or reject every entry.</li>
+            </ul>
+          </article>
+
+          <article class="feature-card reveal delay-2" style="--feature: var(--red); --feature-rgb: 245, 83, 83;">
+            <h3 data-i18n="ai_meal_not_t">What it does NOT do</h3>
+            <ul class="feature-list">
+                <li data-i18n="ai_meal_not_l1">It does not provide medical-grade nutrition analysis.</li>
+                <li data-i18n="ai_meal_not_l2">It does not automatically 'know' the caloric density of a specific restaurant dish.</li>
+                <li data-i18n="ai_meal_not_l3">It does not silently save data without your explicit review and confirmation.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section-tight" id="architecture">
+        <div class="reveal">
+          <h2 class="section-heading" data-i18n="ai_meal_how_t">The Architecture: Local-First & BYOK</h2>
+          <p class="section-copy" data-i18n="ai_meal_how_c1">Train Libre uses a "Bring Your Own Key" (BYOK) model. You choose a provider and model; the app handles the orchestration. Your data stays local, and the AI is only called when you trigger a capture.</p>
+          <p class="section-copy" data-i18n="ai_meal_how_c2">Recognition is treated as a noisy proposal. Once the AI returns food names and grams, the app runs a deterministic validation pass. It attempts to repair common errors and flags low-confidence matches before you see the result.</p>
+          
+          <h3 style="margin-top: 32px; margin-bottom: 16px; font-weight: 800; color: var(--fg);" data-i18n="ai_meal_deep_c">Algorithmic Invariants & Local Matching Pipeline</h3>
+          
+          <div class="pipeline-flow">
+            <div class="pipeline-step">
+              <div class="pipeline-num">1</div>
+              <div class="pipeline-meta">
+                <div class="pipeline-title" data-i18n="ai_meal_privacy_t">BYOK Privacy Invariant</div>
+                <div class="pipeline-desc" data-i18n="ai_meal_privacy_c">Your API key is stored securely using the operating system's Keychain (iOS) or Keystore (Android) via <code>flutter_secure_storage</code>. Raw image bytes or text descriptions are sent directly to your chosen AI provider (OpenAI, Anthropic, Gemini, Mistral, xAI) via TLS 1.3. No intermediate Train Libre server exists. Personal user profiles, weight history, and targets never leave your device.</div>
+              </div>
+            </div>
+
+            <div class="pipeline-step">
+              <div class="pipeline-num">2</div>
+              <div class="pipeline-meta">
+                <div class="pipeline-title" data-i18n="ai_meal_matching_t">Local Deterministic Matching</div>
+                <div class="pipeline-desc" data-i18n="ai_meal_matching_c">The AI operates only as a proposing layer. Once the model outputs food names and raw gram estimates, Train Libre matches these proposals against the local SQLite database (compiled from Open Food Facts and wger) using a tokenized Jaro-Winkler fuzzy matching scoring engine (validation threshold <span class="math-inline"><span class="math-var">D<sub>v</sub></span> &ge; 0.82</span>). If the match confidence is low, a local warning is flagged.</div>
+              </div>
+            </div>
+
+            <div class="pipeline-step">
+              <div class="pipeline-num">3</div>
+              <div class="pipeline-meta">
+                <div class="pipeline-title" data-i18n="ai_meal_retry_t">3-Pass Self-Repair Retry Loop</div>
+                <div class="pipeline-desc" data-i18n="ai_meal_retry_c">To counter structural LLM hallucinations, the app runs a local 3-pass self-repair routine: (1) <strong>Structured Extraction</strong>: forces JSON output using strict schemas; (2) <strong>Quantity Normalization</strong>: standardizes qualitative descriptors (e.g., 'a splash of milk', 'one medium slice') into metric grams; (3) <strong>Syntactic Repair</strong>: attempts regex-based extraction of malformed JSON arrays before initiating up to 3 automated localized retries.</div>
+              </div>
+            </div>
+
+            <div class="pipeline-step">
+              <div class="pipeline-num">4</div>
+              <div class="pipeline-meta">
+                <div class="pipeline-title" data-i18n="ai_meal_ban_t">Strict Nutrient Computation Ban</div>
+                <div class="pipeline-desc" data-i18n="ai_meal_ban_c">The AI is programmatically banned from calculating calories, macros, or nutritional totals (enforced via system instructions). All macro arithmetic is calculated 100% locally and offline on your device using verified food catalog densities. This prevents your health status from leaking to LLMs and ensures perfect mathematical consistency (1g Protein = 4 kcal, 1g Carb = 4 kcal, 1g Fat = 9 kcal).</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-tight" id="limitations">
+        <div class="reveal">
+          <h2 class="section-heading" data-i18n="ai_meal_limits_t">Scientific & Technical Limitations</h2>
+          <p class="section-copy" data-i18n="ai_meal_limits_c1">Research into computer-vision-based nutrition estimation highlights several fundamental hurdles that make 100% accuracy impossible for consumer apps:</p>
+          <div class="info-grid">
+            <div class="info-item">
+              <strong data-i18n="ai_meal_limits_l1">The Volume Problem: A 2D photo lacks depth information. Studies show that without a reference object or multiple angles, volume error rates typically range from 10% to 30%.</strong>
+            </div>
+            <div class="info-item">
+              <strong data-i18n="ai_meal_limits_l2">Hidden Ingredients: AI cannot 'see' the oils, butter, or sugar used in preparation. A grilled breast and a sautéed one may look identical but differ significantly in caloric density.</strong>
+            </div>
+            <div class="info-item">
+              <strong data-i18n="ai_meal_limits_l3">Mixed Dishes: Ingredients in dishes like stir-fries or burritos are often occluded. If the rice is under the curry, the AI will likely underestimate the portion.</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-tight">
+        <div class="reveal">
+          <h2 class="section-heading" data-i18n="ai_meal_guidance_t">Practical Guidance</h2>
+          <p class="section-copy" data-i18n="ai_meal_guidance_c">Treat AI capture as a friction-reduction tool, not a ground truth. Always use the review screen to adjust gram estimates and ensure the matched foods align with what you actually ate.</p>
+        </div>
+      </section>
+
+      <section class="section section-tight" id="evidence">
+        <div class="reveal">
+          <h2 class="section-heading" data-i18n="evidence_read_more">Evidence & further reading</h2>
+          <ul class="evidence-links">
+            <li>
+              <a href="https://doi.org/10.3390/healthcare10010059" target="_blank" rel="noreferrer">Puri et al. (2022) - Mobile Computer Vision-Based Applications for Food Recognition and Volume Estimation</a>
+            </li>
+            <li>
+              <a href="https://pubmed.ncbi.nlm.nih.gov/38354039/" target="_blank" rel="noreferrer"> systematic review (2024) - AI-based digital image dietary assessment methods compared to reference measures</a>
+            </li>
+            <li>
+              <a href="https://doi.org/10.3390/nu16152573" target="_blank" rel="noreferrer">Leigh et al. (2024) - Validity of AI-Enabled Food Image Recognition in Apps for Nutrition Care</a>
+            </li>
+            <li>
+              <a href="https://doi.org/10.2196/ijmr.9359" target="_blank" rel="noreferrer">Noronha et al. (2018) - Calorie Estimation From Pictures of Food: Crowdsourcing Study</a>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print" data-i18n="footer_medical">Fitness, nutrition, recovery, and pulse features are for
+          personal tracking and training
+          context, not medical diagnosis or treatment.</p>
+      </div>
+      <div class="footer-links">
+        <a href="../ai-nutrition/" data-i18n="intel_c1_label">AI meal recognition</a>
+        <a href="../adaptive-nutrition/" data-i18n="intel_c2_label">Calorie estimation</a>
+        <a href="../recovery/" data-i18n="footer_recovery">Recovery Tracker</a>
+        <a href="../sleep-score/" data-i18n="sleep_score_hero_t">Sleep Health Score</a>
+        <a href="../privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
+        <a href="../terms.html" data-i18n="footer_terms">Terms of Service</a>
+        <a href="../impressum.html" data-i18n="footer_imprint">Imprint</a>
+        <a href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../script.js"></script>
+</body>
+
+</html>
