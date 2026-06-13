@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.28] - 2026-06-13
+### Changed
+- **Liquid Glass Rest Timer Bar:** Upgraded the visual styling of the bottom rest timer bar on the live workout screen to use the premium liquid glass design system. Configured the countdown bar and green completion banner in a `SizedBox` and inner `Container` of exactly `74.0` height and `37.0` border radius to match `GlassFab` layout dimensions. Wrapped them in `GlassAdaptiveScope`, `AdaptiveGlass`, `GlassGlow` using `DesignConstants.liquidGlassSettings` and unified neutral tint (`DesignConstants.glassNeutralTint`) or green glass color mapping. Integrated `ShadowOuterClipper` to clip drop shadows from behind the transparent glass elements.
+- **Workout Screen Rebuild Performance Optimization:** Significantly optimized the `LiveWorkoutScreen` rendering pipeline to minimize unnecessary widget rebuilds:
+  - Refactored the root `LiveWorkoutScreen` to consume state reactively via granular `context.select` wrappers (for `isLoading`, `isActive`, `routineName`, `exercises`, and `showRestBar`) instead of an all-encompassing `context.watch<LiveWorkoutViewModel>()` subscription.
+  - Wrapped `WorkoutSummaryBar` in a localized `Consumer` so duration, volume, and progress updates rebuild only the summary bar rather than the entire screen.
+  - Wrapped each exercise row card in a `RepaintBoundary` to optimize GPU raster cache.
+  - Isolated the set templates list of each exercise within a targeted `Selector<LiveWorkoutViewModel, Map<int, SetLog>>` with custom equality checks (`shouldRebuild` checking changes to `setType` and `isCompleted`), ensuring set interactions only rebuild the specific exercise card's sets rather than refreshing the entire page.
+- **Diary Screen Rebuild & Scroll Performance Optimization:** Optimized the rendering and scrolling performance of the diary screen (`DiaryScreen`) to eliminate lag and frame drops when viewing days with a large amount of logged entries:
+  - Replaced the root `context.watch<DiaryViewModel>()` with a non-listening `context.read<DiaryViewModel>()` and granular `context.select(...)` observers for configuration toggles (Steps, Sleep, Pulse, Workouts).
+  - Wrapped card components (Nutrition, Supplements, and Workout summaries) in targeted `Selector` widgets to isolate rebuilds.
+  - Converted the inline meal card and fluid card builders into self-contained private stateful widgets (`_MealCard` and `_FluidsCard`) with localized expansion states, preventing screen-wide repaints when cards are toggled.
+  - Implemented deep collection equality helpers in selectors to prevent redundant card rebuilds.
+  - Wrapped `_MealCard`, `_FluidsCard`, `StepsSummaryCard`, `SleepSummaryCard`, `PulseSummaryCard`, and `WeightChartCard` in `RepaintBoundary` widgets, caching complex card layouts and chart canvas vectors on the GPU to ensure butter-smooth scrolling.
+
 ## [0.9.27] - 2026-06-13
 ### Added
 - **Austria ('at') OFF Database Region Integration:** Added support for Austria (`at`) to the Open Food Facts (OFF) database compiler pipeline, automatic weekly refresh workflows, and the client application settings screen, complete with German language fallback resolution and full localized descriptions in English, German, French, Italian, and Japanese.

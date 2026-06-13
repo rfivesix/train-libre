@@ -133,26 +133,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
     return weight * (36 / (37 - reps));
   }
 
-  double? _getSessionBestE1rm(
-    RoutineExercise routineExercise,
-    LiveWorkoutViewModel manager,
-  ) {
-    double? best;
 
-    for (final template in routineExercise.setTemplates) {
-      final setLog = manager.setLogs[template.id];
-      if (setLog == null) continue;
-
-      final value = _calculateBrzyckiE1rm(setLog, requireCompleted: true);
-      if (value == null) continue;
-
-      if (best == null || value > best) {
-        best = value;
-      }
-    }
-
-    return best;
-  }
 
   double? _getLastSessionBestE1rm(String exerciseName) {
     final lastSets = manager.lastPerformances[exerciseName] ?? const <SetLog>[];

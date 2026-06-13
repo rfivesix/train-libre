@@ -684,17 +684,17 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                   onReorder: _onReorder,
                                   itemCount: exercises.length,
                                   itemBuilder: (context, index) {
-                                    final routineExercise =
-                                        manager.exercises[index];
+                                    final routineExercise = exercises[index];
                                     final showE1rmSummary =
                                         !_isCardio(routineExercise);
                                     final pauseVal =
                                         manager.pauseTimes[routineExercise.id!];
                                     final hasPause =
                                         pauseVal != null && pauseVal > 0;
-                                    return WorkoutCard(
+                                    return RepaintBoundary(
                                       key: ValueKey(routineExercise.id),
-                                      child: Column(
+                                      child: WorkoutCard(
+                                        child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
@@ -891,14 +891,16 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                 return map;
                                               },
                                               shouldRebuild: (prev, next) {
-                                                if (prev.length != next.length)
+                                                if (prev.length != next.length) {
                                                   return true;
+                                                }
                                                 for (final key in prev.keys) {
                                                   final prevLog = prev[key];
                                                   final nextLog = next[key];
                                                   if (prevLog == null ||
-                                                      nextLog == null)
+                                                      nextLog == null) {
                                                     return true;
+                                                  }
                                                   if (prevLog.setType !=
                                                           nextLog.setType ||
                                                       prevLog.isCompleted !=
@@ -993,9 +995,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                           ),
                                         ],
                                       ),
-                                    );
-                                  },
-                                ),
+                                    ),
+                                  );
+                                },
+                              ),
                         ),
                       ],
                     ),

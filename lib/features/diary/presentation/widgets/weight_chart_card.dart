@@ -76,34 +76,36 @@ class _WeightChartCardState extends State<WeightChartCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return SummaryCard(
-      padding: DesignConstants.cardPadding,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.weightHistoryTitle,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Wrap(
-                spacing: 8.0,
-                children: [
-                  '30D',
-                  '90D',
-                  'All',
-                ].map((key) => _buildFilterButton(key, key)).toList(),
-              ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          MeasurementChartWidget(
-            chartType: 'weight',
-            dateRange: _calculateDateRange(),
-            unit: context.read<UnitService>().suffixFor(UnitDimension.weight),
-          ),
-        ],
+    return RepaintBoundary(
+      child: SummaryCard(
+        padding: DesignConstants.cardPadding,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.weightHistoryTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Wrap(
+                  spacing: 8.0,
+                  children: [
+                    '30D',
+                    '90D',
+                    'All',
+                  ].map((key) => _buildFilterButton(key, key)).toList(),
+                ),
+              ],
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            MeasurementChartWidget(
+              chartType: 'weight',
+              dateRange: _calculateDateRange(),
+              unit: context.read<UnitService>().suffixFor(UnitDimension.weight),
+            ),
+          ],
+        ),
       ),
     );
   }
