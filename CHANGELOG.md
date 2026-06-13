@@ -6,12 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.27] - 2026-06-13
 ### Added
+- **Austria ('at') OFF Database Region Integration:** Added support for Austria (`at`) to the Open Food Facts (OFF) database compiler pipeline, automatic weekly refresh workflows, and the client application settings screen, complete with German language fallback resolution and full localized descriptions in English, German, French, Italian, and Japanese.
 - **Microwave-Style Digit Entry Pattern:** Implemented a new intuitive microwave-style digit entry pattern for workout rest timers in both the active workout edit dialog and the routine builder edit dialog. It restricts inputs to digits using a numeric keypad and automatically formats inputs right-to-left (e.g. typing `5` formats to `00:05`, `130` to `01:30`).
 - **Rest Timer Suffix Clear Button:** Added a red accent clear button (`Icons.clear` with `Colors.redAccent`) inside the duration input field decoration. Tapping it instantly clears the text and disables the rest timer.
 - **Cardio Set Time Input:** Integrated the microwave-style digit entry pattern (`TimerInputFormatter` mapping right-to-left `MM:SS`) for cardio sets in the active workout (`LiveWorkoutSetRow`), the routine builder template builder (`RoutineSetRowWidget`), and the log editor (`WorkoutLogSetRow`), using a numeric keyboard for quick input.
 - **Cardio Distance Decimal Formatting:** Optimized cardio distance input to stay in km and display up to 3 decimal places without trailing zeros (e.g. `1.234` or `1,234`), supporting parsing of both dots and commas.
 
 ### Changed
+- **Base Food Startup Initialization Gating:** Optimized the startup pipeline for the base food database (`train_libre_base_foods.db`) and categories by gating checks on the runtime app build number (`packageInfo.buildNumber`), completely eliminating expensive asset file copy, open, and query overhead when launching the application on the same app build.
+- **Database Versioning Alignment:** Aligned the base food database version checks to mirror the OFF catalog versioning mechanism, storing the migration state locally and bypassing write transactions if the asset database version matches the installed version.
 - **Routine Editor Rest Timer Alignment:** Replaced the separate text display and timer icon in the routine builder exercise card with a unified rest timer button (matching the active workout screen's design) which displays the formatted rest duration text button (e.g. `01:30`) if configured, or the standard timer icon button if empty.
 - **Global Rest Duration Format:** Updated all rest timer duration displays and labels across both active workout and routine building screens to show formatted minutes and seconds (`mm:ss` like `01:30` and `00:10`) instead of raw seconds (like `90s` and `10s`).
 - **Cardio Log View Formatting:** Updated the log details screen (`WorkoutLogDetailScreen`) and set row (`WorkoutLogSetRow`) to format distance with up to 3 decimal places and duration as `MM:SS` format.
