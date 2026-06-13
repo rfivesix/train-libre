@@ -1,0 +1,83 @@
+name: Update F-Droid Repository
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update-fdroid-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install fdroidserver and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fdroidserver apksigner
+
+      - name: Initialize F-Droid Repository Structure
+        run: |
+          mkdir -p fdroid/repo
+          cp fdroid-config/config.yml fdroid/config.yml
+
+      - name: Download Release APKs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Fetch all APKs from the triggered release
+          gh release download ${{ github.event.release.tag_name }} --pattern "*.apk" --dir fdroid/repo
+
+      - name: Decode F-Droid Keystore
+        env:
+          FDROID_KEYSTORE_BASE64: ${{ secrets.FDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$FDROID_KEYSTORE_BASE64" ]; then
+            echo "Error: FDROID_KEYSTORE_BASE64 is not set."
+            exit 1
+          fi
+          echo "$FDROID_KEYSTORE_BASE64" | base64 --decode > fdroid/fdroid.jks
+
+      - name: Configure F-Droid settings
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.FDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.FDROID_KEY_PASSWORD }}
+        run: |
+          # Dynamically set repository URL, Name, and Description based on GitHub context
+          REPO_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/fdroid/repo"
+          REPO_NAME="${{ github.event.repository.name }} F-Droid Repo"
+          REPO_DESC="Automated F-Droid repository for ${{ github.event.repository.name }}"
+          
+          cd fdroid
+          sed -i "s|REPO_URL_PLACEHOLDER|$REPO_URL|g" config.yml
+          sed -i "s|REPO_NAME_PLACEHOLDER|$REPO_NAME|g" config.yml
+          sed -i "s|REPO_DESC_PLACEHOLDER|$REPO_DESC|g" config.yml
+          
+          # Inject passwords from secrets
+          sed -i "s|KEYSTORE_PASS_PLACEHOLDER|$KEYSTORE_PASSWORD|g" config.yml
+          sed -i "s|KEY_PASS_PLACEHOLDER|$KEY_PASSWORD|g" config.yml
+
+      - name: Update F-Droid Repository Metadata
+        run: |
+          cd fdroid
+          # Generate the index and sign the repository
+          fdroid update --create-metadata
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./fdroid/repo
+          publish_branch: gh-pages
+          destination_dir: fdroid/repo
+          keep_files: true

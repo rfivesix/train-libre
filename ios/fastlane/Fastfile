@@ -9,20 +9,14 @@ platform :ios do
     UI.user_error!("No compiled IPA file found in build/ios/ipa/") unless ipa_path
     UI.message("Found compiled IPA for TestFlight at: #{ipa_path}")
 
-    # Upload der IPA, die jetzt die synchrone Nummer aus der pubspec.yaml eingebrannt hat
     upload_to_testflight(
       ipa: ipa_path,
+      app_identifier: "com.rfivesix.trainlibre",
+      username: "accounts.richard@schotte.me", 
+      apple_id: "6767055511",    
+      team_id: "QUXZN5283U",
       skip_waiting_for_build_processing: true,
       changelog: "We are constantly working on improvements. To view the full changelog, please visit our GitHub repository."
     )
   end
 end
-
-# ==============================================================================
-# App Store Connect Credentials & Configurations (Unbedingt drin lassen!)
-# ==============================================================================
-app_identifier("com.rfivesix.trainlibre") # The bundle identifier of your app
-apple_id("accounts.richard@schotte.me") # Your Apple email address
-
-itc_team_id("QUXZN5283U") # App Store Connect Team ID
-team_id("QUXZN5283U") # Developer Portal Team ID
