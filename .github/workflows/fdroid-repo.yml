@@ -37,6 +37,7 @@ jobs:
       - name: Initialize F-Droid Repository Structure
         run: |
           mkdir -p fdroid/repo
+          mkdir -p fdroid/metadata
           cp fdroid-config/config.yml fdroid/config.yml
 
       - name: Download Release APKs
@@ -46,10 +47,10 @@ jobs:
           TAG_NAME="${{ github.event.release.tag_name }}"
           if [ -z "$TAG_NAME" ]; then
             echo "Manual trigger detected. Fetching assets from the latest release..."
-            gh release download --pattern "*.apk" --dir fdroid/repo
+            gh release download --pattern "*.apk" --dir fdroid/repo --skip-existing
           else
             echo "Release trigger detected for tag: $TAG_NAME"
-            gh release download "$TAG_NAME" --pattern "*.apk" --dir fdroid/repo
+            gh release download "$TAG_NAME" --pattern "*.apk" --dir fdroid/repo --skip-existing
           fi
 
       - name: Decode F-Droid Keystore
@@ -85,7 +86,7 @@ jobs:
       - name: Update F-Droid Repository Metadata
         run: |
           cd fdroid
-          fdroid update --create-metadata
+          fdroid update --create-metadata -v
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
