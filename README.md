@@ -44,7 +44,7 @@ Designed for people who want serious tracking without social feeds, gamification
 
 <table align="center">
   <tr>
-    <td align="center" valign="middle" width="300">
+    <td align="center" valign="middle" width="250">
       <a href="https://testflight.apple.com/join/x1UaM6TQ">
         <img
           src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
@@ -54,8 +54,8 @@ Designed for people who want serious tracking without social feeds, gamification
       </a>
       <br><sub><b>iOS Public TestFlight Beta</b></sub>
     </td>
-    <td width="50"></td>
-    <td align="center" valign="middle" width="300">
+    <td width="30"></td>
+    <td align="center" valign="middle" width="250">
       <a href="http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/rfivesix/train-libre/releases">
         <img
           src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png"
@@ -64,6 +64,17 @@ Designed for people who want serious tracking without social feeds, gamification
         />
       </a>
       <br><sub><b>Android (via Obtainium)</b></sub>
+    </td>
+    <td width="30"></td>
+    <td align="center" valign="middle" width="250">
+      <a href="https://rfivesix.github.io/train-libre/fdroid/repo?fingerprint=759124FF05FDCFA070EB2475D86D79614AE4F58779E391C8AE44C4EDC7A2CFB8">
+        <img
+          src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+          alt="Get it on F-Droid"
+          width="100%"
+        />
+      </a>
+      <br><sub><b>Android (via F-Droid)</b></sub>
     </td>
   </tr>
 </table>
