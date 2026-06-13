@@ -30,7 +30,7 @@ The application's framework and core modules are built using the following techn
 
 A core tenet of the Train Libre development lifecycle is strict mathematical and logic regression checking. Due to the high sensitivity of personal health records and the mathematical nature of the TDEE (Total Daily Energy Expenditure) filter, any logic drift would result in erroneous calorie targets or synchronization corruption.
 
-To prevent regressions, the codebase features a robust test suite comprising **107 individual test files** and **590+ automated tests**.
+To prevent regressions, the codebase features a robust test suite comprising **116 individual test files** and **670+ automated tests**.
 
 ### Test Categories
 1.  **Unit Tests**: Validate mathematical engines (e.g., `BayesianTdeeEstimator` and Kalman updates), text token fuzzy matching scores, data parsing models, and canonical health-data mapping algorithms.

@@ -52,8 +52,8 @@ The engine matches ingredients against the local SQLite database using fuzzy str
 *   **Exact Match (Score ≥ 0.95)**: Perfect textual alignment or matching barcode.
 *   **Strong Match (Score ≥ 0.78)**: Excellent alignment (e.g., token overlaps).
 *   **Partial Match (Score ≥ 0.55)**: Moderate overlap (triggers an information warning).
-*   **Weak Match (Score ≥ 0.35)**: Weak overlap (triggers a warning or error based on the application mode).
-*   **Unmatched (Score < 0.35)**: Results in an `unmatched_item` error. The item must be manually matched before saving.
+*   **Weak Match (Score < 0.55)**: Lower overlap or questionable semantic alignment.
+*   **Unmatched**: Results in an `unmatched_item` error. Triggered only when no database candidates are found; it is not bound to a specific score threshold.
 
 ### Validation Rules & Plausibility Checks
 The engine raises warnings or errors if the suggested portions violate physiological plausibility:

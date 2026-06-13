@@ -8,7 +8,7 @@ Train Libre integrates directly with system-level health aggregates via Apple He
 
 The synchronization engine operates under three technical invariants:
 
-1.  **On-Device Authority**: Train Libre's local SQLite database serves as the absolute single source of truth (SSOT). Data is never imported from HealthKit or Health Connect to alter local history; the data flow is strictly outbound.
+1.  **On-Device Authority**: Train Libre's local SQLite database serves as the primary source of truth (SSOT). While vital metrics are imported from HealthKit or Health Connect to populate activity history, manual entries and session logs remain strictly outbound.
 2.  **Zero Cloud Intermediaries**: All communication with the native health APIs occurs directly through OS-level platform channels and native bindings. No external servers or telemetry systems handle or store these records.
 3.  **Strict Idempotency**: Repeated synchronization runs must never create duplicate segments or write redundant entries into the system health database, regardless of sync frequency or network interrupts.
 
@@ -203,3 +203,4 @@ While measurements and workouts are exported in bulk, the `nutritionHydration` d
 2.  **Fallback Trigger**: If the batch throws an exception, the system catches the error and iterates over every record in that batch individually.
 3.  **Individual Writes**: The service invokes the single-record writer method (`adapter.writeNutrition` or `adapter.writeHydration`) for each record.
 4.  **Partial Completion**: Successful writes are recorded immediately in `health_export_records`, while failed records are logged individually and skipped. This prevents a single corrupt record (e.g., invalid timestamp or out-of-range value) from blocking the export of remaining healthy data.
+lly and skipped. This prevents a single corrupt record (e.g., invalid timestamp or out-of-range value) from blocking the export of remaining healthy data.
