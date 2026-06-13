@@ -12,6 +12,7 @@ import '../../../generated/app_localizations.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_exercise.dart';
+import '../domain/models/set_log.dart';
 import '../domain/models/workout_log.dart';
 import '../../../services/haptic_feedback_service.dart';
 import 'live_workout_view_model.dart';
@@ -492,11 +493,23 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     context.watch<UnitService>();
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final manager = Provider.of<LiveWorkoutViewModel>(context);
+    final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
+
+    final isLoading =
+        context.select<LiveWorkoutViewModel, bool>((vm) => vm.isLoading);
+    final isActive =
+        context.select<LiveWorkoutViewModel, bool>((vm) => vm.isActive);
+    final routineName = context.select<LiveWorkoutViewModel, String?>(
+        (vm) => vm.workoutLog?.routineName);
+    final exercises =
+        context.select<LiveWorkoutViewModel, List<RoutineExercise>>(
+            (vm) => vm.exercises);
+    final showRestBar = context.select<LiveWorkoutViewModel, bool>(
+        (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
 
     // If the workout was just finished, the manager state is cleared.
     // We return a blank scaffold to avoid any errors during the Navigator transition.
-    if (!manager.isActive && !manager.isLoading) {
+    if (!isActive && !isLoading) {
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       );
@@ -578,21 +591,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       }
     }
 
-    final mgr = manager;
-    final int planned = mgr.setLogs.length;
-    final int completed =
-        mgr.setLogs.values.where((s) => s.isCompleted == true).length;
-    final double progress = planned == 0 ? 0.0 : completed / planned;
-
-    if (!manager.isLoading) {
+    if (!isLoading) {
       manager.syncControllers();
     }
 
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
-    final double fabBottomPadding =
-        manager.remainingRestSeconds > 0 || manager.showRestDone
-            ? bottomSafeArea - 22 // + 94.0
-            : bottomSafeArea - 22; // + 28.0;
+    final double fabBottomPadding = showRestBar
+        ? bottomSafeArea - 23 // + 94.0
+        : bottomSafeArea - 23; // + 28.0;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -619,7 +625,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             scrolledUnderElevation: 0,
             centerTitle: false,
             title: Text(
-              manager.workoutLog?.routineName ?? l10n.freeWorkoutTitle,
+              routineName ?? l10n.freeWorkoutTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
@@ -637,17 +643,27 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               ),
             ],
           ),
-          body: manager.isLoading
+          body: isLoading
               ? const Center(child: CircularProgressIndicator())
               : Stack(
                   children: [
                     Column(
                       children: [
-                        WorkoutSummaryBar(
-                          duration: mgr.elapsedDuration,
-                          volume: mgr.totalVolume,
-                          sets: planned,
-                          progress: progress,
+                        Consumer<LiveWorkoutViewModel>(
+                          builder: (context, vm, _) {
+                            final planned = vm.setLogs.length;
+                            final completed = vm.setLogs.values
+                                .where((s) => s.isCompleted == true)
+                                .length;
+                            final progress =
+                                planned == 0 ? 0.0 : completed / planned;
+                            return WorkoutSummaryBar(
+                              duration: vm.elapsedDuration,
+                              volume: vm.totalVolume,
+                              sets: planned,
+                              progress: progress,
+                            );
+                          },
                         ),
                         Divider(
                           height: 1,
@@ -657,17 +673,16 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
                         ),
                         Expanded(
-                          child: manager.exercises.isEmpty
+                          child: exercises.isEmpty
                               ? _buildEmptyState(l10n)
                               : ReorderableListView.builder(
                                   padding: EdgeInsets.only(
-                                    bottom: manager.remainingRestSeconds > 0 ||
-                                            manager.showRestDone
+                                    bottom: showRestBar
                                         ? 180.0
                                         : DesignConstants.bottomContentSpacer,
                                   ),
                                   onReorder: _onReorder,
-                                  itemCount: manager.exercises.length,
+                                  itemCount: exercises.length,
                                   itemBuilder: (context, index) {
                                     final routineExercise =
                                         manager.exercises[index];
@@ -859,81 +874,121 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 0.0,
                                             ),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                // FIX: Insert header row dynamically.
-                                                _buildHeaderRow(
-                                                  routineExercise,
-                                                  l10n,
-                                                ),
-
-                                                // Set Rows
-                                                ...routineExercise.setTemplates
-                                                    .asMap()
-                                                    .entries
-                                                    .map((setEntry) {
-                                                  final templateId =
-                                                      setEntry.value.id!;
-                                                  final template = setEntry
-                                                      .value; // <--- Template
-                                                  final setLog = manager
-                                                      .setLogs[templateId];
-
-                                                  if (setLog == null) {
-                                                    return const SizedBox
-                                                        .shrink();
+                                            child: Selector<
+                                                LiveWorkoutViewModel,
+                                                Map<int, SetLog>>(
+                                              selector: (context, vm) {
+                                                final map = <int, SetLog>{};
+                                                for (final template
+                                                    in routineExercise
+                                                        .setTemplates) {
+                                                  final log =
+                                                      vm.setLogs[template.id];
+                                                  if (log != null) {
+                                                    map[template.id!] = log;
                                                   }
-                                                  int workingSetIndex = 0;
-                                                  for (int i = 0;
-                                                      i <= setEntry.key;
-                                                      i++) {
-                                                    final currentTemplateId =
-                                                        routineExercise
-                                                            .setTemplates[i]
-                                                            .id!;
-                                                    if (manager
-                                                            .setLogs[
-                                                                currentTemplateId]
-                                                            ?.setType !=
-                                                        'warmup') {
-                                                      workingSetIndex++;
-                                                    }
+                                                }
+                                                return map;
+                                              },
+                                              shouldRebuild: (prev, next) {
+                                                if (prev.length != next.length)
+                                                  return true;
+                                                for (final key in prev.keys) {
+                                                  final prevLog = prev[key];
+                                                  final nextLog = next[key];
+                                                  if (prevLog == null ||
+                                                      nextLog == null)
+                                                    return true;
+                                                  if (prevLog.setType !=
+                                                          nextLog.setType ||
+                                                      prevLog.isCompleted !=
+                                                          nextLog.isCompleted) {
+                                                    return true;
                                                   }
+                                                }
+                                                return false;
+                                              },
+                                              builder: (context,
+                                                  exerciseSetLogs, child) {
+                                                return Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    // FIX: Insert header row dynamically.
+                                                    _buildHeaderRow(
+                                                      routineExercise,
+                                                      l10n,
+                                                    ),
 
-                                                  return LiveWorkoutSetRow(
-                                                    setIndex: workingSetIndex,
-                                                    rowIndex: setEntry.key,
-                                                    templateId: templateId,
-                                                    setLog: setLog,
-                                                    lastPerfSets:
-                                                        manager.lastPerformances[
+                                                    // Set Rows
+                                                    ...routineExercise
+                                                        .setTemplates
+                                                        .asMap()
+                                                        .entries
+                                                        .map((setEntry) {
+                                                      final templateId =
+                                                          setEntry.value.id!;
+                                                      final template = setEntry
+                                                          .value; // <--- Template
+                                                      final setLog =
+                                                          exerciseSetLogs[
+                                                              templateId];
+
+                                                      if (setLog == null) {
+                                                        return const SizedBox
+                                                            .shrink();
+                                                      }
+                                                      int workingSetIndex = 0;
+                                                      for (int i = 0;
+                                                          i <= setEntry.key;
+                                                          i++) {
+                                                        final currentTemplateId =
+                                                            routineExercise
+                                                                .setTemplates[i]
+                                                                .id!;
+                                                        if (exerciseSetLogs[
+                                                                    currentTemplateId]
+                                                                ?.setType !=
+                                                            'warmup') {
+                                                          workingSetIndex++;
+                                                        }
+                                                      }
+
+                                                      return LiveWorkoutSetRow(
+                                                        setIndex:
+                                                            workingSetIndex,
+                                                        rowIndex: setEntry.key,
+                                                        templateId: templateId,
+                                                        setLog: setLog,
+                                                        lastPerfSets: manager
+                                                                    .lastPerformances[
                                                                 routineExercise
                                                                     .exercise
                                                                     .nameEn] ??
                                                             [],
-                                                    template: template,
-                                                    manager: manager,
-                                                    isCardio: _isCardio(
-                                                        routineExercise),
-                                                  );
-                                                }),
-                                                Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 16.0,
-                                                  ),
-                                                  child: TextButton.icon(
-                                                    onPressed: () => _addSet(
-                                                        routineExercise),
-                                                    icon: const Icon(
-                                                        LucideIcons.plus),
-                                                    label:
-                                                        Text(l10n.addSetButton),
-                                                  ),
-                                                ),
-                                              ],
+                                                        template: template,
+                                                        manager: manager,
+                                                        isCardio: _isCardio(
+                                                            routineExercise),
+                                                      );
+                                                    }),
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 16.0,
+                                                      ),
+                                                      child: TextButton.icon(
+                                                        onPressed: () => _addSet(
+                                                            routineExercise),
+                                                        icon: const Icon(
+                                                            LucideIcons.plus),
+                                                        label: Text(
+                                                            l10n.addSetButton),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
                                             ),
                                           ),
                                         ],
