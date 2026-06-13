@@ -3,7 +3,7 @@ name: Update F-Droid Repository
 on:
   release:
     types: [published]
-  workflow_dispatch: # Ermöglicht den manuellen Start über den "Run workflow" Button
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -22,6 +22,12 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
       - name: Install fdroidserver and dependencies
         run: |
           sudo apt-get update
@@ -37,7 +43,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Fallback: Wenn manuell gestartet, nimm den neuesten Release, sonst den auslösenden Release
           TAG_NAME="${{ github.event.release.tag_name }}"
           if [ -z "$TAG_NAME" ]; then
             echo "Manual trigger detected. Fetching assets from the latest release..."
@@ -62,7 +67,6 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.FDROID_KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.FDROID_KEY_PASSWORD }}
         run: |
-          # Robustes Parsing des Repository-Namens
           REPO_NAME="${{ github.event.repository.name }}"
           REPO_URL="https://${{ github.repository_owner }}.github.io/$REPO_NAME/fdroid/repo"
           REPO_DISPLAY_NAME="$REPO_NAME F-Droid Repo"
@@ -73,14 +77,12 @@ jobs:
           sed -i "s|REPO_NAME_PLACEHOLDER|$REPO_DISPLAY_NAME|g" config.yml
           sed -i "s|REPO_DESC_PLACEHOLDER|$REPO_DESC|g" config.yml
           
-          # Passwörter injizieren
           sed -i "s|KEYSTORE_PASS_PLACEHOLDER|$KEYSTORE_PASSWORD|g" config.yml
           sed -i "s|KEY_PASS_PLACEHOLDER|$KEY_PASSWORD|g" config.yml
 
       - name: Update F-Droid Repository Metadata
         run: |
           cd fdroid
-          # Index generieren und signieren
           fdroid update --create-metadata
 
       - name: Deploy to GitHub Pages
