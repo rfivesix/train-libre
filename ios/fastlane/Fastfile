@@ -1,47 +1,28 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Run dry-run verification checks locally"
-  lane :test_build do
-    UI.message("Executing dry-run release checks...")
-    if File.exist?("../Runner.xcodeproj")
-      UI.success("Xcode project structure verified successfully.")
-    else
-      UI.user_error!("Runner.xcodeproj could not be located in the expected directory.")
-    end
-  end
-
-  desc "Process version incrementing and upload to Apple TestFlight"
-  lane :beta do
-    # Fetch the latest build number from TestFlight and increment Xcode configuration
-    begin
-      current_build = latest_testflight_build_number
-      build_number = current_build + 1
-      UI.message("Latest TestFlight build number: #{current_build}. Incrementing to #{build_number}.")
-    rescue => e
-      UI.important("Could not retrieve latest build number from TestFlight: #{e.message}")
-      UI.important("Defaulting build number to 1.")
-      build_number = 1
-    end
-
-    increment_build_number(
-      build_number: build_number,
-      xcodeproj: "Runner.xcodeproj"
-    )
-
-    # Get the absolute path to the project root
-    project_root = File.expand_path("../..", __FILE__)
-    
-    # Search deeply inside the build directory using the absolute path
+  desc "Upload existing IPA to Apple TestFlight"
+  lane :upload_beta do
+    project_root = File.expand_path("../../..", __FILE__)
     ipa_path = Dir[File.join(project_root, "build", "ios", "ipa", "**", "*.ipa")].first
     
     UI.user_error!("No compiled IPA file found in build/ios/ipa/") unless ipa_path
-    UI.message("Found compiled IPA at: #{ipa_path}")
+    UI.message("Found compiled IPA for TestFlight at: #{ipa_path}")
 
-    # Upload the IPA to TestFlight
+    # Upload der IPA, die jetzt die synchrone Nummer aus der pubspec.yaml eingebrannt hat
     upload_to_testflight(
       ipa: ipa_path,
+      skip_waiting_for_build_processing: true,
       changelog: "We are constantly working on improvements. To view the full changelog, please visit our GitHub repository."
     )
   end
 end
+
+# ==============================================================================
+# App Store Connect Credentials & Configurations (Unbedingt drin lassen!)
+# ==============================================================================
+app_identifier("com.rfivesix.trainlibre") # The bundle identifier of your app
+apple_id("accounts.richard@schotte.me") # Your Apple email address
+
+itc_team_id("QUXZN5283U") # App Store Connect Team ID
+team_id("QUXZN5283U") # Developer Portal Team ID
