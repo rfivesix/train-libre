@@ -1059,11 +1059,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
-    final Color neutralTint = isDark
-        ? theme.colorScheme.surface.withValues(alpha: 0.70)
-        : theme.colorScheme.surface.withValues(alpha: 0.82);
-    final Color effectiveGlass = DesignConstants.glassColor(isDark);
     const double r = 20;
 
     if (isRunning) {
@@ -1075,233 +1070,257 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(r),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(r),
-            child: AdaptiveGlass(
-              settings: LiquidGlassSettings(
-                thickness: 0,
-                blur: 8.0,
-                glassColor: effectiveGlass,
-                lightIntensity: 0.1,
-                saturation: 1.20,
-              ),
-              shape: const LiquidRoundedSuperellipse(borderRadius: r),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0, vertical: 12.0),
-                decoration: BoxDecoration(
-                  color: neutralTint,
-                  borderRadius: BorderRadius.circular(r),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.15)
-                        : Colors.black.withValues(alpha: 0.08),
-                    width: 1.2,
+        child: SizedBox(
+          height: 62.0,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: ClipPath(
+                  clipper: ShadowOuterClipper(borderRadius: r),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(r),
+                      boxShadow: DesignConstants.glassShadow,
+                    ),
                   ),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // -15 Button
-                    SizedBox(
-                      height: 38,
-                      width: 48,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          backgroundColor: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.06),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.1)
-                                  : Colors.black.withValues(alpha: 0.05),
+              ),
+              GlassAdaptiveScope(
+                minQuality: GlassQuality.premium,
+                maxQuality: GlassQuality.premium,
+                child: AdaptiveGlass(
+                  settings: DesignConstants.liquidGlassSettings(isDark),
+                  shape: const LiquidRoundedSuperellipse(borderRadius: r),
+                  quality: GlassQuality.premium,
+                  child: GlassGlow(
+                    glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+                    glowRadius: 1.0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 12.0),
+                      decoration: BoxDecoration(
+                        color: DesignConstants.glassNeutralTint(isDark),
+                        borderRadius: BorderRadius.circular(r),
+                      ),
+                      foregroundDecoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(r),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.20)
+                              : Colors.black.withValues(alpha: 0.08),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // -15 Button
+                          SizedBox(
+                            height: 38,
+                            width: 48,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                backgroundColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : Colors.black.withValues(alpha: 0.06),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.05),
+                                  ),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                              onPressed: () => manager.adjustRestTime(-15),
+                              child: Text(
+                                "-15",
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
                             ),
                           ),
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: () => manager.adjustRestTime(-15),
-                        child: Text(
-                          "-15",
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Timer Text
-                    Container(
-                      height: 38,
-                      alignment: Alignment.center,
-                      child: Text(
-                        timerStr,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // +15 Button
-                    SizedBox(
-                      height: 38,
-                      width: 48,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          backgroundColor: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.06),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.1)
-                                  : Colors.black.withValues(alpha: 0.05),
+                          const SizedBox(width: 12),
+                          // Timer Text
+                          Container(
+                            height: 38,
+                            alignment: Alignment.center,
+                            child: Text(
+                              timerStr,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurface,
+                                fontFeatures: const [FontFeature.tabularFigures()],
+                              ),
                             ),
                           ),
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: () => manager.adjustRestTime(15),
-                        child: Text(
-                          "+15",
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                          const SizedBox(width: 12),
+                          // +15 Button
+                          SizedBox(
+                            height: 38,
+                            width: 48,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                backgroundColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : Colors.black.withValues(alpha: 0.06),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.05),
+                                  ),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                              onPressed: () => manager.adjustRestTime(15),
+                              child: Text(
+                                "+15",
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                          const Spacer(),
+                          // Skip Button
+                          SizedBox(
+                            height: 38,
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                              ),
+                              onPressed: () => manager.cancelRest(),
+                              child: Text(
+                                l10n.skipButton,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const Spacer(),
-                    // Skip Button
-                    SizedBox(
-                      height: 38,
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                        ),
-                        onPressed: () => manager.cancelRest(),
-                        child: Text(
-                          l10n.skipButton,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       );
     }
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(r),
-          child: AdaptiveGlass(
-            settings: LiquidGlassSettings(
-              thickness: 0,
-              blur: 8.0,
-              glassColor: Colors.green.withValues(alpha: 0.2),
-              lightIntensity: 0.1,
-              saturation: 1.20,
-            ),
-            shape: const LiquidRoundedSuperellipse(borderRadius: r),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(r),
-                border: Border.all(
-                  color: Colors.green.withValues(alpha: 0.3),
-                  width: 1.2,
+      child: SizedBox(
+        height: 62.0,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipPath(
+                clipper: ShadowOuterClipper(borderRadius: r),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(r),
+                    boxShadow: DesignConstants.glassShadow,
+                  ),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(LucideIcons.circle_check, color: Colors.white),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.restOverLabel, //"Pause vorbei!",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 38,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                      ),
-                      onPressed: () => manager.cancelRest(),
-                      child: Text(
-                        l10n.snackbar_button_ok,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+            ),
+            GlassAdaptiveScope(
+              minQuality: GlassQuality.premium,
+              maxQuality: GlassQuality.premium,
+              child: AdaptiveGlass(
+                settings: LiquidGlassSettings(
+                  thickness: 30,
+                  blur: 2.0,
+                  glassColor: Colors.green.withValues(alpha: isDark ? 0.20 : 0.25),
+                  lightIntensity: isDark ? 0.55 : 0.80,
+                  saturation: 1.20,
+                ),
+                shape: const LiquidRoundedSuperellipse(borderRadius: r),
+                quality: GlassQuality.premium,
+                child: GlassGlow(
+                  glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+                  glowRadius: 1.0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 12.0),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: isDark ? 0.50 : 0.70),
+                      borderRadius: BorderRadius.circular(r),
+                    ),
+                    foregroundDecoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(r),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.20),
+                        width: 1.2,
                       ),
                     ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(LucideIcons.circle_check, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              l10n.restOverLabel, //"Pause vorbei!",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 38,
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            onPressed: () => manager.cancelRest(),
+                            child: Text(
+                              l10n.snackbar_button_ok,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
