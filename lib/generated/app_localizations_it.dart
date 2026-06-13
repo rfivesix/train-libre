@@ -431,7 +431,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get cardioDistanceLabel => 'Distanza (km)';
 
   @override
-  String get cardioTimeLabel => 'Tempo (minuti)';
+  String get cardioTimeLabel => 'Tempo';
 
   @override
   String get cardioIntensityLabel => 'Intensi.';
@@ -2192,6 +2192,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionJapan => 'Giappone (JP)';
+
+  @override
+  String get settingsFoodDbRegionAustria => 'Austria (AT)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Distintivi macro colorati';

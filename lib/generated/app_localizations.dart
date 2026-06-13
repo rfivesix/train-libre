@@ -905,7 +905,7 @@ abstract class AppLocalizations {
   /// No description provided for @cardioTimeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Time (min)'**
+  /// **'Time'**
   String get cardioTimeLabel;
 
   /// No description provided for @cardioIntensityLabel.
@@ -3955,6 +3955,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Japan (JP)'**
   String get settingsFoodDbRegionJapan;
+
+  /// No description provided for @settingsFoodDbRegionAustria.
+  ///
+  /// In en, this message translates to:
+  /// **'Austria (AT)'**
+  String get settingsFoodDbRegionAustria;
 
   /// No description provided for @settingsColorfulMacroBadgesTitle.
   ///

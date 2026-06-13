@@ -11,6 +11,7 @@ import '../domain/detect_personal_record_use_case.dart';
 import '../domain/log_workout_set_use_case.dart';
 import '../../../services/local_notification_service.dart';
 import '../../../services/haptic_feedback_service.dart';
+import '../../../util/time_util.dart';
 
 class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final IWorkoutRepository _repository;
@@ -300,8 +301,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       if (!weightControllers.containsKey(templateId)) {
         String initText;
         if (isCardio) {
-          initText =
-              setLog.distanceKm?.toStringAsFixed(1).replaceAll('.0', '') ?? '';
+          initText = setLog.distanceKm == null
+              ? ''
+              : setLog.distanceKm!
+                  .toStringAsFixed(3)
+                  .replaceAll(RegExp(r'0*$'), '')
+                  .replaceAll(RegExp(r'\.$'), '');
         } else {
           initText = setLog.weightKg == null
               ? ''
@@ -316,9 +321,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       if (!repsControllers.containsKey(templateId)) {
         String initText;
         if (isCardio) {
-          initText = setLog.durationSeconds != null
-              ? (setLog.durationSeconds! ~/ 60).toString()
-              : '';
+          initText = formatPauseDuration(setLog.durationSeconds);
         } else {
           initText = setLog.reps?.toString() ?? '';
         }

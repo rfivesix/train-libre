@@ -9,6 +9,7 @@ import '../../domain/models/set_log.dart';
 import '../../domain/models/set_template.dart';
 import '../live_workout_view_model.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../util/time_util.dart';
 
 /// An interactive row representing a single set in an active workout session.
 ///
@@ -245,7 +246,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     if (isCardio) {
       weightHint = "-"; // Distance Hint
-      repHint = "-"; // Time Hint
+      repHint = "00:00"; // Time Hint
     } else {
       final double tWeight = template.targetWeight ?? 0.0;
       weightHint = tWeight > 0
@@ -412,6 +413,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
             controller: manager.repsControllers[templateId],
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
+            inputFormatters: isCardio ? [TimerInputFormatter()] : null,
             textInputAction: TextInputAction.next,
             style: TextStyle(
               fontSize: 18,
@@ -431,25 +433,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
             enabled: !isCompleted,
             onChanged: (text) {
               if (isCardio) {
-                final String sanitized = text.replaceAll(',', '.');
-                final double? val;
-                if (sanitized.contains('-')) {
-                  final parts = sanitized.split('-');
-                  if (parts.length == 2) {
-                    final min = double.tryParse(parts[0].trim());
-                    final max = double.tryParse(parts[1].trim());
-                    if (min != null && max != null) {
-                      val = (min + max) / 2;
-                    } else {
-                      val = null;
-                    }
-                  } else {
-                    val = null;
-                  }
-                } else {
-                  val = double.tryParse(sanitized);
-                }
-                final seconds = (val != null) ? (val * 60).round() : null;
+                final seconds = parsePauseDuration(text);
                 final clearDuration = seconds == null && text.isEmpty;
                 if (seconds != manager.setLogs[templateId]?.durationSeconds ||
                     clearDuration) {
@@ -544,12 +528,13 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           if (updatedSet.distanceKm != null) {
                             manager.weightControllers[templateId]?.text =
                                 updatedSet.distanceKm!
-                                    .toStringAsFixed(1)
-                                    .replaceAll('.0', '');
+                                    .toStringAsFixed(3)
+                                    .replaceAll(RegExp(r'0*$'), '')
+                                    .replaceAll(RegExp(r'\.$'), '');
                           }
                           if (updatedSet.durationSeconds != null) {
                             manager.repsControllers[templateId]?.text =
-                                (updatedSet.durationSeconds! ~/ 60).toString();
+                                formatPauseDuration(updatedSet.durationSeconds);
                           }
                         } else {
                           if (updatedSet.weightKg != null) {

@@ -214,9 +214,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           if (isCardio && repsText == '8-12') repsText = '';
 
           _repsControllers[st.id!] = TextEditingController(text: repsText);
-          _weightControllers[st.id!] = TextEditingController(
-            text: st.targetWeight?.toString() ?? '',
-          );
+          final String weightText = (st.targetWeight == null)
+              ? ''
+              : (isCardio
+                  ? st.targetWeight!
+                      .toStringAsFixed(3)
+                      .replaceAll(RegExp(r'0*$'), '')
+                      .replaceAll(RegExp(r'\.$'), '')
+                  : st.targetWeight!.toString());
+          _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
             text: st.targetRir?.toString() ?? '',
           );
@@ -264,9 +270,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           final defaultReps = isCardio ? '' : st.targetReps;
 
           _repsControllers[st.id!] = TextEditingController(text: defaultReps);
-          _weightControllers[st.id!] = TextEditingController(
-            text: st.targetWeight?.toString() ?? '',
-          );
+          final String weightText = (st.targetWeight == null)
+              ? ''
+              : (isCardio
+                  ? st.targetWeight!
+                      .toStringAsFixed(3)
+                      .replaceAll(RegExp(r'0*$'), '')
+                      .replaceAll(RegExp(r'\.$'), '')
+                  : st.targetWeight!.toString());
+          _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
             text: st.targetRir?.toString() ?? '',
           );
@@ -543,7 +555,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     );
 
     if (result != null && result.saved) {
-      await WorkoutLocalDataSource.instance.updatePauseTime(re.id!, result.value);
+      await WorkoutLocalDataSource.instance
+          .updatePauseTime(re.id!, result.value);
       _loadExercisesForRoutine();
     }
   }

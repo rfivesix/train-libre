@@ -424,7 +424,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cardioDistanceLabel => '距離(km)';
 
   @override
-  String get cardioTimeLabel => '時間(分)';
+  String get cardioTimeLabel => '時間';
 
   @override
   String get cardioIntensityLabel => 'インテンス。';
@@ -2131,6 +2131,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionJapan => '日本 (JP)';
+
+  @override
+  String get settingsFoodDbRegionAustria => 'オーストリア (AT)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'カラフルなマクロバッジ';

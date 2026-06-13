@@ -210,6 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       OffCatalogCountry.fr => l10n.settingsFoodDbRegionFrance,
       OffCatalogCountry.it => l10n.settingsFoodDbRegionItaly,
       OffCatalogCountry.jp => l10n.settingsFoodDbRegionJapan,
+      OffCatalogCountry.at => l10n.settingsFoodDbRegionAustria,
     };
   }
 

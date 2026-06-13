@@ -7,6 +7,7 @@ import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_template.dart';
 import 'set_type_chip.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../util/time_util.dart';
 
 class RoutineSetRowWidget extends StatelessWidget {
   final int setIndex;
@@ -88,17 +89,18 @@ class RoutineSetRowWidget extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                flex: 2,
+                flex: 4,
                 child: TextFormField(
                   controller: repsController,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
+                  inputFormatters: isCardio ? [TimerInputFormatter()] : null,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     isDense: true,
                     fillColor: Colors.transparent,
-                    hintText: "-",
+                    hintText: "00:00",
                   ),
                 ),
               ),

@@ -430,7 +430,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cardioDistanceLabel => 'Distanz (km)';
 
   @override
-  String get cardioTimeLabel => 'Zeit (min)';
+  String get cardioTimeLabel => 'Zeit';
 
   @override
   String get cardioIntensityLabel => 'Intens.';
@@ -2180,6 +2180,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsFoodDbRegionJapan => 'Japan (JP)';
+
+  @override
+  String get settingsFoodDbRegionAustria => 'Österreich (AT)';
 
   @override
   String get settingsColorfulMacroBadgesTitle => 'Bunte Nährwert-Badges';

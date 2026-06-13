@@ -31,6 +31,7 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'edit_routine_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../util/time_util.dart';
 
 /// A detailed view for a single completed [WorkoutLog].
 ///
@@ -213,10 +214,14 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       String val1, val2;
 
       if (isCardio) {
-        // Cardio: Val1 = Distance, Val2 = Duration(min)
-        val1 = setLog.distanceKm?.toStringAsFixed(1).replaceAll('.0', '') ?? '';
-        final sec = setLog.durationSeconds ?? 0;
-        val2 = sec > 0 ? (sec / 60).toStringAsFixed(0) : '';
+        // Cardio: Val1 = Distance, Val2 = Duration
+        val1 = setLog.distanceKm == null
+            ? ''
+            : setLog.distanceKm!
+                .toStringAsFixed(3)
+                .replaceAll(RegExp(r'0*$'), '')
+                .replaceAll(RegExp(r'\.$'), '');
+        val2 = formatPauseDuration(setLog.durationSeconds);
       } else {
         // Strength: Val1 = weight, Val2 = reps
         val1 = setLog.weightKg == null
@@ -402,19 +407,19 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       final val1 = isCardio
           ? val1Input
           : unitService.convertToMetric(val1Input, UnitDimension.weight);
-      final val2 = double.tryParse(
-            _repsControllers[setLog.id!]?.text.replaceAll(',', '.') ?? '0',
-          ) ??
-          0.0;
+      final repsText = _repsControllers[setLog.id!]?.text ?? '';
+      final val2 = isCardio
+          ? (parsePauseDuration(repsText) ?? 0).toDouble()
+          : (double.tryParse(repsText.replaceAll(',', '.')) ?? 0.0);
       final rir = int.tryParse(_rirControllers[setLog.id!]?.text ?? '');
 
       SetLog updatedSet;
 
       if (isCardio) {
-        // Val1 = Distance, Val2 = Minutes (-> Seconds)
+        // Val1 = Distance, Val2 = Seconds
         updatedSet = setLog.copyWith(
           distanceKm: val1,
-          durationSeconds: (val2 * 60).round(),
+          durationSeconds: val2.round(),
           rir: rir,
           clearRir: rir == null,
           // Set weight/reps to 0/null for cardio to avoid bad data?
