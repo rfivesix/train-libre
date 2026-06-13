@@ -12,6 +12,7 @@ import '../../../generated/app_localizations.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_exercise.dart';
+import '../domain/models/set_log.dart';
 import '../domain/models/workout_log.dart';
 import '../../../services/haptic_feedback_service.dart';
 import 'live_workout_view_model.dart';
@@ -492,11 +493,23 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     context.watch<UnitService>();
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final manager = Provider.of<LiveWorkoutViewModel>(context);
+    final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
+
+    final isLoading =
+        context.select<LiveWorkoutViewModel, bool>((vm) => vm.isLoading);
+    final isActive =
+        context.select<LiveWorkoutViewModel, bool>((vm) => vm.isActive);
+    final routineName = context.select<LiveWorkoutViewModel, String?>(
+        (vm) => vm.workoutLog?.routineName);
+    final exercises =
+        context.select<LiveWorkoutViewModel, List<RoutineExercise>>(
+            (vm) => vm.exercises);
+    final showRestBar = context.select<LiveWorkoutViewModel, bool>(
+        (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
 
     // If the workout was just finished, the manager state is cleared.
     // We return a blank scaffold to avoid any errors during the Navigator transition.
-    if (!manager.isActive && !manager.isLoading) {
+    if (!isActive && !isLoading) {
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       );
@@ -578,21 +591,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       }
     }
 
-    final mgr = manager;
-    final int planned = mgr.setLogs.length;
-    final int completed =
-        mgr.setLogs.values.where((s) => s.isCompleted == true).length;
-    final double progress = planned == 0 ? 0.0 : completed / planned;
-
-    if (!manager.isLoading) {
+    if (!isLoading) {
       manager.syncControllers();
     }
 
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
-    final double fabBottomPadding =
-        manager.remainingRestSeconds > 0 || manager.showRestDone
-            ? bottomSafeArea - 22 // + 94.0
-            : bottomSafeArea - 22; // + 28.0;
+    final double fabBottomPadding = showRestBar
+        ? bottomSafeArea - 23 // + 94.0
+        : bottomSafeArea - 23; // + 28.0;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -619,7 +625,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             scrolledUnderElevation: 0,
             centerTitle: false,
             title: Text(
-              manager.workoutLog?.routineName ?? l10n.freeWorkoutTitle,
+              routineName ?? l10n.freeWorkoutTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
@@ -637,17 +643,27 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               ),
             ],
           ),
-          body: manager.isLoading
+          body: isLoading
               ? const Center(child: CircularProgressIndicator())
               : Stack(
                   children: [
                     Column(
                       children: [
-                        WorkoutSummaryBar(
-                          duration: mgr.elapsedDuration,
-                          volume: mgr.totalVolume,
-                          sets: planned,
-                          progress: progress,
+                        Consumer<LiveWorkoutViewModel>(
+                          builder: (context, vm, _) {
+                            final planned = vm.setLogs.length;
+                            final completed = vm.setLogs.values
+                                .where((s) => s.isCompleted == true)
+                                .length;
+                            final progress =
+                                planned == 0 ? 0.0 : completed / planned;
+                            return WorkoutSummaryBar(
+                              duration: vm.elapsedDuration,
+                              volume: vm.totalVolume,
+                              sets: planned,
+                              progress: progress,
+                            );
+                          },
                         ),
                         Divider(
                           height: 1,
@@ -657,29 +673,28 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
                         ),
                         Expanded(
-                          child: manager.exercises.isEmpty
+                          child: exercises.isEmpty
                               ? _buildEmptyState(l10n)
                               : ReorderableListView.builder(
                                   padding: EdgeInsets.only(
-                                    bottom: manager.remainingRestSeconds > 0 ||
-                                            manager.showRestDone
+                                    bottom: showRestBar
                                         ? 180.0
                                         : DesignConstants.bottomContentSpacer,
                                   ),
                                   onReorder: _onReorder,
-                                  itemCount: manager.exercises.length,
+                                  itemCount: exercises.length,
                                   itemBuilder: (context, index) {
-                                    final routineExercise =
-                                        manager.exercises[index];
+                                    final routineExercise = exercises[index];
                                     final showE1rmSummary =
                                         !_isCardio(routineExercise);
                                     final pauseVal =
                                         manager.pauseTimes[routineExercise.id!];
                                     final hasPause =
                                         pauseVal != null && pauseVal > 0;
-                                    return WorkoutCard(
+                                    return RepaintBoundary(
                                       key: ValueKey(routineExercise.id),
-                                      child: Column(
+                                      child: WorkoutCard(
+                                        child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
@@ -859,88 +874,131 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 0.0,
                                             ),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                // FIX: Insert header row dynamically.
-                                                _buildHeaderRow(
-                                                  routineExercise,
-                                                  l10n,
-                                                ),
-
-                                                // Set Rows
-                                                ...routineExercise.setTemplates
-                                                    .asMap()
-                                                    .entries
-                                                    .map((setEntry) {
-                                                  final templateId =
-                                                      setEntry.value.id!;
-                                                  final template = setEntry
-                                                      .value; // <--- Template
-                                                  final setLog = manager
-                                                      .setLogs[templateId];
-
-                                                  if (setLog == null) {
-                                                    return const SizedBox
-                                                        .shrink();
+                                            child: Selector<
+                                                LiveWorkoutViewModel,
+                                                Map<int, SetLog>>(
+                                              selector: (context, vm) {
+                                                final map = <int, SetLog>{};
+                                                for (final template
+                                                    in routineExercise
+                                                        .setTemplates) {
+                                                  final log =
+                                                      vm.setLogs[template.id];
+                                                  if (log != null) {
+                                                    map[template.id!] = log;
                                                   }
-                                                  int workingSetIndex = 0;
-                                                  for (int i = 0;
-                                                      i <= setEntry.key;
-                                                      i++) {
-                                                    final currentTemplateId =
-                                                        routineExercise
-                                                            .setTemplates[i]
-                                                            .id!;
-                                                    if (manager
-                                                            .setLogs[
-                                                                currentTemplateId]
-                                                            ?.setType !=
-                                                        'warmup') {
-                                                      workingSetIndex++;
-                                                    }
+                                                }
+                                                return map;
+                                              },
+                                              shouldRebuild: (prev, next) {
+                                                if (prev.length != next.length) {
+                                                  return true;
+                                                }
+                                                for (final key in prev.keys) {
+                                                  final prevLog = prev[key];
+                                                  final nextLog = next[key];
+                                                  if (prevLog == null ||
+                                                      nextLog == null) {
+                                                    return true;
                                                   }
+                                                  if (prevLog.setType !=
+                                                          nextLog.setType ||
+                                                      prevLog.isCompleted !=
+                                                          nextLog.isCompleted) {
+                                                    return true;
+                                                  }
+                                                }
+                                                return false;
+                                              },
+                                              builder: (context,
+                                                  exerciseSetLogs, child) {
+                                                return Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    // FIX: Insert header row dynamically.
+                                                    _buildHeaderRow(
+                                                      routineExercise,
+                                                      l10n,
+                                                    ),
 
-                                                  return LiveWorkoutSetRow(
-                                                    setIndex: workingSetIndex,
-                                                    rowIndex: setEntry.key,
-                                                    templateId: templateId,
-                                                    setLog: setLog,
-                                                    lastPerfSets:
-                                                        manager.lastPerformances[
+                                                    // Set Rows
+                                                    ...routineExercise
+                                                        .setTemplates
+                                                        .asMap()
+                                                        .entries
+                                                        .map((setEntry) {
+                                                      final templateId =
+                                                          setEntry.value.id!;
+                                                      final template = setEntry
+                                                          .value; // <--- Template
+                                                      final setLog =
+                                                          exerciseSetLogs[
+                                                              templateId];
+
+                                                      if (setLog == null) {
+                                                        return const SizedBox
+                                                            .shrink();
+                                                      }
+                                                      int workingSetIndex = 0;
+                                                      for (int i = 0;
+                                                          i <= setEntry.key;
+                                                          i++) {
+                                                        final currentTemplateId =
+                                                            routineExercise
+                                                                .setTemplates[i]
+                                                                .id!;
+                                                        if (exerciseSetLogs[
+                                                                    currentTemplateId]
+                                                                ?.setType !=
+                                                            'warmup') {
+                                                          workingSetIndex++;
+                                                        }
+                                                      }
+
+                                                      return LiveWorkoutSetRow(
+                                                        setIndex:
+                                                            workingSetIndex,
+                                                        rowIndex: setEntry.key,
+                                                        templateId: templateId,
+                                                        setLog: setLog,
+                                                        lastPerfSets: manager
+                                                                    .lastPerformances[
                                                                 routineExercise
                                                                     .exercise
                                                                     .nameEn] ??
                                                             [],
-                                                    template: template,
-                                                    manager: manager,
-                                                    isCardio: _isCardio(
-                                                        routineExercise),
-                                                  );
-                                                }),
-                                                Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 16.0,
-                                                  ),
-                                                  child: TextButton.icon(
-                                                    onPressed: () => _addSet(
-                                                        routineExercise),
-                                                    icon: const Icon(
-                                                        LucideIcons.plus),
-                                                    label:
-                                                        Text(l10n.addSetButton),
-                                                  ),
-                                                ),
-                                              ],
+                                                        template: template,
+                                                        manager: manager,
+                                                        isCardio: _isCardio(
+                                                            routineExercise),
+                                                      );
+                                                    }),
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 16.0,
+                                                      ),
+                                                      child: TextButton.icon(
+                                                        onPressed: () => _addSet(
+                                                            routineExercise),
+                                                        icon: const Icon(
+                                                            LucideIcons.plus),
+                                                        label: Text(
+                                                            l10n.addSetButton),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
                                             ),
                                           ),
                                         ],
                                       ),
-                                    );
-                                  },
-                                ),
+                                    ),
+                                  );
+                                },
+                              ),
                         ),
                       ],
                     ),
@@ -1032,9 +1090,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       color: Colors.grey[600],
                       shadows: [
                         Shadow(
-                          color: Colors.black.withValues(alpha: 2.0),
+                          color: Colors.black.withValues(alpha: 0.5),
                           offset: const Offset(1, 1),
-                          blurRadius: 2.0,
+                          blurRadius: 4.0,
                         ),
                       ],
                     ),
@@ -1059,12 +1117,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
-    final Color neutralTint = isDark
-        ? theme.colorScheme.surface.withValues(alpha: 0.70)
-        : theme.colorScheme.surface.withValues(alpha: 0.82);
-    final Color effectiveGlass = DesignConstants.glassColor(isDark);
-    const double r = 20;
+    const double r = 37;
 
     if (isRunning) {
       final restSeconds = manager.remainingRestSeconds;
@@ -1075,233 +1128,268 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(r),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(r),
-            child: AdaptiveGlass(
-              settings: LiquidGlassSettings(
-                thickness: 0,
-                blur: 8.0,
-                glassColor: effectiveGlass,
-                lightIntensity: 0.1,
-                saturation: 1.20,
-              ),
-              shape: const LiquidRoundedSuperellipse(borderRadius: r),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0, vertical: 12.0),
-                decoration: BoxDecoration(
-                  color: neutralTint,
-                  borderRadius: BorderRadius.circular(r),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.15)
-                        : Colors.black.withValues(alpha: 0.08),
-                    width: 1.2,
+        child: SizedBox(
+          height: 74.0,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: ClipPath(
+                  clipper: ShadowOuterClipper(borderRadius: r),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(r),
+                      boxShadow: DesignConstants.glassShadow,
+                    ),
                   ),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // -15 Button
-                    SizedBox(
-                      height: 38,
-                      width: 48,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          backgroundColor: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.06),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.1)
-                                  : Colors.black.withValues(alpha: 0.05),
+              ),
+              GlassAdaptiveScope(
+                minQuality: GlassQuality.premium,
+                maxQuality: GlassQuality.premium,
+                child: AdaptiveGlass(
+                  settings: DesignConstants.liquidGlassSettings(isDark),
+                  shape: const LiquidRoundedSuperellipse(borderRadius: r),
+                  quality: GlassQuality.premium,
+                  child: GlassGlow(
+                    glowColor:
+                        Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+                    glowRadius: 1.0,
+                    child: Container(
+                      height: 74.0,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 12.0),
+                      decoration: BoxDecoration(
+                        color: DesignConstants.glassNeutralTint(isDark),
+                        borderRadius: BorderRadius.circular(r),
+                      ),
+                      foregroundDecoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(r),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.20)
+                              : Colors.black.withValues(alpha: 0.08),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // -15 Button
+                          SizedBox(
+                            height: 38,
+                            width: 48,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                backgroundColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : Colors.black.withValues(alpha: 0.06),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.05),
+                                  ),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                              onPressed: () => manager.adjustRestTime(-15),
+                              child: Text(
+                                "-15",
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
                             ),
                           ),
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: () => manager.adjustRestTime(-15),
-                        child: Text(
-                          "-15",
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Timer Text
-                    Container(
-                      height: 38,
-                      alignment: Alignment.center,
-                      child: Text(
-                        timerStr,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // +15 Button
-                    SizedBox(
-                      height: 38,
-                      width: 48,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          backgroundColor: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.06),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.1)
-                                  : Colors.black.withValues(alpha: 0.05),
+                          const SizedBox(width: 12),
+                          // Timer Text
+                          Container(
+                            height: 38,
+                            alignment: Alignment.center,
+                            child: Text(
+                              timerStr,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurface,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures()
+                                ],
+                              ),
                             ),
                           ),
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: () => manager.adjustRestTime(15),
-                        child: Text(
-                          "+15",
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                          const SizedBox(width: 12),
+                          // +15 Button
+                          SizedBox(
+                            height: 38,
+                            width: 48,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                backgroundColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : Colors.black.withValues(alpha: 0.06),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.05),
+                                  ),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                              onPressed: () => manager.adjustRestTime(15),
+                              child: Text(
+                                "+15",
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                          const Spacer(),
+                          // Skip Button
+                          SizedBox(
+                            height: 38,
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                              ),
+                              onPressed: () => manager.cancelRest(),
+                              child: Text(
+                                l10n.skipButton,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const Spacer(),
-                    // Skip Button
-                    SizedBox(
-                      height: 38,
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                        ),
-                        onPressed: () => manager.cancelRest(),
-                        child: Text(
-                          l10n.skipButton,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       );
     }
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(r),
-          child: AdaptiveGlass(
-            settings: LiquidGlassSettings(
-              thickness: 0,
-              blur: 8.0,
-              glassColor: Colors.green.withValues(alpha: 0.2),
-              lightIntensity: 0.1,
-              saturation: 1.20,
-            ),
-            shape: const LiquidRoundedSuperellipse(borderRadius: r),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(r),
-                border: Border.all(
-                  color: Colors.green.withValues(alpha: 0.3),
-                  width: 1.2,
+      child: SizedBox(
+        height: 74.0,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipPath(
+                clipper: ShadowOuterClipper(borderRadius: r),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(r),
+                    boxShadow: DesignConstants.glassShadow,
+                  ),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(LucideIcons.circle_check, color: Colors.white),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.restOverLabel, //"Pause vorbei!",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 38,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                      ),
-                      onPressed: () => manager.cancelRest(),
-                      child: Text(
-                        l10n.snackbar_button_ok,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+            ),
+            GlassAdaptiveScope(
+              minQuality: GlassQuality.premium,
+              maxQuality: GlassQuality.premium,
+              child: AdaptiveGlass(
+                settings: LiquidGlassSettings(
+                  thickness: 30,
+                  blur: 2.0,
+                  glassColor:
+                      Colors.green.withValues(alpha: isDark ? 0.20 : 0.25),
+                  lightIntensity: isDark ? 0.55 : 0.80,
+                  saturation: 1.20,
+                ),
+                shape: const LiquidRoundedSuperellipse(borderRadius: r),
+                quality: GlassQuality.premium,
+                child: GlassGlow(
+                  glowColor:
+                      Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+                  glowRadius: 1.0,
+                  child: Container(
+                    height: 74.0,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 12.0),
+                    decoration: BoxDecoration(
+                      color:
+                          Colors.green.withValues(alpha: isDark ? 0.50 : 0.70),
+                      borderRadius: BorderRadius.circular(r),
+                    ),
+                    foregroundDecoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(r),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.20),
+                        width: 1.2,
                       ),
                     ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(LucideIcons.circle_check,
+                                color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              l10n.restOverLabel, //"Pause vorbei!",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 38,
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              foregroundColor: Colors.white,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            onPressed: () => manager.cancelRest(),
+                            child: Text(
+                              l10n.snackbar_button_ok,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -20,50 +20,84 @@ class ExerciseE1rmSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final unitService = context.read<UnitService>();
+    return Selector<LiveWorkoutViewModel, List<SetLog>>(
+      selector: (context, vm) {
+        final list = <SetLog>[];
+        for (final template in routineExercise.setTemplates) {
+          final log = vm.setLogs[template.id];
+          if (log != null) {
+            list.add(log);
+          }
+        }
+        return list;
+      },
+      shouldRebuild: (prev, next) {
+        if (prev.length != next.length) return true;
+        for (int i = 0; i < prev.length; i++) {
+          if (prev[i].isCompleted != next[i].isCompleted ||
+              prev[i].weightKg != next[i].weightKg ||
+              prev[i].reps != next[i].reps ||
+              prev[i].setType != next[i].setType) {
+            return true;
+          }
+        }
+        return false;
+      },
+      builder: (context, sessionSetLogs, child) {
+        final l10n = AppLocalizations.of(context)!;
+        final unitService = context.read<UnitService>();
 
-    final sessionBest = _getSessionBestE1rm(routineExercise, manager);
-    if (sessionBest == null) return const SizedBox.shrink();
+        double? sessionBest;
+        for (final log in sessionSetLogs) {
+          final value = _calculateBrzyckiE1rm(log, requireCompleted: true);
+          if (value == null) continue;
+          if (sessionBest == null || value > sessionBest) {
+            sessionBest = value;
+          }
+        }
 
-    final lastSessionBest = _getLastSessionBestE1rm(
-      routineExercise.exercise.nameEn,
-    );
-    final hasDelta = lastSessionBest != null;
-    final delta = hasDelta ? sessionBest - lastSessionBest : null;
+        if (sessionBest == null) return const SizedBox.shrink();
 
-    final theme = Theme.of(context);
-    final isPositive = (delta ?? 0) >= 0;
-    final deltaPrefix = isPositive ? '+' : '-';
+        final lastSessionBest = _getLastSessionBestE1rm(
+          routineExercise.exercise.nameEn,
+        );
+        final hasDelta = lastSessionBest != null;
+        final delta = hasDelta ? sessionBest - lastSessionBest : null;
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              l10n.liveWorkoutE1rmBestSession(
-                _formatDisplayWeightValue(sessionBest, unitService),
+        final theme = Theme.of(context);
+        final isPositive = (delta ?? 0) >= 0;
+        final deltaPrefix = isPositive ? '+' : '-';
+
+        return Padding(
+          padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.liveWorkoutE1rmBestSession(
+                    _formatDisplayWeightValue(sessionBest, unitService),
+                  ),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+              if (hasDelta)
+                Text(
+                  l10n.liveWorkoutE1rmVsLastSession(
+                    '$deltaPrefix${_formatDisplayWeightValue(delta!.abs(), unitService)}',
+                  ),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isPositive
+                        ? Colors.green.shade700
+                        : theme.colorScheme.error,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+            ],
           ),
-          if (hasDelta)
-            Text(
-              l10n.liveWorkoutE1rmVsLastSession(
-                '$deltaPrefix${_formatDisplayWeightValue(delta!.abs(), unitService)}',
-              ),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: isPositive
-                    ? Colors.green.shade700
-                    : theme.colorScheme.error,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -99,26 +133,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
     return weight * (36 / (37 - reps));
   }
 
-  double? _getSessionBestE1rm(
-    RoutineExercise routineExercise,
-    LiveWorkoutViewModel manager,
-  ) {
-    double? best;
 
-    for (final template in routineExercise.setTemplates) {
-      final setLog = manager.setLogs[template.id];
-      if (setLog == null) continue;
-
-      final value = _calculateBrzyckiE1rm(setLog, requireCompleted: true);
-      if (value == null) continue;
-
-      if (best == null || value > best) {
-        best = value;
-      }
-    }
-
-    return best;
-  }
 
   double? _getLastSessionBestE1rm(String exerciseName) {
     final lastSets = manager.lastPerformances[exerciseName] ?? const <SetLog>[];

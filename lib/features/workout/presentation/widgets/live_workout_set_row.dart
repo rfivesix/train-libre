@@ -224,7 +224,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final bool isCompleted = setLog.isCompleted ?? false;
+    final log = context.select<LiveWorkoutViewModel, SetLog?>((vm) => vm.setLogs[templateId]) ?? setLog;
+    final bool isCompleted = log.isCompleted ?? false;
     final unitService = context.read<UnitService>();
 
     final isLightMode = Theme.of(context).brightness == Brightness.light;
@@ -270,13 +271,13 @@ class LiveWorkoutSetRow extends StatelessWidget {
               onTap: () =>
                   isCompleted ? null : _showSetTypePicker(context, templateId),
               child: Text(
-                _getSetDisplayText(setLog.setType, setIndex),
+                _getSetDisplayText(log.setType, setIndex),
                 style: TextStyle(
                   color: isCompleted
-                      ? (setLog.setType == 'normal'
+                      ? (log.setType == 'normal'
                           ? (isLightMode ? Colors.black : Colors.white)
-                          : _getSetTypeColor(setLog.setType))
-                      : _getSetTypeColor(setLog.setType),
+                          : _getSetTypeColor(log.setType))
+                      : _getSetTypeColor(log.setType),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -570,13 +571,13 @@ class LiveWorkoutSetRow extends StatelessWidget {
     );
 
     final currentSetE1rm = _calculateBrzyckiE1rm(
-      setLog,
+      log,
       requireCompleted: false,
     );
     final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
 
     final bool hasPR = isCompleted &&
-        (setLog.isMaxWeightPR || setLog.isMaxVolumePR || setLog.isMaxEst1RMPR);
+        (log.isMaxWeightPR || log.isMaxVolumePR || log.isMaxEst1RMPR);
 
     final rowWithSubInfo = Column(
       children: [
@@ -588,7 +589,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 if (hasPR) ...[
-                  _buildPRBadge(setLog, context),
+                  _buildPRBadge(log, context),
                   if (showCurrentSetE1rm) const SizedBox(width: 8),
                 ],
                 if (showCurrentSetE1rm)

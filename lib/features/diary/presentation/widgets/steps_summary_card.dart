@@ -14,62 +14,78 @@ class StepsSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<DiaryViewModel>();
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    if (viewModel.isStepsWidgetLoading) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: SummaryCard(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              children: [
-                const SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+    return Selector<DiaryViewModel, ({
+      bool isStepsWidgetLoading,
+      int? stepsForSelectedDay,
+      int targetSteps,
+      DateTime selectedDate,
+    })>(
+      selector: (context, vm) => (
+        isStepsWidgetLoading: vm.isStepsWidgetLoading,
+        stepsForSelectedDay: vm.stepsForSelectedDay,
+        targetSteps: vm.targetSteps,
+        selectedDate: vm.selectedDate,
+      ),
+      builder: (context, data, child) {
+        if (data.isStepsWidgetLoading) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: SummaryCard(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(l10n.diarySyncingSteps),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Text(l10n.diarySyncingSteps),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    if ((viewModel.stepsForSelectedDay ?? 0) <= 0) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => StepsModuleScreen(
-                initialScope: StepsScope.day,
-                initialDate: viewModel.selectedDate,
               ),
             ),
           );
-        },
-        child: GlassProgressBar(
-          label: l10n.steps,
-          unit: 'steps',
-          value: (viewModel.stepsForSelectedDay ?? 0).toDouble(),
-          target: (viewModel.targetSteps > 0
-                  ? viewModel.targetSteps
-                  : StepsSyncService.defaultStepsGoal)
-              .toDouble(),
-          color: theme.colorScheme.primary,
-          height: 54,
-          borderRadius: DesignConstants.borderRadiusL,
-        ),
-      ),
+        }
+
+        if ((data.stepsForSelectedDay ?? 0) <= 0) {
+          return const SizedBox.shrink();
+        }
+
+        return RepaintBoundary(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => StepsModuleScreen(
+                      initialScope: StepsScope.day,
+                      initialDate: data.selectedDate,
+                    ),
+                  ),
+                );
+              },
+              child: GlassProgressBar(
+                label: l10n.steps,
+                unit: 'steps',
+                value: (data.stepsForSelectedDay ?? 0).toDouble(),
+                target: (data.targetSteps > 0
+                        ? data.targetSteps
+                        : StepsSyncService.defaultStepsGoal)
+                    .toDouble(),
+                color: theme.colorScheme.primary,
+                height: 54,
+                borderRadius: DesignConstants.borderRadiusL,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../data/database_helper.dart';
+import '../domain/models/daily_nutrition.dart';
 import 'dialogs/fluid_dialog_content.dart';
 import 'dialogs/quantity_dialog_content.dart';
 import '../../../generated/app_localizations.dart';
@@ -14,6 +15,7 @@ import '../domain/models/fluid_entry.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/models/tracked_food_item.dart';
+import '../../supplements/domain/models/tracked_supplement.dart';
 import 'add_food_screen.dart';
 import 'add_food_navigation_result.dart';
 import '../../supplements/presentation/supplement_track_screen.dart';
@@ -139,14 +141,6 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       await syncHealthData(forceStepsRefresh: true);
     }
   }
-
-  final Map<String, bool> _mealExpanded = {
-    "mealtypeBreakfast": false,
-    "mealtypeLunch": false,
-    "mealtypeDinner": false,
-    "mealtypeSnack": false,
-    "fluids": false,
-  };
 
   Future<void> _deleteFoodEntry(int id) async {
     final viewModel = context.read<DiaryViewModel>();
@@ -630,7 +624,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<DiaryViewModel>();
+    final isLoading =
+        context.select<DiaryViewModel, bool>((vm) => vm.isLoading);
+    final stepsEnabled =
+        context.select<DiaryViewModel, bool>((vm) => vm.stepsTrackingEnabled);
+    final sleepEnabled =
+        context.select<DiaryViewModel, bool>((vm) => vm.sleepTrackingEnabled);
+    final pulseEnabled =
+        context.select<DiaryViewModel, bool>((vm) => vm.pulseTrackingEnabled);
+    final hasWorkoutSummary =
+        context.select<DiaryViewModel, bool>((vm) => vm.workoutSummary != null);
     final l10n = AppLocalizations.of(context)!;
     final double appBarHeight = MediaQuery.of(
       context,
@@ -646,62 +649,99 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       top: basePadding.top + appBarHeight,
     );
 
-    return viewModel.isLoading
+    return isLoading
         ? const Center(child: CircularProgressIndicator())
         : RefreshIndicator(
             onRefresh: () => syncHealthData(forceStepsRefresh: true),
             child: ListView(
               padding: finalPadding,
               children: [
-                if (viewModel.dailyNutrition != null &&
-                    viewModel.selectedDate.isSameDate(DateTime.now()))
-                  RecommendationBanner(
-                    currentCalories: viewModel.dailyNutrition!.targetCalories,
+                Selector<
+                    DiaryViewModel,
+                    ({
+                      DailyNutrition? dailyNutrition,
+                      DateTime selectedDate,
+                      bool showSugarInOverview
+                    })>(
+                  selector: (context, vm) => (
+                    dailyNutrition: vm.dailyNutrition,
+                    selectedDate: vm.selectedDate,
+                    showSugarInOverview: vm.showSugarInOverview,
                   ),
-                AppSectionHeader(title: l10n.today_overview_text),
-                if (viewModel.dailyNutrition != null)
-                  RepaintBoundary(
-                    key: _macroSummaryKey,
-                    child: NutritionSummaryWidget(
-                      nutritionData: viewModel.dailyNutrition!,
-                      l10n: l10n,
-                      isExpandedView: false,
-                      showSugarInOverview: viewModel.showSugarInOverview,
-                    ),
-                  ),
+                  builder: (context, data, child) {
+                    final dailyNutrition = data.dailyNutrition;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (dailyNutrition != null &&
+                            data.selectedDate.isSameDate(DateTime.now()))
+                          RecommendationBanner(
+                            currentCalories: dailyNutrition.targetCalories,
+                          ),
+                        AppSectionHeader(title: l10n.today_overview_text),
+                        if (dailyNutrition != null)
+                          RepaintBoundary(
+                            key: _macroSummaryKey,
+                            child: NutritionSummaryWidget(
+                              nutritionData: dailyNutrition,
+                              l10n: l10n,
+                              isExpandedView: false,
+                              showSugarInOverview: data.showSugarInOverview,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
 
                 const SizedBox(height: DesignConstants.spacingXS),
-                SupplementSummaryWidget(
-                  trackedSupplements: viewModel.trackedSupplements,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      // FIX #65: Pass date along
-                      builder: (context) => SupplementTrackScreen(
-                          initialDate: viewModel.selectedDate),
-                    ),
+                Selector<
+                    DiaryViewModel,
+                    ({
+                      List<TrackedSupplement> trackedSupplements,
+                      DateTime selectedDate
+                    })>(
+                  selector: (context, vm) => (
+                    trackedSupplements: vm.trackedSupplements,
+                    selectedDate: vm.selectedDate,
                   ),
-                ),
-                if (viewModel.stepsTrackingEnabled) ...[
-                  const StepsSummaryCard()
-                ],
-                if (viewModel.sleepTrackingEnabled) ...[
-                  const SleepSummaryCard()
-                ],
-                if (viewModel.pulseTrackingEnabled) ...[
-                  const PulseSummaryCard()
-                ],
-                // New section: insert workout summary here.
-                if (viewModel.workoutSummary != null) ...[
-                  TodaysWorkoutSummaryCard(
-                    duration: viewModel.workoutSummary!['duration'] as Duration,
-                    volume: viewModel.workoutSummary!['volume'] as double,
-                    sets: viewModel.workoutSummary!['sets'] as int,
-                    workoutCount: viewModel.workoutSummary!['count'] as int,
-                    onTap: () {
-                      Navigator.of(context).push(
+                  builder: (context, data, child) {
+                    return SupplementSummaryWidget(
+                      trackedSupplements: data.trackedSupplements,
+                      onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const WorkoutHistoryScreen(),
+                          builder: (context) => SupplementTrackScreen(
+                              initialDate: data.selectedDate),
                         ),
+                      ),
+                    );
+                  },
+                ),
+                if (stepsEnabled) ...[const StepsSummaryCard()],
+                if (sleepEnabled) ...[const SleepSummaryCard()],
+                if (pulseEnabled) ...[const PulseSummaryCard()],
+                // New section: insert workout summary here.
+                if (hasWorkoutSummary) ...[
+                  Selector<DiaryViewModel, Map<String, dynamic>?>(
+                    selector: (context, vm) => vm.workoutSummary,
+                    builder: (context, workoutSummary, child) {
+                      if (workoutSummary == null) {
+                        return const SizedBox.shrink();
+                      }
+                      return TodaysWorkoutSummaryCard(
+                        duration: workoutSummary['duration'] as Duration,
+                        volume: workoutSummary['volume'] as double,
+                        sets: workoutSummary['sets'] as int,
+                        workoutCount: workoutSummary['count'] as int,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const WorkoutHistoryScreen(),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -720,110 +760,6 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
   // Section headers now use the centralized AppSectionHeader widget.
 
-  Widget _buildMealCard(
-    String title,
-    String mealKey,
-    List<TrackedFoodItem> items,
-    _MealMacros macros,
-    AppLocalizations l10n,
-  ) {
-    final isOpen = _mealExpanded[mealKey] ?? false;
-    final theme = Theme.of(context);
-    final titleStyle = theme.textTheme.titleMedium;
-
-    // Filter to solid (non-liquid) food entries for the shortcut eligibility check.
-    final solidItems = items.where((item) {
-      final fi = item.item;
-      // Exclude if explicitly liquid or flagged as a fluid/beverage.
-      return fi.isLiquid != true && !fi.isFluid;
-    }).toList();
-
-    return AppCardContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header (tap toggles)
-          InkWell(
-            onTap: () => setState(() {
-              _mealExpanded[mealKey] = !isOpen;
-            }),
-            child: Row(
-              children: [
-                Expanded(child: Text(title, style: titleStyle)),
-                Icon(
-                    isOpen ? LucideIcons.chevron_up : LucideIcons.chevron_down),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: const Icon(LucideIcons.circle_plus),
-                  color: theme.colorScheme.primary,
-                  onPressed: () => _addFoodToMeal(mealKey),
-                  tooltip: l10n.addFoodOption,
-                ),
-              ],
-            ),
-          ),
-
-          // <<< New: macro row below the title (own line, left aligned)
-          if (items.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            MacroBadgeRow(
-              kcal: macros.calories.round(),
-              protein: macros.protein,
-              carbs: macros.carbs,
-              fat: macros.fat,
-              useBadges: context.read<ThemeService>().useColorfulMacroBadges,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-
-          // Content (animated expand/collapse)
-          AnimatedCrossFade(
-            crossFadeState:
-                isOpen ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-            duration: DesignConstants.expandCollapseDuration,
-            firstChild: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (items.isNotEmpty) const Divider(height: 16),
-                ...items.map(
-                  (item) => FoodEntryTile(
-                    trackedItem: item,
-                    onEdit: _editFoodEntry,
-                    onDelete: _deleteFoodEntry,
-                  ),
-                ),
-                // Section footer: "Save as Meal Template" shortcut.
-                // Shown only when the card is open AND contains at least one
-                // solid food entry (liquids like Water are excluded).
-                if (solidItems.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 0,
-                        vertical: 4,
-                      ),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      foregroundColor: theme.colorScheme.primary,
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    onPressed: () => _saveAsMealTemplate(solidItems, l10n),
-                    child: Text(l10n.saveMealTemplateShortcut),
-                  ),
-                ],
-              ],
-            ),
-            secondChild: const SizedBox.shrink(),
-          ),
-        ],
-      ),
-    );
-  }
   // lib/screens/diary_screen.dart
   // In lib/screens/diary_screen.dart
 
@@ -934,125 +870,23 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
     return Column(
       children: [
-        ...mealOrder.map((mealKey) {
-          if (mealKey == "fluids") {
-            return _buildFluidsCard(l10n);
-          }
-
-          final entries = viewModel.entriesByMeal[mealKey] ?? [];
-          final mealMacros = _MealMacros();
-          for (var item in entries) {
-            final factor = item.entry.quantityInGrams / 100.0;
-            mealMacros.calories += (item.item.calories * factor).toDouble();
-            mealMacros.protein += (item.item.protein * factor).toDouble();
-            mealMacros.carbs += (item.item.carbs * factor).toDouble();
-            mealMacros.fat += (item.item.fat * factor).toDouble();
-          }
-
-          return _buildMealCard(
-            _getLocalizedMealName(l10n, mealKey),
-            mealKey,
-            entries,
-            mealMacros,
-            l10n,
+        _FluidsCard(
+          onAddFluid: _showAddFluidMenu,
+          onEditFluid: _editFluidEntry,
+          onDeleteFluid: _deleteFluidEntry,
+        ),
+        ...mealOrder.where((k) => k != "fluids").map((mealKey) {
+          return _MealCard(
+            key: ValueKey(mealKey),
+            title: _getLocalizedMealName(l10n, mealKey),
+            mealKey: mealKey,
+            onAddFood: () => _addFoodToMeal(mealKey),
+            onEditFood: _editFoodEntry,
+            onDeleteFood: _deleteFoodEntry,
+            onSaveAsTemplate: _saveAsMealTemplate,
           );
         }),
       ],
-    );
-  }
-
-  Widget _buildFluidsCard(AppLocalizations l10n) {
-    final isOpen = _mealExpanded['fluids'] ?? false;
-    final theme = Theme.of(context);
-    final titleStyle = theme.textTheme.titleMedium;
-
-    return AppCardContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          InkWell(
-            onTap: () => setState(() {
-              _mealExpanded['fluids'] = !isOpen;
-            }),
-            child: Row(
-              children: [
-                /*
-                Icon(
-                  LucideIcons.glass_water,
-                  color: theme.colorScheme.primary,
-                
-                ),
-                */
-                //const SizedBox(width: 12),
-                Expanded(child: Text(l10n.waterHeader, style: titleStyle)),
-                Icon(
-                    isOpen ? LucideIcons.chevron_up : LucideIcons.chevron_down),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: const Icon(LucideIcons.circle_plus),
-                  color: theme.colorScheme.primary,
-                  onPressed: _showAddFluidMenu,
-                  tooltip: l10n.addLiquidOption,
-                ),
-              ],
-            ),
-          ),
-          // Summary row — always visible, above the expand/collapse section
-          if (viewModel.fluidEntries.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Builder(
-              builder: (ctx) {
-                int totalMl = 0;
-                int totalKcal = 0;
-                double totalSugar = 0;
-                double totalCaffeine = 0;
-                for (var entry in viewModel.fluidEntries) {
-                  totalMl += entry.quantityInMl;
-                  if (entry.kcal != null) totalKcal += entry.kcal!;
-                  if (entry.sugarPer100ml != null) {
-                    totalSugar +=
-                        (entry.sugarPer100ml! / 100) * entry.quantityInMl;
-                  }
-                  if (entry.caffeinePer100ml != null) {
-                    totalCaffeine +=
-                        (entry.caffeinePer100ml! / 100) * entry.quantityInMl;
-                  }
-                }
-                return MacroBadgeRow(
-                  kcal: totalKcal.round(),
-                  sugar: totalSugar,
-                  caffeine: totalCaffeine,
-                  waterMl: totalMl,
-                  useBadges: ctx.read<ThemeService>().useColorfulMacroBadges,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                );
-              },
-            ),
-          ],
-          AnimatedCrossFade(
-            crossFadeState:
-                isOpen ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-            duration: DesignConstants.expandCollapseDuration,
-            firstChild: Column(
-              children: [
-                if (viewModel.fluidEntries.isNotEmpty)
-                  const Divider(height: 16),
-                ...viewModel.fluidEntries.map(
-                  (entry) => FluidEntryTile(
-                    entry: entry,
-                    onEdit: _editFluidEntry,
-                    onDelete: _deleteFluidEntry,
-                  ),
-                ),
-              ],
-            ),
-            secondChild: const SizedBox.shrink(),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1226,6 +1060,294 @@ class _DiaryDateNavigator extends StatelessWidget {
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints.tightFor(width: 36, height: 48),
       onPressed: onPressed,
+    );
+  }
+}
+
+class _MealCard extends StatefulWidget {
+  final String title;
+  final String mealKey;
+  final VoidCallback onAddFood;
+  final Future<void> Function(TrackedFoodItem) onEditFood;
+  final Future<void> Function(int) onDeleteFood;
+  final Future<void> Function(List<TrackedFoodItem>, AppLocalizations)
+      onSaveAsTemplate;
+
+  const _MealCard({
+    super.key,
+    required this.title,
+    required this.mealKey,
+    required this.onAddFood,
+    required this.onEditFood,
+    required this.onDeleteFood,
+    required this.onSaveAsTemplate,
+  });
+
+  @override
+  State<_MealCard> createState() => _MealCardState();
+}
+
+class _MealCardState extends State<_MealCard> {
+  bool _isOpen = false;
+
+  bool _listEquals(List<TrackedFoodItem> a, List<TrackedFoodItem> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].entry.id != b[i].entry.id ||
+          a[i].entry.quantityInGrams != b[i].entry.quantityInGrams ||
+          a[i].entry.timestamp != b[i].entry.timestamp ||
+          a[i].item.barcode != b[i].item.barcode ||
+          a[i].item.calories != b[i].item.calories) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    return Selector<DiaryViewModel, List<TrackedFoodItem>>(
+      selector: (context, vm) => vm.entriesByMeal[widget.mealKey] ?? const [],
+      shouldRebuild: (prev, next) => !_listEquals(prev, next),
+      builder: (context, items, child) {
+        final mealMacros = _MealMacros();
+        for (var item in items) {
+          final factor = item.entry.quantityInGrams / 100.0;
+          mealMacros.calories += (item.item.calories * factor).toDouble();
+          mealMacros.protein += (item.item.protein * factor).toDouble();
+          mealMacros.carbs += (item.item.carbs * factor).toDouble();
+          mealMacros.fat += (item.item.fat * factor).toDouble();
+        }
+
+        final solidItems = items.where((item) {
+          final fi = item.item;
+          return fi.isLiquid != true && !fi.isFluid;
+        }).toList();
+
+        return RepaintBoundary(
+          child: AppCardContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                InkWell(
+                  onTap: () => setState(() {
+                    _isOpen = !_isOpen;
+                  }),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Text(widget.title,
+                              style: theme.textTheme.titleMedium)),
+                      Icon(_isOpen
+                          ? LucideIcons.chevron_up
+                          : LucideIcons.chevron_down),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(LucideIcons.circle_plus),
+                        color: theme.colorScheme.primary,
+                        onPressed: widget.onAddFood,
+                        tooltip: l10n.addFoodOption,
+                      ),
+                    ],
+                  ),
+                ),
+                if (items.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  MacroBadgeRow(
+                    kcal: mealMacros.calories.round(),
+                    protein: mealMacros.protein,
+                    carbs: mealMacros.carbs,
+                    fat: mealMacros.fat,
+                    useBadges:
+                        context.read<ThemeService>().useColorfulMacroBadges,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                AnimatedCrossFade(
+                  crossFadeState: _isOpen
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  duration: DesignConstants.expandCollapseDuration,
+                  firstChild: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (items.isNotEmpty) const Divider(height: 16),
+                      ...items.map(
+                        (item) => FoodEntryTile(
+                          trackedItem: item,
+                          onEdit: widget.onEditFood,
+                          onDelete: widget.onDeleteFood,
+                        ),
+                      ),
+                      if (solidItems.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 0,
+                              vertical: 4,
+                            ),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            foregroundColor: theme.colorScheme.primary,
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          onPressed: () =>
+                              widget.onSaveAsTemplate(solidItems, l10n),
+                          child: Text(l10n.saveMealTemplateShortcut),
+                        ),
+                      ],
+                    ],
+                  ),
+                  secondChild: const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FluidsCard extends StatefulWidget {
+  final VoidCallback onAddFluid;
+  final Future<void> Function(FluidEntry) onEditFluid;
+  final Future<void> Function(int) onDeleteFluid;
+
+  const _FluidsCard({
+    required this.onAddFluid,
+    required this.onEditFluid,
+    required this.onDeleteFluid,
+  });
+
+  @override
+  State<_FluidsCard> createState() => _FluidsCardState();
+}
+
+class _FluidsCardState extends State<_FluidsCard> {
+  bool _isOpen = false;
+
+  bool _fluidListEquals(List<FluidEntry> a, List<FluidEntry> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id ||
+          a[i].quantityInMl != b[i].quantityInMl ||
+          a[i].timestamp != b[i].timestamp ||
+          a[i].name != b[i].name ||
+          a[i].kcal != b[i].kcal ||
+          a[i].sugarPer100ml != b[i].sugarPer100ml ||
+          a[i].caffeinePer100ml != b[i].caffeinePer100ml) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    return Selector<DiaryViewModel, List<FluidEntry>>(
+      selector: (context, vm) => vm.fluidEntries,
+      shouldRebuild: (prev, next) => !_fluidListEquals(prev, next),
+      builder: (context, fluids, child) {
+        return RepaintBoundary(
+          child: AppCardContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                InkWell(
+                  onTap: () => setState(() {
+                    _isOpen = !_isOpen;
+                  }),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Text(l10n.waterHeader,
+                              style: theme.textTheme.titleMedium)),
+                      Icon(_isOpen
+                          ? LucideIcons.chevron_up
+                          : LucideIcons.chevron_down),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(LucideIcons.circle_plus),
+                        color: theme.colorScheme.primary,
+                        onPressed: widget.onAddFluid,
+                        tooltip: l10n.addLiquidOption,
+                      ),
+                    ],
+                  ),
+                ),
+                if (fluids.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Builder(
+                    builder: (ctx) {
+                      int totalMl = 0;
+                      int totalKcal = 0;
+                      double totalSugar = 0;
+                      double totalCaffeine = 0;
+                      for (var entry in fluids) {
+                        totalMl += entry.quantityInMl;
+                        if (entry.kcal != null) totalKcal += entry.kcal!;
+                        if (entry.sugarPer100ml != null) {
+                          totalSugar +=
+                              (entry.sugarPer100ml! / 100) * entry.quantityInMl;
+                        }
+                        if (entry.caffeinePer100ml != null) {
+                          totalCaffeine += (entry.caffeinePer100ml! / 100) *
+                              entry.quantityInMl;
+                        }
+                      }
+                      return MacroBadgeRow(
+                        kcal: totalKcal.round(),
+                        sugar: totalSugar,
+                        caffeine: totalCaffeine,
+                        waterMl: totalMl,
+                        useBadges:
+                            ctx.read<ThemeService>().useColorfulMacroBadges,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+                AnimatedCrossFade(
+                  crossFadeState: _isOpen
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
+                  duration: DesignConstants.expandCollapseDuration,
+                  firstChild: Column(
+                    children: [
+                      if (fluids.isNotEmpty) const Divider(height: 16),
+                      ...fluids.map(
+                        (entry) => FluidEntryTile(
+                          entry: entry,
+                          onEdit: widget.onEditFluid,
+                          onDelete: widget.onDeleteFluid,
+                        ),
+                      ),
+                    ],
+                  ),
+                  secondChild: const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

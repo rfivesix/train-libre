@@ -169,7 +169,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         await _repository.getWorkoutExerciseNotes(log.id!);
 
     _setLogs.clear();
-    _exercises.clear();
+    final List<RoutineExercise> restoredExercises = [];
+    _exercises = restoredExercises;
     pauseTimes.clear();
     _totalVolume = 0;
     _totalSets = 0;
@@ -178,7 +179,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       if (log.routineName != null) {
         final routine = await _repository.getRoutineByName(log.routineName!);
         if (routine != null) {
-          _exercises = routine.exercises;
+          _exercises = List.from(routine.exercises);
           for (var re in _exercises) {
             if (re.id != null) pauseTimes[re.id!] = re.pauseSeconds;
           }
@@ -258,9 +259,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         notes: savedNote,
       );
 
-      _exercises.add(re);
+      restoredExercises.add(re);
       pauseTimes[syntheticReId] = pauseSec;
     }
+    _exercises = restoredExercises;
 
     _startWorkoutTimer();
     notifyListeners();
@@ -478,7 +480,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       setTemplates: [...re.setTemplates, newTemplate],
       pauseSeconds: re.pauseSeconds,
     );
-    _exercises[reIndex] = updatedRe;
+    final newExercises = List<RoutineExercise>.from(_exercises);
+    newExercises[reIndex] = updatedRe;
+    _exercises = newExercises;
 
     final prevSet = _setLogs.values
         .where((s) => s.exerciseName == re.exercise.nameEn)
@@ -512,18 +516,20 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
     _setLogs.remove(templateId);
 
-    for (var i = 0; i < _exercises.length; i++) {
-      final re = _exercises[i];
+    final newExercises = List<RoutineExercise>.from(_exercises);
+    for (var i = 0; i < newExercises.length; i++) {
+      final re = newExercises[i];
       final tIndex = re.setTemplates.indexWhere((t) => t.id == templateId);
       if (tIndex != -1) {
         final newTemplates = List<SetTemplate>.from(re.setTemplates)
           ..removeAt(tIndex);
-        _exercises[i] = RoutineExercise(
+        newExercises[i] = RoutineExercise(
           id: re.id,
           exercise: re.exercise,
           setTemplates: newTemplates,
           pauseSeconds: re.pauseSeconds,
         );
+        _exercises = newExercises;
         break;
       }
     }
@@ -564,7 +570,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         exercise: exercise,
         setTemplates: templates,
         pauseSeconds: 90);
-    _exercises.add(re);
+    _exercises = [..._exercises, re];
     pauseTimes[tempReId] = 90;
 
     for (var t in templates) {
@@ -610,16 +616,20 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
     await _repository.deleteSetLogs(idsToDelete);
-    _exercises.removeAt(reIndex);
+    final newExercises = List<RoutineExercise>.from(_exercises);
+    newExercises.removeAt(reIndex);
+    _exercises = newExercises;
     pauseTimes.remove(routineExerciseId);
 
     notifyListeners();
   }
 
   Future<void> reorderExercise(int oldIndex, int newIndex) async {
+    final newExercises = List<RoutineExercise>.from(_exercises);
     if (oldIndex < newIndex) newIndex -= 1;
-    final item = _exercises.removeAt(oldIndex);
-    _exercises.insert(newIndex, item);
+    final item = newExercises.removeAt(oldIndex);
+    newExercises.insert(newIndex, item);
+    _exercises = newExercises;
     await _updateLogOrdersInDatabase();
     notifyListeners();
   }
@@ -660,16 +670,18 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> updateExerciseNotes(String exerciseName, String? notes) async {
-    for (int i = 0; i < _exercises.length; i++) {
-      if (_exercises[i].exercise.nameEn == exerciseName ||
-          _exercises[i].exercise.nameDe == exerciseName) {
-        _exercises[i] = _exercises[i].copyWith(
+    final newExercises = List<RoutineExercise>.from(_exercises);
+    for (int i = 0; i < newExercises.length; i++) {
+      if (newExercises[i].exercise.nameEn == exerciseName ||
+          newExercises[i].exercise.nameDe == exerciseName) {
+        newExercises[i] = newExercises[i].copyWith(
           notes: notes,
           clearNotes: notes == null || notes.isEmpty,
         );
         break;
       }
     }
+    _exercises = newExercises;
 
     if (_workoutLog?.id != null) {
       await _repository.saveWorkoutExerciseNote(
