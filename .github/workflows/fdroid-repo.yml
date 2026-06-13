@@ -39,6 +39,7 @@ jobs:
           mkdir -p fdroid/repo
           mkdir -p fdroid/metadata
           cp fdroid-config/config.yml fdroid/config.yml
+          chmod 0600 fdroid/config.yml
 
       - name: Download Release APKs
         env:
@@ -61,7 +62,6 @@ jobs:
             echo "Error: FDROID_KEYSTORE_BASE64 is not set."
             exit 1
           fi
-          # WICHTIG: Direkt in den fdroid/-Unterordner schreiben, wo config.yml liegt!
           echo "$FDROID_KEYSTORE_BASE64" | base64 --decode > fdroid/fdroid.jks
 
       - name: Configure F-Droid settings
@@ -73,17 +73,19 @@ jobs:
           REPO_URL="https://${{ github.repository_owner }}.github.io/$REPO_NAME/fdroid/repo"
           REPO_DISPLAY_NAME="$REPO_NAME F-Droid Repo"
           REPO_DESC="Automated F-Droid repository for $REPO_NAME"
-          
+
           cd fdroid
           sed -i "s|REPO_URL_PLACEHOLDER|$REPO_URL|g" config.yml
           sed -i "s|REPO_NAME_PLACEHOLDER|$REPO_DISPLAY_NAME|g" config.yml
           sed -i "s|REPO_DESC_PLACEHOLDER|$REPO_DESC|g" config.yml
-          
-          # Ersetzt zuverlässig alle Vorkommen der Passwort-Platzhalter in der config.yml
-          sed -i "s|KEYSTORE_PASS_PLACEHOLDER|$KEYSTORE_PASSWORD|g" config.yml
-          sed -i "s|KEY_PASS_PLACEHOLDER|$KEY_PASSWORD|g" config.yml
+
+          # Use Python for password injection - safe with any special characters in the password
+          python3 -c "import os; c = open('config.yml').read(); c = c.replace('KEYSTORE_PASS_PLACEHOLDER', os.environ['KEYSTORE_PASSWORD']); c = c.replace('KEY_PASS_PLACEHOLDER', os.environ['KEY_PASSWORD']); open('config.yml', 'w').write(c)"
 
       - name: Update F-Droid Repository Metadata
+        env:
+          FDROID_KEY_STORE_PASS: ${{ secrets.FDROID_KEYSTORE_PASSWORD }}
+          FDROID_KEY_PASS: ${{ secrets.FDROID_KEY_PASSWORD }}
         run: |
           cd fdroid
           fdroid update --create-metadata -v
