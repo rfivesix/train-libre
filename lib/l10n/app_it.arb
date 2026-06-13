@@ -882,6 +882,8 @@
   "settingsFoodDbRegionCurrent": "Regione attuale",
   "settingsFoodDbRegionDialogTitle": "Scegli la regione del database",
   "settingsFoodDbRegionDialogSubtitle": "Questo cambia la sorgente del catalogo Open Food Facts per la ricerca.",
+  "settingsFoodDbRegionSearchPlaceholder": "Cerca regione...",
+  "settingsFoodDbRegionNoResults": "Nessuna regione trovata",
   "settingsFoodDbRegionIssueHint": "Se il tuo Paese non è ancora nell'elenco, non esitare ad aprire un problema su GitHub e richiedere supporto.",
   "settingsFoodDbRegionGermany": "Germania (DE)",
   "settingsFoodDbRegionSwitzerland": "Svizzera (CH)",

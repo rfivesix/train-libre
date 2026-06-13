@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Rest Timer Suffix Clear Button:** Added a red accent clear button (`Icons.clear` with `Colors.redAccent`) inside the duration input field decoration. Tapping it instantly clears the text and disables the rest timer.
 - **Cardio Set Time Input:** Integrated the microwave-style digit entry pattern (`TimerInputFormatter` mapping right-to-left `MM:SS`) for cardio sets in the active workout (`LiveWorkoutSetRow`), the routine builder template builder (`RoutineSetRowWidget`), and the log editor (`WorkoutLogSetRow`), using a numeric keyboard for quick input.
 - **Cardio Distance Decimal Formatting:** Optimized cardio distance input to stay in km and display up to 3 decimal places without trailing zeros (e.g. `1.234` or `1,234`), supporting parsing of both dots and commas.
+- **Interactive OFF Region Search:** Added a minimalist, reactive search bar inside the Open Food Facts region selection bottom sheet to filter supported countries dynamically by name or country code, optimizing navigation density as the catalog list expands.
 
 ### Changed
 - **Base Food Startup Initialization Gating:** Optimized the startup pipeline for the base food database (`train_libre_base_foods.db`) and categories by gating checks on the runtime app build number (`packageInfo.buildNumber`), completely eliminating expensive asset file copy, open, and query overhead when launching the application on the same app build.

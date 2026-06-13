@@ -882,6 +882,8 @@
   "settingsFoodDbRegionCurrent": "Aktive Region",
   "settingsFoodDbRegionDialogTitle": "Region der Lebensmittel-Datenbank auswählen",
   "settingsFoodDbRegionDialogSubtitle": "Dies ändert die Open-Food-Facts-Katalogquelle für die Produktsuche.",
+  "settingsFoodDbRegionSearchPlaceholder": "Region suchen...",
+  "settingsFoodDbRegionNoResults": "Keine Region gefunden",
   "settingsFoodDbRegionIssueHint": "Wenn dein Land noch nicht gelistet ist, eröffne gerne ein GitHub-Issue und fordere Unterstützung an.",
   "settingsFoodDbRegionGermany": "Deutschland (DE)",
   "settingsFoodDbRegionSwitzerland": "Schweiz (CH)",

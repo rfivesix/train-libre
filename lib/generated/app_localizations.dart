@@ -3914,6 +3914,18 @@ abstract class AppLocalizations {
   /// **'This changes the Open Food Facts catalog source used by product search.'**
   String get settingsFoodDbRegionDialogSubtitle;
 
+  /// No description provided for @settingsFoodDbRegionSearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search region...'**
+  String get settingsFoodDbRegionSearchPlaceholder;
+
+  /// No description provided for @settingsFoodDbRegionNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No region found'**
+  String get settingsFoodDbRegionNoResults;
+
   /// No description provided for @settingsFoodDbRegionIssueHint.
   ///
   /// In en, this message translates to:

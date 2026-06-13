@@ -2111,6 +2111,12 @@ class AppLocalizationsJa extends AppLocalizations {
       '製品検索で使用されるOpen Food Factsカタログソースが変更されます。';
 
   @override
+  String get settingsFoodDbRegionSearchPlaceholder => '地域を検索...';
+
+  @override
+  String get settingsFoodDbRegionNoResults => '地域が見つかりません';
+
+  @override
   String get settingsFoodDbRegionIssueHint =>
       'あなたの国がまだリストされていない場合は、お気軽に GitHub の問題を開いてサポートをリクエストしてください。';
 

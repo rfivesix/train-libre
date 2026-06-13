@@ -2182,6 +2182,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cela modifie la source du catalogue Open Food Facts pour la recherche.';
 
   @override
+  String get settingsFoodDbRegionSearchPlaceholder =>
+      'Rechercher une région...';
+
+  @override
+  String get settingsFoodDbRegionNoResults => 'Aucune région trouvée';
+
+  @override
   String get settingsFoodDbRegionIssueHint =>
       'Si votre pays ne figure pas encore dans la liste, n\'hésitez pas à ouvrir un ticket GitHub et à demander de l\'aide.';
 
