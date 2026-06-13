@@ -60,6 +60,7 @@ jobs:
             echo "Error: FDROID_KEYSTORE_BASE64 is not set."
             exit 1
           fi
+          # WICHTIG: Direkt in den fdroid/-Unterordner schreiben, wo config.yml liegt!
           echo "$FDROID_KEYSTORE_BASE64" | base64 --decode > fdroid/fdroid.jks
 
       - name: Configure F-Droid settings
@@ -77,6 +78,7 @@ jobs:
           sed -i "s|REPO_NAME_PLACEHOLDER|$REPO_DISPLAY_NAME|g" config.yml
           sed -i "s|REPO_DESC_PLACEHOLDER|$REPO_DESC|g" config.yml
           
+          # Ersetzt zuverlässig alle Vorkommen der Passwort-Platzhalter in der config.yml
           sed -i "s|KEYSTORE_PASS_PLACEHOLDER|$KEYSTORE_PASSWORD|g" config.yml
           sed -i "s|KEY_PASS_PLACEHOLDER|$KEY_PASSWORD|g" config.yml
 
