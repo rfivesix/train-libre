@@ -2,12 +2,14 @@ repo_url: "REPO_URL_PLACEHOLDER"
 repo_name: "REPO_NAME_PLACEHOLDER"
 repo_description: "REPO_DESC_PLACEHOLDER"
 
-# Keystore configuration for repository signing
-# The actual keystore file is injected securely during the GitHub Actions run
 keystore: "fdroid.jks"
 repo_keyalias: "fdroid"
+
 keystorepass: "KEYSTORE_PASS_PLACEHOLDER"
 keypass: "KEY_PASS_PLACEHOLDER"
 
-# Default details for generating a new keystore via `fdroid init` if needed
+keystore_passphrase: "KEYSTORE_PASS_PLACEHOLDER"
+key_passphrase: "KEY_PASS_PLACEHOLDER"
+
+# Standard-Details
 keydname: "CN=F-Droid Repo, OU=F-Droid, O=F-Droid, L=Anywhere, C=US"
