@@ -15,21 +15,13 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
-### ios test_build
+### ios upload_beta
 
 ```sh
-[bundle exec] fastlane ios test_build
+[bundle exec] fastlane ios upload_beta
 ```
 
-Run dry-run verification checks locally
-
-### ios beta
-
-```sh
-[bundle exec] fastlane ios beta
-```
-
-Process version incrementing and upload to Apple TestFlight
+Upload existing IPA to Apple TestFlight
 
 ----
 

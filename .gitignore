@@ -60,3 +60,4 @@ skills-lock.json
 # Fastlane local standalone bundles
 ios/vendor/bundle/
 ios/.bundle/
+ios/fastlane/.env
