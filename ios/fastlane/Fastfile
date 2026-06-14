@@ -4,6 +4,28 @@ platform :ios do
   desc "Upload existing IPA to Apple TestFlight"
   lane :upload_beta do
     project_root = File.expand_path("../../..", __FILE__)
+    pubspec_path = File.join(project_root, "pubspec.yaml")
+    
+    if File.exist?(pubspec_path)
+      pubspec_content = File.read(pubspec_path)
+      # Match version line: version: x.y.z+build_number
+      version_match = pubspec_content.match(/^version:\s*[^\n]+\+(\d+)/)
+      if version_match
+        build_number = version_match[1]
+        UI.message("Successfully parsed iOS build number from pubspec.yaml: #{build_number}")
+      else
+        UI.user_error!("Could not parse build number from pubspec.yaml version field.")
+      end
+    else
+      UI.user_error!("pubspec.yaml not found at path: #{pubspec_path}")
+    end
+
+    # Increment (set) build number in Runner.xcodeproj
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: "Runner.xcodeproj"
+    )
+
     ipa_path = Dir[File.join(project_root, "build", "ios", "ipa", "**", "*.ipa")].first
     
     UI.user_error!("No compiled IPA file found in build/ios/ipa/") unless ipa_path
