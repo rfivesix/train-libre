@@ -1352,7 +1352,6 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Widget _profileAppBarButton(BuildContext context) {
-    final profileService = Provider.of<ProfileService>(context, listen: false);
     return Padding(
       padding: const EdgeInsets.only(
         right: DesignConstants.screenPaddingHorizontal,
@@ -1369,15 +1368,19 @@ class _MainScreenState extends State<MainScreen>
             // Refresh diary data when returning from profile/settings
             _refreshHomeScreen();
           },
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.grey.shade300,
-            backgroundImage: (profileService.profileImagePath != null)
-                ? FileImage(File(profileService.profileImagePath!))
-                : null,
-            child: (profileService.profileImagePath == null)
-                ? const Icon(LucideIcons.user, size: 20, color: Colors.black54)
-                : null,
+          child: Consumer<ProfileService>(
+            builder: (context, profileService, _) {
+              return CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.grey.shade300,
+                backgroundImage: (profileService.profileImagePath != null)
+                    ? FileImage(File(profileService.profileImagePath!))
+                    : null,
+                child: (profileService.profileImagePath == null)
+                    ? const Icon(LucideIcons.user, size: 20, color: Colors.black54)
+                    : null,
+              );
+            },
           ),
         ),
       ),

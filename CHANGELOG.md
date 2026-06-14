@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Removed manual bottom padding calculations from `_LiveWorkoutFabState`, allowing `Scaffold`'s layout system to natively place the FAB exactly `16.0` logical pixels above the bottom bar.
   - Implemented a dynamic `Transform.translate` downward translation of `8.0` logical pixels and a custom shadow clipper `_LiveWorkoutFabShadowClipper` when the rest timer bar is active. This narrows the spacing to exactly `8.0` logical pixels to match the Diary Screen's bottom layout, while cleanly cropping the drop shadow at the rest bar's top edge to prevent overlapping visual smudges.
 
+### Fixed
+- **Profile Picture Lazy Loading on Startup:** Resolved an issue where the profile picture avatar in the main screen app bar did not load on a fresh app startup unless the user manually navigated to another screen. Added a reactive `Consumer<ProfileService>` wrapper around the avatar to dynamically update as soon as the asynchronous profile service initialization completes.
+
 ## [0.9.29] - 2026-06-14
 ### Added
 - **Dynamic Time-Based Meal Pre-Selection (Issue #460):** Added a new quality-of-life feature that maps the current system hour dynamically to the most logical meal type: Breakfast (05:00 - 10:59), Lunch (11:00 - 15:59), Dinner (16:00 - 20:59), and Snack (21:00 - 04:59). Integrated the helper across the global FAB food-adding flow and natural language logs.
