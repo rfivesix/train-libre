@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.29] - 2026-06-14
+### Added
+- **Maestro Screenshot Translation Bridge:** Added a robust utility script at `script/sync_screenshots.sh` that automatically maps, renames, and stage-copies raw Maestro screenshot outputs (supporting name-based matching and alphabetical fallback) to our permanent assets. Supports atomic overwrites and stale file cleanup under `fastlane/metadata/android/.../phoneScreenshots/` to prevent bloated store packages, and integrates with the Pillow-based framing script (`generate_store_screenshots.py`) via a temporary workspace to generate framed screenshots dynamically.
+- **F-Droid App Registry Configuration:** Added a minimalist F-Droid app registry configuration at `fdroid/metadata/com.rfivesix.trainlibre.yml` to declare categories, GPL license, website, source code repository, and issue tracker links.
+
+### Changed
+- **Draft-Based GitHub Release Workflow:** Refactored `script/deploy_release.sh` to generate the GitHub Release container as a draft (`--draft`), upload compiled assets, and publish the release (`gh release edit --draft=false`) only when all uploads are fully complete. This eliminates the race condition where the F-Droid update pipeline triggered before APK binaries finished uploading.
+- **Dynamic Fastlane Metadata & Changelogs:** Configured `.github/workflows/fdroid-repo.yml` to copy the Fastlane metadata folders dynamically to the F-Droid workspace, allowing `fdroid update` to natively import descriptions, summaries, and store graphics. Added a Python script to parse the active build number from `pubspec.yaml` and dump the dynamic GitHub Release notes directly into localized Fastlane changelogs.
+- **Dynamic iOS Build Number Injection:** Refactored `ios/fastlane/Fastfile` to parse the active build number from the root `pubspec.yaml` and configure it dynamically using `increment_build_number` before uploading to Apple TestFlight.
+
 ## [0.9.28] - 2026-06-13
 ### Changed
 - **Liquid Glass Rest Timer Bar:** Upgraded the visual styling of the bottom rest timer bar on the live workout screen to use the premium liquid glass design system. Configured the countdown bar and green completion banner in a `SizedBox` and inner `Container` of exactly `74.0` height and `37.0` border radius to match `GlassFab` layout dimensions. Wrapped them in `GlassAdaptiveScope`, `AdaptiveGlass`, `GlassGlow` using `DesignConstants.liquidGlassSettings` and unified neutral tint (`DesignConstants.glassNeutralTint`) or green glass color mapping. Integrated `ShadowOuterClipper` to clip drop shadows from behind the transparent glass elements.
