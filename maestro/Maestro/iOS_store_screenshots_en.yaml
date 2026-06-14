@@ -25,7 +25,7 @@ appId: com.rfivesix.trainlibre
     repeat: 2
     delay: 10000
 - takeScreenshot: 01_diary
-- tapOn: "Nutrition"
+- tapOn: "nutrition\nnutrition"
 - takeScreenshot: 02_nutrition
 - tapOn:
     point: 91%,13%
@@ -42,7 +42,7 @@ appId: com.rfivesix.trainlibre
     text: "Allow “Train Libre” to read"
     index: 1
 - tapOn: "Don’t Allow"
-- tapOn: "Statistics"
+- tapOn: "Statistics\nStatistics"
 - scrollUntilVisible:
     element: "Body measurements\nAll measurements"
 - scroll
@@ -50,9 +50,9 @@ appId: com.rfivesix.trainlibre
 - takeScreenshot: 04_measurements
 - tapOn: "Back"
 - scrollUntilVisible:
-    element: "Muscle Readiness\nCurrently\nSeveral muscle groups still recovering\nRecovering: 5  Ready: 3  Fresh: 2"
+    element: "Muscle Readiness\nCurrently\nMixed recovery state\nRecovering: 2  Ready: 0  Fresh: 11"
     direction: UP
-- tapOn: "Muscle Readiness\nCurrently\nSeveral muscle groups still recovering\nRecovering: 5  Ready: 3  Fresh: 2"
+- tapOn: "Muscle Readiness\nCurrently\nMixed recovery state\nRecovering: 2  Ready: 0  Fresh: 11"
 - takeScreenshot: 05_recovery
 - tapOn: "Back"
 - tapOn:
@@ -76,9 +76,9 @@ appId: com.rfivesix.trainlibre
     delay: 5000
 - tapOn:
     point: 88%,83%
-- tapOn: "Photo, 06 May, 00:12"
+- tapOn: "Photo, June 01, 9:45 AM"
 - tapOn:
-    text: "Photo, 06 May, 00:12"
+    text: "Photo, June 01, 9:45 AM"
     index: 1
 - tapOn: "Done"
 - takeScreenshot: 06_ai
