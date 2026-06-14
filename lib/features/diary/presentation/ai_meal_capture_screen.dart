@@ -12,6 +12,7 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import 'ai_meal_review_screen.dart';
+import 'meal_editor_screen.dart';
 import '../../settings/presentation/ai_settings_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
@@ -77,6 +78,42 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (!_aiWaitingHapticActive) return;
     _aiWaitingHapticActive = false;
     HapticFeedbackService.instance.stopAiWaiting();
+  }
+
+  String? _detectMealTypeFromText(String text) {
+    final lower = text.toLowerCase();
+
+    // English
+    if (lower.contains('breakfast')) return 'mealtypeBreakfast';
+    if (lower.contains('lunch')) return 'mealtypeLunch';
+    if (lower.contains('dinner') || lower.contains('supper')) return 'mealtypeDinner';
+    if (lower.contains('snack')) return 'mealtypeSnack';
+
+    // German
+    if (lower.contains('frühstück') || lower.contains('fruhstuck')) return 'mealtypeBreakfast';
+    if (lower.contains('mittag')) return 'mealtypeLunch';
+    if (lower.contains('abend')) return 'mealtypeDinner';
+    if (lower.contains('snack') || lower.contains('zwischenmahlzeit')) return 'mealtypeSnack';
+
+    // French
+    if (lower.contains('petit-déjeuner') || lower.contains('petit déjeuner') || lower.contains('matin')) return 'mealtypeBreakfast';
+    if (lower.contains('déjeuner') || lower.contains('dejeuner') || lower.contains('midi')) return 'mealtypeLunch';
+    if (lower.contains('dîner') || lower.contains('diner') || lower.contains('souper') || lower.contains('soir')) return 'mealtypeDinner';
+    if (lower.contains('collation') || lower.contains('goûter') || lower.contains('gouter')) return 'mealtypeSnack';
+
+    // Italian
+    if (lower.contains('colazione')) return 'mealtypeBreakfast';
+    if (lower.contains('pranzo')) return 'mealtypeLunch';
+    if (lower.contains('cena')) return 'mealtypeDinner';
+    if (lower.contains('spuntino') || lower.contains('merenda')) return 'mealtypeSnack';
+
+    // Japanese
+    if (lower.contains('朝食') || lower.contains('朝ごはん')) return 'mealtypeBreakfast';
+    if (lower.contains('昼食') || lower.contains('昼ごはん') || lower.contains('ランチ')) return 'mealtypeLunch';
+    if (lower.contains('夕食') || lower.contains('晩ごはん') || lower.contains('ディナー') || lower.contains('夜ごはん')) return 'mealtypeDinner';
+    if (lower.contains('間食') || lower.contains('おやつ') || lower.contains('スナック')) return 'mealtypeSnack';
+
+    return null;
   }
 
   // ---------------------------------------------------------------------------
@@ -161,6 +198,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         setState(() => _isAnalyzing = false);
       }
 
+      final detectedType = _detectMealTypeFromText(text);
+      final resolvedMealType = widget.initialMealType ??
+          detectedType ??
+          MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
+
       final saved = await Navigator.of(context).push<bool>(
         MaterialPageRoute(
           builder: (_) => AiMealReviewScreen(
@@ -177,7 +219,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             initialValidation: validationOutcome.validation,
             originalImages: _images,
             initialDate: widget.initialDate,
-            initialMealType: widget.initialMealType,
+            initialMealType: resolvedMealType,
           ),
         ),
       );

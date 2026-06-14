@@ -16,6 +16,7 @@ import '../../supplements/domain/models/supplement_log.dart';
 import '../../workout/domain/models/workout_log.dart';
 import '../../diary/presentation/add_food_navigation_result.dart';
 import '../../diary/presentation/add_food_screen.dart';
+import '../../diary/presentation/meal_editor_screen.dart';
 import '../../diary/presentation/ai_meal_capture_screen.dart';
 import '../../profile/presentation/add_measurement_screen.dart';
 import '../../diary/presentation/diary_screen.dart';
@@ -457,12 +458,13 @@ class _MainScreenState extends State<MainScreen>
     final l10n = AppLocalizations.of(context)!;
     // FIX: Get date
     final targetDate = _currentActiveDate;
+    final fallbackMealType = MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
 
     final routeResult = await Navigator.of(context).push<Object?>(
       MaterialPageRoute(
         builder: (context) => AddFoodScreen(
           initialDate: targetDate, // <--- Pass-through
-          // initialMealType: null, // Default is ok
+          initialMealType: fallbackMealType, // <--- Use time-based fallback
         ),
       ),
     );
@@ -478,10 +480,11 @@ class _MainScreenState extends State<MainScreen>
     final selectedFoodItem = addFoodResult.selectedFoodItem;
     if (selectedFoodItem == null) return;
 
-    // FIX: Pass date (adjust signature below).
+    // FIX: Pass date and dynamic meal type.
     final result = await _showQuantityMenu(
       selectedFoodItem,
       initialDate: targetDate,
+      initialMealType: fallbackMealType,
     );
 
     if (result == null || !mounted) return;
@@ -679,6 +682,7 @@ class _MainScreenState extends State<MainScreen>
       })?> _showQuantityMenu(
     FoodItem item, {
     DateTime? initialDate, // <--- New parameter
+    String? initialMealType,
   }) async {
     final l10n = AppLocalizations.of(context)!;
     final GlobalKey<QuantityDialogContentState> dialogStateKey = GlobalKey();
@@ -693,6 +697,7 @@ class _MainScreenState extends State<MainScreen>
             QuantityDialogContent(
               key: dialogStateKey,
               item: item,
+              initialMealType: initialMealType,
               initialTimestamp: (initialDate ?? DateTime.now()).withCurrentTime,
             ),
             const SizedBox(height: 12),

@@ -4,6 +4,42 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 
 enum MealType { breakfast, lunch, dinner, snack }
 
+extension MealTypeTimeExtension on MealType {
+  /// Maps the current device hour to the most logical meal type.
+  ///
+  /// * 05:00 - 10:59 -> MealType.breakfast
+  /// * 11:00 - 15:59 -> MealType.lunch
+  /// * 16:00 - 20:59 -> MealType.dinner
+  /// * 21:00 - 04:59 -> MealType.snack
+  static MealType fromCurrentTime() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 11) {
+      return MealType.breakfast;
+    } else if (hour >= 11 && hour < 16) {
+      return MealType.lunch;
+    } else if (hour >= 16 && hour < 21) {
+      return MealType.dinner;
+    } else {
+      return MealType.snack;
+    }
+  }
+
+  /// Converts the enum to its database/localization identifier key.
+  String get toMealTypeKey {
+    switch (this) {
+      case MealType.breakfast:
+        return 'mealtypeBreakfast';
+      case MealType.lunch:
+        return 'mealtypeLunch';
+      case MealType.dinner:
+        return 'mealtypeDinner';
+      case MealType.snack:
+        return 'mealtypeSnack';
+    }
+  }
+}
+
+
 /// A screen for creating or editing the basic metadata of a meal.
 ///
 /// Allows users to specify a name and categorise the meal by [MealType].
