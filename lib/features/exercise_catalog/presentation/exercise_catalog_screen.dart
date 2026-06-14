@@ -241,6 +241,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                         ),
                       )
                     : ListView.builder(
+                        cacheExtent: 1500,
                         padding: DesignConstants.cardPadding,
                         itemCount: _foundExercises.length,
                         itemBuilder: (context, index) {

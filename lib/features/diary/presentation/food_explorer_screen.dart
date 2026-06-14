@@ -230,6 +230,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                 ? const Center(child: CircularProgressIndicator())
                 : _foundFoodItems.isNotEmpty
                     ? ListView.builder(
+                        cacheExtent: 1500,
                         itemCount: _foundFoodItems.length,
                         itemBuilder: (context, index) =>
                             _buildFoodListItem(_foundFoodItems[index]),
@@ -270,6 +271,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
       children: [
         Expanded(
           child: ListView.builder(
+            cacheExtent: 1500,
             padding: DesignConstants.cardPadding,
             itemCount: _favoriteFoodItems.length,
             itemBuilder: (context, index) =>

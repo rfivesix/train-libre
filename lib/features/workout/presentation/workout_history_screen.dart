@@ -103,6 +103,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
           }
 
           return ListView.builder(
+            cacheExtent: 1500,
             padding: DesignConstants.cardPadding.copyWith(
               top: DesignConstants.cardPadding.top + topPadding,
             ),

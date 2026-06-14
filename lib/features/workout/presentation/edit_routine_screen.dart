@@ -624,6 +624,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           },
           child: Scaffold(
             extendBodyBehindAppBar: true,
+            extendBody: true,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: GlobalAppBar(
               automaticallyImplyLeading: false,
@@ -692,7 +693,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                   ),
                                 )
                               : ReorderableListView.builder(
-                                  padding: EdgeInsets.zero,
+                                  cacheExtent: 1500,
+                                  padding: const EdgeInsets.only(
+                                    bottom: DesignConstants.bottomContentSpacer,
+                                  ),
                                   itemCount: _routineExercises.length,
                                   proxyDecorator: (Widget child, int index,
                                       Animation<double> anim) {
@@ -734,18 +738,42 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                   },
                                 ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
-                      child: WgerAttributionWidget(
-                        textStyle: textTheme.bodySmall
-                            ?.copyWith(color: Colors.grey[600]),
-                      ),
-                    ),
                   ],
                 ),
                 // --- Keyboard Done Accessory Bar ---
                 const _KeyboardDoneBar(),
               ],
+            ),
+            bottomNavigationBar: SafeArea(
+              top: false,
+              bottom: false,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: (MediaQuery.paddingOf(context).bottom * 0.3)
+                      .clamp(4.0, 12.0),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10.0, top: 0.0),
+                      child: WgerAttributionWidget(
+                        textStyle: textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              offset: const Offset(1, 1),
+                              blurRadius: 4.0,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             floatingActionButton: _EditRoutineFab(onPressed: _addExercises),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -761,7 +789,8 @@ class _KeyboardDoneBar extends StatefulWidget {
   State<_KeyboardDoneBar> createState() => _KeyboardDoneBarState();
 }
 
-class _KeyboardDoneBarState extends State<_KeyboardDoneBar> with WidgetsBindingObserver {
+class _KeyboardDoneBarState extends State<_KeyboardDoneBar>
+    with WidgetsBindingObserver {
   double _keyboardHeight = 0;
 
   @override
@@ -854,7 +883,8 @@ class _EditRoutineFab extends StatefulWidget {
   State<_EditRoutineFab> createState() => _EditRoutineFabState();
 }
 
-class _EditRoutineFabState extends State<_EditRoutineFab> with WidgetsBindingObserver {
+class _EditRoutineFabState extends State<_EditRoutineFab>
+    with WidgetsBindingObserver {
   double _keyboardHeight = 0;
 
   @override

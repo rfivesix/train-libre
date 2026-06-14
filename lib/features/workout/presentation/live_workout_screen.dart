@@ -660,6 +660,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           child: exercises.isEmpty
                               ? _buildEmptyState(l10n)
                               : ReorderableListView.builder(
+                                  cacheExtent: 1500,
                                   padding: EdgeInsets.only(
                                     bottom: showRestBar
                                         ? 180.0
@@ -1037,12 +1038,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                   AnimatedBuilder(
                     animation: manager,
                     builder: (context, _) {
-                      final bar = _buildRestBottomBar(l10n, colorScheme, manager);
+                      final bar =
+                          _buildRestBottomBar(l10n, colorScheme, manager);
                       return bar ?? const SizedBox.shrink();
                     },
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 0.0, top: 0.0),
+                    padding: const EdgeInsets.only(bottom: 10.0, top: 0.0),
                     child: WgerAttributionWidget(
                       textStyle: textTheme.bodySmall?.copyWith(
                         color: Colors.grey[600],
@@ -1386,10 +1388,12 @@ class _LiveWorkoutKeyboardDoneBar extends StatefulWidget {
   const _LiveWorkoutKeyboardDoneBar();
 
   @override
-  State<_LiveWorkoutKeyboardDoneBar> createState() => _LiveWorkoutKeyboardDoneBarState();
+  State<_LiveWorkoutKeyboardDoneBar> createState() =>
+      _LiveWorkoutKeyboardDoneBarState();
 }
 
-class _LiveWorkoutKeyboardDoneBarState extends State<_LiveWorkoutKeyboardDoneBar> with WidgetsBindingObserver {
+class _LiveWorkoutKeyboardDoneBarState
+    extends State<_LiveWorkoutKeyboardDoneBar> with WidgetsBindingObserver {
   double _keyboardHeight = 0;
 
   @override
@@ -1482,7 +1486,8 @@ class _LiveWorkoutFab extends StatefulWidget {
   State<_LiveWorkoutFab> createState() => _LiveWorkoutFabState();
 }
 
-class _LiveWorkoutFabState extends State<_LiveWorkoutFab> with WidgetsBindingObserver {
+class _LiveWorkoutFabState extends State<_LiveWorkoutFab>
+    with WidgetsBindingObserver {
   double _keyboardHeight = 0;
 
   @override
@@ -1523,17 +1528,42 @@ class _LiveWorkoutFabState extends State<_LiveWorkoutFab> with WidgetsBindingObs
     }
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
         (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
-    final double bottomSafeArea = 0; //MediaQuery.paddingOf(context).bottom;
-    final double fabBottomPadding =
-        (showRestBar ? bottomSafeArea - 23 : bottomSafeArea - 23)
-            .clamp(0.0, double.infinity);
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: fabBottomPadding),
-      child: GlassFab(
-        label: AppLocalizations.of(context)!.fabAddExercise,
-        onPressed: widget.onPressed,
-      ),
+    final fab = GlassFab(
+      label: AppLocalizations.of(context)!.fabAddExercise,
+      onPressed: widget.onPressed,
     );
+
+    if (showRestBar) {
+      return Transform.translate(
+        offset: const Offset(0, 8.0),
+        child: ClipPath(
+          clipper: const _LiveWorkoutFabShadowClipper(),
+          child: fab,
+        ),
+      );
+    }
+    return fab;
   }
+}
+
+/// A clipper that crops the FAB drop shadow at the bottom (exactly 8.0 logical
+/// pixels below the FAB edge) so it terminates where the rest bar begins.
+class _LiveWorkoutFabShadowClipper extends CustomClipper<Path> {
+  const _LiveWorkoutFabShadowClipper();
+
+  @override
+  Path getClip(Size size) {
+    final Path path = Path();
+    path.addRect(Rect.fromLTRB(
+      -50.0,
+      -50.0,
+      size.width + 50.0,
+      size.height + 8.0, // cut off exactly at the top of the rest bar (8.0px below FAB bottom)
+    ));
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _LiveWorkoutFabShadowClipper oldClipper) => false;
 }

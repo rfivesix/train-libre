@@ -521,6 +521,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       children: [
         Expanded(
           child: ListView.builder(
+            cacheExtent: 1500,
             padding: DesignConstants.cardPadding.copyWith(
               bottom: _bottomPadding,
             ),
@@ -572,6 +573,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       children: [
         Expanded(
           child: ListView.builder(
+            cacheExtent: 1500,
             padding: DesignConstants.cardPadding.copyWith(
               bottom: _bottomPadding,
             ),
@@ -777,6 +779,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 await _loadBaseCategories();
               },
               child: ListView.builder(
+                cacheExtent: 1500,
                 padding: const EdgeInsets.only(bottom: _bottomPadding),
                 itemCount: _baseCategories.length + 1,
                 itemBuilder: (context, idx) {

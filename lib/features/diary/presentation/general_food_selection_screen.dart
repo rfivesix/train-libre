@@ -259,6 +259,7 @@ class _GeneralFoodSelectionScreenState
                       ? (_baseCategories.isEmpty
                           ? const Center(child: CircularProgressIndicator())
                           : ListView.builder(
+                              cacheExtent: 1500,
                               itemCount: _baseCategories.length,
                               itemBuilder: (context, idx) {
                                 final cat = _baseCategories[idx];
@@ -341,6 +342,7 @@ class _GeneralFoodSelectionScreenState
                                   ),
                                 )
                               : ListView.builder(
+                                  cacheExtent: 1500,
                                   itemCount: _results.length,
                                   itemBuilder: (context, index) =>
                                       _buildFoodListItem(_results[index], l10n),

@@ -294,7 +294,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             ),
             const SizedBox(height: DesignConstants.spacingXL),
             AppSectionHeader(title: l10n.involvedMuscles),
-            _ExerciseMuscleBodyView(exercise: _currentExercise),
+            RepaintBoundary(
+              child: _ExerciseMuscleBodyView(exercise: _currentExercise),
+            ),
             const SizedBox(height: DesignConstants.spacingXL),
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
@@ -313,7 +315,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               )
             else ...[
               AppSectionHeader(title: l10n.workoutHistoryButton),
-              _buildConsolidatedChart(l10n),
+              RepaintBoundary(
+                child: _buildConsolidatedChart(l10n),
+              ),
               const SizedBox(height: DesignConstants.spacingXL),
               _buildPRSummarySection(l10n),
             ],

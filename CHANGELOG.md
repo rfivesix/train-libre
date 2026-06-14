@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.30] - 2026-06-15
+### Changed
+- **Viewport Scroll Performance & Layout Isolation (Issue #457):** Eliminated scroll-stutter and frame drops during active scrolling:
+  - Added `cacheExtent: 1500` to `ReorderableListView.builder` inside both `EditRoutineScreen` and `LiveWorkoutScreen` to pre-render exercise and set input cards off-screen, shifting CPU and GPU work away from active scrolling frames.
+  - Refactored `DiaryScreen` main `ListView` to `CustomScrollView` with layout-isolated slivers. Placed the upper dashboard (macros, summaries) in a `SliverToBoxAdapter` wrapped in a `RepaintBoundary`, and isolated the weight custom-painter chart in its own sliver/repaint boundary, preventing layout changes in the active food log from invalidating cached GPU textures.
+  - Conducted a global scroll performance audit and implemented viewport pre-rendering (`cacheExtent: 1500`) on candidate list views in `workout_history_screen.dart`, `exercise_catalog_screen.dart`, `food_explorer_screen.dart`, `add_food_screen.dart`, and `general_food_selection_screen.dart`.
+  - Added `RepaintBoundary` wrappers to isolate repaint logic for complex body maps, vector diagrams, and charts in `recovery_tracker_screen.dart`, `muscle_group_analytics_screen.dart`, `consistency_tracker_screen.dart`, `body_nutrition_correlation_screen.dart`, `exercise_detail_screen.dart`, and `statistics_hub_screen.dart`, caching GPU raster layers and preventing layout invalidation cascades.
+- **Live Workout FAB Layout & Shadow Clipping:** Resolved excessive bottom spacing of the Floating Action Button (`GlassFab`) on `LiveWorkoutScreen` and fixed drop shadow bleed overlapping the bottom rest timer bar:
+  - Removed manual bottom padding calculations from `_LiveWorkoutFabState`, allowing `Scaffold`'s layout system to natively place the FAB exactly `16.0` logical pixels above the bottom bar.
+  - Implemented a dynamic `Transform.translate` downward translation of `8.0` logical pixels and a custom shadow clipper `_LiveWorkoutFabShadowClipper` when the rest timer bar is active. This narrows the spacing to exactly `8.0` logical pixels to match the Diary Screen's bottom layout, while cleanly cropping the drop shadow at the rest bar's top edge to prevent overlapping visual smudges.
+
 ## [0.9.29] - 2026-06-14
 ### Added
 - **Dynamic Time-Based Meal Pre-Selection (Issue #460):** Added a new quality-of-life feature that maps the current system hour dynamically to the most logical meal type: Breakfast (05:00 - 10:59), Lunch (11:00 - 15:59), Dinner (16:00 - 20:59), and Snack (21:00 - 04:59). Integrated the helper across the global FAB food-adding flow and natural language logs.
