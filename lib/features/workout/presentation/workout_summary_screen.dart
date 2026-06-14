@@ -21,6 +21,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'widgets/workout_summary_bar.dart';
+import 'widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -504,22 +505,10 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
     }
 
-    // Find max count for normalization to ensure vibrant colors
-    int maxCount = 0;
-    for (final count in muscleCounts.values) {
-      if (count > maxCount) maxCount = count;
-    }
-
-    final highlights = muscleCounts.entries.map((e) {
-      // Relative intensity: scale to 1-5 based on session max
-      final intensity =
-          maxCount > 0 ? (e.value / maxCount * 5).ceil().clamp(1, 5) : 1;
-
-      return BodyPartHighlightData(
-        slug: e.key,
-        intensity: intensity,
-      );
-    }).toList();
+    final highlights = MuscleColorHelper.mapSlugWorkloadToPrimaryColors(
+      context,
+      muscleCounts.map((k, v) => MapEntry(k, v.toDouble())),
+    );
 
     return SummaryCard(
       child: Padding(
@@ -543,13 +532,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       gender:
                           context.watch<ProfileService>().gender.toBodyGender(),
                       side: BodySide.front,
-                      intensityColors: const [
-                        Color(0xFFFFF176), // Light Yellow
-                        Color(0xFFFFEE58), // Yellow
-                        Color(0xFFFFB74D), // Orange
-                        Color(0xFFFF7043), // Deep Orange
-                        Color(0xFFE53935), // Red
-                      ],
                       highlightedParts:
                           BodySlugMapper.forSide(highlights, BodySide.front),
                     ),
@@ -559,13 +541,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       gender:
                           context.watch<ProfileService>().gender.toBodyGender(),
                       side: BodySide.back,
-                      intensityColors: const [
-                        Color(0xFFFFF176), // Light Yellow
-                        Color(0xFFFFEE58), // Yellow
-                        Color(0xFFFFB74D), // Orange
-                        Color(0xFFFF7043), // Deep Orange
-                        Color(0xFFE53935), // Red
-                      ],
                       highlightedParts:
                           BodySlugMapper.forSide(highlights, BodySide.back),
                     ),

@@ -1,6 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
@@ -14,7 +13,7 @@ import '../../../util/design_constants.dart';
 import 'widgets/analytics_chart_defaults.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../workout/presentation/widgets/muscle_radar_chart.dart';
+import '../../workout/presentation/widgets/muscle_color_helper.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 
@@ -70,54 +69,11 @@ class _MuscleGroupAnalyticsScreenState
     return StatisticsPresentationFormatter.compactNumber(value);
   }
 
-  List<MuscleRadarDatum> _buildRadarData(
-    List<Map<String, dynamic>> muscles,
-    AppLocalizations l10n,
-  ) {
-    final sorted = muscles
-        .where(
-          (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
-            m['muscleGroup'] as String?,
-          ),
-        )
-        .toList(growable: false)
-      ..sort(
-        (a, b) => ((b['equivalentSets'] as num?)?.toDouble() ?? 0.0)
-            .compareTo((a['equivalentSets'] as num?)?.toDouble() ?? 0.0),
-      );
 
-    if (sorted.length <= _maxMuscleBars) {
-      return sorted
-          .map(
-            (m) => MuscleRadarDatum(
-              label: StatisticsPresentationFormatter.muscleGroupLabel(
-                l10n,
-                m['muscleGroup'] as String,
-              ),
-              value: (m['equivalentSets'] as num?)?.toDouble() ?? 0.0,
-            ),
-          )
-          .toList();
-    }
-
-    return sorted
-        .take(_maxMuscleBars)
-        .map(
-          (m) => MuscleRadarDatum(
-            label: StatisticsPresentationFormatter.muscleGroupLabel(
-              l10n,
-              m['muscleGroup'] as String,
-            ),
-            value: (m['equivalentSets'] as num?)?.toDouble() ?? 0.0,
-          ),
-        )
-        .toList();
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
 
     final muscles = (_analytics['muscles'] as List<dynamic>? ?? const [])
         .cast<Map<String, dynamic>>()
@@ -133,14 +89,16 @@ class _MuscleGroupAnalyticsScreenState
         (_analytics['undertrained'] as List<dynamic>? ?? const [])
             .cast<String>();
     final dataQualityOk = (_analytics['dataQualityOk'] as bool?) ?? false;
-    final radarData = _buildRadarData(muscles, l10n);
-    final radarMax = radarData.isEmpty
-        ? 0.0
-        : radarData
-            .map((e) => e.value)
-            .reduce((a, b) => a > b ? a : b)
-            .clamp(1.0, 1000000.0)
-            .toDouble();
+
+    final workload = <String, double>{};
+    for (final m in muscles) {
+      final name = m['muscleGroup'] as String?;
+      final sets = (m['equivalentSets'] as num?)?.toDouble() ?? 0.0;
+      if (name != null && sets > 0.0) {
+        workload[name] = sets;
+      }
+    }
+    final highlights = MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
 
     final selectedWeek =
         (_selectedWeekIndex >= 0 && _selectedWeekIndex < weekly.length)
@@ -150,134 +108,103 @@ class _MuscleGroupAnalyticsScreenState
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: GlobalAppBar(title: l10n.muscleAnalyticsTitle),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: DesignConstants.screenPadding.copyWith(
-                  top: DesignConstants.screenPadding.top + topPadding,
-                  bottom: DesignConstants.bottomContentSpacer,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _sectionLabel(l10n.analyticsPeriodLabel),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: List.generate(_periodOptions.length, (index) {
-                        final days = _periodOptions[index];
-                        final label = days == 7
-                            ? l10n.filter7Days
-                            : days == 30
-                                ? l10n.filter30Days
-                                : days == 90
-                                    ? l10n.filter3Months
-                                    : l10n.filter6Months;
-                        return ChoiceChip(
-                          label: Text(label),
-                          selected: _periodIndex == index,
-                          onSelected: (selected) {
-                            if (!selected) return;
-                            setState(() => _periodIndex = index);
-                            _loadData();
-                          },
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    _sectionLabel(l10n.analyticsRadarOverviewTitle),
-                    SummaryCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (radarData.length < 3)
-                              AnalyticsChartDefaults.stateView(
-                                context: context,
-                                l10n: l10n,
-                                status: AnalyticsStatus.empty,
-                                emptyLabel: l10n.noWorkoutDataLabel,
-                              )
-                            else ...[
-                              TabBar(
-                                tabs: [
-                                  Tab(
-                                    icon: const Icon(LucideIcons.user_round),
-                                    text: l10n.involvedMuscles,
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: GlobalAppBar(title: l10n.muscleAnalyticsTitle),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: DesignConstants.screenPadding.copyWith(
+                top: DesignConstants.screenPadding.top + topPadding,
+                bottom: DesignConstants.bottomContentSpacer,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _sectionLabel(l10n.analyticsPeriodLabel),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: List.generate(_periodOptions.length, (index) {
+                      final days = _periodOptions[index];
+                      final label = days == 7
+                          ? l10n.filter7Days
+                          : days == 30
+                              ? l10n.filter30Days
+                              : days == 90
+                                  ? l10n.filter3Months
+                                  : l10n.filter6Months;
+                      return ChoiceChip(
+                        label: Text(label),
+                        selected: _periodIndex == index,
+                        onSelected: (selected) {
+                          if (!selected) return;
+                          setState(() => _periodIndex = index);
+                          _loadData();
+                        },
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  _sectionLabel(l10n.analyticsRecentDistributionHeatmap),
+                  SummaryCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (workload.isEmpty)
+                            AnalyticsChartDefaults.stateView(
+                              context: context,
+                              l10n: l10n,
+                              status: AnalyticsStatus.empty,
+                              emptyLabel: l10n.noWorkoutDataLabel,
+                            )
+                          else ...[
+                            SizedBox(
+                              height: 320,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildBodyHeatmap(
+                                      context,
+                                      highlights,
+                                      muscles,
+                                      BodySide.front,
+                                    ),
                                   ),
-                                  Tab(
-                                    icon: const Icon(LucideIcons.radar),
-                                    text: l10n.analysis,
+                                  Expanded(
+                                    child: _buildBodyHeatmap(
+                                      context,
+                                      highlights,
+                                      muscles,
+                                      BodySide.back,
+                                    ),
                                   ),
                                 ],
-                                indicatorSize: TabBarIndicatorSize.tab,
-                                dividerColor: Colors.transparent,
-                                labelColor: colorScheme.primary,
-                                unselectedLabelColor:
-                                    colorScheme.onSurfaceVariant,
-                                indicatorColor: colorScheme.primary,
                               ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                height: 320,
-                                child: TabBarView(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _buildBodyHeatmap(
-                                            context,
-                                            muscles,
-                                            BodySide.front,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: _buildBodyHeatmap(
-                                            context,
-                                            muscles,
-                                            BodySide.back,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Center(
-                                      child: MuscleRadarChart(
-                                        data: radarData,
-                                        maxValue: radarMax,
-                                        centerLabel: l10n.metricsVolumeLifted,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.analyticsRadarVolumeCaption,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
                             ),
                           ],
-                        ),
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.analyticsRadarVolumeCaption,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.outline,
+                                ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    _sectionLabel(
-                      l10n.analyticsWeeklySetsByMuscle,
-                      isPrimary: true,
-                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  _sectionLabel(
+                    l10n.analyticsWeeklySetsByMuscle,
+                    isPrimary: true,
+                  ),
                     if (weekly.isNotEmpty) ...[
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -336,56 +263,29 @@ class _MuscleGroupAnalyticsScreenState
                   ],
                 ),
               ),
-      ),
-    );
+      );
   }
 
   Widget _buildBodyHeatmap(
     BuildContext context,
+    List<BodyPartHighlightData> highlights,
     List<Map<String, dynamic>> muscles,
     BodySide side,
   ) {
-    double maxSets = 0;
-    for (final m in muscles) {
-      final sets = (m['equivalentSets'] as num?)?.toDouble() ?? 0.0;
-      if (sets > maxSets) maxSets = sets;
-    }
-
-    final highlights = <BodyPartHighlightData>[];
-    if (maxSets > 0) {
-      for (final m in muscles) {
-        final group = m['muscleGroup'] as String;
-        final sets = (m['equivalentSets'] as num?)?.toDouble() ?? 0.0;
-        final slugs = BodySlugMapper.fromRawName(group);
-        final intensity = ((sets / maxSets) * 5).ceil().clamp(1, 5);
-        for (final slug in slugs) {
-          highlights.add(
-            BodyPartHighlightData(
-              slug: slug,
-              intensity: intensity,
-              payload: m,
-            ),
-          );
-        }
-      }
-    }
-
     final filteredHighlights = BodySlugMapper.forSide(highlights, side);
 
     return BodyHighlighter(
       gender: context.watch<ProfileService>().gender.toBodyGender(),
       side: side,
-      intensityColors: const [
-        Color(0xFFFFF176), // Light Yellow
-        Color(0xFFFFEE58), // Yellow
-        Color(0xFFFFB74D), // Orange
-        Color(0xFFFF7043), // Deep Orange
-        Color(0xFFE53935), // Red
-      ],
       highlightedParts: filteredHighlights,
       onBodyPartTap: (slug, data) {
-        if (data.payload is Map<String, dynamic>) {
-          _showMuscleDetail(data.payload as Map<String, dynamic>);
+        final matched = muscles.firstWhere(
+          (m) => BodySlugMapper.fromRawName(m['muscleGroup'] as String? ?? '')
+              .contains(slug),
+          orElse: () => const <String, dynamic>{},
+        );
+        if (matched.isNotEmpty) {
+          _showMuscleDetail(matched);
         }
       },
     );

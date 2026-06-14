@@ -104,7 +104,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
           },
         ),
         GlassMenuAction(
-          icon: LucideIcons.align_horizontal_justify_start,
+          icon: LucideIcons.text_initial,
           label: '${l10n.shareAsText} / kopieren',
           onTap: () async {
             try {

@@ -14,8 +14,12 @@ import 'routine_share_formatter.dart';
 import 'share_labels.dart';
 import 'share_set_type.dart';
 import 'workout_share_formatter.dart';
+import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
+import 'package:provider/provider.dart';
+import '../../services/profile_service.dart';
+import '../exercise_catalog/domain/body_slug_mapper.dart';
+import '../workout/presentation/widgets/muscle_color_helper.dart';
 
-part 'painters/share_radar_painter.dart';
 part 'widgets/routine_share_cards.dart';
 part 'widgets/share_card_elements.dart';
 part 'widgets/workout_share_cards.dart';
