@@ -85,6 +85,12 @@ class _WorkoutMuscleFocusCard extends StatelessWidget {
         muscles.isEmpty ? 0.0 : muscles.map((m) => m.volume).reduce(math.max);
     final showRadar = muscles.length >= 3 && maxVolume > 0;
     final visibleMuscles = muscles.take(showRadar ? 3 : 4);
+    final workload = <String, double>{};
+    for (final m in muscles) {
+      workload[m.name] = m.volume;
+    }
+    final highlights = MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
+
     return _ShareScaffold(
       labels: labels,
       children: [
@@ -103,26 +109,28 @@ class _WorkoutMuscleFocusCard extends StatelessWidget {
         if (showRadar)
           Center(
             child: SizedBox(
-              width: 430,
-              height: 330,
-              child: CustomPaint(
-                painter: _ShareRadarPainter(
-                  muscles: muscles.take(6).toList(growable: false),
-                  maxValue: maxVolume,
-                  lineColor: Theme.of(context).colorScheme.primary,
-                  fillColor: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.2),
-                  gridColor: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.18),
-                  textColor: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.72),
-                ),
+              width: 700,
+              height: 400,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: BodyHighlighter(
+                      gender: context.read<ProfileService>().gender.toBodyGender(),
+                      side: BodySide.front,
+                      highlightedParts: BodySlugMapper.forSide(highlights, BodySide.front),
+                      outlineWidth: 2.0,
+                    ),
+                  ),
+                  const SizedBox(width: 32),
+                  Expanded(
+                    child: BodyHighlighter(
+                      gender: context.read<ProfileService>().gender.toBodyGender(),
+                      side: BodySide.back,
+                      highlightedParts: BodySlugMapper.forSide(highlights, BodySide.back),
+                      outlineWidth: 2.0,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

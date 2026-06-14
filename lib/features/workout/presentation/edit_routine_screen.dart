@@ -611,7 +611,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final double topPadding =
-        MediaQuery.of(context).padding.top + kToolbarHeight;
+        MediaQuery.paddingOf(context).top + kToolbarHeight;
 
     return GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -744,60 +744,158 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                   ],
                 ),
                 // --- Keyboard Done Accessory Bar ---
-                if (MediaQuery.of(context).viewInsets.bottom > 0)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Material(
-                      elevation: 8.0,
-                      child: Container(
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? const Color(0xFF1E1E1E)
-                              : const Color(0xFFF5F5F7),
-                          border: Border(
-                            top: BorderSide(
-                              color: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.white10
-                                  : Colors.black12,
-                              width: 0.5,
-                            ),
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () =>
-                                  FocusManager.instance.primaryFocus?.unfocus(),
-                              child: Text(
-                                l10n.doneButtonLabel,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.blue,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                const _KeyboardDoneBar(),
               ],
             ),
-            floatingActionButton: MediaQuery.of(context).viewInsets.bottom > 0
-                ? null
-                : GlassFab(
-                    label: l10n.fabAddExercise,
-                    onPressed: _addExercises,
-                  ),
+            floatingActionButton: _EditRoutineFab(onPressed: _addExercises),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           ),
         ));
+  }
+}
+
+class _KeyboardDoneBar extends StatefulWidget {
+  const _KeyboardDoneBar();
+
+  @override
+  State<_KeyboardDoneBar> createState() => _KeyboardDoneBarState();
+}
+
+class _KeyboardDoneBarState extends State<_KeyboardDoneBar> with WidgetsBindingObserver {
+  double _keyboardHeight = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateKeyboardHeight();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    _updateKeyboardHeight();
+  }
+
+  void _updateKeyboardHeight() {
+    if (!mounted) return;
+    final view = View.of(context);
+    final newHeight = view.viewInsets.bottom / view.devicePixelRatio;
+    if (newHeight != _keyboardHeight) {
+      setState(() {
+        _keyboardHeight = newHeight;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_keyboardHeight <= 0) {
+      return const SizedBox.shrink();
+    }
+    final l10n = AppLocalizations.of(context)!;
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Material(
+        elevation: 8.0,
+        child: Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1E1E1E)
+                : const Color(0xFFF5F5F7),
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white10
+                    : Colors.black12,
+                width: 0.5,
+              ),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => FocusManager.instance.primaryFocus?.unfocus(),
+                child: Text(
+                  l10n.doneButtonLabel,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.blue,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EditRoutineFab extends StatefulWidget {
+  final VoidCallback onPressed;
+
+  const _EditRoutineFab({required this.onPressed});
+
+  @override
+  State<_EditRoutineFab> createState() => _EditRoutineFabState();
+}
+
+class _EditRoutineFabState extends State<_EditRoutineFab> with WidgetsBindingObserver {
+  double _keyboardHeight = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateKeyboardHeight();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    _updateKeyboardHeight();
+  }
+
+  void _updateKeyboardHeight() {
+    if (!mounted) return;
+    final view = View.of(context);
+    final newHeight = view.viewInsets.bottom / view.devicePixelRatio;
+    if (newHeight != _keyboardHeight) {
+      setState(() {
+        _keyboardHeight = newHeight;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_keyboardHeight > 0) {
+      return const SizedBox.shrink();
+    }
+    return GlassFab(
+      label: AppLocalizations.of(context)!.fabAddExercise,
+      onPressed: widget.onPressed,
+    );
   }
 }

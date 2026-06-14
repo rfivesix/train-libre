@@ -133,12 +133,13 @@ if [ "$IS_PRERELEASE" = "true" ]; then
   GH_FLAGS+=("--prerelease")
 fi
 
-echo "Generating GitHub Release Container..."
+echo "Generating GitHub Release Container as Draft..."
 if gh release view "v$VERSION_NUMBER" >/dev/null 2>&1; then
   gh release delete "v$VERSION_NUMBER" --yes
 fi
 
 gh release create "v$VERSION_NUMBER" \
+  --draft \
   --title "Release v$VERSION_NUMBER" \
   --notes-file "$CHANGELOG_TEMP_FILE" \
   "${GH_FLAGS[@]}"
@@ -149,6 +150,9 @@ gh release upload "v$VERSION_NUMBER" build/app/outputs/flutter-apk/app-release.a
 for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
   gh release upload "v$VERSION_NUMBER" "$apk"
 done
+
+echo "Publishing GitHub Release (undrafting)..."
+gh release edit "v$VERSION_NUMBER" --draft=false
 
 # ------------------------------------------------------------------------------
 # STEP 7: Trigger Xcode Upload Pipeline via Fastlane

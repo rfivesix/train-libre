@@ -15,7 +15,6 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_section_header.dart';
 import 'widgets/analytics_chart_defaults.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../workout/presentation/widgets/muscle_radar_chart.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
@@ -28,24 +27,7 @@ class RecoveryTrackerScreen extends StatefulWidget {
 }
 
 class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
-  /// Canonical major muscle groups shown on the radar, in fixed clockwise
-  /// display order (starting from top). The order is stable so the polygon
-  /// shape stays recognisable across sessions regardless of training history.
-  static const List<String> _canonicalRadarOrder = [
-    'chest',
-    'shoulders',
-    'abs',
-    'triceps',
-    'back',
-    'biceps',
-    'forearms',
-    'lower back',
-    'glutes',
-    'adductors',
-    'hamstrings',
-    'quads',
-    'calves',
-  ];
+
 
   final ScrollController _scrollController = ScrollController();
   final Map<String, GlobalKey> _muscleKeys = {};
@@ -251,33 +233,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     return tracked < trackedFromStates ? trackedFromStates : tracked;
   }
 
-  List<MuscleRadarDatum> _buildRadarData(
-    List<RecoveryMusclePayload> muscles,
-    AppLocalizations l10n,
-  ) {
-    // Build a lookup of major group → readiness score from real recovery data.
-    final Map<String, double> scoreByGroup = {};
-    for (final m in muscles) {
-      final key = RecoveryDomainService.majorMuscleGroupFor(m.muscleGroup);
-      if (key == null) continue;
-      final score = _readinessScore(m);
-      // If multiple minor muscles map to the same major group, keep the lowest
-      // readiness score (most fatigued wins — conservative display).
-      if (!scoreByGroup.containsKey(key) || score < scoreByGroup[key]!) {
-        scoreByGroup[key] = score;
-      }
-    }
 
-    // Return all canonical groups in fixed display order, injecting 100.0
-    // (fully rested / fresh) for any group not found in training data.
-    return _canonicalRadarOrder.map((group) {
-      final score = scoreByGroup[group] ?? 100.0;
-      return MuscleRadarDatum(
-        label: StatisticsPresentationFormatter.muscleGroupLabel(l10n, group),
-        value: score,
-      );
-    }).toList();
-  }
 
   void _scrollToMuscle(String muscleGroup) {
     final muscle = _recovery.muscles.firstWhere(
@@ -628,7 +584,6 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
 
     final recovering = _recovery.totals.recovering;
     final ready = _recovery.totals.ready;
@@ -656,30 +611,26 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
         .where((m) => m.state == RecoveryDomainService.stateFresh)
         .toList();
 
-    final radarData = _buildRadarData(visibleMuscles, l10n);
-
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: GlobalAppBar(
-          title: l10n.recoveryTrackerTitle,
-          actions: [
-            AlgorithmInfoButton(
-              title: l10n.infoRecoveryTitle,
-              explanation: l10n.infoRecoveryExplanation,
-              keyPoints: l10n.infoRecoveryKeyPoints.split('\n'),
-              technicalTitle: l10n.infoRecoveryTechnicalTitle,
-              technicalExplanation: l10n.infoRecoveryTechnicalExplanation,
-              markdownAssetPath:
-                  'documentation/features/muscle_recovery_model.md',
-              iconColor: Theme.of(context).colorScheme.onSurface,
-            ),
-          ],
-        ),
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: GlobalAppBar(
+        title: l10n.recoveryTrackerTitle,
+        actions: [
+          AlgorithmInfoButton(
+            title: l10n.infoRecoveryTitle,
+            explanation: l10n.infoRecoveryExplanation,
+            keyPoints: l10n.infoRecoveryKeyPoints.split('\n'),
+            technicalTitle: l10n.infoRecoveryTechnicalTitle,
+            technicalExplanation: l10n.infoRecoveryTechnicalExplanation,
+            markdownAssetPath:
+                'documentation/features/muscle_recovery_model.md',
+            iconColor: Theme.of(context).colorScheme.onSurface,
+          ),
+        ],
+      ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
@@ -830,73 +781,28 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                                 status: AnalyticsStatus.empty,
                                 emptyLabel: l10n.recoveryNoDataBody,
                               )
-                            else ...[
-                              TabBar(
-                                tabs: [
-                                  Tab(
-                                    icon:
-                                        const Icon(LucideIcons.person_standing),
-                                    text: l10n.involvedMuscles,
-                                  ),
-                                  Tab(
-                                    icon: const Icon(LucideIcons.radar),
-                                    text: l10n.analysis,
-                                  ),
-                                ],
-                                indicatorSize: TabBarIndicatorSize.tab,
-                                dividerColor: Colors.transparent,
-                                labelColor: colorScheme.primary,
-                                unselectedLabelColor:
-                                    colorScheme.onSurfaceVariant,
-                                indicatorColor: colorScheme.primary,
-                              ),
-                              const SizedBox(height: 12),
+                            else
                               SizedBox(
                                 height: 320,
-                                child: TabBarView(
-                                  physics: const NeverScrollableScrollPhysics(),
+                                child: Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _buildBodyView(
-                                            context,
-                                            visibleMuscles,
-                                            BodySide.front,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: _buildBodyView(
-                                            context,
-                                            visibleMuscles,
-                                            BodySide.back,
-                                          ),
-                                        ),
-                                      ],
+                                    Expanded(
+                                      child: _buildBodyView(
+                                        context,
+                                        visibleMuscles,
+                                        BodySide.front,
+                                      ),
                                     ),
-                                    Center(
-                                      child: MuscleRadarChart(
-                                        data: radarData,
-                                        maxValue: 100,
-                                        centerLabel:
-                                            l10n.metricsMuscleReadiness,
+                                    Expanded(
+                                      child: _buildBodyView(
+                                        context,
+                                        visibleMuscles,
+                                        BodySide.back,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.recoveryRadarHeuristicCaption,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
-                            ),
                           ],
                         ),
                       ),
@@ -954,7 +860,6 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   ],
                 ),
               ),
-      ),
-    );
+      );
   }
 }

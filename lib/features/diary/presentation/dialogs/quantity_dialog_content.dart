@@ -6,6 +6,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../domain/models/food_item.dart';
 import '../../../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../meal_editor_screen.dart';
 
 /// A dialog content widget for logging food and liquid quantities.
 ///
@@ -78,7 +79,8 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
           '',
     );
     _selectedDateTime = widget.initialTimestamp ?? DateTime.now();
-    _selectedMealType = widget.initialMealType ?? "mealtypeSnack";
+    _selectedMealType = widget.initialMealType ??
+        MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
     _isLiquid = widget.initialIsLiquid ??
         (widget.item.isFluid || (widget.item.isLiquid ?? false));
   }

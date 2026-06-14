@@ -2,7 +2,7 @@ name: Update F-Droid Repository
 
 on:
   release:
-    types: [published]
+    types: [published, released]
   workflow_dispatch:
 
 permissions:
@@ -81,6 +81,46 @@ jobs:
 
           # Use Python for password injection - safe with any special characters in the password
           python3 -c "import os; c = open('config.yml').read(); c = c.replace('KEYSTORE_PASS_PLACEHOLDER', os.environ['KEYSTORE_PASSWORD']); c = c.replace('KEY_PASS_PLACEHOLDER', os.environ['KEY_PASSWORD']); open('config.yml', 'w').write(c)"
+
+      - name: Dynamic Changelog Injection & Fastlane Metadata Bridge
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          # 1. Parse build number from pubspec.yaml and dump release body into changelogs
+          python3 -c '
+          import os, re
+          with open("pubspec.yaml", "r") as f:
+              pubspec = f.read()
+          match = re.search(r"^version:\s*[^\n]+\+(\d+)", pubspec, re.M)
+          if not match:
+              raise ValueError("Could not find build number in pubspec.yaml")
+          build_number = match.group(1)
+          print(f"Extracted active build number: {build_number}")
+          
+          release_body = os.environ.get("RELEASE_BODY", "")
+          if not release_body:
+              release_body = "Automated release update. Please check CHANGELOG.md for details."
+          
+          metadata_dir = "fastlane/metadata/android"
+          if os.path.exists(metadata_dir):
+              for locale in os.listdir(metadata_dir):
+                  changelog_dir = os.path.join(metadata_dir, locale, "changelogs")
+                  if os.path.isdir(changelog_dir):
+                      changelog_file = os.path.join(changelog_dir, f"{build_number}.txt")
+                      with open(changelog_file, "w") as f:
+                          f.write(release_body)
+                      print(f"Injected release notes into: {changelog_file}")
+          '
+
+          # 2. Bridge Fastlane metadata directory to fdroid workspace to inherit store descriptions
+          echo "Bridging Fastlane metadata into F-Droid repo structure..."
+          # Copy to root level of F-Droid (fdroid/fastlane/metadata/android)
+          mkdir -p fdroid/fastlane
+          cp -r fastlane/metadata fdroid/fastlane/
+          
+          # Also copy to package level under fdroid/metadata/com.rfivesix.trainlibre/
+          mkdir -p fdroid/metadata/com.rfivesix.trainlibre
+          cp -r fastlane/metadata fdroid/metadata/com.rfivesix.trainlibre/
 
       - name: Update F-Droid Repository Metadata
         env:

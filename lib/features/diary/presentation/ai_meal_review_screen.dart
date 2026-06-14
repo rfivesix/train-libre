@@ -17,6 +17,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
+import 'meal_editor_screen.dart';
 import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -64,7 +65,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedMealType = widget.initialMealType ?? 'mealtypeSnack';
+    _selectedMealType = widget.initialMealType ??
+        MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
     _selectedTimestamp = (widget.initialDate ?? DateTime.now()).withCurrentTime;
     final initialValidation = widget.initialValidation;
     if (initialValidation != null) {
