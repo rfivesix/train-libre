@@ -4,3 +4,20 @@ License: GPL-3.0-or-later
 WebSite: https://github.com/rfivesix/train-libre
 SourceCode: https://github.com/rfivesix/train-libre
 IssueTracker: https://github.com/rfivesix/train-libre/issues
+
+RepoType: git
+Repo: https://github.com/rfivesix/train-libre.git
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+UpdateCheckData: .
+
+CurrentVersion: 0.9.30
+CurrentVersionCode: 90047
+
+Builds:
+  - versionName: 0.9.30
+    versionCode: 90047
+    commit: v0.9.30
+    gradle:
+      - yes
