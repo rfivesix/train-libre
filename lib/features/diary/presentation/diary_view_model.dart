@@ -99,6 +99,10 @@ class DiaryViewModel extends ChangeNotifier {
   StreamSubscription<List<SupplementLog>>? _supplementLogsSubscription;
   StreamSubscription<List<WorkoutLog>>? _workoutsSubscription;
 
+  Timer? _updateDebounceTimer;
+  bool _isCalculating = false;
+  bool _needsReRun = false;
+
   DailyGoal? _activeGoals;
   List<FoodEntry> _activeEntries = [];
   List<FluidEntry> _activeFluids = [];
@@ -149,6 +153,7 @@ class DiaryViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _updateDebounceTimer?.cancel();
     _goalsSubscription?.cancel();
     _entriesSubscription?.cancel();
     _fluidsSubscription?.cancel();
@@ -239,7 +244,21 @@ class DiaryViewModel extends ChangeNotifier {
     }
   }
 
-  void _updateCalculatedState() async {
+  void _updateCalculatedState() {
+    _updateDebounceTimer?.cancel();
+    _updateDebounceTimer = Timer(const Duration(milliseconds: 16), () {
+      _executeCalculatedState();
+    });
+  }
+
+  Future<void> _executeCalculatedState() async {
+    if (_isCalculating) {
+      _needsReRun = true;
+      return;
+    }
+    _isCalculating = true;
+    _needsReRun = false;
+
     try {
       final targetSugar = await _prefsRepo.getTargetSugar() ?? 50;
       final targetCaffeine = await _prefsRepo.getTargetCaffeine() ?? 400;
@@ -274,6 +293,12 @@ class DiaryViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e, st) {
       debugPrint('Error calculating reactive diary state: $e\n$st');
+    } finally {
+      _isCalculating = false;
+      if (_needsReRun) {
+        _needsReRun = false;
+        _updateCalculatedState();
+      }
     }
   }
 

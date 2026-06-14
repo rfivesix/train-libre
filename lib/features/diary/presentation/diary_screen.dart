@@ -635,9 +635,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final hasWorkoutSummary =
         context.select<DiaryViewModel, bool>((vm) => vm.workoutSummary != null);
     final l10n = AppLocalizations.of(context)!;
-    final double appBarHeight = MediaQuery.of(
-      context,
-    ).padding.top; // + kToolbarHeight;
+    final double appBarHeight = MediaQuery.paddingOf(context).top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
     const EdgeInsets basePadding =
