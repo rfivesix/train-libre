@@ -664,8 +664,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
   Widget _buildCatalogSearchTab(AppLocalizations l10n) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final isLightMode = Theme.of(context).brightness == Brightness.light;
+    //final textTheme = Theme.of(context).textTheme;
+    //final isLightMode = Theme.of(context).brightness == Brightness.light;
 
     final bgColor = Theme.of(context).inputDecorationTheme.fillColor ??
         colorScheme.surfaceContainerHighest;
@@ -806,7 +806,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 itemBuilder: (context, idx) {
                   if (idx == 0) {
                     return Theme(
-                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                      data: Theme.of(context)
+                          .copyWith(dividerColor: Colors.transparent),
                       child: ExpansionTile(
                         leading: const Text(
                           '🍳',
@@ -829,9 +830,11 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                             ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              padding: DesignConstants.cardPadding.copyWith(top: 0),
+                              padding:
+                                  DesignConstants.cardPadding.copyWith(top: 0),
                               itemCount: _customFoodItems.length,
-                              itemBuilder: (context, i) => _buildFoodListItem(_customFoodItems[i]),
+                              itemBuilder: (context, i) =>
+                                  _buildFoodListItem(_customFoodItems[i]),
                             ),
                         ],
                       ),
@@ -876,9 +879,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     final baseHits = _foundFoodItems
         .where((it) => it.source == FoodItemSource.base)
         .toList();
-    final offHits = _foundFoodItems
-        .where((it) => it.source == FoodItemSource.off)
-        .toList();
+    final offHits =
+        _foundFoodItems.where((it) => it.source == FoodItemSource.off).toList();
     final customHits = _foundFoodItems
         .where((it) => it.source == FoodItemSource.user)
         .toList();
@@ -917,7 +919,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                     )
                   : ListView.builder(
                       cacheExtent: 1500,
-                      padding: DesignConstants.cardPadding.copyWith(bottom: _bottomPadding),
+                      padding: DesignConstants.cardPadding
+                          .copyWith(bottom: _bottomPadding),
                       itemCount: listItems.length,
                       itemBuilder: (context, index) {
                         final item = listItems[index];
