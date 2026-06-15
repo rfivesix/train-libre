@@ -30,6 +30,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - **AI Meal Capture Image Layout:** Fixed a layout issue where the horizontal image preview list was constrained by the screen's outer padding. Removed horizontal padding from the parent scroll view and applied it directly to the list container and label, enabling edge-to-edge scrolling for captured meal images.
+- **Exercise Catalog Never Seeding (Critical):** Resolved a three-layered bug that caused the entire wger exercise catalog to remain empty on fresh installs and after iOS sandbox resets:
+  - **Missing bundled asset:** `assets/db/train_libre_training.db` was a 0-byte placeholder file. The bundled SQLite database is now populated from the latest stable wger release (`202606151047`, 852 exercises). Added a 0-byte guard in `BasisDataManager` that aborts the import with a clear error instead of silently opening an empty database.
+  - **Relational schema not handled:** The asset DB stores translations in a separate `exercise_translations` table, but `_mapExerciseBundle` only handled the legacy flat-column format (`name_de`/`name_en` on the exercise row). As a result, all 852 exercises were inserted with zero translations, making them invisible to `searchExercises` (which LEFT JOINs on translations). Added a dedicated relational translation pass in `_performBatchImport` that reads `exercise_translations` directly from the source DB after the exercise loop completes.
+  - **Stale pref after partial import:** After previous broken imports (exercises present, translations absent), `_keyVersionTraining` in SharedPreferences reflected an up-to-date version, preventing any re-import. Added a translation health-check in `checkForBasisDataUpdate` that detects when the translation count is below the exercise count and forces a full re-seed by clearing the stored version key. Also updated the bundled `wger_catalog_manifest.json` to match the current stable release.
 
 ## [0.9.30] - 2026-06-15
 ### Changed
