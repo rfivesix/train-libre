@@ -2088,7 +2088,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsMaterialColorsSubtitle =>
-      'Train Libre ブランド アクセントの代わりに Android のダイナミック カラー (マテリアル ユー) を使用する';
+      'Train Libre ブランド アクセントの代わりにシステムのダイナミック カラー (マテリアル ユー) を使用する';
 
   @override
   String get settingsFoodDbSectionTitle => '食品データベース';

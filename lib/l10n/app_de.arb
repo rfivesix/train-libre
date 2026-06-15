@@ -875,7 +875,7 @@
   "settingsVisualStyleLiquid": "Flüssig (Liquid Glass)",
   "settingsVisualStyleLiquidDesc": "Runde, schwebende UI-Elemente",
   "settingsMaterialColorsTitle": "Material-Farben",
-  "settingsMaterialColorsSubtitle": "Verwende dynamische Android-Farben (Material You) statt des Train Libre-Markenakzents",
+  "settingsMaterialColorsSubtitle": "Verwende dynamische System-Farben (Material You) statt des Train Libre-Markenakzents",
   "settingsFoodDbSectionTitle": "Lebensmittel-Datenbank",
   "settingsFoodDbRegionTitle": "Region der Lebensmittel-Datenbank",
   "settingsFoodDbRegionSubtitle": "Wähle, welche Open-Food-Facts-Region für die Produktsuche verwendet wird.",

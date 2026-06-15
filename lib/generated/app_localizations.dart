@@ -3875,7 +3875,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMaterialColorsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Use Android dynamic colors (Material You) instead of the Train Libre brand accent'**
+  /// **'Use dynamic system colors (Material You) instead of the Train Libre brand accent'**
   String get settingsMaterialColorsSubtitle;
 
   /// No description provided for @settingsFoodDbSectionTitle.

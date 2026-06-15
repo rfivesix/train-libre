@@ -874,7 +874,7 @@
   "settingsVisualStyleLiquid": "Liquid Glass (Fluid)",
   "settingsVisualStyleLiquidDesc": "Rounded, floating UI elements",
   "settingsMaterialColorsTitle": "Material colors",
-  "settingsMaterialColorsSubtitle": "Use Android dynamic colors (Material You) instead of the Train Libre brand accent",
+  "settingsMaterialColorsSubtitle": "Use dynamic system colors (Material You) instead of the Train Libre brand accent",
   "settingsFoodDbSectionTitle": "Food database",
   "settingsFoodDbRegionTitle": "Food database region",
   "settingsFoodDbRegionSubtitle": "Select which Open Food Facts product catalog region is used for food search.",

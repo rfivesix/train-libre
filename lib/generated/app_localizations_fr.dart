@@ -2158,7 +2158,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsMaterialColorsSubtitle =>
-      'Utilisez les couleurs dynamiques Android (Material You) au lieu de l\'accent de la marque Train Libre';
+      'Utilisez les couleurs dynamiques du système (Material You) au lieu de l\'accent de la marque Train Libre';
 
   @override
   String get settingsFoodDbSectionTitle => 'Base de données alimentaire';

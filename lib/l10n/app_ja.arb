@@ -875,7 +875,7 @@
   "settingsVisualStyleLiquid": "液体ガラス（液体）",
   "settingsVisualStyleLiquidDesc": "丸みを帯びたフローティング UI 要素",
   "settingsMaterialColorsTitle": "素材の色",
-  "settingsMaterialColorsSubtitle": "Train Libre ブランド アクセントの代わりに Android のダイナミック カラー (マテリアル ユー) を使用する",
+  "settingsMaterialColorsSubtitle": "Train Libre ブランド アクセントの代わりにシステムのダイナミック カラー (マテリアル ユー) を使用する",
   "settingsFoodDbSectionTitle": "食品データベース",
   "settingsFoodDbRegionTitle": "食品データベース地域",
   "settingsFoodDbRegionSubtitle": "検索に使用するOpen Food Facts製品カタログの地域を選択します。",

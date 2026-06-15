@@ -875,7 +875,7 @@
   "settingsVisualStyleLiquid": "Verre liquide (fluide)",
   "settingsVisualStyleLiquidDesc": "Éléments d'interface utilisateur arrondis et flottants",
   "settingsMaterialColorsTitle": "Couleurs des matériaux",
-  "settingsMaterialColorsSubtitle": "Utilisez les couleurs dynamiques Android (Material You) au lieu de l'accent de la marque Train Libre",
+  "settingsMaterialColorsSubtitle": "Utilisez les couleurs dynamiques du système (Material You) au lieu de l'accent de la marque Train Libre",
   "settingsFoodDbSectionTitle": "Base de données alimentaire",
   "settingsFoodDbRegionTitle": "Région de la base de données",
   "settingsFoodDbRegionSubtitle": "Sélectionnez la région du catalogue de produits Open Food Facts utilisée.",
