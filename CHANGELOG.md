@@ -34,6 +34,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - **Missing bundled asset:** `assets/db/train_libre_training.db` was a 0-byte placeholder file. The bundled SQLite database is now populated from the latest stable wger release (`202606151047`, 852 exercises). Added a 0-byte guard in `BasisDataManager` that aborts the import with a clear error instead of silently opening an empty database.
   - **Relational schema not handled:** The asset DB stores translations in a separate `exercise_translations` table, but `_mapExerciseBundle` only handled the legacy flat-column format (`name_de`/`name_en` on the exercise row). As a result, all 852 exercises were inserted with zero translations, making them invisible to `searchExercises` (which LEFT JOINs on translations). Added a dedicated relational translation pass in `_performBatchImport` that reads `exercise_translations` directly from the source DB after the exercise loop completes.
   - **Stale pref after partial import:** After previous broken imports (exercises present, translations absent), `_keyVersionTraining` in SharedPreferences reflected an up-to-date version, preventing any re-import. Added a translation health-check in `checkForBasisDataUpdate` that detects when the translation count is below the exercise count and forces a full re-seed by clearing the stored version key. Also updated the bundled `wger_catalog_manifest.json` to match the current stable release.
+- **Edit Routine Screen Layout Polish:**
+  - Reduced the vertical gap between the routine name field and the exercise list divider (`spacingM` → `spacingXS`) to eliminate the excessive blank space below the input.
+  - Moved the `WgerAttributionWidget` out of a free-floating `Align(bottomCenter)` overlay (which was visually overlapping the Add Exercise FAB) into a `Positioned(bottom: 8 + safeAreaBottom)` layer, pinning it cleanly below the safe area without colliding with the FAB.
+- **Exercise Catalog Screen Layout Polish:**
+  - Reduced the search bar vertical padding from `24px` to `8px` (top and bottom) and removed the redundant `spacingS` gap above the search row, bringing the search field tight against the app bar.
+  - Aligned the `WgerAttributionWidget` text style with `live_workout_screen` by adding a drop shadow (`Shadow` with 50 % opacity, 1×1 offset, 4px blur).
+  - Refactored the screen `body` from a plain `Column` to a `Stack`, placing the wger attribution as a `Positioned` widget at the bottom of the safe area — preventing it from being obscured by or clashing with the \"Create Custom Exercise\" FAB.
 
 ## [0.9.30] - 2026-06-15
 ### Changed

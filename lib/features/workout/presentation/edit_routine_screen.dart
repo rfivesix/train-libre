@@ -678,7 +678,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(height: DesignConstants.spacingM),
+                      const SizedBox(height: DesignConstants.spacingXS),
                       Divider(
                         height: 1,
                         thickness: 1,
@@ -699,7 +699,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     cacheExtent: 1500,
                                     itemCount: _routineExercises.length,
                                     padding: EdgeInsets.only(
-                                      bottom: DesignConstants.bottomContentSpacer +
+                                      bottom: DesignConstants
+                                              .bottomContentSpacer +
                                           MediaQuery.paddingOf(context).bottom,
                                     ),
                                     proxyDecorator: (Widget child, int index,
@@ -733,7 +734,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         onDeleteExercise: () =>
                                             _deleteSingleExercise(
                                                 routineExercise),
-                                        onAddSet: () => _addSet(routineExercise),
+                                        onAddSet: () =>
+                                            _addSet(routineExercise),
                                         onShowSetTypePicker: _showSetTypePicker,
                                         onRemoveSet: (template, listIndex) =>
                                             _removeSet(routineExercise,
@@ -746,38 +748,22 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                   ),
                 ),
 
-                // Layer 2 (Top): Floating/sticky layers
-                Align(
-                  alignment: Alignment.bottomCenter,
+                // Layer 2 (Top): Wger attribution — pinned just below the FAB
+                Positioned(
+                  bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
+                  left: 0,
+                  right: 0,
                   child: RepaintBoundary(
-                    child: SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          bottom: (MediaQuery.paddingOf(context).bottom * 0.3)
-                              .clamp(4.0, 12.0),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 10.0, top: 0.0),
-                              child: WgerAttributionWidget(
-                                textStyle: textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey[600],
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withValues(alpha: 0.5),
-                                      offset: const Offset(1, 1),
-                                      blurRadius: 4.0,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                    child: WgerAttributionWidget(
+                      textStyle: textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[600],
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            offset: const Offset(1, 1),
+                            blurRadius: 4.0,
+                          ),
+                        ],
                       ),
                     ),
                   ),
