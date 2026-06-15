@@ -353,14 +353,16 @@ class _BodyNutritionCorrelationScreenState
               ],
             ),
             const SizedBox(height: 10),
-            SizedBox(
-              height: 250,
-              child: BodyNutritionNormalizedTrendChart(
-                range: data.range,
-                weightSeries: data.weightDaily,
-                calorieSeries: data.caloriesDaily
-                    .where((point) => point.value > 0)
-                    .toList(growable: false),
+            RepaintBoundary(
+              child: SizedBox(
+                height: 250,
+                child: BodyNutritionNormalizedTrendChart(
+                  range: data.range,
+                  weightSeries: data.weightDaily,
+                  calorieSeries: data.caloriesDaily
+                      .where((point) => point.value > 0)
+                      .toList(growable: false),
+                ),
               ),
             ),
           ],

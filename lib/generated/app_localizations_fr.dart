@@ -2135,7 +2135,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nutritionHubTitle => 'Nutrition';
 
   @override
-  String get nutrition => 'nutrition';
+  String get nutrition => 'Nutrition';
 
   @override
   String get changeSetTypTitle => 'Modifier le type d\'ensemble';
@@ -2158,7 +2158,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsMaterialColorsSubtitle =>
-      'Utilisez les couleurs dynamiques Android (Material You) au lieu de l\'accent de la marque Train Libre';
+      'Utilisez les couleurs dynamiques du système (Material You) au lieu de l\'accent de la marque Train Libre';
 
   @override
   String get settingsFoodDbSectionTitle => 'Base de données alimentaire';
@@ -5139,4 +5139,236 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get shareSleepRestingHeartRate => 'Fréquence cardiaque au repos';
+
+  @override
+  String get shareAsTextOrCopy => 'Partager / copier sous forme de texte';
+
+  @override
+  String get editExercise => 'Modifier l\'exercice';
+
+  @override
+  String exerciseCopyCreated(String exerciseName) {
+    return 'Copie de \'$exerciseName\' créée.';
+  }
+
+  @override
+  String get copySystemExerciseTitle => 'Copier l\'exercice système';
+
+  @override
+  String get copySystemExerciseBody =>
+      'Cet exercice est fourni par le système et ne peut pas être modifié directement. Souhaitez-vous en créer une copie personnalisée pour le modifier ?';
+
+  @override
+  String get createCopyAndEdit => 'Créer une copie et modifier';
+
+  @override
+  String get profileEdit => 'Modifier le profil';
+
+  @override
+  String get selectBirthday => 'Sélectionner la date de naissance';
+
+  @override
+  String get exerciseNoteTitle => 'Note de l\'exercice';
+
+  @override
+  String get exerciseNoteHint => 'Saisir des notes ou des indices...';
+
+  @override
+  String get deleteNoteTooltip => 'Supprimer la note';
+
+  @override
+  String get emptyStateAddFirstExerciseSubtitle =>
+      'Ajoutez un exercice pour commencer à enregistrer.';
+
+  @override
+  String get syncRoutineTitle => 'Mettre à jour la routine ?';
+
+  @override
+  String get syncRoutineSubtitle =>
+      'Changements de structure ou d\'ordre détectés.';
+
+  @override
+  String syncRoutineBody(String routineName) {
+    return 'Souhaitez-vous mettre à jour la routine \'$routineName\' avec les données de la séance en cours (exercices, ordre, séries) ?';
+  }
+
+  @override
+  String get discard => 'Abandonner';
+
+  @override
+  String get updateNow => 'Mettre à jour maintenant';
+
+  @override
+  String get syncRoutineSuccess => 'Routine mise à jour avec succès !';
+
+  @override
+  String syncRoutineError(String error) {
+    return 'Erreur lors de la mise à jour de la routine : $error';
+  }
+
+  @override
+  String createRoutineError(String error) {
+    return 'Erreur lors de la création de la routine : $error';
+  }
+
+  @override
+  String nutritionPerQuantity(String quantity) {
+    return 'Valeurs nutritionnelles pour ${quantity}g';
+  }
+
+  @override
+  String get settingsLocalModelName => 'Nom du modèle local';
+
+  @override
+  String get settingsCustomBaseUrl => 'URL de base personnalisée';
+
+  @override
+  String get settingsCustomModelName => 'Nom du modèle personnalisé';
+
+  @override
+  String get settingsAiFoodNameLanguage =>
+      'Langue des noms d\'aliments par l\'IA';
+
+  @override
+  String get settingsRequestTimeout => 'Délai d\'attente de la demande';
+
+  @override
+  String settingsSeconds(int seconds) {
+    return '$seconds secondes';
+  }
+
+  @override
+  String get semanticsApplyRecommendation => 'Appliquer la recommandation';
+
+  @override
+  String get semanticsDismissBanner => 'Fermer la bannière';
+
+  @override
+  String get importedWorkout => 'Séance importée';
+
+  @override
+  String get unknownExercise => 'Exercice inconnu';
+
+  @override
+  String get devExportBaseDb => 'Exporter la base de données de base';
+
+  @override
+  String get initCheckingExercises => 'Vérification des exercices...';
+
+  @override
+  String get initLoadingRemoteManifest => 'Chargement du manifeste distant...';
+
+  @override
+  String get initExercisesUpToDate => 'Exercices à jour';
+
+  @override
+  String get initNoDownloadRequired => 'Aucun téléchargement distant requis.';
+
+  @override
+  String get initLoadingExercises => 'Chargement des exercices...';
+
+  @override
+  String initDownloadingRemoteCatalog(String version) {
+    return 'Téléchargement du catalogue d\'exercices distant $version...';
+  }
+
+  @override
+  String get initPreparingImport =>
+      'Préparation du téléchargement pour l\'importation...';
+
+  @override
+  String get initExercisesReady => 'Exercices prêts';
+
+  @override
+  String initImportingRemoteCatalog(String version) {
+    return 'Importation du catalogue d\'exercices distant $version...';
+  }
+
+  @override
+  String initCheckingProductDatabase(String country) {
+    return 'Vérification de la base de données produits ($country)...';
+  }
+
+  @override
+  String get initProductDatabaseUpToDate => 'Base de données produits à jour';
+
+  @override
+  String get initLoadingProductDatabase =>
+      'Chargement de la base de données produits...';
+
+  @override
+  String initDownloadingProductBundle(String version) {
+    return 'Téléchargement du pack de produits distant $version...';
+  }
+
+  @override
+  String get initProductDatabaseReady => 'Base de données produits prête';
+
+  @override
+  String initImportingProductBundle(String version) {
+    return 'Importation du pack de produits distant $version...';
+  }
+
+  @override
+  String get initNoOffBundle =>
+      'Aucun pack OFF/distant disponible. Les données OFF locales existantes restent inchangées.';
+
+  @override
+  String initEntriesProgress(String processed, String totalCount) {
+    return '$processed / $totalCount entrées';
+  }
+
+  @override
+  String initUpdateTask(String task) {
+    return 'Mettre à jour $task';
+  }
+
+  @override
+  String initCheckingTask(String task) {
+    return 'Vérification de $task...';
+  }
+
+  @override
+  String initTaskUpToDate(String task) {
+    return '$task à jour';
+  }
+
+  @override
+  String get initInitializing => 'Initialisation...';
+
+  @override
+  String get initPreparation => 'Préparation...';
+
+  @override
+  String get initReady => 'Prêt';
+
+  @override
+  String yearsOld(int age) {
+    return '$age ans';
+  }
+
+  @override
+  String get customFoodsTitle => 'Aliments personnalisés';
+
+  @override
+  String get deleteFoodConfirmTitle => 'Supprimer l\'aliment';
+
+  @override
+  String get deleteFoodConfirmBody =>
+      'Êtes-vous sûr de vouloir supprimer cet aliment personnalisé ? Les journaux historiques ne seront pas affectés.';
+
+  @override
+  String get foodItemDeleted => 'Aliment supprimé';
+
+  @override
+  String get copySystemFoodTitle => 'Copier l\'aliment système';
+
+  @override
+  String get copySystemFoodBody =>
+      'Les aliments système ne peuvent pas être modifiés directement. Souhaitez-vous créer une copie personnalisée et la modifier ?';
+
+  @override
+  String foodCopyCreated(String name) {
+    return 'Copie créée : $name';
+  }
 }

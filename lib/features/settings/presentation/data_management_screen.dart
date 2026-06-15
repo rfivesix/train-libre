@@ -253,8 +253,11 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     if (isImperial == null) return;
 
     setState(() => _isMigrationRunning = true);
-    final count =
-        await ImportManager().importWorkoutFile(isImperial: isImperial);
+    final count = await ImportManager().importWorkoutFile(
+      isImperial: isImperial,
+      defaultWorkoutTitle: l10n.importedWorkout,
+      defaultExerciseName: l10n.unknownExercise,
+    );
     if (!mounted) return;
     setState(() => _isMigrationRunning = false);
 

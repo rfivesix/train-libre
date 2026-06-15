@@ -165,29 +165,45 @@ class _StatisticsHubScreenView extends StatelessWidget {
                     children: [
                       if (viewModel.stepsTrackingEnabled) ...[
                         AppSectionHeader(title: l10n.steps),
-                        _buildStepsCard(context, viewModel, l10n),
+                        RepaintBoundary(
+                          child: _buildStepsCard(context, viewModel, l10n),
+                        ),
                         const SizedBox(height: DesignConstants.spacingL),
                       ],
                       AppSectionHeader(title: l10n.sectionRecovery),
-                      _buildRecoverySection(context, viewModel, l10n),
+                      RepaintBoundary(
+                        child: _buildRecoverySection(context, viewModel, l10n),
+                      ),
                       if (viewModel.sleepTrackingEnabled) ...[
                         const SizedBox(height: 8),
-                        _buildSleepSection(context, viewModel, l10n),
+                        RepaintBoundary(
+                          child: _buildSleepSection(context, viewModel, l10n),
+                        ),
                       ],
                       if (viewModel.pulseTrackingEnabled) ...[
                         const SizedBox(height: 8),
-                        _buildPulseSection(context, viewModel, l10n),
+                        RepaintBoundary(
+                          child: _buildPulseSection(context, viewModel, l10n),
+                        ),
                       ],
                       const SizedBox(height: DesignConstants.spacingL),
                       AppSectionHeader(title: l10n.statisticsSectionTraining),
-                      _buildConsistencySection(context, viewModel, l10n),
+                      RepaintBoundary(
+                        child: _buildConsistencySection(context, viewModel, l10n),
+                      ),
                       const SizedBox(height: 8),
-                      _buildPerformanceSection(context, viewModel, l10n),
+                      RepaintBoundary(
+                        child: _buildPerformanceSection(context, viewModel, l10n),
+                      ),
                       const SizedBox(height: 8),
-                      _buildMuscleVolumeSection(context, viewModel, l10n),
+                      RepaintBoundary(
+                        child: _buildMuscleVolumeSection(context, viewModel, l10n),
+                      ),
                       const SizedBox(height: DesignConstants.spacingL),
                       AppSectionHeader(title: l10n.statisticsSectionBody),
-                      _buildBodyMetricsSection(context, viewModel, l10n),
+                      RepaintBoundary(
+                        child: _buildBodyMetricsSection(context, viewModel, l10n),
+                      ),
                       const SizedBox(height: 8),
                       _buildMeasurementsShortcutCard(context, l10n),
                       const BottomContentSpacer(),

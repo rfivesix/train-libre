@@ -156,6 +156,134 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     }
   }
 
+  String _getLocalizedProgress(BuildContext context, String raw) {
+    if (raw.isEmpty) return '';
+    final l10n = AppLocalizations.of(context)!;
+
+    if (raw == 'Prüfe Übungen...') {
+      return l10n.initCheckingExercises;
+    } else if (raw == 'Update Übungen') {
+      return l10n.initUpdateTask(l10n.shareExercisesLabel);
+    } else if (raw == 'Übungen bereit') {
+      return l10n.initExercisesReady;
+    } else if (raw == 'Übungen aktuell') {
+      return l10n.initExercisesUpToDate;
+    } else if (raw == 'Lade Übungen...') {
+      return l10n.initLoadingExercises;
+    } else if (raw == 'Basis-Produkte') {
+      return l10n.tabBaseFoods;
+    } else if (raw == 'Update Basis-Produkte') {
+      return l10n.initUpdateTask(l10n.tabBaseFoods);
+    } else if (raw == 'Prüfe Basis-Produkte...') {
+      return l10n.initCheckingTask(l10n.tabBaseFoods);
+    } else if (raw == 'Basis-Produkte aktuell') {
+      return l10n.initTaskUpToDate(l10n.tabBaseFoods);
+    } else if (raw == 'Kategorien') {
+      return l10n.category_label;
+    } else if (raw == 'Update Kategorien') {
+      return l10n.initUpdateTask(l10n.category_label);
+    } else if (raw == 'Prüfe Kategorien...') {
+      return l10n.initCheckingTask(l10n.category_label);
+    } else if (raw == 'Kategorien aktuell') {
+      return l10n.initTaskUpToDate(l10n.category_label);
+    } else if (raw == 'Remote-Manifest wird geladen...') {
+      return l10n.initLoadingRemoteManifest;
+    } else if (raw == 'Kein Remote-Download erforderlich.') {
+      return l10n.initNoDownloadRequired;
+    } else if (raw == 'Download wird verifiziert...') {
+      return l10n.initPreparingImport;
+    } else if (raw == 'Download wird für den Import vorbereitet...') {
+      return l10n.initPreparingImport;
+    } else if (raw == 'Basis-Produkte sind aktuell.') {
+      return l10n.initTaskUpToDate(l10n.tabBaseFoods);
+    } else if (raw == 'Kategorien sind aktuell.') {
+      return l10n.initTaskUpToDate(l10n.category_label);
+    } else if (raw == 'Initialisiere...') {
+      return l10n.initInitializing;
+    } else if (raw == 'Vorbereitung...') {
+      return l10n.initPreparation;
+    } else if (raw == 'Bereit') {
+      return l10n.initReady;
+    } else if (raw == 'Suche nach Remote-Katalog-Updates...') {
+      return l10n.initCheckingExercises;
+    } else if (raw == 'Suche nach Remote-OFF-Katalog-Updates...') {
+      return l10n.initLoadingRemoteManifest;
+    } else if (raw == 'Kein OFF-Bundle/Remote verfügbar. Vorhandene lokale OFF-Daten bleiben unverändert.') {
+      return l10n.initNoOffBundle;
+    }
+
+    if (raw.startsWith('Remote-Übungskatalog ') && raw.endsWith(' wird heruntergeladen.')) {
+      final version = raw.substring(21, raw.length - 21);
+      return l10n.initDownloadingRemoteCatalog(version);
+    }
+    if (raw.startsWith('Remote-Übungskatalog ') && raw.endsWith(' wird importiert.')) {
+      final version = raw.substring(21, raw.length - 17);
+      return l10n.initImportingRemoteCatalog(version);
+    }
+    if (raw.startsWith('Remote-Katalog ') && raw.endsWith(' gefunden.')) {
+      final version = raw.substring(15, raw.length - 10);
+      return l10n.initImportingRemoteCatalog(version);
+    }
+    if (raw.startsWith('Remote-OFF-Katalog ') && raw.endsWith(' wird heruntergeladen.')) {
+      final version = raw.substring(19, raw.length - 21);
+      return l10n.initDownloadingProductBundle(version);
+    }
+    if (raw.startsWith('Remote-OFF-Katalog ') && raw.endsWith(' wird importiert.')) {
+      final version = raw.substring(19, raw.length - 17);
+      return l10n.initImportingProductBundle(version);
+    }
+    if (raw.startsWith('Remote-OFF-Katalog ') && raw.endsWith(' gefunden.')) {
+      final version = raw.substring(19, raw.length - 10);
+      return l10n.initImportingProductBundle(version);
+    }
+    if (raw.startsWith('OFF-Datenbank ist aktuell (Version: ') && raw.endsWith(').')) {
+      return l10n.initProductDatabaseUpToDate;
+    }
+
+    final checkDbReg = RegExp(r'^Prüfe Produktdatenbank \((.+)\)\.\.\.$');
+    if (checkDbReg.hasMatch(raw)) {
+      final country = checkDbReg.firstMatch(raw)!.group(1) ?? '';
+      return l10n.initCheckingProductDatabase(country);
+    }
+
+    final dbAktuellReg = RegExp(r'^Produktdatenbank \((.+)\) aktuell$');
+    if (dbAktuellReg.hasMatch(raw)) {
+      return l10n.initProductDatabaseUpToDate;
+    }
+
+    final ladeDbReg = RegExp(r'^Lade Produktdatenbank \((.+)\)\.\.\.$');
+    if (ladeDbReg.hasMatch(raw)) {
+      return l10n.initLoadingProductDatabase;
+    }
+
+    final dbBereitReg = RegExp(r'^Produktdatenbank \((.+)\) bereit$');
+    if (dbBereitReg.hasMatch(raw)) {
+      return l10n.initProductDatabaseReady;
+    }
+
+    final updateDbReg = RegExp(r'^Update Produktdatenbank \((.+)\)$');
+    if (updateDbReg.hasMatch(raw)) {
+      final country = updateDbReg.firstMatch(raw)!.group(1) ?? '';
+      return l10n.initUpdateTask(l10n.initCheckingProductDatabase(country).replaceAll('...', ''));
+    }
+
+    final dbReg = RegExp(r'^Produktdatenbank \((.+)\)$');
+    if (dbReg.hasMatch(raw)) {
+      final country = dbReg.firstMatch(raw)!.group(1) ?? '';
+      return l10n.initCheckingProductDatabase(country).replaceAll('...', '');
+    }
+
+    final eintraegeReg = RegExp(r'^(\d+)\s*/\s*(\d+)\s+Einträge$');
+    if (eintraegeReg.hasMatch(raw)) {
+      final match = eintraegeReg.firstMatch(raw)!;
+      final processed = match.group(1) ?? '';
+      final total = match.group(2) ?? '';
+      return l10n.initEntriesProgress(processed, total);
+    }
+
+    return raw;
+  }
+
   @override
   Widget build(BuildContext context) {
     // If initialization is done, render an empty container until navigation completes.
@@ -166,6 +294,14 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+
+    final displayTask = _currentTask.isEmpty
+        ? l10n.appInitStarting
+        : _getLocalizedProgress(context, _currentTask);
+
+    final displayDetail = _currentDetail.isEmpty
+        ? l10n.appInitInitializing
+        : _getLocalizedProgress(context, _currentDetail);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -185,7 +321,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
             // Main status text.
             Text(
-              _currentTask.isEmpty ? l10n.appInitStarting : _currentTask,
+              displayTask,
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
@@ -209,9 +345,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
             // Secondary detail text.
             Text(
-              _currentDetail.isEmpty
-                  ? l10n.appInitInitializing
-                  : _currentDetail,
+              displayDetail,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,

@@ -334,7 +334,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              padding: const EdgeInsets.symmetric(vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -376,6 +376,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         SizedBox(
           height: 140,
           child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             scrollDirection: Axis.horizontal,
             itemCount: _images.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
@@ -383,10 +384,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          '${_images.length} / $_maxImages',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            '${_images.length} / $_maxImages',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+            ),
           ),
         ),
       ],

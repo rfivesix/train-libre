@@ -161,27 +161,29 @@ class _MuscleGroupAnalyticsScreenState
                               emptyLabel: l10n.noWorkoutDataLabel,
                             )
                           else ...[
-                            SizedBox(
-                              height: 320,
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildBodyHeatmap(
-                                      context,
-                                      highlights,
-                                      muscles,
-                                      BodySide.front,
+                            RepaintBoundary(
+                              child: SizedBox(
+                                height: 320,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildBodyHeatmap(
+                                        context,
+                                        highlights,
+                                        muscles,
+                                        BodySide.front,
+                                      ),
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: _buildBodyHeatmap(
-                                      context,
-                                      highlights,
-                                      muscles,
-                                      BodySide.back,
+                                    Expanded(
+                                      child: _buildBodyHeatmap(
+                                        context,
+                                        highlights,
+                                        muscles,
+                                        BodySide.back,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -227,10 +229,14 @@ class _MuscleGroupAnalyticsScreenState
                       ),
                       const SizedBox(height: DesignConstants.spacingS),
                     ],
-                    _buildWeeklySetsCard(selectedWeek),
+                    RepaintBoundary(
+                      child: _buildWeeklySetsCard(selectedWeek),
+                    ),
                     const SizedBox(height: DesignConstants.spacingM),
                     _sectionLabel(l10n.analyticsFrequencyByMuscle),
-                    _buildFrequencyCard(muscles),
+                    RepaintBoundary(
+                      child: _buildFrequencyCard(muscles),
+                    ),
                     const SizedBox(height: DesignConstants.spacingM),
                     _sectionLabel(l10n.analyticsGuidanceTitle),
                     SummaryCard(

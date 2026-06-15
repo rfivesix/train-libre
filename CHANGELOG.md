@@ -4,6 +4,69 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.31] - 2026-06-15
+### Added
+- **Android Website Release & Centralized Link Routing:** Upgraded the product website (`docs/`) to add explicit, premium Android and F-Droid release links alongside existing iOS and FOSS deployment options:
+  - **Centralized Routing Contract:** Implemented a unified `APP_LINKS` registry in `docs/script.js` to dynamically bind URLs across all HTML files via `data-link` attributes, decoupling structural markup from hardcoded links.
+  - **Parallel Hero CTAs:** Integrated a new primary "Download for Android" button next to the iOS TestFlight CTA using a custom Lucide-style download icon. Preserved Obtainium as a secondary glass button.
+  - **Navigation & Footer Links:** Added an "Android APK" header nav-link and an "Android APK / F-Droid" footer link next to the existing GitHub links across all subpages.
+  - **Localization Invariants:** Localized all new CTA elements and links across English, German, French, Italian, and Japanese translations in `docs/script.js`.
+- **Custom Foods Parity & Database CRUD:** Mirrored the robust "Custom Exercise" functionality into the Nutrition module to allow user-created custom food items:
+  - Implemented visual indicators with a styled "Custom" badge next to food names in search results and `FoodDetailScreen`.
+  - Added an "Eigene Lebensmittel" ExpansionTile on the nutrition dashboard landing page.
+  - Implemented full SQLite CRUD repository pipelines for user-created custom foods with backup/restore support.
+- **Macro-based Calorie Calculator & Caffeine Exposure:**
+  - Added a dynamic calorie calculator hook (`(Protein * 4) + (Carbs * 4) + (Fat * 9)`) in the Create/Edit Food screen, triggerable via a new rotate icon next to the calories input field.
+  - Exposed the database-backed `caffeine` metric in food input forms and detail screens.
+
+### Changed
+- **App-wide Localization Audit & Hardcoded German String Elimination:** Audited and refactored multiple UI and service layers to completely clean and translate hardcoded German text literals across English, German, French, Italian, and Japanese:
+  - **Dynamic Progress Mapping in App Initializer:** Implemented a dynamic lookup mapper `_getLocalizedProgress` in `app_initializer_screen.dart` to translate raw German progress/status strings streamed from `BasisDataManager` (e.g., "Prüfe Übungen...", "Basis-Produkte", "Kategorien", and entry counts) at the UI boundary.
+  - **Localized Import Defaults:** Refactored `import_manager.dart` and `data_management_screen.dart` to accept dynamic, localized fallback workout and exercise titles (via `l10n.importedWorkout` and `l10n.unknownExercise`) rather than hardcoded German fallbacks.
+  - **Profile Semantics:** Translated the hardcoded `'Profile'` semantics label in the app bar to `l10n.profile` in `main_screen.dart`.
+  - **Extended Translations:** Added all corresponding localization keys, placeholders, and definitions to the `app_*.arb` files and regenerated localizations successfully.
+- **Website CTA Icon Swap & F-Droid / Obtainium Vector Assets:** Corrected the download CTA button icons on the homepage:
+  - Embedded the official Inkscape-cleaned F-Droid Client vector SVG logo on the F-Droid button.
+  - Embedded the official colored Obtainium vector SVG logo (cropped to bounding viewBox) on the Obtainium button.
+- **Liquid Glass Design System Performance Hardening:** Implemented a systemic plan to eliminate scroll-stutter, input lag, and rendering invalidations caused by backdrop filter overlays and layout-thrashing:
+  - **Global Render Isolation:** Wrapped central glass components and direct `BackdropFilter` instances in `RepaintBoundary` widgets. This forces the Flutter engine to cache backdrop filter pixel-blur buffers on the GPU, preventing surrounding viewport scroll offsets or animations from forcing the GPU to re-evaluate the background pixels on every frame. Affected widgets include `GlassFab`, `GlassPillButton`, `GlassBottomMenu` main cards and option tiles, `RunningWorkoutOverlay` container, `GlobalAppBar`, `RecommendationBanner`, `PRCelebrationBanner`, `SpeedDialMenuOverlay`, and localized water logging dialogs.
+  - **Structural Layout Decoupling:** Refactored main screens to completely decouple floating/sticky bottom navigation and action bars from the main scroll views. Removed standard `Scaffold` properties (`bottomNavigationBar` and `floatingActionButton`) from `live_workout_screen.dart` and `edit_routine_screen.dart`, instead moving those floating layers into the body `Stack` layout as Layer 2 overlays. Wrapped scrollable viewports (Layer 1) and bottom overlays (Layer 2) in separate `RepaintBoundary` widgets, isolating their layout and paint operations.
+  - **Safe-Area Content Padding:** Adjusted scroll view bottom content paddings dynamically to accommodate both safe-area heights and floating bar overlays, ensuring that list items at the end of lists are never permanently clipped or covered by the bottom bar.
+  - **Main Screen Render Isolation:** Wrapped `Scaffold` (holding all page views), the running workout overlay, and the bottom navigation bar / FAB layout in `main_screen.dart` inside separate `RepaintBoundary` layers, completely decoupling page scrolls from floating menu repaints.
+- **LucideIcons:** migrated the last missing Cupertino icon to icon from LucideIcons.
+- **Unified Food Search Viewport:** Replaced the multi-tab food search layout with a unified single-scroll track viewport, grouping search results sequentially into three vertical sections: Custom Food matches, Base Food matches, and Other/Open Food Facts matches.
+
+### Fixed
+- **AI Meal Capture Image Layout:** Fixed a layout issue where the horizontal image preview list was constrained by the screen's outer padding. Removed horizontal padding from the parent scroll view and applied it directly to the list container and label, enabling edge-to-edge scrolling for captured meal images.
+- **Exercise Catalog Never Seeding (Critical):** Resolved a three-layered bug that caused the entire wger exercise catalog to remain empty on fresh installs and after iOS sandbox resets:
+  - **Missing bundled asset:** `assets/db/train_libre_training.db` was a 0-byte placeholder file. The bundled SQLite database is now populated from the latest stable wger release (`202606151047`, 852 exercises). Added a 0-byte guard in `BasisDataManager` that aborts the import with a clear error instead of silently opening an empty database.
+  - **Relational schema not handled:** The asset DB stores translations in a separate `exercise_translations` table, but `_mapExerciseBundle` only handled the legacy flat-column format (`name_de`/`name_en` on the exercise row). As a result, all 852 exercises were inserted with zero translations, making them invisible to `searchExercises` (which LEFT JOINs on translations). Added a dedicated relational translation pass in `_performBatchImport` that reads `exercise_translations` directly from the source DB after the exercise loop completes.
+  - **Stale pref after partial import:** After previous broken imports (exercises present, translations absent), `_keyVersionTraining` in SharedPreferences reflected an up-to-date version, preventing any re-import. Added a translation health-check in `checkForBasisDataUpdate` that detects when the translation count is below the exercise count and forces a full re-seed by clearing the stored version key. Also updated the bundled `wger_catalog_manifest.json` to match the current stable release.
+- **Edit Routine Screen Layout Polish:**
+  - Reduced the vertical gap between the routine name field and the exercise list divider (`spacingM` → `spacingXS`) to eliminate the excessive blank space below the input.
+  - Moved the `WgerAttributionWidget` out of a free-floating `Align(bottomCenter)` overlay (which was visually overlapping the Add Exercise FAB) into a `Positioned(bottom: 8 + safeAreaBottom)` layer, pinning it cleanly below the safe area without colliding with the FAB.
+- **Exercise Catalog Screen Layout Polish:**
+  - Reduced the search bar vertical padding from `24px` to `8px` (top and bottom) and removed the redundant `spacingS` gap above the search row, bringing the search field tight against the app bar.
+  - Aligned the `WgerAttributionWidget` text style with `live_workout_screen` by adding a drop shadow (`Shadow` with 50 % opacity, 1×1 offset, 4px blur).
+  - Refactored the screen `body` from a plain `Column` to a `Stack`, placing the wger attribution as a `Positioned` widget at the bottom of the safe area — preventing it from being obscured by or clashing with the \"Create Custom Exercise\" FAB.
+- **Food Search Tile Brand Overflow:** Fixed a critical horizontal RenderFlex overflow caused by long brand names (e.g., "Flying Goose Brand") clipping calorie metrics in search results:
+  - Re-architected subtitle layouts across `FoodItemSearchTile`, `GeneralFoodSelectionScreen`, and `FoodExplorerScreen` list items to position calorie and volume metrics (`[X] kcal / 100g`) at the absolute left of the subtitle row.
+  - Placed a bullet separator (` • `) between calorie text and brand name, and wrapped the brand text widget in an `Expanded` layout with `TextOverflow.ellipsis` and `maxLines: 1` to safely truncate long brand names.
+
+## [0.9.30] - 2026-06-15
+### Changed
+- **Viewport Scroll Performance & Layout Isolation (Issue #457):** Eliminated scroll-stutter and frame drops during active scrolling:
+  - Added `cacheExtent: 1500` to `ReorderableListView.builder` inside both `EditRoutineScreen` and `LiveWorkoutScreen` to pre-render exercise and set input cards off-screen, shifting CPU and GPU work away from active scrolling frames.
+  - Refactored `DiaryScreen` main `ListView` to `CustomScrollView` with layout-isolated slivers. Placed the upper dashboard (macros, summaries) in a `SliverToBoxAdapter` wrapped in a `RepaintBoundary`, and isolated the weight custom-painter chart in its own sliver/repaint boundary, preventing layout changes in the active food log from invalidating cached GPU textures.
+  - Conducted a global scroll performance audit and implemented viewport pre-rendering (`cacheExtent: 1500`) on candidate list views in `workout_history_screen.dart`, `exercise_catalog_screen.dart`, `food_explorer_screen.dart`, `add_food_screen.dart`, and `general_food_selection_screen.dart`.
+  - Added `RepaintBoundary` wrappers to isolate repaint logic for complex body maps, vector diagrams, and charts in `recovery_tracker_screen.dart`, `muscle_group_analytics_screen.dart`, `consistency_tracker_screen.dart`, `body_nutrition_correlation_screen.dart`, `exercise_detail_screen.dart`, and `statistics_hub_screen.dart`, caching GPU raster layers and preventing layout invalidation cascades.
+- **Live Workout FAB Layout & Shadow Clipping:** Resolved excessive bottom spacing of the Floating Action Button (`GlassFab`) on `LiveWorkoutScreen` and fixed drop shadow bleed overlapping the bottom rest timer bar:
+  - Removed manual bottom padding calculations from `_LiveWorkoutFabState`, allowing `Scaffold`'s layout system to natively place the FAB exactly `16.0` logical pixels above the bottom bar.
+  - Implemented a dynamic `Transform.translate` downward translation of `8.0` logical pixels and a custom shadow clipper `_LiveWorkoutFabShadowClipper` when the rest timer bar is active. This narrows the spacing to exactly `8.0` logical pixels to match the Diary Screen's bottom layout, while cleanly cropping the drop shadow at the rest bar's top edge to prevent overlapping visual smudges.
+
+### Fixed
+- **Profile Picture Lazy Loading on Startup:** Resolved an issue where the profile picture avatar in the main screen app bar did not load on a fresh app startup unless the user manually navigated to another screen. Added a reactive `Consumer<ProfileService>` wrapper around the avatar to dynamically update as soon as the asynchronous profile service initialization completes.
+
 ## [0.9.29] - 2026-06-14
 ### Added
 - **Dynamic Time-Based Meal Pre-Selection (Issue #460):** Added a new quality-of-life feature that maps the current system hour dynamically to the most logical meal type: Breakfast (05:00 - 10:59), Lunch (11:00 - 15:59), Dinner (16:00 - 20:59), and Snack (21:00 - 04:59). Integrated the helper across the global FAB food-adding flow and natural language logs.

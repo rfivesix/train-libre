@@ -230,6 +230,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                 ? const Center(child: CircularProgressIndicator())
                 : _foundFoodItems.isNotEmpty
                     ? ListView.builder(
+                        cacheExtent: 1500,
                         itemCount: _foundFoodItems.length,
                         itemBuilder: (context, index) =>
                             _buildFoodListItem(_foundFoodItems[index]),
@@ -270,6 +271,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
       children: [
         Expanded(
           child: ListView.builder(
+            cacheExtent: 1500,
             padding: DesignConstants.cardPadding,
             itemCount: _favoriteFoodItems.length,
             itemBuilder: (context, index) =>
@@ -306,11 +308,24 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           item.name.isNotEmpty ? item.name : l10n.unknown,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          l10n.foodItemSubtitle(
-            item.brand.isNotEmpty ? item.brand : l10n.noBrand,
-            item.calories,
-          ),
+        subtitle: Row(
+          children: [
+            Text(
+              l10n.foodItemSubtitle('', item.calories).replaceFirst(RegExp(r'^.*?-\s*'), ''),
+            ),
+            if (item.brand.isNotEmpty &&
+                item.brand != 'Keine Marke' &&
+                item.brand != l10n.noBrand) ...[
+              const Text(' • '),
+              Expanded(
+                child: Text(
+                  item.brand,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ],
         ),
         trailing: IconButton(
           icon: Icon(

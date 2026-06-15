@@ -619,6 +619,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   }
 
   Widget _buildSyncBanner(ColorScheme colorScheme, TextTheme textTheme) {
+    final l10n = AppLocalizations.of(context)!;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: Card(
@@ -668,7 +669,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Routine aktualisieren?",
+                          l10n.syncRoutineTitle,
                           style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onSurface,
@@ -676,7 +677,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          "Struktur- oder Reihenfolgeänderungen erkannt.",
+                          l10n.syncRoutineSubtitle,
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -688,7 +689,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                "Möchtest du die Routine '${_associatedRoutine!.name}' mit den aktuellen Workout-Daten (Übungen, Reihenfolge, Sätze) aktualisieren?",
+                l10n.syncRoutineBody(_associatedRoutine!.name),
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.8),
                 ),
@@ -706,7 +707,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                     style: TextButton.styleFrom(
                       foregroundColor: colorScheme.outline,
                     ),
-                    child: const Text("Verwerfen"),
+                    child: Text(l10n.discard),
                   ),
                   const SizedBox(width: 8),
                   FilledButton.icon(
@@ -732,7 +733,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                             ),
                           )
                         : const Icon(LucideIcons.check, size: 18),
-                    label: const Text("Jetzt aktualisieren"),
+                    label: Text(l10n.updateNow),
                   ),
                 ],
               ),
@@ -767,7 +768,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("Routine erfolgreich aktualisiert!"),
+            content: Text(l10n.syncRoutineSuccess),
             backgroundColor: Colors.green,
             action: SnackBarAction(
               label: l10n.snackbarRoutineSavedAction,
@@ -788,9 +789,10 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Fehler beim Aktualisieren der Routine: $e"),
+            content: Text(l10n.syncRoutineError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

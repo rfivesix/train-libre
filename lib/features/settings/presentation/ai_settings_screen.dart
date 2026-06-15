@@ -404,11 +404,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           if (_selectedProvider == AiProvider.ollama) ...[
                             TextField(
                               controller: _customModelController,
-                              decoration: const InputDecoration(
-                                labelText: 'Local Model Name',
+                              decoration: InputDecoration(
+                                labelText: l10n.settingsLocalModelName,
                                 hintText: 'llama3',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                   vertical: 8,
                                 ),
@@ -419,11 +419,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           if (_selectedProvider == AiProvider.custom) ...[
                             TextField(
                               controller: _baseUrlController,
-                              decoration: const InputDecoration(
-                                labelText: 'Custom Base URL',
+                              decoration: InputDecoration(
+                                labelText: l10n.settingsCustomBaseUrl,
                                 hintText: 'http://localhost:8080/v1',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                   vertical: 8,
                                 ),
@@ -432,11 +432,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                             const SizedBox(height: 10),
                             TextField(
                               controller: _customModelController,
-                              decoration: const InputDecoration(
-                                labelText: 'Custom Model Name',
+                              decoration: InputDecoration(
+                                labelText: l10n.settingsCustomModelName,
                                 hintText: 'custom-model',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                   vertical: 8,
                                 ),
@@ -447,10 +447,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           // AI Matching Language
                           DropdownButtonFormField<AiMatchingLanguage>(
                             initialValue: _aiMatchingLanguage,
-                            decoration: const InputDecoration(
-                              labelText: 'AI Food Name Language',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
+                            decoration: InputDecoration(
+                              labelText: l10n.settingsAiFoodNameLanguage,
+                              border: const OutlineInputBorder(),
+                              contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 8,
                               ),
@@ -500,14 +500,14 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Request Timeout',
+                                      l10n.settingsRequestTimeout,
                                       style:
                                           theme.textTheme.labelLarge?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     Text(
-                                      '$_timeoutSeconds seconds',
+                                      l10n.settingsSeconds(_timeoutSeconds),
                                       style:
                                           theme.textTheme.labelMedium?.copyWith(
                                         color: theme.colorScheme.primary,
@@ -522,7 +522,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 min: 10,
                                 max: 300,
                                 divisions: 29, // 10s steps: (300-10)/10 = 29
-                                label: '$_timeoutSeconds seconds',
+                                label: l10n.settingsSeconds(_timeoutSeconds),
                                 activeColor: theme.colorScheme.primary,
                                 onChanged: (value) async {
                                   final seconds = value.round();

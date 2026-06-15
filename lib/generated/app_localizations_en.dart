@@ -2104,7 +2104,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionHubTitle => 'Nutrition';
 
   @override
-  String get nutrition => 'nutrition';
+  String get nutrition => 'Nutrition';
 
   @override
   String get changeSetTypTitle => 'Change set type';
@@ -2126,7 +2126,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsMaterialColorsSubtitle =>
-      'Use Android dynamic colors (Material You) instead of the Train Libre brand accent';
+      'Use dynamic system colors (Material You) instead of the Train Libre brand accent';
 
   @override
   String get settingsFoodDbSectionTitle => 'Food database';
@@ -5045,4 +5045,232 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareSleepRestingHeartRate => 'Resting Heart Rate';
+
+  @override
+  String get shareAsTextOrCopy => 'Share / copy as text';
+
+  @override
+  String get editExercise => 'Edit Exercise';
+
+  @override
+  String exerciseCopyCreated(String exerciseName) {
+    return 'Copy of \'$exerciseName\' created.';
+  }
+
+  @override
+  String get copySystemExerciseTitle => 'Copy System Exercise';
+
+  @override
+  String get copySystemExerciseBody =>
+      'This exercise is system-provided and cannot be directly edited. Would you like to create a custom copy to edit it?';
+
+  @override
+  String get createCopyAndEdit => 'Create Copy & Edit';
+
+  @override
+  String get profileEdit => 'Edit Profile';
+
+  @override
+  String get selectBirthday => 'Select date of birth';
+
+  @override
+  String get exerciseNoteTitle => 'Exercise Note';
+
+  @override
+  String get exerciseNoteHint => 'Enter notes or hints...';
+
+  @override
+  String get deleteNoteTooltip => 'Delete note';
+
+  @override
+  String get emptyStateAddFirstExerciseSubtitle =>
+      'Add an exercise to start logging.';
+
+  @override
+  String get syncRoutineTitle => 'Update Routine?';
+
+  @override
+  String get syncRoutineSubtitle => 'Structure or order changes detected.';
+
+  @override
+  String syncRoutineBody(String routineName) {
+    return 'Would you like to update the routine \'$routineName\' with the current workout data (exercises, order, sets)?';
+  }
+
+  @override
+  String get discard => 'Discard';
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get syncRoutineSuccess => 'Routine updated successfully!';
+
+  @override
+  String syncRoutineError(String error) {
+    return 'Error updating routine: $error';
+  }
+
+  @override
+  String createRoutineError(String error) {
+    return 'Error creating routine: $error';
+  }
+
+  @override
+  String nutritionPerQuantity(String quantity) {
+    return 'Nutrition per ${quantity}g';
+  }
+
+  @override
+  String get settingsLocalModelName => 'Local Model Name';
+
+  @override
+  String get settingsCustomBaseUrl => 'Custom Base URL';
+
+  @override
+  String get settingsCustomModelName => 'Custom Model Name';
+
+  @override
+  String get settingsAiFoodNameLanguage => 'AI Food Name Language';
+
+  @override
+  String get settingsRequestTimeout => 'Request Timeout';
+
+  @override
+  String settingsSeconds(int seconds) {
+    return '$seconds seconds';
+  }
+
+  @override
+  String get semanticsApplyRecommendation => 'Apply Recommendation';
+
+  @override
+  String get semanticsDismissBanner => 'Dismiss Banner';
+
+  @override
+  String get importedWorkout => 'Imported Workout';
+
+  @override
+  String get unknownExercise => 'Unknown Exercise';
+
+  @override
+  String get devExportBaseDb => 'Export base database';
+
+  @override
+  String get initCheckingExercises => 'Checking exercises...';
+
+  @override
+  String get initLoadingRemoteManifest => 'Loading remote manifest...';
+
+  @override
+  String get initExercisesUpToDate => 'Exercises up to date';
+
+  @override
+  String get initNoDownloadRequired => 'No remote download required.';
+
+  @override
+  String get initLoadingExercises => 'Loading exercises...';
+
+  @override
+  String initDownloadingRemoteCatalog(String version) {
+    return 'Downloading remote exercise catalog $version...';
+  }
+
+  @override
+  String get initPreparingImport => 'Preparing download for import...';
+
+  @override
+  String get initExercisesReady => 'Exercises ready';
+
+  @override
+  String initImportingRemoteCatalog(String version) {
+    return 'Importing remote exercise catalog $version...';
+  }
+
+  @override
+  String initCheckingProductDatabase(String country) {
+    return 'Checking product database ($country)...';
+  }
+
+  @override
+  String get initProductDatabaseUpToDate => 'Product database up to date';
+
+  @override
+  String get initLoadingProductDatabase => 'Loading product database...';
+
+  @override
+  String initDownloadingProductBundle(String version) {
+    return 'Downloading remote product bundle $version...';
+  }
+
+  @override
+  String get initProductDatabaseReady => 'Product database ready';
+
+  @override
+  String initImportingProductBundle(String version) {
+    return 'Importing remote product bundle $version...';
+  }
+
+  @override
+  String get initNoOffBundle =>
+      'No OFF bundle/remote available. Existing local OFF data remains unchanged.';
+
+  @override
+  String initEntriesProgress(String processed, String totalCount) {
+    return '$processed / $totalCount entries';
+  }
+
+  @override
+  String initUpdateTask(String task) {
+    return 'Update $task';
+  }
+
+  @override
+  String initCheckingTask(String task) {
+    return 'Checking $task...';
+  }
+
+  @override
+  String initTaskUpToDate(String task) {
+    return '$task up to date';
+  }
+
+  @override
+  String get initInitializing => 'Initializing...';
+
+  @override
+  String get initPreparation => 'Preparing...';
+
+  @override
+  String get initReady => 'Ready';
+
+  @override
+  String yearsOld(int age) {
+    return '$age years old';
+  }
+
+  @override
+  String get customFoodsTitle => 'Custom Foods';
+
+  @override
+  String get deleteFoodConfirmTitle => 'Delete Food Item';
+
+  @override
+  String get deleteFoodConfirmBody =>
+      'Are you sure you want to delete this custom food item? Historical logs will not be affected.';
+
+  @override
+  String get foodItemDeleted => 'Food item deleted';
+
+  @override
+  String get copySystemFoodTitle => 'Copy System Food';
+
+  @override
+  String get copySystemFoodBody =>
+      'System foods cannot be edited directly. Would you like to create a custom copy and edit it?';
+
+  @override
+  String foodCopyCreated(String name) {
+    return 'Copy created: $name';
+  }
 }

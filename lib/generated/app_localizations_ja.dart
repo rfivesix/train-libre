@@ -2088,7 +2088,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsMaterialColorsSubtitle =>
-      'Train Libre ブランド アクセントの代わりに Android のダイナミック カラー (マテリアル ユー) を使用する';
+      'Train Libre ブランド アクセントの代わりにシステムのダイナミック カラー (マテリアル ユー) を使用する';
 
   @override
   String get settingsFoodDbSectionTitle => '食品データベース';
@@ -4890,4 +4890,230 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get shareSleepRestingHeartRate => '安静時心拍数';
+
+  @override
+  String get shareAsTextOrCopy => 'テキストとして共有・コピーする';
+
+  @override
+  String get editExercise => 'エクササイズを編集';
+
+  @override
+  String exerciseCopyCreated(String exerciseName) {
+    return '「$exerciseName」のコピーが作成されました。';
+  }
+
+  @override
+  String get copySystemExerciseTitle => 'システムエクササイズをコピー';
+
+  @override
+  String get copySystemExerciseBody =>
+      'このエクササイズはシステム提供のものであるため、直接編集できません。編集するためにカスタムコピーを作成しますか？';
+
+  @override
+  String get createCopyAndEdit => 'コピーを作成して編集';
+
+  @override
+  String get profileEdit => 'プロフィールを編集';
+
+  @override
+  String get selectBirthday => '生年月日を選択';
+
+  @override
+  String get exerciseNoteTitle => 'エクササイズのメモ';
+
+  @override
+  String get exerciseNoteHint => 'メモやヒントを入力...';
+
+  @override
+  String get deleteNoteTooltip => 'メモを削除';
+
+  @override
+  String get emptyStateAddFirstExerciseSubtitle =>
+      'ログの記録を開始するにはエクササイズを追加してください。';
+
+  @override
+  String get syncRoutineTitle => 'ルーティンを更新しますか？';
+
+  @override
+  String get syncRoutineSubtitle => '構造または順序の変更が検出されました。';
+
+  @override
+  String syncRoutineBody(String routineName) {
+    return '現在のワークアウトデータ（エクササイズ、順序、セット）でルーティン「$routineName」を更新しますか？';
+  }
+
+  @override
+  String get discard => '破棄する';
+
+  @override
+  String get updateNow => '今すぐ更新';
+
+  @override
+  String get syncRoutineSuccess => 'ルーティンが正常に更新されました！';
+
+  @override
+  String syncRoutineError(String error) {
+    return 'ルーティンの更新エラー: $error';
+  }
+
+  @override
+  String createRoutineError(String error) {
+    return 'ルーティン作成エラー: $error';
+  }
+
+  @override
+  String nutritionPerQuantity(String quantity) {
+    return '${quantity}gあたりの栄養成分';
+  }
+
+  @override
+  String get settingsLocalModelName => 'ローカルモデル名';
+
+  @override
+  String get settingsCustomBaseUrl => 'カスタムベースURL';
+
+  @override
+  String get settingsCustomModelName => 'カスタムモデル名';
+
+  @override
+  String get settingsAiFoodNameLanguage => 'AI食品名の言語';
+
+  @override
+  String get settingsRequestTimeout => 'リクエストタイムアウト';
+
+  @override
+  String settingsSeconds(int seconds) {
+    return '$seconds秒';
+  }
+
+  @override
+  String get semanticsApplyRecommendation => '推奨事項を適用する';
+
+  @override
+  String get semanticsDismissBanner => 'バナーを閉じる';
+
+  @override
+  String get importedWorkout => 'インポートされたワークアウト';
+
+  @override
+  String get unknownExercise => '不明なエクササイズ';
+
+  @override
+  String get devExportBaseDb => '基本データベースをエクスポート';
+
+  @override
+  String get initCheckingExercises => 'エクササイズを確認中...';
+
+  @override
+  String get initLoadingRemoteManifest => 'リモートマニフェストを読み込み中...';
+
+  @override
+  String get initExercisesUpToDate => 'エクササイズは最新です';
+
+  @override
+  String get initNoDownloadRequired => 'リモートダウンロードは不要です';
+
+  @override
+  String get initLoadingExercises => 'エクササイズを読み込み中...';
+
+  @override
+  String initDownloadingRemoteCatalog(String version) {
+    return 'リモートエクササイズカタログ$versionをダウンロード中...';
+  }
+
+  @override
+  String get initPreparingImport => 'インポート用ダウンロードを準備中...';
+
+  @override
+  String get initExercisesReady => 'エクササイズの準備完了';
+
+  @override
+  String initImportingRemoteCatalog(String version) {
+    return 'リモートエクササイズカタログ$versionをインポート中...';
+  }
+
+  @override
+  String initCheckingProductDatabase(String country) {
+    return '製品データベースを確認中（$country）...';
+  }
+
+  @override
+  String get initProductDatabaseUpToDate => '製品データベースは最新です';
+
+  @override
+  String get initLoadingProductDatabase => '製品データベースを読み込み中...';
+
+  @override
+  String initDownloadingProductBundle(String version) {
+    return 'リモート製品バンドル$versionをダウンロード中...';
+  }
+
+  @override
+  String get initProductDatabaseReady => '製品データベース의準備完了';
+
+  @override
+  String initImportingProductBundle(String version) {
+    return 'リモート製品バンドル$versionをインポート中...';
+  }
+
+  @override
+  String get initNoOffBundle =>
+      '利用可能なOFFバンドル/リモートがありません。既存のローカルOFFデータは変更されません。';
+
+  @override
+  String initEntriesProgress(String processed, String totalCount) {
+    return '$processed / $totalCount 件のエントリ';
+  }
+
+  @override
+  String initUpdateTask(String task) {
+    return '$taskを更新';
+  }
+
+  @override
+  String initCheckingTask(String task) {
+    return '$taskを確認中...';
+  }
+
+  @override
+  String initTaskUpToDate(String task) {
+    return '$taskは最新です';
+  }
+
+  @override
+  String get initInitializing => '初期化中...';
+
+  @override
+  String get initPreparation => '準備中...';
+
+  @override
+  String get initReady => '準備完了';
+
+  @override
+  String yearsOld(int age) {
+    return '$age歳';
+  }
+
+  @override
+  String get customFoodsTitle => 'カスタムフード';
+
+  @override
+  String get deleteFoodConfirmTitle => '食品の削除';
+
+  @override
+  String get deleteFoodConfirmBody => 'このカスタム食品を削除してもよろしいですか？過去の履歴には影響しません。';
+
+  @override
+  String get foodItemDeleted => '食品が削除されました';
+
+  @override
+  String get copySystemFoodTitle => 'システム食品のコピー';
+
+  @override
+  String get copySystemFoodBody => 'システム食品は直接編集できません。カスタムコピーを作成して編集しますか？';
+
+  @override
+  String foodCopyCreated(String name) {
+    return 'コピー作成完了: $name';
+  }
 }

@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';
@@ -21,6 +20,7 @@ import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/app_section_header.dart';
 import 'widgets/off_attribution_widget.dart';
 import 'widgets/food_item_search_tile.dart';
 import 'widgets/meal_item_card.dart';
@@ -123,6 +123,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
   List<FoodItem> _recentFoodItems = [];
   bool _isLoadingRecent = true;
+
+  List<FoodItem> _customFoodItems = [];
+  bool _isLoadingCustomFoods = false;
 
   late TabController _tabController;
   final TextEditingController _baseSearchCtrl = TextEditingController();
@@ -259,6 +262,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
     _loadFavorites();
     _loadRecentItems();
+    _loadCustomFoods();
     _baseSearchCtrl.addListener(
       () => _onBaseSearchChanged(_baseSearchCtrl.text),
     );
@@ -327,6 +331,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       _runFilter('');
       _loadFavorites();
       _loadRecentItems();
+      _loadCustomFoods();
     });
   }
 
@@ -352,6 +357,20 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       setState(() {
         _recentFoodItems = results;
         _isLoadingRecent = false;
+      });
+    }
+  }
+
+  Future<void> _loadCustomFoods() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingCustomFoods = true;
+    });
+    final results = await ProductLocalDataSource.instance.getCustomFoods();
+    if (mounted) {
+      setState(() {
+        _customFoodItems = results;
+        _isLoadingCustomFoods = false;
       });
     }
   }
@@ -521,6 +540,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       children: [
         Expanded(
           child: ListView.builder(
+            cacheExtent: 1500,
             padding: DesignConstants.cardPadding.copyWith(
               bottom: _bottomPadding,
             ),
@@ -572,6 +592,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       children: [
         Expanded(
           child: ListView.builder(
+            cacheExtent: 1500,
             padding: DesignConstants.cardPadding.copyWith(
               bottom: _bottomPadding,
             ),
@@ -643,7 +664,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
   Widget _buildCatalogSearchTab(AppLocalizations l10n) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    //final textTheme = Theme.of(context).textTheme;
+    //final isLightMode = Theme.of(context).brightness == Brightness.light;
 
     final bgColor = Theme.of(context).inputDecorationTheme.fillColor ??
         colorScheme.surfaceContainerHighest;
@@ -701,7 +723,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             icon: Icon(
-                              CupertinoIcons.barcode_viewfinder,
+                              LucideIcons.scan_barcode,
                               color: colorScheme.primary,
                               size: 26,
                             ),
@@ -775,16 +797,55 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               onRefresh: () async {
                 _catItems.clear();
                 await _loadBaseCategories();
+                await _loadCustomFoods();
               },
               child: ListView.builder(
+                cacheExtent: 1500,
                 padding: const EdgeInsets.only(bottom: _bottomPadding),
-                itemCount: _baseCategories.length + 1,
+                itemCount: _baseCategories.length + 2,
                 itemBuilder: (context, idx) {
-                  if (idx == _baseCategories.length) {
+                  if (idx == 0) {
+                    return Theme(
+                      data: Theme.of(context)
+                          .copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        leading: const Text(
+                          '🍳',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        title: Text(l10n.customFoodsTitle),
+                        initiallyExpanded: false,
+                        children: [
+                          if (_isLoadingCustomFoods)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          else if (_customFoodItems.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Center(child: Text(l10n.emptyCategory)),
+                            )
+                          else
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding:
+                                  DesignConstants.cardPadding.copyWith(top: 0),
+                              itemCount: _customFoodItems.length,
+                              itemBuilder: (context, i) =>
+                                  _buildFoodListItem(_customFoodItems[i]),
+                            ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (idx == _baseCategories.length + 1) {
                     return const BottomContentSpacer();
                   }
 
-                  final cat = _baseCategories[idx];
+                  final cat = _baseCategories[idx - 1];
                   final key = cat['key'] as String;
                   final emoji = (cat['emoji'] as String?)?.trim();
                   final themeService = Provider.of<ThemeService>(context);
@@ -818,56 +879,61 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     final baseHits = _foundFoodItems
         .where((it) => it.source == FoodItemSource.base)
         .toList();
-    final otherHits = _foundFoodItems
-        .where((it) => it.source != FoodItemSource.base)
+    final offHits =
+        _foundFoodItems.where((it) => it.source == FoodItemSource.off).toList();
+    final customHits = _foundFoodItems
+        .where((it) => it.source == FoodItemSource.user)
         .toList();
+
+    final listItems = <dynamic>[];
+    if (customHits.isNotEmpty) {
+      listItems.add(l10n.customFoodsTitle);
+      listItems.addAll(customHits);
+    }
+    if (baseHits.isNotEmpty) {
+      listItems.add(l10n.searchSectionBase);
+      listItems.addAll(baseHits);
+    }
+    if (offHits.isNotEmpty) {
+      listItems.add(l10n.searchSectionOther);
+      listItems.addAll(offHits);
+      listItems.add(const OffAttributionWidget());
+    }
 
     return Column(
       children: [
-        //const SizedBox(height: 4),
         searchRow,
-        //const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Expanded(
           child: _isLoadingSearch
               ? const Center(child: CircularProgressIndicator())
-              : (baseHits.isEmpty && otherHits.isEmpty)
+              : (listItems.isEmpty
                   ? Center(
-                      child: Text(
-                        l10n.searchNoResults,
-                        style: textTheme.titleMedium,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24.0),
+                        child: Text(
+                          l10n.searchNoResults,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                       ),
                     )
-                  : ListView(
-                      padding: DesignConstants.cardPadding.copyWith(
-                        bottom: _bottomPadding,
-                      ),
-                      children: [
-                        if (baseHits.isNotEmpty) ...[
-                          Text(
-                            l10n.searchSectionBase,
-                            style: textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          ...baseHits.map(_buildFoodListItem),
-                          const SizedBox(height: DesignConstants.spacingL),
-                        ],
-                        if (otherHits.isNotEmpty) ...[
-                          Text(
-                            l10n.searchSectionOther,
-                            style: textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          ...otherHits.map(_buildFoodListItem),
-                        ],
-                        if (otherHits
-                            .any((i) => i.source == FoodItemSource.off))
-                          const Padding(
-                            padding: EdgeInsets.only(top: 12),
-                            child: OffAttributionWidget(),
-                          ),
-                        const BottomContentSpacer(),
-                      ],
-                    ),
+                  : ListView.builder(
+                      cacheExtent: 1500,
+                      padding: DesignConstants.cardPadding
+                          .copyWith(bottom: _bottomPadding),
+                      itemCount: listItems.length,
+                      itemBuilder: (context, index) {
+                        final item = listItems[index];
+                        if (item is String) {
+                          return AppSectionHeader(title: item);
+                        } else if (item is FoodItem) {
+                          return _buildFoodListItem(item);
+                        } else if (item is Widget) {
+                          return item;
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    )),
         ),
       ],
     );

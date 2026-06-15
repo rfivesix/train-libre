@@ -1,6 +1,7 @@
-// lib/screens/food_detail_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+import '../data/sources/product_local_data_source.dart';
+import 'create_food_screen.dart';
 import '../../../config/app_data_sources.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
@@ -12,6 +13,7 @@ import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import 'widgets/off_attribution_widget.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -52,6 +54,7 @@ class FoodDetailScreen extends StatefulWidget {
 class _FoodDetailScreenState extends State<FoodDetailScreen> {
   bool _isFavorite = false;
   bool _showPer100g = false;
+  bool _isLoading = false;
 
   late FoodItem _displayItem;
   int? _trackedQuantity;
@@ -242,6 +245,239 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     return (valuePer100g / 100 * _trackedQuantity!);
   }
 
+  String _getCopyPrefix(String languageCode) {
+    switch (languageCode) {
+      case 'de':
+        return 'Kopie von ';
+      case 'fr':
+        return 'Copie de ';
+      case 'it':
+        return 'Copia di ';
+      case 'ja':
+        return 'コピー：';
+      case 'en':
+      default:
+        return 'Copy of ';
+    }
+  }
+
+  Widget _buildSourceBadge(BuildContext context) {
+    final theme = Theme.of(context);
+    const color = Colors.orange;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        'Custom',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSystemEditMenu(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirm = await showGlassBottomMenu<bool>(
+      context: context,
+      title: l10n.copySystemFoodTitle,
+      contentBuilder: (ctx, close) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                l10n.copySystemFoodBody,
+                textAlign: TextAlign.center,
+                style: Theme.of(ctx).textTheme.bodyMedium,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      close();
+                      Navigator.of(ctx).pop(false);
+                    },
+                    child: Text(l10n.cancel),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      close();
+                      Navigator.of(ctx).pop(true);
+                    },
+                    child: Text(l10n.createCopyAndEdit),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      await _duplicateAndEdit();
+    }
+  }
+
+  Future<void> _duplicateAndEdit() async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _isLoading = true);
+    try {
+      final barcode = "user_created_${DateTime.now().millisecondsSinceEpoch}";
+      final newId = const Uuid().v4();
+      final duplicated = FoodItem(
+        id: newId,
+        barcode: barcode,
+        name: _displayItem.name.isNotEmpty ? '${_getCopyPrefix('en')}${_displayItem.name}' : '',
+        nameDe: _displayItem.nameDe.isNotEmpty ? '${_getCopyPrefix('de')}${_displayItem.nameDe}' : '',
+        nameEn: _displayItem.nameEn.isNotEmpty ? '${_getCopyPrefix('en')}${_displayItem.nameEn}' : '',
+        nameFr: _displayItem.nameFr.isNotEmpty ? '${_getCopyPrefix('fr')}${_displayItem.nameFr}' : '',
+        nameIt: _displayItem.nameIt.isNotEmpty ? '${_getCopyPrefix('it')}${_displayItem.nameIt}' : '',
+        nameJa: _displayItem.nameJa.isNotEmpty ? '${_getCopyPrefix('ja')}${_displayItem.nameJa}' : '',
+        brand: _displayItem.brand,
+        calories: _displayItem.calories,
+        protein: _displayItem.protein,
+        carbs: _displayItem.carbs,
+        fat: _displayItem.fat,
+        source: FoodItemSource.user,
+        category: _displayItem.category,
+        kj: _displayItem.kj,
+        fiber: _displayItem.fiber,
+        sugar: _displayItem.sugar,
+        salt: _displayItem.salt,
+        sodium: _displayItem.sodium,
+        calcium: _displayItem.calcium,
+        isLiquid: _displayItem.isLiquid,
+        isFluid: _displayItem.isFluid,
+        caffeineMgPer100ml: _displayItem.caffeineMgPer100ml,
+        caffeineMgPer100g: _displayItem.caffeineMgPer100g,
+        ingredientsText: _displayItem.ingredientsText,
+        ingredientsAnalysisTags: _displayItem.ingredientsAnalysisTags != null ? List.from(_displayItem.ingredientsAnalysisTags!) : null,
+        additivesTags: _displayItem.additivesTags != null ? List.from(_displayItem.additivesTags!) : null,
+        productQuantity: _displayItem.productQuantity,
+        productQuantityUnit: _displayItem.productQuantityUnit,
+      );
+
+      await ProductLocalDataSource.instance.insertProduct(duplicated);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.foodCopyCreated(duplicated.getLocalizedName(context)),
+          ),
+        ),
+      );
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => CreateFoodScreen(
+            foodItemToEdit: duplicated,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint("Error duplicating food: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${l10n.error}: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _deleteFoodItem() async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirm = await showGlassBottomMenu<bool>(
+      context: context,
+      title: l10n.deleteFoodConfirmTitle,
+      contentBuilder: (ctx, close) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                l10n.deleteFoodConfirmBody,
+                textAlign: TextAlign.center,
+                style: Theme.of(ctx).textTheme.bodyMedium,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      close();
+                      Navigator.of(ctx).pop(false);
+                    },
+                    child: Text(l10n.cancel),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      close();
+                      Navigator.of(ctx).pop(true);
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Theme.of(ctx).colorScheme.error,
+                      foregroundColor: Theme.of(ctx).colorScheme.onError,
+                    ),
+                    child: Text(l10n.delete),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      setState(() => _isLoading = true);
+      try {
+        await ProductLocalDataSource.instance.deleteProduct(_displayItem.id ?? '', _displayItem.barcode);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.foodItemDeleted)),
+          );
+          Navigator.of(context).pop(true);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${l10n.error}: $e')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -267,18 +503,58 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               label: l10n.mealsAddToDiary,
             ),
       appBar: GlobalAppBar(
-        title: () {
-          final themeService = Provider.of<ThemeService>(context);
-          final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
-            choice: themeService.baseFoodLanguage,
-            context: context,
-          );
-          return _displayItem.source == FoodItemSource.base
-              ? _displayItem.getLocalizedName(context,
-                  languageCode: baseFoodLang)
-              : _displayItem.getLocalizedName(context);
-        }(),
+        titleWidget: Row(
+          children: [
+            Expanded(
+              child: Text(
+                () {
+                  final themeService = Provider.of<ThemeService>(context);
+                  final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                    choice: themeService.baseFoodLanguage,
+                    context: context,
+                  );
+                  return _displayItem.source == FoodItemSource.base
+                      ? _displayItem.getLocalizedName(context,
+                          languageCode: baseFoodLang)
+                      : _displayItem.getLocalizedName(context);
+                }(),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (_displayItem.isCustom) ...[
+              const SizedBox(width: 8),
+              _buildSourceBadge(context),
+            ],
+          ],
+        ),
         actions: [
+          if (_displayItem.isCustom) ...[
+            IconButton(
+              icon: const Icon(LucideIcons.pencil),
+              onPressed: () async {
+                final result = await Navigator.of(context).push<FoodItem>(
+                  MaterialPageRoute(
+                    builder: (context) => CreateFoodScreen(foodItemToEdit: _displayItem),
+                  ),
+                );
+                if (result != null) {
+                  setState(() {
+                    _displayItem = result;
+                  });
+                }
+              },
+            ),
+            IconButton(
+              icon: const Icon(LucideIcons.trash_2),
+              onPressed: _deleteFoodItem,
+            ),
+          ] else ...[
+            IconButton(
+              icon: const Icon(LucideIcons.pencil),
+              onPressed: () => _showSystemEditMenu(context),
+            ),
+          ],
           IconButton(
             icon: Icon(
               _isFavorite ? LucideIcons.heart : LucideIcons.heart,
@@ -289,18 +565,20 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        // Use explicit padding instead of copyWith to avoid inherited edge bugs.
-        padding: EdgeInsets.fromLTRB(
-          DesignConstants.cardPaddingInternal,
-          totalTopPadding,
-          DesignConstants.cardPaddingInternal,
-          DesignConstants.cardPaddingInternal +
-              80.0, // + space for the FAB at the bottom
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            // Use explicit padding instead of copyWith to avoid inherited edge bugs.
+            padding: EdgeInsets.fromLTRB(
+              DesignConstants.cardPaddingInternal,
+              totalTopPadding,
+              DesignConstants.cardPaddingInternal,
+              DesignConstants.cardPaddingInternal +
+                  80.0, // + space for the FAB at the bottom
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             if (_displayItem.brand.isNotEmpty)
               Text(
                 _displayItem.brand,
@@ -379,7 +657,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             if (_hasPortionInfo)
               const SizedBox(height: DesignConstants.spacingL),
             Text(
-              "Nährwerte pro ${displayQuantity}g",
+              l10n.nutritionPerQuantity(displayQuantity.toString()),
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: DesignConstants.spacingS),
@@ -515,7 +793,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                           ),
                           const Spacer(),
                           IconButton(
-                            tooltip: 'Basis-DB exportieren',
+                            tooltip: l10n.devExportBaseDb,
                             onPressed: _exportBaseDb,
                             icon: const Icon(LucideIcons.share),
                           ),
@@ -537,7 +815,16 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ],
         ),
       ),
-    );
+      if (_isLoading)
+        Container(
+          color: Colors.black.withValues(alpha: 0.2),
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+    ],
+  ),
+);
   }
 
   Widget _buildToggleButton(

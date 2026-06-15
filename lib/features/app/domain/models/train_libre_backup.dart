@@ -70,6 +70,12 @@ class TrainLibreBackup {
   /// User profile row (Profiles table), nullable for backward compat.
   final Map<String, dynamic>? profile;
 
+  /// User food overrides.
+  final List<Map<String, dynamic>> userFoodOverrides;
+
+  /// User food override translations.
+  final List<Map<String, dynamic>> userFoodOverrideTranslations;
+
   /// Raw imported health step segments for deduplicated restoration.
   final List<Map<String, dynamic>> healthStepSegments;
 
@@ -92,6 +98,8 @@ class TrainLibreBackup {
     this.supplementSettingsHistory = const [],
     this.appSettings,
     this.profile,
+    this.userFoodOverrides = const [],
+    this.userFoodOverrideTranslations = const [],
     this.healthStepSegments = const [],
   });
 
@@ -213,6 +221,14 @@ class TrainLibreBackup {
       profile: json['profile'] != null
           ? Map<String, dynamic>.from(json['profile'] as Map)
           : null,
+      userFoodOverrides: (json['userFoodOverrides'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
+      userFoodOverrideTranslations: (json['userFoodOverrideTranslations'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
       healthStepSegments: (json['healthStepSegments'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
@@ -257,6 +273,8 @@ class TrainLibreBackup {
       'supplementSettingsHistory': supplementSettingsHistory,
       'appSettings': appSettings,
       'profile': profile,
+      'userFoodOverrides': userFoodOverrides,
+      'userFoodOverrideTranslations': userFoodOverrideTranslations,
       'healthStepSegments': healthStepSegments,
     };
   }

@@ -122,6 +122,48 @@ jobs:
           mkdir -p fdroid/metadata/com.rfivesix.trainlibre
           cp -r fastlane/metadata fdroid/metadata/com.rfivesix.trainlibre/
 
+          # 3. Copy iOS screenshots into F-Droid metadata locations instead of Android screenshots
+          python3 -c '
+          import os, shutil
+          ios_root = "assets/screenshots/iOS"
+          keys = ["diary", "nutrition", "data", "measurements", "recovery", "ai", "running_workout"]
+          if os.path.exists(ios_root):
+              for locale in os.listdir(ios_root):
+                  locale_path = os.path.join(ios_root, locale)
+                  if not os.path.isdir(locale_path):
+                      continue
+                  theme = "light"
+                  theme_path = os.path.join(locale_path, theme)
+                  if not os.path.exists(theme_path):
+                      theme = "dark"
+                      theme_path = os.path.join(locale_path, theme)
+                  if not os.path.exists(theme_path):
+                      continue
+                  print(f"Copying iOS screenshots ({theme}) for locale {locale}...")
+                  dest1 = f"fdroid/fastlane/metadata/android/{locale}/images/phoneScreenshots"
+                  dest2 = f"fdroid/metadata/com.rfivesix.trainlibre/metadata/android/{locale}/images/phoneScreenshots"
+                  os.makedirs(dest1, exist_ok=True)
+                  os.makedirs(dest2, exist_ok=True)
+                  
+                  # Clean existing png files in destination
+                  for d in [dest1, dest2]:
+                      for f in os.listdir(d):
+                          if f.lower().endswith(".png"):
+                              os.remove(os.path.join(d, f))
+                              
+                  for idx, key in enumerate(keys):
+                      src_file = os.path.join(theme_path, f"iOS_{theme}_{key}.png")
+                      if os.path.exists(src_file):
+                          filename = f"{idx+1:02d}.png"
+                          shutil.copy(src_file, os.path.join(dest1, filename))
+                          shutil.copy(src_file, os.path.join(dest2, filename))
+                          print(f"  Mapped {src_file} -> {filename}")
+                      else:
+                          print(f"  Warning: Expected file not found: {src_file}")
+          else:
+              print("Warning: assets/screenshots/iOS directory not found.")
+          '
+
       - name: Update F-Droid Repository Metadata
         env:
           FDROID_KEY_STORE_PASS: ${{ secrets.FDROID_KEYSTORE_PASSWORD }}

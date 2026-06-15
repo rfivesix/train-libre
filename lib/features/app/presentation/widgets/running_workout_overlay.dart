@@ -49,15 +49,17 @@ class RunningWorkoutOverlay extends StatelessWidget {
           GlassAdaptiveScope(
             minQuality: GlassQuality.premium,
             maxQuality: GlassQuality.premium,
-            child: GlassContainer(
-              useOwnLayer: true,
-              height: 74.0,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              alignment: Alignment.center,
-              shape: LiquidRoundedSuperellipse(borderRadius: radius),
-              quality: GlassQuality.premium,
-              settings: DesignConstants.liquidGlassSettings(isDark),
-              child: child,
+            child: RepaintBoundary(
+              child: GlassContainer(
+                useOwnLayer: true,
+                height: 74.0,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                alignment: Alignment.center,
+                shape: LiquidRoundedSuperellipse(borderRadius: radius),
+                quality: GlassQuality.premium,
+                settings: DesignConstants.liquidGlassSettings(isDark),
+                child: child,
+              ),
             ),
           ),
         ],

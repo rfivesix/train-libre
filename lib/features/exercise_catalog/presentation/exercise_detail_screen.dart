@@ -118,13 +118,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       final inserted = await _repository.insertExercise(duplicate);
 
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            Localizations.localeOf(context).languageCode == 'de'
-                ? "Kopie '${inserted.nameDe}' wurde erstellt."
-                : "Copy '${inserted.nameDe}' created.",
+            l10n.exerciseCopyCreated(inserted.getLocalizedName(context)),
           ),
         ),
       );
@@ -151,15 +150,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   void _showSystemEditMenu(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final isDe = Localizations.localeOf(context).languageCode == 'de';
+    final l10n = AppLocalizations.of(context)!;
 
-    final title = isDe ? "System-Übung kopieren" : "Copy System Exercise";
-    final body = isDe
-        ? "Diese Übung ist vom System bereitgestellt und kann nicht direkt bearbeitet werden. Möchtest du eine Kopie erstellen, um sie anzupassen?"
-        : "This exercise is system-provided and cannot be directly edited. Would you like to create a custom copy to edit it?";
-    final buttonLabel =
-        isDe ? "Kopie erstellen & bearbeiten" : "Create copy & edit";
-    final cancelLabel = isDe ? "Abbrechen" : "Cancel";
+    final title = l10n.copySystemExerciseTitle;
+    final body = l10n.copySystemExerciseBody;
+    final buttonLabel = l10n.createCopyAndEdit;
+    final cancelLabel = l10n.cancel;
 
     showGlassBottomMenu(
       context: context,
@@ -294,7 +290,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             ),
             const SizedBox(height: DesignConstants.spacingXL),
             AppSectionHeader(title: l10n.involvedMuscles),
-            _ExerciseMuscleBodyView(exercise: _currentExercise),
+            RepaintBoundary(
+              child: _ExerciseMuscleBodyView(exercise: _currentExercise),
+            ),
             const SizedBox(height: DesignConstants.spacingXL),
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
@@ -313,7 +311,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               )
             else ...[
               AppSectionHeader(title: l10n.workoutHistoryButton),
-              _buildConsolidatedChart(l10n),
+              RepaintBoundary(
+                child: _buildConsolidatedChart(l10n),
+              ),
               const SizedBox(height: DesignConstants.spacingXL),
               _buildPRSummarySection(l10n),
             ],

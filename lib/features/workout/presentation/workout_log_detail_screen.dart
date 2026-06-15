@@ -31,6 +31,7 @@ import 'widgets/muscle_color_helper.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'edit_routine_screen.dart';
+import 'widgets/exercise_notes_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
 
@@ -588,7 +589,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Fehler beim Erstellen der Routine: $e")),
+            SnackBar(content: Text(l10n.createRoutineError(e.toString()))),
           );
         }
       } finally {
@@ -603,74 +604,25 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
   void _editExerciseNotes(BuildContext context, String exerciseName) async {
     final l10n = AppLocalizations.of(context)!;
-    final controller =
-        TextEditingController(text: _exerciseNotes[exerciseName] ?? '');
 
     final result = await showGlassBottomMenu<String?>(
       context: context,
-      title: "Übungsnotiz",
+      title: l10n.exerciseNoteTitle,
       contentBuilder: (ctx, close) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: controller,
-              maxLines: 3,
-              autofocus: true,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                hintText: "Notizen oder Hinweise eingeben...",
-                filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.05),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                if (_exerciseNotes[exerciseName] != null &&
-                    _exerciseNotes[exerciseName]!.isNotEmpty) ...[
-                  IconButton(
-                    icon: Icon(
-                      LucideIcons.trash_2,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    tooltip: "Notiz löschen",
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop('');
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop(null);
-                    },
-                    child: Text(l10n.cancel),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop(controller.text.trim());
-                    },
-                    child: Text(l10n.save),
-                  ),
-                ),
-              ],
-            ),
-          ],
+        return ExerciseNotesDialog(
+          initialNotes: _exerciseNotes[exerciseName],
+          onSave: (notes) {
+            close();
+            Navigator.of(ctx).pop(notes);
+          },
+          onDelete: () {
+            close();
+            Navigator.of(ctx).pop('');
+          },
+          onCancel: () {
+            close();
+            Navigator.of(ctx).pop(null);
+          },
         );
       },
     );

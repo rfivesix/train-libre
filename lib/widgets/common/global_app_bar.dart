@@ -73,19 +73,21 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     // Final structure with static blur
     return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          // Decoration provides the color and bottom edge
-          decoration: BoxDecoration(
-            color: glassColor,
-            //border: Border(
-            //  bottom: BorderSide(color: dividerColor, width: 0.5),
-            //),
-          ),
-          child: SafeArea(
-            bottom: false,
-            child: SizedBox(height: kToolbarHeight, child: appBarContent),
+      child: RepaintBoundary(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            // Decoration provides the color and bottom edge
+            decoration: BoxDecoration(
+              color: glassColor,
+              //border: Border(
+              //  bottom: BorderSide(color: dividerColor, width: 0.5),
+              //),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: SizedBox(height: kToolbarHeight, child: appBarContent),
+            ),
           ),
         ),
       ),

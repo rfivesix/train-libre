@@ -183,124 +183,146 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         ],
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 24.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: DesignConstants.spacingS),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: l10n.searchHintText,
-                          prefixIcon: Icon(
-                            LucideIcons.search,
-                            color: colorScheme.onSurfaceVariant,
-                            size: 20,
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: Icon(
-                                    LucideIcons.x,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                  onPressed: () => _searchController.clear(),
-                                )
-                              : null,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    _buildFilterButton(context, l10n),
-                  ],
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 8.0,
+                  bottom: 8.0,
                 ),
-              ],
-            ),
-          ),
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _foundExercises.isEmpty
-                    ? Center(
-                        child: Text(
-                          l10n.noExercisesFound,
-                          style: textTheme.titleMedium,
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: DesignConstants.cardPadding,
-                        itemCount: _foundExercises.length,
-                        itemBuilder: (context, index) {
-                          final exercise = _foundExercises[index];
-                          return SummaryCard(
-                            child: ListTile(
-                              leading: const Icon(LucideIcons.dumbbell),
-                              title: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      exercise.getLocalizedName(context),
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  if (exercise.source == 'user') ...[
-                                    const SizedBox(width: 8),
-                                    _buildSourceBadge(context, exercise.source),
-                                  ],
-                                ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              hintText: l10n.searchHintText,
+                              prefixIcon: Icon(
+                                LucideIcons.search,
+                                color: colorScheme.onSurfaceVariant,
+                                size: 20,
                               ),
-                              subtitle: Text(exercise.categoryName),
-                              trailing: widget.isSelectionMode
+                              suffixIcon: _searchController.text.isNotEmpty
                                   ? IconButton(
                                       icon: Icon(
-                                        LucideIcons.circle_plus,
-                                        color: colorScheme.primary,
+                                        LucideIcons.x,
+                                        color: colorScheme.onSurfaceVariant,
                                       ),
                                       onPressed: () =>
-                                          Navigator.of(context).pop(exercise),
+                                          _searchController.clear(),
                                     )
-                                  : const Icon(
-                                      LucideIcons.chevron_right,
-                                    ),
-                              onTap: () {
-                                if (widget.onExerciseSelected != null) {
-                                  widget.onExerciseSelected!(exercise);
-                                } else if (widget.isSelectionMode) {
-                                  Navigator.of(context).pop(exercise);
-                                } else {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ExerciseDetailScreen(
-                                              exercise: exercise,
-                                              repository: _repository),
-                                    ),
-                                  );
-                                }
-                              },
+                                  : null,
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        _buildFilterButton(context, l10n),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+              ),
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _foundExercises.isEmpty
+                        ? Center(
+                            child: Text(
+                              l10n.noExercisesFound,
+                              style: textTheme.titleMedium,
+                            ),
+                          )
+                        : ListView.builder(
+                            cacheExtent: 1500,
+                            padding: DesignConstants.cardPadding,
+                            itemCount: _foundExercises.length,
+                            itemBuilder: (context, index) {
+                              final exercise = _foundExercises[index];
+                              return SummaryCard(
+                                child: ListTile(
+                                  leading: const Icon(LucideIcons.dumbbell),
+                                  title: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          exercise.getLocalizedName(context),
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      if (exercise.source == 'user') ...[
+                                        const SizedBox(width: 8),
+                                        _buildSourceBadge(
+                                            context, exercise.source),
+                                      ],
+                                    ],
+                                  ),
+                                  subtitle: Text(exercise.categoryName),
+                                  trailing: widget.isSelectionMode
+                                      ? IconButton(
+                                          icon: Icon(
+                                            LucideIcons.circle_plus,
+                                            color: colorScheme.primary,
+                                          ),
+                                          onPressed: () => Navigator.of(context)
+                                              .pop(exercise),
+                                        )
+                                      : const Icon(
+                                          LucideIcons.chevron_right,
+                                        ),
+                                  onTap: () {
+                                    if (widget.onExerciseSelected != null) {
+                                      widget.onExerciseSelected!(exercise);
+                                    } else if (widget.isSelectionMode) {
+                                      Navigator.of(context).pop(exercise);
+                                    } else {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ExerciseDetailScreen(
+                                                  exercise: exercise,
+                                                  repository: _repository),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
-            child: WgerAttributionWidget(
-              textStyle: textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+          // Wger attribution — pinned just above the safe area bottom
+          Positioned(
+            bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
+            left: 0,
+            right: 0,
+            child: RepaintBoundary(
+              child: WgerAttributionWidget(
+                textStyle: textTheme.bodySmall?.copyWith(
+                  color: Colors.grey[600],
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      offset: const Offset(1, 1),
+                      blurRadius: 4.0,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],

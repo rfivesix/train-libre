@@ -287,146 +287,148 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        SizedBox(
-                          height: 210,
-                          child: _weeklyMetrics.isEmpty
-                              ? AnalyticsChartDefaults.stateView(
-                                  context: context,
-                                  l10n: l10n,
-                                  status: AnalyticsStatus.empty,
-                                  emptyLabel: l10n.noWorkoutDataLabel,
-                                  height: 210,
-                                )
-                              : BarChart(
-                                  BarChartData(
-                                    alignment: BarChartAlignment.spaceAround,
-                                    borderData: AnalyticsChartDefaults.noBorder,
-                                    gridData:
-                                        AnalyticsChartDefaults.compactGrid,
-                                    barTouchData: BarTouchData(
-                                      enabled: true,
-                                      touchTooltipData: BarTouchTooltipData(
-                                        fitInsideHorizontally: true,
-                                        fitInsideVertically: true,
-                                        tooltipBorderRadius:
-                                            BorderRadius.circular(16),
-                                        tooltipMargin: 12,
-                                        tooltipPadding:
-                                            const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 10,
-                                        ),
-                                        getTooltipColor: (_) {
-                                          final isDark =
-                                              Theme.of(context).brightness ==
-                                                  Brightness.dark;
-                                          return isDark
-                                              ? const Color(0xFF2A2A2A)
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .surface
-                                                  .withValues(alpha: 0.95);
-                                        },
-                                        tooltipBorder: BorderSide(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.08),
-                                        ),
-                                        getTooltipItem:
-                                            (group, groupIndex, rod, rodIndex) {
-                                          final i = group.x.toInt();
-                                          if (i < 0 ||
-                                              i >= _weeklyMetrics.length) {
-                                            return null;
-                                          }
-                                          final row = _weeklyMetrics[i];
-                                          return BarTooltipItem(
-                                            '${row.weekLabel}\n${rod.toY.toStringAsFixed(1)} ${_metricUnit(l10n)}',
-                                            Theme.of(context)
-                                                    .textTheme
-                                                    .labelSmall
-                                                    ?.copyWith(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ) ??
-                                                TextStyle(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurface,
-                                                ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    titlesData:
-                                        AnalyticsChartDefaults.standardTitles(
-                                      leftTitles: AxisTitles(
-                                        sideTitles: SideTitles(
-                                          showTitles: true,
-                                          reservedSize: 28,
-                                          getTitlesWidget: (value, meta) =>
-                                              AnalyticsChartDefaults.tickLabel(
-                                            context,
-                                            _formatAxisValue(value),
+                        RepaintBoundary(
+                          child: SizedBox(
+                            height: 210,
+                            child: _weeklyMetrics.isEmpty
+                                ? AnalyticsChartDefaults.stateView(
+                                    context: context,
+                                    l10n: l10n,
+                                    status: AnalyticsStatus.empty,
+                                    emptyLabel: l10n.noWorkoutDataLabel,
+                                    height: 210,
+                                  )
+                                : BarChart(
+                                    BarChartData(
+                                      alignment: BarChartAlignment.spaceAround,
+                                      borderData: AnalyticsChartDefaults.noBorder,
+                                      gridData:
+                                          AnalyticsChartDefaults.compactGrid,
+                                      barTouchData: BarTouchData(
+                                        enabled: true,
+                                        touchTooltipData: BarTouchTooltipData(
+                                          fitInsideHorizontally: true,
+                                          fitInsideVertically: true,
+                                          tooltipBorderRadius:
+                                              BorderRadius.circular(16),
+                                          tooltipMargin: 12,
+                                          tooltipPadding:
+                                              const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 10,
                                           ),
-                                        ),
-                                      ),
-                                      bottomTitles: AxisTitles(
-                                        sideTitles: SideTitles(
-                                          showTitles: true,
-                                          reservedSize: 30,
-                                          getTitlesWidget: (value, meta) {
-                                            final i = value.toInt();
+                                          getTooltipColor: (_) {
+                                            final isDark =
+                                                Theme.of(context).brightness ==
+                                                    Brightness.dark;
+                                            return isDark
+                                                ? const Color(0xFF2A2A2A)
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .surface
+                                                    .withValues(alpha: 0.95);
+                                          },
+                                          tooltipBorder: BorderSide(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.08),
+                                          ),
+                                          getTooltipItem:
+                                              (group, groupIndex, rod, rodIndex) {
+                                            final i = group.x.toInt();
                                             if (i < 0 ||
                                                 i >= _weeklyMetrics.length) {
-                                              return const SizedBox.shrink();
+                                              return null;
                                             }
-                                            final label =
-                                                _weeklyMetrics[i].weekLabel;
-                                            return AnalyticsChartDefaults
-                                                .tickLabel(
-                                              context,
-                                              label,
+                                            final row = _weeklyMetrics[i];
+                                            return BarTooltipItem(
+                                              '${row.weekLabel}\n${rod.toY.toStringAsFixed(1)} ${_metricUnit(l10n)}',
+                                              Theme.of(context)
+                                                      .textTheme
+                                                      .labelSmall
+                                                      ?.copyWith(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurface,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ) ??
+                                                  TextStyle(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
+                                                  ),
                                             );
                                           },
                                         ),
                                       ),
-                                    ),
-                                    barGroups: _weeklyMetrics
-                                        .asMap()
-                                        .entries
-                                        .map((entry) {
-                                      final value = _metricValue(
-                                        entry.value,
-                                      );
-                                      return BarChartGroupData(
-                                        x: entry.key,
-                                        barRods: [
-                                          BarChartRodData(
-                                            toY: value,
-                                            width: 12,
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withValues(
-                                                  alpha: _weeklyBarAlpha(
-                                                    index: entry.key,
-                                                    total:
-                                                        _weeklyMetrics.length,
-                                                  ),
-                                                ),
+                                      titlesData:
+                                          AnalyticsChartDefaults.standardTitles(
+                                        leftTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: true,
+                                            reservedSize: 28,
+                                            getTitlesWidget: (value, meta) =>
+                                                AnalyticsChartDefaults.tickLabel(
+                                              context,
+                                              _formatAxisValue(value),
+                                            ),
                                           ),
-                                        ],
-                                      );
-                                    }).toList(),
+                                        ),
+                                        bottomTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: true,
+                                            reservedSize: 30,
+                                            getTitlesWidget: (value, meta) {
+                                              final i = value.toInt();
+                                              if (i < 0 ||
+                                                  i >= _weeklyMetrics.length) {
+                                                return const SizedBox.shrink();
+                                              }
+                                              final label =
+                                                  _weeklyMetrics[i].weekLabel;
+                                              return AnalyticsChartDefaults
+                                                  .tickLabel(
+                                                context,
+                                                label,
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                      barGroups: _weeklyMetrics
+                                          .asMap()
+                                          .entries
+                                          .map((entry) {
+                                        final value = _metricValue(
+                                          entry.value,
+                                        );
+                                        return BarChartGroupData(
+                                          x: entry.key,
+                                          barRods: [
+                                            BarChartRodData(
+                                              toY: value,
+                                              width: 12,
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withValues(
+                                                    alpha: _weeklyBarAlpha(
+                                                      index: entry.key,
+                                                      total:
+                                                          _weeklyMetrics.length,
+                                                    ),
+                                                  ),
+                                            ),
+                                          ],
+                                        );
+                                      }).toList(),
+                                    ),
                                   ),
-                                ),
+                          ),
                         ),
                         const SizedBox(height: 6),
                         Text(
@@ -449,94 +451,96 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                         const SizedBox(height: 8),
                         _calendarLegend(l10n),
                         const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest
-                                .withValues(alpha: 0.25),
-                          ),
-                          child: TableCalendar<int>(
-                            firstDay: DateTime.now().subtract(
-                              const Duration(days: 365),
+                        RepaintBoundary(
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest
+                                  .withValues(alpha: 0.25),
                             ),
-                            lastDay: DateTime.now().add(
-                              const Duration(days: 30),
-                            ),
-                            focusedDay: _focusedDay,
-                            selectedDayPredicate: (day) =>
-                                _selectedDay != null &&
-                                isSameDay(_selectedDay, day),
-                            eventLoader: (day) {
-                              final count = _dailyCount(day);
-                              if (count <= 0) return const [];
-                              return List<int>.filled(count, 1);
-                            },
-                            headerStyle: HeaderStyle(
-                              titleCentered: true,
-                              formatButtonVisible: false,
-                              titleTextStyle: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.bold) ??
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            calendarStyle: CalendarStyle(
-                              outsideDaysVisible: false,
-                              defaultTextStyle:
-                                  Theme.of(context).textTheme.bodySmall ??
-                                      const TextStyle(),
-                            ),
-                            calendarBuilders: CalendarBuilders<int>(
-                              defaultBuilder: (context, day, _) {
+                            child: TableCalendar<int>(
+                              firstDay: DateTime.now().subtract(
+                                const Duration(days: 365),
+                              ),
+                              lastDay: DateTime.now().add(
+                                const Duration(days: 30),
+                              ),
+                              focusedDay: _focusedDay,
+                              selectedDayPredicate: (day) =>
+                                  _selectedDay != null &&
+                                  isSameDay(_selectedDay, day),
+                              eventLoader: (day) {
                                 final count = _dailyCount(day);
-                                if (count <= 0) return null;
-                                final intensity = _calendarIntensityForCount(
-                                  count,
-                                );
-                                return Container(
-                                  margin: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary
-                                        .withValues(alpha: intensity),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    '${day.day}',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                );
+                                if (count <= 0) return const [];
+                                return List<int>.filled(count, 1);
                               },
-                              markerBuilder: (context, day, events) {
-                                final count = _dailyCount(day);
-                                if (count <= 0) return const SizedBox.shrink();
-                                return Positioned(
-                                  bottom: 3,
-                                  child: Text(
-                                    count.toString(),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.labelSmall,
-                                  ),
-                                );
+                              headerStyle: HeaderStyle(
+                                titleCentered: true,
+                                formatButtonVisible: false,
+                                titleTextStyle: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.bold) ??
+                                    const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              calendarStyle: CalendarStyle(
+                                outsideDaysVisible: false,
+                                defaultTextStyle:
+                                    Theme.of(context).textTheme.bodySmall ??
+                                        const TextStyle(),
+                              ),
+                              calendarBuilders: CalendarBuilders<int>(
+                                defaultBuilder: (context, day, _) {
+                                  final count = _dailyCount(day);
+                                  if (count <= 0) return null;
+                                  final intensity = _calendarIntensityForCount(
+                                    count,
+                                  );
+                                  return Container(
+                                    margin: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withValues(alpha: intensity),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      '${day.day}',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    ),
+                                  );
+                                },
+                                markerBuilder: (context, day, events) {
+                                  final count = _dailyCount(day);
+                                  if (count <= 0) return const SizedBox.shrink();
+                                  return Positioned(
+                                    bottom: 3,
+                                    child: Text(
+                                      count.toString(),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.labelSmall,
+                                    ),
+                                  );
+                                },
+                              ),
+                              onDaySelected: (selectedDay, focusedDay) {
+                                setState(() {
+                                  _selectedDay = selectedDay;
+                                  _focusedDay = focusedDay;
+                                });
+                              },
+                              onPageChanged: (focusedDay) {
+                                setState(() => _focusedDay = focusedDay);
                               },
                             ),
-                            onDaySelected: (selectedDay, focusedDay) {
-                              setState(() {
-                                _selectedDay = selectedDay;
-                                _focusedDay = focusedDay;
-                              });
-                            },
-                            onPageChanged: (focusedDay) {
-                              setState(() => _focusedDay = focusedDay);
-                            },
                           ),
                         ),
                         const SizedBox(height: 8),

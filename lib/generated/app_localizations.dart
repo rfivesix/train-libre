@@ -3833,7 +3833,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutrition.
   ///
   /// In en, this message translates to:
-  /// **'nutrition'**
+  /// **'Nutrition'**
   String get nutrition;
 
   /// No description provided for @changeSetTypTitle.
@@ -3875,7 +3875,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMaterialColorsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Use Android dynamic colors (Material You) instead of the Train Libre brand accent'**
+  /// **'Use dynamic system colors (Material You) instead of the Train Libre brand accent'**
   String get settingsMaterialColorsSubtitle;
 
   /// No description provided for @settingsFoodDbSectionTitle.
@@ -8904,6 +8904,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resting Heart Rate'**
   String get shareSleepRestingHeartRate;
+
+  /// No description provided for @shareAsTextOrCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Share / copy as text'**
+  String get shareAsTextOrCopy;
+
+  /// No description provided for @editExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Exercise'**
+  String get editExercise;
+
+  /// No description provided for @exerciseCopyCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy of \'{exerciseName}\' created.'**
+  String exerciseCopyCreated(String exerciseName);
+
+  /// No description provided for @copySystemExerciseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy System Exercise'**
+  String get copySystemExerciseTitle;
+
+  /// No description provided for @copySystemExerciseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This exercise is system-provided and cannot be directly edited. Would you like to create a custom copy to edit it?'**
+  String get copySystemExerciseBody;
+
+  /// No description provided for @createCopyAndEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Copy & Edit'**
+  String get createCopyAndEdit;
+
+  /// No description provided for @profileEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get profileEdit;
+
+  /// No description provided for @selectBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date of birth'**
+  String get selectBirthday;
+
+  /// No description provided for @exerciseNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise Note'**
+  String get exerciseNoteTitle;
+
+  /// No description provided for @exerciseNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter notes or hints...'**
+  String get exerciseNoteHint;
+
+  /// No description provided for @deleteNoteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete note'**
+  String get deleteNoteTooltip;
+
+  /// No description provided for @emptyStateAddFirstExerciseSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an exercise to start logging.'**
+  String get emptyStateAddFirstExerciseSubtitle;
+
+  /// No description provided for @syncRoutineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Routine?'**
+  String get syncRoutineTitle;
+
+  /// No description provided for @syncRoutineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Structure or order changes detected.'**
+  String get syncRoutineSubtitle;
+
+  /// No description provided for @syncRoutineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Would you like to update the routine \'{routineName}\' with the current workout data (exercises, order, sets)?'**
+  String syncRoutineBody(String routineName);
+
+  /// No description provided for @discard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discard;
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateNow;
+
+  /// No description provided for @syncRoutineSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine updated successfully!'**
+  String get syncRoutineSuccess;
+
+  /// No description provided for @syncRoutineError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating routine: {error}'**
+  String syncRoutineError(String error);
+
+  /// No description provided for @createRoutineError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error creating routine: {error}'**
+  String createRoutineError(String error);
+
+  /// No description provided for @nutritionPerQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition per {quantity}g'**
+  String nutritionPerQuantity(String quantity);
+
+  /// No description provided for @settingsLocalModelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Model Name'**
+  String get settingsLocalModelName;
+
+  /// No description provided for @settingsCustomBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Base URL'**
+  String get settingsCustomBaseUrl;
+
+  /// No description provided for @settingsCustomModelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Model Name'**
+  String get settingsCustomModelName;
+
+  /// No description provided for @settingsAiFoodNameLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Food Name Language'**
+  String get settingsAiFoodNameLanguage;
+
+  /// No description provided for @settingsRequestTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Timeout'**
+  String get settingsRequestTimeout;
+
+  /// No description provided for @settingsSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} seconds'**
+  String settingsSeconds(int seconds);
+
+  /// No description provided for @semanticsApplyRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Recommendation'**
+  String get semanticsApplyRecommendation;
+
+  /// No description provided for @semanticsDismissBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss Banner'**
+  String get semanticsDismissBanner;
+
+  /// No description provided for @importedWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported Workout'**
+  String get importedWorkout;
+
+  /// No description provided for @unknownExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Exercise'**
+  String get unknownExercise;
+
+  /// No description provided for @devExportBaseDb.
+  ///
+  /// In en, this message translates to:
+  /// **'Export base database'**
+  String get devExportBaseDb;
+
+  /// No description provided for @initCheckingExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking exercises...'**
+  String get initCheckingExercises;
+
+  /// No description provided for @initLoadingRemoteManifest.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading remote manifest...'**
+  String get initLoadingRemoteManifest;
+
+  /// No description provided for @initExercisesUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercises up to date'**
+  String get initExercisesUpToDate;
+
+  /// No description provided for @initNoDownloadRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'No remote download required.'**
+  String get initNoDownloadRequired;
+
+  /// No description provided for @initLoadingExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading exercises...'**
+  String get initLoadingExercises;
+
+  /// No description provided for @initDownloadingRemoteCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading remote exercise catalog {version}...'**
+  String initDownloadingRemoteCatalog(String version);
+
+  /// No description provided for @initPreparingImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing download for import...'**
+  String get initPreparingImport;
+
+  /// No description provided for @initExercisesReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercises ready'**
+  String get initExercisesReady;
+
+  /// No description provided for @initImportingRemoteCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing remote exercise catalog {version}...'**
+  String initImportingRemoteCatalog(String version);
+
+  /// No description provided for @initCheckingProductDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking product database ({country})...'**
+  String initCheckingProductDatabase(String country);
+
+  /// No description provided for @initProductDatabaseUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Product database up to date'**
+  String get initProductDatabaseUpToDate;
+
+  /// No description provided for @initLoadingProductDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading product database...'**
+  String get initLoadingProductDatabase;
+
+  /// No description provided for @initDownloadingProductBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading remote product bundle {version}...'**
+  String initDownloadingProductBundle(String version);
+
+  /// No description provided for @initProductDatabaseReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Product database ready'**
+  String get initProductDatabaseReady;
+
+  /// No description provided for @initImportingProductBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing remote product bundle {version}...'**
+  String initImportingProductBundle(String version);
+
+  /// No description provided for @initNoOffBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'No OFF bundle/remote available. Existing local OFF data remains unchanged.'**
+  String get initNoOffBundle;
+
+  /// No description provided for @initEntriesProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{processed} / {totalCount} entries'**
+  String initEntriesProgress(String processed, String totalCount);
+
+  /// No description provided for @initUpdateTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Update {task}'**
+  String initUpdateTask(String task);
+
+  /// No description provided for @initCheckingTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking {task}...'**
+  String initCheckingTask(String task);
+
+  /// No description provided for @initTaskUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{task} up to date'**
+  String initTaskUpToDate(String task);
+
+  /// No description provided for @initInitializing.
+  ///
+  /// In en, this message translates to:
+  /// **'Initializing...'**
+  String get initInitializing;
+
+  /// No description provided for @initPreparation.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing...'**
+  String get initPreparation;
+
+  /// No description provided for @initReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get initReady;
+
+  /// No description provided for @yearsOld.
+  ///
+  /// In en, this message translates to:
+  /// **'{age} years old'**
+  String yearsOld(int age);
+
+  /// No description provided for @customFoodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Foods'**
+  String get customFoodsTitle;
+
+  /// No description provided for @deleteFoodConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Food Item'**
+  String get deleteFoodConfirmTitle;
+
+  /// No description provided for @deleteFoodConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this custom food item? Historical logs will not be affected.'**
+  String get deleteFoodConfirmBody;
+
+  /// No description provided for @foodItemDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Food item deleted'**
+  String get foodItemDeleted;
+
+  /// No description provided for @copySystemFoodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy System Food'**
+  String get copySystemFoodTitle;
+
+  /// No description provided for @copySystemFoodBody.
+  ///
+  /// In en, this message translates to:
+  /// **'System foods cannot be edited directly. Would you like to create a custom copy and edit it?'**
+  String get copySystemFoodBody;
+
+  /// No description provided for @foodCopyCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy created: {name}'**
+  String foodCopyCreated(String name);
 }
 
 class _AppLocalizationsDelegate

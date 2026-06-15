@@ -110,40 +110,42 @@ class _GlassFabState extends State<GlassFab>
         GlassAdaptiveScope(
           minQuality: GlassQuality.premium,
           maxQuality: GlassQuality.premium,
-          child: AdaptiveGlass(
-            settings: DesignConstants.liquidGlassSettings(isDark),
-            shape: hasLabel
-                ? const LiquidRoundedSuperellipse(borderRadius: 37)
-                : const LiquidOval(),
-            quality: GlassQuality.premium,
-            child: GlassGlow(
-              glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
-              glowRadius: 1.0,
-              child: Container(
-                height: 74.0, // Match main screen bottom bar height
-                width: hasLabel ? null : 74.0,
-                decoration: BoxDecoration(
-                  color: neutralTint,
-                  borderRadius: BorderRadius.circular(effectiveRadius),
-                ),
-                foregroundDecoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(effectiveRadius),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.20)
-                        : Colors.black.withValues(alpha: 0.08),
-                    width: 1.2,
+          child: RepaintBoundary(
+            child: AdaptiveGlass(
+              settings: DesignConstants.liquidGlassSettings(isDark),
+              shape: hasLabel
+                  ? const LiquidRoundedSuperellipse(borderRadius: 37)
+                  : const LiquidOval(),
+              quality: GlassQuality.premium,
+              child: GlassGlow(
+                glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+                glowRadius: 1.0,
+                child: Container(
+                  height: 74.0, // Match main screen bottom bar height
+                  width: hasLabel ? null : 74.0,
+                  decoration: BoxDecoration(
+                    color: neutralTint,
+                    borderRadius: BorderRadius.circular(effectiveRadius),
                   ),
-                ),
-                child: hasLabel
-                    ? iconAndText
-                    : Center(
-                        child: Icon(
-                          widget.icon,
-                          size: 30,
-                          color: isDark ? Colors.white : Colors.black,
+                  foregroundDecoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(effectiveRadius),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.20)
+                          : Colors.black.withValues(alpha: 0.08),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: hasLabel
+                      ? iconAndText
+                      : Center(
+                          child: Icon(
+                            widget.icon,
+                            size: 30,
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
                         ),
-                      ),
+                ),
               ),
             ),
           ),

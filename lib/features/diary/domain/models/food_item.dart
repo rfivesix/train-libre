@@ -13,6 +13,9 @@ enum FoodItemSource {
 ///
 /// Contains nutritional information, branding, and localized names.
 class FoodItem {
+  /// Unique database UUID. Nullable.
+  final String? id;
+
   /// The barcode of the food item.
   final String barcode;
 
@@ -100,8 +103,12 @@ class FoodItem {
   /// Unit of the quantity (e.g., 'g', 'ml').
   final String? productQuantityUnit;
 
+  /// Dynamic getter to determine if the food item is user-created/custom.
+  bool get isCustom => source == FoodItemSource.user;
+
   /// Creates a new [FoodItem] instance.
   FoodItem({
+    this.id,
     required this.barcode,
     required this.name,
     this.nameDe = '', // New
@@ -173,6 +180,7 @@ class FoodItem {
     required FoodItemSource source,
   }) {
     final item = FoodItem(
+      id: map['id']?.toString(),
       barcode: map['barcode'] ?? '',
       // FIXED LOGIC: Read all name variants
       name: map['name'] ?? '',
@@ -214,6 +222,7 @@ class FoodItem {
   /// Converts the [FoodItem] instance to a Map for database storage.
   Map<String, dynamic> toMap() {
     return {
+      if (id != null) 'id': id,
       'barcode': barcode,
       'name': name,
       'name_de': nameDe, // New

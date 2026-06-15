@@ -782,25 +782,27 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                                 emptyLabel: l10n.recoveryNoDataBody,
                               )
                             else
-                              SizedBox(
-                                height: 320,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildBodyView(
-                                        context,
-                                        visibleMuscles,
-                                        BodySide.front,
+                              RepaintBoundary(
+                                child: SizedBox(
+                                  height: 320,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildBodyView(
+                                          context,
+                                          visibleMuscles,
+                                          BodySide.front,
+                                        ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: _buildBodyView(
-                                        context,
-                                        visibleMuscles,
-                                        BodySide.back,
+                                      Expanded(
+                                        child: _buildBodyView(
+                                          context,
+                                          visibleMuscles,
+                                          BodySide.back,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                           ],

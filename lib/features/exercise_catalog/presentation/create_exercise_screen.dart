@@ -183,9 +183,8 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   Widget build(BuildContext context) {
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
-    final isDe = Localizations.localeOf(context).languageCode == 'de';
     final titleText = widget.exerciseToEdit != null
-        ? (isDe ? "Übung bearbeiten" : "Edit Exercise")
+        ? l10n.editExercise
         : l10n.create_exercise_screen_title;
 
     return Scaffold(

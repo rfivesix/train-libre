@@ -50,7 +50,7 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
           autofocus: true,
           textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
-            hintText: "Notizen oder Hinweise eingeben...",
+            hintText: l10n.exerciseNoteHint,
             filled: true,
             fillColor: brightness == Brightness.dark
                 ? Colors.white.withValues(alpha: 0.05)
@@ -71,7 +71,7 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
                   LucideIcons.trash_2,
                   color: Theme.of(context).colorScheme.error,
                 ),
-                tooltip: "Notiz löschen",
+                tooltip: l10n.deleteNoteTooltip,
                 onPressed: widget.onDelete,
               ),
               const SizedBox(width: 8),

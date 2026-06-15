@@ -48,6 +48,7 @@ class ProductLocalDataSource {
 
   db.ProductsCompanion _mapModelToCompanion(FoodItem item) {
     return db.ProductsCompanion(
+      id: item.id != null ? Value(item.id!) : const Value.absent(),
       barcode: Value(item.barcode),
       name: Value(item.name),
       nameDe: Value(item.nameDe),
@@ -109,6 +110,7 @@ class ProductLocalDataSource {
     }
 
     return FoodItem(
+      id: row.id,
       barcode: row.barcode,
       name: overrideRow?.name ?? row.name,
       nameDe: overrideRow?.name ?? row.nameDe ?? row.name,
@@ -606,6 +608,46 @@ class ProductLocalDataSource {
       canonicalFileName: AppDataSources.baseFoodsDbFileName,
       legacyFileName: AppDataSources.legacyBaseFoodsDbFileName,
     );
+  }
+
+  /// Retrieves all custom/user-created food items from the database.
+  Future<List<FoodItem>> getCustomFoods() async {
+    final dbInstance = await database;
+    final rows = await (dbInstance.select(dbInstance.products)
+          ..where((tbl) => tbl.source.equals('user')))
+        .get();
+    return _enrichProductsWithOverrides(rows);
+  }
+
+  /// Deletes a user-created food item, handling referencing keys safely.
+  Future<void> deleteProduct(String id, String barcode) async {
+    final dbInstance = await database;
+    await dbInstance.transaction(() async {
+      // 1. Nullify references in NutritionLogs to avoid foreign-key violations
+      await (dbInstance.update(dbInstance.nutritionLogs)
+            ..where((tbl) => tbl.productId.equals(id)))
+          .write(const db.NutritionLogsCompanion(productId: Value(null)));
+
+      // 2. Delete references in MealItems
+      await (dbInstance.delete(dbInstance.mealItems)
+            ..where((tbl) => tbl.productId.equals(id)))
+          .go();
+
+      // 3. Remove from Favorites
+      await (dbInstance.delete(dbInstance.favorites)
+            ..where((tbl) => tbl.barcode.equals(barcode)))
+          .go();
+
+      // 4. Remove overrides if any
+      await (dbInstance.delete(dbInstance.userFoodOverrides)
+            ..where((tbl) => tbl.barcode.equals(barcode)))
+          .go();
+
+      // 5. Delete the product itself
+      await (dbInstance.delete(dbInstance.products)
+            ..where((tbl) => tbl.id.equals(id)))
+          .go();
+    });
   }
 
   Future<bool> isFavorite(String barcode) async {

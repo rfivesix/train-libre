@@ -42,7 +42,7 @@ EOF
 }
 
 # Variable defaults
-SRC_DIR="output/screenshots"
+SRC_DIR="maestro/Maestro/.maestro/screenshots"
 PLATFORM=""
 THEME=""
 LOCALE="en-US"
