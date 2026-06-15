@@ -287,6 +287,8 @@ class BackupManager {
         supplementSettingsHistory: supplementSettingsHistory,
         appSettings: appSettingsMap,
         profile: profileMap,
+        userFoodOverrides: await _fetchTable('user_food_overrides'),
+        userFoodOverrideTranslations: await _fetchTable('user_food_override_translations'),
         healthStepSegments: healthStepSegments);
     final payload = backup.toJson();
     payload['appName'] = currentBackupAppName;
@@ -322,7 +324,8 @@ class BackupManager {
     onProgress?.call('cardio_data', 0.98);
     payload['cardio_activities'] = await _fetchTable('cardio_activities');
     payload['cardio_samples'] = await _fetchTable('cardio_samples');
-    payload['user_food_overrides'] = await _fetchTable('user_food_overrides');
+    payload['user_food_overrides'] = payload['userFoodOverrides'];
+    payload['user_food_override_translations'] = payload['userFoodOverrideTranslations'];
     token?.throwIfCancelled();
 
     onProgress?.call('done', 1.0);
@@ -591,6 +594,7 @@ class BackupManager {
         await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
         await dbInst.customStatement('DELETE FROM pulse_aggregate_metadata');
         await dbInst.customStatement('DELETE FROM user_food_overrides');
+        await dbInst.customStatement('DELETE FROM user_food_override_translations');
         await dbInst.delete(dbInst.cardioSamples).go();
         await dbInst.delete(dbInst.cardioActivities).go();
 
@@ -923,7 +927,8 @@ class BackupManager {
         onProgress?.call('cardio_data', 0.999);
         await _importTable('cardio_activities', payload['cardio_activities']);
         await _importTable('cardio_samples', payload['cardio_samples']);
-        await _importTable('user_food_overrides', payload['user_food_overrides']);
+        await _importTable('user_food_overrides', payload['user_food_overrides'] ?? payload['userFoodOverrides']);
+        await _importTable('user_food_override_translations', payload['user_food_override_translations'] ?? payload['userFoodOverrideTranslations']);
         token?.throwIfCancelled();
       });
       success = true;

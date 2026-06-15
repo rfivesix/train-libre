@@ -2125,7 +2125,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nutritionHubTitle => 'Nutrizione';
 
   @override
-  String get nutrition => 'nutrizione';
+  String get nutrition => 'Nutrizione';
 
   @override
   String get changeSetTypTitle => 'Cambia tipo di set';
@@ -5332,5 +5332,30 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String yearsOld(int age) {
     return '$age anni';
+  }
+
+  @override
+  String get customFoodsTitle => 'Alimenti personalizzati';
+
+  @override
+  String get deleteFoodConfirmTitle => 'Elimina alimento';
+
+  @override
+  String get deleteFoodConfirmBody =>
+      'Sei sicuro di voler eliminare questo alimento personalizzato? I registri storici non saranno influenzati.';
+
+  @override
+  String get foodItemDeleted => 'Alimento eliminato';
+
+  @override
+  String get copySystemFoodTitle => 'Copia alimento di sistema';
+
+  @override
+  String get copySystemFoodBody =>
+      'Gli alimenti di sistema non possono essere modificati direttamente. Vuoi creare una copia personalizzata e modificarla?';
+
+  @override
+  String foodCopyCreated(String name) {
+    return 'Copia creata: $name';
   }
 }

@@ -5093,4 +5093,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String yearsOld(int age) {
     return '$age歳';
   }
+
+  @override
+  String get customFoodsTitle => 'カスタムフード';
+
+  @override
+  String get deleteFoodConfirmTitle => '食品の削除';
+
+  @override
+  String get deleteFoodConfirmBody => 'このカスタム食品を削除してもよろしいですか？過去の履歴には影響しません。';
+
+  @override
+  String get foodItemDeleted => '食品が削除されました';
+
+  @override
+  String get copySystemFoodTitle => 'システム食品のコピー';
+
+  @override
+  String get copySystemFoodBody => 'システム食品は直接編集できません。カスタムコピーを作成して編集しますか？';
+
+  @override
+  String foodCopyCreated(String name) {
+    return 'コピー作成完了: $name';
+  }
 }

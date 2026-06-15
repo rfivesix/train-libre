@@ -868,7 +868,7 @@
   "startCapsLock": "INIZIO",
   "nutritionHubSubtitle": "Scopri approfondimenti, monitora i pasti e pianifica la tua alimentazione qui presto.",
   "nutritionHubTitle": "Nutrizione",
-  "nutrition": "nutrizione",
+  "nutrition": "Nutrizione",
   "changeSetTypTitle": "Cambia tipo di set",
   "settingsVisualStyleTitle": "Stile visivo",
   "settingsVisualStyleStandard": "Vetro smerigliato",
@@ -2343,5 +2343,13 @@
   "initInitializing": "Inizializzazione...",
   "initPreparation": "Preparazione...",
   "initReady": "Pronto",
-  "yearsOld": "{age} anni"
+  "yearsOld": "{age} anni",
+  "customFoodsTitle": "Alimenti personalizzati",
+  "deleteFoodConfirmTitle": "Elimina alimento",
+  "deleteFoodConfirmBody": "Sei sicuro di voler eliminare questo alimento personalizzato? I registri storici non saranno influenzati.",
+  "foodItemDeleted": "Alimento eliminato",
+  "copySystemFoodTitle": "Copia alimento di sistema",
+  "copySystemFoodBody": "Gli alimenti di sistema non possono essere modificati direttamente. Vuoi creare una copia personalizzata e modificarla?",
+  "createCopyAndEdit": "Crea copia e modifica",
+  "foodCopyCreated": "Copia creata: {name}"
 }

@@ -867,7 +867,7 @@
   "startCapsLock": "START",
   "nutritionHubSubtitle": "Discover insights, track meals, and plan your nutrition here soon.",
   "nutritionHubTitle": "Nutrition",
-  "nutrition": "nutrition",
+  "nutrition": "Nutrition",
   "changeSetTypTitle": "Change set type",
   "settingsVisualStyleTitle": "Visual Style",
   "settingsVisualStyleStandard": "Frosted Glass",
@@ -2454,6 +2454,21 @@
     "placeholders": {
       "age": {
         "type": "int"
+      }
+    }
+  },
+  "customFoodsTitle": "Custom Foods",
+  "deleteFoodConfirmTitle": "Delete Food Item",
+  "deleteFoodConfirmBody": "Are you sure you want to delete this custom food item? Historical logs will not be affected.",
+  "foodItemDeleted": "Food item deleted",
+  "copySystemFoodTitle": "Copy System Food",
+  "copySystemFoodBody": "System foods cannot be edited directly. Would you like to create a custom copy and edit it?",
+  "createCopyAndEdit": "Create Copy & Edit",
+  "foodCopyCreated": "Copy created: {name}",
+  "@foodCopyCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
       }
     }
   }

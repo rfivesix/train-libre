@@ -2343,5 +2343,13 @@
   "initInitializing": "初期化中...",
   "initPreparation": "準備中...",
   "initReady": "準備完了",
-  "yearsOld": "{age}歳"
+  "yearsOld": "{age}歳",
+  "customFoodsTitle": "カスタムフード",
+  "deleteFoodConfirmTitle": "食品の削除",
+  "deleteFoodConfirmBody": "このカスタム食品を削除してもよろしいですか？過去の履歴には影響しません。",
+  "foodItemDeleted": "食品が削除されました",
+  "copySystemFoodTitle": "システム食品のコピー",
+  "copySystemFoodBody": "システム食品は直接編集できません。カスタムコピーを作成して編集しますか？",
+  "createCopyAndEdit": "コピーを作成して編集",
+  "foodCopyCreated": "コピー作成完了: {name}"
 }

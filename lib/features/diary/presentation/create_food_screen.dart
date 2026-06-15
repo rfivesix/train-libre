@@ -8,6 +8,7 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen providing a form to create a new custom [FoodItem] or edit an existing one.
 ///
@@ -34,6 +35,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
   final _sugarController = TextEditingController();
   final _fiberController = TextEditingController();
   final _saltController = TextEditingController();
+  final _caffeineController = TextEditingController();
 
   bool get _isEditing => widget.foodItemToEdit != null;
 
@@ -51,6 +53,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
       _sugarController.text = item.sugar?.toString() ?? '';
       _fiberController.text = item.fiber?.toString() ?? '';
       _saltController.text = item.salt?.toString() ?? '';
+      _caffeineController.text =
+          (item.caffeineMgPer100g ?? item.caffeineMgPer100ml)?.toString() ?? '';
     }
   }
 
@@ -65,14 +69,28 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
     _sugarController.dispose();
     _fiberController.dispose();
     _saltController.dispose();
+    _caffeineController.dispose();
     super.dispose();
+  }
+
+  void _calculateCaloriesFromMacros() {
+    HapticFeedbackService.instance.selectionFeedback();
+    final protein = double.tryParse(_proteinController.text.replaceAll(',', '.')) ?? 0.0;
+    final carbs = double.tryParse(_carbsController.text.replaceAll(',', '.')) ?? 0.0;
+    final fat = double.tryParse(_fatController.text.replaceAll(',', '.')) ?? 0.0;
+    final calories = (protein * 4) + (carbs * 4) + (fat * 9);
+    _caloriesController.text = calories.round().toString();
   }
 
   Future<void> _saveFoodItem() async {
     if (_formKey.currentState?.validate() ?? false) {
       final l10n = AppLocalizations.of(context)!;
+      final isLiquidOrFluid =
+          widget.foodItemToEdit?.isLiquid == true || widget.foodItemToEdit?.isFluid == true;
+      final caffeineVal = double.tryParse(_caffeineController.text);
 
       final foodData = FoodItem(
+        id: widget.foodItemToEdit?.id,
         barcode: _isEditing
             ? widget.foodItemToEdit!.barcode
             : "user_created_${DateTime.now().millisecondsSinceEpoch}",
@@ -85,6 +103,10 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
         sugar: double.tryParse(_sugarController.text),
         fiber: double.tryParse(_fiberController.text),
         salt: double.tryParse(_saltController.text),
+        caffeineMgPer100g: isLiquidOrFluid ? null : caffeineVal,
+        caffeineMgPer100ml: isLiquidOrFluid ? caffeineVal : null,
+        isLiquid: widget.foodItemToEdit?.isLiquid,
+        isFluid: widget.foodItemToEdit?.isFluid ?? false,
         source: FoodItemSource.user,
       );
 
@@ -158,10 +180,14 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
               const SizedBox(height: DesignConstants.spacingXL),
               AppSectionHeader(title: l10n.formSectionMainNutrients),
               const SizedBox(height: DesignConstants.spacingL),
-              _buildFoodInputField(
+               _buildFoodInputField(
                 controller: _caloriesController,
                 label: l10n.formFieldCalories,
                 isNumeric: true, // Fix
+                suffixIcon: IconButton(
+                  icon: const Icon(LucideIcons.refresh_cw, size: 20),
+                  onPressed: _calculateCaloriesFromMacros,
+                ),
               ),
               _buildFoodInputField(
                 controller: _proteinController,
@@ -197,6 +223,11 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                 label: l10n.formFieldSalt,
                 isNumeric: true, // Fix
               ),
+              _buildFoodInputField(
+                controller: _caffeineController,
+                label: '${l10n.caffeine} (mg)',
+                isNumeric: true,
+              ),
 
               const SizedBox(height: 32),
             ],
@@ -211,13 +242,17 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
     required String label,
     bool isRequired = false,
     bool isNumeric = false, // FIX: New parameter
+    Widget? suffixIcon,
   }) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: TextFormField(
         controller: controller,
-        decoration: InputDecoration(labelText: label),
+        decoration: InputDecoration(
+          labelText: label,
+          suffixIcon: suffixIcon,
+        ),
         // FIX: Keyboard type is now controlled.
         keyboardType: isNumeric
             ? const TextInputType.numberWithOptions(decimal: true)

@@ -43,20 +43,43 @@ class FoodItemSearchTile extends StatelessWidget {
     return SummaryCard(
       child: ListTile(
         leading: Icon(sourceIcon, color: colorScheme.primary),
-        title: Text(
-          () {
-            final name = item.source == FoodItemSource.base
-                ? item.getLocalizedName(context, languageCode: baseFoodLang)
-                : item.getLocalizedName(context);
-            return name.isNotEmpty ? name : l10n.unknown;
-          }(),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                () {
+                  final name = item.source == FoodItemSource.base
+                      ? item.getLocalizedName(context, languageCode: baseFoodLang)
+                      : item.getLocalizedName(context);
+                  return name.isNotEmpty ? name : l10n.unknown;
+                }(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            if (item.isCustom) ...[
+              const SizedBox(width: 8),
+              _buildSourceBadge(context),
+            ],
+          ],
         ),
-        subtitle: Text(
-          l10n.foodItemSubtitle(
-            item.brand.isNotEmpty ? item.brand : l10n.noBrand,
-            item.calories,
-          ),
+        subtitle: Row(
+          children: [
+            Text(
+              l10n.foodItemSubtitle('', item.calories).replaceFirst(RegExp(r'^.*?-\s*'), ''),
+            ),
+            if (item.brand.isNotEmpty &&
+                item.brand != 'Keine Marke' &&
+                item.brand != l10n.noBrand) ...[
+              const Text(' • '),
+              Expanded(
+                child: Text(
+                  item.brand,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ],
         ),
         trailing: IconButton(
           icon: Icon(
@@ -67,6 +90,27 @@ class FoodItemSearchTile extends StatelessWidget {
           onPressed: onAdd,
         ),
         onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildSourceBadge(BuildContext context) {
+    final theme = Theme.of(context);
+    const color = Colors.orange;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        'Custom',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

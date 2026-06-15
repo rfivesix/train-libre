@@ -3833,7 +3833,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutrition.
   ///
   /// In en, this message translates to:
-  /// **'nutrition'**
+  /// **'Nutrition'**
   String get nutrition;
 
   /// No description provided for @changeSetTypTitle.
@@ -8938,7 +8938,7 @@ abstract class AppLocalizations {
   /// No description provided for @createCopyAndEdit.
   ///
   /// In en, this message translates to:
-  /// **'Create copy & edit'**
+  /// **'Create Copy & Edit'**
   String get createCopyAndEdit;
 
   /// No description provided for @profileEdit.
@@ -9240,6 +9240,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{age} years old'**
   String yearsOld(int age);
+
+  /// No description provided for @customFoodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Foods'**
+  String get customFoodsTitle;
+
+  /// No description provided for @deleteFoodConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Food Item'**
+  String get deleteFoodConfirmTitle;
+
+  /// No description provided for @deleteFoodConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this custom food item? Historical logs will not be affected.'**
+  String get deleteFoodConfirmBody;
+
+  /// No description provided for @foodItemDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Food item deleted'**
+  String get foodItemDeleted;
+
+  /// No description provided for @copySystemFoodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy System Food'**
+  String get copySystemFoodTitle;
+
+  /// No description provided for @copySystemFoodBody.
+  ///
+  /// In en, this message translates to:
+  /// **'System foods cannot be edited directly. Would you like to create a custom copy and edit it?'**
+  String get copySystemFoodBody;
+
+  /// No description provided for @foodCopyCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy created: {name}'**
+  String foodCopyCreated(String name);
 }
 
 class _AppLocalizationsDelegate

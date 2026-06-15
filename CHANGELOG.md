@@ -11,6 +11,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - **Parallel Hero CTAs:** Integrated a new primary "Download for Android" button next to the iOS TestFlight CTA using a custom Lucide-style download icon. Preserved Obtainium as a secondary glass button.
   - **Navigation & Footer Links:** Added an "Android APK" header nav-link and an "Android APK / F-Droid" footer link next to the existing GitHub links across all subpages.
   - **Localization Invariants:** Localized all new CTA elements and links across English, German, French, Italian, and Japanese translations in `docs/script.js`.
+- **Custom Foods Parity & Database CRUD:** Mirrored the robust "Custom Exercise" functionality into the Nutrition module to allow user-created custom food items:
+  - Implemented visual indicators with a styled "Custom" badge next to food names in search results and `FoodDetailScreen`.
+  - Added an "Eigene Lebensmittel" ExpansionTile on the nutrition dashboard landing page.
+  - Implemented full SQLite CRUD repository pipelines for user-created custom foods with backup/restore support.
+- **Macro-based Calorie Calculator & Caffeine Exposure:**
+  - Added a dynamic calorie calculator hook (`(Protein * 4) + (Carbs * 4) + (Fat * 9)`) in the Create/Edit Food screen, triggerable via a new rotate icon next to the calories input field.
+  - Exposed the database-backed `caffeine` metric in food input forms and detail screens.
 
 ### Changed
 - **App-wide Localization Audit & Hardcoded German String Elimination:** Audited and refactored multiple UI and service layers to completely clean and translate hardcoded German text literals across English, German, French, Italian, and Japanese:
@@ -27,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - **Safe-Area Content Padding:** Adjusted scroll view bottom content paddings dynamically to accommodate both safe-area heights and floating bar overlays, ensuring that list items at the end of lists are never permanently clipped or covered by the bottom bar.
   - **Main Screen Render Isolation:** Wrapped `Scaffold` (holding all page views), the running workout overlay, and the bottom navigation bar / FAB layout in `main_screen.dart` inside separate `RepaintBoundary` layers, completely decoupling page scrolls from floating menu repaints.
 - **LucideIcons:** migrated the last missing Cupertino icon to icon from LucideIcons.
+- **Unified Food Search Viewport:** Replaced the multi-tab food search layout with a unified single-scroll track viewport, grouping search results sequentially into three vertical sections: Custom Food matches, Base Food matches, and Other/Open Food Facts matches.
 
 ### Fixed
 - **AI Meal Capture Image Layout:** Fixed a layout issue where the horizontal image preview list was constrained by the screen's outer padding. Removed horizontal padding from the parent scroll view and applied it directly to the list container and label, enabling edge-to-edge scrolling for captured meal images.
@@ -41,6 +49,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Reduced the search bar vertical padding from `24px` to `8px` (top and bottom) and removed the redundant `spacingS` gap above the search row, bringing the search field tight against the app bar.
   - Aligned the `WgerAttributionWidget` text style with `live_workout_screen` by adding a drop shadow (`Shadow` with 50 % opacity, 1×1 offset, 4px blur).
   - Refactored the screen `body` from a plain `Column` to a `Stack`, placing the wger attribution as a `Positioned` widget at the bottom of the safe area — preventing it from being obscured by or clashing with the \"Create Custom Exercise\" FAB.
+- **Food Search Tile Brand Overflow:** Fixed a critical horizontal RenderFlex overflow caused by long brand names (e.g., "Flying Goose Brand") clipping calorie metrics in search results:
+  - Re-architected subtitle layouts across `FoodItemSearchTile`, `GeneralFoodSelectionScreen`, and `FoodExplorerScreen` list items to position calorie and volume metrics (`[X] kcal / 100g`) at the absolute left of the subtitle row.
+  - Placed a bullet separator (` • `) between calorie text and brand name, and wrapped the brand text widget in an `Expanded` layout with `TextOverflow.ellipsis` and `maxLines: 1` to safely truncate long brand names.
 
 ## [0.9.30] - 2026-06-15
 ### Changed

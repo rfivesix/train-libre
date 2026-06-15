@@ -308,11 +308,24 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           item.name.isNotEmpty ? item.name : l10n.unknown,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          l10n.foodItemSubtitle(
-            item.brand.isNotEmpty ? item.brand : l10n.noBrand,
-            item.calories,
-          ),
+        subtitle: Row(
+          children: [
+            Text(
+              l10n.foodItemSubtitle('', item.calories).replaceFirst(RegExp(r'^.*?-\s*'), ''),
+            ),
+            if (item.brand.isNotEmpty &&
+                item.brand != 'Keine Marke' &&
+                item.brand != l10n.noBrand) ...[
+              const Text(' • '),
+              Expanded(
+                child: Text(
+                  item.brand,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ],
         ),
         trailing: IconButton(
           icon: Icon(

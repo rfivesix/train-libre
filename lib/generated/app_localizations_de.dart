@@ -5293,4 +5293,29 @@ class AppLocalizationsDe extends AppLocalizations {
   String yearsOld(int age) {
     return '$age Jahre alt';
   }
+
+  @override
+  String get customFoodsTitle => 'Eigene Lebensmittel';
+
+  @override
+  String get deleteFoodConfirmTitle => 'Lebensmittel löschen';
+
+  @override
+  String get deleteFoodConfirmBody =>
+      'Bist du sicher, dass du dieses eigene Lebensmittel löschen möchtest? Historische Einträge bleiben erhalten.';
+
+  @override
+  String get foodItemDeleted => 'Lebensmittel gelöscht';
+
+  @override
+  String get copySystemFoodTitle => 'System-Lebensmittel kopieren';
+
+  @override
+  String get copySystemFoodBody =>
+      'System-Lebensmittel können nicht direkt bearbeitet werden. Möchtest du eine eigene Kopie erstellen und bearbeiten?';
+
+  @override
+  String foodCopyCreated(String name) {
+    return 'Kopie erstellt: $name';
+  }
 }

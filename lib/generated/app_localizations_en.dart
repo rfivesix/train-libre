@@ -2104,7 +2104,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionHubTitle => 'Nutrition';
 
   @override
-  String get nutrition => 'nutrition';
+  String get nutrition => 'Nutrition';
 
   @override
   String get changeSetTypTitle => 'Change set type';
@@ -5065,7 +5065,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'This exercise is system-provided and cannot be directly edited. Would you like to create a custom copy to edit it?';
 
   @override
-  String get createCopyAndEdit => 'Create copy & edit';
+  String get createCopyAndEdit => 'Create Copy & Edit';
 
   @override
   String get profileEdit => 'Edit Profile';
@@ -5247,5 +5247,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String yearsOld(int age) {
     return '$age years old';
+  }
+
+  @override
+  String get customFoodsTitle => 'Custom Foods';
+
+  @override
+  String get deleteFoodConfirmTitle => 'Delete Food Item';
+
+  @override
+  String get deleteFoodConfirmBody =>
+      'Are you sure you want to delete this custom food item? Historical logs will not be affected.';
+
+  @override
+  String get foodItemDeleted => 'Food item deleted';
+
+  @override
+  String get copySystemFoodTitle => 'Copy System Food';
+
+  @override
+  String get copySystemFoodBody =>
+      'System foods cannot be edited directly. Would you like to create a custom copy and edit it?';
+
+  @override
+  String foodCopyCreated(String name) {
+    return 'Copy created: $name';
   }
 }

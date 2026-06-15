@@ -2343,5 +2343,13 @@
   "initInitializing": "Initialisiere...",
   "initPreparation": "Vorbereitung...",
   "initReady": "Bereit",
-  "yearsOld": "{age} Jahre alt"
+  "yearsOld": "{age} Jahre alt",
+  "customFoodsTitle": "Eigene Lebensmittel",
+  "deleteFoodConfirmTitle": "Lebensmittel löschen",
+  "deleteFoodConfirmBody": "Bist du sicher, dass du dieses eigene Lebensmittel löschen möchtest? Historische Einträge bleiben erhalten.",
+  "foodItemDeleted": "Lebensmittel gelöscht",
+  "copySystemFoodTitle": "System-Lebensmittel kopieren",
+  "copySystemFoodBody": "System-Lebensmittel können nicht direkt bearbeitet werden. Möchtest du eine eigene Kopie erstellen und bearbeiten?",
+  "createCopyAndEdit": "Kopie erstellen & bearbeiten",
+  "foodCopyCreated": "Kopie erstellt: {name}"
 }
