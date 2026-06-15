@@ -631,382 +631,440 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               ? const Center(child: CircularProgressIndicator())
               : Stack(
                   children: [
-                    Column(
-                      children: [
-                        Consumer<LiveWorkoutViewModel>(
-                          builder: (context, vm, _) {
-                            final planned = vm.setLogs.length;
-                            final completed = vm.setLogs.values
-                                .where((s) => s.isCompleted == true)
-                                .length;
-                            final progress =
-                                planned == 0 ? 0.0 : completed / planned;
-                            return WorkoutSummaryBar(
-                              duration: vm.elapsedDuration,
-                              volume: vm.totalVolume,
-                              sets: planned,
-                              progress: progress,
-                            );
-                          },
-                        ),
-                        Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                        ),
-                        Expanded(
-                          child: exercises.isEmpty
-                              ? _buildEmptyState(l10n)
-                              : ReorderableListView.builder(
-                                  cacheExtent: 1500,
-                                  padding: EdgeInsets.only(
-                                    bottom: showRestBar
-                                        ? 180.0
-                                        : DesignConstants.bottomContentSpacer,
-                                  ),
-                                  onReorder: _onReorder,
-                                  itemCount: exercises.length,
-                                  itemBuilder: (context, index) {
-                                    final routineExercise = exercises[index];
-                                    final showE1rmSummary =
-                                        !_isCardio(routineExercise);
-                                    final pauseVal =
-                                        manager.pauseTimes[routineExercise.id!];
-                                    final hasPause =
-                                        pauseVal != null && pauseVal > 0;
-                                    return RepaintBoundary(
-                                      key: ValueKey(routineExercise.id),
-                                      child: WorkoutCard(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            ListTile(
-                                              contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 16.0,
-                                                vertical: 8.0,
-                                              ),
-                                              leading:
-                                                  ReorderableDragStartListener(
-                                                index: index,
-                                                child: const Icon(
-                                                    LucideIcons.grip_vertical),
-                                              ),
-                                              title: InkWell(
-                                                onTap: () =>
-                                                    Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        ExerciseDetailScreen(
-                                                      exercise: routineExercise
-                                                          .exercise,
+                    // Layer 1 (Bottom): The full scrollable viewport container
+                    RepaintBoundary(
+                      child: Column(
+                        children: [
+                          Consumer<LiveWorkoutViewModel>(
+                            builder: (context, vm, _) {
+                              final planned = vm.setLogs.length;
+                              final completed = vm.setLogs.values
+                                  .where((s) => s.isCompleted == true)
+                                  .length;
+                              final progress =
+                                  planned == 0 ? 0.0 : completed / planned;
+                              return WorkoutSummaryBar(
+                                duration: vm.elapsedDuration,
+                                volume: vm.totalVolume,
+                                sets: planned,
+                                progress: progress,
+                              );
+                            },
+                          ),
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                          ),
+                          Expanded(
+                            child: exercises.isEmpty
+                                ? _buildEmptyState(l10n)
+                                : ReorderableListView.builder(
+                                    cacheExtent: 1500,
+                                    padding: EdgeInsets.only(
+                                      bottom: (showRestBar
+                                              ? 180.0
+                                              : DesignConstants.bottomContentSpacer) +
+                                          MediaQuery.paddingOf(context).bottom,
+                                    ),
+                                    onReorder: _onReorder,
+                                    itemCount: exercises.length,
+                                    itemBuilder: (context, index) {
+                                      final routineExercise = exercises[index];
+                                      final showE1rmSummary =
+                                          !_isCardio(routineExercise);
+                                      final pauseVal =
+                                          manager.pauseTimes[routineExercise.id!];
+                                      final hasPause =
+                                          pauseVal != null && pauseVal > 0;
+                                      return RepaintBoundary(
+                                        key: ValueKey(routineExercise.id),
+                                        child: WorkoutCard(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              ListTile(
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 16.0,
+                                                  vertical: 8.0,
+                                                ),
+                                                leading:
+                                                    ReorderableDragStartListener(
+                                                  index: index,
+                                                  child: const Icon(
+                                                      LucideIcons.grip_vertical),
+                                                ),
+                                                title: InkWell(
+                                                  onTap: () =>
+                                                      Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          ExerciseDetailScreen(
+                                                        exercise: routineExercise
+                                                            .exercise,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      vertical: 4.0,
+                                                    ),
+                                                    child: Text(
+                                                      routineExercise.exercise
+                                                          .getLocalizedName(
+                                                              context),
+                                                      maxLines: 2,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: textTheme.titleLarge
+                                                          ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                                child: Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    vertical: 4.0,
-                                                  ),
-                                                  child: Text(
-                                                    routineExercise.exercise
-                                                        .getLocalizedName(
-                                                            context),
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: textTheme.titleLarge
-                                                        ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              trailing: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  IconButton(
-                                                    icon: const Icon(
-                                                      LucideIcons.pencil,
-                                                    ),
-                                                    tooltip:
-                                                        "Notizen bearbeiten",
-                                                    onPressed: () =>
-                                                        _editExerciseNotes(
-                                                            context,
-                                                            routineExercise),
-                                                  ),
-                                                  if (hasPause)
-                                                    TextButton(
-                                                      style:
-                                                          TextButton.styleFrom(
-                                                        minimumSize:
-                                                            const Size(48, 48),
-                                                        padding:
-                                                            EdgeInsets.zero,
-                                                      ),
-                                                      onPressed: () =>
-                                                          editPauseTime(
-                                                              routineExercise),
-                                                      child: Text(
-                                                        _formatPauseTime(
-                                                            pauseVal),
-                                                        style: textTheme
-                                                            .bodyMedium
-                                                            ?.copyWith(
-                                                          color: colorScheme
-                                                              .primary,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize:
-                                                              DesignConstants
-                                                                  .spacingL,
-                                                        ),
-                                                      ),
-                                                    )
-                                                  else
+                                                trailing: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
                                                     IconButton(
                                                       icon: const Icon(
-                                                        LucideIcons.timer,
+                                                        LucideIcons.pencil,
                                                       ),
                                                       tooltip:
-                                                          l10n.editPauseTime,
+                                                          "Notizen bearbeiten",
                                                       onPressed: () =>
-                                                          editPauseTime(
+                                                          _editExerciseNotes(
+                                                              context,
+                                                              routineExercise),
+                                                    ),
+                                                    if (hasPause)
+                                                      TextButton(
+                                                        style:
+                                                            TextButton.styleFrom(
+                                                          minimumSize:
+                                                              const Size(48, 48),
+                                                          padding:
+                                                              EdgeInsets.zero,
+                                                        ),
+                                                        onPressed: () =>
+                                                            editPauseTime(
+                                                                routineExercise),
+                                                        child: Text(
+                                                          _formatPauseTime(
+                                                              pauseVal),
+                                                          style: textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                            color: colorScheme
+                                                                .primary,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize:
+                                                                DesignConstants
+                                                                    .spacingL,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    else
+                                                      IconButton(
+                                                        icon: const Icon(
+                                                          LucideIcons.timer,
+                                                        ),
+                                                        tooltip:
+                                                            l10n.editPauseTime,
+                                                        onPressed: () =>
+                                                            editPauseTime(
+                                                          routineExercise,
+                                                        ),
+                                                      ),
+                                                    IconButton(
+                                                      icon: const Icon(
+                                                        LucideIcons.trash_2,
+                                                        color: Colors.redAccent,
+                                                      ),
+                                                      tooltip:
+                                                          l10n.removeExercise,
+                                                      onPressed: () =>
+                                                          _removeExercise(
                                                         routineExercise,
                                                       ),
                                                     ),
-                                                  IconButton(
-                                                    icon: const Icon(
-                                                      LucideIcons.trash_2,
-                                                      color: Colors.redAccent,
-                                                    ),
-                                                    tooltip:
-                                                        l10n.removeExercise,
-                                                    onPressed: () =>
-                                                        _removeExercise(
-                                                      routineExercise,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            if (routineExercise.notes != null &&
-                                                routineExercise
-                                                    .notes!.isNotEmpty)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 16.0,
-                                                  right: 16.0,
-                                                  bottom: 12.0,
+                                                  ],
                                                 ),
-                                                child: InkWell(
-                                                  onTap: () =>
-                                                      _editExerciseNotes(
-                                                          context,
-                                                          routineExercise),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: Container(
-                                                    width: double.infinity,
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            12),
-                                                    decoration: BoxDecoration(
-                                                      color: colorScheme
-                                                          .surfaceContainerHighest
-                                                          .withValues(
-                                                              alpha: 0.5),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                      border: Border.all(
+                                              ),
+                                              if (routineExercise.notes != null &&
+                                                  routineExercise
+                                                      .notes!.isNotEmpty)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(
+                                                    left: 16.0,
+                                                    right: 16.0,
+                                                    bottom: 12.0,
+                                                  ),
+                                                  child: InkWell(
+                                                    onTap: () =>
+                                                        _editExerciseNotes(
+                                                            context,
+                                                            routineExercise),
+                                                    borderRadius:
+                                                        BorderRadius.circular(8),
+                                                    child: Container(
+                                                      width: double.infinity,
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              12),
+                                                      decoration: BoxDecoration(
                                                         color: colorScheme
-                                                            .onSurfaceVariant
+                                                            .surfaceContainerHighest
                                                             .withValues(
-                                                                alpha: 0.1),
+                                                                alpha: 0.5),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                8),
+                                                        border: Border.all(
+                                                          color: colorScheme
+                                                              .onSurfaceVariant
+                                                              .withValues(
+                                                                  alpha: 0.1),
+                                                        ),
+                                                      ),
+                                                      child: Row(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Icon(
+                                                            Icons
+                                                                .description_outlined,
+                                                            size: 16,
+                                                            color: colorScheme
+                                                                .onSurfaceVariant,
+                                                          ),
+                                                          const SizedBox(
+                                                              width: 8),
+                                                          Expanded(
+                                                            child: Text(
+                                                              routineExercise
+                                                                  .notes!,
+                                                              style: textTheme
+                                                                  .bodyMedium
+                                                                  ?.copyWith(
+                                                                color: colorScheme
+                                                                    .onSurfaceVariant,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
-                                                    child: Row(
+                                                  ),
+                                                ),
+                                              if (showE1rmSummary)
+                                                ExerciseE1rmSummary(
+                                                  routineExercise:
+                                                      routineExercise,
+                                                  manager: manager,
+                                                ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 0.0,
+                                                ),
+                                                child: Selector<
+                                                    LiveWorkoutViewModel,
+                                                    Map<int, SetLog>>(
+                                                  selector: (context, vm) {
+                                                    final map = <int, SetLog>{};
+                                                    for (final template
+                                                        in routineExercise
+                                                            .setTemplates) {
+                                                      final log =
+                                                          vm.setLogs[template.id];
+                                                      if (log != null) {
+                                                        map[template.id!] = log;
+                                                      }
+                                                    }
+                                                    return map;
+                                                  },
+                                                  shouldRebuild: (prev, next) {
+                                                    if (prev.length !=
+                                                        next.length) {
+                                                      return true;
+                                                    }
+                                                    for (final key in prev.keys) {
+                                                      final prevLog = prev[key];
+                                                      final nextLog = next[key];
+                                                      if (prevLog == null ||
+                                                          nextLog == null) {
+                                                        return true;
+                                                      }
+                                                      if (prevLog.setType !=
+                                                              nextLog.setType ||
+                                                          prevLog.isCompleted !=
+                                                              nextLog
+                                                                  .isCompleted) {
+                                                        return true;
+                                                      }
+                                                    }
+                                                    return false;
+                                                  },
+                                                  builder: (context,
+                                                      exerciseSetLogs, child) {
+                                                    return Column(
                                                       crossAxisAlignment:
                                                           CrossAxisAlignment
                                                               .start,
                                                       children: [
-                                                        Icon(
-                                                          Icons
-                                                              .description_outlined,
-                                                          size: 16,
-                                                          color: colorScheme
-                                                              .onSurfaceVariant,
+                                                        // FIX: Insert header row dynamically.
+                                                        _buildHeaderRow(
+                                                          routineExercise,
+                                                          l10n,
                                                         ),
-                                                        const SizedBox(
-                                                            width: 8),
-                                                        Expanded(
-                                                          child: Text(
-                                                            routineExercise
-                                                                .notes!,
-                                                            style: textTheme
-                                                                .bodyMedium
-                                                                ?.copyWith(
-                                                              color: colorScheme
-                                                                  .onSurfaceVariant,
-                                                            ),
+
+                                                        // Set Rows
+                                                        ...routineExercise
+                                                            .setTemplates
+                                                            .asMap()
+                                                            .entries
+                                                            .map((setEntry) {
+                                                          final templateId =
+                                                              setEntry.value.id!;
+                                                          final template = setEntry
+                                                              .value; // <--- Template
+                                                          final setLog =
+                                                              exerciseSetLogs[
+                                                                  templateId];
+
+                                                          if (setLog == null) {
+                                                            return const SizedBox
+                                                                .shrink();
+                                                          }
+                                                          int workingSetIndex = 0;
+                                                          for (int i = 0;
+                                                              i <= setEntry.key;
+                                                              i++) {
+                                                            final currentTemplateId =
+                                                                routineExercise
+                                                                    .setTemplates[
+                                                                        i]
+                                                                    .id!;
+                                                            if (exerciseSetLogs[
+                                                                        currentTemplateId]
+                                                                    ?.setType !=
+                                                                'warmup') {
+                                                              workingSetIndex++;
+                                                            }
+                                                          }
+
+                                                          return LiveWorkoutSetRow(
+                                                            setIndex:
+                                                                workingSetIndex,
+                                                            rowIndex:
+                                                                setEntry.key,
+                                                            templateId:
+                                                                templateId,
+                                                            setLog: setLog,
+                                                            lastPerfSets: manager
+                                                                        .lastPerformances[
+                                                                    routineExercise
+                                                                        .exercise
+                                                                        .nameEn] ??
+                                                                [],
+                                                            template: template,
+                                                            manager: manager,
+                                                            isCardio: _isCardio(
+                                                                routineExercise),
+                                                          );
+                                                        }),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                            horizontal: 16.0,
+                                                          ),
+                                                          child: TextButton.icon(
+                                                            onPressed: () => _addSet(
+                                                                routineExercise),
+                                                            icon: const Icon(
+                                                                LucideIcons.plus),
+                                                            label: Text(l10n
+                                                                .addSetButton),
                                                           ),
                                                         ),
                                                       ],
-                                                    ),
-                                                  ),
+                                                    );
+                                                  },
                                                 ),
                                               ),
-                                            if (showE1rmSummary)
-                                              ExerciseE1rmSummary(
-                                                routineExercise:
-                                                    routineExercise,
-                                                manager: manager,
-                                              ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 0.0,
-                                              ),
-                                              child: Selector<
-                                                  LiveWorkoutViewModel,
-                                                  Map<int, SetLog>>(
-                                                selector: (context, vm) {
-                                                  final map = <int, SetLog>{};
-                                                  for (final template
-                                                      in routineExercise
-                                                          .setTemplates) {
-                                                    final log =
-                                                        vm.setLogs[template.id];
-                                                    if (log != null) {
-                                                      map[template.id!] = log;
-                                                    }
-                                                  }
-                                                  return map;
-                                                },
-                                                shouldRebuild: (prev, next) {
-                                                  if (prev.length !=
-                                                      next.length) {
-                                                    return true;
-                                                  }
-                                                  for (final key in prev.keys) {
-                                                    final prevLog = prev[key];
-                                                    final nextLog = next[key];
-                                                    if (prevLog == null ||
-                                                        nextLog == null) {
-                                                      return true;
-                                                    }
-                                                    if (prevLog.setType !=
-                                                            nextLog.setType ||
-                                                        prevLog.isCompleted !=
-                                                            nextLog
-                                                                .isCompleted) {
-                                                      return true;
-                                                    }
-                                                  }
-                                                  return false;
-                                                },
-                                                builder: (context,
-                                                    exerciseSetLogs, child) {
-                                                  return Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      // FIX: Insert header row dynamically.
-                                                      _buildHeaderRow(
-                                                        routineExercise,
-                                                        l10n,
-                                                      ),
-
-                                                      // Set Rows
-                                                      ...routineExercise
-                                                          .setTemplates
-                                                          .asMap()
-                                                          .entries
-                                                          .map((setEntry) {
-                                                        final templateId =
-                                                            setEntry.value.id!;
-                                                        final template = setEntry
-                                                            .value; // <--- Template
-                                                        final setLog =
-                                                            exerciseSetLogs[
-                                                                templateId];
-
-                                                        if (setLog == null) {
-                                                          return const SizedBox
-                                                              .shrink();
-                                                        }
-                                                        int workingSetIndex = 0;
-                                                        for (int i = 0;
-                                                            i <= setEntry.key;
-                                                            i++) {
-                                                          final currentTemplateId =
-                                                              routineExercise
-                                                                  .setTemplates[
-                                                                      i]
-                                                                  .id!;
-                                                          if (exerciseSetLogs[
-                                                                      currentTemplateId]
-                                                                  ?.setType !=
-                                                              'warmup') {
-                                                            workingSetIndex++;
-                                                          }
-                                                        }
-
-                                                        return LiveWorkoutSetRow(
-                                                          setIndex:
-                                                              workingSetIndex,
-                                                          rowIndex:
-                                                              setEntry.key,
-                                                          templateId:
-                                                              templateId,
-                                                          setLog: setLog,
-                                                          lastPerfSets: manager
-                                                                      .lastPerformances[
-                                                                  routineExercise
-                                                                      .exercise
-                                                                      .nameEn] ??
-                                                              [],
-                                                          template: template,
-                                                          manager: manager,
-                                                          isCardio: _isCardio(
-                                                              routineExercise),
-                                                        );
-                                                      }),
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                          horizontal: 16.0,
-                                                        ),
-                                                        child: TextButton.icon(
-                                                          onPressed: () => _addSet(
-                                                              routineExercise),
-                                                          icon: const Icon(
-                                                              LucideIcons.plus),
-                                                          label: Text(l10n
-                                                              .addSetButton),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    );
+                                      );
+                                    },
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Layer 2 (Top): Floating/sticky Liquid Glass bar, FAB, and attribution
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: RepaintBoundary(
+                        child: SafeArea(
+                          top: false,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              bottom: (MediaQuery.paddingOf(context).bottom * 0.3)
+                                  .clamp(4.0, 12.0),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                AnimatedBuilder(
+                                  animation: manager,
+                                  builder: (context, _) {
+                                    final bar =
+                                        _buildRestBottomBar(l10n, colorScheme, manager);
+                                    return bar ?? const SizedBox.shrink();
                                   },
                                 ),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10.0, top: 0.0),
+                                  child: WgerAttributionWidget(
+                                    textStyle: textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey[600],
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withValues(alpha: 0.5),
+                                          offset: const Offset(1, 1),
+                                          blurRadius: 4.0,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
+                      ),
+                    ),
+
+                    Positioned(
+                      bottom: (showRestBar ? 104.0 : 24.0) +
+                          MediaQuery.paddingOf(context).bottom,
+                      right: 16.0,
+                      child: RepaintBoundary(
+                        child: _LiveWorkoutFab(onPressed: _addExercise),
+                      ),
                     ),
 
                     // --- Top Celebration Banner ---
@@ -1014,54 +1072,15 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       top: 0,
                       left: 0,
                       right: 0,
-                      child: _buildPRCelebrationBanner(),
+                      child: RepaintBoundary(
+                        child: _buildPRCelebrationBanner(),
+                      ),
                     ),
 
                     // --- Keyboard Done Accessory Bar ---
                     const _LiveWorkoutKeyboardDoneBar(),
                   ],
                 ),
-          floatingActionButton: _LiveWorkoutFab(onPressed: _addExercise),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          bottomNavigationBar: SafeArea(
-            top: false,
-            bottom: false,
-            child: Padding(
-              padding: EdgeInsets.only(
-                bottom: (MediaQuery.paddingOf(context).bottom * 0.3)
-                    .clamp(4.0, 12.0),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  AnimatedBuilder(
-                    animation: manager,
-                    builder: (context, _) {
-                      final bar =
-                          _buildRestBottomBar(l10n, colorScheme, manager);
-                      return bar ?? const SizedBox.shrink();
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10.0, top: 0.0),
-                    child: WgerAttributionWidget(
-                      textStyle: textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            offset: const Offset(1, 1),
-                            blurRadius: 4.0,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );

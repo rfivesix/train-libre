@@ -103,28 +103,30 @@ class _GlassPillButtonState extends State<GlassPillButton>
             ),
           ),
         ),
-        AdaptiveGlass(
-          settings: DesignConstants.liquidGlassSettings(isDark),
-          shape: LiquidRoundedSuperellipse(borderRadius: effectiveRadius),
-          child: GlassGlow(
-            glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
-            glowRadius: 1.0,
-            child: Container(
-              padding: widget.padding,
-              decoration: BoxDecoration(
-                color: neutralTint,
-                borderRadius: BorderRadius.circular(effectiveRadius),
-              ),
-              foregroundDecoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(effectiveRadius),
-                border: Border.all(
-                  color: rimColor,
-                  width: 1.2,
+        RepaintBoundary(
+          child: AdaptiveGlass(
+            settings: DesignConstants.liquidGlassSettings(isDark),
+            shape: LiquidRoundedSuperellipse(borderRadius: effectiveRadius),
+            child: GlassGlow(
+              glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
+              glowRadius: 1.0,
+              child: Container(
+                padding: widget.padding,
+                decoration: BoxDecoration(
+                  color: neutralTint,
+                  borderRadius: BorderRadius.circular(effectiveRadius),
                 ),
-              ),
-              child: Center(
-                widthFactor: 1.0,
-                child: widget.child,
+                foregroundDecoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(effectiveRadius),
+                  border: Border.all(
+                    color: rimColor,
+                    width: 1.2,
+                  ),
+                ),
+                child: Center(
+                  widthFactor: 1.0,
+                  child: widget.child,
+                ),
               ),
             ),
           ),

@@ -195,89 +195,91 @@ class _RecommendationBannerState extends State<RecommendationBanner>
               vertical: DesignConstants.cardPaddingExternal),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: bg.withValues(alpha: 0.75),
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.15)
-                        : Colors.black.withValues(alpha: 0.08),
-                    width: 1.0,
+            child: RepaintBoundary(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: bg.withValues(alpha: 0.75),
+                    borderRadius:
+                        BorderRadius.circular(DesignConstants.borderRadiusM),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.15)
+                          : Colors.black.withValues(alpha: 0.08),
+                      width: 1.0,
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 14.0),
-                  child: Row(
-                    children: [
-                      Icon(
-                        LucideIcons.lightbulb,
-                        color: accent,
-                        size: DesignConstants.iconSizeL,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          l10n.recommendationBannerText(deltaStr),
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w500,
-                            color: isDark ? Colors.white : Colors.black87,
-                            height: 1.3,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 14.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          LucideIcons.lightbulb,
+                          color: accent,
+                          size: DesignConstants.iconSizeL,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            l10n.recommendationBannerText(deltaStr),
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? Colors.white : Colors.black87,
+                              height: 1.3,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Interactive "Apply" Pill Button
-                      Semantics(
-                        label: 'Apply Recommendation',
-                        button: true,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _applyRecommendation,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color:
-                                  accent.withValues(alpha: isDark ? 0.2 : 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: accent.withValues(alpha: 0.3)),
-                            ),
-                            child: Text(
-                              l10n.recommendationBannerApply,
-                              style: TextStyle(
-                                color: accent,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
+                        const SizedBox(width: 12),
+                        // Interactive "Apply" Pill Button
+                        Semantics(
+                          label: 'Apply Recommendation',
+                          button: true,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _applyRecommendation,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color:
+                                    accent.withValues(alpha: isDark ? 0.2 : 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: accent.withValues(alpha: 0.3)),
+                              ),
+                              child: Text(
+                                l10n.recommendationBannerApply,
+                                style: TextStyle(
+                                  color: accent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Semantics(
-                        label: 'Dismiss Banner',
-                        button: true,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _dismissBanner,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Icon(
-                              LucideIcons.x,
-                              size: DesignConstants.iconSizeM,
-                              color: isDark ? Colors.white60 : Colors.black54,
+                        const SizedBox(width: 8),
+                        Semantics(
+                          label: 'Dismiss Banner',
+                          button: true,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _dismissBanner,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Icon(
+                                LucideIcons.x,
+                                size: DesignConstants.iconSizeM,
+                                color: isDark ? Colors.white60 : Colors.black54,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

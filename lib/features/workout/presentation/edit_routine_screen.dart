@@ -657,126 +657,143 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
             ),
             body: Stack(
               children: [
-                Column(
-                  children: [
-                    Padding(
-                      padding: DesignConstants.cardPadding.copyWith(
-                        top: DesignConstants.cardPadding.top + topPadding,
+                // Layer 1 (Bottom): The full scrollable viewport container
+                RepaintBoundary(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: DesignConstants.cardPadding.copyWith(
+                          top: DesignConstants.cardPadding.top + topPadding,
+                        ),
+                        child: TextFormField(
+                          controller: _nameController,
+                          decoration: InputDecoration(
+                              labelText: l10n.formFieldRoutineName),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return l10n.validatorPleaseEnterRoutineName;
+                            }
+                            return null;
+                          },
+                        ),
                       ),
-                      child: TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                            labelText: l10n.formFieldRoutineName),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return l10n.validatorPleaseEnterRoutineName;
-                          }
-                          return null;
-                        },
+                      const SizedBox(height: DesignConstants.spacingM),
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color:
+                            colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
                       ),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                    ),
-                    Expanded(
-                      child: _isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : _routineExercises.isEmpty
-                              ? Center(
-                                  child: Text(
-                                    l10n.emptyStateAddFirstExercise,
-                                    style: textTheme.titleMedium,
-                                  ),
-                                )
-                              : ReorderableListView.builder(
-                                  cacheExtent: 1500,
-                                  padding: const EdgeInsets.only(
-                                    bottom: DesignConstants.bottomContentSpacer,
-                                  ),
-                                  itemCount: _routineExercises.length,
-                                  proxyDecorator: (Widget child, int index,
-                                      Animation<double> anim) {
-                                    return Material(
-                                      elevation: 4.0,
-                                      color: Theme.of(context)
-                                          .scaffoldBackgroundColor,
-                                      child: child,
-                                    );
-                                  },
-                                  onReorder: _onReorder,
-                                  itemBuilder: (context, index) {
-                                    final routineExercise =
-                                        _routineExercises[index];
-                                    final bool isCardio =
-                                        _isCardio(routineExercise);
+                      Expanded(
+                        child: _isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : _routineExercises.isEmpty
+                                ? Center(
+                                    child: Text(
+                                      l10n.emptyStateAddFirstExercise,
+                                      style: textTheme.titleMedium,
+                                    ),
+                                  )
+                                : ReorderableListView.builder(
+                                    cacheExtent: 1500,
+                                    itemCount: _routineExercises.length,
+                                    padding: EdgeInsets.only(
+                                      bottom: DesignConstants.bottomContentSpacer +
+                                          MediaQuery.paddingOf(context).bottom,
+                                    ),
+                                    proxyDecorator: (Widget child, int index,
+                                        Animation<double> anim) {
+                                      return Material(
+                                        elevation: 4.0,
+                                        color: Theme.of(context)
+                                            .scaffoldBackgroundColor,
+                                        child: child,
+                                      );
+                                    },
+                                    onReorder: _onReorder,
+                                    itemBuilder: (context, index) {
+                                      final routineExercise =
+                                          _routineExercises[index];
+                                      final bool isCardio =
+                                          _isCardio(routineExercise);
 
-                                    return EditRoutineExerciseCard(
-                                      key: ValueKey(routineExercise.id),
-                                      routineExercise: routineExercise,
-                                      index: index,
-                                      isCardio: isCardio,
-                                      repsControllers: _repsControllers,
-                                      weightControllers: _weightControllers,
-                                      rirControllers: _rirControllers,
-                                      onEditNotes: () => _editExerciseNotes(
-                                          context, routineExercise),
-                                      onEditPauseTime: () =>
-                                          _editPauseTime(routineExercise),
-                                      onDeleteExercise: () =>
-                                          _deleteSingleExercise(
-                                              routineExercise),
-                                      onAddSet: () => _addSet(routineExercise),
-                                      onShowSetTypePicker: _showSetTypePicker,
-                                      onRemoveSet: (template, listIndex) =>
-                                          _removeSet(routineExercise,
-                                              template.id!, listIndex),
-                                    );
-                                  },
+                                      return EditRoutineExerciseCard(
+                                        key: ValueKey(routineExercise.id),
+                                        routineExercise: routineExercise,
+                                        index: index,
+                                        isCardio: isCardio,
+                                        repsControllers: _repsControllers,
+                                        weightControllers: _weightControllers,
+                                        rirControllers: _rirControllers,
+                                        onEditNotes: () => _editExerciseNotes(
+                                            context, routineExercise),
+                                        onEditPauseTime: () =>
+                                            _editPauseTime(routineExercise),
+                                        onDeleteExercise: () =>
+                                            _deleteSingleExercise(
+                                                routineExercise),
+                                        onAddSet: () => _addSet(routineExercise),
+                                        onShowSetTypePicker: _showSetTypePicker,
+                                        onRemoveSet: (template, listIndex) =>
+                                            _removeSet(routineExercise,
+                                                template.id!, listIndex),
+                                      );
+                                    },
+                                  ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Layer 2 (Top): Floating/sticky layers
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: RepaintBoundary(
+                    child: SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: (MediaQuery.paddingOf(context).bottom * 0.3)
+                              .clamp(4.0, 12.0),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 10.0, top: 0.0),
+                              child: WgerAttributionWidget(
+                                textStyle: textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey[600],
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black.withValues(alpha: 0.5),
+                                      offset: const Offset(1, 1),
+                                      blurRadius: 4.0,
+                                    ),
+                                  ],
                                 ),
-                    ),
-                  ],
-                ),
-                // --- Keyboard Done Accessory Bar ---
-                const _KeyboardDoneBar(),
-              ],
-            ),
-            bottomNavigationBar: SafeArea(
-              top: false,
-              bottom: false,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  bottom: (MediaQuery.paddingOf(context).bottom * 0.3)
-                      .clamp(4.0, 12.0),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0, top: 0.0),
-                      child: WgerAttributionWidget(
-                        textStyle: textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              offset: const Offset(1, 1),
-                              blurRadius: 4.0,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+
+                Positioned(
+                  bottom: 24.0 + MediaQuery.paddingOf(context).bottom,
+                  right: 16.0,
+                  child: RepaintBoundary(
+                    child: _EditRoutineFab(onPressed: _addExercises),
+                  ),
+                ),
+
+                // --- Keyboard Done Accessory Bar ---
+                const _KeyboardDoneBar(),
+              ],
             ),
-            floatingActionButton: _EditRoutineFab(onPressed: _addExercises),
-            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           ),
         ));
   }

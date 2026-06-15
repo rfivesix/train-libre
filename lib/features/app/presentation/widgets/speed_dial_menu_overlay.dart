@@ -43,13 +43,15 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                   opacity: v,
                   child: GestureDetector(
                     onTap: onClose,
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(
-                        sigmaX: 6.0 * v,
-                        sigmaY: 6.0 * v,
-                      ),
-                      child: Container(
-                        color: Colors.black.withValues(alpha: 0.4 * v),
+                    child: RepaintBoundary(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: 6.0 * v,
+                          sigmaY: 6.0 * v,
+                        ),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.4 * v),
+                        ),
                       ),
                     ),
                   ),

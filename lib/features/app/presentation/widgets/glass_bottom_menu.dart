@@ -201,42 +201,44 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               ),
             ),
           ),
-          AdaptiveGlass(
-            settings: LiquidGlassSettings(
-              thickness: 30,
-              blur: 8,
-              glassColor: effectiveGlass,
-              lightIntensity: isDark ? 0.55 : 0.80,
-              saturation: 1.20,
-            ),
-            shape: const LiquidRoundedSuperellipse(borderRadius: r),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: neutralTint,
-                      borderRadius: BorderRadius.circular(r),
+          RepaintBoundary(
+            child: AdaptiveGlass(
+              settings: LiquidGlassSettings(
+                thickness: 30,
+                blur: 8,
+                glassColor: effectiveGlass,
+                lightIntensity: isDark ? 0.55 : 0.80,
+                saturation: 1.20,
+              ),
+              shape: const LiquidRoundedSuperellipse(borderRadius: r),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: neutralTint,
+                        borderRadius: BorderRadius.circular(r),
+                      ),
                     ),
                   ),
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(r),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.20)
-                              : Colors.black.withValues(alpha: 0.08),
-                          width: 1.2,
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(r),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.20)
+                                : Colors.black.withValues(alpha: 0.08),
+                            width: 1.2,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                contentColumn(),
-              ],
+                  contentColumn(),
+                ],
+              ),
             ),
           ),
         ],
@@ -344,40 +346,42 @@ class _GlassTile extends StatelessWidget {
       ),
     );
 
-    return AdaptiveGlass(
-      settings: LiquidGlassSettings(
-        // Changed here: thickness 0 removes distortion/shift.
-        thickness: 0,
-        blur:
-            2.0, // Restored blur for clear but properly diffused liquid-glass look
-        glassColor: effectiveGlass,
-        // Changed here: less light intensity reduces harsh edges.
-        lightIntensity: 0.1,
-        saturation: 1.20,
-      ),
-      shape: const LiquidRoundedSuperellipse(borderRadius: 18),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          hoverColor: Colors.transparent,
-          focusColor: Colors.transparent,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: DecoratedBox(
-                  // BorderRadius also helps visual separation here.
-                  decoration: BoxDecoration(
-                    color: neutralTint,
-                    borderRadius: BorderRadius.circular(18),
+    return RepaintBoundary(
+      child: AdaptiveGlass(
+        settings: LiquidGlassSettings(
+          // Changed here: thickness 0 removes distortion/shift.
+          thickness: 0,
+          blur:
+              2.0, // Restored blur for clear but properly diffused liquid-glass look
+          glassColor: effectiveGlass,
+          // Changed here: less light intensity reduces harsh edges.
+          lightIntensity: 0.1,
+          saturation: 1.20,
+        ),
+        shape: const LiquidRoundedSuperellipse(borderRadius: 18),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(18),
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            focusColor: Colors.transparent,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: DecoratedBox(
+                    // BorderRadius also helps visual separation here.
+                    decoration: BoxDecoration(
+                      color: neutralTint,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   ),
                 ),
-              ),
-              tileContent,
-            ],
+                tileContent,
+              ],
+            ),
           ),
         ),
       ),

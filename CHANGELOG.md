@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.31] - 2026-06-15
+### Changed
+- **Liquid Glass Design System Performance Hardening:** Implemented a systemic plan to eliminate scroll-stutter, input lag, and rendering invalidations caused by backdrop filter overlays and layout-thrashing:
+  - **Global Render Isolation:** Wrapped central glass components and direct `BackdropFilter` instances in `RepaintBoundary` widgets. This forces the Flutter engine to cache backdrop filter pixel-blur buffers on the GPU, preventing surrounding viewport scroll offsets or animations from forcing the GPU to re-evaluate the background pixels on every frame. Affected widgets include `GlassFab`, `GlassPillButton`, `GlassBottomMenu` main cards and option tiles, `RunningWorkoutOverlay` container, `GlobalAppBar`, `RecommendationBanner`, `PRCelebrationBanner`, `SpeedDialMenuOverlay`, and localized water logging dialogs.
+  - **Structural Layout Decoupling:** Refactored main screens to completely decouple floating/sticky bottom navigation and action bars from the main scroll views. Removed standard `Scaffold` properties (`bottomNavigationBar` and `floatingActionButton`) from `live_workout_screen.dart` and `edit_routine_screen.dart`, instead moving those floating layers into the body `Stack` layout as Layer 2 overlays. Wrapped scrollable viewports (Layer 1) and bottom overlays (Layer 2) in separate `RepaintBoundary` widgets, isolating their layout and paint operations.
+  - **Safe-Area Content Padding:** Adjusted scroll view bottom content paddings dynamically to accommodate both safe-area heights and floating bar overlays, ensuring that list items at the end of lists are never permanently clipped or covered by the bottom bar.
+  - **Main Screen Render Isolation:** Wrapped `Scaffold` (holding all page views), the running workout overlay, and the bottom navigation bar / FAB layout in `main_screen.dart` inside separate `RepaintBoundary` layers, completely decoupling page scrolls from floating menu repaints.
+
 ## [0.9.30] - 2026-06-15
 ### Changed
 - **Viewport Scroll Performance & Layout Isolation (Issue #457):** Eliminated scroll-stutter and frame drops during active scrolling:

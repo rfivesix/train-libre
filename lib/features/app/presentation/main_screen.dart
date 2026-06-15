@@ -1064,32 +1064,34 @@ class _MainScreenState extends State<MainScreen>
 
     return Stack(
       children: [
-        Scaffold(
-          extendBodyBehindAppBar: true,
-          extendBody: true,
-          appBar: _buildAppBar(context, _currentIndex, l10n),
-          bottomNavigationBar: SizedBox(height: dynamicBottomPadding),
-          body: PageView(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            children: <Widget>[
-              KeepAlivePage(
-                storageKey: const PageStorageKey('tab_tagebuch'),
-                child: DiaryScreen(contentKey: _tagebuchKey),
-              ),
-              const KeepAlivePage(
-                storageKey: PageStorageKey('tab_workout'),
-                child: WorkoutHubScreen(),
-              ),
-              const KeepAlivePage(
-                storageKey: PageStorageKey('tab_stats'),
-                child: StatisticsHubScreen(),
-              ),
-              const KeepAlivePage(
-                storageKey: PageStorageKey('tab_nutrition'),
-                child: NutritionHubScreen(),
-              ),
-            ],
+        RepaintBoundary(
+          child: Scaffold(
+            extendBodyBehindAppBar: true,
+            extendBody: true,
+            appBar: _buildAppBar(context, _currentIndex, l10n),
+            bottomNavigationBar: SizedBox(height: dynamicBottomPadding),
+            body: PageView(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              children: <Widget>[
+                KeepAlivePage(
+                  storageKey: const PageStorageKey('tab_tagebuch'),
+                  child: DiaryScreen(contentKey: _tagebuchKey),
+                ),
+                const KeepAlivePage(
+                  storageKey: PageStorageKey('tab_workout'),
+                  child: WorkoutHubScreen(),
+                ),
+                const KeepAlivePage(
+                  storageKey: PageStorageKey('tab_stats'),
+                  child: StatisticsHubScreen(),
+                ),
+                const KeepAlivePage(
+                  storageKey: PageStorageKey('tab_nutrition'),
+                  child: NutritionHubScreen(),
+                ),
+              ],
+            ),
           ),
         ),
         // Laufendes Workout Overlay
@@ -1098,41 +1100,43 @@ class _MainScreenState extends State<MainScreen>
             bottom: 36 + kNavBarHeight,
             left: 16,
             right: 16,
-            child: RunningWorkoutOverlay(
-              elapsedDuration: elapsed,
-              onContinue: () {
-                final log = context.read<LiveWorkoutViewModel>().workoutLog;
-                if (log != null) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          LiveWorkoutScreen(workoutLog: log, routine: null),
-                    ),
-                  );
-                }
-              },
-              onDiscard: () async {
-                final l10n = AppLocalizations.of(context)!;
-                final wsm = context.read<LiveWorkoutViewModel>();
-                final logId = wsm.workoutLog?.id;
-
-                // FIX: showDeleteConfirmation instead of showDialog.
-                final confirmed = await showDeleteConfirmation(
-                  context,
-                  title: l10n.discard_button, // "Discard"
-                  content: l10n.deleteWorkoutConfirmContent, // "Really delete?"
-                  confirmLabel: l10n.discard_button, // Red button: "Discard"
-                );
-
-                if (confirmed) {
-                  if (logId != null) {
-                    await WorkoutLocalDataSource.instance.deleteWorkoutLog(
-                      logId,
+            child: RepaintBoundary(
+              child: RunningWorkoutOverlay(
+                elapsedDuration: elapsed,
+                onContinue: () {
+                  final log = context.read<LiveWorkoutViewModel>().workoutLog;
+                  if (log != null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            LiveWorkoutScreen(workoutLog: log, routine: null),
+                      ),
                     );
                   }
-                  await wsm.finishWorkout();
-                }
-              },
+                },
+                onDiscard: () async {
+                  final l10n = AppLocalizations.of(context)!;
+                  final wsm = context.read<LiveWorkoutViewModel>();
+                  final logId = wsm.workoutLog?.id;
+
+                  // FIX: showDeleteConfirmation instead of showDialog.
+                  final confirmed = await showDeleteConfirmation(
+                    context,
+                    title: l10n.discard_button, // "Discard"
+                    content: l10n.deleteWorkoutConfirmContent, // "Really delete?"
+                    confirmLabel: l10n.discard_button, // Red button: "Discard"
+                  );
+
+                  if (confirmed) {
+                    if (logId != null) {
+                      await WorkoutLocalDataSource.instance.deleteWorkoutLog(
+                        logId,
+                      );
+                    }
+                    await wsm.finishWorkout();
+                  }
+                },
+              ),
             ),
           ),
         // Bottom Nav Bar & FAB
@@ -1140,9 +1144,10 @@ class _MainScreenState extends State<MainScreen>
           bottom: 12,
           left: 16,
           right: 16,
-          child: KeyedSubtree(
-            key: _tourNavigationBarKey,
-            child: LayoutBuilder(
+          child: RepaintBoundary(
+            child: KeyedSubtree(
+              key: _tourNavigationBarKey,
+              child: LayoutBuilder(
               builder: (context, constraints) {
                 final double horizontalPadding = 0.0;
                 final double verticalPadding = 20.0;
@@ -1315,6 +1320,7 @@ class _MainScreenState extends State<MainScreen>
               },
             ),
           ),
+        ),
         ),
         // Speed Dial Menu Animation
         SpeedDialMenuOverlay(
