@@ -235,7 +235,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                         const SizedBox(width: 12),
                         // Interactive "Apply" Pill Button
                         Semantics(
-                          label: 'Apply Recommendation',
+                          label: l10n.semanticsApplyRecommendation,
                           button: true,
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
@@ -263,7 +263,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                         ),
                         const SizedBox(width: 8),
                         Semantics(
-                          label: 'Dismiss Banner',
+                          label: l10n.semanticsDismissBanner,
                           button: true,
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,

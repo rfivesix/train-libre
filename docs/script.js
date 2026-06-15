@@ -1,4 +1,12 @@
 (() => {
+  const APP_LINKS = {
+    github: "https://github.com/rfivesix/train-libre",
+    testflight: "https://testflight.apple.com/join/x1UaM6TQ",
+    obtainium: "http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/rfivesix/train-libre/releases",
+    android_release: "https://github.com/rfivesix/train-libre/releases",
+    fdroid: "https://rfivesix.github.io/train-libre/fdroid/repo?fingerprint=759124FF05FDCFA070EB2475D86D79614AE4F58779E391C8AE44C4EDC7A2CFB8"
+  };
+
   const TRANSLATIONS = {
     en: {
       nav_features: "Features",
@@ -11,6 +19,9 @@
       hero_copy: "A private, local-first app for structured workout logging, reviewable AI meal recognition, adaptive calorie guidance, nutrition, hydration, measurements, sleep, pulse, and long-term progress without a mandatory cloud account.",
       hero_cta_ios: "iOS TestFlight Beta",
       hero_cta_android: "Android (Obtainium)",
+      hero_cta_android_download: "Android (F-Droid)",
+      nav_android_apk: "Android APK",
+      footer_android_release: "Android APK / F-Droid",
       hero_point_1: "AI meal recognition",
       hero_point_2: "Adaptive calorie guidance",
       hero_point_3: "Optional BYOK AI",
@@ -396,7 +407,10 @@
       hero_statement: "Keine Werbung. Kein Kontozwang. Fundierte Analysen.",
       hero_copy: "Eine private, offline-fokussierte App für dein Workout-, Kalorien- und Körpergewicht-Tracking, die vollständig auf Werbung, Benutzerkonten und Tracking-SDKs verzichtet.",
       hero_cta_ios: "iOS TestFlight Beta",
-      hero_cta_android: "Android (via Obtainium)",
+      hero_cta_android: "Android (Obtainium)",
+      hero_cta_android_download: "Android (F-Droid)",
+      nav_android_apk: "Android-APK",
+      footer_android_release: "Android APK / F-Droid",
       hero_point_1: "Präzises Workout- und Nährwert-Tracking",
       hero_point_2: "Maximale Privatsphäre dank Offline-First-Architektur",
       hero_point_3: "Vollständiger Verzicht auf Werbung und Kontenzwang",
@@ -783,6 +797,9 @@
       "hero_copy": "Une application privée et locale pour le suivi structuré des séances d'entraînement, la reconnaissance des repas par IA, le guidage calorique adaptatif, la nutrition, l'hydratation, les mesures corporelles, le sommeil, le pouls et les progrès à long terme, sans compte cloud obligatoire.",
       "hero_cta_ios": "Bêta iOS TestFlight",
       "hero_cta_android": "Android (Obtainium)",
+      "hero_cta_android_download": "Android (F-Droid)",
+      "nav_android_apk": "Android APK",
+      "footer_android_release": "Android APK / F-Droid",
       "hero_point_1": "Reconnaissance des repas par IA",
       "hero_point_2": "Guidage calorique adaptatif",
       "hero_point_3": "IA BYOK facultative",
@@ -1140,7 +1157,7 @@
       "sleep_sub_timing": "Timing Circadien (T)",
       "sleep_sub_regularity": "Régularité du sommeil (R)",
       "sleep_sub_multiplier": "Pénalité globale"
-},
+    },
     it: {
       "nav_features": "Funzionalità",
       "nav_guidance": "Guida IA",
@@ -1152,6 +1169,9 @@
       "hero_copy": "Un'applicazione privata e locale per il tracciamento strutturato degli allenamenti, il riconoscimento dei pasti tramite IA, la guida calorica adattiva, la nutrizione, l'idratazione, le misurazioni corporee, il sonno, la frequenza cardiaca e i progressi a lungo termine, senza account cloud obbligatorio.",
       "hero_cta_ios": "Beta iOS TestFlight",
       "hero_cta_android": "Android (Obtainium)",
+      "hero_cta_android_download": "Android (F-Droid)",
+      "nav_android_apk": "Android APK",
+      "footer_android_release": "Android APK / F-Droid",
       "hero_point_1": "Riconoscimento pasti tramite IA",
       "hero_point_2": "Guida calorica adattiva",
       "hero_point_3": "IA BYOK opzionale",
@@ -1509,7 +1529,7 @@
       "sleep_sub_timing": "Timing Circadiano (T)",
       "sleep_sub_regularity": "Regolarità del sonno (R)",
       "sleep_sub_multiplier": "Penalità globale"
-},
+    },
     ja: {
       "nav_features": "機能",
       "nav_guidance": "AIガイダンス",
@@ -1521,6 +1541,9 @@
       "hero_copy": "ワークアウトの記録、AIによる食事認識、適応型カロリー指導、栄養、水分補給、身体測定、睡眠、脈拍、長期的な進捗状況を、クラウドのアカウントなしでデバイス内で安全に追跡するプライベートなローカルファーストアプリ。",
       "hero_cta_ios": "iOS TestFlight ベータ版",
       "hero_cta_android": "Android (Obtainium)",
+      "hero_cta_android_download": "Android (F-Droid)",
+      "nav_android_apk": "Android APK",
+      "footer_android_release": "Android APK / F-Droid",
       "hero_point_1": "AI食事認識",
       "hero_point_2": "適応型カロリーガイダンス",
       "hero_point_3": "オプションのBYOK AI",
@@ -1878,7 +1901,7 @@
       "sleep_sub_timing": "時間帯 (T)",
       "sleep_sub_regularity": "睡眠規則性 (R)",
       "sleep_sub_multiplier": "ボトルネック制限ペナルティ"
-}
+    }
   };
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1954,8 +1977,8 @@
     if (typeof renderMathInElement === "function") {
       renderMathInElement(document.body, {
         delimiters: [
-          {left: '$$', right: '$$', display: true},
-          {left: '$', right: '$', display: false}
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false }
         ],
         throwOnError: false
       });
@@ -2033,6 +2056,17 @@
   };
 
 
+  // Centralized dynamic links routing
+  const initLinks = () => {
+    document.querySelectorAll("[data-link]").forEach((el) => {
+      const key = el.getAttribute("data-link");
+      const url = APP_LINKS[key];
+      if (url) {
+        el.setAttribute("href", url);
+      }
+    });
+  };
+
   // Fallback images
   const initImages = () => {
     document.querySelectorAll("img[data-fallback-src]").forEach((image) => {
@@ -2051,6 +2085,7 @@
     initReveal();
     initParallax();
     initImages();
+    initLinks();
   });
 
   // Early theme initialization to prevent flash

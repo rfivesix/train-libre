@@ -89,7 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         (now.month == birthday.month && now.day < birthday.day)) {
       age--;
     }
-    return '$age Jahre';
+    return AppLocalizations.of(context)!.yearsOld(age);
   }
 
   Future<void> _showEditProfileDialog() async {
@@ -113,12 +113,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     await showGlassBottomMenu(
       context: context,
-      title: 'Profil bearbeiten',
+      title: l10n.profileEdit,
       contentBuilder: (ctx, close) {
         return StatefulBuilder(
           builder: (context, setModalState) {
             final dateText = selectedDate == null
-                ? 'Geburtsdatum wählen'
+                ? l10n.selectBirthday
                 : DateFormat.yMMMd(
                     Localizations.localeOf(context).toString(),
                   ).format(selectedDate!);

@@ -28,6 +28,7 @@ import 'widgets/workout_card.dart';
 import 'widgets/pr_celebration_banner.dart';
 import 'widgets/exercise_e1rm_summary.dart';
 import 'widgets/live_workout_set_row.dart';
+import 'widgets/exercise_notes_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../util/time_util.dart';
@@ -248,72 +249,25 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   void _editExerciseNotes(BuildContext context, RoutineExercise re) async {
     final l10n = AppLocalizations.of(context)!;
     final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
-    final controller = TextEditingController(text: re.notes ?? '');
 
     final result = await showGlassBottomMenu<String?>(
       context: context,
-      title: "Übungsnotiz",
+      title: l10n.exerciseNoteTitle,
       contentBuilder: (ctx, close) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: controller,
-              maxLines: 3,
-              autofocus: true,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                hintText: "Notizen oder Hinweise eingeben...",
-                filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.05),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                if (re.notes != null && re.notes!.isNotEmpty) ...[
-                  IconButton(
-                    icon: Icon(
-                      LucideIcons.trash_2,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    tooltip: "Notiz löschen",
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop('');
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop(null);
-                    },
-                    child: Text(l10n.cancel),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop(controller.text.trim());
-                    },
-                    child: Text(l10n.save),
-                  ),
-                ),
-              ],
-            ),
-          ],
+        return ExerciseNotesDialog(
+          initialNotes: re.notes,
+          onSave: (notes) {
+            close();
+            Navigator.of(ctx).pop(notes);
+          },
+          onDelete: () {
+            close();
+            Navigator.of(ctx).pop('');
+          },
+          onCancel: () {
+            close();
+            Navigator.of(ctx).pop(null);
+          },
         );
       },
     );
@@ -458,7 +412,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Text(
-              "Füge eine Übung hinzu, um mit dem Protokollieren zu beginnen.",
+              l10n.emptyStateAddFirstExerciseSubtitle,
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,

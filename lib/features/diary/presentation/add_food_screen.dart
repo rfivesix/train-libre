@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';
@@ -703,7 +702,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             icon: Icon(
-                              CupertinoIcons.barcode_viewfinder,
+                              LucideIcons.scan_barcode,
                               color: colorScheme.primary,
                               size: 26,
                             ),

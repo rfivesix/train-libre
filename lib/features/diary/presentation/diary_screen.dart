@@ -105,7 +105,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
         ),
         GlassMenuAction(
           icon: LucideIcons.text_initial,
-          label: '${l10n.shareAsText} / kopieren',
+          label: l10n.shareAsTextOrCopy,
           onTap: () async {
             try {
               await _shareService.shareDailyLogAsText(viewModel.selectedDate,

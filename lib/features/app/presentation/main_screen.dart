@@ -1363,7 +1363,7 @@ class _MainScreenState extends State<MainScreen>
         right: DesignConstants.screenPaddingHorizontal,
       ),
       child: Semantics(
-        label: 'Profile',
+        label: AppLocalizations.of(context)!.profile,
         button: true,
         child: InkWell(
           customBorder: const CircleBorder(),

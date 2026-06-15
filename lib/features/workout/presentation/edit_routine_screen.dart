@@ -420,9 +420,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   }
 
   void _editExerciseNotes(BuildContext context, RoutineExercise re) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showGlassBottomMenu<String?>(
       context: context,
-      title: "Übungsnotiz",
+      title: l10n.exerciseNoteTitle,
       contentBuilder: (ctx, close) {
         return ExerciseNotesDialog(
           initialNotes: re.notes,

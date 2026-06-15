@@ -5,12 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.31] - 2026-06-15
+### Added
+- **Android Website Release & Centralized Link Routing:** Upgraded the product website (`docs/`) to add explicit, premium Android and F-Droid release links alongside existing iOS and FOSS deployment options:
+  - **Centralized Routing Contract:** Implemented a unified `APP_LINKS` registry in `docs/script.js` to dynamically bind URLs across all HTML files via `data-link` attributes, decoupling structural markup from hardcoded links.
+  - **Parallel Hero CTAs:** Integrated a new primary "Download for Android" button next to the iOS TestFlight CTA using a custom Lucide-style download icon. Preserved Obtainium as a secondary glass button.
+  - **Navigation & Footer Links:** Added an "Android APK" header nav-link and an "Android APK / F-Droid" footer link next to the existing GitHub links across all subpages.
+  - **Localization Invariants:** Localized all new CTA elements and links across English, German, French, Italian, and Japanese translations in `docs/script.js`.
+
 ### Changed
+- **App-wide Localization Audit & Hardcoded German String Elimination:** Audited and refactored multiple UI and service layers to completely clean and translate hardcoded German text literals across English, German, French, Italian, and Japanese:
+  - **Dynamic Progress Mapping in App Initializer:** Implemented a dynamic lookup mapper `_getLocalizedProgress` in `app_initializer_screen.dart` to translate raw German progress/status strings streamed from `BasisDataManager` (e.g., "Prüfe Übungen...", "Basis-Produkte", "Kategorien", and entry counts) at the UI boundary.
+  - **Localized Import Defaults:** Refactored `import_manager.dart` and `data_management_screen.dart` to accept dynamic, localized fallback workout and exercise titles (via `l10n.importedWorkout` and `l10n.unknownExercise`) rather than hardcoded German fallbacks.
+  - **Profile Semantics:** Translated the hardcoded `'Profile'` semantics label in the app bar to `l10n.profile` in `main_screen.dart`.
+  - **Extended Translations:** Added all corresponding localization keys, placeholders, and definitions to the `app_*.arb` files and regenerated localizations successfully.
+- **Website CTA Icon Swap & F-Droid / Obtainium Vector Assets:** Corrected the download CTA button icons on the homepage:
+  - Embedded the official Inkscape-cleaned F-Droid Client vector SVG logo on the F-Droid button.
+  - Embedded the official colored Obtainium vector SVG logo (cropped to bounding viewBox) on the Obtainium button.
 - **Liquid Glass Design System Performance Hardening:** Implemented a systemic plan to eliminate scroll-stutter, input lag, and rendering invalidations caused by backdrop filter overlays and layout-thrashing:
   - **Global Render Isolation:** Wrapped central glass components and direct `BackdropFilter` instances in `RepaintBoundary` widgets. This forces the Flutter engine to cache backdrop filter pixel-blur buffers on the GPU, preventing surrounding viewport scroll offsets or animations from forcing the GPU to re-evaluate the background pixels on every frame. Affected widgets include `GlassFab`, `GlassPillButton`, `GlassBottomMenu` main cards and option tiles, `RunningWorkoutOverlay` container, `GlobalAppBar`, `RecommendationBanner`, `PRCelebrationBanner`, `SpeedDialMenuOverlay`, and localized water logging dialogs.
   - **Structural Layout Decoupling:** Refactored main screens to completely decouple floating/sticky bottom navigation and action bars from the main scroll views. Removed standard `Scaffold` properties (`bottomNavigationBar` and `floatingActionButton`) from `live_workout_screen.dart` and `edit_routine_screen.dart`, instead moving those floating layers into the body `Stack` layout as Layer 2 overlays. Wrapped scrollable viewports (Layer 1) and bottom overlays (Layer 2) in separate `RepaintBoundary` widgets, isolating their layout and paint operations.
   - **Safe-Area Content Padding:** Adjusted scroll view bottom content paddings dynamically to accommodate both safe-area heights and floating bar overlays, ensuring that list items at the end of lists are never permanently clipped or covered by the bottom bar.
   - **Main Screen Render Isolation:** Wrapped `Scaffold` (holding all page views), the running workout overlay, and the bottom navigation bar / FAB layout in `main_screen.dart` inside separate `RepaintBoundary` layers, completely decoupling page scrolls from floating menu repaints.
+- **LucideIcons:** migrated the last missing Cupertino icon to icon from LucideIcons.
+
+### Fixed
+- **AI Meal Capture Image Layout:** Fixed a layout issue where the horizontal image preview list was constrained by the screen's outer padding. Removed horizontal padding from the parent scroll view and applied it directly to the list container and label, enabling edge-to-edge scrolling for captured meal images.
 
 ## [0.9.30] - 2026-06-15
 ### Changed

@@ -5127,4 +5127,210 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get shareSleepRestingHeartRate => 'Frequenza cardiaca a riposo';
+
+  @override
+  String get shareAsTextOrCopy => 'Condividi / copia come testo';
+
+  @override
+  String get editExercise => 'Modifica esercizio';
+
+  @override
+  String exerciseCopyCreated(String exerciseName) {
+    return 'Copia di \'$exerciseName\' creata.';
+  }
+
+  @override
+  String get copySystemExerciseTitle => 'Copia esercizio di sistema';
+
+  @override
+  String get copySystemExerciseBody =>
+      'Questo esercizio è fornito dal sistema e non può essere modificato direttamente. Vuoi crearne una copia personalizzata per modificarlo?';
+
+  @override
+  String get createCopyAndEdit => 'Crea copia e modifica';
+
+  @override
+  String get profileEdit => 'Modifica profilo';
+
+  @override
+  String get selectBirthday => 'Seleziona la data di nascita';
+
+  @override
+  String get exerciseNoteTitle => 'Nota esercizio';
+
+  @override
+  String get exerciseNoteHint => 'Inserisci note o suggerimenti...';
+
+  @override
+  String get deleteNoteTooltip => 'Elimina nota';
+
+  @override
+  String get emptyStateAddFirstExerciseSubtitle =>
+      'Aggiungi un esercizio per iniziare a registrare.';
+
+  @override
+  String get syncRoutineTitle => 'Aggiorna routine?';
+
+  @override
+  String get syncRoutineSubtitle =>
+      'Rilevate modifiche alla struttura o all\'ordine.';
+
+  @override
+  String syncRoutineBody(String routineName) {
+    return 'Vuoi aggiornare la routine \'$routineName\' con i dati dell\'allenamento corrente (esercizi, ordine, serie)?';
+  }
+
+  @override
+  String get discard => 'Scarta';
+
+  @override
+  String get updateNow => 'Aggiorna ora';
+
+  @override
+  String get syncRoutineSuccess => 'Routine aggiornata con successo!';
+
+  @override
+  String syncRoutineError(String error) {
+    return 'Errore durante l\'aggiornamento della routine: $error';
+  }
+
+  @override
+  String createRoutineError(String error) {
+    return 'Errore durante la creazione della routine: $error';
+  }
+
+  @override
+  String nutritionPerQuantity(String quantity) {
+    return 'Valori nutrizionali per ${quantity}g';
+  }
+
+  @override
+  String get settingsLocalModelName => 'Nome modello locale';
+
+  @override
+  String get settingsCustomBaseUrl => 'URL di base personalizzato';
+
+  @override
+  String get settingsCustomModelName => 'Nome modello personalizzato';
+
+  @override
+  String get settingsAiFoodNameLanguage => 'Lingua nomi alimenti IA';
+
+  @override
+  String get settingsRequestTimeout => 'Timeout richiesta';
+
+  @override
+  String settingsSeconds(int seconds) {
+    return '$seconds secondi';
+  }
+
+  @override
+  String get semanticsApplyRecommendation => 'Applica raccomandazione';
+
+  @override
+  String get semanticsDismissBanner => 'Chiudi banner';
+
+  @override
+  String get importedWorkout => 'Allenamento importato';
+
+  @override
+  String get unknownExercise => 'Esercizio sconosciuto';
+
+  @override
+  String get devExportBaseDb => 'Esporta database di base';
+
+  @override
+  String get initCheckingExercises => 'Verifica degli esercizi...';
+
+  @override
+  String get initLoadingRemoteManifest => 'Caricamento del manifesto remoto...';
+
+  @override
+  String get initExercisesUpToDate => 'Esercizi aggiornati';
+
+  @override
+  String get initNoDownloadRequired => 'Nessun download remoto richiesto.';
+
+  @override
+  String get initLoadingExercises => 'Caricamento degli esercizi...';
+
+  @override
+  String initDownloadingRemoteCatalog(String version) {
+    return 'Download del catalogo degli esercizi remoto $version...';
+  }
+
+  @override
+  String get initPreparingImport =>
+      'Preparazione del download per l\'importazione...';
+
+  @override
+  String get initExercisesReady => 'Esercizi pronti';
+
+  @override
+  String initImportingRemoteCatalog(String version) {
+    return 'Importazione del catalogo degli esercizi remoto $version...';
+  }
+
+  @override
+  String initCheckingProductDatabase(String country) {
+    return 'Verifica del database dei prodotti ($country)...';
+  }
+
+  @override
+  String get initProductDatabaseUpToDate => 'Database prodotti aggiornato';
+
+  @override
+  String get initLoadingProductDatabase =>
+      'Caricamento del database dei prodotti...';
+
+  @override
+  String initDownloadingProductBundle(String version) {
+    return 'Download del pacchetto di prodotti remoto $version...';
+  }
+
+  @override
+  String get initProductDatabaseReady => 'Database prodotti pronto';
+
+  @override
+  String initImportingProductBundle(String version) {
+    return 'Importazione del pacchetto di prodotti remoto $version...';
+  }
+
+  @override
+  String get initNoOffBundle =>
+      'Nessun pacchetto OFF/remoto disponibile. I dati OFF locali esistenti rimangono invariati.';
+
+  @override
+  String initEntriesProgress(String processed, String totalCount) {
+    return '$processed / $totalCount voci';
+  }
+
+  @override
+  String initUpdateTask(String task) {
+    return 'Aggiorna $task';
+  }
+
+  @override
+  String initCheckingTask(String task) {
+    return 'Verifica di $task...';
+  }
+
+  @override
+  String initTaskUpToDate(String task) {
+    return '$task aggiornato';
+  }
+
+  @override
+  String get initInitializing => 'Inizializzazione...';
+
+  @override
+  String get initPreparation => 'Preparazione...';
+
+  @override
+  String get initReady => 'Pronto';
+
+  @override
+  String yearsOld(int age) {
+    return '$age anni';
+  }
 }

@@ -379,7 +379,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             if (_hasPortionInfo)
               const SizedBox(height: DesignConstants.spacingL),
             Text(
-              "Nährwerte pro ${displayQuantity}g",
+              l10n.nutritionPerQuantity(displayQuantity.toString()),
               style: textTheme.titleLarge,
             ),
             const SizedBox(height: DesignConstants.spacingS),
@@ -515,7 +515,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                           ),
                           const Spacer(),
                           IconButton(
-                            tooltip: 'Basis-DB exportieren',
+                            tooltip: l10n.devExportBaseDb,
                             onPressed: _exportBaseDb,
                             icon: const Icon(LucideIcons.share),
                           ),

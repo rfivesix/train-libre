@@ -33,11 +33,15 @@ class ImportBackgroundTaskParams {
   final Uint8List fileBytes;
   final String extension;
   final bool isImperial;
+  final String defaultWorkoutTitle;
+  final String defaultExerciseName;
 
   ImportBackgroundTaskParams({
     required this.fileBytes,
     required this.extension,
     required this.isImperial,
+    this.defaultWorkoutTitle = 'Imported Workout',
+    this.defaultExerciseName = 'Unknown Exercise',
   });
 }
 
@@ -46,7 +50,11 @@ class ImportManager {
   /// Imports workout data from a CSV or Excel file.
   ///
   /// [isImperial] if true, incoming weight values are treated as lbs and converted to kg.
-  Future<int> importWorkoutFile({required bool isImperial}) async {
+  Future<int> importWorkoutFile({
+    required bool isImperial,
+    String? defaultWorkoutTitle,
+    String? defaultExerciseName,
+  }) async {
     try {
       // 1. Select file
       final result = await FilePicker.pickFiles(
@@ -67,6 +75,8 @@ class ImportManager {
           fileBytes: fileBytes,
           extension: extension,
           isImperial: isImperial,
+          defaultWorkoutTitle: defaultWorkoutTitle ?? 'Imported Workout',
+          defaultExerciseName: defaultExerciseName ?? 'Unknown Exercise',
         ),
       );
 
@@ -169,7 +179,7 @@ class ImportManager {
         }
       }
 
-      final title = rowData['title']?.toString() ?? 'Importiertes Workout';
+      final title = rowData['title']?.toString() ?? params.defaultWorkoutTitle;
       final startTimeRaw = rowData['start_time']?.toString() ?? '';
 
       if (startTimeRaw.trim().isEmpty) continue;
@@ -182,7 +192,7 @@ class ImportManager {
 
     for (var group in workoutGroupsMap.values) {
       final firstRow = group.first;
-      final title = firstRow['title']?.toString() ?? 'Importiertes Workout';
+      final title = firstRow['title']?.toString() ?? params.defaultWorkoutTitle;
       final notes = firstRow['description']?.toString();
       final startTime = _parseDate(firstRow['start_time']);
       final endTime = _parseDate(firstRow['end_time']);
@@ -191,7 +201,7 @@ class ImportManager {
       int setOrder = 0;
       for (var row in group) {
         final rawExerciseName =
-            row['exercise']?.toString() ?? 'Unbekannte Übung';
+            row['exercise']?.toString() ?? params.defaultExerciseName;
 
         double? weight = double.tryParse(row['weight']?.toString() ?? '');
         if (weight != null && isImperial) {

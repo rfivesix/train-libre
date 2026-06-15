@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/daily_nutrition.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/glass_progress_bar.dart';
 
 /// A compact visual overview of daily nutrition and hydration progress.
@@ -15,10 +16,11 @@ class CompactNutritionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         GlassProgressBar(
-          label: 'Kalorien',
+          label: l10n.calories,
           value: nutritionData.calories.toDouble(),
           target: nutritionData.targetCalories.toDouble(),
           unit: 'kcal',
@@ -26,7 +28,7 @@ class CompactNutritionBar extends StatelessWidget {
         ),
         const SizedBox(height: DesignConstants.spacingM),
         GlassProgressBar(
-          label: 'Protein',
+          label: l10n.protein,
           value: nutritionData.protein.toDouble(),
           target: nutritionData.targetProtein.toDouble(),
           unit: 'g',
@@ -34,7 +36,7 @@ class CompactNutritionBar extends StatelessWidget {
         ),
         const SizedBox(height: DesignConstants.spacingM),
         GlassProgressBar(
-          label: 'Wasser',
+          label: l10n.water,
           value: nutritionData.water / 1000,
           target: nutritionData.targetWater / 1000,
           unit: 'L',
