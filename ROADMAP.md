@@ -6,7 +6,6 @@
 - Weekly training calendar to assign plans/routines to specific days (e.g. Mon Push, Wed Pull, Fri Legs) and see planned vs. completed sessions.
 - More advanced training and nutrition goal logic (training/rest‑day profiles, simple refeed/high‑day patterns) on top of the adaptive TDEE estimator.
 - Official Google Play Store release.
-- F-Droid Release.
 
 ## Long-term
 - Wearable-/watch‑first logging experiences for minimal‑friction set tracking.
@@ -20,3 +19,4 @@ _These are early ideas, not commitments. They will only happen if they make sens
 - **Optional private account & sync (self‑hostable first):** Long‑term, there could be an optional account layer for encrypted backup and multi‑device sync, designed to be self‑hostable (e.g. via a small Docker setup, possibly on top of something like Supabase or a similar backend). A public, centrally hosted instance might exist later, but would remain strictly optional because Train Libre should work fully without any account or external server.
 - **On-Device Local AI Insights (BYOM - Bring Your Own Model):** Explore running ultra-lightweight, quantized LLMs directly on-device to provide intelligent, 100% private coaching adjustments and sleep/nutrition correlations without cloud leaks.
 - **Evidenced-Based Fatigue & Periodization Tracking:** Advanced metrics for powerlifters (fatigue accumulation patterns, volume-load velocity tracking, and automated deload recommendations derived from historical RIR trends).
+- **On-Device Adaptive Biometric Fine-Tuning (New):** Investigate a lightweight, purely mathematical on-device ML model (e.g., using Bayesian Regression) to correlate individual sleep scores, recovery metrics, and macro nutrition directly with lift-specific e1RM progression. By initializing the system with expert-vetted sports science principles (Priors), the model provides immediate value from day one and progressively fine-tunes itself entirely offline to map the user's unique biological fatigue signatures without needing central user datasets.
