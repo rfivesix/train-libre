@@ -22,7 +22,6 @@ import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../widgets/common/glass_pill_button.dart';
 
 // Dev flag: keep disabled for production or remove dev-only sections entirely.
 const bool kDevEditEnabled = false;
@@ -870,15 +869,15 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Portion toggle bar — compact glass segmented control
+// Portion toggle bar — compact segmented control
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// A compact two-chip glass segmented control for toggling between
 /// per-portion and per-100g nutrition views.
 ///
-/// The outer [GlassPillButton] (no tap handler) supplies the shared glass
-/// track surface. Each [_PortionChip] inside handles its own tap gesture and
-/// renders an [AnimatedContainer] selected-state highlight.
+/// The shared track uses the same restrained rounded-card language as the
+/// nutrition cards, while each [_PortionChip] handles its own tap gesture and
+/// animated selected-state highlight.
 class _PortionToggleBar extends StatelessWidget {
   final bool showPer100g;
   final ValueChanged<bool> onChanged;
@@ -894,25 +893,50 @@ class _PortionToggleBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Outer pill = glass track (non-interactive — chips handle taps).
-    return GlassPillButton(
-      height: 30,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _PortionChip(
-            label: labelPortion,
-            selected: !showPer100g,
-            onTap: () => onChanged(false),
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Semantics(
+      button: true,
+      selected: showPer100g,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        height: 36,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: isDark
+              ? cs.surfaceContainerHighest.withValues(alpha: 0.46)
+              : cs.surfaceContainerHighest.withValues(alpha: 0.74),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: cs.onSurface.withValues(alpha: isDark ? 0.14 : 0.08),
           ),
-          const SizedBox(width: 2),
-          _PortionChip(
-            label: label100g,
-            selected: showPer100g,
-            onTap: () => onChanged(true),
-          ),
-        ],
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+              color: cs.shadow.withValues(alpha: isDark ? 0.12 : 0.08),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _PortionChip(
+              label: labelPortion,
+              selected: !showPer100g,
+              onTap: () => onChanged(false),
+            ),
+            const SizedBox(width: 2),
+            _PortionChip(
+              label: label100g,
+              selected: showPer100g,
+              onTap: () => onChanged(true),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -937,24 +961,44 @@ class _PortionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: onTap,
+    return Material(
+      color: Colors.transparent,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        curve: Curves.easeOutCubic,
+        constraints: const BoxConstraints(minWidth: 58, minHeight: 30),
         decoration: BoxDecoration(
           color: selected
-              ? cs.primary.withValues(alpha: 0.22)
+              ? cs.primary.withValues(alpha: isDark ? 0.34 : 0.16)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(99),
+          borderRadius: BorderRadius.circular(15),
+          border: selected
+              ? Border.all(
+                  color: cs.primary.withValues(alpha: isDark ? 0.34 : 0.18),
+                )
+              : null,
         ),
-        child: Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: selected ? cs.primary : cs.onSurfaceVariant,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(15),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Center(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: selected
+                      ? cs.primary
+                      : cs.onSurfaceVariant.withValues(alpha: 0.88),
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  letterSpacing: 0,
+                ),
+              ),
+            ),
           ),
         ),
       ),
