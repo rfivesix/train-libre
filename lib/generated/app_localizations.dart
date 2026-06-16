@@ -9282,6 +9282,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy created: {name}'**
   String foodCopyCreated(String name);
+
+  /// No description provided for @nutritionPer100g.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition per 100g'**
+  String get nutritionPer100g;
+
+  /// No description provided for @nutritionPerPortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition per Portion ({grams}g)'**
+  String nutritionPerPortion(int grams);
 }
 
 class _AppLocalizationsDelegate

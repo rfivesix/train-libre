@@ -2351,5 +2351,7 @@
   "copySystemFoodTitle": "システム食品のコピー",
   "copySystemFoodBody": "システム食品は直接編集できません。カスタムコピーを作成して編集しますか？",
   "createCopyAndEdit": "コピーを作成して編集",
-  "foodCopyCreated": "コピー作成完了: {name}"
+  "foodCopyCreated": "コピー作成完了: {name}",
+  "nutritionPer100g": "100gあたりの栄養成分",
+  "nutritionPerPortion": "1食分（{grams}g）あたりの栄養成分"
 }

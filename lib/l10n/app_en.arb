@@ -2471,5 +2471,14 @@
         "type": "String"
       }
     }
+  },
+  "nutritionPer100g": "Nutrition per 100g",
+  "nutritionPerPortion": "Nutrition per Portion ({grams}g)",
+  "@nutritionPerPortion": {
+    "placeholders": {
+      "grams": {
+        "type": "int"
+      }
+    }
   }
 }

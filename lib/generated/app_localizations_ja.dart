@@ -5116,4 +5116,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String foodCopyCreated(String name) {
     return 'コピー作成完了: $name';
   }
+
+  @override
+  String get nutritionPer100g => '100gあたりの栄養成分';
+
+  @override
+  String nutritionPerPortion(int grams) {
+    return '1食分（${grams}g）あたりの栄養成分';
+  }
 }
