@@ -216,7 +216,7 @@ class _HealthExportSettingsScreenState
             child: Column(
               children: [
                 if (Platform.isIOS) ...[
-                  SwitchListTile(
+                  PlatformAdaptiveSwitchListTile(
                     secondary: const Icon(LucideIcons.heart),
                     title: Text(
                       _exportPlatformTitle(
@@ -274,7 +274,7 @@ class _HealthExportSettingsScreenState
                   ),
                 ],
                 if (Platform.isAndroid) ...[
-                  SwitchListTile(
+                  PlatformAdaptiveSwitchListTile(
                     secondary: const Icon(LucideIcons.heart),
                     title: Text(
                       _exportPlatformTitle(

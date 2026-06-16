@@ -22,6 +22,7 @@ import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/glass_pill_button.dart';
 
 // Dev flag: keep disabled for production or remove dev-only sections entirely.
 const bool kDevEditEnabled = false;
@@ -60,6 +61,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   int? _trackedQuantity;
   bool get _hasPortionInfo => _trackedQuantity != null;
 
+  /// True when the food item carries a declared serving size > 1g.
+  /// Controls visibility of the portion ↔ 100g toggle across both diary
+  /// and catalog contexts.
+  bool get _hasPortionToggle =>
+      _displayItem.productQuantity != null &&
+      _displayItem.productQuantity! > 1.0;
+
   // ---------- DEV: Inline editing ----------
   bool _devEditing = false; // toggled via secret tap
 
@@ -84,10 +92,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     if (widget.trackedItem != null) {
       _displayItem = widget.trackedItem!.item;
       _trackedQuantity = widget.trackedItem!.entry.quantityInGrams;
+      _showPer100g = false;
     } else {
       _displayItem = widget.foodItem!;
-      _trackedQuantity = null;
-      _showPer100g = true;
+      _trackedQuantity = _displayItem.productQuantity?.round();
+      _showPer100g = _trackedQuantity == null;
     }
     _checkIfFavorite();
   }
@@ -483,8 +492,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final displayQuantity =
-        _showPer100g || !_hasPortionInfo ? 100 : _trackedQuantity!;
+
 
     // Explicit top spacing avoids content colliding with status bar/app bar.
     final double topInset = MediaQuery.of(context).padding.top;
@@ -630,35 +638,32 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               thickness: 1,
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
             ),
-            if (_hasPortionInfo)
-              SummaryCard(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildToggleButton(
-                        context,
-                        l10n.foodDetailSegmentPortion,
-                        false,
-                      ),
-                      _buildToggleButton(
-                        context,
-                        l10n.foodDetailSegment100g,
-                        true,
-                      ),
-                    ],
+            // ── Compact nutrition heading + optional portion toggle ────────
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    (_showPer100g || !_hasPortionInfo)
+                        ? l10n.nutritionPer100g
+                        : l10n.nutritionPerPortion(
+                            _trackedQuantity ??
+                                _displayItem.productQuantity?.round() ??
+                                100,
+                          ),
+                    style: textTheme.titleLarge,
                   ),
                 ),
-              ),
-            if (_hasPortionInfo)
-              const SizedBox(height: DesignConstants.spacingL),
-            Text(
-              l10n.nutritionPerQuantity(displayQuantity.toString()),
-              style: textTheme.titleLarge,
+                if (_hasPortionToggle) ...[
+                  const SizedBox(width: DesignConstants.spacingM),
+                  _PortionToggleBar(
+                    showPer100g: _showPer100g,
+                    onChanged: (val) => setState(() => _showPer100g = val),
+                    labelPortion: l10n.foodDetailSegmentPortion,
+                    label100g: l10n.foodDetailSegment100g,
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: DesignConstants.spacingS),
             SummaryCard(
@@ -827,44 +832,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 );
   }
 
-  Widget _buildToggleButton(
-    BuildContext context,
-    String label,
-    bool is100gOption,
-  ) {
-    final theme = Theme.of(context);
-    final isSelected = _showPer100g == is100gOption;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _showPer100g = is100gOption),
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            border: Border.all(
-              color: isSelected
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-            ),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: isSelected
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildNutrientRow(String label, String value) {
     return ListTile(
       dense: true,
@@ -902,4 +869,98 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ),
         ),
       );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Portion toggle bar — compact glass segmented control
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A compact two-chip glass segmented control for toggling between
+/// per-portion and per-100g nutrition views.
+///
+/// The outer [GlassPillButton] (no tap handler) supplies the shared glass
+/// track surface. Each [_PortionChip] inside handles its own tap gesture and
+/// renders an [AnimatedContainer] selected-state highlight.
+class _PortionToggleBar extends StatelessWidget {
+  final bool showPer100g;
+  final ValueChanged<bool> onChanged;
+  final String labelPortion;
+  final String label100g;
+
+  const _PortionToggleBar({
+    required this.showPer100g,
+    required this.onChanged,
+    required this.labelPortion,
+    required this.label100g,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Outer pill = glass track (non-interactive — chips handle taps).
+    return GlassPillButton(
+      height: 30,
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _PortionChip(
+            label: labelPortion,
+            selected: !showPer100g,
+            onTap: () => onChanged(false),
+          ),
+          const SizedBox(width: 2),
+          _PortionChip(
+            label: label100g,
+            selected: showPer100g,
+            onTap: () => onChanged(true),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A single selectable chip inside [_PortionToggleBar].
+///
+/// Uses an [AnimatedContainer] to transition the selection highlight
+/// (primary-tinted background + bold primary text) with a 180ms ease.
+class _PortionChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PortionChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        decoration: BoxDecoration(
+          color: selected
+              ? cs.primary.withValues(alpha: 0.22)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: selected ? cs.primary : cs.onSurfaceVariant,
+            fontWeight:
+                selected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
 }

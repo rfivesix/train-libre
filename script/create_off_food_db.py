@@ -77,6 +77,241 @@ NUTRIENT_NAME_MAP = {
     "caffeine": "caffeine",
 }
 
+# ---------------------------------------------------------------------------
+# is_fluid three-tier heuristic constants
+# ---------------------------------------------------------------------------
+# Tier 1 – ALLOWLIST: category-tag substrings that reliably identify true
+#   beverages. A product is a candidate for is_fluid=1 when at least one of
+#   its categories_tags contains any of these substrings.
+# ---------------------------------------------------------------------------
+_BEVERAGE_ALLOWLIST_SUBSTRINGS: Tuple[str, ...] = (
+    # Generic beverage umbrella tags
+    "en:beverages",
+    "en:beverages-and-beverages-preparations",
+    "en:non-alcoholic-beverages",
+    "en:hot-beverages",
+    "en:cold-beverages",
+    "en:plant-based-beverages",
+    "en:carbonated-beverages",
+    # Waters
+    "en:waters",
+    "en:mineral-waters",
+    "en:sparkling-waters",
+    "en:still-waters",
+    "en:spring-waters",
+    "en:flavoured-waters",
+    "en:vitamin-waters",
+    "en:coconut-waters",
+    # Juices
+    "en:fruit-juices",
+    "en:vegetable-juices",
+    "en:juices",
+    # Soft drinks / sodas
+    "en:soft-drinks",
+    "en:sodas",
+    "en:colas",
+    "en:lemonades",
+    "en:energy-drinks",
+    "en:sports-drinks",
+    "en:electrolyte-drinks",
+    "en:isotonic-drinks",
+    # Teas / coffees
+    "en:teas",
+    "en:herbal-teas",
+    "en:iced-teas",
+    "en:coffees",
+    "en:instant-coffees",
+    "en:coffee-beverages",
+    # Alcoholic
+    "en:alcoholic-beverages",
+    "en:beers",
+    "en:wines",
+    "en:spirits",
+    "en:liqueurs",
+    "en:ciders",
+    "en:champagnes",
+    "en:proseccos",
+    # Milks and drinkable dairy (NOT yoghurt-foods or cheese)
+    "en:plant-based-milks",
+    "en:oat-milks",
+    "en:soy-milks",
+    "en:rice-milks",
+    "en:almond-milks",
+    "en:coconut-milks",          # coconut milk drink, not cooking cream
+    "en:drinkable-yogurts",
+    "en:flavoured-milks",
+    "en:milks",                  # catches en:milks, en:uht-milks, etc.
+    # Smoothies / shakes (ready-to-drink)
+    "en:smoothies",
+    "en:fruit-smoothies",
+    "en:vegetable-smoothies",
+    # Other
+    "en:baby-drinks",
+    "en:drinking-waters",
+    "en:kombucha",
+    "en:kefir-drinks",
+)
+
+# ---------------------------------------------------------------------------
+# Tier 2 – BLOCKLIST: category-tag exact prefixes that identify products that
+#   are NOT beverages even if their quantity is expressed in ml/l/cl.
+#   Checked AFTER the allowlist; a blocklist match forces is_fluid=0.
+# ---------------------------------------------------------------------------
+_NON_BEVERAGE_BLOCKLIST_TAGS: frozenset = frozenset(
+    {
+        # Condiments & sauces
+        "en:condiments",
+        "en:sauces",
+        "en:hot-sauces",
+        "en:soy-sauces",
+        "en:tomato-sauces",
+        "en:barbecue-sauces",
+        "en:pasta-sauces",
+        "en:curry-sauces",
+        "en:vegan-sauces",
+        "en:vegetarian-sauces",
+        "en:dessert-sauces",
+        "en:burger-sauces",
+        "en:sweet-and-sour-sauces",
+        "en:bechamel-sauces",
+        "en:worcestershire-sauces",
+        "en:teriyaki-sauces",
+        "en:nuoc-mam-sauce",
+        "en:fish-sauces",
+        "en:chili-sauces",
+        "en:pepper-sauces",
+        "en:cooking-sauces",
+        "en:salad-dressings",
+        "en:vinaigrettes",
+        "en:mayonnaises",
+        "en:light-mayonnaises",
+        "en:egg-free-mayonnaises",
+        "en:aiolis",
+        "en:dips",
+        "en:ketchup",
+        "en:tomato-ketchup",
+        "en:mustards",
+        # Vinegars (not vinegar-based drinks)
+        "en:vinegars",
+        "en:balsamic-vinegars",
+        "en:cider-vinegars",
+        "en:rice-vinegars",
+        "en:wine-vinegars",
+        "en:sherry-vinegars",
+        "en:glazes-with-vinegar",
+        # Soups & broths (semi-liquid food, not beverages)
+        "en:soups",
+        "en:canned-soups",
+        "en:reheatable-soups",
+        "en:fish-soups",
+        "en:broths",
+        "en:liquid-broths",
+        "en:cream-of-vegetable-soups",
+        # Desserts & frozen
+        "en:desserts",
+        "en:dairy-desserts",
+        "en:frozen-desserts",
+        "en:ice-creams-and-sorbets",
+        "en:ice-creams",
+        "en:ice-cream-tubs",
+        "en:ice-cream-bars",
+        "en:ice-cream-cones",
+        "en:ice-cream-sandwiches",
+        "en:ice-cream-in-a-box",
+        "en:sorbets",
+        "en:ice-pops",
+        "en:frozen-yogurts",
+        # Creams (culinary)
+        "en:creams",
+        "en:uht-creams",
+        "en:whipped-creams",
+        "en:unfermented-creams",
+        "en:compound-dairy-creams",
+        "en:cooking-creams",
+        # Spreads & fats
+        "en:spreads",
+        "en:sweet-spreads",
+        "en:plant-based-spreads",
+        "en:nut-butters",
+        "en:peanut-butters",
+        "en:fats",
+        "en:cooking-fats",
+        "en:oils",
+        "en:olive-oils",
+        # Syrups (culinary / topping — not beverage syrups)
+        "en:simple-syrups",
+        "en:maple-syrups",
+        "en:agave-syrups",
+        "en:toppings-ingredients",
+        # General solid / packaged foods
+        "en:snacks",
+        "en:salty-snacks",
+        "en:sweet-snacks",
+        "en:frozen-foods",
+        "en:groceries",
+        "en:meals",
+        "en:canned-meals",
+        "en:canned-foods",
+        "en:dried-meals",
+        "en:dried-products",
+        "en:dried-products-to-be-rehydrated",
+        # Supplements & non-food
+        "en:dietary-supplements",
+        "en:food-additives",
+        "en:sweeteners",
+        "en:sugar-substitutes",
+        "en:tabletop-sweeteners",
+        "en:artificial-sugar-substitutes",
+        "en:flavors",
+        "en:cooking-helpers",
+        "en:non-food-products",
+        "en:perfumes",
+        "en:oil-perfumes",
+        # Bodybuilding supplements (powder shakes — distinct from ready-to-drink)
+        "en:bodybuilding-supplements",
+    }
+)
+
+
+def resolve_is_fluid(categories_tags: list, product_quantity_unit: str) -> int:
+    """Three-tier heuristic that determines whether a product is a drinkable
+    fluid (beverage), returning 1 for fluid and 0 for solid/condiment.
+
+    Tier 1 – Allowlist: if any category tag contains a known beverage
+             substring, mark as fluid (candidate).
+    Tier 2 – Blocklist: if any category tag is an exact non-beverage tag,
+             override to non-fluid — even if the unit is ml/l/cl or an
+             allowlist match was found. This is the decisive veto.
+    Tier 3 – Volume-unit fallback: only applied when categories_tags is
+             absent/empty; uses product_quantity_unit as a weak signal.
+    """
+    if categories_tags:
+        cats_lower = [c.lower() for c in categories_tags]
+
+        # Tier 1: allowlist check (any substring match)
+        is_candidate = any(
+            allowlist_sub in cat
+            for cat in cats_lower
+            for allowlist_sub in _BEVERAGE_ALLOWLIST_SUBSTRINGS
+        )
+
+        # Tier 2: blocklist veto (exact tag match)
+        is_blocked = any(
+            cat in _NON_BEVERAGE_BLOCKLIST_TAGS for cat in cats_lower
+        )
+
+        if is_blocked:
+            return 0
+        if is_candidate:
+            return 1
+        # Category data present but no signal — treat as non-fluid (conservative)
+        return 0
+
+    # Tier 3: no category data at all — fall back to volume unit only
+    if product_quantity_unit in ("ml", "l", "cl"):
+        return 1
+    return 0
+
 
 @dataclass(frozen=True)
 class BuildContext:
@@ -704,15 +939,10 @@ def build_records(
                 product_quantity_unit = match.group(2).strip().lower()
 
         categories_tags = to_tag_values(getattr(row, "categories_tags", None))
-        is_fluid = 0
-        if product_quantity_unit in ("ml", "l", "cl"):
-            is_fluid = 1
-        else:
-            beverage_keywords = ("beverage", "drink", "getränk", "boisson")
-            for cat in categories_tags:
-                if any(kw in cat.lower() for kw in beverage_keywords):
-                    is_fluid = 1
-                    break
+        is_fluid = resolve_is_fluid(
+            categories_tags=categories_tags,
+            product_quantity_unit=product_quantity_unit or "",
+        )
 
         records.append(
             (
@@ -728,7 +958,7 @@ def build_records(
                 fiber,
                 salt,
                 "base",
-                is_fluid,  # is_liquid column (using is_fluid heuristic as well)
+                is_fluid,  # is_liquid: same beverage signal for serving-unit logic
                 is_fluid,  # is_fluid column
                 caffeine_mg,  # caffeine (legacy)
                 caffeine_mg,  # caffeine_mg_per_100g

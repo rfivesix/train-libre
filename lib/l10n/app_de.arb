@@ -2351,5 +2351,7 @@
   "copySystemFoodTitle": "System-Lebensmittel kopieren",
   "copySystemFoodBody": "System-Lebensmittel können nicht direkt bearbeitet werden. Möchtest du eine eigene Kopie erstellen und bearbeiten?",
   "createCopyAndEdit": "Kopie erstellen & bearbeiten",
-  "foodCopyCreated": "Kopie erstellt: {name}"
+  "foodCopyCreated": "Kopie erstellt: {name}",
+  "nutritionPer100g": "Nährwerte pro 100g",
+  "nutritionPerPortion": "Nährwerte pro Portion ({grams}g)"
 }

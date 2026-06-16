@@ -2,6 +2,7 @@
 // FINAL: Cardio Clean-Up (1 Set, Cleaner Layout, Empty Defaults)
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../sharing/share_service.dart';
 import '../../../generated/app_localizations.dart';
@@ -579,11 +580,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     }
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
+  void _onReorderItem(int oldIndex, int newIndex) {
     setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
       final RoutineExercise item = _routineExercises.removeAt(oldIndex);
       _routineExercises.insert(newIndex, item);
     });
@@ -696,7 +694,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     ),
                                   )
                                 : ReorderableListView.builder(
-                                    cacheExtent: 1500,
+                                    scrollCacheExtent:
+                                        const ScrollCacheExtent.pixels(1500.0),
                                     itemCount: _routineExercises.length,
                                     padding: EdgeInsets.only(
                                       bottom: DesignConstants
@@ -712,7 +711,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         child: child,
                                       );
                                     },
-                                    onReorder: _onReorder,
+                                     onReorderItem: _onReorderItem,
                                     itemBuilder: (context, index) {
                                       final routineExercise =
                                           _routineExercises[index];

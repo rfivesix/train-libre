@@ -1,6 +1,7 @@
 // lib/features/exercise_catalog/presentation/exercise_catalog_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../generated/app_localizations.dart';
@@ -245,7 +246,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                             ),
                           )
                         : ListView.builder(
-                            cacheExtent: 1500,
+                            scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
                             padding: DesignConstants.cardPadding,
                             itemCount: _foundExercises.length,
                             itemBuilder: (context, index) {

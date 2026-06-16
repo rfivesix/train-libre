@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
@@ -103,7 +104,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
           }
 
           return ListView.builder(
-            cacheExtent: 1500,
+            scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
             padding: DesignConstants.cardPadding.copyWith(
               top: DesignConstants.cardPadding.top + topPadding,
             ),

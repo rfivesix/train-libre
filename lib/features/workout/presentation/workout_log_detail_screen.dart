@@ -866,11 +866,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               padding: EdgeInsets.zero,
-                              onReorder: (int oldIndex, int newIndex) {
+                              onReorderItem: (int oldIndex, int newIndex) {
                                 setState(() {
-                                  if (newIndex > oldIndex) {
-                                    newIndex -= 1;
-                                  }
                                   final entries = _groupedSets.entries.toList();
                                   final item = entries.removeAt(oldIndex);
                                   entries.insert(newIndex, item);

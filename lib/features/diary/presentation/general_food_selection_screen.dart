@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/food_item.dart';
@@ -291,7 +292,7 @@ class _GeneralFoodSelectionScreenState
                       ? (_baseCategories.isEmpty
                           ? const Center(child: CircularProgressIndicator())
                           : ListView.builder(
-                              cacheExtent: 1500,
+                              scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
                               itemCount: _baseCategories.length + 1,
                               itemBuilder: (context, idx) {
                                 if (idx == 0) {
@@ -428,7 +429,7 @@ class _GeneralFoodSelectionScreenState
                                   }
 
                                   return ListView.builder(
-                                    cacheExtent: 1500,
+                                    scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
                                     padding: DesignConstants.cardPadding.copyWith(bottom: 56),
                                     itemCount: listItems.length,
                                     itemBuilder: (context, index) {

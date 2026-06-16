@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../domain/models/food_item.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/platform_adaptive_switch_list_tile.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../meal_editor_screen.dart';
 
@@ -202,7 +203,7 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
           ],
         ),
         const Divider(height: 24),
-        SwitchListTile(
+        PlatformAdaptiveSwitchListTile(
           title: Text(l10n.add_to_water_intake),
           value: _isLiquid,
           onChanged: (bool value) => setState(() => _isLiquid = value),

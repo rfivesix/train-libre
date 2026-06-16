@@ -5273,4 +5273,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String foodCopyCreated(String name) {
     return 'Copy created: $name';
   }
+
+  @override
+  String get nutritionPer100g => 'Nutrition per 100g';
+
+  @override
+  String nutritionPerPortion(int grams) {
+    return 'Nutrition per Portion (${grams}g)';
+  }
 }

@@ -1091,34 +1091,225 @@ class BasisDataManager {
       displayName = _parseString(rawNameDe ?? rawNameEn ?? rawName);
     }
 
+    // ── is_fluid three-tier heuristic ────────────────────────────────────────
+    //
+    // Tier 1 – Allowlist: category tag contains a known beverage substring
+    //          → candidate is_fluid = true.
+    // Tier 2 – Blocklist: category tag exactly matches a non-beverage tag
+    //          → veto is_fluid = false (overrides Tier 1).
+    // Tier 3 – Volume-unit fallback: only when NO category data is available;
+    //          product_quantity_unit in {ml, l, cl} → is_fluid = true.
+    //
+    // This mirrors the resolve_is_fluid() function in create_off_food_db.py.
+    // Keep both in sync when adding new tags.
+    // ─────────────────────────────────────────────────────────────────────────
+
     bool isFluidVal = false;
-    final isFluidRaw = row['is_fluid'];
-    if (isFluidRaw != null) {
-      isFluidVal = _parseInt(isFluidRaw) == 1;
-    }
 
-    final nutritionPer = (row['nutrition_data_prepared_per'] ??
-            row['nutrition_data_per'] ??
-            row['nutrition_baseline'] ??
-            row['nutrition_baseline_key'])
-        ?.toString()
-        .toLowerCase()
-        .trim();
-    if (nutritionPer != null) {
-      if (nutritionPer.contains('100g')) {
-        isFluidVal = false;
-      } else if (nutritionPer.contains('100ml')) {
-        isFluidVal = true;
-      }
-    }
-
+    // Read category tag blob — may come from the OFF API as a tag list string.
     final rawCategory =
         row['category'] ?? row['categories'] ?? row['categories_tags'];
-    if (rawCategory != null) {
-      final categoryStr = rawCategory.toString().toLowerCase();
-      if (categoryStr.contains('en:beverages') ||
-          categoryStr.contains('en:drinks') ||
-          categoryStr.contains('en:waters')) {
+    final categoryStr =
+        rawCategory != null ? rawCategory.toString().toLowerCase() : '';
+
+    // Split the flat string into individual tags, stripping blanks.
+    final cats = categoryStr
+        .split(RegExp(r'[,\s]+'))
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+
+    if (cats.isNotEmpty) {
+      // ── Tier 1: allowlist (substring match) ──────────────────────────────
+      const beverageAllowlistSubstrings = [
+        'en:beverages',
+        'en:beverages-and-beverages-preparations',
+        'en:non-alcoholic-beverages',
+        'en:hot-beverages',
+        'en:cold-beverages',
+        'en:plant-based-beverages',
+        'en:carbonated-beverages',
+        'en:waters',
+        'en:mineral-waters',
+        'en:sparkling-waters',
+        'en:still-waters',
+        'en:spring-waters',
+        'en:flavoured-waters',
+        'en:vitamin-waters',
+        'en:coconut-waters',
+        'en:fruit-juices',
+        'en:vegetable-juices',
+        'en:juices',
+        'en:soft-drinks',
+        'en:sodas',
+        'en:colas',
+        'en:lemonades',
+        'en:energy-drinks',
+        'en:sports-drinks',
+        'en:electrolyte-drinks',
+        'en:isotonic-drinks',
+        'en:teas',
+        'en:herbal-teas',
+        'en:iced-teas',
+        'en:coffees',
+        'en:instant-coffees',
+        'en:coffee-beverages',
+        'en:alcoholic-beverages',
+        'en:beers',
+        'en:wines',
+        'en:spirits',
+        'en:liqueurs',
+        'en:ciders',
+        'en:champagnes',
+        'en:proseccos',
+        'en:plant-based-milks',
+        'en:oat-milks',
+        'en:soy-milks',
+        'en:rice-milks',
+        'en:almond-milks',
+        'en:coconut-milks',
+        'en:drinkable-yogurts',
+        'en:flavoured-milks',
+        'en:milks',
+        'en:smoothies',
+        'en:fruit-smoothies',
+        'en:vegetable-smoothies',
+        'en:baby-drinks',
+        'en:drinking-waters',
+        'en:kombucha',
+        'en:kefir-drinks',
+      ];
+
+      // ── Tier 2: blocklist (exact tag match) ──────────────────────────────
+      const nonBeverageBlocklistTags = {
+        'en:condiments',
+        'en:sauces',
+        'en:hot-sauces',
+        'en:soy-sauces',
+        'en:tomato-sauces',
+        'en:barbecue-sauces',
+        'en:pasta-sauces',
+        'en:curry-sauces',
+        'en:vegan-sauces',
+        'en:vegetarian-sauces',
+        'en:dessert-sauces',
+        'en:burger-sauces',
+        'en:sweet-and-sour-sauces',
+        'en:bechamel-sauces',
+        'en:worcestershire-sauces',
+        'en:teriyaki-sauces',
+        'en:nuoc-mam-sauce',
+        'en:fish-sauces',
+        'en:chili-sauces',
+        'en:pepper-sauces',
+        'en:cooking-sauces',
+        'en:salad-dressings',
+        'en:vinaigrettes',
+        'en:mayonnaises',
+        'en:light-mayonnaises',
+        'en:egg-free-mayonnaises',
+        'en:aiolis',
+        'en:dips',
+        'en:ketchup',
+        'en:tomato-ketchup',
+        'en:mustards',
+        'en:vinegars',
+        'en:balsamic-vinegars',
+        'en:cider-vinegars',
+        'en:rice-vinegars',
+        'en:wine-vinegars',
+        'en:sherry-vinegars',
+        'en:glazes-with-vinegar',
+        'en:soups',
+        'en:canned-soups',
+        'en:reheatable-soups',
+        'en:fish-soups',
+        'en:broths',
+        'en:liquid-broths',
+        'en:cream-of-vegetable-soups',
+        'en:desserts',
+        'en:dairy-desserts',
+        'en:frozen-desserts',
+        'en:ice-creams-and-sorbets',
+        'en:ice-creams',
+        'en:ice-cream-tubs',
+        'en:ice-cream-bars',
+        'en:ice-cream-cones',
+        'en:ice-cream-sandwiches',
+        'en:ice-cream-in-a-box',
+        'en:sorbets',
+        'en:ice-pops',
+        'en:frozen-yogurts',
+        'en:creams',
+        'en:uht-creams',
+        'en:whipped-creams',
+        'en:unfermented-creams',
+        'en:compound-dairy-creams',
+        'en:cooking-creams',
+        'en:spreads',
+        'en:sweet-spreads',
+        'en:plant-based-spreads',
+        'en:nut-butters',
+        'en:peanut-butters',
+        'en:fats',
+        'en:cooking-fats',
+        'en:oils',
+        'en:olive-oils',
+        'en:simple-syrups',
+        'en:maple-syrups',
+        'en:agave-syrups',
+        'en:toppings-ingredients',
+        'en:snacks',
+        'en:salty-snacks',
+        'en:sweet-snacks',
+        'en:frozen-foods',
+        'en:groceries',
+        'en:meals',
+        'en:canned-meals',
+        'en:canned-foods',
+        'en:dried-meals',
+        'en:dried-products',
+        'en:dried-products-to-be-rehydrated',
+        'en:dietary-supplements',
+        'en:food-additives',
+        'en:sweeteners',
+        'en:sugar-substitutes',
+        'en:tabletop-sweeteners',
+        'en:artificial-sugar-substitutes',
+        'en:flavors',
+        'en:cooking-helpers',
+        'en:non-food-products',
+        'en:perfumes',
+        'en:oil-perfumes',
+        'en:bodybuilding-supplements',
+      };
+
+      final isCandidate = cats.any(
+        (cat) => beverageAllowlistSubstrings.any((sub) => cat.contains(sub)),
+      );
+      final isBlocked =
+          cats.any((cat) => nonBeverageBlocklistTags.contains(cat));
+
+      if (isBlocked) {
+        isFluidVal = false;
+      } else if (isCandidate) {
+        isFluidVal = true;
+      }
+      // else: category data present but no signal → conservative false
+    } else {
+      // Tier 3: no category data — fall back to volume unit
+      final nutritionPer = (row['nutrition_data_prepared_per'] ??
+              row['nutrition_data_per'] ??
+              row['nutrition_baseline'] ??
+              row['nutrition_baseline_key'])
+          ?.toString()
+          .toLowerCase()
+          .trim();
+      final unit =
+          row['product_quantity_unit']?.toString().toLowerCase().trim() ?? '';
+      if (nutritionPer != null && nutritionPer.contains('100ml')) {
+        isFluidVal = true;
+      } else if (unit == 'ml' || unit == 'l' || unit == 'cl') {
         isFluidVal = true;
       }
     }

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../generated/app_localizations.dart';
 import '../features/diary/domain/models/food_item.dart';
 import '../util/design_constants.dart';
+import '../widgets/common/platform_adaptive_switch_list_tile.dart';
 
 /// A dialog content widget for logging food and liquid quantities.
 ///
@@ -199,7 +200,7 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
           ],
         ),
         const Divider(height: 24),
-        SwitchListTile(
+        PlatformAdaptiveSwitchListTile(
           title: Text(l10n.add_to_water_intake),
           value: _isLiquid,
           onChanged: (bool value) => setState(() => _isLiquid = value),

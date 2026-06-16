@@ -299,7 +299,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             tileKey: const Key('settings_appearance_entry'),
           ),
           SummaryCard(
-            child: SwitchListTile(
+            child: PlatformAdaptiveSwitchListTile(
               secondary: Icon(
                 LucideIcons.candy,
                 size: 36,
@@ -323,7 +323,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           SummaryCard(
-            child: SwitchListTile(
+            child: PlatformAdaptiveSwitchListTile(
               secondary: Icon(
                 LucideIcons.ruler_dimension_line,
                 size: 36,

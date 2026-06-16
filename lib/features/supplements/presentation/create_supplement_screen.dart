@@ -8,6 +8,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../util/util_convert.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
 
 /// A screen for creating or editing a supplement definition.
 class CreateSupplementScreen extends StatefulWidget {
@@ -205,7 +206,7 @@ class _CreateSupplementScreenState extends State<CreateSupplementScreen> {
               const SizedBox(height: DesignConstants.spacingL),
               _buildTextField(_notesController, l10n.notesLabel, maxLines: 3),
               const SizedBox(height: DesignConstants.spacingXL),
-              SwitchListTile(
+              PlatformAdaptiveSwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(l10n.currentlyTracking),
                 subtitle: Text(l10n.currentlyTrackingDesc),
