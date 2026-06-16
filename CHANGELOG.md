@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.32] - 2026-06-16
+
+### Fixed
+- **`isFluid` Detection Overhaul — Beverage vs. Non-Beverage Classification (Data Forensics):** Completely rewrote the fluid-detection pipeline that determines whether a food item triggers the liquid-tracking UI. A forensic audit of the Open Food Facts parquet dataset revealed that **~30 % of products in the bundled DB** (≈70,500 items) were incorrectly flagged as beverages, including Tabasco, Sriracha, Ketchup, Mustard, BBQ Sauce, Soy Sauce, Balsamic Vinegar, Salad Dressings, Mayonnaise, Ice Cream, Olive Oil, Chicken Broth, Peanut Butter, and Hazelnut Spread:
+  - **Root cause:** The old heuristic in `create_off_food_db.py` used `product_quantity_unit ∈ {ml, l, cl}` as the sole primary trigger, with no category-based veto. Sauces, vinegars, and desserts — which routinely carry volume units — bypassed the category check entirely.
+  - **Three-tier algorithm:** Replaced both the Python DB generator (`script/create_off_food_db.py`) and the Dart runtime layer (`lib/core/infrastructure/basis_data_manager.dart`) with a unified allowlist → blocklist → volume-unit-fallback heuristic:
+    - **Tier 1 – Allowlist:** If any `categories_tags` entry contains a verified beverage taxonomy substring (`en:beverages`, `en:waters`, `en:fruit-juices`, `en:beers`, `en:wines`, `en:teas`, `en:coffees`, `en:milks`, `en:smoothies`, etc.), the product is a beverage candidate.
+    - **Tier 2 – Blocklist (decisive veto):** If any `categories_tags` entry exactly matches a known non-beverage tag (`en:condiments`, `en:sauces`, `en:ketchup`, `en:vinegars`, `en:soups`, `en:ice-creams`, `en:creams`, `en:spreads`, `en:fats`, `en:oils`, `en:snacks`, `en:meals`, `en:dietary-supplements`, etc.), `isFluid` is forced to `false`, overriding any Tier 1 match.
+    - **Tier 3 – Volume-unit fallback:** Only applied when `categories_tags` is entirely absent; uses `product_quantity_unit` as a weak heuristic (same as before).
+  - The fix covers both the bundled DB (effective on the next GitHub Actions release build) and all products discovered live via the OFF barcode scanner API (effective immediately).
+
 ## [0.9.31] - 2026-06-15
 ### Added
 - **Android Website Release & Centralized Link Routing:** Upgraded the product website (`docs/`) to add explicit, premium Android and F-Droid release links alongside existing iOS and FOSS deployment options:
