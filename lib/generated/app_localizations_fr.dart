@@ -2275,6 +2275,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Configurons votre profil pour obtenir les meilleurs résultats.';
 
   @override
+  String get onboardingMissionTitle => 'Notre Mission';
+
+  @override
+  String get onboardingMissionBody =>
+      'Train Libre est destiné aux bodybuilders naturels passionnés qui exigent des progrès basés sur la science et les données.';
+
+  @override
+  String get adaptiveRatePerWeekLabel => 'Taux cible hebdomadaire';
+
+  @override
   String get onboardingNameTitle => 'Quel est ton nom?';
 
   @override

@@ -48,7 +48,7 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const int _profilePageIndex = 2;
+  static const int _profilePageIndex = 1;
   static const int _adaptiveGoalPageIndex = 5;
   static const int _pageCount = 9;
   static const int _lastPageIndex = _pageCount - 1;
@@ -580,11 +580,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onContinue: _nextPage,
                     onRestore: _restoreFromBackup,
                   ),
-                  UnitSystemSlide(
-                    selectedSystem: _selectedUnitSystem ??
-                        context.read<UnitService>().unitSystem,
-                    onSelectSystem: _selectUnitSystem,
-                  ),
                   ProfileSlide(
                     nameController: _nameController,
                     selectedDate: _selectedDate,
@@ -611,6 +606,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       }
                     },
                     onOpenHelp: _openBodyFatHelperEntryPoint,
+                  ),
+                  UnitSystemSlide(
+                    selectedSystem: _selectedUnitSystem ??
+                        context.read<UnitService>().unitSystem,
+                    onSelectSystem: _selectUnitSystem,
                   ),
                   AdaptiveGoalSlide(
                     selectedGoal: _selectedGoal,

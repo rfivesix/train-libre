@@ -2252,6 +2252,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Lass uns dein Profil einrichten, um loszulegen.';
 
   @override
+  String get onboardingMissionTitle => 'Unsere Mission';
+
+  @override
+  String get onboardingMissionBody =>
+      'Train Libre ist für engagierte Natural-Bodybuilder, die wissenschaftlich fundierten, datengesteuerten Fortschritt verlangen.';
+
+  @override
+  String get adaptiveRatePerWeekLabel => 'Wöchentliche Zielrate';
+
+  @override
   String get onboardingNameTitle => 'Wie heißt du?';
 
   @override

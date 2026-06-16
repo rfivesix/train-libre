@@ -4076,6 +4076,24 @@ abstract class AppLocalizations {
   /// **'Let\'s set up your profile to get the best results.'**
   String get onboardingWelcomeSubtitle;
 
+  /// No description provided for @onboardingMissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Mission'**
+  String get onboardingMissionTitle;
+
+  /// No description provided for @onboardingMissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre is for dedicated natural bodybuilders who demand science-based, data-driven progress.'**
+  String get onboardingMissionBody;
+
+  /// No description provided for @adaptiveRatePerWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Target Rate'**
+  String get adaptiveRatePerWeekLabel;
+
   /// No description provided for @onboardingNameTitle.
   ///
   /// In en, this message translates to:

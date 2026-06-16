@@ -2201,6 +2201,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingWelcomeSubtitle => '最良の結果を得るためにプロフィールを設定しましょう。';
 
   @override
+  String get onboardingMissionTitle => '私たちの使命';
+
+  @override
+  String get onboardingMissionBody =>
+      'Train Libreは、科学的根拠に基づいたデータ主導の進歩を求める、熱心なナチュラル・ボディビルダーのためのものです。';
+
+  @override
+  String get adaptiveRatePerWeekLabel => '週次目標レート';
+
+  @override
   String get onboardingNameTitle => 'あなたの名前は何ですか？';
 
   @override
