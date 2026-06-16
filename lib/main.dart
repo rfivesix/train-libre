@@ -394,7 +394,7 @@ class _MyAppState extends State<MyApp> {
           switchTheme: SwitchThemeData(
             thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
               if (states.contains(WidgetState.selected)) {
-                return lightScheme.onPrimary;
+                return Colors.white;
               }
               return lightScheme.outline;
             }),

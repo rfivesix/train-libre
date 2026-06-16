@@ -33,7 +33,7 @@ class PlatformAdaptiveSwitch extends StatelessWidget {
         child: Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: activeColor,
+          activeThumbColor: activeColor,
           inactiveTrackColor: inactiveColor,
         ),
       );

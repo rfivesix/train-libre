@@ -580,11 +580,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     }
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
+  void _onReorderItem(int oldIndex, int newIndex) {
     setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
       final RoutineExercise item = _routineExercises.removeAt(oldIndex);
       _routineExercises.insert(newIndex, item);
     });
@@ -714,7 +711,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         child: child,
                                       );
                                     },
-                                    onReorder: _onReorder,
+                                     onReorderItem: _onReorderItem,
                                     itemBuilder: (context, index) {
                                       final routineExercise =
                                           _routineExercises[index];

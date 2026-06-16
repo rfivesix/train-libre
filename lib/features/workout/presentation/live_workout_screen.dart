@@ -233,7 +233,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     }
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
+  void _onReorderItem(int oldIndex, int newIndex) {
     Provider.of<LiveWorkoutViewModel>(
       context,
       listen: false,
@@ -629,7 +629,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                   .bottomContentSpacer) +
                                           MediaQuery.paddingOf(context).bottom,
                                     ),
-                                    onReorder: _onReorder,
+                                    onReorderItem: _onReorderItem,
                                     itemCount: exercises.length,
                                     itemBuilder: (context, index) {
                                       final routineExercise = exercises[index];
