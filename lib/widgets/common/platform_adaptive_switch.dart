@@ -29,6 +29,7 @@ class PlatformAdaptiveSwitch extends StatelessWidget {
       );
     } else {
       return Theme(
+        // ignore: deprecated_member_use
         data: Theme.of(context).copyWith(useMaterial3: true),
         child: Switch(
           value: value,
