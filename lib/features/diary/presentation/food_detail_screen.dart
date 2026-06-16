@@ -621,34 +621,12 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     children: [
                       if (_displayItem.ingredientsAnalysisTags!
                           .contains('en:vegan'))
-                        Chip(
-                          label: Text(
-                            l10n.vegan,
-                            style: textTheme.labelSmall?.copyWith(
-                              color: Colors.green[800],
-                            ),
-                          ),
-                          backgroundColor: Colors.green[90],
-                          side: BorderSide(color: Colors.green[200]!),
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                        ),
+                        _GlassBadge(label: l10n.vegan),
                       if (_displayItem.ingredientsAnalysisTags!
                               .contains('en:vegetarian') &&
                           !_displayItem.ingredientsAnalysisTags!
                               .contains('en:vegan'))
-                        Chip(
-                          label: Text(
-                            l10n.vegetarian,
-                            style: textTheme.labelSmall?.copyWith(
-                              color: Colors.green[700],
-                            ),
-                          ),
-                          backgroundColor: Colors.green[50],
-                          side: BorderSide(color: Colors.green[100]!),
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                        ),
+                        _GlassBadge(label: l10n.vegetarian),
                     ],
                   ),
                 ],
@@ -978,6 +956,49 @@ class _PortionChip extends StatelessWidget {
             color: selected ? cs.primary : cs.onSurfaceVariant,
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Dietary Badge — Liquid Glass Aesthetic
+// ═══════════════════════════════════════════════════════════════════════════
+class _GlassBadge extends StatelessWidget {
+  final String label;
+  final bool isVegan; // Oder ein Enum für den Status
+
+  const _GlassBadge({required this.label}) : isVegan = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Wir nutzen deine definierten App-Farben statt Hartcodierung
+    final primaryBadgeColor = Colors.green;
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        // Im Dark Mode helles Glas, im Light Mode dunkles Glas
+        color: isDarkMode
+            ? primaryBadgeColor.withValues(alpha: 0.15)
+            : primaryBadgeColor.withValues(alpha: 0.20),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+        border: Border.all(
+          // Border erhält jetzt die Badge-Farbe mit etwas mehr Deckkraft
+          color: primaryBadgeColor.withValues(alpha: 0.5),
+          width: 0.5,
+        ),
+      ),
+      child: Text(
+        label,
+        //.toUpperCase(), // Optional: Sieht bei Badges oft professioneller aus
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: isDarkMode ? primaryBadgeColor : primaryBadgeColor.shade800,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
         ),
       ),
     );
