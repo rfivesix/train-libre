@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
@@ -540,7 +541,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       children: [
         Expanded(
           child: ListView.builder(
-            cacheExtent: 1500,
+            scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
             padding: DesignConstants.cardPadding.copyWith(
               bottom: _bottomPadding,
             ),
@@ -592,7 +593,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       children: [
         Expanded(
           child: ListView.builder(
-            cacheExtent: 1500,
+            scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
             padding: DesignConstants.cardPadding.copyWith(
               bottom: _bottomPadding,
             ),
@@ -800,7 +801,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 await _loadCustomFoods();
               },
               child: ListView.builder(
-                cacheExtent: 1500,
+                scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
                 padding: const EdgeInsets.only(bottom: _bottomPadding),
                 itemCount: _baseCategories.length + 2,
                 itemBuilder: (context, idx) {
@@ -918,7 +919,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       ),
                     )
                   : ListView.builder(
-                      cacheExtent: 1500,
+                      scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
                       padding: DesignConstants.cardPadding
                           .copyWith(bottom: _bottomPadding),
                       itemCount: listItems.length,

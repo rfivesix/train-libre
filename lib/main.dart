@@ -1,6 +1,7 @@
 // lib/main.dart
 
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -90,8 +91,7 @@ void main() async {
       adaptiveConfig: GlassAdaptiveScopeConfig(
         initialQuality: initialGlassQuality,
         allowStepUp: true,
-        onQualityChanged: (_, to) =>
-            prefs.setString('glass_quality', to.name),
+        onQualityChanged: (_, to) => prefs.setString('glass_quality', to.name),
       ),
       child: MultiProvider(
         providers: [
@@ -392,12 +392,25 @@ class _MyAppState extends State<MyApp> {
             fillColor: WidgetStateProperty.all(lightScheme.primary),
           ),
           switchTheme: SwitchThemeData(
-            thumbColor: WidgetStateProperty.resolveWith(
-              (s) => lightScheme.primary,
-            ),
-            trackColor: WidgetStateProperty.resolveWith(
-              (s) => lightScheme.primary.withValues(alpha: 0.5),
-            ),
+            thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+              if (states.contains(WidgetState.selected)) {
+                return lightScheme.onPrimary;
+              }
+              return lightScheme.outline;
+            }),
+            trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+              if (states.contains(WidgetState.selected)) {
+                return lightScheme.primary;
+              }
+              return lightScheme.surfaceContainerHighest;
+            }),
+            trackOutlineColor:
+                WidgetStateProperty.resolveWith<Color?>((states) {
+              if (states.contains(WidgetState.selected)) {
+                return Colors.transparent;
+              }
+              return lightScheme.outline;
+            }),
           ),
           dialogTheme: DialogThemeData(
             backgroundColor: cardLight,
@@ -588,12 +601,25 @@ class _MyAppState extends State<MyApp> {
             fillColor: WidgetStateProperty.all(darkScheme.primary),
           ),
           switchTheme: SwitchThemeData(
-            thumbColor: WidgetStateProperty.resolveWith(
-              (s) => darkScheme.primary,
-            ),
-            trackColor: WidgetStateProperty.resolveWith(
-              (s) => darkScheme.primary.withValues(alpha: 0.5),
-            ),
+            thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+              if (states.contains(WidgetState.selected)) {
+                return darkScheme.onPrimary;
+              }
+              return darkScheme.outline;
+            }),
+            trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+              if (states.contains(WidgetState.selected)) {
+                return darkScheme.primary;
+              }
+              return darkScheme.surfaceContainerHighest;
+            }),
+            trackOutlineColor:
+                WidgetStateProperty.resolveWith<Color?>((states) {
+              if (states.contains(WidgetState.selected)) {
+                return Colors.transparent;
+              }
+              return darkScheme.outline;
+            }),
           ),
           dialogTheme: DialogThemeData(
             backgroundColor: cardDark,
@@ -647,4 +673,3 @@ class NoGlowScrollBehavior extends ScrollBehavior {
     return const BouncingScrollPhysics();
   }
 }
-

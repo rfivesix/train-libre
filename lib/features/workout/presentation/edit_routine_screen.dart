@@ -2,6 +2,7 @@
 // FINAL: Cardio Clean-Up (1 Set, Cleaner Layout, Empty Defaults)
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../sharing/share_service.dart';
 import '../../../generated/app_localizations.dart';
@@ -696,7 +697,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     ),
                                   )
                                 : ReorderableListView.builder(
-                                    cacheExtent: 1500,
+                                    scrollCacheExtent:
+                                        const ScrollCacheExtent.pixels(1500.0),
                                     itemCount: _routineExercises.length,
                                     padding: EdgeInsets.only(
                                       bottom: DesignConstants

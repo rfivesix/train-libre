@@ -58,7 +58,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
                 ),
                 if (isAndroid) ...[
                   const Divider(height: 1),
-                  SwitchListTile(
+                  PlatformAdaptiveSwitchListTile(
                     secondary: const Icon(LucideIcons.palette),
                     title: Text(
                       l10n.settingsMaterialColorsTitle,
@@ -71,7 +71,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
                   ),
                 ],
                 const Divider(height: 1),
-                SwitchListTile(
+                PlatformAdaptiveSwitchListTile(
                   secondary: const Icon(LucideIcons.vibrate),
                   title: Text(
                     l10n.settingsHapticFeedbackTitle,
@@ -82,7 +82,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
                   onChanged: (value) => themeService.setHapticsEnabled(value),
                 ),
                 const Divider(height: 1),
-                SwitchListTile(
+                PlatformAdaptiveSwitchListTile(
                   secondary: const Icon(LucideIcons.layers),
                   title: Text(
                     l10n.settingsColorfulMacroBadgesTitle,

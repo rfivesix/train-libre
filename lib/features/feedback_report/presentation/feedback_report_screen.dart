@@ -309,7 +309,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           SummaryCard(
             child: Column(
               children: [
-                SwitchListTile(
+                PlatformAdaptiveSwitchListTile(
                   key: const Key('feedback_report_toggle_adaptive'),
                   secondary: const Icon(LucideIcons.activity),
                   title: Text(
@@ -322,7 +322,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
                   },
                 ),
                 const Divider(height: 1),
-                SwitchListTile(
+                PlatformAdaptiveSwitchListTile(
                   key: const Key('feedback_report_toggle_backup'),
                   secondary: const Icon(LucideIcons.cloud_upload),
                   title: Text(
@@ -335,7 +335,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
                   },
                 ),
                 const Divider(height: 1),
-                SwitchListTile(
+                PlatformAdaptiveSwitchListTile(
                   key: const Key('feedback_report_toggle_note'),
                   secondary: const Icon(LucideIcons.sticky_note),
                   title: Text(

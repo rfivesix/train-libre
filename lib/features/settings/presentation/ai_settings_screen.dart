@@ -332,7 +332,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SwitchListTile(
+                        PlatformAdaptiveSwitchListTile(
                           contentPadding: EdgeInsets.zero,
                           secondary: ShaderMask(
                             blendMode: BlendMode.srcIn,

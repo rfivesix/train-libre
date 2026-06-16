@@ -60,7 +60,7 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
           SummaryCard(
             child: Column(
               children: [
-                SwitchListTile(
+                PlatformAdaptiveSwitchListTile(
                   key: const Key('pulse_tracking_toggle'),
                   secondary: const Icon(LucideIcons.heart),
                   title: Text(

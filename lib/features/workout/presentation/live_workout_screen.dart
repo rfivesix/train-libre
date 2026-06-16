@@ -3,6 +3,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -619,7 +620,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                             child: exercises.isEmpty
                                 ? _buildEmptyState(l10n)
                                 : ReorderableListView.builder(
-                                    cacheExtent: 1500,
+                                    scrollCacheExtent:
+                                        const ScrollCacheExtent.pixels(1500.0),
                                     padding: EdgeInsets.only(
                                       bottom: (showRestBar
                                               ? 180.0

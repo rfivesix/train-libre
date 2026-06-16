@@ -213,7 +213,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
               return SummaryCard(
                 child: Column(
                   children: [
-                    SwitchListTile(
+                    PlatformAdaptiveSwitchListTile(
                       secondary: const Icon(LucideIcons.moon),
                       title: Text(
                         l10n.sleepEnableTrackingTitle,

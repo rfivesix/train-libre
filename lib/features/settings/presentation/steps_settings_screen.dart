@@ -68,7 +68,7 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
           SummaryCard(
             child: Column(
               children: [
-                SwitchListTile(
+                PlatformAdaptiveSwitchListTile(
                   secondary: const Icon(LucideIcons.footprints),
                   title: Text(
                     l10n.stepsSettingsEnableTrackingTitle,
@@ -83,7 +83,7 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
                       _stepsTrackingEnabled = value;
                       _hasChanges = true;
                     });
-
+ 
                     if (value) {
                       const platform = HealthPlatformSteps();
                       final availability = await platform.getAvailability();

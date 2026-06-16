@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/food_item.dart';
@@ -230,7 +231,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                 ? const Center(child: CircularProgressIndicator())
                 : _foundFoodItems.isNotEmpty
                     ? ListView.builder(
-                        cacheExtent: 1500,
+                        scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
                         itemCount: _foundFoodItems.length,
                         itemBuilder: (context, index) =>
                             _buildFoodListItem(_foundFoodItems[index]),
@@ -271,7 +272,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
       children: [
         Expanded(
           child: ListView.builder(
-            cacheExtent: 1500,
+            scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
             padding: DesignConstants.cardPadding,
             itemCount: _favoriteFoodItems.length,
             itemBuilder: (context, index) =>

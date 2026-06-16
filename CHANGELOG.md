@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
     - **Tier 2 – Blocklist (decisive veto):** If any `categories_tags` entry exactly matches a known non-beverage tag (`en:condiments`, `en:sauces`, `en:ketchup`, `en:vinegars`, `en:soups`, `en:ice-creams`, `en:creams`, `en:spreads`, `en:fats`, `en:oils`, `en:snacks`, `en:meals`, `en:dietary-supplements`, etc.), `isFluid` is forced to `false`, overriding any Tier 1 match.
     - **Tier 3 – Volume-unit fallback:** Only applied when `categories_tags` is entirely absent; uses `product_quantity_unit` as a weak heuristic (same as before).
   - The fix covers both the bundled DB (effective on the next GitHub Actions release build) and all products discovered live via the OFF barcode scanner API (effective immediately).
+- **Portion Selector Initialization Fix (`food_detail_screen.dart`):** Resolved an initialization bug where opening food items via the General Food Explorer instead of a Diary Log caused the portion selector to display "Portion (100g)". The local state initialization now correctly extracts the `productQuantity` serving size from the `FoodItem` model into `_trackedQuantity` and sets the default view option (`_showPer100g`) accordingly when portion info exists.
+
 ### Changed
 - **Nutrition Portion-Scaling View Refactor (`food_detail_screen.dart`):** Refactored the portion-scaling UI into an ultra-compact, high-fidelity inline control to reduce vertical layout height by ~68px:
   - **Inline Segmented Control:** Replaced the heavyweight `SummaryCard` container, its 16px gap, and the detached text heading with a unified horizontal `Row`. This row houses a custom `GlassPillButton` segmented toggle sitting inline next to the localized heading.
