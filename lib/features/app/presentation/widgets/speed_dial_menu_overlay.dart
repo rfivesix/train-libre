@@ -268,38 +268,42 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                               ),
                             ),
                           ),
-                          AdaptiveGlass(
-                            shape: const LiquidOval(),
-                            settings: DesignConstants.liquidGlassSettings(
-                                isDarkLocal),
-                            quality: GlassQuality.premium,
-                            useOwnLayer: true,
-                            isInteractive:
-                                true, //false, // Force background blur during animations
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                customBorder: const CircleBorder(),
-                                onTap: onClose,
-                                child: SizedBox(
-                                  width: 74.0,
-                                  height: 74.0,
-                                  child: Center(
-                                    child: RotationTransition(
-                                      turns:
-                                          Tween<double>(begin: 0.0, end: 0.375)
-                                              .animate(
-                                        CurvedAnimation(
-                                          parent: animation,
-                                          curve: Curves.easeOutCubic,
+                          GlassAdaptiveScope(
+                            minQuality: GlassQuality.premium,
+                            maxQuality: GlassQuality.premium,
+                            child: AdaptiveGlass(
+                              shape: const LiquidOval(),
+                              settings: DesignConstants.liquidGlassSettings(
+                                  isDarkLocal),
+                              quality: GlassQuality.premium,
+                              useOwnLayer: true,
+                              isInteractive:
+                                  false, // Force background blur during animations
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  customBorder: const CircleBorder(),
+                                  onTap: onClose,
+                                  child: SizedBox(
+                                    width: 74.0,
+                                    height: 74.0,
+                                    child: Center(
+                                      child: RotationTransition(
+                                        turns:
+                                            Tween<double>(begin: 0.0, end: 0.375)
+                                                .animate(
+                                          CurvedAnimation(
+                                            parent: animation,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                                         ),
-                                      ),
-                                      child: Icon(
-                                        LucideIcons.plus,
-                                        color: isDarkLocal
-                                            ? Colors.white
-                                            : Colors.black,
-                                        size: 28,
+                                        child: Icon(
+                                          LucideIcons.plus,
+                                          color: isDarkLocal
+                                              ? Colors.white
+                                              : Colors.black,
+                                          size: 28,
+                                        ),
                                       ),
                                     ),
                                   ),
