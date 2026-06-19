@@ -73,13 +73,20 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
               l10n.onboardingWelcomeTitle,
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            _buildMissionStatement(l10n, theme),
-            const SizedBox(height: 48),
+            const SizedBox(height: 20),
+            _buildFeatureList(l10n, theme),
+            const SizedBox(height: 16),
+            Text(
+              l10n.onboardingSettingsHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 36),
             // Primary CTA — continue with profile setup
             SizedBox(
               width: double.infinity,
@@ -130,37 +137,55 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
     );
   }
 
-  Widget _buildMissionStatement(AppLocalizations l10n, ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.1),
-        ),
+  Widget _buildFeatureList(AppLocalizations l10n, ThemeData theme) {
+    final items = [
+      (l10n.onboardingFeatureWorkoutTitle, l10n.onboardingFeatureWorkoutBody),
+      (l10n.onboardingFeatureTdeeTitle, l10n.onboardingFeatureTdeeBody),
+      (
+        l10n.onboardingFeatureNutritionTitle,
+        l10n.onboardingFeatureNutritionBody,
       ),
-      child: Column(
-        children: [
-          Text(
-            l10n.onboardingMissionTitle.toUpperCase(),
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+      (l10n.onboardingFeaturePrivacyTitle, l10n.onboardingFeaturePrivacyBody),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: items
+          .map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '•',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          height: 1.35,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: '${item.$1}: ',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          TextSpan(text: item.$2),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.onboardingMissionBody,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.5,
-              fontStyle: FontStyle.italic,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+          )
+          .toList(growable: false),
     );
   }
 }

@@ -920,6 +920,15 @@
   "onboardingWelcomeSubtitle": "最良の結果を得るためにプロフィールを設定しましょう。",
   "onboardingMissionTitle": "私たちの使命",
   "onboardingMissionBody": "Train Libreは、科学的根拠に基づいたデータ主導の進歩を求める、熱心なナチュラル・ボディビルダーのためのものです。",
+  "onboardingFeatureWorkoutTitle": "ワークアウトトラッカー",
+  "onboardingFeatureWorkoutBody": "セット（RIR/RPE）を記録し、筋肉の回復を追跡します。",
+  "onboardingFeatureTdeeTitle": "適応型TDEE",
+  "onboardingFeatureTdeeBody": "統合されたカルマンフィルターが実際の消費カロリーを計算します。",
+  "onboardingFeatureNutritionTitle": "栄養と水分",
+  "onboardingFeatureNutritionBody": "マクロ、水分、任意のAI画像認識を記録します。",
+  "onboardingFeaturePrivacyTitle": "100%プライベートかつローカル",
+  "onboardingFeaturePrivacyBody": "アカウント不要、クラウド強制なし。データはあなたのものです。",
+  "onboardingSettingsHint": "すべての設定は後からいつでも設定画面で変更できます。",
   "adaptiveRatePerWeekLabel": "週次目標レート",
   "onboardingNameTitle": "あなたの名前は何ですか？",
   "onboardingNameLabel": "あなたの名前",
@@ -940,6 +949,9 @@
   "onboardingNext": "次",
   "onboardingBack": "戻る",
   "onboardingFinish": "追跡を開始する",
+  "onboardingAiHealthTitle": "AIと健康",
+  "onboardingAiHealthSubtitle": "任意設定: BYOK (Bring Your Own Key) でAI食事認識を設定し、Train Libreが読み取れる健康データを選択します。",
+  "onboardingOpenSettings": "開く",
   "onboardingUnitSystemTitle": "単位系を選択してください",
   "onboardingUnitSystemSubtitle": "これは後から「設定」で変更できます。",
   "onboardingUnitMetric": "メトリック",
@@ -948,6 +960,18 @@
   "onboardingUnitImperialSubtitle": "ポンド、インチ、液量オンス",
   "onboardingHeightLabel": "身長",
   "onboardingGenderLabel": "性別",
+  "onboardingBioDataInfo": "年齢と生物学的性別は、筋肉回復モデルの基礎回復ウィンドウを決定し、Sleep Health Engineのアルゴリズムにも反映されます。",
+  "onboardingMeasurementsTitle": "測定値とベースライン",
+  "onboardingMeasurementsSubtitle": "適応型レコメンドのために現在の基準値を設定します。",
+  "onboardingMeasurementsDisclaimer": "体重、体脂肪、その他の測定値は、ダッシュボードでいつでも入力して記録できます。",
+  "onboardingWaterNeedLabel": "水分目標 ({unit})",
+  "@onboardingWaterNeedLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "genderMale": "男",
   "genderFemale": "女性",
   "genderDiverse": "多様な",

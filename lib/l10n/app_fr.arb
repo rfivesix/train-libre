@@ -920,6 +920,15 @@
   "onboardingWelcomeSubtitle": "Configurons votre profil pour obtenir les meilleurs résultats.",
   "onboardingMissionTitle": "Notre Mission",
   "onboardingMissionBody": "Train Libre est destiné aux bodybuilders naturels passionnés qui exigent des progrès basés sur la science et les données.",
+  "onboardingFeatureWorkoutTitle": "Suivi des entraînements",
+  "onboardingFeatureWorkoutBody": "Enregistrez vos séries (RIR/RPE) et suivez votre récupération musculaire.",
+  "onboardingFeatureTdeeTitle": "TDEE adaptatif",
+  "onboardingFeatureTdeeBody": "Un filtre de Kalman intégré calcule votre dépense calorique réelle.",
+  "onboardingFeatureNutritionTitle": "Nutrition et eau",
+  "onboardingFeatureNutritionBody": "Suivez les macros, l'eau et utilisez la reconnaissance d'images IA optionnelle.",
+  "onboardingFeaturePrivacyTitle": "100% privé et local",
+  "onboardingFeaturePrivacyBody": "Aucun compte, aucun cloud obligatoire. Vos données vous appartiennent.",
+  "onboardingSettingsHint": "Tous les réglages peuvent être modifiés plus tard à tout moment dans les paramètres.",
   "adaptiveRatePerWeekLabel": "Taux cible hebdomadaire",
   "onboardingNameTitle": "Quel est ton nom?",
   "onboardingNameLabel": "Votre nom",
@@ -940,6 +949,9 @@
   "onboardingNext": "Suivant",
   "onboardingBack": "Dos",
   "onboardingFinish": "Commencer le suivi",
+  "onboardingAiHealthTitle": "IA et santé",
+  "onboardingAiHealthSubtitle": "Configuration facultative : configurez la reconnaissance des repas par IA avec BYOK (Bring Your Own Key) et choisissez les données de santé que Train Libre peut lire.",
+  "onboardingOpenSettings": "Ouvrir",
   "onboardingUnitSystemTitle": "Choisissez votre système d'unités",
   "onboardingUnitSystemSubtitle": "Vous pourrez modifier cela ultérieurement dans Paramètres.",
   "onboardingUnitMetric": "Métrique",
@@ -948,6 +960,18 @@
   "onboardingUnitImperialSubtitle": "livres, po, fl oz",
   "onboardingHeightLabel": "Hauteur",
   "onboardingGenderLabel": "Genre",
+  "onboardingBioDataInfo": "Votre âge et votre sexe biologique déterminent les fenêtres de récupération de base de votre modèle de récupération musculaire et alimentent les algorithmes de votre Sleep Health Engine.",
+  "onboardingMeasurementsTitle": "Mesures et référence",
+  "onboardingMeasurementsSubtitle": "Définissez votre référence actuelle pour la recommandation adaptative.",
+  "onboardingMeasurementsDisclaimer": "Vous pouvez saisir et journaliser votre poids, votre masse grasse et d'autres mesures à tout moment dans le tableau de bord.",
+  "onboardingWaterNeedLabel": "Besoin en eau ({unit})",
+  "@onboardingWaterNeedLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "genderMale": "Mâle",
   "genderFemale": "Femelle",
   "genderDiverse": "Divers",

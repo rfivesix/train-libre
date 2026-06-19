@@ -2254,6 +2254,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'Train Libre is for dedicated natural bodybuilders who demand science-based, data-driven progress.';
 
   @override
+  String get onboardingFeatureWorkoutTitle => 'Workout Tracker';
+
+  @override
+  String get onboardingFeatureWorkoutBody =>
+      'Log sets (RIR/RPE) and follow your muscle recovery.';
+
+  @override
+  String get onboardingFeatureTdeeTitle => 'Adaptive TDEE';
+
+  @override
+  String get onboardingFeatureTdeeBody =>
+      'An integrated Kalman filter calculates your real calorie expenditure.';
+
+  @override
+  String get onboardingFeatureNutritionTitle => 'Nutrition & Water';
+
+  @override
+  String get onboardingFeatureNutritionBody =>
+      'Track macros, water, and use optional AI image recognition.';
+
+  @override
+  String get onboardingFeaturePrivacyTitle => '100% Private & Local';
+
+  @override
+  String get onboardingFeaturePrivacyBody =>
+      'No accounts, no forced cloud. Your data belongs to you.';
+
+  @override
+  String get onboardingSettingsHint =>
+      'All settings can be changed later at any time in Settings.';
+
+  @override
   String get adaptiveRatePerWeekLabel => 'Weekly Target Rate';
 
   @override
@@ -2315,6 +2347,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingFinish => 'Start Tracking';
 
   @override
+  String get onboardingAiHealthTitle => 'AI & Health';
+
+  @override
+  String get onboardingAiHealthSubtitle =>
+      'Optional setup: configure AI meal capture with BYOK (Bring Your Own Key) and choose which health data Train Libre may read.';
+
+  @override
+  String get onboardingOpenSettings => 'Open';
+
+  @override
   String get onboardingUnitSystemTitle => 'Choose your Unit System';
 
   @override
@@ -2338,6 +2380,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingGenderLabel => 'Gender';
+
+  @override
+  String get onboardingBioDataInfo =>
+      'Your age and biological sex determine the baseline recovery windows of your muscle recovery model and feed into the algorithms of your Sleep Health Engine.';
+
+  @override
+  String get onboardingMeasurementsTitle => 'Measurements & Baseline';
+
+  @override
+  String get onboardingMeasurementsSubtitle =>
+      'Set your current baseline for the adaptive recommendation.';
+
+  @override
+  String get onboardingMeasurementsDisclaimer =>
+      'You can enter and log your weight, body fat, and other measurements at any time in the dashboard.';
+
+  @override
+  String onboardingWaterNeedLabel(String unit) {
+    return 'Water need ($unit)';
+  }
 
   @override
   String get genderMale => 'Male';

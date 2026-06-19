@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
-import '../../../services/health/steps_sync_service.dart';
 import '../../app/presentation/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
@@ -19,15 +18,15 @@ import '../../../services/profile_service.dart';
 import '../../profile/domain/repositories/profile_repository.dart';
 import '../../profile/domain/models/user_gender.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../settings/presentation/ai_settings_screen.dart';
+import '../../settings/presentation/pulse_settings_screen.dart';
+import '../../settings/presentation/sleep_settings_screen.dart';
+import '../../settings/presentation/steps_settings_screen.dart';
 import 'widgets/welcome_slide.dart';
-import 'widgets/unit_system_slide.dart';
 import 'widgets/profile_slide.dart';
-import 'widgets/weight_slide.dart';
-import 'widgets/body_fat_slide.dart';
 import 'widgets/adaptive_goal_slide.dart';
-import 'widgets/macro_slide.dart';
-import 'widgets/water_slide.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/summary_card.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -49,8 +48,8 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   static const int _profilePageIndex = 1;
-  static const int _adaptiveGoalPageIndex = 5;
-  static const int _pageCount = 9;
+  static const int _adaptiveGoalPageIndex = 3;
+  static const int _pageCount = 6;
   static const int _lastPageIndex = _pageCount - 1;
 
   final PageController _pageController = PageController();
@@ -58,7 +57,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _isRestoring = false;
   bool _isGeneratingOnboardingRecommendation = false;
   Future<void>? _onboardingRecommendationFuture;
-  UnitSystem? _selectedUnitSystem;
 
   late final AdaptiveNutritionRecommendationService _recommendationService;
   late final DatabaseHelper _databaseHelper;
@@ -71,9 +69,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // --- CONTROLLER ---
   final TextEditingController _nameController = TextEditingController();
   DateTime? _selectedDate;
-  final TextEditingController _heightController =
-      TextEditingController(); // New
-  String? _selectedGender; // New (male, female, diverse)
+  final TextEditingController _heightController = TextEditingController();
+  String? _selectedGender;
   final TextEditingController _bodyFatPercentController =
       TextEditingController();
   PriorActivityLevel _selectedPriorActivityLevel =
@@ -96,7 +93,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     text: '80',
   );
   final TextEditingController _waterController = TextEditingController(
-    text: '3000',
+    text: '4500',
   );
 
   @override
@@ -248,57 +245,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             recommendation.recommendedFatGrams;
   }
 
-  Future<void> _requestStepsPermission() async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showGlassBottomMenu<bool>(
-      context: context,
-      title: l10n.health_permission_dialog_title,
-      contentBuilder: (ctx, close) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                l10n.health_permission_dialog_body,
-                textAlign: TextAlign.center,
-                style: Theme.of(ctx).textTheme.bodyMedium,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop(false);
-                    },
-                    child: Text(l10n.health_permission_not_now),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop(true);
-                    },
-                    child: Text(l10n.health_permission_continue),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed == true) {
-      await StepsSyncService().requestPermissions();
-    }
-  }
-
   Future<void> _finishOnboarding() async {
     final db = _databaseHelper;
     final prefs = await SharedPreferences.getInstance();
@@ -347,8 +293,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           persistGenerated: false,
           markAsApplied: false,
         );
-
-    await _requestStepsPermission();
 
     // 1. Save profile (DB)
     await db.saveUserProfile(
@@ -595,22 +539,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       setState(() => _selectedGender = val);
                     },
                   ),
-                  WeightSlide(
+                  _OnboardingMeasurementsStep(
                     weightController: _weightController,
-                  ),
-                  BodyFatSlide(
                     bodyFatPercentController: _bodyFatPercentController,
-                    onChanged: (_) {
+                    onBodyFatChanged: (_) {
                       if (_currentPage >= _adaptiveGoalPageIndex) {
                         _refreshOnboardingRecommendationPreview();
                       }
                     },
-                    onOpenHelp: _openBodyFatHelperEntryPoint,
-                  ),
-                  UnitSystemSlide(
-                    selectedSystem: _selectedUnitSystem ??
-                        context.read<UnitService>().unitSystem,
-                    onSelectSystem: _selectUnitSystem,
+                    onOpenBodyFatHelp: _openBodyFatHelperEntryPoint,
                   ),
                   AdaptiveGoalSlide(
                     selectedGoal: _selectedGoal,
@@ -646,16 +583,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       _refreshOnboardingRecommendationPreview();
                     },
                   ),
-                  OnboardingCaloriesSlide(
+                  _OnboardingNutritionStep(
                     calController: _calController,
-                  ),
-                  OnboardingMacrosSlide(
                     protController: _protController,
                     carbController: _carbController,
                     fatController: _fatController,
-                  ),
-                  WaterSlide(
                     waterController: _waterController,
+                  ),
+                  _OnboardingAiHealthStep(
+                    onOpenAiSettings: _openAiSettings,
+                    onOpenStepsSettings: _openStepsSettings,
+                    onOpenSleepSettings: _openSleepSettings,
+                    onOpenPulseSettings: _openPulseSettings,
                   ),
                 ],
               ),
@@ -711,30 +650,368 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Future<void> _selectUnitSystem(UnitSystem system) async {
-    setState(() => _selectedUnitSystem = system);
-    await _unitService.setUnitSystem(system);
+  Future<void> _openBodyFatHelperEntryPoint() async {
+    await showBodyFatGuidanceSheet(context);
+  }
 
-    // Update default values based on system to avoid "3000 fl oz" or "100 ml"
-    if (system == UnitSystem.imperial) {
-      if (_waterController.text == '3000') {
-        _waterController.text = '100'; // ~3L in fl oz
-      }
-    } else {
-      if (_waterController.text == '100') {
-        _waterController.text = '3000'; // ~100 fl oz in ml
-      }
-    }
-
-    if (!mounted) return;
-    await _pageController.animateToPage(
-      _currentPage + 1,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+  Future<void> _openAiSettings() {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const AiSettingsScreen()),
     );
   }
 
-  Future<void> _openBodyFatHelperEntryPoint() async {
-    await showBodyFatGuidanceSheet(context);
+  Future<void> _openStepsSettings() {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const StepsSettingsScreen()),
+    );
+  }
+
+  Future<void> _openSleepSettings() {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const SleepSettingsScreen()),
+    );
+  }
+
+  Future<void> _openPulseSettings() {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const PulseSettingsScreen()),
+    );
+  }
+}
+
+class _OnboardingMeasurementsStep extends StatelessWidget {
+  const _OnboardingMeasurementsStep({
+    required this.weightController,
+    required this.bodyFatPercentController,
+    required this.onBodyFatChanged,
+    required this.onOpenBodyFatHelp,
+  });
+
+  final TextEditingController weightController;
+  final TextEditingController bodyFatPercentController;
+  final ValueChanged<String> onBodyFatChanged;
+  final VoidCallback onOpenBodyFatHelp;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final unitService = context.watch<UnitService>();
+    final weightSuffix = unitService.suffixFor(UnitDimension.weight);
+
+    return SingleChildScrollView(
+      key: const Key('onboarding_measurements_page'),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 12),
+          Text(
+            l10n.onboardingMeasurementsTitle,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.onboardingMeasurementsSubtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 28),
+          TextField(
+            key: const Key('onboarding_weight_text_field'),
+            controller: weightController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: '${l10n.onboardingWeightTitle} ($weightSuffix)',
+              suffixText: weightSuffix,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          TextField(
+            key: const Key('onboarding_body_fat_text_field'),
+            controller: bodyFatPercentController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: onBodyFatChanged,
+            decoration: InputDecoration(
+              labelText: l10n.onboardingBodyFatOptionalLabel,
+              suffixText: '%',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.onboardingBodyFatOptionalHelper,
+            key: const Key('onboarding_body_fat_helper_text'),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              key: const Key('onboarding_body_fat_help_button'),
+              onPressed: onOpenBodyFatHelp,
+              child: Text(l10n.onboardingBodyFatHelpAction),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _OnboardingInfoBox(text: l10n.onboardingMeasurementsDisclaimer),
+        ],
+      ),
+    );
+  }
+}
+
+class _OnboardingNutritionStep extends StatelessWidget {
+  const _OnboardingNutritionStep({
+    required this.calController,
+    required this.protController,
+    required this.carbController,
+    required this.fatController,
+    required this.waterController,
+  });
+
+  final TextEditingController calController;
+  final TextEditingController protController;
+  final TextEditingController carbController;
+  final TextEditingController fatController;
+  final TextEditingController waterController;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final liquidSuffix = context.watch<UnitService>().suffixFor(
+          UnitDimension.liquid,
+        );
+
+    return SingleChildScrollView(
+      key: const Key('onboarding_nutrition_page'),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 12),
+          Text(
+            l10n.onboardingGoalsTitle,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.onboardingGoalsSubtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _OnboardingNumberField(
+            controller: calController,
+            label: l10n.onboardingGoalCalories,
+            suffix: l10n.unit_kcal,
+          ),
+          const SizedBox(height: 14),
+          _OnboardingNumberField(
+            controller: protController,
+            label: l10n.onboardingGoalProtein,
+            suffix: l10n.unit_grams,
+          ),
+          const SizedBox(height: 14),
+          _OnboardingNumberField(
+            controller: carbController,
+            label: l10n.onboardingGoalCarbs,
+            suffix: l10n.unit_grams,
+          ),
+          const SizedBox(height: 14),
+          _OnboardingNumberField(
+            controller: fatController,
+            label: l10n.onboardingGoalFat,
+            suffix: l10n.unit_grams,
+          ),
+          const SizedBox(height: 14),
+          _OnboardingNumberField(
+            controller: waterController,
+            label: l10n.onboardingWaterNeedLabel(liquidSuffix),
+            suffix: liquidSuffix,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OnboardingNumberField extends StatelessWidget {
+  const _OnboardingNumberField({
+    required this.controller,
+    required this.label,
+    required this.suffix,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String suffix;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        labelText: label,
+        suffixText: suffix,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+}
+
+class _OnboardingInfoBox extends StatelessWidget {
+  const _OnboardingInfoBox({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color:
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          height: 1.35,
+        ),
+      ),
+    );
+  }
+}
+
+class _OnboardingAiHealthStep extends StatelessWidget {
+  const _OnboardingAiHealthStep({
+    required this.onOpenAiSettings,
+    required this.onOpenStepsSettings,
+    required this.onOpenSleepSettings,
+    required this.onOpenPulseSettings,
+  });
+
+  final VoidCallback onOpenAiSettings;
+  final VoidCallback onOpenStepsSettings;
+  final VoidCallback onOpenSleepSettings;
+  final VoidCallback onOpenPulseSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    return SingleChildScrollView(
+      key: const Key('onboarding_ai_health_page'),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 12),
+          Text(
+            l10n.onboardingAiHealthTitle,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.onboardingAiHealthSubtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+          SummaryCard(
+            child: Column(
+              children: [
+                _OnboardingSettingsTile(
+                  icon: LucideIcons.sparkles,
+                  title: l10n.aiSettingsTitle,
+                  subtitle: l10n.aiSettingsDescription,
+                  onTap: onOpenAiSettings,
+                ),
+                const Divider(height: 1),
+                _OnboardingSettingsTile(
+                  icon: LucideIcons.footprints,
+                  title: l10n.steps,
+                  subtitle: l10n.settingsStepsSubtitle,
+                  onTap: onOpenStepsSettings,
+                ),
+                const Divider(height: 1),
+                _OnboardingSettingsTile(
+                  icon: LucideIcons.moon,
+                  title: l10n.sleepSettingsSectionTitle,
+                  subtitle: l10n.settingsSleepSubtitle,
+                  onTap: onOpenSleepSettings,
+                ),
+                const Divider(height: 1),
+                _OnboardingSettingsTile(
+                  icon: LucideIcons.heart_pulse,
+                  title: l10n.pulseTitle,
+                  subtitle: l10n.settingsPulseSubtitle,
+                  onTap: onOpenPulseSettings,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OnboardingSettingsTile extends StatelessWidget {
+  const _OnboardingSettingsTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: Text(subtitle),
+      trailing: TextButton.icon(
+        onPressed: onTap,
+        icon: const Icon(LucideIcons.chevron_right),
+        label: Text(l10n.onboardingOpenSettings),
+      ),
+      onTap: onTap,
+    );
   }
 }
