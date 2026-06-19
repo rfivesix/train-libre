@@ -35,7 +35,7 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -50,6 +50,18 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
                 duration: const Duration(milliseconds: 800),
                 curve: Curves.easeOutCubic,
                 transform: Matrix4.translationValues(0, _visible ? 0 : 20, 0),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 35,
+                      spreadRadius: 10,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
                 child: SvgPicture.asset(
                   'assets/icon/train-libre_icon_dark_green_no_bg.svg',
                   height: 120,
