@@ -41,7 +41,7 @@ void main() {
   late int logId;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'unit_system': 'metric'});
     database = db.AppDatabase(NativeDatabase.memory());
     DatabaseHelper.setDriftDb(database);
     
