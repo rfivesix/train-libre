@@ -21,6 +21,7 @@ import 'meal_editor_screen.dart';
 import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/common.dart';
 
 /// Review screen for AI-suggested food items.
 ///
@@ -578,7 +579,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 // Meal-type compact dropdown
                 Expanded(
                   flex: 2,
-                  child: DropdownButtonFormField<String>(
+                  child: PlatformAdaptiveDropdownFormField<String>(
                     initialValue: _selectedMealType,
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
@@ -588,7 +589,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                       ),
                       isDense: true,
                     ),
-                    isExpanded: true,
                     items: [
                       DropdownMenuItem(
                         value: 'mealtypeBreakfast',

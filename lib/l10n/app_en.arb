@@ -1,5 +1,7 @@
 {
   "@@locale": "en",
+  "selectDateTitle": "Select Date",
+  "selectTimeTitle": "Select Time",
   "appTitle": "Train Libre",
   "bannerText": "Recommendation / Current Workout",
   "calories": "Calories",

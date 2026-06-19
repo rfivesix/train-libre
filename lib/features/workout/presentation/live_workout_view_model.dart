@@ -626,6 +626,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> reorderExercise(int oldIndex, int newIndex) async {
     final newExercises = List<RoutineExercise>.from(_exercises);
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
     final item = newExercises.removeAt(oldIndex);
     newExercises.insert(newIndex, item);
     _exercises = newExercises;

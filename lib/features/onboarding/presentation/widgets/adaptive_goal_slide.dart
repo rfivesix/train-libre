@@ -3,6 +3,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../nutrition_recommendation/domain/goal_models.dart';
 import '../../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
 import 'springy_scale.dart';
+import '../../../../widgets/common/common.dart';
 
 class AdaptiveGoalSlide extends StatelessWidget {
   final BodyweightGoal selectedGoal;
@@ -50,7 +51,7 @@ class AdaptiveGoalSlide extends StatelessWidget {
             style: TextStyle(color: Colors.grey[600], fontSize: 16),
           ),
           const SizedBox(height: 24),
-          DropdownButtonFormField<BodyweightGoal>(
+          PlatformAdaptiveDropdownFormField<BodyweightGoal>(
             initialValue: selectedGoal,
             decoration: InputDecoration(
               labelText: l10n.adaptiveGoalDirectionLabel,
@@ -69,7 +70,7 @@ class AdaptiveGoalSlide extends StatelessWidget {
             },
           ),
           const SizedBox(height: 20),
-          DropdownButtonFormField<PriorActivityLevel>(
+          PlatformAdaptiveDropdownFormField<PriorActivityLevel>(
             key: const Key('onboarding_prior_activity_dropdown'),
             initialValue: selectedPriorActivityLevel,
             decoration: InputDecoration(
@@ -94,7 +95,7 @@ class AdaptiveGoalSlide extends StatelessWidget {
             l10n: l10n,
           ),
           const SizedBox(height: 20),
-          DropdownButtonFormField<ExtraCardioHoursOption>(
+          PlatformAdaptiveDropdownFormField<ExtraCardioHoursOption>(
             key: const Key('onboarding_extra_cardio_dropdown'),
             initialValue: selectedExtraCardioHoursOption,
             decoration: InputDecoration(

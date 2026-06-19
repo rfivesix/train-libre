@@ -104,6 +104,18 @@ abstract class AppLocalizations {
     Locale('ja')
   ];
 
+  /// No description provided for @selectDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date'**
+  String get selectDateTitle;
+
+  /// No description provided for @selectTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Time'**
+  String get selectTimeTitle;
+
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:

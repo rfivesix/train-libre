@@ -9,6 +9,12 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String get selectDateTitle => 'Datum auswählen';
+
+  @override
+  String get selectTimeTitle => 'Uhrzeit auswählen';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override

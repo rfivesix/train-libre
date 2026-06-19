@@ -8,7 +8,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../util/util_convert.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
+import '../../../widgets/common/common.dart';
 
 /// A screen for creating or editing a supplement definition.
 class CreateSupplementScreen extends StatefulWidget {
@@ -156,7 +156,7 @@ class _CreateSupplementScreenState extends State<CreateSupplementScreen> {
 
                   // <- Important: constrain this.
                   Expanded(
-                    child: DropdownButtonFormField<String>(
+                    child: PlatformAdaptiveDropdownFormField<String>(
                       initialValue: _unit,
                       items: allowedUnits
                           .map(

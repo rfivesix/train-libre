@@ -123,10 +123,6 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Now on page 1: Unit System. Need to tap Next to go to Profile.
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
-
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
@@ -148,6 +144,9 @@ void main() {
         find.byKey(const Key('onboarding_body_fat_help_button')),
         findsOneWidget,
       );
+
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
@@ -183,16 +182,13 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Now on page 1: Unit System. Need to tap Next to go to Profile.
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
-
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
       );
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
+
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
@@ -240,14 +236,12 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Now on page 1: Unit System. Need to tap Next to go to Profile.
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
-
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
       );
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
@@ -311,10 +305,6 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Now on page 1: Unit System. Need to tap Next to go to Profile.
-      await tester.tap(nextButton);
-      await tester.pumpAndSettle();
-
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
@@ -323,7 +313,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(nextButton); // weight -> body fat
       await tester.pumpAndSettle();
-      await tester.tap(nextButton); // body fat -> adaptive
+      await tester.tap(nextButton); // body fat -> unit system
+      await tester.pumpAndSettle();
+      await tester.tap(nextButton); // unit system -> adaptive
       await tester.pumpAndSettle();
       await tester.tap(nextButton); // adaptive -> calories
       await tester.pumpAndSettle();

@@ -321,7 +321,7 @@ class _SupplementHubScreenContentState
                 Expanded(
                   child: InkWell(
                     onTap: () async {
-                      final picked = await showDatePicker(
+                      final picked = await showAdaptiveDatePicker(
                         context: context,
                         initialDate: model.selectedDate,
                         firstDate: DateTime(2020),

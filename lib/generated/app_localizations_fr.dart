@@ -9,6 +9,12 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get selectDateTitle => 'Choisir une date';
+
+  @override
+  String get selectTimeTitle => 'Choisir une heure';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override

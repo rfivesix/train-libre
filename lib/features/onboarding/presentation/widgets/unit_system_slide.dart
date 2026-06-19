@@ -19,49 +19,51 @@ class UnitSystemSlide extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.onboardingUnitSystemTitle,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.onboardingUnitSystemSubtitle,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.onboardingUnitSystemTitle,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
-          ),
-          const SizedBox(height: 32),
-          SpringyScale(
-            isSelected: selectedSystem == UnitSystem.metric,
-            onTap: () => onSelectSystem(UnitSystem.metric),
-            child: _UnitSystemChoiceCard(
-              title: l10n.onboardingUnitMetric,
-              subtitle: l10n.onboardingUnitMetricSubtitle,
-              icon: LucideIcons.ruler,
-              selected: selectedSystem == UnitSystem.metric,
+            const SizedBox(height: 12),
+            Text(
+              l10n.onboardingUnitSystemSubtitle,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          SpringyScale(
-            isSelected: selectedSystem == UnitSystem.imperial,
-            onTap: () => onSelectSystem(UnitSystem.imperial),
-            child: _UnitSystemChoiceCard(
-              title: l10n.onboardingUnitImperial,
-              subtitle: l10n.onboardingUnitImperialSubtitle,
-              icon: LucideIcons.globe,
-              selected: selectedSystem == UnitSystem.imperial,
+            const SizedBox(height: 32),
+            SpringyScale(
+              isSelected: selectedSystem == UnitSystem.metric,
+              onTap: () => onSelectSystem(UnitSystem.metric),
+              child: _UnitSystemChoiceCard(
+                title: l10n.onboardingUnitMetric,
+                subtitle: l10n.onboardingUnitMetricSubtitle,
+                icon: LucideIcons.ruler,
+                selected: selectedSystem == UnitSystem.metric,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            SpringyScale(
+              isSelected: selectedSystem == UnitSystem.imperial,
+              onTap: () => onSelectSystem(UnitSystem.imperial),
+              child: _UnitSystemChoiceCard(
+                title: l10n.onboardingUnitImperial,
+                subtitle: l10n.onboardingUnitImperialSubtitle,
+                icon: LucideIcons.globe,
+                selected: selectedSystem == UnitSystem.imperial,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

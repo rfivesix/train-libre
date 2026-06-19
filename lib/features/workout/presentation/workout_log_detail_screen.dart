@@ -23,6 +23,7 @@ import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/common.dart';
 import '../../exercise_catalog/presentation/widgets/wger_attribution_widget.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/workout_heart_rate_section.dart';
@@ -354,7 +355,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   }
 
   Future<void> _pickDateTime() async {
-    final date = await showDatePicker(
+    final date = await showAdaptiveDatePicker(
       context: context,
       initialDate: _editedStartTime ?? DateTime.now(),
       firstDate: DateTime(2020),
@@ -363,7 +364,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     if (date == null) return;
     if (!mounted) return;
 
-    final time = await showTimePicker(
+    final time = await showAdaptiveTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_editedStartTime ?? DateTime.now()),
     );

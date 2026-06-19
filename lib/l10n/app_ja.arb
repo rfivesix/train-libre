@@ -1,5 +1,7 @@
 {
   "@@locale": "ja",
+  "selectDateTitle": "日付を選択",
+  "selectTimeTitle": "時間を選択",
   "appTitle": "Train Libre",
   "bannerText": "推奨事項 / 現在のトレーニング",
   "calories": "カロリー",

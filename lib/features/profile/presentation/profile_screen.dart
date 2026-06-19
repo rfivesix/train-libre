@@ -142,7 +142,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Expanded(
                       child: InkWell(
                         onTap: () async {
-                          final picked = await showDatePicker(
+                          final picked = await showAdaptiveDatePicker(
                             context: context,
                             initialDate: selectedDate ?? DateTime(2000),
                             firstDate: DateTime(1900),
@@ -169,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: DropdownButtonFormField<String>(
+                      child: PlatformAdaptiveDropdownFormField<String>(
                         initialValue: selectedGender,
                         decoration: InputDecoration(
                           labelText: l10n.onboardingGenderLabel,

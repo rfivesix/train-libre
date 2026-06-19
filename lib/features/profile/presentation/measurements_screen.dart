@@ -227,35 +227,25 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedChartType,
-                    isExpanded: true,
-                    onChanged: (String? newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          _selectedChartType = newValue;
-                        });
-                        _loadChartData();
-                      }
-                    },
-                    items: _availableMeasurementTypes
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          l10n.getLocalizedMeasurementName(value),
-                        ),
-                      );
-                    }).toList(),
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    icon: Icon(
-                      LucideIcons.chevron_down,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                child: PlatformAdaptiveDropdownFormField<String>(
+                  value: _selectedChartType,
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _selectedChartType = newValue;
+                      });
+                      _loadChartData();
+                    }
+                  },
+                  items: _availableMeasurementTypes
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(
+                        l10n.getLocalizedMeasurementName(value),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
               Row(

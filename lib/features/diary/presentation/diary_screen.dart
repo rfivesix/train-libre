@@ -607,7 +607,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
   Future<void> pickDate() async {
     final viewModel = context.read<DiaryViewModel>();
-    final picked = await showDatePicker(
+    final picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: viewModel.selectedDate,
       firstDate: DateTime(2020),

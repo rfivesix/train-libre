@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../generated/app_localizations.dart';
 import '../features/diary/domain/models/food_item.dart';
 import '../util/design_constants.dart';
-import '../widgets/common/platform_adaptive_switch_list_tile.dart';
+import '../widgets/common/common.dart';
 
 /// A dialog content widget for logging food and liquid quantities.
 ///
@@ -94,7 +94,7 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
 
   Future<void> _selectDate() async {
     final locale = Localizations.localeOf(context);
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: _selectedDateTime,
       firstDate: DateTime(2020),
@@ -115,7 +115,7 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
   }
 
   Future<void> _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
+    final TimeOfDay? picked = await showAdaptiveTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
     );
@@ -170,7 +170,7 @@ class QuantityDialogContentState extends State<QuantityDialogContent> {
           autofocus: true,
         ),
         const SizedBox(height: DesignConstants.spacingL),
-        DropdownButtonFormField<String>(
+        PlatformAdaptiveDropdownFormField<String>(
           initialValue: _selectedMealType,
           decoration: InputDecoration(labelText: l10n.meal_label),
           items: _mealTypes.map((String key) {

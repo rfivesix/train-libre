@@ -9,6 +9,12 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
+  String get selectDateTitle => '日付を選択';
+
+  @override
+  String get selectTimeTitle => '時間を選択';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override

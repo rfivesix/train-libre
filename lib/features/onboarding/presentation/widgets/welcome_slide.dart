@@ -36,82 +36,84 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AnimatedOpacity(
-            opacity: _visible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 800),
-            curve: Curves.easeOutCubic,
-            child: AnimatedContainer(
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedOpacity(
+              opacity: _visible ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 800),
               curve: Curves.easeOutCubic,
-              transform: Matrix4.translationValues(0, _visible ? 0 : 20, 0),
-              child: SvgPicture.asset(
-                'assets/icon/train-libre_icon_dark_green_no_bg.svg',
-                height: 120,
-              ),
-            ),
-          ),
-          const SizedBox(height: 48),
-          Text(
-            l10n.onboardingWelcomeTitle,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          _buildMissionStatement(l10n, theme),
-          const SizedBox(height: 48),
-          // Primary CTA — continue with profile setup
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              key: const Key('onboarding_continue_setup_button'),
-              onPressed: widget.isRestoring ? null : widget.onContinue,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: Text(
-                l10n.onboardingContinueSetup.toUpperCase(),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Secondary CTA — restore from backup
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: widget.isRestoring ? null : widget.onRestore,
-              icon: widget.isRestoring
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(LucideIcons.history),
-              label: Text(
-                widget.isRestoring
-                    ? l10n.onboardingRestoreImporting
-                    : l10n.onboardingRestoreFromBackup,
-              ),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOutCubic,
+                transform: Matrix4.translationValues(0, _visible ? 0 : 20, 0),
+                child: SvgPicture.asset(
+                  'assets/icon/train-libre_icon_dark_green_no_bg.svg',
+                  height: 120,
                 ),
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 48),
+            Text(
+              l10n.onboardingWelcomeTitle,
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            _buildMissionStatement(l10n, theme),
+            const SizedBox(height: 48),
+            // Primary CTA — continue with profile setup
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                key: const Key('onboarding_continue_setup_button'),
+                onPressed: widget.isRestoring ? null : widget.onContinue,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Text(
+                  l10n.onboardingContinueSetup.toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Secondary CTA — restore from backup
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: widget.isRestoring ? null : widget.onRestore,
+                icon: widget.isRestoring
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(LucideIcons.history),
+                label: Text(
+                  widget.isRestoring
+                      ? l10n.onboardingRestoreImporting
+                      : l10n.onboardingRestoreFromBackup,
+                ),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
