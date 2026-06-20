@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/common.dart';
+
 
 enum MealType { breakfast, lunch, dinner, snack }
 
@@ -136,7 +138,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
             onSubmitted: (_) => _onSave(),
           ),
           const SizedBox(height: 12),
-          DropdownButtonFormField<MealType>(
+          PlatformAdaptiveDropdownFormField<MealType>(
             initialValue: _type,
             onChanged: (v) => setState(() => _type = v ?? _type),
             decoration: InputDecoration(labelText: l10n.mealTypeLabel),

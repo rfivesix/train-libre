@@ -1037,7 +1037,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                     ),
 
                     Positioned(
-                      bottom: (showRestBar ? 104.0 : 24.0) +
+                      bottom: (showRestBar ? 101.5 : 24.0) +
                           MediaQuery.paddingOf(context).bottom,
                       right: 16.0,
                       child: RepaintBoundary(

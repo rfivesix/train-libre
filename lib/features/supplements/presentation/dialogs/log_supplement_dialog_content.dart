@@ -5,6 +5,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../domain/models/supplement.dart';
 import '../../../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/common.dart';
 
 /// A dialog content widget for logging supplement intake.
 ///
@@ -53,7 +54,7 @@ class LogSupplementDialogContentState
   }
 
   Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: _selectedDateTime,
       firstDate: DateTime(2020),
@@ -73,7 +74,7 @@ class LogSupplementDialogContentState
   }
 
   Future<void> _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
+    final TimeOfDay? picked = await showAdaptiveTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
     );

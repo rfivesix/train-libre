@@ -508,7 +508,7 @@ class _MealScreenState extends State<MealScreen> {
                       style: Theme.of(ctx).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
+                    PlatformAdaptiveDropdownFormField<String>(
                       initialValue: selectedMealType,
                       decoration: InputDecoration(
                         labelText: l10n.mealTypeLabel,

@@ -33,25 +33,37 @@ class AppearanceSettingsScreen extends StatelessWidget {
           SummaryCard(
             child: Column(
               children: [
-                RadioGroup<ThemeMode>(
-                  groupValue: themeService.themeMode,
-                  onChanged: (value) {
-                    if (value == null) return;
-                    themeService.setThemeMode(value);
-                  },
-                  child: Column(
+                Padding(
+                  padding: const EdgeInsets.all(DesignConstants.spacingL),
+                  child: Row(
                     children: [
-                      RadioListTile<ThemeMode>(
-                        title: Text(l10n.themeSystem),
-                        value: ThemeMode.system,
-                      ),
-                      RadioListTile<ThemeMode>(
-                        title: Text(l10n.themeLight),
-                        value: ThemeMode.light,
-                      ),
-                      RadioListTile<ThemeMode>(
-                        title: Text(l10n.themeDark),
-                        value: ThemeMode.dark,
+                      const Icon(LucideIcons.sun_moon),
+                      const SizedBox(width: DesignConstants.spacingL),
+                      Expanded(
+                        child: PlatformAdaptiveDropdownFormField<ThemeMode>(
+                          key: ValueKey(themeService.themeMode),
+                          value: themeService.themeMode,
+                          decoration: InputDecoration(
+                            labelText: l10n.settingsAppearance,
+                            border: const OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          items: ThemeMode.values
+                              .map(
+                                (mode) => DropdownMenuItem<ThemeMode>(
+                                  value: mode,
+                                  child: Text(_themeModeLabel(l10n, mode)),
+                                ),
+                              )
+                              .toList(growable: false),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            themeService.setThemeMode(value);
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -99,5 +111,13 @@ class AppearanceSettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _themeModeLabel(AppLocalizations l10n, ThemeMode mode) {
+    return switch (mode) {
+      ThemeMode.system => l10n.themeSystem,
+      ThemeMode.light => l10n.themeLight,
+      ThemeMode.dark => l10n.themeDark,
+    };
   }
 }

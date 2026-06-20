@@ -9,6 +9,12 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
+  String get selectDateTitle => '日付を選択';
+
+  @override
+  String get selectTimeTitle => '時間を選択';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override
@@ -2201,6 +2207,43 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingWelcomeSubtitle => '最良の結果を得るためにプロフィールを設定しましょう。';
 
   @override
+  String get onboardingMissionTitle => '私たちの使命';
+
+  @override
+  String get onboardingMissionBody =>
+      'Train Libreは、科学的根拠に基づいたデータ主導の進歩を求める、熱心なナチュラル・ボディビルダーのためのものです。';
+
+  @override
+  String get onboardingFeatureWorkoutTitle => 'ワークアウトトラッカー';
+
+  @override
+  String get onboardingFeatureWorkoutBody => 'セット（RIR/RPE）を記録し、筋肉の回復を追跡します。';
+
+  @override
+  String get onboardingFeatureTdeeTitle => '適応型TDEE';
+
+  @override
+  String get onboardingFeatureTdeeBody => '統合されたカルマンフィルターが実際の消費カロリーを計算します。';
+
+  @override
+  String get onboardingFeatureNutritionTitle => '栄養と水分';
+
+  @override
+  String get onboardingFeatureNutritionBody => 'マクロ、水分、任意のAI画像認識を記録します。';
+
+  @override
+  String get onboardingFeaturePrivacyTitle => '100%プライベートかつローカル';
+
+  @override
+  String get onboardingFeaturePrivacyBody => 'アカウント不要、クラウド強制なし。データはあなたのものです。';
+
+  @override
+  String get onboardingSettingsHint => 'すべての設定は後からいつでも設定画面で変更できます。';
+
+  @override
+  String get adaptiveRatePerWeekLabel => '週次目標レート';
+
+  @override
   String get onboardingNameTitle => 'あなたの名前は何ですか？';
 
   @override
@@ -2258,6 +2301,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingFinish => '追跡を開始する';
 
   @override
+  String get onboardingAiHealthTitle => 'AIと健康';
+
+  @override
+  String get onboardingAiHealthSubtitle =>
+      '任意設定: BYOK (Bring Your Own Key) でAI食事認識を設定し、Train Libreが読み取れる健康データを選択します。';
+
+  @override
+  String get onboardingOpenSettings => '開く';
+
+  @override
   String get onboardingUnitSystemTitle => '単位系を選択してください';
 
   @override
@@ -2280,6 +2333,25 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingGenderLabel => '性別';
+
+  @override
+  String get onboardingBioDataInfo =>
+      '年齢と生物学的性別は、筋肉回復モデルの基礎回復ウィンドウを決定し、Sleep Health Engineのアルゴリズムにも反映されます。';
+
+  @override
+  String get onboardingMeasurementsTitle => '測定値とベースライン';
+
+  @override
+  String get onboardingMeasurementsSubtitle => '適応型レコメンドのために現在の基準値を設定します。';
+
+  @override
+  String get onboardingMeasurementsDisclaimer =>
+      '体重、体脂肪、その他の測定値は、ダッシュボードでいつでも入力して記録できます。';
+
+  @override
+  String onboardingWaterNeedLabel(String unit) {
+    return '水分目標 ($unit)';
+  }
 
   @override
   String get genderMale => '男';

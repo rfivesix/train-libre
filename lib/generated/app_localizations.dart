@@ -104,6 +104,18 @@ abstract class AppLocalizations {
     Locale('ja')
   ];
 
+  /// No description provided for @selectDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date'**
+  String get selectDateTitle;
+
+  /// No description provided for @selectTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Time'**
+  String get selectTimeTitle;
+
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
@@ -4076,6 +4088,78 @@ abstract class AppLocalizations {
   /// **'Let\'s set up your profile to get the best results.'**
   String get onboardingWelcomeSubtitle;
 
+  /// No description provided for @onboardingMissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Mission'**
+  String get onboardingMissionTitle;
+
+  /// No description provided for @onboardingMissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre is for dedicated natural bodybuilders who demand science-based, data-driven progress.'**
+  String get onboardingMissionBody;
+
+  /// No description provided for @onboardingFeatureWorkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout Tracker'**
+  String get onboardingFeatureWorkoutTitle;
+
+  /// No description provided for @onboardingFeatureWorkoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log sets (RIR/RPE) and follow your muscle recovery.'**
+  String get onboardingFeatureWorkoutBody;
+
+  /// No description provided for @onboardingFeatureTdeeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adaptive TDEE'**
+  String get onboardingFeatureTdeeTitle;
+
+  /// No description provided for @onboardingFeatureTdeeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An integrated Kalman filter calculates your real calorie expenditure.'**
+  String get onboardingFeatureTdeeBody;
+
+  /// No description provided for @onboardingFeatureNutritionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition & Water'**
+  String get onboardingFeatureNutritionTitle;
+
+  /// No description provided for @onboardingFeatureNutritionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Track macros, water, and use optional AI image recognition.'**
+  String get onboardingFeatureNutritionBody;
+
+  /// No description provided for @onboardingFeaturePrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'100% Private & Local'**
+  String get onboardingFeaturePrivacyTitle;
+
+  /// No description provided for @onboardingFeaturePrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts, no forced cloud. Your data belongs to you.'**
+  String get onboardingFeaturePrivacyBody;
+
+  /// No description provided for @onboardingSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'All settings can be changed later at any time in Settings.'**
+  String get onboardingSettingsHint;
+
+  /// No description provided for @adaptiveRatePerWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Target Rate'**
+  String get adaptiveRatePerWeekLabel;
+
   /// No description provided for @onboardingNameTitle.
   ///
   /// In en, this message translates to:
@@ -4190,6 +4274,24 @@ abstract class AppLocalizations {
   /// **'Start Tracking'**
   String get onboardingFinish;
 
+  /// No description provided for @onboardingAiHealthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI & Health'**
+  String get onboardingAiHealthTitle;
+
+  /// No description provided for @onboardingAiHealthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional setup: configure AI meal capture with BYOK (Bring Your Own Key) and choose which health data Train Libre may read.'**
+  String get onboardingAiHealthSubtitle;
+
+  /// No description provided for @onboardingOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get onboardingOpenSettings;
+
   /// No description provided for @onboardingUnitSystemTitle.
   ///
   /// In en, this message translates to:
@@ -4237,6 +4339,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gender'**
   String get onboardingGenderLabel;
+
+  /// No description provided for @onboardingBioDataInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Your age and biological sex determine the baseline recovery windows of your muscle recovery model and feed into the algorithms of your Sleep Health Engine.'**
+  String get onboardingBioDataInfo;
+
+  /// No description provided for @onboardingMeasurementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurements & Baseline'**
+  String get onboardingMeasurementsTitle;
+
+  /// No description provided for @onboardingMeasurementsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your current baseline for the adaptive recommendation.'**
+  String get onboardingMeasurementsSubtitle;
+
+  /// No description provided for @onboardingMeasurementsDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'You can enter and log your weight, body fat, and other measurements at any time in the dashboard.'**
+  String get onboardingMeasurementsDisclaimer;
+
+  /// No description provided for @onboardingWaterNeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Water need ({unit})'**
+  String onboardingWaterNeedLabel(String unit);
 
   /// No description provided for @genderMale.
   ///

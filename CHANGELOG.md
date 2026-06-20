@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.33] - 2026-06-20
+
+### Added
+- **Platform-Adaptive Glass Pickers & Dropdowns (`platform_adaptive_pickers.dart`, `platform_adaptive_dropdown.dart`):** Introduced a unified, design-system-compliant date picker, time picker, and popup menu layer that renders glass-themed Material 3 dialogs on Android and native-feeling `GlassModalSheet` / `GlassMenu` overlays on iOS:
+  - **`showAdaptiveDatePicker`:** Accepts `initialDate`, `firstDate`, `lastDate`, and optional `Locale`; renders a themed Material `DatePickerDialog` on Android and a `CupertinoDatePicker` spinner inside a `GlassModalSheet` with localized "Select Date" / "Select Time" confirm/cancel controls on iOS.
+  - **`showAdaptiveTimePicker`:** Mirrors the date picker architecture with a `CupertinoTimerPicker` on iOS wrapped in glass-styled confirm/cancel chrome.
+  - **`PlatformAdaptivePopupMenu<T>`:** A generic popup/context menu button that renders a Material 3 `PopupMenuButton` on Android and a `GlassMenu` morphing from the trigger icon on iOS, with support for optional leading icons and destructive-action styling per item.
+  - All picker and dropdown callsites across the app — fluid/quantity/water dialogs, meal editor, supplement screens, measurement screens, goals screen, profile screen, AI settings, routine import, workout log detail, create exercise, onboarding slides — migrated from stock Flutter `showDatePicker`/`showTimePicker`/`PopupMenuButton` to these adaptive wrappers, delivering consistent Liquid Glass styling everywhere.
+- **`SpringyScale` Widget (`springy_scale.dart`):** Added a reusable animated wrapper widget that provides a "springy" scale-down animation with haptic feedback when tapped or when its selection state changes. Used throughout the redesigned onboarding slides (goal cards, unit system options, welcome slide actions) to make interactive elements feel tactile and responsive.
+- **Onboarding Localization Expansion:** Added 40+ new localization keys and translations across all five supported languages (English, German, French, Italian, Japanese) for the redesigned onboarding flow, covering goal descriptions, unit system explanations, profile prompts, and welcome slide content.
+
+### Changed
+- **Settings Appearance — Theme Mode Dropdown (`appearance_settings_screen.dart`):** Replaced the previous dark/light mode toggle switch with a fully localized dropdown menu (`System`, `Light`, `Dark`), integrated with the new `PlatformAdaptivePopupMenu`, providing clearer theme state communication and a cleaner settings layout.
+- **Main Screen FAB Animation Overhaul (`main_screen.dart`, `speed_dial_menu_overlay.dart`):** Refactored the floating action button and speed-dial menu overlay with improved animation curves, smoother morphing transitions, and better overlay dismissal behavior — delivering a more polished and responsive FAB experience on the main screen.
+- **Onboarding Complete Overhaul (`onboarding_screen.dart`, all onboarding slide widgets):** Redesigned the entire onboarding flow with a modern, polished aesthetic:
+  - **Welcome Slide:** Added a drop shadow to the app logo, refined typography and spacing, and improved the "Get Started" CTA with springy-scale interaction.
+  - **Profile Slide:** Refined layout, added localized descriptive text, and improved input field styling.
+  - **Goal Slide:** Replaced static goal cards with `SpringyScale`-wrapped interactive tiles featuring haptic feedback, spring animations on selection, and localized goal descriptions; added a "Continue" confirmation button.
+  - **Unit System Slide:** Completely redesigned from a basic toggle into a visually rich dual-card layout with `SpringyScale`-wrapped metric/imperial options, animated selection transitions, and localized unit descriptions.
+  - Unified all slides under consistent glass-styled containers, adaptive padding, and platform-appropriate picker/dropdown usage.
+- **Food Detail Screen Refinements (`food_detail_screen.dart`):**
+  - **App Bar Redesign:** Improved the app bar layout with better spacing, icon placement, and adaptive styling for a cleaner header.
+  - **Vegan/Vegetarian Badge:** Enhanced the dietary preference badge with improved iconography, refined color treatment, and better alignment within the nutrition header.
+  - **General Layout Polish:** Refined spacing, divider placement, and scroll behavior throughout the nutrition detail view.
+- **Recommendation Banner Color Fix (`recommendation_banner.dart`):** Adjusted the banner's background and text color values to ensure proper contrast and readability in both light and dark themes.
+- **Glass Progress Bar Coloring (`glass_progress_bar.dart`):** Tweaked the progress fill color treatment for improved visibility and consistency with the Liquid Glass design system.
+
+### Fixed
+- **Live Workout Rest Timer & FAB Padding (`live_workout_screen.dart`):** Fixed incorrect bottom padding on the rest timer bar and glass FAB overlay, resolving a layout issue where these elements could overlap with the safe area or be clipped on devices with home indicators.
+- **iOS Podfile (`Podfile`):** Resolved an iOS build configuration issue in the CocoaPods Podfile that affected dependency resolution.
+- **Test Suite Stability:** Fixed test regressions in `platform_adaptive_recommendation_settings_flow_test.dart` and `workout_log_detail_reactive_test.dart` to align with the new adaptive picker and dropdown architecture.
+
 ## [0.9.32] - 2026-06-16
 
 ### Fixed

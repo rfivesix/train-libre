@@ -1,5 +1,7 @@
 {
   "@@locale": "it",
+  "selectDateTitle": "Seleziona data",
+  "selectTimeTitle": "Seleziona ora",
   "appTitle": "Train Libre",
   "bannerText": "Raccomandazione/Allenamento attuale",
   "calories": "Calorie",
@@ -916,6 +918,18 @@
   "resumeButton": "Riprendere",
   "onboardingWelcomeTitle": "Benvenuti su Train Libre",
   "onboardingWelcomeSubtitle": "Impostiamo il tuo profilo per ottenere i migliori risultati.",
+  "onboardingMissionTitle": "La Nostra Missione",
+  "onboardingMissionBody": "Train Libre è per i bodybuilder naturali dedicati che richiedono progressi basati sulla scienza e sui dati.",
+  "onboardingFeatureWorkoutTitle": "Tracker allenamenti",
+  "onboardingFeatureWorkoutBody": "Registra le serie (RIR/RPE) e segui il recupero muscolare.",
+  "onboardingFeatureTdeeTitle": "TDEE adattivo",
+  "onboardingFeatureTdeeBody": "Un filtro di Kalman integrato calcola il tuo reale consumo calorico.",
+  "onboardingFeatureNutritionTitle": "Nutrizione e acqua",
+  "onboardingFeatureNutritionBody": "Traccia macro, acqua e usa il riconoscimento immagini IA opzionale.",
+  "onboardingFeaturePrivacyTitle": "100% privato e locale",
+  "onboardingFeaturePrivacyBody": "Nessun account, nessun cloud obbligatorio. I tuoi dati appartengono a te.",
+  "onboardingSettingsHint": "Tutte le impostazioni possono essere modificate in seguito in qualsiasi momento nelle Impostazioni.",
+  "adaptiveRatePerWeekLabel": "Tasso target settimanale",
   "onboardingNameTitle": "Come ti chiami?",
   "onboardingNameLabel": "Il tuo nome",
   "onboardingNameError": "Per favore inserisci il tuo nome",
@@ -935,6 +949,9 @@
   "onboardingNext": "Prossimo",
   "onboardingBack": "Indietro",
   "onboardingFinish": "Inizia il monitoraggio",
+  "onboardingAiHealthTitle": "IA e salute",
+  "onboardingAiHealthSubtitle": "Configurazione facoltativa: configura il riconoscimento pasti tramite IA con BYOK (Bring Your Own Key) e scegli quali dati sanitari Train Libre può leggere.",
+  "onboardingOpenSettings": "Apri",
   "onboardingUnitSystemTitle": "Scegli il tuo sistema di unità",
   "onboardingUnitSystemSubtitle": "Puoi modificarlo in seguito in Impostazioni.",
   "onboardingUnitMetric": "Metrico",
@@ -943,6 +960,18 @@
   "onboardingUnitImperialSubtitle": "libbre, pollici, fl oz",
   "onboardingHeightLabel": "Altezza",
   "onboardingGenderLabel": "Genere",
+  "onboardingBioDataInfo": "La tua età e il sesso biologico determinano le finestre di recupero di base del modello di recupero muscolare e alimentano gli algoritmi della tua Sleep Health Engine.",
+  "onboardingMeasurementsTitle": "Misure e baseline",
+  "onboardingMeasurementsSubtitle": "Imposta la tua baseline attuale per la raccomandazione adattiva.",
+  "onboardingMeasurementsDisclaimer": "Puoi inserire e registrare peso, grasso corporeo e altre misure in qualsiasi momento nella dashboard.",
+  "onboardingWaterNeedLabel": "Fabbisogno d'acqua ({unit})",
+  "@onboardingWaterNeedLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "genderMale": "Maschio",
   "genderFemale": "Femmina",
   "genderDiverse": "Diverso",

@@ -1178,6 +1178,7 @@ class BasisDataManager {
         'en:drinking-waters',
         'en:kombucha',
         'en:kefir-drinks',
+        'en:drinks',
       ];
 
       // ── Tier 2: blocklist (exact tag match) ──────────────────────────────

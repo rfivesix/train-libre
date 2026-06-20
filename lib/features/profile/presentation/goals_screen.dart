@@ -236,7 +236,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       title: l10n.adaptiveBodyweightTargetSectionTitle,
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
-                    DropdownButtonFormField<BodyweightGoal>(
+                    PlatformAdaptiveDropdownFormField<BodyweightGoal>(
                       initialValue: _selectedGoal,
                       decoration: InputDecoration(
                         labelText: l10n.adaptiveGoalDirectionLabel,
@@ -291,7 +291,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       title: l10n.adaptiveRecommendationSettingsSectionTitle,
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
-                    DropdownButtonFormField<PriorActivityLevel>(
+                    PlatformAdaptiveDropdownFormField<PriorActivityLevel>(
                       key: const Key('goals_prior_activity_dropdown'),
                       initialValue: _selectedPriorActivityLevel,
                       decoration: InputDecoration(
@@ -320,7 +320,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       l10n: l10n,
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
-                    DropdownButtonFormField<ExtraCardioHoursOption>(
+                    PlatformAdaptiveDropdownFormField<ExtraCardioHoursOption>(
                       key: const Key('goals_extra_cardio_dropdown'),
                       initialValue: _selectedExtraCardioHoursOption,
                       decoration: InputDecoration(

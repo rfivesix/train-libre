@@ -99,7 +99,10 @@ class GlassProgressBar extends StatelessWidget {
             builder: (context, constraints) {
               Widget buildTextContent({required bool withShadow}) {
                 final colorScheme = theme.colorScheme;
-                final Color filledTextColor = theme.brightness == Brightness.dark ? Colors.white : Colors.black;
+                final Color filledTextColor =
+                    theme.brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black;
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(
@@ -116,7 +119,7 @@ class GlassProgressBar extends StatelessWidget {
                           label,
                           maxLines: 1,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: withShadow ? filledTextColor : colorScheme.onSurface,
+                            color: filledTextColor,
                             shadows: withShadow ? textShadows : null,
                             fontWeight: FontWeight.bold,
                           ),

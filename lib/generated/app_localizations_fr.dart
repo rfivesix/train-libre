@@ -9,6 +9,12 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get selectDateTitle => 'Choisir une date';
+
+  @override
+  String get selectTimeTitle => 'Choisir une heure';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override
@@ -2275,6 +2281,48 @@ class AppLocalizationsFr extends AppLocalizations {
       'Configurons votre profil pour obtenir les meilleurs résultats.';
 
   @override
+  String get onboardingMissionTitle => 'Notre Mission';
+
+  @override
+  String get onboardingMissionBody =>
+      'Train Libre est destiné aux bodybuilders naturels passionnés qui exigent des progrès basés sur la science et les données.';
+
+  @override
+  String get onboardingFeatureWorkoutTitle => 'Suivi des entraînements';
+
+  @override
+  String get onboardingFeatureWorkoutBody =>
+      'Enregistrez vos séries (RIR/RPE) et suivez votre récupération musculaire.';
+
+  @override
+  String get onboardingFeatureTdeeTitle => 'TDEE adaptatif';
+
+  @override
+  String get onboardingFeatureTdeeBody =>
+      'Un filtre de Kalman intégré calcule votre dépense calorique réelle.';
+
+  @override
+  String get onboardingFeatureNutritionTitle => 'Nutrition et eau';
+
+  @override
+  String get onboardingFeatureNutritionBody =>
+      'Suivez les macros, l\'eau et utilisez la reconnaissance d\'images IA optionnelle.';
+
+  @override
+  String get onboardingFeaturePrivacyTitle => '100% privé et local';
+
+  @override
+  String get onboardingFeaturePrivacyBody =>
+      'Aucun compte, aucun cloud obligatoire. Vos données vous appartiennent.';
+
+  @override
+  String get onboardingSettingsHint =>
+      'Tous les réglages peuvent être modifiés plus tard à tout moment dans les paramètres.';
+
+  @override
+  String get adaptiveRatePerWeekLabel => 'Taux cible hebdomadaire';
+
+  @override
   String get onboardingNameTitle => 'Quel est ton nom?';
 
   @override
@@ -2334,6 +2382,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingFinish => 'Commencer le suivi';
 
   @override
+  String get onboardingAiHealthTitle => 'IA et santé';
+
+  @override
+  String get onboardingAiHealthSubtitle =>
+      'Configuration facultative : configurez la reconnaissance des repas par IA avec BYOK (Bring Your Own Key) et choisissez les données de santé que Train Libre peut lire.';
+
+  @override
+  String get onboardingOpenSettings => 'Ouvrir';
+
+  @override
   String get onboardingUnitSystemTitle => 'Choisissez votre système d\'unités';
 
   @override
@@ -2357,6 +2415,26 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingGenderLabel => 'Genre';
+
+  @override
+  String get onboardingBioDataInfo =>
+      'Votre âge et votre sexe biologique déterminent les fenêtres de récupération de base de votre modèle de récupération musculaire et alimentent les algorithmes de votre Sleep Health Engine.';
+
+  @override
+  String get onboardingMeasurementsTitle => 'Mesures et référence';
+
+  @override
+  String get onboardingMeasurementsSubtitle =>
+      'Définissez votre référence actuelle pour la recommandation adaptative.';
+
+  @override
+  String get onboardingMeasurementsDisclaimer =>
+      'Vous pouvez saisir et journaliser votre poids, votre masse grasse et d\'autres mesures à tout moment dans le tableau de bord.';
+
+  @override
+  String onboardingWaterNeedLabel(String unit) {
+    return 'Besoin en eau ($unit)';
+  }
 
   @override
   String get genderMale => 'Mâle';

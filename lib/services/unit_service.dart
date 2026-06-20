@@ -24,12 +24,23 @@ class UnitService extends ChangeNotifier {
   Future<void> _loadUnitSystem() async {
     final prefs = await SharedPreferences.getInstance();
     final storedValue = prefs.getString(_unitSystemKey);
-    final loadedSystem = storedValue == UnitSystem.imperial.name
-        ? UnitSystem.imperial
-        : UnitSystem.metric;
+    final loadedSystem = storedValue == null
+        ? _defaultUnitSystemForLocale()
+        : storedValue == UnitSystem.imperial.name
+            ? UnitSystem.imperial
+            : UnitSystem.metric;
     if (_unitSystem == loadedSystem) return;
     _unitSystem = loadedSystem;
     notifyListeners();
+  }
+
+  UnitSystem _defaultUnitSystemForLocale() {
+    final countryCode =
+        PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
+    return switch (countryCode) {
+      'LR' || 'MM' || 'US' => UnitSystem.imperial,
+      _ => UnitSystem.metric,
+    };
   }
 
   Future<void> setUnitSystem(UnitSystem value) async {

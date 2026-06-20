@@ -458,7 +458,8 @@ class _MainScreenState extends State<MainScreen>
     final l10n = AppLocalizations.of(context)!;
     // FIX: Get date
     final targetDate = _currentActiveDate;
-    final fallbackMealType = MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
+    final fallbackMealType =
+        MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
 
     final routeResult = await Navigator.of(context).push<Object?>(
       MaterialPageRoute(
@@ -1123,7 +1124,8 @@ class _MainScreenState extends State<MainScreen>
                   final confirmed = await showDeleteConfirmation(
                     context,
                     title: l10n.discard_button, // "Discard"
-                    content: l10n.deleteWorkoutConfirmContent, // "Really delete?"
+                    content:
+                        l10n.deleteWorkoutConfirmContent, // "Really delete?"
                     confirmLabel: l10n.discard_button, // Red button: "Discard"
                   );
 
@@ -1148,179 +1150,193 @@ class _MainScreenState extends State<MainScreen>
             child: KeyedSubtree(
               key: _tourNavigationBarKey,
               child: LayoutBuilder(
-              builder: (context, constraints) {
-                final double horizontalPadding = 0.0;
-                final double verticalPadding = 20.0;
-                final double spacing = 8.0;
-                final double extraButtonSize = 74.0;
-                final double maxTabW = constraints.maxWidth -
-                    (horizontalPadding * 2) -
-                    (extraButtonSize + spacing);
+                builder: (context, constraints) {
+                  final double horizontalPadding = 0.0;
+                  final double verticalPadding = 20.0;
+                  final double spacing = 8.0;
+                  final double extraButtonSize = 74.0;
+                  final double maxTabW = constraints.maxWidth -
+                      (horizontalPadding * 2) -
+                      (extraButtonSize + spacing);
 
-                return Stack(
-                  children: [
-                    // Shadow layers underneath the glass tabs & FAB to provide physical depth matching standard style
-                    IgnorePointer(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
-                          vertical: verticalPadding,
-                        ),
-                        child: Row(
-                          children: [
-                            ClipPath(
-                              clipper: ShadowOuterClipper(borderRadius: 37),
-                              child: Container(
-                                width: maxTabW,
-                                height: 74.0, // Match barHeight
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(37),
-                                  boxShadow: DesignConstants.glassShadow,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: spacing),
-                            ClipPath(
-                              clipper: ShadowOuterClipper(
-                                  borderRadius: 37, isOval: true),
-                              child: Container(
-                                width: extraButtonSize,
-                                height: 74.0, // Match barHeight
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(37),
-                                  boxShadow: DesignConstants.glassShadow,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Material(
-                      type: MaterialType.transparency,
-                      child: DefaultTextStyle(
-                        style: const TextStyle(
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Inter',
-                          letterSpacing: -0.2,
-                        ),
+                  return Stack(
+                    children: [
+                      // Shadow layers underneath the glass tabs & FAB to provide physical depth matching standard style
+                      IgnorePointer(
                         child: Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: horizontalPadding,
                             vertical: verticalPadding,
                           ),
-                          child: GlassAdaptiveScope(
-                            minQuality: GlassQuality.premium,
-                            maxQuality: GlassQuality.premium,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: GlassBottomBar(
-                                    selectedIndex: _currentIndex,
-                                    onTabSelected: _onNavigationTapped,
-                                    barHeight: 74,
-                                    barBorderRadius:
-                                        37, // Half of height for perfectly rounded semi-circle ends
-                                    tabWidth:
-                                        null, // Stretches to occupy all horizontal space
-                                    horizontalPadding: 0.0,
-                                    verticalPadding: 0.0,
-                                    quality: GlassQuality.premium,
-                                    indicatorExpansion: 14,
-                                    selectedIconColor:
-                                        theme.colorScheme.primary,
-                                    unselectedIconColor:
-                                        isDark ? Colors.white : Colors.black,
-                                    indicatorColor:
-                                        (isDark ? Colors.white : Colors.black)
-                                            .withValues(alpha: 0.15),
-                                    settings:
-                                        DesignConstants.liquidGlassSettings(
-                                            isDark),
-                                    tabs: [
-                                      GlassBottomBarTab(
-                                        label: l10n.diary,
-                                        icon: Icon(
-                                          LucideIcons.notebook,
-                                          key: _tourDiaryTabKey,
-                                        ),
-                                        activeIcon:
-                                            const Icon(LucideIcons.notebook),
-                                      ),
-                                      GlassBottomBarTab(
-                                        label: l10n.workout,
-                                        icon: Icon(
-                                          LucideIcons.dumbbell,
-                                          key: _tourWorkoutTabKey,
-                                        ),
-                                        activeIcon:
-                                            const Icon(LucideIcons.dumbbell),
-                                      ),
-                                      GlassBottomBarTab(
-                                        label: l10n.statistics,
-                                        icon: Icon(
-                                          LucideIcons.chart_no_axes_column,
-                                          key: _tourStatisticsTabKey,
-                                        ),
-                                        activeIcon: const Icon(
-                                            LucideIcons.chart_no_axes_column),
-                                      ),
-                                      GlassBottomBarTab(
-                                        label: l10n.nutrition,
-                                        icon: Icon(
-                                          LucideIcons.utensils,
-                                          key: _tourNutritionTabKey,
-                                        ),
-                                        activeIcon:
-                                            const Icon(LucideIcons.utensils),
-                                      ),
-                                    ],
+                          child: Row(
+                            children: [
+                              ClipPath(
+                                clipper: ShadowOuterClipper(borderRadius: 37),
+                                child: Container(
+                                  width: maxTabW,
+                                  height: 74.0, // Match barHeight
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(37),
+                                    boxShadow: DesignConstants.glassShadow,
                                   ),
                                 ),
-                                SizedBox(width: spacing),
-                                AdaptiveGlass(
-                                  shape: const LiquidOval(),
-                                  settings: DesignConstants.liquidGlassSettings(
-                                      isDark),
-                                  quality: GlassQuality.premium,
-                                  useOwnLayer: true,
-                                  isInteractive:
-                                      false, // Force blur in minimal quality
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      customBorder: const CircleBorder(),
-                                      onTap: _toggleAddMenu,
-                                      child: SizedBox(
-                                        width: extraButtonSize,
-                                        height: 74.0,
-                                        child: Center(
-                                          child: Icon(
-                                            LucideIcons.plus,
-                                            key: _tourFabKey,
-                                            color: isDark
-                                                ? Colors.white
-                                                : Colors.black,
-                                            size: 28,
+                              ),
+                              SizedBox(width: spacing),
+                              ClipPath(
+                                clipper: ShadowOuterClipper(
+                                    borderRadius: 37, isOval: true),
+                                child: Container(
+                                  width: extraButtonSize,
+                                  height: 74.0, // Match barHeight
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(37),
+                                    boxShadow: DesignConstants.glassShadow,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Material(
+                        type: MaterialType.transparency,
+                        child: DefaultTextStyle(
+                          style: const TextStyle(
+                            fontSize: 11.0,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Inter',
+                            letterSpacing: -0.2,
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: horizontalPadding,
+                              vertical: verticalPadding,
+                            ),
+                            child: GlassAdaptiveScope(
+                              minQuality: GlassQuality.premium,
+                              maxQuality: GlassQuality.premium,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: GlassBottomBar(
+                                      selectedIndex: _currentIndex,
+                                      onTabSelected: _onNavigationTapped,
+                                      barHeight: 74,
+                                      barBorderRadius:
+                                          37, // Half of height for perfectly rounded semi-circle ends
+                                      tabWidth:
+                                          null, // Stretches to occupy all horizontal space
+                                      horizontalPadding: 0.0,
+                                      verticalPadding: 0.0,
+                                      quality: GlassQuality.premium,
+                                      indicatorExpansion: 14,
+                                      selectedIconColor:
+                                          theme.colorScheme.primary,
+                                      unselectedIconColor:
+                                          isDark ? Colors.white : Colors.black,
+                                      indicatorColor:
+                                          (isDark ? Colors.white : Colors.black)
+                                              .withValues(alpha: 0.15),
+                                      settings:
+                                          DesignConstants.liquidGlassSettings(
+                                              isDark),
+                                      tabs: [
+                                        GlassBottomBarTab(
+                                          label: l10n.diary,
+                                          icon: Icon(
+                                            LucideIcons.notebook,
+                                            key: _tourDiaryTabKey,
+                                          ),
+                                          activeIcon:
+                                              const Icon(LucideIcons.notebook),
+                                        ),
+                                        GlassBottomBarTab(
+                                          label: l10n.workout,
+                                          icon: Icon(
+                                            LucideIcons.dumbbell,
+                                            key: _tourWorkoutTabKey,
+                                          ),
+                                          activeIcon:
+                                              const Icon(LucideIcons.dumbbell),
+                                        ),
+                                        GlassBottomBarTab(
+                                          label: l10n.statistics,
+                                          icon: Icon(
+                                            LucideIcons.chart_no_axes_column,
+                                            key: _tourStatisticsTabKey,
+                                          ),
+                                          activeIcon: const Icon(
+                                              LucideIcons.chart_no_axes_column),
+                                        ),
+                                        GlassBottomBarTab(
+                                          label: l10n.nutrition,
+                                          icon: Icon(
+                                            LucideIcons.utensils,
+                                            key: _tourNutritionTabKey,
+                                          ),
+                                          activeIcon:
+                                              const Icon(LucideIcons.utensils),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: spacing),
+                                  AnimatedBuilder(
+                                    animation: _menuController,
+                                    builder: (context, child) {
+                                      final double v = _menuController.value;
+                                      return Transform.scale(
+                                        scale: 1.0 - v,
+                                        child: Opacity(
+                                          opacity: (1.0 - v).clamp(0.0, 1.0),
+                                          child: child,
+                                        ),
+                                      );
+                                    },
+                                    child: AdaptiveGlass(
+                                      shape: const LiquidOval(),
+                                      settings:
+                                          DesignConstants.liquidGlassSettings(
+                                              isDark),
+                                      quality: GlassQuality.premium,
+                                      useOwnLayer: true,
+                                      isInteractive:
+                                          true, //false, // Force blur in minimal quality
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          customBorder: const CircleBorder(),
+                                          onTap: _toggleAddMenu,
+                                          child: SizedBox(
+                                            width: extraButtonSize,
+                                            height: 74.0,
+                                            child: Center(
+                                              child: Icon(
+                                                LucideIcons.plus,
+                                                key: _tourFabKey,
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                                size: 28,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
+                    ],
+                  );
+                },
+              ),
             ),
           ),
-        ),
         ),
         // Speed Dial Menu Animation
         SpeedDialMenuOverlay(
@@ -1383,7 +1399,8 @@ class _MainScreenState extends State<MainScreen>
                     ? FileImage(File(profileService.profileImagePath!))
                     : null,
                 child: (profileService.profileImagePath == null)
-                    ? const Icon(LucideIcons.user, size: 20, color: Colors.black54)
+                    ? const Icon(LucideIcons.user,
+                        size: 20, color: Colors.black54)
                     : null,
               );
             },

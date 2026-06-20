@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../generated/app_localizations.dart';
 import '../services/unit_service.dart';
 import '../util/design_constants.dart';
+import '../widgets/common/common.dart';
 
 // ===== App-wide modal helpers (temporary location — can be moved to a shared file) =====
 
@@ -136,7 +137,7 @@ class WaterDialogContentState extends State<WaterDialogContent> {
   }
 
   Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: _selectedDateTime,
       firstDate: DateTime(2020),
@@ -156,7 +157,7 @@ class WaterDialogContentState extends State<WaterDialogContent> {
   }
 
   Future<void> _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
+    final TimeOfDay? picked = await showAdaptiveTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
     );

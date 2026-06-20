@@ -123,23 +123,25 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Now on page 1: Unit System. Need to tap Next to go to Profile.
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
-
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
       );
+      // Navigate from profile page to the combined measurements page.
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('onboarding_weight_page')), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('onboarding_body_fat_page')), findsOneWidget);
+      // The measurements page (page 2) combines weight and body-fat fields.
+      expect(
+          find.byKey(const Key('onboarding_measurements_page')), findsOneWidget);
+      expect(
+        find.byKey(const Key('onboarding_weight_text_field')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('onboarding_body_fat_text_field')),
+        findsOneWidget,
+      );
       expect(
         find.byKey(const Key('onboarding_body_fat_helper_text')),
         findsOneWidget,
@@ -149,6 +151,7 @@ void main() {
         findsOneWidget,
       );
 
+      // Advance to the adaptive goal page.
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
@@ -183,16 +186,12 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Now on page 1: Unit System. Need to tap Next to go to Profile.
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
-
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
       );
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
+      // Navigate to the combined measurements page (page 2) — contains the
+      // body-fat help button.
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
@@ -240,16 +239,11 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Now on page 1: Unit System. Need to tap Next to go to Profile.
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
-
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
       );
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
+      // Navigate: profile(1) → measurements(2) → adaptive goals(3)
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
@@ -311,27 +305,23 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Now on page 1: Unit System. Need to tap Next to go to Profile.
-      await tester.tap(nextButton);
-      await tester.pumpAndSettle();
-
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
       );
-      await tester.tap(nextButton); // profile -> weight
+      // Navigate through the 6-page onboarding flow:
+      // profile(1) → measurements(2) → adaptive(3) → nutrition(4) →
+      // ai_health(5, last page)
+      await tester.tap(nextButton); // profile -> measurements
       await tester.pumpAndSettle();
-      await tester.tap(nextButton); // weight -> body fat
+      await tester.tap(nextButton); // measurements -> adaptive
       await tester.pumpAndSettle();
-      await tester.tap(nextButton); // body fat -> adaptive
+      await tester.tap(nextButton); // adaptive -> nutrition
       await tester.pumpAndSettle();
-      await tester.tap(nextButton); // adaptive -> calories
-      await tester.pumpAndSettle();
-      await tester.tap(nextButton); // calories -> macros
-      await tester.pumpAndSettle();
-      await tester.tap(nextButton); // macros -> water
+      await tester.tap(nextButton); // nutrition -> ai_health (last page)
       await tester.pumpAndSettle();
 
+      // The bottom button on the last page should display FINISH.
       expect(find.text(l10n.onboardingFinish.toUpperCase()), findsOneWidget);
     });
   });

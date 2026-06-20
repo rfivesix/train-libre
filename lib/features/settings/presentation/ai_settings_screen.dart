@@ -351,7 +351,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ),
                         if (aiEnabled) ...[
                           const SizedBox(height: 12),
-                          DropdownButtonFormField<AiProvider>(
+                          PlatformAdaptiveDropdownFormField<AiProvider>(
                             initialValue: _selectedProvider,
                             decoration: InputDecoration(
                               labelText: l10n.aiProviderLabel,
@@ -378,7 +378,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                             _isLoadingModels
                                 ? const Center(
                                     child: CircularProgressIndicator())
-                                : DropdownButtonFormField<String>(
+                                : PlatformAdaptiveDropdownFormField<String>(
                                     initialValue: _selectedModel,
                                     decoration: InputDecoration(
                                       labelText: l10n.aiModelLabel,
@@ -445,7 +445,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                             const SizedBox(height: 10),
                           ],
                           // AI Matching Language
-                          DropdownButtonFormField<AiMatchingLanguage>(
+                          PlatformAdaptiveDropdownFormField<AiMatchingLanguage>(
                             initialValue: _aiMatchingLanguage,
                             decoration: InputDecoration(
                               labelText: l10n.settingsAiFoodNameLanguage,

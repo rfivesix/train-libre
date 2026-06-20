@@ -11,6 +11,7 @@ import '../../../util/design_constants.dart';
 import '../../../services/unit_service.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for recording new body measurements.
@@ -166,7 +167,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
   }
 
   Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: _selectedDateTime,
       firstDate: DateTime(2020),
@@ -186,7 +187,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
   }
 
   Future<void> _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
+    final TimeOfDay? picked = await showAdaptiveTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
     );

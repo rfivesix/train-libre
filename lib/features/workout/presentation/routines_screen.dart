@@ -14,7 +14,9 @@ import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
+import '../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 
 /// A screen that displays a list of all saved [Routine] templates.
 ///
@@ -202,7 +204,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(l10n.editRoutineSubtitle),
-                    trailing: PopupMenuButton<String>(
+                    trailing: PlatformAdaptivePopupMenu<String>(
                       icon: Icon(
                         LucideIcons.ellipsis_vertical,
                         color: textTheme.bodyMedium?.color,
@@ -216,19 +218,22 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                           _deleteRoutine(context, routine);
                         }
                       },
-                      itemBuilder: (BuildContext context) =>
-                          <PopupMenuEntry<String>>[
-                        PopupMenuItem<String>(
+                      items: [
+                        PlatformAdaptivePopupMenuItem<String>(
                           value: 'duplicate',
-                          child: Text(l10n.duplicate),
+                          label: l10n.duplicate,
+                          icon: LucideIcons.copy,
                         ),
-                        PopupMenuItem<String>(
+                        PlatformAdaptivePopupMenuItem<String>(
                           value: 'share',
-                          child: Text(l10n.share),
+                          label: l10n.share,
+                          icon: LucideIcons.share_2,
                         ),
-                        PopupMenuItem<String>(
+                        PlatformAdaptivePopupMenuItem<String>(
                           value: 'delete',
-                          child: Text(l10n.delete),
+                          label: l10n.delete,
+                          icon: LucideIcons.trash_2,
+                          isDestructive: true,
                         ),
                       ],
                     ),

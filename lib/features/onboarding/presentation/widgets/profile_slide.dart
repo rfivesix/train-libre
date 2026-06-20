@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/common.dart';
 
 class ProfileSlide extends StatelessWidget {
   final TextEditingController nameController;
@@ -54,7 +55,7 @@ class ProfileSlide extends StatelessWidget {
           const SizedBox(height: 16),
           InkWell(
             onTap: () async {
-              final picked = await showDatePicker(
+              final picked = await showAdaptiveDatePicker(
                 context: context,
                 initialDate: DateTime(2000),
                 firstDate: DateTime(1900),
@@ -119,7 +120,7 @@ class ProfileSlide extends StatelessWidget {
                       title: l10n.onboardingGenderLabel,
                     ),
                     const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
+                    PlatformAdaptiveDropdownFormField<String>(
                       key: const Key('onboarding_gender_dropdown'),
                       initialValue: selectedGender,
                       decoration: InputDecoration(
@@ -151,6 +152,25 @@ class ProfileSlide extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 24),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: 0.45),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              l10n.onboardingBioDataInfo,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+            ),
           ),
         ],
       ),

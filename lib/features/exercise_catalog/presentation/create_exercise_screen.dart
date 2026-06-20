@@ -240,7 +240,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
                       textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: DesignConstants.spacingL),
-                    DropdownButtonFormField<String>(
+                    PlatformAdaptiveDropdownFormField<String>(
                       initialValue: _selectedCategory,
                       items: _allCategories.map((cat) {
                         return DropdownMenuItem(value: cat, child: Text(cat));

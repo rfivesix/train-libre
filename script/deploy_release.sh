@@ -165,8 +165,8 @@ cd ..
 # ------------------------------------------------------------------------------
 # STEP 8: Clean Up Local Build Settings Changes
 # ------------------------------------------------------------------------------
-echo "Restoring dynamic build number variables in iOS project files..."
-git restore ios/Runner.xcodeproj/project.pbxproj ios/Runner/Info.plist
+#echo "Restoring dynamic build number variables in iOS project files..."
+#git restore ios/Runner.xcodeproj/project.pbxproj ios/Runner/Info.plist
 
 echo "=============================================================================="
 echo "SUCCESS: Version v$VERSION_NUMBER deployed to GitHub (with Android Assets) & TestFlight!"

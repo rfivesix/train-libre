@@ -4,6 +4,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../util/date_util.dart';
 import '../../domain/models/food_item.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/common.dart';
 
 class ConfirmLogMealBottomSheet extends StatefulWidget {
   final String mealName;
@@ -104,7 +105,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
               icon: const Icon(LucideIcons.calendar, size: 18),
               label: Text(formattedDate),
               onPressed: () async {
-                final picked = await showDatePicker(
+                final picked = await showAdaptiveDatePicker(
                   context: context,
                   initialDate: _selectedDate,
                   firstDate: DateTime(2020),
@@ -127,7 +128,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
               icon: const Icon(LucideIcons.clock, size: 18),
               label: Text(formattedTime),
               onPressed: () async {
-                final picked = await showTimePicker(
+                final picked = await showAdaptiveTimePicker(
                   context: context,
                   initialTime: TimeOfDay.fromDateTime(_selectedDate),
                 );
@@ -148,7 +149,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
         ),
         const SizedBox(height: 8),
 
-        DropdownButtonFormField<String>(
+        PlatformAdaptiveDropdownFormField<String>(
           initialValue: _selectedMealType,
           decoration: InputDecoration(
             labelText: l10n.mealTypeLabel,

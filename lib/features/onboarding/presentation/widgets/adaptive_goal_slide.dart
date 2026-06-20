@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../nutrition_recommendation/domain/goal_models.dart';
 import '../../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
+import 'springy_scale.dart';
+import '../../../../widgets/common/common.dart';
 
 class AdaptiveGoalSlide extends StatelessWidget {
   final BodyweightGoal selectedGoal;
@@ -29,6 +31,7 @@ class AdaptiveGoalSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     return SingleChildScrollView(
       key: const Key('onboarding_adaptive_goal_page'),
@@ -40,20 +43,19 @@ class AdaptiveGoalSlide extends StatelessWidget {
           Text(
             l10n.onboardingAdaptiveGoalTitle,
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
             l10n.onboardingAdaptiveGoalSubtitle,
             style: TextStyle(color: Colors.grey[600], fontSize: 16),
           ),
-          const SizedBox(height: 20),
-          DropdownButtonFormField<BodyweightGoal>(
+          const SizedBox(height: 24),
+          PlatformAdaptiveDropdownFormField<BodyweightGoal>(
             initialValue: selectedGoal,
             decoration: InputDecoration(
               labelText: l10n.adaptiveGoalDirectionLabel,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
             items: BodyweightGoal.values
                 .map(
@@ -67,12 +69,13 @@ class AdaptiveGoalSlide extends StatelessWidget {
               if (goal != null) onGoalChanged(goal);
             },
           ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<PriorActivityLevel>(
+          const SizedBox(height: 20),
+          PlatformAdaptiveDropdownFormField<PriorActivityLevel>(
             key: const Key('onboarding_prior_activity_dropdown'),
             initialValue: selectedPriorActivityLevel,
             decoration: InputDecoration(
               labelText: l10n.adaptivePriorActivityLabel,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
             items: PriorActivityLevel.values
                 .map(
@@ -86,17 +89,18 @@ class AdaptiveGoalSlide extends StatelessWidget {
               if (level != null) onPriorActivityLevelChanged(level);
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           PriorActivityHelpBlock(
             key: const Key('onboarding_prior_activity_help_block'),
             l10n: l10n,
           ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<ExtraCardioHoursOption>(
+          const SizedBox(height: 20),
+          PlatformAdaptiveDropdownFormField<ExtraCardioHoursOption>(
             key: const Key('onboarding_extra_cardio_dropdown'),
             initialValue: selectedExtraCardioHoursOption,
             decoration: InputDecoration(
               labelText: l10n.adaptiveExtraCardioLabel,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
             items: ExtraCardioHoursCatalog.supportedOptions
                 .map(
@@ -113,28 +117,44 @@ class AdaptiveGoalSlide extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             l10n.adaptiveExtraCardioHelp,
-            style: Theme.of(context).textTheme.bodySmall,
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            l10n.adaptiveRatePerWeekLabel,
+            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 12,
+            runSpacing: 12,
             children: WeeklyTargetRateCatalog.optionsForGoal(selectedGoal)
                 .map((option) {
               final isSelected =
                   option.kgPerWeek == selectedTargetRateKgPerWeek;
-              return ChoiceChip(
-                label: Text(
-                  _rateLabel(l10n, option.kgPerWeek),
+              return SpringyScale(
+                isSelected: isSelected,
+                onTap: () => onTargetRateKgPerWeekChanged(option.kgPerWeek),
+                child: ChoiceChip(
+                  label: Text(
+                    _rateLabel(l10n, option.kgPerWeek),
+                    style: TextStyle(
+                      color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  selected: isSelected,
+                  onSelected: (_) => onTargetRateKgPerWeekChanged(option.kgPerWeek),
+                  selectedColor: theme.colorScheme.primary,
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  showCheckmark: false,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                selected: isSelected,
-                onSelected: (_) {
-                  onTargetRateKgPerWeekChanged(option.kgPerWeek);
-                },
               );
             }).toList(growable: false),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 32),
         ],
       ),
     );

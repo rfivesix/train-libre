@@ -180,7 +180,8 @@ class _RecommendationBannerState extends State<RecommendationBanner>
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
-    final accent = isDark ? brandAccentColor : brandAccentColorLightMode;
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
 
     // Calculate delta and format with prefix sign
     final delta = _recommendedCalories - widget.currentCalories;
@@ -244,8 +245,8 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color:
-                                    accent.withValues(alpha: isDark ? 0.2 : 0.1),
+                                color: accent.withValues(
+                                    alpha: isDark ? 0.2 : 0.1),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
                                     color: accent.withValues(alpha: 0.3)),

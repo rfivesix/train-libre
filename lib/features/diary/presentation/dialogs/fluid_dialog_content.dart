@@ -7,6 +7,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/common.dart';
 
 /// A dialog content widget for logging fluid intake (water, coffee, etc.).
 ///
@@ -84,7 +85,7 @@ class FluidDialogContentState extends State<FluidDialogContent> {
 
   Future<void> _selectDate() async {
     final locale = Localizations.localeOf(context);
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showAdaptiveDatePicker(
       context: context,
       initialDate: _selectedDateTime,
       firstDate: DateTime(2020),
@@ -105,7 +106,7 @@ class FluidDialogContentState extends State<FluidDialogContent> {
   }
 
   Future<void> _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
+    final TimeOfDay? picked = await showAdaptiveTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
     );
