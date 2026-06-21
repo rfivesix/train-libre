@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.34] - 2026-06-21
+
+### Fixed
+- **Live Workout Screen Layout & Spacing (`live_workout_screen.dart`):** Resolved layout alignment and spacing issues on the live workout screen:
+  - Restored the bottom `Column` layout containing the rest timer bar and the Wger attribution widget.
+  - Enforced a constant `32.0` logical pixel height wrapper for the attribution widget, preventing layout shifts when the text wraps to two lines on narrow screens.
+  - Positioned the active rest timer bar and the active FAB at constant offsets (`bottom: 134.0` for the FAB), maintaining a perfect `8.0` logical pixel gap between them on all devices.
+  - Configured `_LiveWorkoutFabShadowClipper` to clip the FAB's drop shadow exactly at `8.0` logical pixels below the FAB edge, making the shadow terminate cleanly at the top of the rest bar without translation offsets.
+
 ## [0.9.33] - 2026-06-20
 
 ### Added
