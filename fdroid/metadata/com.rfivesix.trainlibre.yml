@@ -12,10 +12,15 @@ AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: .
 
-CurrentVersion: 0.9.30
-CurrentVersionCode: 90047
+CurrentVersion: 0.9.34
+CurrentVersionCode: 90051
 
 Builds:
+  - versionName: 0.9.34
+    versionCode: 90051
+    commit: v0.9.34
+    gradle:
+      - yes
   - versionName: 0.9.30
     versionCode: 90047
     commit: v0.9.30

@@ -86,16 +86,39 @@ jobs:
         env:
           RELEASE_BODY: ${{ github.event.release.body }}
         run: |
-          # 1. Parse build number from pubspec.yaml and dump release body into changelogs
+          # 1. Parse build number from pubspec.yaml, update F-Droid metadata, and dump release body into changelogs
           python3 -c '
           import os, re
           with open("pubspec.yaml", "r") as f:
               pubspec = f.read()
-          match = re.search(r"^version:\s*[^\n]+\+(\d+)", pubspec, re.M)
+          match = re.search(r"^version:\s*([^\n\+]+)\+(\d+)", pubspec, re.M)
           if not match:
-              raise ValueError("Could not find build number in pubspec.yaml")
-          build_number = match.group(1)
-          print(f"Extracted active build number: {build_number}")
+              raise ValueError("Could not find version and build number in pubspec.yaml")
+          version_name = match.group(1)
+          build_number = match.group(2)
+          print(f"Extracted active version: {version_name}, build number: {build_number}")
+          
+          metadata_path = "fdroid/metadata/com.rfivesix.trainlibre.yml"
+          if os.path.exists(metadata_path):
+              with open(metadata_path, "r") as f:
+                  metadata = f.read()
+              
+              metadata = re.sub(r"^CurrentVersion:\s*[^\n]+", f"CurrentVersion: {version_name}", metadata, flags=re.M)
+              metadata = re.sub(r"^CurrentVersionCode:\s*[^\n]+", f"CurrentVersionCode: {build_number}", metadata, flags=re.M)
+              
+              build_entry_pattern = rf"versionCode:\s*{build_number}"
+              if not re.search(build_entry_pattern, metadata):
+                  build_entry = f"\n  - versionName: {version_name}\n    versionCode: {build_number}\n    commit: v{version_name}\n    gradle:\n      - yes"
+                  if "Builds:" in metadata:
+                      metadata = metadata.replace("Builds:", f"Builds:{build_entry}")
+                  else:
+                      metadata += f"\nBuilds:{build_entry}"
+              
+              with open(metadata_path, "w") as f:
+                  f.write(metadata)
+              print("F-Droid metadata updated successfully.")
+          else:
+              print(f"Warning: F-Droid metadata file not found at {metadata_path}")
           
           release_body = os.environ.get("RELEASE_BODY", "")
           if not release_body:
@@ -111,6 +134,7 @@ jobs:
                           f.write(release_body)
                       print(f"Injected release notes into: {changelog_file}")
           '
+
 
           # 2. Bridge Fastlane metadata directory to fdroid workspace to inherit store descriptions
           echo "Bridging Fastlane metadata into F-Droid repo structure..."
