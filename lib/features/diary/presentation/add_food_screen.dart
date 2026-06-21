@@ -447,9 +447,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
           SizedBox(height: topPadding),
 
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 4.0,
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+              vertical: DesignConstants.spacingXS,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,7 +461,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   overlayColor: WidgetStateProperty.all(Colors.transparent),
                   labelPadding: EdgeInsets.zero,
                   labelColor: isLightMode ? Colors.black : Colors.white,
-                  unselectedLabelColor: Colors.grey.shade600,
+                  unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
                   labelStyle: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -509,14 +508,14 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       // Newer, improved empty state
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(DesignConstants.spacingXL),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 LucideIcons.heart,
                 size: 80,
-                color: Colors.grey.shade400,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: DesignConstants.spacingL),
               Text(
@@ -530,7 +529,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
-                ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
+                ).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -565,11 +564,11 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       // Newer, improved empty state
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(DesignConstants.spacingXL),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.history, size: 80, color: Colors.grey.shade400),
+              Icon(LucideIcons.history, size: 80, color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(height: DesignConstants.spacingL),
               Text(
                 l10n.nothingTrackedYet,
@@ -582,7 +581,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
-                ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
+                ).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
           ),
@@ -673,7 +672,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
     // UI: Suchleiste + Scanner-Button (wie in _buildSearchTab)
     final searchRow = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL, vertical: 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -732,27 +731,26 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           ),
                         ),
                       ],
-                      const SizedBox(
-                          width: 4), // Minimaler Abstand zum Kapselrand
+                      const SizedBox(width: DesignConstants.spacingXS), // Minimaler Abstand zum Kapselrand
                     ],
                   ),
                   // Symmetrisches Padding für links und rechts im Gehäuse
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM, vertical: DesignConstants.spacingM),
                 ),
               ),
             ),
           ),
           // 2. Action Tile (Nur für KI, falls aktiviert)
           if (Provider.of<ThemeService>(context).isAiEnabled) ...[
-            const SizedBox(width: 12),
+            const SizedBox(width: DesignConstants.spacingM),
             Container(
               height: 48,
               width: 48,
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius:
-                    BorderRadius.circular(12), // Behält die eckigeren Ecken
+                    BorderRadius.circular(DesignConstants.borderRadiusM), // Behält die eckigeren Ecken
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,
@@ -788,9 +786,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     if (q.isEmpty) {
       return Column(
         children: [
-          //const SizedBox(height: 4),
+          //const SizedBox(height: DesignConstants.spacingXS),
           searchRow,
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           if (_baseCategories.isEmpty)
             const LinearProgressIndicator(minHeight: 2),
           Expanded(
@@ -819,12 +817,12 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                         children: [
                           if (_isLoadingCustomFoods)
                             const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
+                              padding: EdgeInsets.symmetric(vertical: DesignConstants.spacingM),
                               child: Center(child: CircularProgressIndicator()),
                             )
                           else if (_customFoodItems.isEmpty)
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM),
                               child: Center(child: Text(l10n.emptyCategory)),
                             )
                           else
@@ -904,14 +902,14 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     return Column(
       children: [
         searchRow,
-        const SizedBox(height: 8),
+        const SizedBox(height: DesignConstants.spacingS),
         Expanded(
           child: _isLoadingSearch
               ? const Center(child: CircularProgressIndicator())
               : (listItems.isEmpty
                   ? Center(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24.0),
+                        padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXL),
                         child: Text(
                           l10n.searchNoResults,
                           style: Theme.of(context).textTheme.titleMedium,
@@ -949,14 +947,14 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       // Empty state: no top button anymore; creation happens via the FAB.
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(DesignConstants.spacingXL),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 LucideIcons.utensils,
                 size: 80,
-                color: Colors.grey.shade400,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: DesignConstants.spacingL),
               Text(
@@ -970,7 +968,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
-                ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
+                ).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
           ),

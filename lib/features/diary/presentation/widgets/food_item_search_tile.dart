@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/base_food_language_service.dart';
@@ -57,7 +59,7 @@ class FoodItemSearchTile extends StatelessWidget {
               ),
             ),
             if (item.isCustom) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: DesignConstants.spacingS),
               _buildSourceBadge(context),
             ],
           ],
@@ -99,7 +101,7 @@ class FoodItemSearchTile extends StatelessWidget {
     const color = Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),

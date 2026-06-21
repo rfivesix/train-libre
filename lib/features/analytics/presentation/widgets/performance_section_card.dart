@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../statistics_hub_view_model.dart';
@@ -71,7 +73,7 @@ class PerformanceSectionCard extends StatelessWidget {
       child: SummaryCard(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -80,12 +82,12 @@ class PerformanceSectionCard extends StatelessWidget {
                 label: title,
                 chipText: chipText,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: DesignConstants.spacingXS),
               Text(
                 topExerciseName,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: DesignConstants.spacingXS),
               Text(
                 momentumValue,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -100,9 +102,9 @@ class PerformanceSectionCard extends StatelessWidget {
                       color: Theme.of(context).colorScheme.outline,
                     ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               AnalyticsCardBase.buildMicroCaption(context, l10n.analyticsRecentRecords),
-              const SizedBox(height: 4),
+              const SizedBox(height: DesignConstants.spacingXS),
               AnalyticsCardBase.buildMiniBars(
                 context,
                 values: compactSignals,

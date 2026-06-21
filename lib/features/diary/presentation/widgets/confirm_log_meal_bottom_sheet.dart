@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/date_util.dart';
@@ -95,7 +97,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
           widget.mealName,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
 
         // Date & time selection
         Row(
@@ -147,7 +149,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: DesignConstants.spacingS),
 
         PlatformAdaptiveDropdownFormField<String>(
           initialValue: _selectedMealType,
@@ -177,7 +179,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
           },
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
 
         ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 300),
@@ -202,7 +204,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                     padding: EdgeInsets.only(top: 18),
                     child: Icon(LucideIcons.sandwich, size: 20),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesignConstants.spacingM),
                   Expanded(
                     child: TextFormField(
                       controller: _qtyCtrls[bc],
@@ -218,11 +220,10 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                                 ? Colors.white.withValues(alpha: 0.05)
                                 : Colors.black.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
                           vertical: 14,
                         ),
                       ),
@@ -234,7 +235,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: DesignConstants.spacingXL),
 
         Row(
           children: [
@@ -247,7 +248,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                 child: Text(l10n.cancel),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DesignConstants.spacingM),
             Expanded(
               child: FilledButton(
                 onPressed: () {

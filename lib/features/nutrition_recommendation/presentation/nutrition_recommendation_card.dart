@@ -639,8 +639,7 @@ class _MacroTargetGrid extends StatelessWidget {
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth < 430 ? 2 : 4;
             return GridView.count(
-              padding: EdgeInsets.only(
-                  top: DesignConstants.spacingM), //EdgeInsets.zero,
+              padding: EdgeInsets.only(top: DesignConstants.spacingM), //EdgeInsets.zero,
               crossAxisCount: crossAxisCount,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -678,8 +677,7 @@ class _MacroTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return _SoftPanel(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingM,
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
         vertical: DesignConstants.spacingS,
       ),
       child: Column(
@@ -698,7 +696,7 @@ class _MacroTile extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: DesignConstants.spacingXS),
           Text(
             label.toUpperCase(),
             maxLines: 1,
@@ -923,8 +921,7 @@ class _StatusPill extends StatelessWidget {
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 132),
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingS,
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
         vertical: 6,
       ),
       decoration: BoxDecoration(
@@ -955,8 +952,7 @@ class _CompactChip extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingS,
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
         vertical: 5,
       ),
       decoration: BoxDecoration(

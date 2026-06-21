@@ -116,7 +116,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                   SummaryCard(
                     child: _notableImprovements.isEmpty
                         ? Padding(
-                            padding: const EdgeInsets.all(12.0),
+                            padding: const EdgeInsets.all(DesignConstants.spacingM),
                             child: Text(l10n.analyticsNoPrTrendInWindow),
                           )
                         : Column(
@@ -193,7 +193,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                   SummaryCard(
                     child: _recentPrs.isEmpty
                         ? Padding(
-                            padding: const EdgeInsets.all(12.0),
+                            padding: const EdgeInsets.all(DesignConstants.spacingM),
                             child: Text(l10n.noWorkoutDataLabel),
                           )
                         : Column(
@@ -212,7 +212,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                   SummaryCard(
                     child: _allTimePrs.isEmpty
                         ? Padding(
-                            padding: const EdgeInsets.all(12.0),
+                            padding: const EdgeInsets.all(DesignConstants.spacingM),
                             child: Text(l10n.noWorkoutDataLabel),
                           )
                         : LayoutBuilder(
@@ -315,7 +315,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                                         .labelMedium
                                         ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: DesignConstants.spacingXS),
                                   if (hasData) ...[
                                     Text(
                                       l10n.analyticsPerfWithReps(
@@ -393,7 +393,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: DesignConstants.spacingM),
           Text(
             valueLabel,
             style: Theme.of(
@@ -408,7 +408,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   Widget _windowChip(int days, String label) {
     final selected = _selectedWindowDays == days;
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
+      padding: const EdgeInsets.only(right: DesignConstants.spacingS),
       child: ChoiceChip(
         label: Text(label),
         selected: selected,

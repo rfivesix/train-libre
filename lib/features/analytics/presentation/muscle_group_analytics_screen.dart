@@ -149,7 +149,7 @@ class _MuscleGroupAnalyticsScreenState
                   _sectionLabel(l10n.analyticsRecentDistributionHeatmap),
                   SummaryCard(
                     child: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(DesignConstants.spacingM),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -187,7 +187,7 @@ class _MuscleGroupAnalyticsScreenState
                               ),
                             ),
                           ],
-                          const SizedBox(height: 8),
+                          const SizedBox(height: DesignConstants.spacingS),
                           Text(
                             l10n.analyticsRadarVolumeCaption,
                             style: Theme.of(context)
@@ -214,7 +214,7 @@ class _MuscleGroupAnalyticsScreenState
                           children: List.generate(weekly.length, (index) {
                             final row = weekly[index];
                             return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
+                              padding: const EdgeInsets.only(right: DesignConstants.spacingS),
                               child: ChoiceChip(
                                 label: Text(row['weekLabel'] as String),
                                 selected: _selectedWeekIndex == index,
@@ -257,7 +257,7 @@ class _MuscleGroupAnalyticsScreenState
                                         Theme.of(context).colorScheme.outline,
                                   ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: DesignConstants.spacingS),
                             Text(
                               _guidanceLabel(dataQualityOk, undertrained),
                               style: Theme.of(context).textTheme.bodyMedium,
@@ -318,7 +318,7 @@ class _MuscleGroupAnalyticsScreenState
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesignConstants.spacingL),
                 _buildDetailRow(
                   l10n.exerciseMetricVolume,
                   _formatCompact(
@@ -331,7 +331,7 @@ class _MuscleGroupAnalyticsScreenState
                   (muscle['frequencyPerWeek'] as num).toStringAsFixed(1),
                   l10n.analyticsPerWeekAbbrev,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: DesignConstants.spacingM),
               ],
             ),
           ),
@@ -342,7 +342,7 @@ class _MuscleGroupAnalyticsScreenState
 
   Widget _buildDetailRow(String label, String value, String unit) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
       child: Row(
         children: [
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
@@ -515,10 +515,9 @@ class _MuscleGroupAnalyticsScreenState
               Align(
                 alignment: Alignment.centerLeft,
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                  margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+                  padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+                    vertical: DesignConstants.spacingXS,
                   ),
                   decoration: BoxDecoration(
                     color: Theme.of(
@@ -539,7 +538,7 @@ class _MuscleGroupAnalyticsScreenState
                 'Y: $yAxisLabel',
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: DesignConstants.spacingXS),
             SizedBox(
               height: chartHeight,
               child: BarChart(
@@ -552,8 +551,7 @@ class _MuscleGroupAnalyticsScreenState
                     touchTooltipData: BarTouchTooltipData(
                       tooltipBorderRadius: BorderRadius.circular(16),
                       tooltipMargin: 12,
-                      tooltipPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
+                      tooltipPadding: const EdgeInsets.symmetric(horizontal: 14,
                         vertical: 10,
                       ),
                       getTooltipColor: (_) {
@@ -650,7 +648,7 @@ class _MuscleGroupAnalyticsScreenState
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Align(
               alignment: Alignment.centerLeft,
               child: AnalyticsChartDefaults.axisTitleLabel(
@@ -684,7 +682,7 @@ class _MuscleGroupAnalyticsScreenState
     return AppSectionHeader(
       title: text,
       padding:
-          isPrimary ? const EdgeInsets.only(left: 4, bottom: 8, top: 4) : null,
+          isPrimary ? const EdgeInsets.only(left: DesignConstants.spacingXS, bottom: DesignConstants.spacingS, top: DesignConstants.spacingXS) : null,
     );
   }
 }

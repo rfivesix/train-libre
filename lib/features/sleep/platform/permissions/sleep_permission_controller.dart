@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'sleep_permission_models.dart';
@@ -33,14 +35,14 @@ class SleepPermissionController {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.sleepRequestAccessSubtitle,
                 textAlign: TextAlign.center,
                 style: Theme.of(ctx).textTheme.bodyMedium,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: DesignConstants.spacingXL),
             Row(
               children: [
                 Expanded(
@@ -52,7 +54,7 @@ class SleepPermissionController {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {

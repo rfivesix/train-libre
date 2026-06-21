@@ -49,7 +49,7 @@ class MealReviewComparisonCard extends StatelessWidget {
     } else if (confidence >= 0.5) {
       confidenceColor = Colors.orange;
     } else {
-      confidenceColor = Colors.red;
+      confidenceColor = Theme.of(context).colorScheme.error;
     }
 
     return Dismissible(
@@ -58,22 +58,22 @@ class MealReviewComparisonCard extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
         decoration: BoxDecoration(
-          color: Colors.red,
+          color: Theme.of(context).colorScheme.error,
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         ),
         child: const Icon(LucideIcons.trash_2, color: Colors.white),
       ),
       onDismissed: (_) => onDismissed(),
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
         child: SummaryCard(
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(DesignConstants.spacingM),
               child: Row(
                 children: [
                   // Left: food info
@@ -87,7 +87,7 @@ class MealReviewComparisonCard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: DesignConstants.spacingXS),
                         if (hasMatch)
                           Text(
                             '${matchedFood!.getLocalizedName(context)} • ${matchedFood!.calories} kcal/100g',
@@ -99,23 +99,22 @@ class MealReviewComparisonCard extends StatelessWidget {
                           Text(
                             l10n.aiReviewNoMatch,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.grey,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                               fontStyle: FontStyle.italic,
                             ),
                           ),
                         // Macro badges row
                         const SizedBox(height: 6),
                         MealReviewMacrosBar(nutrition: nutrition),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: DesignConstants.spacingXS),
                         // Confidence chip
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
                             color: confidenceColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                           ),
                           child: Text(
                             '${(confidence * 100).round()}%',
@@ -168,13 +167,12 @@ class MealReviewComparisonCard extends StatelessWidget {
                   GestureDetector(
                     onTap: onEditQuantity,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                        vertical: DesignConstants.spacingS,
                       ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
                       ),
                       child: Text(
                         '${estimatedGrams}g',

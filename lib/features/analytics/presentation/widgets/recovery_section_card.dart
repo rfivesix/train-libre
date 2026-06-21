@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../statistics/domain/recovery_payload_models.dart';
@@ -70,7 +72,7 @@ class RecoverySectionCard extends StatelessWidget {
       child: SummaryCard(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -86,7 +88,7 @@ class RecoverySectionCard extends StatelessWidget {
                       color: iconColor,
                     ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: DesignConstants.spacingXS),
               Text(
                 recoveryStatusSummary,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -94,7 +96,7 @@ class RecoverySectionCard extends StatelessWidget {
                     ),
               ),
               if (hasData) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: DesignConstants.spacingS),
                 _buildRecoveryDistributionBar(
                   context,
                   recovering: recovering,

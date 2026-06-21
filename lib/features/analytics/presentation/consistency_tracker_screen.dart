@@ -187,7 +187,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: DesignConstants.spacingS),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -267,7 +267,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: DesignConstants.spacingS),
                         Wrap(
                           spacing: 8,
                           runSpacing: 4,
@@ -286,7 +286,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: DesignConstants.spacingXS),
                         RepaintBoundary(
                           child: SizedBox(
                             height: 210,
@@ -313,8 +313,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                                               BorderRadius.circular(16),
                                           tooltipMargin: 12,
                                           tooltipPadding:
-                                              const EdgeInsets.symmetric(
-                                            horizontal: 14,
+                                              const EdgeInsets.symmetric(horizontal: 14,
                                             vertical: 10,
                                           ),
                                           getTooltipColor: (_) {
@@ -448,14 +447,14 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                           l10n.analyticsCalendarExplainer,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: DesignConstants.spacingS),
                         _calendarLegend(l10n),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: DesignConstants.spacingS),
                         RepaintBoundary(
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(DesignConstants.spacingS),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                               color: Theme.of(context)
                                   .colorScheme
                                   .surfaceContainerHighest
@@ -543,7 +542,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: DesignConstants.spacingS),
                         Text(
                           _selectedDay == null
                               ? l10n.analyticsSelectDayPrompt
@@ -587,9 +586,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     return Container(
       width: width,
       constraints: const BoxConstraints.tightFor(height: 120),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(DesignConstants.spacingM),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
               alpha: emphasized ? 0.5 : 0.35,
             ),
@@ -610,7 +609,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                   fontWeight: emphasized ? FontWeight.w700 : FontWeight.w500,
                 ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: DesignConstants.spacingXS),
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -645,7 +644,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: DesignConstants.spacingXS),
           Text(label, style: Theme.of(context).textTheme.labelSmall),
         ],
       );

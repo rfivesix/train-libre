@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -41,7 +43,7 @@ class RegularityDetailPage extends StatelessWidget {
       subtitle: l10n.sleepRegularitySubtitle,
       children: [
         _RegularityChart(nights: nights),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         _RegularitySummaryRow(
           label: l10n.sleepRegularityAverageBedtime,
           value: formatBedtimeMinutes(bedtimeAvg),
@@ -100,7 +102,7 @@ class _RegularitySummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [Text(label), Text(value)],

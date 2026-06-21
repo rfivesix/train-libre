@@ -24,12 +24,10 @@ class FrostedContainer extends StatelessWidget {
   const FrostedContainer({
     super.key,
     required this.child,
-    this.margin = const EdgeInsets.symmetric(
-      horizontal: DesignConstants.screenPaddingHorizontal,
+    this.margin = const EdgeInsets.symmetric(horizontal: DesignConstants.screenPaddingHorizontal,
       vertical: DesignConstants.screenPaddingVertical,
     ),
-    this.padding = const EdgeInsets.symmetric(
-      horizontal: DesignConstants.spacingL,
+    this.padding = const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
       vertical: DesignConstants.spacingM,
     ),
     this.radius = DesignConstants.borderRadiusL,

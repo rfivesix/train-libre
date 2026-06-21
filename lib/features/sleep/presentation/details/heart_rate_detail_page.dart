@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -78,10 +80,10 @@ class HeartRateDetailPage extends StatelessWidget {
           ? l10n.sleepHeartRateComparedBaselineSubtitle
           : l10n.sleepHeartRateNoBaselineSubtitle,
       statusColor: !hasSamples
-          ? Colors.grey
+          ? Theme.of(context).colorScheme.onSurfaceVariant
           : established
               ? (delta != null && delta <= 0 ? Colors.green : Colors.orange)
-              : Colors.grey,
+              : Theme.of(context).colorScheme.onSurfaceVariant,
       children: [
         if (hasAverage) ...[
           SleepBenchmarkBar(
@@ -93,12 +95,12 @@ class HeartRateDetailPage extends StatelessWidget {
             upperTarget:
                 established && baseline != null ? baseline + 3 : avg + 2,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
         ],
         if (hasSamples)
           SummaryCard(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesignConstants.spacingL),
               child: MeasurementChartWidget.fromData(
                 dataPoints: chartPoints,
                 unit: l10n.sleepBpmUnit,
@@ -116,10 +118,10 @@ class HeartRateDetailPage extends StatelessWidget {
           SleepDataUnavailableCard(
             message: l10n.sleepHeartRateSamplesUnavailable,
           ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Text(baselineText),
         if (established && baseline != null && hasSamples) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.sleepHeartRateDashedLineHint(
               baseline.toStringAsFixed(1),

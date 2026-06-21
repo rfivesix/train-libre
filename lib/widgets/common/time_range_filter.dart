@@ -21,15 +21,14 @@ class TimeRangeFilter extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.cardPaddingInternal,
+        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
         ),
         child: Row(
           children: List.generate(ranges.length, (index) {
             final range = ranges[index];
             final isSelected = selectedIndex == index;
             return Padding(
-              padding: const EdgeInsets.only(right: 8.0),
+              padding: const EdgeInsets.only(right: DesignConstants.spacingS),
               child: ChoiceChip(
                 label: Text(range),
                 selected: isSelected,

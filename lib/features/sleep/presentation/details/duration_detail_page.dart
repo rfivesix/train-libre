@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 
 import '../../../../generated/app_localizations.dart';
 import '../../data/sleep_day_repository.dart';
@@ -20,7 +22,7 @@ class DurationDetailPage extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.sleepMetricDurationTitle)),
         body: Padding(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(DesignConstants.spacingL),
           child: SleepDataUnavailableCard(
             message: l10n.sleepDurationUnavailable,
           ),
@@ -32,7 +34,7 @@ class DurationDetailPage extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.sleepMetricDurationTitle)),
         body: Padding(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(DesignConstants.spacingL),
           child: SleepDataUnavailableCard(
             message: l10n.sleepDurationUnavailable,
           ),
@@ -56,7 +58,7 @@ class DurationDetailPage extends StatelessWidget {
           lowerTarget: 7 * 60,
           upperTarget: 9 * 60,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Text(l10n.sleepDurationBenchmarkHint),
       ],
     );

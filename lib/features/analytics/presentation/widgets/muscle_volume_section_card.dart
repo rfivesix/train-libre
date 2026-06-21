@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../statistics/presentation/statistics_formatter.dart';
@@ -73,7 +75,7 @@ class MuscleVolumeSectionCard extends StatelessWidget {
       child: SummaryCard(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -85,7 +87,7 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                     ? null
                     : '${(topMuscleShare * 100).toStringAsFixed(0)}%',
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: DesignConstants.spacingXS),
               Text(
                 _formatMuscleLabel(l10n, topMuscle?['muscleGroup'] as String?),
                 style: Theme.of(context)
@@ -101,9 +103,9 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                     ),
               ),
               if (topMuscleShare > 0) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: DesignConstants.spacingS),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
                   child: LinearProgressIndicator(
                     minHeight: 6,
                     value: topMuscleShare.clamp(0.0, 1.0),

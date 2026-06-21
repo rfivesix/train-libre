@@ -192,7 +192,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               initialSugar: entry.sugarPer100ml,
               initialCaffeine: entry.caffeinePer100ml,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             Row(
               children: [
                 Expanded(
@@ -201,7 +201,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () async {
@@ -297,7 +297,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               initialSugar: linkedFluid?.sugarPer100ml,
               initialCaffeine: linkedFluid?.caffeinePer100ml,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             Row(
               children: [
                 Expanded(
@@ -306,7 +306,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -554,7 +554,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   (initialDate ?? viewModel.selectedDate).withCurrentTime,
             ),
             // ... (rest of the method: buttons, etc. stays the same) ...
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             Row(
               children: [
                 Expanded(
@@ -566,7 +566,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -639,7 +639,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
     // 2. Get your base padding from your design constants
     const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(16.0)
+        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(
@@ -769,8 +769,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   ),
                 ),
                 SliverPadding(
-                  padding: EdgeInsets.only(
-                    left: finalPadding.left,
+                  padding: EdgeInsets.only(left: finalPadding.left,
                     right: finalPadding.right,
                     bottom: finalPadding.bottom,
                   ),
@@ -814,7 +813,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               key: key,
               initialTimestamp: viewModel.selectedDate.withCurrentTime,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             // ... (rest of the method stays the same: buttons row, etc.)
             Row(
               children: [
@@ -824,7 +823,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () async {
@@ -1008,7 +1007,7 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
 
     if (_notifier == null) {
       return Padding(
-        padding: const EdgeInsets.only(left: 4.0),
+        padding: const EdgeInsets.only(left: DesignConstants.spacingXS),
         child: _DiaryDateNavigator(
           l10n.today,
           titleStyle: titleStyle,
@@ -1024,7 +1023,7 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
       builder: (context, selectedDate, child) {
         final title = _getAppBarTitle(context, l10n, selectedDate);
         return Padding(
-          padding: const EdgeInsets.only(left: 4.0),
+          padding: const EdgeInsets.only(left: DesignConstants.spacingXS),
           child: _DiaryDateNavigator(
             title,
             titleStyle: titleStyle,
@@ -1065,10 +1064,10 @@ class _DiaryDateNavigator extends StatelessWidget {
         ),
         Flexible(
           child: InkWell(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
             onTap: onPickDate,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXS, vertical: DesignConstants.spacingS),
               child: Text(
                 title,
                 maxLines: 1,
@@ -1181,7 +1180,7 @@ class _MealCardState extends State<_MealCard> {
                       Icon(_isOpen
                           ? LucideIcons.chevron_up
                           : LucideIcons.chevron_down),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: DesignConstants.spacingXS),
                       IconButton(
                         icon: const Icon(LucideIcons.circle_plus),
                         color: theme.colorScheme.primary,
@@ -1192,7 +1191,7 @@ class _MealCardState extends State<_MealCard> {
                   ),
                 ),
                 if (items.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: DesignConstants.spacingXS),
                   MacroBadgeRow(
                     kcal: mealMacros.calories.round(),
                     protein: mealMacros.protein,
@@ -1223,12 +1222,11 @@ class _MealCardState extends State<_MealCard> {
                         ),
                       ),
                       if (solidItems.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: DesignConstants.spacingXS),
                         TextButton(
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 0,
-                              vertical: 4,
+                            padding: const EdgeInsets.symmetric(horizontal: 0,
+                              vertical: DesignConstants.spacingXS,
                             ),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             foregroundColor: theme.colorScheme.primary,
@@ -1315,7 +1313,7 @@ class _FluidsCardState extends State<_FluidsCard> {
                       Icon(_isOpen
                           ? LucideIcons.chevron_up
                           : LucideIcons.chevron_down),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: DesignConstants.spacingXS),
                       IconButton(
                         icon: const Icon(LucideIcons.circle_plus),
                         color: theme.colorScheme.primary,
@@ -1326,7 +1324,7 @@ class _FluidsCardState extends State<_FluidsCard> {
                   ),
                 ),
                 if (fluids.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: DesignConstants.spacingXS),
                   Builder(
                     builder: (ctx) {
                       int totalMl = 0;

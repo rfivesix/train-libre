@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -68,7 +70,7 @@ class StepsMonthChart extends StatelessWidget {
           DateFormat.yMMMM(localeCode).format(resolvedMonthStart),
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -83,7 +85,7 @@ class StepsMonthChart extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Row(
           children: List.generate(7, (index) {
             final dayLabel = DateFormat.E(localeCode)

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
@@ -77,7 +79,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
       child: SummaryCard(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -139,7 +141,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
                 relationship,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               Row(
                 children: [
                   _legendDot(
@@ -148,7 +150,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
                     label: l10n.analyticsBodyNutritionTotalWeightLabel,
                     shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesignConstants.spacingM),
                   _legendDot(
                     context,
                     color: const Color(0xFFF97316),
@@ -157,7 +159,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               SizedBox(
                 height: 84,
                 child: BodyNutritionNormalizedTrendChart(
@@ -185,7 +187,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
 
   Widget _buildBodyTrendPill(BuildContext context, String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),

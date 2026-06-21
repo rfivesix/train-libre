@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -21,7 +23,7 @@ class UnitSystemSlide extends StatelessWidget {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(DesignConstants.spacingXL),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -32,7 +34,7 @@ class UnitSystemSlide extends StatelessWidget {
               style: theme.textTheme.headlineSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             Text(
               l10n.onboardingUnitSystemSubtitle,
               textAlign: TextAlign.center,
@@ -40,7 +42,7 @@ class UnitSystemSlide extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: DesignConstants.spacingXXL),
             SpringyScale(
               isSelected: selectedSystem == UnitSystem.metric,
               onTap: () => onSelectSystem(UnitSystem.metric),
@@ -51,7 +53,7 @@ class UnitSystemSlide extends StatelessWidget {
                 selected: selectedSystem == UnitSystem.metric,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: DesignConstants.spacingL),
             SpringyScale(
               isSelected: selectedSystem == UnitSystem.imperial,
               onTap: () => onSelectSystem(UnitSystem.imperial),
@@ -112,7 +114,7 @@ class _UnitSystemChoiceCard extends StatelessWidget {
             size: 34,
             color: selected ? cs.primary : cs.onSurfaceVariant,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: DesignConstants.spacingL),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +126,7 @@ class _UnitSystemChoiceCard extends StatelessWidget {
                     color: selected ? cs.onSurface : cs.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: DesignConstants.spacingXS),
                 Text(
                   subtitle,
                   style: theme.textTheme.bodyMedium?.copyWith(

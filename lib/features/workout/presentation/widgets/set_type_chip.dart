@@ -29,9 +29,9 @@ class SetTypeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> typeInfo = {
-      'normal': {'char': setIndex.toString(), 'color': Colors.grey},
+      'normal': {'char': setIndex.toString(), 'color': Theme.of(context).colorScheme.onSurfaceVariant},
       'warmup': {'char': 'W', 'color': Colors.orange},
-      'failure': {'char': 'F', 'color': Colors.red},
+      'failure': {'char': 'F', 'color': Theme.of(context).colorScheme.error},
       'dropset': {'char': 'D', 'color': Colors.blue},
     };
     final type = typeInfo[setType] ?? typeInfo['normal']!;

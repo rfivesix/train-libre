@@ -49,7 +49,7 @@ class DataBackupCard extends StatelessWidget {
                     onPressed: isFullBackupRunning ? null : onExportPressed,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton.icon(
                     icon: const Icon(LucideIcons.circle_arrow_down),
@@ -74,7 +74,7 @@ class DataBackupCard extends StatelessWidget {
             ),
             if (isFullBackupRunning)
               const Padding(
-                padding: EdgeInsets.only(top: 16.0),
+                padding: EdgeInsets.only(top: DesignConstants.spacingL),
                 child: Center(child: CircularProgressIndicator()),
               ),
           ],

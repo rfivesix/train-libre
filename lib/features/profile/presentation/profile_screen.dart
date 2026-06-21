@@ -132,11 +132,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     labelText: l10n.onboardingNameLabel,
                     prefixIcon: const Icon(LucideIcons.user),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: DesignConstants.spacingM),
                 Row(
                   children: [
                     Expanded(
@@ -157,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             labelText: l10n.onboardingDobLabel,
                             prefixIcon: const Icon(LucideIcons.cake),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                             ),
                           ),
                           child: Text(
@@ -167,18 +167,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: PlatformAdaptiveDropdownFormField<String>(
                         initialValue: selectedGender,
                         decoration: InputDecoration(
                           labelText: l10n.onboardingGenderLabel,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 16,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10,
+                            vertical: DesignConstants.spacingL,
                           ),
                         ),
                         items: [
@@ -201,7 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: DesignConstants.spacingXL),
                 Row(
                   children: [
                     Expanded(
@@ -213,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Text(l10n.cancel),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: FilledButton(
                         onPressed: () async {
@@ -303,7 +302,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     borderRadius: BorderRadius.circular(20),
                     onTap: _showEditProfileDialog,
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(DesignConstants.spacingL),
                       child: Row(
                         children: [
                           GestureDetector(
@@ -371,7 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: DesignConstants.spacingXS),
                                 if (subline.isNotEmpty)
                                   Text(
                                     subline,
@@ -481,10 +480,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return SummaryCard(
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 8.0,
-          horizontal: 16.0,
-        ),
+        contentPadding: DesignConstants.screenPadding,
         leading: Icon(
           icon,
           size: 36,
@@ -523,11 +519,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             context,
           ).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
         },
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
+        contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+          vertical: DesignConstants.spacingM,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
       ),
     );
   }

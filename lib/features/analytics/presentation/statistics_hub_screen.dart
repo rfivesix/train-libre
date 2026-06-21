@@ -157,8 +157,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.cardPaddingInternal,
+                  padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,13 +174,13 @@ class _StatisticsHubScreenView extends StatelessWidget {
                         child: _buildRecoverySection(context, viewModel, l10n),
                       ),
                       if (viewModel.sleepTrackingEnabled) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: DesignConstants.spacingS),
                         RepaintBoundary(
                           child: _buildSleepSection(context, viewModel, l10n),
                         ),
                       ],
                       if (viewModel.pulseTrackingEnabled) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: DesignConstants.spacingS),
                         RepaintBoundary(
                           child: _buildPulseSection(context, viewModel, l10n),
                         ),
@@ -191,11 +190,11 @@ class _StatisticsHubScreenView extends StatelessWidget {
                       RepaintBoundary(
                         child: _buildConsistencySection(context, viewModel, l10n),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: DesignConstants.spacingS),
                       RepaintBoundary(
                         child: _buildPerformanceSection(context, viewModel, l10n),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: DesignConstants.spacingS),
                       RepaintBoundary(
                         child: _buildMuscleVolumeSection(context, viewModel, l10n),
                       ),
@@ -204,7 +203,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                       RepaintBoundary(
                         child: _buildBodyMetricsSection(context, viewModel, l10n),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: DesignConstants.spacingS),
                       _buildMeasurementsShortcutCard(context, l10n),
                       const BottomContentSpacer(),
                     ],
@@ -260,7 +259,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
             );
           },
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(DesignConstants.spacingL),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -269,7 +268,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   label: stepsTitle,
                   chipText: subtitleRange,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: DesignConstants.spacingS),
                 Text(
                   noDataText,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -480,14 +479,14 @@ class _StatisticsHubScreenView extends StatelessWidget {
         );
       },
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Row(
           children: [
             Icon(
               LucideIcons.ruler,
               color: Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DesignConstants.spacingM),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

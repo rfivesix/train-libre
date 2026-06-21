@@ -146,7 +146,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
 
     // 2. Get your base padding from your design constants
     const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(16.0)
+        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(
@@ -280,7 +280,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     return SizedBox(
       width: cardWidth,
       child: Padding(
-        padding: const EdgeInsets.only(right: 12.0),
+        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: SummaryCard(
           padding: EdgeInsets.zero,
           child: InkWell(
@@ -296,7 +296,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                     size: 40,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: DesignConstants.spacingS),
                   Text(l10n.mealsCreate, textAlign: TextAlign.center),
                 ],
               ),
@@ -314,7 +314,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     return SizedBox(
       width: cardWidth,
       child: Padding(
-        padding: const EdgeInsets.only(right: 12.0),
+        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: SummaryCard(
           padding: EdgeInsets.zero,
           child: InkWell(
@@ -364,9 +364,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   }) {
     return SummaryCard(
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 12.0,
-          horizontal: 16.0,
+        contentPadding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM,
+          horizontal: DesignConstants.spacingL,
         ),
         leading: Icon(
           icon,

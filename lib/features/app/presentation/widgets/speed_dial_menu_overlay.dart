@@ -118,8 +118,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                           child: Opacity(
                             opacity: tv,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 10.0,
+                              padding: const EdgeInsets.symmetric(vertical: 10.0,
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -141,7 +140,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: DesignConstants.spacingL),
                                   SizedBox(
                                     width: 74.0,
                                     height: 74.0,

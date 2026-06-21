@@ -33,7 +33,7 @@ class _WeightChartCardState extends State<WeightChartCard> {
               : theme.colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.5,
                 ),
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
         ),
         child: Text(
           label,

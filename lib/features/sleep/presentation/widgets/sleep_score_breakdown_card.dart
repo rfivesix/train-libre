@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 
 import '../../../../widgets/common/app_section_header.dart';
@@ -25,11 +27,11 @@ class SleepScoreBreakdownCard extends StatelessWidget {
           title: l10n.sleepDetailAnalysisHeader,
           padding: EdgeInsets.zero,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: DesignConstants.spacingL),
         if (scoringResult.dynamicMultiplier != null &&
             scoringResult.dynamicMultiplier! < 1.0) ...[
           _buildCapBanner(context, l10n),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignConstants.spacingL),
         ],
         GlassProgressBar(
           label: l10n.sleepMetricDurationLabel,
@@ -38,7 +40,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
           unit: '',
           color: const Color(0xFF10B981), // Emerald/Green accent
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         GlassProgressBar(
           label: l10n.sleepMetricContinuityLabel,
           value: scoringResult.continuityScore ?? 0.0,
@@ -46,7 +48,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
           unit: '',
           color: Colors.blue, // Blue accent
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         GlassProgressBar(
           label: l10n.sleepMetricDepthLabel,
           value: scoringResult.architectureScore ?? 0.0,
@@ -54,7 +56,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
           unit: '',
           color: Colors.indigo, // Indigo accent
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         GlassProgressBar(
           label: l10n.sleepMetricTimingLabel,
           value: scoringResult.timingScore ?? 0.0,
@@ -62,7 +64,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
           unit: '',
           color: Colors.amber, // Amber/Yellow accent
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         GlassProgressBar(
           label: l10n.sleepMetricRegularityLabel,
           value: scoringResult.regularityScore ?? 0.0,
@@ -97,10 +99,10 @@ class SleepScoreBreakdownCard extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(DesignConstants.spacingM),
       decoration: BoxDecoration(
         color: colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,7 +111,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
             LucideIcons.triangle_alert,
             color: colorScheme.onErrorContainer,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: DesignConstants.spacingM),
           Expanded(
             child: Text(
               bannerText,

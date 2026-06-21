@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../statistics_hub_view_model.dart';
@@ -64,7 +66,7 @@ class ConsistencySectionCard extends StatelessWidget {
       child: SummaryCard(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -73,7 +75,7 @@ class ConsistencySectionCard extends StatelessWidget {
                 label: title,
                 chipText: _fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: DesignConstants.spacingXS),
               Text(
                 avgWorkouts == '-' ? '-' : _formatPerWeek(l10n, avgWorkouts),
                 style: Theme.of(context)
@@ -88,12 +90,12 @@ class ConsistencySectionCard extends StatelessWidget {
                       color: Theme.of(context).colorScheme.outline,
                     ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               AnalyticsCardBase.buildMicroCaption(
                 context,
                 '${l10n.analyticsRollingConsistency} • ${_fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks)}',
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: DesignConstants.spacingXS),
               AnalyticsCardBase.buildMiniBars(
                 context,
                 values:

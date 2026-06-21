@@ -30,7 +30,7 @@ class MealReviewMacrosBar extends StatelessWidget {
         ),
         child: Text(
           '---',
-          style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey),
+          style: theme.textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       );
     }

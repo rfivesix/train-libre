@@ -53,7 +53,7 @@ class SupplementSummaryWidget extends StatelessWidget {
           return GestureDetector(
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
               child: GlassProgressBar(
                 label: supplement.getLocalizedName(context),
                 unit: supplement.unit,
@@ -91,8 +91,8 @@ class _CheckmarkCard extends StatelessWidget {
           '${supplement.dailyGoal?.toStringAsFixed(1).replaceAll('.0', '') ?? ''} ${supplement.unit}';
     }
     return SummaryCard(
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM),
       child: SizedBox(
         height: 54,
         child: Row(

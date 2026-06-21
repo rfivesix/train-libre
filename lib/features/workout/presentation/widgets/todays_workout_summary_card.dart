@@ -1,6 +1,8 @@
 // lib/widgets/todays_workout_summary_card.dart
 
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../../../services/unit_service.dart';
@@ -51,13 +53,10 @@ class TodaysWorkoutSummaryCard extends StatelessWidget {
     return SummaryCard(
       // Padding is handled by ListTile.
       padding: EdgeInsets.zero,
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
       child: ListTile(
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 8.0,
-          horizontal: 16.0,
-        ),
+        contentPadding: DesignConstants.screenPadding,
         title: Text(
           workoutCount > 1
               ? l10n.workoutsLabel // "Workouts"

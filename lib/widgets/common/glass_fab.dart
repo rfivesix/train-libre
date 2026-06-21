@@ -64,7 +64,7 @@ class _GlassFabState extends State<GlassFab>
 
     final iconAndText = Padding(
       padding: hasLabel
-          ? const EdgeInsets.symmetric(horizontal: 24.0)
+          ? const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL)
           : EdgeInsets.zero,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -76,7 +76,7 @@ class _GlassFabState extends State<GlassFab>
             color: isDark ? Colors.white : Colors.black,
           ),
           if (hasLabel) ...[
-            const SizedBox(width: 12),
+            const SizedBox(width: DesignConstants.spacingM),
             Text(
               widget.label!,
               style: TextStyle(

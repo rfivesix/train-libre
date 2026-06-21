@@ -32,7 +32,7 @@ class CompactNutritionBar extends StatelessWidget {
           value: nutritionData.protein.toDouble(),
           target: nutritionData.targetProtein.toDouble(),
           unit: 'g',
-          color: Colors.red.shade400,
+          color: Theme.of(context).colorScheme.error,
         ),
         const SizedBox(height: DesignConstants.spacingM),
         GlassProgressBar(

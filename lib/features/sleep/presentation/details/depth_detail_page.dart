@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 
 import '../../../../generated/app_localizations.dart';
 import '../../data/sleep_day_repository.dart';
@@ -85,7 +87,7 @@ class DepthDetailPage extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         _DepthRow(
           label: l10n.sleepStageDeepLabel,
           duration: deepDuration,
@@ -120,7 +122,7 @@ class _DepthRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

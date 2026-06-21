@@ -134,7 +134,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
 
     // 2. Get your base padding from your design constants
     const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(16.0)
+        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(
@@ -158,7 +158,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(LucideIcons.circle_plus, size: 28),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesignConstants.spacingM),
                   Text(
                     l10n.startEmptyWorkoutButton,
                     style: Theme.of(context).textTheme.titleLarge,
@@ -239,7 +239,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     return SizedBox(
       width: cardWidth,
       child: Padding(
-        padding: const EdgeInsets.only(right: 12.0),
+        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: SummaryCard(
           child: InkWell(
             onTap: _createNewRoutine,
@@ -254,7 +254,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                     size: 40,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: DesignConstants.spacingS),
                   Text(l10n.addRoutineButton, textAlign: TextAlign.center),
                 ],
               ),
@@ -273,7 +273,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       width: cardWidth,
       // FIX: Add spacing here as padding, not as margin.
       child: Padding(
-        padding: const EdgeInsets.only(right: 12.0),
+        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: SummaryCard(
           child: InkWell(
             onTap: () {

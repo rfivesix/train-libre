@@ -126,7 +126,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesignConstants.spacingL),
                 Row(
                   children: [
                     Expanded(
@@ -137,7 +137,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                         child: Text(l10n.cancel),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: FilledButton(
                         onPressed: () {
@@ -189,11 +189,10 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           Column(
             children: [
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 16.0,
-                  right: 16.0,
-                  top: 8.0,
-                  bottom: 8.0,
+                padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingS,
+                  bottom: DesignConstants.spacingS,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +222,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: DesignConstants.spacingM),
                         _buildFilterButton(context, l10n),
                       ],
                     ),
@@ -264,7 +263,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                         ),
                                       ),
                                       if (exercise.source == 'user') ...[
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: DesignConstants.spacingS),
                                         _buildSourceBadge(
                                             context, exercise.source),
                                       ],
@@ -314,7 +313,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
             child: RepaintBoundary(
               child: WgerAttributionWidget(
                 textStyle: textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   shadows: [
                     Shadow(
                       color: Colors.black.withValues(alpha: 0.5),
@@ -370,7 +369,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       width: 48,
       decoration: BoxDecoration(
         color: fillColor,
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
       ),
       child: IconButton(
         icon: Icon(
@@ -391,7 +390,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     const color = Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),

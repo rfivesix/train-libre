@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
@@ -31,13 +33,13 @@ class ProfileSlide extends StatelessWidget {
 
     return SingleChildScrollView(
       key: const Key('onboarding_profile_page'),
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(DesignConstants.spacingXL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           _StepTitle(title: l10n.onboardingNameTitle),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignConstants.spacingL),
           TextField(
             key: const Key('onboarding_name_text_field'),
             controller: nameController,
@@ -45,14 +47,14 @@ class ProfileSlide extends StatelessWidget {
               labelText: l10n.onboardingNameLabel,
               prefixIcon: const Icon(LucideIcons.user),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
             textCapitalization: TextCapitalization.words,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: DesignConstants.spacingXXL),
           _StepTitle(title: l10n.onboardingDobTitle),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignConstants.spacingL),
           InkWell(
             onTap: () async {
               final picked = await showAdaptiveDatePicker(
@@ -70,7 +72,7 @@ class ProfileSlide extends StatelessWidget {
                 labelText: l10n.onboardingDobLabel,
                 prefixIcon: const Icon(LucideIcons.cake),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                 ),
               ),
               child: Text(
@@ -83,7 +85,7 @@ class ProfileSlide extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: DesignConstants.spacingXXL),
           Row(
             children: [
               Expanded(
@@ -93,7 +95,7 @@ class ProfileSlide extends StatelessWidget {
                     _StepTitle(
                       title: l10n.onboardingHeightLabel,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: DesignConstants.spacingS),
                     TextField(
                       key: const Key('onboarding_height_text_field'),
                       controller: heightController,
@@ -104,14 +106,14 @@ class ProfileSlide extends StatelessWidget {
                         labelText:
                             '${l10n.onboardingHeightLabel} (${unitService.suffixFor(UnitDimension.height)})',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: DesignConstants.spacingL),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,17 +121,16 @@ class ProfileSlide extends StatelessWidget {
                     _StepTitle(
                       title: l10n.onboardingGenderLabel,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: DesignConstants.spacingS),
                     PlatformAdaptiveDropdownFormField<String>(
                       key: const Key('onboarding_gender_dropdown'),
                       initialValue: selectedGender,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 16,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                          vertical: DesignConstants.spacingL,
                         ),
                       ),
                       items: [
@@ -153,7 +154,7 @@ class ProfileSlide extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
@@ -162,7 +163,7 @@ class ProfileSlide extends StatelessWidget {
                   .colorScheme
                   .surfaceContainerHighest
                   .withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             ),
             child: Text(
               l10n.onboardingBioDataInfo,

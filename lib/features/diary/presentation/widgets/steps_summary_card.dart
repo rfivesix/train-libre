@@ -32,7 +32,7 @@ class StepsSummaryCard extends StatelessWidget {
       builder: (context, data, child) {
         if (data.isStepsWidgetLoading) {
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: SummaryCard(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -43,7 +43,7 @@ class StepsSummaryCard extends StatelessWidget {
                       width: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Text(l10n.diarySyncingSteps),
                   ],
                 ),
@@ -58,7 +58,7 @@ class StepsSummaryCard extends StatelessWidget {
 
         return RepaintBoundary(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push(

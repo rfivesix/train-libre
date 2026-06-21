@@ -168,14 +168,14 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           children: [
             Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                  const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingS),
               child: Text(
                 body,
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: DesignConstants.spacingXL),
             Row(
               children: [
                 Expanded(
@@ -184,7 +184,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                     child: Text(cancelLabel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -240,7 +240,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             },
           ),
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: DesignConstants.spacingM),
             child: _CategoryBadge(text: _currentExercise.categoryName),
           ),
         ],
@@ -301,11 +301,11 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 _prMap.values.every((v) => v == null))
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXL),
                   child: Text(
                     l10n.exerciseAnalyticsNoData,
                     style: textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -321,13 +321,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             const SizedBox(height: DesignConstants.spacingXL),
             Center(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  top: 8.0,
+                padding: const EdgeInsets.only(top: DesignConstants.spacingS,
                   bottom: DesignConstants.spacingM,
                 ),
                 child: WgerAttributionWidget(
                   textStyle: textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -353,12 +352,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
             return Container(
               width: (MediaQuery.of(context).size.width - 40) / 2,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(DesignConstants.spacingM),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.5,
                 ),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
                 border: Border.all(
                   color: prSet != null
                       ? theme.colorScheme.primary.withValues(alpha: 0.3)
@@ -376,7 +375,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       fontSize: 12,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: DesignConstants.spacingXS),
                   if (prSet != null) ...[
                     if (bracket == 'Est. 1RM')
                       Text(
@@ -400,13 +399,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                     Text(
                       '-',
                       style: theme.textTheme.titleLarge?.copyWith(
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     Text(
                       l10n.noData,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -428,7 +427,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         child: Column(
           children: [
             _buildChartHeader(l10n),
-            const SizedBox(height: 16),
+            const SizedBox(height: DesignConstants.spacingL),
             Container(
               height: 200,
               width: double.infinity,
@@ -509,7 +508,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: DesignConstants.spacingXS),
                   Icon(
                     LucideIcons.chevron_down,
                     size: 18,
@@ -562,7 +561,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               : theme.colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.5,
                 ),
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
         ),
         child: Text(
           label,
@@ -589,7 +588,7 @@ class _CategoryBadge extends StatelessWidget {
     final fg = theme.colorScheme.primary;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),
@@ -662,7 +661,7 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
                           color: theme.colorScheme.outline,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: DesignConstants.spacingXS),
                       SizedBox(
                         height: 200,
                         child: BodyHighlighter(
@@ -678,7 +677,7 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: DesignConstants.spacingS),
                 Expanded(
                   child: Column(
                     children: [
@@ -688,7 +687,7 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
                           color: theme.colorScheme.outline,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: DesignConstants.spacingXS),
                       SizedBox(
                         height: 200,
                         child: BodyHighlighter(
@@ -707,7 +706,7 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
               ],
             ),
             // ── Legend ─────────────────────────────────────────────────────
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             const Divider(height: 1),
             const SizedBox(height: 10),
             _MuscleChipRow(
@@ -751,7 +750,7 @@ class _MuscleChipRow extends StatelessWidget {
         SizedBox(
           width: 68,
           child: Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: DesignConstants.spacingXS),
             child: Text(
               label,
               style: theme.textTheme.labelSmall?.copyWith(
@@ -768,8 +767,7 @@ class _MuscleChipRow extends StatelessWidget {
             children: muscles
                 .map(
                   (m) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
+                    padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(

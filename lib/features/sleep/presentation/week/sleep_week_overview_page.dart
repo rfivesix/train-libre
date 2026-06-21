@@ -150,7 +150,7 @@ class WeekSummaryCard extends StatelessWidget {
     return SummaryCard(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -158,7 +158,7 @@ class WeekSummaryCard extends StatelessWidget {
               l10n.sleepWeekSummaryTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Text(l10n.sleepMeanScoreLabel(mean)),
             Text(
               l10n.sleepWeekdayAvgDurationLabel(
@@ -208,7 +208,7 @@ class WeekScoreStrip extends StatelessWidget {
     return SummaryCard(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -216,7 +216,7 @@ class WeekScoreStrip extends StatelessWidget {
               l10n.sleepDailyScoreTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Row(
               children: aggregation.days.map((day) {
                 final score = day.score;
@@ -248,7 +248,7 @@ class WeekScoreStrip extends StatelessWidget {
                                   ),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: DesignConstants.spacingXS),
                           Text(
                             '${day.date.day}',
                             style: Theme.of(context).textTheme.labelSmall,
@@ -271,7 +271,7 @@ class WeekScoreStrip extends StatelessWidget {
     return switch (quality) {
       SleepQualityBucket.good => Colors.green.shade300,
       SleepQualityBucket.average => Colors.amber.shade300,
-      SleepQualityBucket.poor => Colors.red.shade300,
+      SleepQualityBucket.poor => Theme.of(context).colorScheme.error,
       SleepQualityBucket.unavailable => scheme.surfaceContainerHighest,
     };
   }

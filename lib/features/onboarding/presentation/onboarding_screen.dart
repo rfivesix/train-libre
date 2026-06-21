@@ -1,6 +1,8 @@
 // lib/screens/onboarding_screen.dart
 
 import 'package:flutter/material.dart';
+import '../../../util/design_constants.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/infrastructure/backup_manager.dart';
@@ -414,7 +416,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.onboardingRestoreFailed),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -434,7 +436,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             obscureText: true,
             decoration: InputDecoration(labelText: l10n.passwordLabel),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           Row(
             children: [
               Expanded(
@@ -443,7 +445,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: Text(l10n.cancel),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: DesignConstants.spacingM),
               Expanded(
                 child: FilledButton(
                   onPressed: () =>
@@ -602,7 +604,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             // Hide bottom nav on the welcome page (page 0) — it has its own buttons.
             if (_currentPage > 0)
               Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(DesignConstants.spacingXL),
                 child: Row(
                   children: [
                     IconButton.filledTonal(
@@ -616,9 +618,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ? null
                           : _nextPage,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
+                        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXXL,
+                          vertical: DesignConstants.spacingL,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -701,18 +702,18 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
 
     return SingleChildScrollView(
       key: const Key('onboarding_measurements_page'),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(DesignConstants.spacingXL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           Text(
             l10n.onboardingMeasurementsTitle,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingMeasurementsSubtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -728,7 +729,7 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
               labelText: '${l10n.onboardingWeightTitle} ($weightSuffix)',
               suffixText: weightSuffix,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),
@@ -742,11 +743,11 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
               labelText: l10n.onboardingBodyFatOptionalLabel,
               suffixText: '%',
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingBodyFatOptionalHelper,
             key: const Key('onboarding_body_fat_helper_text'),
@@ -762,7 +763,7 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
               child: Text(l10n.onboardingBodyFatHelpAction),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           _OnboardingInfoBox(text: l10n.onboardingMeasurementsDisclaimer),
         ],
       ),
@@ -795,25 +796,25 @@ class _OnboardingNutritionStep extends StatelessWidget {
 
     return SingleChildScrollView(
       key: const Key('onboarding_nutrition_page'),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(DesignConstants.spacingXL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           Text(
             l10n.onboardingGoalsTitle,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingGoalsSubtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           _OnboardingNumberField(
             controller: calController,
             label: l10n.onboardingGoalCalories,
@@ -869,7 +870,7 @@ class _OnboardingNumberField extends StatelessWidget {
         labelText: label,
         suffixText: suffix,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         ),
       ),
     );
@@ -891,7 +892,7 @@ class _OnboardingInfoBox extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
       ),
       child: Text(
         text,
@@ -924,25 +925,25 @@ class _OnboardingAiHealthStep extends StatelessWidget {
 
     return SingleChildScrollView(
       key: const Key('onboarding_ai_health_page'),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(DesignConstants.spacingXL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           Text(
             l10n.onboardingAiHealthTitle,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingAiHealthSubtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           SummaryCard(
             child: Column(
               children: [

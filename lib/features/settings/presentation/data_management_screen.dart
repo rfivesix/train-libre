@@ -192,7 +192,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                 l10n.snackbarImportSuccessContent,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -208,7 +208,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           messenger.showSnackBar(
             SnackBar(
               content: Text(l10n.snackbarImportError),
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -228,7 +228,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(l10n.importUnitSelectionDescription),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignConstants.spacingL),
           Row(
             children: [
               Expanded(
@@ -237,7 +237,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                   child: Text(l10n.unitMetricLabel),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: DesignConstants.spacingM),
               Expanded(
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(ctx).pop(true),
@@ -281,7 +281,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.workoutImportFailed),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -296,7 +296,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.snackbarExportFailed),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -433,7 +433,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     content: Text(successText),
                     backgroundColor: ok
                         ? (_lastAutoBackupUsedFallback ? Colors.orange : null)
-                        : Colors.red,
+                        : Theme.of(context).colorScheme.error,
                   ),
                 );
               },
@@ -534,7 +534,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
               l10n.localDataDeletionSuccessBody,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -556,7 +556,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.localDataDeletionFailed),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -581,7 +581,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                   l10n.localDataDeletionConfirmBody,
                   key: const Key('delete_local_data_warning_copy'),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesignConstants.spacingL),
                 TextField(
                   key: const Key('delete_local_data_confirmation_field'),
                   controller: controller,
@@ -591,7 +591,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                   ),
                   onChanged: (_) => setDialogState(() {}),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesignConstants.spacingL),
                 Row(
                   children: [
                     Expanded(
@@ -604,12 +604,12 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                         child: Text(l10n.cancel),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: FilledButton(
                         key: const Key('confirm_delete_local_data_button'),
                         style: FilledButton.styleFrom(
-                          backgroundColor: Colors.red,
+                          backgroundColor: Theme.of(context).colorScheme.error,
                           foregroundColor: Colors.white,
                         ),
                         onPressed: canConfirm
@@ -645,14 +645,14 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.autoBackupRequestAccessSubtitle,
                 textAlign: TextAlign.center,
                 style: Theme.of(ctx).textTheme.bodyMedium,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: DesignConstants.spacingXL),
             Row(
               children: [
                 Expanded(
@@ -664,7 +664,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -692,7 +692,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.autoBackupStoragePickerUnavailable),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         return;
@@ -703,7 +703,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
             content: Text(
               l10n.autoBackupFolderPickerFailed(e.message ?? e.code),
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         return;
@@ -773,7 +773,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesignConstants.spacingL),
                 Row(
                   children: [
                     Expanded(
@@ -785,7 +785,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                         child: Text(l10n.dialogButtonCancel),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: FilledButton(
                         onPressed: () {

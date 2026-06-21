@@ -282,7 +282,7 @@ class _RoutinePill extends StatelessWidget {
                 decoration: TextDecoration.none,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Text(
               detail,
               maxLines: 1,
@@ -362,7 +362,7 @@ class _MuscleVolumePill extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: DesignConstants.spacingL),
               Text(
                 muscle.formattedVolume,
                 maxLines: 1,
@@ -447,7 +447,7 @@ class _MoreLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.only(top: DesignConstants.spacingM),
       child: Text(
         text,
         maxLines: 1,

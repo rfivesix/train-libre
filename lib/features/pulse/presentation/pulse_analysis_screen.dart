@@ -182,7 +182,7 @@ class _PulseAnalysisContent extends StatelessWidget {
         const SizedBox(height: DesignConstants.spacingM),
         SummaryCard(
           margin: EdgeInsets.zero,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -222,7 +222,7 @@ class _PulseAnalysisContent extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               Text(
                 '${copy.sampleCount(summary.sampleCount)} - ${copy.qualityLabel(summary.quality)}',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -265,7 +265,7 @@ class _KpiCard extends StatelessWidget {
     return SummaryCard(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -292,7 +292,7 @@ class _MetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),

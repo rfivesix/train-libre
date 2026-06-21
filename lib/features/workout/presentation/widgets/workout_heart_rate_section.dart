@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/health/workout_heart_rate_models.dart';
@@ -97,7 +99,7 @@ class WorkoutHeartRateSection extends StatelessWidget {
                       color: Theme.of(context).colorScheme.outline,
                     ),
               ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Text(
               '${l10n.workoutHeartRateSampleCount(summary.sampleCount)} • ${_heartRateQualityLabel(l10n, summary.quality)}',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -116,7 +118,7 @@ class WorkoutHeartRateSection extends StatelessWidget {
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),

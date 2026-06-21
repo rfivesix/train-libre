@@ -1,6 +1,8 @@
 // lib/widgets/off_attribution_widget.dart
 
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -19,11 +21,11 @@ class OffAttributionWidget extends StatelessWidget {
     final theme = Theme.of(context);
 
     final currentTextStyle = textStyle ??
-        theme.textTheme.bodySmall?.copyWith(color: Colors.grey[600]);
+        theme.textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(DesignConstants.spacingS),
         child: GestureDetector(
           // Makes the text clickable
           onTap: () async {

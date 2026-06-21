@@ -324,7 +324,7 @@ class _MainScreenState extends State<MainScreen>
             borderRadius: BorderRadius.circular(18),
             child: Padding(
               padding: padding ??
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM, vertical: DesignConstants.spacingM),
               child: child,
             ),
           );
@@ -347,7 +347,7 @@ class _MainScreenState extends State<MainScreen>
             child: Row(
               children: [
                 const Icon(LucideIcons.play),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Text(
                   l10n.startEmptyWorkoutButton,
                   style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
@@ -401,10 +401,10 @@ class _MainScreenState extends State<MainScreen>
                       },
                       child: Text(l10n.startButton),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                         onTap: () {
                           // Editing navigates directly (that is ok because it is a new screen).
                           // pop+push would also be better here, but keep this for edit,
@@ -442,7 +442,7 @@ class _MainScreenState extends State<MainScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: DesignConstants.spacingS),
                     Icon(
                       LucideIcons.ellipsis_vertical,
                       color: Theme.of(ctx).textTheme.bodyMedium?.color,
@@ -459,7 +459,7 @@ class _MainScreenState extends State<MainScreen>
           children: [
             freeWorkoutTile,
             if (routines.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               routinesList,
             ],
           ],
@@ -596,7 +596,7 @@ class _MainScreenState extends State<MainScreen>
               key: key,
               initialTimestamp: targetDate.withCurrentTime,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             Row(
               children: [
                 Expanded(
@@ -605,7 +605,7 @@ class _MainScreenState extends State<MainScreen>
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () async {
@@ -732,7 +732,7 @@ class _MainScreenState extends State<MainScreen>
               initialMealType: initialMealType,
               initialTimestamp: (initialDate ?? DateTime.now()).withCurrentTime,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             Row(
               children: [
                 Expanded(
@@ -744,7 +744,7 @@ class _MainScreenState extends State<MainScreen>
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -954,7 +954,7 @@ class _MainScreenState extends State<MainScreen>
             l10n.appTourOfferBody,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           Row(
             children: [
               Expanded(
@@ -964,7 +964,7 @@ class _MainScreenState extends State<MainScreen>
                   child: Text(l10n.appTourOfferSkip),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: DesignConstants.spacingM),
               Expanded(
                 child: FilledButton(
                   key: const Key('app_tour_offer_start_button'),
@@ -1195,8 +1195,7 @@ class _MainScreenState extends State<MainScreen>
                       // Shadow layers underneath the glass tabs & FAB to provide physical depth matching standard style
                       IgnorePointer(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: horizontalPadding,
+                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding,
                             vertical: verticalPadding,
                           ),
                           child: Row(
@@ -1239,8 +1238,7 @@ class _MainScreenState extends State<MainScreen>
                             letterSpacing: -0.2,
                           ),
                           child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: horizontalPadding,
+                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding,
                               vertical: verticalPadding,
                             ),
                             child: GlassAdaptiveScope(
@@ -1406,8 +1404,7 @@ class _MainScreenState extends State<MainScreen>
 
   Widget _profileAppBarButton(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        right: DesignConstants.screenPaddingHorizontal,
+      padding: const EdgeInsets.only(right: DesignConstants.screenPaddingHorizontal,
       ),
       child: Semantics(
         label: AppLocalizations.of(context)!.profile,
@@ -1425,7 +1422,7 @@ class _MainScreenState extends State<MainScreen>
             builder: (context, profileService, _) {
               return CircleAvatar(
                 radius: 18,
-                backgroundColor: Colors.grey.shade300,
+                backgroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
                 backgroundImage: (profileService.profileImagePath != null)
                     ? FileImage(File(profileService.profileImagePath!))
                     : null,

@@ -290,7 +290,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           AppSectionHeader(title: l10n.feedbackReportOptionalNoteTitle),
           SummaryCard(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesignConstants.spacingL),
               child: TextField(
                 key: const Key('feedback_report_note_field'),
                 controller: _noteController,
@@ -371,7 +371,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
             AppSectionHeader(title: l10n.feedbackReportPreviewTitle),
             SummaryCard(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(DesignConstants.spacingL),
                 child: SizedBox(
                   height: 280,
                   child: SingleChildScrollView(

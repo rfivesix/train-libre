@@ -30,8 +30,7 @@ class RunningWorkoutOverlay extends StatelessWidget {
 
     double radius = 37.0; // Half of height 74.0 for perfect pill
     return Container(
-      margin: const EdgeInsets.only(
-          bottom: 16.0), // Yields exactly 20px gap above GlassBottomBar
+      margin: const EdgeInsets.only(bottom: DesignConstants.spacingL), // Yields exactly 20px gap above GlassBottomBar
       height: 74.0,
       child: Stack(
         children: [
@@ -53,7 +52,7 @@ class RunningWorkoutOverlay extends StatelessWidget {
               child: GlassContainer(
                 useOwnLayer: true,
                 height: 74.0,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
                 alignment: Alignment.center,
                 shape: LiquidRoundedSuperellipse(borderRadius: radius),
                 quality: GlassQuality.premium,
@@ -116,7 +115,7 @@ class _RunningWorkoutRow extends StatelessWidget {
           ),
           child: Text(l10n.continue_workout_button),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: DesignConstants.spacingS),
         FilledButton(
           onPressed: onDiscard,
           style: FilledButton.styleFrom(

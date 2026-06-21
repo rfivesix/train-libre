@@ -501,13 +501,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           children: [
             Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingXS),
               child: Text(
                 l10n.saveAsRoutinePrompt,
                 style: Theme.of(ctx).textTheme.bodyMedium,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             TextField(
               controller: controller,
               autofocus: true,
@@ -515,7 +515,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
               decoration: InputDecoration(
                 labelText: l10n.formFieldRoutineName,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                 ),
               ),
             ),
@@ -531,7 +531,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -711,7 +711,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             padding: DesignConstants.cardPadding,
                             child: SummaryCard(
                               child: Padding(
-                                padding: const EdgeInsets.all(16.0),
+                                padding: const EdgeInsets.all(DesignConstants.spacingL),
                                 child: Form(
                                   key: _formKey,
                                   child: Column(
@@ -776,7 +776,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                         _buildMuscleHeatmap(l10n),
                                       ],
                                       if (!_isEditMode) ...[
-                                        const SizedBox(height: 12),
+                                        const SizedBox(height: DesignConstants.spacingM),
                                         Center(
                                           child: TextButton.icon(
                                             onPressed: _showSaveAsRoutineDialog,
@@ -792,9 +792,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                   .primary
                                                   .withValues(alpha: 0.8),
                                               padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 8),
+                                                  DesignConstants.screenPadding,
                                             ),
                                           ),
                                         ),
@@ -957,7 +955,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                           // Add Exercise (Edit Mode)
                           if (_isEditMode)
                             Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(DesignConstants.spacingL),
                               child: TextButton.icon(
                                 onPressed: () async {
                                   final selectedExercise =
@@ -1013,7 +1011,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                             child: WgerAttributionWidget(
                               textStyle: textTheme.bodySmall?.copyWith(
-                                color: Colors.grey[600],
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -1106,7 +1104,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       {
         'type': 'normal',
         'label': l10n.set_type_normal,
-        'symbol': buildSymbol('N', Colors.grey),
+        'symbol': buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
       },
       {
         'type': 'warmup',
@@ -1116,7 +1114,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       {
         'type': 'failure',
         'label': l10n.set_type_failure,
-        'symbol': buildSymbol('F', Colors.red),
+        'symbol': buildSymbol('F', Theme.of(context).colorScheme.error),
       },
       {
         'type': 'dropset',

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
@@ -89,7 +91,7 @@ class _MetricTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return SummaryCard(
       margin: EdgeInsets.zero,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(DesignConstants.spacingL),
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,7 +103,7 @@ class _MetricTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: DesignConstants.spacingXS),
           Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),

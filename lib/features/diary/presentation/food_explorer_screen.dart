@@ -124,9 +124,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 24.0,
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+              vertical: DesignConstants.spacingXL,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +147,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                   dividerColor: Colors.transparent,
                   // FIX: Dynamic color based on theme mode.
                   labelColor: isLightMode ? Colors.black : Colors.white,
-                  unselectedLabelColor: Colors.grey.shade600,
+                  unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
                   labelStyle: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,

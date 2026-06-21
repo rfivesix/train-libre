@@ -18,7 +18,7 @@ class AnalyticsCardBase {
     return SummaryCard(
       key: Key('statistics_section_loading_${sectionId.name}'),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Row(
           children: [
             const SizedBox(
@@ -26,7 +26,7 @@ class AnalyticsCardBase {
               width: 18,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DesignConstants.spacingM),
             Expanded(
               child: Text(
                 title,
@@ -57,12 +57,12 @@ class AnalyticsCardBase {
     return SummaryCard(
       key: Key('statistics_section_error_${sectionId.name}'),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             buildCardHeading(context, label: title),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Text(
               l10n.error,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -77,7 +77,7 @@ class AnalyticsCardBase {
                     color: Theme.of(context).colorScheme.outline,
                   ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             TextButton(
               onPressed: onRetry,
               child: Text(MaterialLocalizations.of(context)
@@ -138,8 +138,7 @@ class AnalyticsCardBase {
         ),
         if (chipText != null && chipText.isNotEmpty)
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingS,
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
               vertical: 3,
             ),
             decoration: BoxDecoration(
@@ -170,7 +169,7 @@ class AnalyticsCardBase {
           child: buildCardHeading(context, label: label, chipText: chipText),
         ),
         if (trailingIcon) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: DesignConstants.spacingS),
           buildDrillDownHint(context),
         ],
       ],
@@ -198,8 +197,7 @@ class AnalyticsCardBase {
   static Widget buildRangeChip(BuildContext context, String label) {
     final chipColor = Theme.of(context).colorScheme.primary;
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingS,
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
         vertical: 3,
       ),
       decoration: BoxDecoration(

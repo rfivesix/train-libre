@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/time_util.dart';
 
@@ -61,7 +63,7 @@ class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
             hintText: "00:00",
             suffixIcon: _controller.text.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.redAccent),
+                    icon: Icon(Icons.clear, color: Theme.of(context).colorScheme.error),
                     onPressed: () {
                       _controller.clear();
                       setState(() {});
@@ -73,12 +75,12 @@ class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
                 ? Colors.white.withValues(alpha: 0.05)
                 : Colors.black.withValues(alpha: 0.05),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: DesignConstants.spacingL),
         Row(
           children: [
             Expanded(
@@ -87,7 +89,7 @@ class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
                 child: Text(l10n.cancel),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DesignConstants.spacingM),
             Expanded(
               child: FilledButton(
                 onPressed: () {

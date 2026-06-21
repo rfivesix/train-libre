@@ -99,8 +99,7 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
           children: [
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.only(
-                  top: DesignConstants.spacingS,
+                padding: const EdgeInsets.only(top: DesignConstants.spacingS,
                   bottom: DesignConstants.spacingL,
                 ),
                 itemCount: widget.unknownNames.length,
@@ -156,8 +155,7 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                             children: suggestions.map((s) {
                               return GlassPillButton(
                                 height: 28,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
+                                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
                                 ),
                                 onTap: () {
                                   setState(() => _selection[src] = s);
@@ -190,8 +188,7 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
             SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: DesignConstants.spacingM,
+                padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM,
                 ),
                 child: SizedBox(
                   width: double.infinity,

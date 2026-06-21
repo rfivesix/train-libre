@@ -142,7 +142,7 @@ class MonthSummaryCard extends StatelessWidget {
     return SummaryCard(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -150,7 +150,7 @@ class MonthSummaryCard extends StatelessWidget {
               l10n.sleepMonthSummaryTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Text(l10n.sleepMeanScoreLabel(mean)),
             Text(
               l10n.sleepWeekdayAvgDurationLabel(
@@ -195,7 +195,7 @@ class MonthCalendarGrid extends StatelessWidget {
     return SummaryCard(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -203,7 +203,7 @@ class MonthCalendarGrid extends StatelessWidget {
               l10n.sleepMonthDailyScoreStatesTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -256,7 +256,7 @@ class MonthCalendarGrid extends StatelessWidget {
     return switch (quality) {
       SleepQualityBucket.good => Colors.green.shade300,
       SleepQualityBucket.average => Colors.amber.shade300,
-      SleepQualityBucket.poor => Colors.red.shade300,
+      SleepQualityBucket.poor => Theme.of(context).colorScheme.error,
       SleepQualityBucket.unavailable => scheme.surfaceContainerHighest,
     };
   }
