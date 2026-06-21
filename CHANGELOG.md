@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Enforced a constant `32.0` logical pixel height wrapper for the attribution widget, preventing layout shifts when the text wraps to two lines on narrow screens.
   - Positioned the active rest timer bar and the active FAB at constant offsets (`bottom: 134.0` for the FAB), maintaining a perfect `8.0` logical pixel gap between them on all devices.
   - Configured `_LiveWorkoutFabShadowClipper` to clip the FAB's drop shadow exactly at `8.0` logical pixels below the FAB edge, making the shadow terminate cleanly at the top of the rest bar without translation offsets.
+- **Active Workout Conflict Handling (`workout_hub_screen.dart`, `routines_screen.dart`, `main_screen.dart`, `glass_bottom_menu.dart`):** Handled the edge case where a user attempts to start a new workout while a workout session is already running in the background:
+  - Introduced a glass-styled dialog (`showActiveWorkoutConflictDialog`) presenting options to resume the current workout, discard it, or cancel the action.
+  - Intercepted workout start requests from the Workout Hub, Routines Screen, and the Main FAB menu to show the conflict resolution dialog when necessary.
+  - Discarding an active workout cleanly deletes the previous workout log from the database and clears the view model session state, preventing mismatched active state errors.
+  - Added localized strings for the conflict dialog in English, German, French, Italian, and Japanese.
 
 ## [0.9.33] - 2026-06-20
 

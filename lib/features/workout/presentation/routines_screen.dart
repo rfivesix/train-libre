@@ -8,6 +8,7 @@ import '../domain/repositories/workout_repository.dart';
 import '../../../services/haptic_feedback_service.dart';
 import 'edit_routine_screen.dart';
 import 'live_workout_screen.dart';
+import 'live_workout_view_model.dart';
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
@@ -42,7 +43,40 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
         .watchAllRoutines();
   }
 
+  Future<bool> _checkAndHandleOngoingWorkout() async {
+    final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
+    if (!manager.isActive) return true;
+
+    final choice = await showActiveWorkoutConflictDialog(context);
+    if (choice == ActiveWorkoutConflictResult.resume) {
+      if (mounted && manager.workoutLog != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => LiveWorkoutScreen(
+              workoutLog: manager.workoutLog!,
+              routine: null,
+            ),
+          ),
+        );
+      }
+      return false;
+    } else if (choice == ActiveWorkoutConflictResult.discard) {
+      final logId = manager.workoutLog?.id;
+      if (logId != null) {
+        await WorkoutLocalDataSource.instance.deleteWorkoutLog(logId);
+      }
+      await manager.clearLocalSessionState();
+      return true;
+    }
+
+    return false;
+  }
+
   void _startWorkout(Routine routine) async {
+    final canProceed = await _checkAndHandleOngoingWorkout();
+    if (!canProceed) return;
+    if (!mounted) return;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -70,6 +104,10 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   }
 
   void _startEmptyWorkout() async {
+    final canProceed = await _checkAndHandleOngoingWorkout();
+    if (!canProceed) return;
+    if (!mounted) return;
+
     final l10n = AppLocalizations.of(context)!;
     final newWorkoutLog = await WorkoutLocalDataSource.instance.startWorkout(
       routineName: l10n.freeWorkoutTitle,

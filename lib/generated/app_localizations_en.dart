@@ -5359,4 +5359,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String nutritionPerPortion(int grams) {
     return 'Nutrition per Portion (${grams}g)';
   }
+
+  @override
+  String get workoutConflictTitle => 'Workout in Progress';
+
+  @override
+  String get workoutConflictContent =>
+      'You already have an active workout session. Would you like to resume it, or discard it to start a new one?';
+
+  @override
+  String get resumeWorkoutButton => 'Resume Workout';
+
+  @override
+  String get discardAndStartButton => 'Discard & Start New';
 }

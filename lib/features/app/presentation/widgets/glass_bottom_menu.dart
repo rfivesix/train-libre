@@ -452,3 +452,80 @@ Future<bool> showDeleteConfirmation(
 
   return result ?? false;
 }
+
+/// Represents the user's choice when there is an active workout conflict.
+enum ActiveWorkoutConflictResult {
+  resume,
+  discard,
+  cancel,
+}
+
+/// Shows a glass-styled modal bottom sheet when trying to start a new workout
+/// while another workout is already in progress.
+Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
+  BuildContext context,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+
+  final result = await showGlassBottomMenu<ActiveWorkoutConflictResult>(
+    context: context,
+    title: l10n.workoutConflictTitle,
+    contentBuilder: (ctx, close) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              l10n.workoutConflictContent,
+              textAlign: TextAlign.center,
+              style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    close();
+                    Navigator.of(ctx).pop(ActiveWorkoutConflictResult.cancel);
+                  },
+                  child: Text(l10n.cancel),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    close();
+                    Navigator.of(ctx).pop(ActiveWorkoutConflictResult.discard);
+                  },
+                  child: Text(l10n.discardButton),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () {
+                close();
+                Navigator.of(ctx).pop(ActiveWorkoutConflictResult.resume);
+              },
+              child: Text(l10n.resumeWorkoutButton),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  return result ?? ActiveWorkoutConflictResult.cancel;
+}
+

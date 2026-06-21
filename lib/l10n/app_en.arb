@@ -2509,5 +2509,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "workoutConflictTitle": "Workout in Progress",
+  "workoutConflictContent": "You already have an active workout session. Would you like to resume it, or discard it to start a new one?",
+  "resumeWorkoutButton": "Resume Workout",
+  "discardAndStartButton": "Discard & Start New"
 }

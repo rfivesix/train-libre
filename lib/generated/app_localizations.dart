@@ -9426,6 +9426,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nutrition per Portion ({grams}g)'**
   String nutritionPerPortion(int grams);
+
+  /// No description provided for @workoutConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout in Progress'**
+  String get workoutConflictTitle;
+
+  /// No description provided for @workoutConflictContent.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have an active workout session. Would you like to resume it, or discard it to start a new one?'**
+  String get workoutConflictContent;
+
+  /// No description provided for @resumeWorkoutButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume Workout'**
+  String get resumeWorkoutButton;
+
+  /// No description provided for @discardAndStartButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard & Start New'**
+  String get discardAndStartButton;
 }
 
 class _AppLocalizationsDelegate

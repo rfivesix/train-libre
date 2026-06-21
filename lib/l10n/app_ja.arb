@@ -2382,5 +2382,9 @@
   "createCopyAndEdit": "コピーを作成して編集",
   "foodCopyCreated": "コピー作成完了: {name}",
   "nutritionPer100g": "100gあたりの栄養成分",
-  "nutritionPerPortion": "1食分（{grams}g）あたりの栄養成分"
+  "nutritionPerPortion": "1食分（{grams}g）あたりの栄養成分",
+  "workoutConflictTitle": "ワークアウトが進行中",
+  "workoutConflictContent": "現在進行中のワークアウトがあります。再開しますか？それとも破棄して新しいワークアウトを開始しますか？",
+  "resumeWorkoutButton": "ワークアウトを再開",
+  "discardAndStartButton": "破棄して新しく開始"
 }

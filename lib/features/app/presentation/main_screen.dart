@@ -274,6 +274,36 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Future<void> _showStartWorkoutMenu() async {
+    final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
+    if (manager.isActive) {
+      final choice = await showActiveWorkoutConflictDialog(context);
+      if (choice == ActiveWorkoutConflictResult.resume) {
+        if (!mounted) return;
+        if (manager.workoutLog != null) {
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (context) => LiveWorkoutScreen(
+                    workoutLog: manager.workoutLog!,
+                    routine: null,
+                  ),
+                ),
+              )
+              .then((_) => _refreshHomeScreen());
+        }
+        return;
+      } else if (choice == ActiveWorkoutConflictResult.discard) {
+        final logId = manager.workoutLog?.id;
+        if (logId != null) {
+          await WorkoutLocalDataSource.instance.deleteWorkoutLog(logId);
+        }
+        await manager.clearLocalSessionState();
+      } else {
+        return; // Cancelled
+      }
+    }
+
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final routines = await WorkoutLocalDataSource.instance.getAllRoutines();
     if (!mounted) return;
@@ -439,7 +469,8 @@ class _MainScreenState extends State<MainScreen>
 
     // The actual navigation to the workout happens here,
     // after the menu is closed.
-    if (result != null && mounted) {
+    if (!mounted) return;
+    if (result != null) {
       HapticFeedbackService.instance.confirmationFeedback();
       Navigator.of(context)
           .push(

@@ -2382,5 +2382,9 @@
   "createCopyAndEdit": "Crea copia e modifica",
   "foodCopyCreated": "Copia creata: {name}",
   "nutritionPer100g": "Valori nutrizionali per 100g",
-  "nutritionPerPortion": "Valori nutrizionali per porzione ({grams}g)"
+  "nutritionPerPortion": "Valori nutrizionali per porzione ({grams}g)",
+  "workoutConflictTitle": "Allenamento in corso",
+  "workoutConflictContent": "Hai già una sessione di allenamento attiva. Vuoi riprenderla o eliminarla per iniziarne una nuova?",
+  "resumeWorkoutButton": "Riprendi allenamento",
+  "discardAndStartButton": "Elimina e inizia nuovo"
 }

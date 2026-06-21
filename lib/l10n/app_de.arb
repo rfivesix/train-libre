@@ -2382,5 +2382,9 @@
   "createCopyAndEdit": "Kopie erstellen & bearbeiten",
   "foodCopyCreated": "Kopie erstellt: {name}",
   "nutritionPer100g": "Nährwerte pro 100g",
-  "nutritionPerPortion": "Nährwerte pro Portion ({grams}g)"
+  "nutritionPerPortion": "Nährwerte pro Portion ({grams}g)",
+  "workoutConflictTitle": "Laufendes Training",
+  "workoutConflictContent": "Du hast bereits ein aktives Training. Möchtest du dieses fortsetzen oder verwerfen, um ein neues zu starten?",
+  "resumeWorkoutButton": "Training fortsetzen",
+  "discardAndStartButton": "Verwerfen & neu starten"
 }

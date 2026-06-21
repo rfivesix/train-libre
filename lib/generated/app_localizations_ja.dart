@@ -5196,4 +5196,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String nutritionPerPortion(int grams) {
     return '1食分（${grams}g）あたりの栄養成分';
   }
+
+  @override
+  String get workoutConflictTitle => 'ワークアウトが進行中';
+
+  @override
+  String get workoutConflictContent =>
+      '現在進行中のワークアウトがあります。再開しますか？それとも破棄して新しいワークアウトを開始しますか？';
+
+  @override
+  String get resumeWorkoutButton => 'ワークアウトを再開';
+
+  @override
+  String get discardAndStartButton => '破棄して新しく開始';
 }
