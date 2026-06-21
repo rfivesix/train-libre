@@ -2379,12 +2379,39 @@
   "foodItemDeleted": "Alimento eliminato",
   "copySystemFoodTitle": "Copia alimento di sistema",
   "copySystemFoodBody": "Gli alimenti di sistema non possono essere modificati direttamente. Vuoi creare una copia personalizzata e modificarla?",
-  "createCopyAndEdit": "Crea copia e modifica",
   "foodCopyCreated": "Copia creata: {name}",
   "nutritionPer100g": "Valori nutrizionali per 100g",
   "nutritionPerPortion": "Valori nutrizionali per porzione ({grams}g)",
   "workoutConflictTitle": "Allenamento in corso",
   "workoutConflictContent": "Hai già una sessione di allenamento attiva. Vuoi riprenderla o eliminarla per iniziarne una nuova?",
   "resumeWorkoutButton": "Riprendi allenamento",
-  "discardAndStartButton": "Elimina e inizia nuovo"
+  "discardAndStartButton": "Elimina e inizia nuovo",
+  "profileTapToSetUp": "Tocca per configurare",
+  "customLabel": "Personalizzato",
+  "noData": "Nessun dato",
+  "languageAuto": "Automatico",
+  "aiValidationCostEstimation": "Costo: ~{tokenCount} token",
+  "@aiValidationCostEstimation": {
+    "placeholders": {
+      "tokenCount": {
+        "type": "num"
+      }
+    }
+  },
+  "showAllWithCount": "Mostra tutti ({count})",
+  "@showAllWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "repsCount": "{count, plural, =1{1 rip.} other{{count} rip.}}",
+  "@repsCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  }
 }

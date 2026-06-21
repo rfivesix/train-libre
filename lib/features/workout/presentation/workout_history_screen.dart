@@ -62,7 +62,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
           if (snapshot.hasError) {
             return Center(
               child: Text(
-                'Error: ${snapshot.error}',
+                '${l10n.error}: ${snapshot.error}',
                 style: const TextStyle(color: Colors.redAccent),
               ),
             );

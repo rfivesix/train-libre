@@ -455,28 +455,28 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 vertical: 8,
                               ),
                             ),
-                            items: const [
+                            items: [
                               DropdownMenuItem(
                                 value: AiMatchingLanguage.auto,
-                                child: Text('Auto'),
+                                child: Text(l10n.languageAuto),
                               ),
-                              DropdownMenuItem(
+                              const DropdownMenuItem(
                                 value: AiMatchingLanguage.en,
                                 child: Text('English'),
                               ),
-                              DropdownMenuItem(
+                              const DropdownMenuItem(
                                 value: AiMatchingLanguage.de,
                                 child: Text('Deutsch'),
                               ),
-                              DropdownMenuItem(
+                              const DropdownMenuItem(
                                 value: AiMatchingLanguage.fr,
                                 child: Text('Français'),
                               ),
-                              DropdownMenuItem(
+                              const DropdownMenuItem(
                                 value: AiMatchingLanguage.it,
                                 child: Text('Italiano'),
                               ),
-                              DropdownMenuItem(
+                              const DropdownMenuItem(
                                 value: AiMatchingLanguage.ja,
                                 child: Text('日本語'),
                               ),

@@ -9450,6 +9450,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard & Start New'**
   String get discardAndStartButton;
+
+  /// No description provided for @profileTapToSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to set up'**
+  String get profileTapToSetUp;
+
+  /// No description provided for @customLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get customLabel;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data'**
+  String get noData;
+
+  /// No description provided for @languageAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get languageAuto;
+
+  /// No description provided for @aiValidationCostEstimation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost: ~{tokenCount} tokens'**
+  String aiValidationCostEstimation(num tokenCount);
+
+  /// No description provided for @showAllWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String showAllWithCount(num count);
+
+  /// No description provided for @repsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 Rep} other{{count} Reps}}'**
+  String repsCount(num count);
 }
 
 class _AppLocalizationsDelegate

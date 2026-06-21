@@ -5457,4 +5457,37 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get discardAndStartButton => 'Elimina e inizia nuovo';
+
+  @override
+  String get profileTapToSetUp => 'Tocca per configurare';
+
+  @override
+  String get customLabel => 'Personalizzato';
+
+  @override
+  String get noData => 'Nessun dato';
+
+  @override
+  String get languageAuto => 'Automatico';
+
+  @override
+  String aiValidationCostEstimation(num tokenCount) {
+    return 'Costo: ~$tokenCount token';
+  }
+
+  @override
+  String showAllWithCount(num count) {
+    return 'Mostra tutti ($count)';
+  }
+
+  @override
+  String repsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rip.',
+      one: '1 rip.',
+    );
+    return '$_temp0';
+  }
 }

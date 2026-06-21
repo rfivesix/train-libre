@@ -5209,4 +5209,31 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get discardAndStartButton => '破棄して新しく開始';
+
+  @override
+  String get profileTapToSetUp => 'タップして設定';
+
+  @override
+  String get customLabel => 'カスタム';
+
+  @override
+  String get noData => 'データなし';
+
+  @override
+  String get languageAuto => '自動';
+
+  @override
+  String aiValidationCostEstimation(num tokenCount) {
+    return 'コスト: 約$tokenCountトークン';
+  }
+
+  @override
+  String showAllWithCount(num count) {
+    return 'すべて表示 ($count)';
+  }
+
+  @override
+  String repsCount(num count) {
+    return '$count回';
+  }
 }

@@ -381,7 +381,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   )
                                 else
                                   Text(
-                                    "Tippen zum Einrichten",
+                                    l10n.profileTapToSetUp,
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       color: theme.colorScheme.primary,
                                       fontStyle: FontStyle.italic,

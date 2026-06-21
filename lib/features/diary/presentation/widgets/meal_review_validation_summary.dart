@@ -111,7 +111,7 @@ class _MealReviewValidationSummaryState
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Kosten: ~${1200 + (widget.itemsCount * 80)} Tokens',
+                      l10n.aiValidationCostEstimation(1200 + (widget.itemsCount * 80)),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 10,
                         color: theme.colorScheme.onSurfaceVariant
@@ -150,7 +150,7 @@ class _MealReviewValidationSummaryState
                       child: InkWell(
                         onTap: () => _showAllIssues(allActionableIssues, l10n),
                         child: Text(
-                          'Show all (${allActionableIssues.length})',
+                          l10n.showAllWithCount(allActionableIssues.length),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,

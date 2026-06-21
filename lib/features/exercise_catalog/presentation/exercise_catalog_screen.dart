@@ -398,7 +398,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Text(
-        'Custom',
+        AppLocalizations.of(context)!.customLabel,
         style: theme.textTheme.labelSmall?.copyWith(
           color: color,
           fontWeight: FontWeight.bold,

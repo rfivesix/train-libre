@@ -140,8 +140,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       debugPrint("Error duplicating exercise: $e");
       if (mounted) {
         setState(() => _isLoading = false);
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $e")),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }
@@ -392,7 +393,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                         ),
                       ),
                     Text(
-                      '${prSet.reps} Reps',
+                      l10n.repsCount(prSet.reps!),
                       style: theme.textTheme.bodySmall,
                     ),
                   ] else ...[
@@ -403,7 +404,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       ),
                     ),
                     Text(
-                      'No data',
+                      l10n.noData,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.grey,
                       ),
