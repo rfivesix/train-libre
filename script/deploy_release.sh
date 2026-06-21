@@ -78,6 +78,9 @@ sed -i '' "s/version: .*/version: $VERSION_NUMBER+$NEW_BUILD_NUMBER/g" pubspec.y
 flutter pub get
 flutter gen-l10n
 
+echo "Updating iOS deployment target to 14.0..."
+sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 13.0/IPHONEOS_DEPLOYMENT_TARGET = 14.0/g' ios/Runner.xcodeproj/project.pbxproj
+
 echo "Building Android Production Release Artifacts (Build: $NEW_BUILD_NUMBER)..."
 flutter build appbundle --release
 flutter build apk --release --split-per-abi
