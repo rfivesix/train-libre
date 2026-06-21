@@ -86,11 +86,14 @@ flutter build appbundle --release
 flutter build apk --release --split-per-abi
 flutter build apk --release
 
+# Android builds regenerate the iOS Swift Package manifest (Package.swift) with
+# the Flutter SDK default of iOS 13.0, which conflicts with file-picker's 14.0
+# minimum. Re-running config-only reads IPHONEOS_DEPLOYMENT_TARGET = 14.0 from
+# project.pbxproj and regenerates Package.swift correctly before the IPA build.
+echo "Regenerating iOS Swift Package manifest with correct 14.0 deployment target..."
+flutter build ios --config-only
+
 echo "Building iOS Production Release Artifact (IPA) (Build: $NEW_BUILD_NUMBER)..."
-if [ -f ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage/Package.swift ]; then
-  echo "Forcing iOS deployment target to 14.0 in generated Swift Package manifest..."
-  sed -i '' 's/\.iOS("13.0")/\.iOS("14.0")/g' ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage/Package.swift
-fi
 flutter build ipa --release
 
 # ------------------------------------------------------------------------------
