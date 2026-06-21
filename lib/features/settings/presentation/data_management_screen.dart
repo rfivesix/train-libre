@@ -205,6 +205,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         );
       } else {
         if (!wasCanceled) {
+          if (!mounted) return;
           messenger.showSnackBar(
             SnackBar(
               content: Text(l10n.snackbarImportError),
@@ -433,7 +434,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     content: Text(successText),
                     backgroundColor: ok
                         ? (_lastAutoBackupUsedFallback ? Colors.orange : null)
-                        : Theme.of(context).colorScheme.error,
+                        : Theme.of(this.context).colorScheme.error,
                   ),
                 );
               },
