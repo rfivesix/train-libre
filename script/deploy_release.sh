@@ -87,6 +87,10 @@ flutter build apk --release --split-per-abi
 flutter build apk --release
 
 echo "Building iOS Production Release Artifact (IPA) (Build: $NEW_BUILD_NUMBER)..."
+if [ -f ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage/Package.swift ]; then
+  echo "Forcing iOS deployment target to 14.0 in generated Swift Package manifest..."
+  sed -i '' 's/\.iOS("13.0")/\.iOS("14.0")/g' ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage/Package.swift
+fi
 flutter build ipa --release
 
 # ------------------------------------------------------------------------------
