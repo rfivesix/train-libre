@@ -248,8 +248,7 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                       final cleanPoint =
                           point.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), '');
                       return Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: DesignConstants.spacingS),
+                        padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -352,8 +351,7 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                               child: _isLoading
                                   ? const Center(
                                       child: Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: DesignConstants.spacingL),
+                                        padding: EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
                                         child: CircularProgressIndicator(),
                                       ),
                                     )

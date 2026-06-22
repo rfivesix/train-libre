@@ -272,14 +272,14 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
                     ),
                     const SizedBox(height: DesignConstants.spacingXL),
                     AppSectionHeader(title: l10n.primary_muscles_label),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: DesignConstants.spacingS),
                     _buildMuscleSelector(
                       availableMuscles: _allMuscleGroups,
                       selectedMuscles: _selectedPrimaryMuscles,
                     ),
                     const SizedBox(height: DesignConstants.spacingXL),
                     AppSectionHeader(title: l10n.secondary_muscles_label),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: DesignConstants.spacingS),
                     _buildMuscleSelector(
                       availableMuscles: _allMuscleGroups,
                       selectedMuscles: _selectedSecondaryMuscles,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
@@ -37,12 +39,9 @@ class SleepSummaryCard extends StatelessWidget {
         if (data.isSleepWidgetLoading) {
           return SummaryCard(
             padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(vertical: 4.0),
+            margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8.0,
-                horizontal: 16.0,
-              ),
+              contentPadding: DesignConstants.screenPadding,
               title: Text(
                 l10n.sleepSectionTitle,
                 style: theme.textTheme.titleMedium,
@@ -69,14 +68,11 @@ class SleepSummaryCard extends StatelessWidget {
         return RepaintBoundary(
           child: SummaryCard(
             padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(vertical: 4.0),
+            margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
               onTap: () =>
                   SleepNavigation.openDayForDate(context, data.selectedDate),
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8.0,
-                horizontal: 16.0,
-              ),
+              contentPadding: DesignConstants.screenPadding,
               title: Text(
                 l10n.sleepSectionTitle,
                 style: theme.textTheme.titleMedium,
@@ -113,7 +109,7 @@ class SleepSummaryCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: DesignConstants.spacingS),
                   Icon(
                     LucideIcons.chevron_right,
                     color: theme.colorScheme.onSurface,

@@ -1,6 +1,8 @@
 // lib/widgets/running_workout_bar.dart
 
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -57,7 +59,7 @@ class RunningWorkoutBar extends StatelessWidget {
           ),
           child: Text(l10n.continue_workout_button),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: DesignConstants.spacingS),
         // Discard (red)
         FilledButton(
           onPressed: onDiscard,

@@ -1,6 +1,8 @@
 // lib/screens/app_initializer_screen.dart
 
 import 'package:flutter/material.dart';
+import '../../../util/design_constants.dart';
+
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../data/database_helper.dart';
@@ -327,7 +329,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: DesignConstants.spacingL),
 
             // Progress bar.
             ClipRRect(
@@ -337,11 +339,11 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
                     ? _progress
                     : null, // null renders an indeterminate spinner style.
                 minHeight: 8,
-                backgroundColor: isDark ? Colors.white10 : Colors.grey.shade200,
+                backgroundColor: isDark ? Colors.white10 : Theme.of(context).colorScheme.onSurfaceVariant,
                 color: theme.colorScheme.primary,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
 
             // Secondary detail text.
             Text(

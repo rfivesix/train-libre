@@ -5457,4 +5457,50 @@ class AppLocalizationsFr extends AppLocalizations {
   String nutritionPerPortion(int grams) {
     return 'Valeurs nutritionnelles par portion (${grams}g)';
   }
+
+  @override
+  String get workoutConflictTitle => 'Entraînement en cours';
+
+  @override
+  String get workoutConflictContent =>
+      'Vous avez déjà une séance d\'entraînement active. Voulez-vous la reprendre ou l\'abandonner pour en commencer une nouvelle ?';
+
+  @override
+  String get resumeWorkoutButton => 'Reprendre l\'entraînement';
+
+  @override
+  String get discardAndStartButton => 'Abandonner et recommencer';
+
+  @override
+  String get profileTapToSetUp => 'Appuyer pour configurer';
+
+  @override
+  String get customLabel => 'Personnalisé';
+
+  @override
+  String get noData => 'Aucune donnée';
+
+  @override
+  String get languageAuto => 'Auto';
+
+  @override
+  String aiValidationCostEstimation(num tokenCount) {
+    return 'Coût : ~$tokenCount jetons';
+  }
+
+  @override
+  String showAllWithCount(num count) {
+    return 'Tout afficher ($count)';
+  }
+
+  @override
+  String repsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count répétitions',
+      one: '1 répétition',
+    );
+    return '$_temp0';
+  }
 }

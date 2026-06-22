@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 import '../domain/steps_models.dart';
 import '../../../widgets/common/summary_card.dart';
@@ -37,7 +39,7 @@ class StatisticsStepsCard extends StatelessWidget {
     return SummaryCard(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -56,10 +58,9 @@ class StatisticsStepsCard extends StatelessWidget {
                         ),
                       ),
                       if (chipText != null && chipText!.isNotEmpty) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: DesignConstants.spacingS),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
@@ -81,7 +82,7 @@ class StatisticsStepsCard extends StatelessWidget {
                   ),
                 ),
                 if (showChevron) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: DesignConstants.spacingS),
                   Icon(
                     LucideIcons.chevron_right,
                     size: 18,
@@ -90,7 +91,7 @@ class StatisticsStepsCard extends StatelessWidget {
                 ],
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: DesignConstants.spacingL),
             // Body: 2 columns
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -99,7 +100,7 @@ class StatisticsStepsCard extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
+                    padding: const EdgeInsets.only(right: DesignConstants.spacingS),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -239,8 +240,7 @@ class StatisticsStepsCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
+                          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXS,
                             vertical: 1,
                           ),
                           child: Text(
@@ -266,8 +266,7 @@ class StatisticsStepsCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
+                            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXS,
                               vertical: 1,
                             ),
                             child: Text(
@@ -316,8 +315,7 @@ class StatisticsStepsCard extends StatelessWidget {
 
                 return Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isSevenDays ? 3.0 : 1.0,
+                    padding: EdgeInsets.symmetric(horizontal: isSevenDays ? 3.0 : 1.0,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -380,7 +378,7 @@ class StatisticsStepsCard extends StatelessWidget {
                         ),
                         // Weekday label
                         if (showWeekDecorations) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: DesignConstants.spacingXS),
                           Text(
                             DateFormat.E()
                                 .format(bucket.start)

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 
 class BodyFatSlide extends StatelessWidget {
@@ -20,17 +22,17 @@ class BodyFatSlide extends StatelessWidget {
 
     return SingleChildScrollView(
       key: const Key('onboarding_body_fat_page'),
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(DesignConstants.spacingXL),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.onboardingBodyFatPageTitle,
             style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingBodyFatPageSubtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -46,11 +48,11 @@ class BodyFatSlide extends StatelessWidget {
             decoration: InputDecoration(
               labelText: l10n.onboardingBodyFatOptionalLabel,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingBodyFatOptionalHelper,
             key: const Key('onboarding_body_fat_helper_text'),

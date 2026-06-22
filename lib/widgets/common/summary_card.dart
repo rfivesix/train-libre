@@ -20,7 +20,7 @@ class SummaryCard extends StatelessWidget {
   const SummaryCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(12.0),
+    this.padding = const EdgeInsets.all(DesignConstants.spacingM),
     this.margin = const EdgeInsets.symmetric(vertical: 6.0),
     this.onTap,
   });

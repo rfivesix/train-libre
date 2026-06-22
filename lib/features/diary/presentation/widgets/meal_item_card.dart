@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/theme_service.dart';
@@ -35,8 +37,7 @@ class MealItemCard extends StatelessWidget {
 
     return SummaryCard(
       onTap: onTap,
-      padding: const EdgeInsets.only(
-          left: 16.0, right: 8.0, top: 16.0, bottom: 16.0),
+      padding: const EdgeInsets.only(left: DesignConstants.spacingL, right: DesignConstants.spacingS, top: DesignConstants.spacingL, bottom: DesignConstants.spacingL),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -51,7 +52,7 @@ class MealItemCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: DesignConstants.spacingXS),
                 FutureBuilder<MealCardNutritionTotals>(
                   future: mealTotalsFuture,
                   builder: (_, snap) {
@@ -62,7 +63,7 @@ class MealItemCard extends StatelessWidget {
                       return Text(
                         '${AppLocalizations.of(context)!.mealIngredientsTitle}: $count',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade600,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       );
                     }
@@ -73,10 +74,10 @@ class MealItemCard extends StatelessWidget {
                         Text(
                           '${AppLocalizations.of(context)!.mealIngredientsTitle}: $count',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade600,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: DesignConstants.spacingXS),
                         MacroBadgeRow(
                           kcal: totals.kcal,
                           protein: totals.protein,
@@ -84,7 +85,7 @@ class MealItemCard extends StatelessWidget {
                           fat: totals.fat,
                           useBadges: themeService.useColorfulMacroBadges,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade600,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -94,7 +95,7 @@ class MealItemCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: DesignConstants.spacingS),
           Wrap(
             spacing: 4,
             children: [

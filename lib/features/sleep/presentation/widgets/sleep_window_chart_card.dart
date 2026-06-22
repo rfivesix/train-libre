@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 
 import '../../../../widgets/common/summary_card.dart';
@@ -34,12 +36,12 @@ class SleepWindowChartCard extends StatelessWidget {
     return SummaryCard(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             SizedBox(
               height: chartHeight,
               child: Row(

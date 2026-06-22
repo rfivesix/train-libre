@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -64,7 +66,7 @@ class StepsWeekChart extends StatelessWidget {
               : '${DateFormat.MMMd(localeCode).format(weekStart!)} – ${DateFormat.MMMd(localeCode).format(weekStart!.add(const Duration(days: 6)))}',
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -83,7 +85,7 @@ class StepsWeekChart extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         SizedBox(
           height: weekChartHeight,
           child: Stack(
@@ -128,10 +130,9 @@ class StepsWeekChart extends StatelessWidget {
               ),
               Positioned.fill(
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: chartLeftInset,
+                  padding: const EdgeInsets.only(left: chartLeftInset,
                     top: weekChartTopInset,
-                    right: 4,
+                    right: DesignConstants.spacingXS,
                     bottom: chartBottomInset,
                   ),
                   child: Row(
@@ -168,7 +169,7 @@ class StepsWeekChart extends StatelessWidget {
                                       color: Theme.of(
                                         context,
                                       ).colorScheme.primary,
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
                                     ),
                                   ),
                                 if (isGoalHit && bucket.steps > 0)

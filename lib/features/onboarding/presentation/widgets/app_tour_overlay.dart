@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 
 /// Full-screen spotlight overlay used by the in-app walkthrough.
 class AppTourOverlay extends StatelessWidget {
@@ -124,7 +126,7 @@ class AppTourOverlay extends StatelessWidget {
                                 description,
                                 style: theme.textTheme.bodyMedium,
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: DesignConstants.spacingM),
                               Row(
                                 children: [
                                   TextButton(

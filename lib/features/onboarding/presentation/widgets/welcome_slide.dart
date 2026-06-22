@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -78,7 +80,7 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
             ),
             const SizedBox(height: 20),
             _buildFeatureList(l10n, theme),
-            const SizedBox(height: 16),
+            const SizedBox(height: DesignConstants.spacingL),
             Text(
               l10n.onboardingSettingsHint,
               style: theme.textTheme.bodySmall?.copyWith(
@@ -94,7 +96,7 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
                 key: const Key('onboarding_continue_setup_button'),
                 onPressed: widget.isRestoring ? null : widget.onContinue,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -105,7 +107,7 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             // Secondary CTA — restore from backup
             SizedBox(
               width: double.infinity,
@@ -163,7 +165,7 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: DesignConstants.spacingS),
                   Expanded(
                     child: RichText(
                       text: TextSpan(

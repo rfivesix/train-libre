@@ -2379,8 +2379,39 @@
   "foodItemDeleted": "食品が削除されました",
   "copySystemFoodTitle": "システム食品のコピー",
   "copySystemFoodBody": "システム食品は直接編集できません。カスタムコピーを作成して編集しますか？",
-  "createCopyAndEdit": "コピーを作成して編集",
   "foodCopyCreated": "コピー作成完了: {name}",
   "nutritionPer100g": "100gあたりの栄養成分",
-  "nutritionPerPortion": "1食分（{grams}g）あたりの栄養成分"
+  "nutritionPerPortion": "1食分（{grams}g）あたりの栄養成分",
+  "workoutConflictTitle": "ワークアウトが進行中",
+  "workoutConflictContent": "現在進行中のワークアウトがあります。再開しますか？それとも破棄して新しいワークアウトを開始しますか？",
+  "resumeWorkoutButton": "ワークアウトを再開",
+  "discardAndStartButton": "破棄して新しく開始",
+  "profileTapToSetUp": "タップして設定",
+  "customLabel": "カスタム",
+  "noData": "データなし",
+  "languageAuto": "自動",
+  "aiValidationCostEstimation": "コスト: 約{tokenCount}トークン",
+  "@aiValidationCostEstimation": {
+    "placeholders": {
+      "tokenCount": {
+        "type": "num"
+      }
+    }
+  },
+  "showAllWithCount": "すべて表示 ({count})",
+  "@showAllWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "repsCount": "{count}回",
+  "@repsCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  }
 }

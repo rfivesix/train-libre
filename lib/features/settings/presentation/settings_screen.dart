@@ -136,7 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(l10n.settingsBaseFoodLanguageSubtitle),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               RadioGroup<BaseFoodLanguage>(
                 groupValue: draft,
                 onChanged: (value) {
@@ -155,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               Row(
                 children: [
                   Expanded(
@@ -164,7 +164,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: Text(l10n.cancel),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesignConstants.spacingM),
                   Expanded(
                     child: TextButton(
                       onPressed: () => Navigator.of(dialogContext).pop(draft),
@@ -586,7 +586,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   if (_isLocalResetRunning)
                     const Padding(
-                      padding: EdgeInsets.only(top: 16.0),
+                      padding: EdgeInsets.only(top: DesignConstants.spacingL),
                       child: Center(child: CircularProgressIndicator()),
                     ),
                 ],
@@ -631,7 +631,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               l10n.localDataDeletionSuccessBody,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -653,7 +653,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.localDataDeletionFailed),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -677,7 +677,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(
                   l10n.localDataDeletionConfirmBody,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesignConstants.spacingL),
                 TextField(
                   controller: controller,
                   textCapitalization: TextCapitalization.characters,
@@ -686,7 +686,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   onChanged: (_) => setDialogState(() {}),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesignConstants.spacingL),
                 Row(
                   children: [
                     Expanded(
@@ -695,14 +695,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: Text(l10n.cancel),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: FilledButton(
                         onPressed: canConfirm
                             ? () => Navigator.of(ctx).pop(true)
                             : null,
                         style: FilledButton.styleFrom(
-                          backgroundColor: Colors.red,
+                          backgroundColor: Theme.of(context).colorScheme.error,
                           foregroundColor: Colors.white,
                         ),
                         child: Text(l10n.delete),
@@ -746,10 +746,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return SummaryCard(
       child: ListTile(
         key: tileKey,
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 8,
-          horizontal: 16,
-        ),
+        contentPadding: DesignConstants.screenPadding,
         leading: iconWidget,
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle),
@@ -814,7 +811,7 @@ class __OffCatalogRegionPickerContentState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(l10n.settingsFoodDbRegionDialogSubtitle),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         TextField(
           controller: _searchController,
           decoration: InputDecoration(
@@ -845,7 +842,7 @@ class __OffCatalogRegionPickerContentState
             });
           },
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 320),
           child: filteredCountries.isEmpty
@@ -880,12 +877,12 @@ class __OffCatalogRegionPickerContentState
                   ),
                 ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: DesignConstants.spacingS),
         Text(
           l10n.settingsFoodDbRegionIssueHint,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Row(
           children: [
             Expanded(
@@ -894,7 +891,7 @@ class __OffCatalogRegionPickerContentState
                 child: Text(l10n.cancel),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DesignConstants.spacingM),
             Expanded(
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(_draftSelection),

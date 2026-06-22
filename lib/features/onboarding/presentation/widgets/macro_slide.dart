@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 
 class OnboardingCaloriesSlide extends StatelessWidget {
@@ -13,7 +15,7 @@ class OnboardingCaloriesSlide extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(DesignConstants.spacingXL),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -24,12 +26,12 @@ class OnboardingCaloriesSlide extends StatelessWidget {
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingGoalCalories,
-            style: TextStyle(color: Colors.grey[600], fontSize: 16),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: DesignConstants.spacingXXL),
           TextField(
             controller: calController,
             keyboardType: TextInputType.number,
@@ -44,7 +46,7 @@ class OnboardingCaloriesSlide extends StatelessWidget {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 24),
+              contentPadding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXL),
             ),
           ),
         ],
@@ -69,7 +71,7 @@ class OnboardingMacrosSlide extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(DesignConstants.spacingXL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -79,24 +81,24 @@ class OnboardingMacrosSlide extends StatelessWidget {
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingMacrosStepSubtitle,
-            style: TextStyle(color: Colors.grey[600], fontSize: 16),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: DesignConstants.spacingXXL),
           _MacroInput(
             controller: protController,
             label: l10n.onboardingGoalProtein,
-            color: Colors.redAccent,
+            color: Theme.of(context).colorScheme.error,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignConstants.spacingL),
           _MacroInput(
             controller: carbController,
             label: l10n.onboardingGoalCarbs,
             color: Colors.green,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignConstants.spacingL),
           _MacroInput(
             controller: fatController,
             label: l10n.onboardingGoalFat,
@@ -142,8 +144,7 @@ class _MacroInput extends StatelessWidget {
             ),
             decoration: InputDecoration(
               suffixText: l10n.unit_grams,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
+              contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
               ),
             ),
           ),

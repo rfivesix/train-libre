@@ -1,4 +1,6 @@
 import 'dart:ui';
+import '../../../../util/design_constants.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -44,7 +46,7 @@ class PrCelebrationBanner extends StatelessWidget {
       position: slideAnimation,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: DesignConstants.screenPadding,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: RepaintBoundary(
@@ -53,7 +55,7 @@ class PrCelebrationBanner extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL, vertical: DesignConstants.spacingM),
                   decoration: BoxDecoration(
                     color: backgroundColor,
                     borderRadius: BorderRadius.circular(16),
@@ -74,7 +76,7 @@ class PrCelebrationBanner extends StatelessWidget {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: DesignConstants.spacingXS),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -83,7 +85,7 @@ class PrCelebrationBanner extends StatelessWidget {
                             color: Colors.amber,
                             size: 20,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: DesignConstants.spacingS),
                           Flexible(
                             child: RichText(
                               textAlign: TextAlign.center,

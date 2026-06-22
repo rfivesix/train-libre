@@ -15,6 +15,8 @@ import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import 'live_workout_view_model.dart';
 
 /// The central management screen for all workout-related activities.
 ///
@@ -38,7 +40,40 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
         .watchAllRoutines();
   }
 
+  Future<bool> _checkAndHandleOngoingWorkout() async {
+    final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
+    if (!manager.isActive) return true;
+
+    final choice = await showActiveWorkoutConflictDialog(context);
+    if (choice == ActiveWorkoutConflictResult.resume) {
+      if (mounted && manager.workoutLog != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => LiveWorkoutScreen(
+              workoutLog: manager.workoutLog!,
+              routine: null,
+            ),
+          ),
+        );
+      }
+      return false;
+    } else if (choice == ActiveWorkoutConflictResult.discard) {
+      final logId = manager.workoutLog?.id;
+      if (logId != null) {
+        await WorkoutLocalDataSource.instance.deleteWorkoutLog(logId);
+      }
+      await manager.clearLocalSessionState();
+      return true;
+    }
+
+    return false;
+  }
+
   void _startEmptyWorkout() async {
+    final canProceed = await _checkAndHandleOngoingWorkout();
+    if (!canProceed) return;
+    if (!mounted) return;
+
     final newLog = await WorkoutLocalDataSource.instance.startWorkout(
       routineName: l10n.free_training,
     );
@@ -53,6 +88,10 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
   }
 
   void _startRoutine(Routine routine) async {
+    final canProceed = await _checkAndHandleOngoingWorkout();
+    if (!canProceed) return;
+    if (!mounted) return;
+
     // Need the full routine details to start.
     final detailedRoutine =
         await WorkoutLocalDataSource.instance.getRoutineById(
@@ -95,7 +134,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
 
     // 2. Get your base padding from your design constants
     const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(16.0)
+        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(
@@ -119,7 +158,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(LucideIcons.circle_plus, size: 28),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesignConstants.spacingM),
                   Text(
                     l10n.startEmptyWorkoutButton,
                     style: Theme.of(context).textTheme.titleLarge,
@@ -200,7 +239,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     return SizedBox(
       width: cardWidth,
       child: Padding(
-        padding: const EdgeInsets.only(right: 12.0),
+        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: SummaryCard(
           child: InkWell(
             onTap: _createNewRoutine,
@@ -215,7 +254,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                     size: 40,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: DesignConstants.spacingS),
                   Text(l10n.addRoutineButton, textAlign: TextAlign.center),
                 ],
               ),
@@ -234,7 +273,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       width: cardWidth,
       // FIX: Add spacing here as padding, not as margin.
       child: Padding(
-        padding: const EdgeInsets.only(right: 12.0),
+        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: SummaryCard(
           child: InkWell(
             onTap: () {

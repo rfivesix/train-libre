@@ -186,7 +186,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 suffixText: l10n.unit_grams,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: DesignConstants.spacingL),
             Row(
               children: [
                 Expanded(
@@ -198,7 +198,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -315,7 +315,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           SnackBar(
             content: Text(e.message),
             behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -406,7 +406,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignConstants.spacingL),
           Row(
             children: [
               Expanded(
@@ -418,7 +418,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   child: Text(AppLocalizations.of(context)!.cancel),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: DesignConstants.spacingM),
               Expanded(
                 child: FilledButton(
                   onPressed: () {
@@ -476,7 +476,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 if (_isMatching)
                   const Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24),
+                      padding: EdgeInsets.all(DesignConstants.spacingXL),
                       child: CircularProgressIndicator(),
                     ),
                   )
@@ -503,7 +503,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
                 // Add item button
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
                   child: OutlinedButton.icon(
                     onPressed: _addManualItem,
                     icon: const Icon(LucideIcons.plus),
@@ -523,7 +523,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                             : LucideIcons.chevron_down,
                         color: theme.colorScheme.primary,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: DesignConstants.spacingS),
                       Text(
                         l10n.aiReviewFeedbackSection,
                         style: theme.textTheme.titleSmall?.copyWith(
@@ -534,7 +534,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   ),
                 ),
                 if (_showFeedback) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: DesignConstants.spacingS),
                   TextField(
                     controller: _feedbackController,
                     maxLines: 3,
@@ -543,7 +543,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                       border: const OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: DesignConstants.spacingS),
                   OutlinedButton.icon(
                     onPressed: _isRetrying ? null : _retryWithFeedback,
                     icon: _isRetrying
@@ -583,9 +583,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     initialValue: _selectedMealType,
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10,
+                        vertical: DesignConstants.spacingS,
                       ),
                       isDense: true,
                     ),
@@ -626,7 +625,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 // Save button
                 Expanded(
                   flex: 3,

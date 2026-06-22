@@ -192,8 +192,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-              vertical: DesignConstants.cardPaddingExternal),
+          padding: const EdgeInsets.symmetric(vertical: DesignConstants.cardPaddingExternal),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             child: RepaintBoundary(
@@ -212,8 +211,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 14.0),
+                    padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL, vertical: 14.0),
                     child: Row(
                       children: [
                         Icon(
@@ -221,7 +219,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                           color: accent,
                           size: DesignConstants.iconSizeL,
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: DesignConstants.spacingM),
                         Expanded(
                           child: Text(
                             l10n.recommendationBannerText(deltaStr),
@@ -233,7 +231,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: DesignConstants.spacingM),
                         // Interactive "Apply" Pill Button
                         Semantics(
                           label: l10n.semanticsApplyRecommendation,
@@ -242,12 +240,11 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                             behavior: HitTestBehavior.opaque,
                             onTap: _applyRecommendation,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM, vertical: 6),
                               decoration: BoxDecoration(
                                 color: accent.withValues(
                                     alpha: isDark ? 0.2 : 0.1),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
                                 border: Border.all(
                                     color: accent.withValues(alpha: 0.3)),
                               ),
@@ -262,7 +259,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: DesignConstants.spacingS),
                         Semantics(
                           label: l10n.semanticsDismissBanner,
                           button: true,
@@ -270,7 +267,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                             behavior: HitTestBehavior.opaque,
                             onTap: _dismissBanner,
                             child: Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(DesignConstants.spacingS),
                               child: Icon(
                                 LucideIcons.x,
                                 size: DesignConstants.iconSizeM,

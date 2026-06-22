@@ -2327,7 +2327,7 @@
   },
   "copySystemExerciseTitle": "Copy System Exercise",
   "copySystemExerciseBody": "This exercise is system-provided and cannot be directly edited. Would you like to create a custom copy to edit it?",
-  "createCopyAndEdit": "Create copy & edit",
+  "createCopyAndEdit": "Create Copy & Edit",
   "profileEdit": "Edit Profile",
   "selectBirthday": "Select date of birth",
   "exerciseNoteTitle": "Exercise Note",
@@ -2492,7 +2492,6 @@
   "foodItemDeleted": "Food item deleted",
   "copySystemFoodTitle": "Copy System Food",
   "copySystemFoodBody": "System foods cannot be edited directly. Would you like to create a custom copy and edit it?",
-  "createCopyAndEdit": "Create Copy & Edit",
   "foodCopyCreated": "Copy created: {name}",
   "@foodCopyCreated": {
     "placeholders": {
@@ -2507,6 +2506,38 @@
     "placeholders": {
       "grams": {
         "type": "int"
+      }
+    }
+  },
+  "workoutConflictTitle": "Workout in Progress",
+  "workoutConflictContent": "You already have an active workout session. Would you like to resume it, or discard it to start a new one?",
+  "resumeWorkoutButton": "Resume Workout",
+  "discardAndStartButton": "Discard & Start New",
+  "profileTapToSetUp": "Tap to set up",
+  "customLabel": "Custom",
+  "noData": "No data",
+  "languageAuto": "Auto",
+  "aiValidationCostEstimation": "Cost: ~{tokenCount} tokens",
+  "@aiValidationCostEstimation": {
+    "placeholders": {
+      "tokenCount": {
+        "type": "num"
+      }
+    }
+  },
+  "showAllWithCount": "Show all ({count})",
+  "@showAllWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "repsCount": "{count, plural, =1{1 Rep} other{{count} Reps}}",
+  "@repsCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
       }
     }
   }

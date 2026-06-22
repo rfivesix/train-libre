@@ -995,10 +995,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           top: false,
                           bottom: false,
                           child: Padding(
-                            padding: EdgeInsets.only(
-                              bottom:
-                                  (MediaQuery.paddingOf(context).bottom * 0.3)
-                                      .clamp(4.0, 12.0),
+                            padding: const EdgeInsets.only(
+                              bottom: 12.0,
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -1012,20 +1010,21 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                     return bar ?? const SizedBox.shrink();
                                   },
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      bottom: 10.0, top: 0.0),
-                                  child: WgerAttributionWidget(
-                                    textStyle: textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey[600],
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black
-                                              .withValues(alpha: 0.5),
-                                          offset: const Offset(1, 1),
-                                          blurRadius: 4.0,
-                                        ),
-                                      ],
+                                SizedBox(
+                                  height: 32.0,
+                                  child: Center(
+                                    child: WgerAttributionWidget(
+                                      textStyle: textTheme.bodySmall?.copyWith(
+                                        color: Colors.grey[600],
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black
+                                                .withValues(alpha: 0.5),
+                                            offset: const Offset(1, 1),
+                                            blurRadius: 4.0,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1037,8 +1036,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                     ),
 
                     Positioned(
-                      bottom: (showRestBar ? 101.5 : 24.0) +
-                          MediaQuery.paddingOf(context).bottom,
+                      bottom: showRestBar
+                          ? 134.0
+                          : (24.0 + MediaQuery.paddingOf(context).bottom),
                       right: 16.0,
                       child: RepaintBoundary(
                         child: _LiveWorkoutFab(onPressed: _addExercise),
@@ -1532,12 +1532,9 @@ class _LiveWorkoutFabState extends State<_LiveWorkoutFab>
     );
 
     if (showRestBar) {
-      return Transform.translate(
-        offset: const Offset(0, 8.0),
-        child: ClipPath(
-          clipper: const _LiveWorkoutFabShadowClipper(),
-          child: fab,
-        ),
+      return ClipPath(
+        clipper: const _LiveWorkoutFabShadowClipper(),
+        child: fab,
       );
     }
     return fab;

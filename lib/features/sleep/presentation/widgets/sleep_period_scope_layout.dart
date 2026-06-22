@@ -67,9 +67,8 @@ class SleepPeriodScopeLayout extends StatelessWidget {
                 onScopeChanged(SleepPeriodScope.values[index]),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal,
-              vertical: 8,
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
+              vertical: DesignConstants.spacingS,
             ),
             child: Row(
               children: [
@@ -96,10 +95,9 @@ class SleepPeriodScopeLayout extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal,
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
             ),
             child: child,
           ),

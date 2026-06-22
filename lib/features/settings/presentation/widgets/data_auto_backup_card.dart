@@ -31,7 +31,7 @@ class DataAutoBackupCard extends StatelessWidget {
 
     return SummaryCard(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -60,7 +60,7 @@ class DataAutoBackupCard extends StatelessWidget {
                     onPressed: onPickDirectory,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: const Icon(LucideIcons.copy),

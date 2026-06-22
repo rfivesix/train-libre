@@ -372,7 +372,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
                             backgroundColor: colorScheme.primary,
                             foregroundColor: colorScheme.onPrimary,
                           ),
@@ -414,7 +414,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             if (hasMetrics)
               Row(
                 children: [
@@ -425,7 +425,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                           '${summary.averageBpm!.round()} ${l10n.sleepBpmUnit}',
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: DesignConstants.spacingS),
                   Expanded(
                     child: _buildMetricTile(
                       label: l10n.workoutHeartRateMaxLabel,
@@ -439,7 +439,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                 _noDataMessage(l10n, summary.noDataReason),
                 style: textTheme.bodyMedium,
               ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Text(
               '${l10n.workoutHeartRateSampleCount(summary.sampleCount)} • $qualityLabel',
               style: textTheme.bodySmall?.copyWith(
@@ -454,7 +454,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
   Widget _buildMetricTile({required String label, required String value}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
@@ -512,7 +512,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
     return SummaryCard(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(DesignConstants.spacingM),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -522,7 +522,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                     fontWeight: FontWeight.w700,
                   ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             SizedBox(
               height: 180,
               child: Row(
@@ -645,14 +645,14 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
               ],
             ),
           ),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(DesignConstants.spacingS),
                     decoration: BoxDecoration(
                       color: colorScheme.primary.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
@@ -663,7 +663,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       size: 24,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesignConstants.spacingM),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -687,14 +687,14 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               Text(
                 l10n.syncRoutineBody(_associatedRoutine!.name),
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.8),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: DesignConstants.spacingL),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -709,17 +709,16 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                     ),
                     child: Text(l10n.discard),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: DesignConstants.spacingS),
                   FilledButton.icon(
                     onPressed: _isSyncing ? null : _syncRoutine,
                     style: FilledButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
+                      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
                         vertical: 10,
                       ),
                     ),
@@ -793,7 +792,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.syncRoutineError(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }

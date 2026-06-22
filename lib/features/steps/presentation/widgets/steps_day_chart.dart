@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -76,7 +78,7 @@ class StepsDayChart extends StatelessWidget {
                   color: Theme.of(context).colorScheme.outline,
                 ),
           ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -95,7 +97,7 @@ class StepsDayChart extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         SizedBox(
           height: dayChartHeight,
           child: Stack(
@@ -140,10 +142,9 @@ class StepsDayChart extends StatelessWidget {
               ),
               Positioned.fill(
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: chartLeftInset,
+                  padding: const EdgeInsets.only(left: chartLeftInset,
                     top: chartTopInset,
-                    right: 4,
+                    right: DesignConstants.spacingXS,
                     bottom: chartBottomInset,
                   ),
                   child: Row(

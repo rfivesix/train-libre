@@ -57,7 +57,7 @@ class _MealReviewValidationSummaryState
                 ),
         borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(DesignConstants.spacingM),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -99,7 +99,7 @@ class _MealReviewValidationSummaryState
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 4, left: 26),
+                padding: const EdgeInsets.only(top: DesignConstants.spacingXS, left: 26),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -109,9 +109,9 @@ class _MealReviewValidationSummaryState
                       color: theme.colorScheme.onSurfaceVariant
                           .withValues(alpha: 0.55),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: DesignConstants.spacingXS),
                     Text(
-                      'Kosten: ~${1200 + (widget.itemsCount * 80)} Tokens',
+                      l10n.aiValidationCostEstimation(1200 + (widget.itemsCount * 80)),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 10,
                         color: theme.colorScheme.onSurfaceVariant
@@ -123,7 +123,7 @@ class _MealReviewValidationSummaryState
               ),
               if (isExpanded) ...[
                 if (validation.repairLimitReached) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: DesignConstants.spacingS),
                   Text(
                     l10n.aiValidationRepairLimitReachedReview,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -133,7 +133,7 @@ class _MealReviewValidationSummaryState
                   ),
                 ],
                 if (allActionableIssues.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: DesignConstants.spacingS),
                   ...allActionableIssues.take(4).map(
                         (issue) => Padding(
                           padding: const EdgeInsets.only(top: 2),
@@ -144,13 +144,13 @@ class _MealReviewValidationSummaryState
                         ),
                       ),
                   if (allActionableIssues.length > 4) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: DesignConstants.spacingXS),
                     Align(
                       alignment: Alignment.centerRight,
                       child: InkWell(
                         onTap: () => _showAllIssues(allActionableIssues, l10n),
                         child: Text(
-                          'Show all (${allActionableIssues.length})',
+                          l10n.showAllWithCount(allActionableIssues.length),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,
@@ -176,7 +176,7 @@ class _MealReviewValidationSummaryState
       context: context,
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,10 +185,10 @@ class _MealReviewValidationSummaryState
                 l10n.aiValidationReviewSuggestedTitle,
                 style: Theme.of(ctx).textTheme.titleMedium,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               ...issues.map(
                 (issue) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
+                  padding: const EdgeInsets.only(bottom: DesignConstants.spacingXS),
                   child: Text(
                     '\u2022 ${aiValidationIssueText(l10n, issue)}',
                     style: Theme.of(ctx).textTheme.bodySmall,

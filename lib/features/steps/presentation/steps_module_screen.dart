@@ -219,8 +219,7 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
           children: [
             _ScopeSwitcher(scope: _scope, onChanged: _onScopeChanged),
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.cardPaddingInternal,
+              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
               ),
               child: StepsPeriodNavigator(
                 periodLabel: _periodLabel(context),
@@ -234,8 +233,7 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: DesignConstants.cardPaddingInternal,
+                      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,9 +254,8 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
                             const SizedBox(height: DesignConstants.spacingS),
                           if (_lastUpdatedAtUtc != null)
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+                                vertical: DesignConstants.spacingXS,
                               ),
                               child: Text(
                                 _lastUpdatedLabel(context, _lastUpdatedAtUtc!),
@@ -410,7 +407,7 @@ class _TrendCanvas extends StatelessWidget {
   Widget build(BuildContext context) {
     return SummaryCard(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: switch (scope) {

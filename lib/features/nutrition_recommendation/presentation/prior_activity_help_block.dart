@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../util/design_constants.dart';
+
 
 import '../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -17,10 +19,10 @@ class PriorActivityHelpBlock extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(DesignConstants.spacingM),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,13 +33,13 @@ class PriorActivityHelpBlock extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           _helpLine(context, l10n.adaptivePriorActivityHelpLowLine),
-          const SizedBox(height: 4),
+          const SizedBox(height: DesignConstants.spacingXS),
           _helpLine(context, l10n.adaptivePriorActivityHelpModerateLine),
-          const SizedBox(height: 4),
+          const SizedBox(height: DesignConstants.spacingXS),
           _helpLine(context, l10n.adaptivePriorActivityHelpHighLine),
-          const SizedBox(height: 4),
+          const SizedBox(height: DesignConstants.spacingXS),
           _helpLine(context, l10n.adaptivePriorActivityHelpVeryHighLine),
         ],
       ),
@@ -56,7 +58,7 @@ class PriorActivityHelpBlock extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: DesignConstants.spacingS),
         Expanded(
           child: Text(
             text,

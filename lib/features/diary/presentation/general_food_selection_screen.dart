@@ -274,9 +274,8 @@ class _GeneralFoodSelectionScreenState
                           ],
                         ],
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                        vertical: DesignConstants.spacingM,
                       ),
                     ),
                   );
@@ -308,12 +307,12 @@ class _GeneralFoodSelectionScreenState
                                       children: [
                                         if (_isLoadingCustomFoods)
                                           const Padding(
-                                            padding: EdgeInsets.symmetric(vertical: 12),
+                                            padding: EdgeInsets.symmetric(vertical: DesignConstants.spacingM),
                                             child: Center(child: CircularProgressIndicator()),
                                           )
                                         else if (_customFoodItems.isEmpty)
                                           Padding(
-                                            padding: const EdgeInsets.symmetric(vertical: 12),
+                                            padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM),
                                             child: Center(child: Text(l10n.emptyCategory)),
                                           )
                                         else
@@ -366,8 +365,7 @@ class _GeneralFoodSelectionScreenState
                                     children: [
                                       if (loading)
                                         const Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: 12,
+                                          padding: EdgeInsets.symmetric(vertical: DesignConstants.spacingM,
                                           ),
                                           child: Center(
                                             child: CircularProgressIndicator(),
@@ -375,8 +373,7 @@ class _GeneralFoodSelectionScreenState
                                         )
                                       else if (items == null || items.isEmpty)
                                         Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 12,
+                                          padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM,
                                           ),
                                           child: Center(
                                             child: Text(l10n.emptyCategory),

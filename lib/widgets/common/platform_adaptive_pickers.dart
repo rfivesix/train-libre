@@ -85,7 +85,7 @@ Future<DateTime?> _showGlassDatePicker({
             children: [
               // Title at the top
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
                 child: Center(
                   child: Text(
                     _getSelectDateTitle(ctx),
@@ -123,11 +123,10 @@ Future<DateTime?> _showGlassDatePicker({
               ),
               // Action Buttons
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 16.0,
-                  right: 16.0,
-                  top: 4.0,
-                  bottom: 12.0,
+                padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingXS,
+                  bottom: DesignConstants.spacingM,
                 ),
                 child: Row(
                   children: [
@@ -137,7 +136,7 @@ Future<DateTime?> _showGlassDatePicker({
                         child: Text(l10n?.cancel ?? 'Cancel'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: FilledButton(
                         style: FilledButton.styleFrom(
@@ -200,7 +199,7 @@ Future<TimeOfDay?> _showGlassTimePicker({
             children: [
               // Title at the top
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
                 child: Center(
                   child: Text(
                     _getSelectTimeTitle(ctx),
@@ -236,11 +235,10 @@ Future<TimeOfDay?> _showGlassTimePicker({
               ),
               // Action Buttons
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 16.0,
-                  right: 16.0,
-                  top: 4.0,
-                  bottom: 12.0,
+                padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingXS,
+                  bottom: DesignConstants.spacingM,
                 ),
                 child: Row(
                   children: [
@@ -250,7 +248,7 @@ Future<TimeOfDay?> _showGlassTimePicker({
                         child: Text(l10n?.cancel ?? 'Cancel'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: FilledButton(
                         style: FilledButton.styleFrom(

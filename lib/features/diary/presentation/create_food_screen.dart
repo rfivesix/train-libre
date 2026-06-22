@@ -229,7 +229,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                 isNumeric: true,
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: DesignConstants.spacingXXL),
             ],
           ),
         ),
@@ -246,7 +246,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
   }) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(

@@ -30,7 +30,7 @@ class GlassPillButton extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    this.padding = DesignConstants.screenPadding,
     this.height = 32,
     this.borderRadius = 99,
   });

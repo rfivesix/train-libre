@@ -318,7 +318,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                       fontWeight: FontWeight.bold,
                     ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: DesignConstants.spacingS),
               Text(
                 displayDate,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(

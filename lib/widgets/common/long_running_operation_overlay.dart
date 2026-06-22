@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../util/design_constants.dart';
+
 import '../../generated/app_localizations.dart';
 import '../../util/cancellation_token.dart';
 
@@ -131,17 +133,17 @@ class _LongRunningOperationOverlayState
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesignConstants.spacingL),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
                     value: _progress >= 0 && _progress <= 1.0 ? _progress : null,
                     minHeight: 8,
-                    backgroundColor: isDark ? Colors.white10 : Colors.grey.shade200,
+                    backgroundColor: isDark ? Colors.white10 : Theme.of(context).colorScheme.onSurfaceVariant,
                     color: theme.colorScheme.primary,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: DesignConstants.spacingXXL),
                 Center(
                   child: TextButton(
                     onPressed: _isCanceling ? null : _cancel,

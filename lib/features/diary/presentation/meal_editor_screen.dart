@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../util/design_constants.dart';
+
 import '../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
@@ -111,7 +113,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
         title: Text(l10n.mealsEdit),
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 6),
             child: ElevatedButton(
               onPressed: _canSave ? _onSave : null,
               child: _saving
@@ -126,7 +128,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         children: [
           TextField(
             controller: _nameCtrl,
@@ -137,7 +139,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
             ),
             onSubmitted: (_) => _onSave(),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           PlatformAdaptiveDropdownFormField<MealType>(
             initialValue: _type,
             onChanged: (v) => setState(() => _type = v ?? _type),
@@ -149,7 +151,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
                 )
                 .toList(),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           // Placeholder: later ingredients/per-ingredient display
           Card(
             child: ListTile(

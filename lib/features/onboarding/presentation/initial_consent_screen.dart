@@ -1,6 +1,8 @@
 // lib/screens/initial_consent_screen.dart
 
 import 'package:flutter/gestures.dart';
+import '../../../util/design_constants.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -87,9 +89,9 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
           // Consent Card
           Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(DesignConstants.spacingXL),
               child: SummaryCard(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(DesignConstants.spacingXL),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -98,20 +100,20 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                       size: 64,
                       color: theme.colorScheme.primary,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: DesignConstants.spacingL),
                     Text(
                       l10n.welcome_privacy_title,
                       style: theme.textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: DesignConstants.spacingM),
                     Text(
                       l10n.welcome_privacy_body,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: DesignConstants.spacingL),
                     // Links
                     Center(
                       child: TextButton(
@@ -135,7 +137,7 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                       controlAffinity: ListTileControlAffinity.leading,
                       contentPadding: EdgeInsets.zero,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: DesignConstants.spacingS),
                     CheckboxListTile(
                       value: _termsAccepted,
                       onChanged: (val) =>
@@ -172,7 +174,7 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                       controlAffinity: ListTileControlAffinity.leading,
                       contentPadding: EdgeInsets.zero,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: DesignConstants.spacingL),
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(

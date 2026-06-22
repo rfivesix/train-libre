@@ -121,7 +121,7 @@ class _WorkoutMuscleFocusCard extends StatelessWidget {
                       outlineWidth: 2.0,
                     ),
                   ),
-                  const SizedBox(width: 32),
+                  const SizedBox(width: DesignConstants.spacingXXL),
                   Expanded(
                     child: BodyHighlighter(
                       gender: context.read<ProfileService>().gender.toBodyGender(),
@@ -134,7 +134,7 @@ class _WorkoutMuscleFocusCard extends StatelessWidget {
               ),
             ),
           ),
-        const SizedBox(height: 24),
+        const SizedBox(height: DesignConstants.spacingXL),
         for (final muscle in visibleMuscles)
           _MuscleVolumePill(muscle: muscle, maxVolume: maxVolume),
       ],

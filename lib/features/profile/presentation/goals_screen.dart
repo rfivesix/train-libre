@@ -192,7 +192,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
         title: l10n.my_goals,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsets.only(right: DesignConstants.spacingS),
             child: TextButton(
               onPressed: _saveSettings,
               child: Text(
@@ -406,7 +406,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
   }) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
       child: TextFormField(
         key: fieldKey,
         controller: controller,

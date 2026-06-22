@@ -168,10 +168,10 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     final percent = total > 0 ? (count / total * 100).round() : 0;
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingS),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,7 +335,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingXS),
               decoration: BoxDecoration(
                 color: stateColor.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(999),
@@ -373,7 +373,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: DesignConstants.spacingS),
         Row(
           children: [
             Text(
@@ -393,7 +393,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: DesignConstants.spacingXS),
         ClipRRect(
           borderRadius: BorderRadius.circular(999),
           child: LinearProgressIndicator(
@@ -405,7 +405,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 4),
+          padding: const EdgeInsets.only(top: DesignConstants.spacingXS),
           child: Row(
             children: [
               _buildScaleLabel(context, '0'),
@@ -458,7 +458,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
               child: Container(
                 constraints: const BoxConstraints(minHeight: 56.0),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL, vertical: DesignConstants.spacingM),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -480,7 +480,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: DesignConstants.spacingM),
                         Expanded(
                           child: Text(
                             '$title (${muscles.length})',
@@ -492,7 +492,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                                 ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: DesignConstants.spacingS),
                         AnimatedRotation(
                           turns: isExpanded ? 0.5 : 0.0,
                           duration: const Duration(milliseconds: 200),
@@ -504,7 +504,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                       ],
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(top: 8.0, left: 24.0),
+                      padding: const EdgeInsets.only(top: DesignConstants.spacingS, left: DesignConstants.spacingXL),
                       child: Wrap(
                         spacing: 6.0,
                         runSpacing: 4.0,
@@ -513,8 +513,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                               StatisticsPresentationFormatter.muscleGroupLabel(
                                   l10n, m.muscleGroup);
                           return Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: color.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(6),
@@ -548,7 +547,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Column(
                   children: [
-                    const SizedBox(height: 8),
+                    const SizedBox(height: DesignConstants.spacingS),
                     ...muscles.asMap().entries.map((entry) {
                       final index = entry.key;
                       final muscle = entry.value;
@@ -644,7 +643,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   children: [
                     AppSectionHeader(
                       title: l10n.metricsMuscleReadiness,
-                      padding: const EdgeInsets.only(left: 4, bottom: 6),
+                      padding: const EdgeInsets.only(left: DesignConstants.spacingXS, bottom: 6),
                     ),
                     SummaryCard(
                       child: Padding(
@@ -676,7 +675,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                                   : l10n.recoveryHubNoDataSummary,
                             ),
                             if (hasData && tracked > 0) ...[
-                              const SizedBox(height: 12),
+                              const SizedBox(height: DesignConstants.spacingM),
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(999),
                                 child: SizedBox(
@@ -729,7 +728,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                                     count: recovering,
                                     total: tracked,
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: DesignConstants.spacingS),
                                   _buildReadinessPill(
                                     context,
                                     l10n,
@@ -737,7 +736,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                                     count: ready,
                                     total: tracked,
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: DesignConstants.spacingS),
                                   _buildReadinessPill(
                                     context,
                                     l10n,
@@ -748,7 +747,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                                 ],
                               ),
                             ],
-                            const SizedBox(height: 8),
+                            const SizedBox(height: DesignConstants.spacingS),
                             Text(
                               l10n.recoveryHeuristicDisclaimer,
                               style: Theme.of(context)
@@ -766,11 +765,11 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                     const SizedBox(height: DesignConstants.spacingM),
                     AppSectionHeader(
                       title: l10n.analyticsRecentDistributionHeatmap,
-                      padding: const EdgeInsets.only(left: 4, bottom: 6),
+                      padding: const EdgeInsets.only(left: DesignConstants.spacingXS, bottom: 6),
                     ),
                     SummaryCard(
                       child: Padding(
-                        padding: const EdgeInsets.all(12.0),
+                        padding: const EdgeInsets.all(DesignConstants.spacingM),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -812,7 +811,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                     const SizedBox(height: DesignConstants.spacingM),
                     AppSectionHeader(
                       title: l10n.recoveryByMuscleTitle,
-                      padding: const EdgeInsets.only(left: 4, bottom: 6),
+                      padding: const EdgeInsets.only(left: DesignConstants.spacingXS, bottom: 6),
                     ),
                     const SizedBox(height: DesignConstants.spacingS),
                     if (!hasData)

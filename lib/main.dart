@@ -1,6 +1,8 @@
 // lib/main.dart
 
 import 'package:dynamic_color/dynamic_color.dart';
+import 'util/design_constants.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -218,13 +220,13 @@ class _MyAppState extends State<MyApp> {
             AppSurfaces(summaryCard: cardLight),
             MacroColors(
               calories: Colors.orange,
-              protein: Colors.red.shade400,
+              protein: Theme.of(context).colorScheme.error,
               carbs: Colors.green.shade400,
               fat: Colors.purple.shade300,
               water: Colors.blue,
               sugar: Colors.pink.shade200,
               fiber: Colors.brown.shade400,
-              salt: Colors.grey.shade500,
+              salt: Theme.of(context).colorScheme.onSurfaceVariant,
               caffeine: Colors.brown,
             ),
           ],
@@ -252,16 +254,15 @@ class _MyAppState extends State<MyApp> {
             filled: true,
             fillColor: const Color(0xFFF3F3F3),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide(color: lightScheme.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
+            contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+              vertical: DesignConstants.spacingM,
             ),
           ),
 
@@ -281,7 +282,7 @@ class _MyAppState extends State<MyApp> {
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             ),
           ),
 
@@ -369,7 +370,7 @@ class _MyAppState extends State<MyApp> {
               backgroundColor: lightScheme.primary,
               foregroundColor: lightScheme.onPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),
@@ -428,13 +429,13 @@ class _MyAppState extends State<MyApp> {
             AppSurfaces(summaryCard: cardDark),
             MacroColors(
               calories: Colors.orange,
-              protein: Colors.red.shade400,
+              protein: Theme.of(context).colorScheme.error,
               carbs: Colors.green.shade400,
               fat: Colors.purple.shade300,
               water: Colors.blue,
               sugar: Colors.pink.shade200,
               fiber: Colors.brown.shade400,
-              salt: Colors.grey.shade500,
+              salt: Theme.of(context).colorScheme.onSurfaceVariant,
               caffeine: Colors.brown,
             ),
           ],
@@ -462,16 +463,15 @@ class _MyAppState extends State<MyApp> {
             filled: true,
             fillColor: const Color(0xFF1C1C1C),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide(color: darkScheme.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
+            contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+              vertical: DesignConstants.spacingM,
             ),
           ),
 
@@ -491,7 +491,7 @@ class _MyAppState extends State<MyApp> {
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             ),
           ),
 
@@ -578,7 +578,7 @@ class _MyAppState extends State<MyApp> {
               backgroundColor: darkScheme.primary,
               foregroundColor: darkScheme.onPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),

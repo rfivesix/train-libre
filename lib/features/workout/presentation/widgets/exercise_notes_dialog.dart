@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -56,12 +58,12 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
                 ? Colors.white.withValues(alpha: 0.05)
                 : Colors.black.withValues(alpha: 0.05),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: DesignConstants.spacingL),
         Row(
           children: [
             if (widget.initialNotes != null &&
@@ -74,7 +76,7 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
                 tooltip: l10n.deleteNoteTooltip,
                 onPressed: widget.onDelete,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: DesignConstants.spacingS),
             ],
             Expanded(
               child: OutlinedButton(
@@ -82,7 +84,7 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
                 child: Text(l10n.cancel),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DesignConstants.spacingM),
             Expanded(
               child: FilledButton(
                 onPressed: () {

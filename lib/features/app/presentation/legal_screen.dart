@@ -193,8 +193,7 @@ class _LegalScreenState extends State<LegalScreen> {
               );
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingL,
+              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
                 vertical: DesignConstants.spacingL,
               ),
               child: Row(
@@ -272,8 +271,7 @@ class _LegalAccordionState extends State<_LegalAccordion> {
                   BorderRadius.circular(DesignConstants.borderRadiusL),
               onTap: () => setState(() => _isExpanded = !_isExpanded),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingL,
+                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
                   vertical: DesignConstants.spacingL,
                 ),
                 child: Row(
@@ -354,8 +352,7 @@ class _LegalTextState extends State<_LegalText> {
       children: [
         for (var index = 0; index < paragraphs.length; index++)
           Padding(
-            padding: EdgeInsets.only(
-              bottom:
+            padding: EdgeInsets.only(bottom:
                   index == paragraphs.length - 1 ? 0 : DesignConstants.spacingM,
             ),
             child: _paragraphWidget(paragraphs[index].trim(), baseStyle),
@@ -373,8 +370,7 @@ class _LegalTextState extends State<_LegalText> {
       children: [
         for (var index = 0; index < lines.length; index++)
           Padding(
-            padding: EdgeInsets.only(
-              bottom: index == lines.length - 1 ? 0 : DesignConstants.spacingS,
+            padding: EdgeInsets.only(bottom: index == lines.length - 1 ? 0 : DesignConstants.spacingS,
             ),
             child: lines[index].trim().startsWith('- ')
                 ? _bulletItem(lines[index].trim().substring(2), baseStyle)

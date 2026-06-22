@@ -105,9 +105,8 @@ class GlassProgressBar extends StatelessWidget {
                         : Colors.black;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 4.0,
+                  padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                    vertical: DesignConstants.spacingXS,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

@@ -92,14 +92,14 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.unsavedChangesContent,
                 textAlign: TextAlign.center,
                 style: Theme.of(ctx).textTheme.bodyMedium,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: DesignConstants.spacingXL),
             Row(
               children: [
                 Expanded(
@@ -111,7 +111,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     child: Text(l10n.discardButton),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -503,7 +503,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       {
         'type': 'normal',
         'label': l10n.set_type_normal,
-        'symbol': buildSymbol('N', Colors.grey),
+        'symbol': buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
       },
       {
         'type': 'warmup',
@@ -513,7 +513,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       {
         'type': 'failure',
         'label': l10n.set_type_failure,
-        'symbol': buildSymbol('F', Colors.red),
+        'symbol': buildSymbol('F', Theme.of(context).colorScheme.error),
       },
       {
         'type': 'dropset',
@@ -697,8 +697,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
                                     itemCount: _routineExercises.length,
-                                    padding: EdgeInsets.only(
-                                      bottom: DesignConstants
+                                    padding: EdgeInsets.only(bottom: DesignConstants
                                               .bottomContentSpacer +
                                           MediaQuery.paddingOf(context).bottom,
                                     ),
@@ -755,7 +754,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                   child: RepaintBoundary(
                     child: WgerAttributionWidget(
                       textStyle: textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         shadows: [
                           Shadow(
                             color: Colors.black.withValues(alpha: 0.5),
@@ -854,7 +853,7 @@ class _KeyboardDoneBarState extends State<_KeyboardDoneBar>
               ),
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [

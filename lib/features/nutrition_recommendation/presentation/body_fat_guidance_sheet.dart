@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../util/design_constants.dart';
+
 
 import '../../../generated/app_localizations.dart';
 
@@ -60,25 +62,25 @@ class _BodyFatGuidanceSheetState extends State<_BodyFatGuidanceSheet> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               Text(
                 l10n.bodyFatGuidanceIntro,
                 style: theme.textTheme.bodyMedium,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               Text(
                 l10n.bodyFatGuidanceDisclaimer,
                 key: const Key('body_fat_guidance_disclaimer'),
                 style: theme.textTheme.bodySmall,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               Text(
                 l10n.bodyFatGuidanceSexLabel,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               Wrap(
                 spacing: 8,
                 children: [
@@ -106,7 +108,7 @@ class _BodyFatGuidanceSheetState extends State<_BodyFatGuidanceSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               Expanded(
                 child: ListView.separated(
                   key: const Key('body_fat_guidance_list'),
@@ -209,7 +211,7 @@ class _BodyFatGuidanceRow extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: DesignConstants.spacingS),
         Expanded(
           child: Text(
             description,

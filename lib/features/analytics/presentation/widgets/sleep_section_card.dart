@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
@@ -68,7 +70,7 @@ class SleepSectionCard extends StatelessWidget {
       child: SummaryCard(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -76,11 +78,11 @@ class SleepSectionCard extends StatelessWidget {
                 children: [
                   const Spacer(),
                   AnalyticsCardBase.buildRangeChip(context, rangeLabel),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: DesignConstants.spacingS),
                   AnalyticsCardBase.buildDrillDownHint(context),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -89,7 +91,7 @@ class SleepSectionCard extends StatelessWidget {
                     scoreValue: scoreValue,
                     scoreText: scoreText,
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DesignConstants.spacingL),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +100,7 @@ class SleepSectionCard extends StatelessWidget {
                           l10n.sleepHubScoreLabel,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: DesignConstants.spacingXS),
                         Text(
                           l10n.sleepMeanScoreLabel(scoreText),
                           style: Theme.of(context)
@@ -113,7 +115,7 @@ class SleepSectionCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesignConstants.spacingM),
               _buildSleepMetricRow(
                 context,
                 color: Theme.of(context).colorScheme.primary,
@@ -199,12 +201,12 @@ class SleepSectionCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(top: 4),
+          margin: const EdgeInsets.only(top: DesignConstants.spacingXS),
           height: 10,
           width: 10,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: DesignConstants.spacingS),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

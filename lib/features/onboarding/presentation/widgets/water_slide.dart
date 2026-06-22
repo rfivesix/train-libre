@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
@@ -18,7 +20,7 @@ class WaterSlide extends StatelessWidget {
     final suffix = unitService.suffixFor(UnitDimension.liquid);
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(DesignConstants.spacingXL),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -29,7 +31,7 @@ class WaterSlide extends StatelessWidget {
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: DesignConstants.spacingXXL),
           TextField(
             controller: waterController,
             keyboardType: TextInputType.number,
@@ -44,7 +46,7 @@ class WaterSlide extends StatelessWidget {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 24),
+              contentPadding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXL),
             ),
           ),
         ],

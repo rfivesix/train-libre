@@ -1,6 +1,8 @@
 // lib/util/permission_dialogs.dart
 
 import 'package:flutter/material.dart';
+import 'design_constants.dart';
+
 import '../features/app/presentation/widgets/glass_bottom_menu.dart';
 
 /// Shows a glass-styled explanation dialog before the system permission popup.
@@ -22,14 +24,14 @@ Future<bool> showPrePermissionDialog({
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
             child: Text(
               body,
               textAlign: TextAlign.center,
               style: Theme.of(ctx).textTheme.bodyMedium,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           Row(
             children: [
               Expanded(
@@ -41,7 +43,7 @@ Future<bool> showPrePermissionDialog({
                   child: Text(cancelLabel),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: DesignConstants.spacingM),
               Expanded(
                 child: FilledButton(
                   onPressed: () {

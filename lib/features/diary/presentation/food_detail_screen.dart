@@ -274,14 +274,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     const color = Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Text(
-        'Custom',
+        AppLocalizations.of(context)!.customLabel,
         style: theme.textTheme.labelSmall?.copyWith(
           color: color,
           fontWeight: FontWeight.bold,
@@ -300,14 +300,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.copySystemFoodBody,
                 textAlign: TextAlign.center,
                 style: Theme.of(ctx).textTheme.bodyMedium,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: DesignConstants.spacingXL),
             Row(
               children: [
                 Expanded(
@@ -319,7 +319,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -438,14 +438,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.deleteFoodConfirmBody,
                 textAlign: TextAlign.center,
                 style: Theme.of(ctx).textTheme.bodyMedium,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: DesignConstants.spacingXL),
             Row(
               children: [
                 Expanded(
@@ -457,7 +457,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     child: Text(l10n.cancel),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
@@ -549,7 +549,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               ),
             ),
             if (_displayItem.isCustom) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: DesignConstants.spacingS),
               _buildSourceBadge(context),
             ],
           ],
@@ -586,7 +586,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             icon: Icon(
               _isFavorite ? LucideIcons.heart : LucideIcons.heart,
               color:
-                  _isFavorite ? Colors.redAccent : colorScheme.onSurfaceVariant,
+                  _isFavorite ? Theme.of(context).colorScheme.error : colorScheme.onSurfaceVariant,
             ),
             onPressed: _toggleFavorite,
           ),
@@ -730,7 +730,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         title: Text(l10n.ingredients),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(DesignConstants.spacingL),
                             child: Text(
                               _displayItem.ingredientsText!,
                               style: textTheme.bodyMedium,
@@ -747,7 +747,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   const SizedBox(height: DesignConstants.spacingM),
                   SummaryCard(
                     child: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(DesignConstants.spacingM),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -755,13 +755,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                             'DEV: Eintrag bearbeiten',
                             style: textTheme.titleMedium,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: DesignConstants.spacingS),
                           _row('Name (DE)', _deCtrl),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: DesignConstants.spacingS),
                           _row('Name (EN)', _enCtrl),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: DesignConstants.spacingS),
                           _row('Kategorie-Key', _catCtrl),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: DesignConstants.spacingM),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -778,7 +778,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                               _num('Calcium/100g', _calciumCtrl),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: DesignConstants.spacingM),
                           Row(
                             children: [
                               ElevatedButton.icon(
@@ -786,7 +786,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                 icon: const Icon(LucideIcons.save),
                                 label: Text(l10n.save),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: DesignConstants.spacingM),
                               TextButton.icon(
                                 onPressed: () =>
                                     setState(() => _devEditing = false),
@@ -809,7 +809,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
                 if (!_displayItem.barcode.startsWith('user_created_'))
                   Padding(
-                    padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
+                    padding: const EdgeInsets.only(top: DesignConstants.spacingXL, bottom: DesignConstants.spacingS),
                     child: OffAttributionWidget(
                       textStyle: textTheme.bodySmall,
                     ),
@@ -1023,7 +1023,7 @@ class _GlassBadge extends StatelessWidget {
     final isDarkMode = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingXS),
       decoration: BoxDecoration(
         // Im Dark Mode helles Glas, im Light Mode dunkles Glas
         color: isDarkMode

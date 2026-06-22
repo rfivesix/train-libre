@@ -120,7 +120,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(DesignConstants.spacingL),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +129,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                   l10n.sleepRawImportsSheetTitle,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: DesignConstants.spacingM),
                 Flexible(
                   child: SingleChildScrollView(
                     child: SelectableText(

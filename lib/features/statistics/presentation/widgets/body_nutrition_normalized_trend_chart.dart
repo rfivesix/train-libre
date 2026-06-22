@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
@@ -197,8 +198,7 @@ class _BodyNutritionNormalizedTrendChartState
           fitInsideHorizontally: true,
           fitInsideVertically: true,
           tooltipBorderRadius: BorderRadius.circular(16),
-          tooltipPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
+          tooltipPadding: const EdgeInsets.symmetric(horizontal: 14,
             vertical: 10,
           ),
           tooltipMargin: 12,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../util/design_constants.dart';
+
 
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
@@ -18,10 +20,10 @@ class SleepPlaceholderPage extends StatelessWidget {
     return Scaffold(
       appBar: GlobalAppBar(title: title),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: SummaryCard(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(DesignConstants.spacingL),
             child: Text(message),
           ),
         ),

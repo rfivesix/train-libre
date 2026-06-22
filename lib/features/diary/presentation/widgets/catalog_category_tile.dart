@@ -41,12 +41,12 @@ class CatalogCategoryTile extends StatelessWidget {
         children: [
           if (isLoading)
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
+              padding: EdgeInsets.symmetric(vertical: DesignConstants.spacingM),
               child: Center(child: CircularProgressIndicator()),
             )
           else if (categoryItems == null || categoryItems.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM),
               child: Center(child: Text(l10n.emptyCategory)),
             )
           else

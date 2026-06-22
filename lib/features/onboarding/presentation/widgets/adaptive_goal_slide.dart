@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../../../generated/app_localizations.dart';
 import '../../../nutrition_recommendation/domain/goal_models.dart';
 import '../../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
@@ -35,22 +37,22 @@ class AdaptiveGoalSlide extends StatelessWidget {
 
     return SingleChildScrollView(
       key: const Key('onboarding_adaptive_goal_page'),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(DesignConstants.spacingXL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           Text(
             l10n.onboardingAdaptiveGoalTitle,
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingAdaptiveGoalSubtitle,
-            style: TextStyle(color: Colors.grey[600], fontSize: 16),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           PlatformAdaptiveDropdownFormField<BodyweightGoal>(
             initialValue: selectedGoal,
             decoration: InputDecoration(
@@ -89,7 +91,7 @@ class AdaptiveGoalSlide extends StatelessWidget {
               if (level != null) onPriorActivityLevelChanged(level);
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignConstants.spacingL),
           PriorActivityHelpBlock(
             key: const Key('onboarding_prior_activity_help_block'),
             l10n: l10n,
@@ -114,17 +116,17 @@ class AdaptiveGoalSlide extends StatelessWidget {
               if (option != null) onExtraCardioHoursOptionChanged(option);
             },
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.adaptiveExtraCardioHelp,
             style: theme.textTheme.bodySmall,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.adaptiveRatePerWeekLabel,
             style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -148,13 +150,13 @@ class AdaptiveGoalSlide extends StatelessWidget {
                   selectedColor: theme.colorScheme.primary,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                   showCheckmark: false,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM, vertical: DesignConstants.spacingS),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
                 ),
               );
             }).toList(growable: false),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: DesignConstants.spacingXXL),
         ],
       ),
     );

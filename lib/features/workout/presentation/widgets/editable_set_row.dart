@@ -1,6 +1,8 @@
 // lib/widgets/editable_set_row.dart
 
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:provider/provider.dart';
 import '../../domain/models/set_log.dart';
 import 'set_type_chip.dart';
@@ -82,7 +84,7 @@ class _EditableSetRowState extends State<EditableSetRow> {
     final l10n = AppLocalizations.of(context)!;
     final unitService = context.watch<UnitService>();
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -90,7 +92,7 @@ class _EditableSetRowState extends State<EditableSetRow> {
             setType: widget.setLog.setType,
             setIndex: widget.setIndex,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: DesignConstants.spacingL),
           Expanded(
             child: TextFormField(
               controller: _weightController,
@@ -109,9 +111,9 @@ class _EditableSetRowState extends State<EditableSetRow> {
                   : null,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: DesignConstants.spacingS),
           const Text("x"),
-          const SizedBox(width: 8),
+          const SizedBox(width: DesignConstants.spacingS),
           Expanded(
             child: TextFormField(
               controller: _repsController,
@@ -131,7 +133,7 @@ class _EditableSetRowState extends State<EditableSetRow> {
             ),
           ),
           IconButton(
-            icon: const Icon(LucideIcons.trash_2, color: Colors.redAccent),
+            icon: Icon(LucideIcons.trash_2, color: Theme.of(context).colorScheme.error),
             tooltip: l10n.delete,
             onPressed: widget.onDelete,
           ),

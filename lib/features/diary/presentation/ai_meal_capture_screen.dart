@@ -235,7 +235,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         SnackBar(
           content: Text(e.message),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     } finally {
@@ -277,7 +277,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             l10n.aiErrorNoKey,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           Row(
             children: [
               Expanded(
@@ -286,7 +286,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   child: Text(l10n.cancel),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: DesignConstants.spacingM),
               Expanded(
                 child: FilledButton(
                   onPressed: () {
@@ -376,16 +376,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         SizedBox(
           height: 140,
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
             scrollDirection: Axis.horizontal,
             itemCount: _images.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
             itemBuilder: (ctx, i) => _buildPhotoThumbnail(i, theme),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: DesignConstants.spacingS),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
           child: Text(
             '${_images.length} / $_maxImages',
             style: theme.textTheme.bodySmall?.copyWith(
@@ -440,7 +440,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     ThemeData theme,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
       child: Column(
         children: [
           TextField(
@@ -456,9 +456,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               ),
               filled: true,
               fillColor: theme.colorScheme.surfaceContainerLow,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
+              contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+                vertical: DesignConstants.spacingM,
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius:

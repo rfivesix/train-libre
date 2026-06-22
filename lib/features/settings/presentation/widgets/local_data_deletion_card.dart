@@ -51,7 +51,7 @@ class LocalDataDeletionCard extends StatelessWidget {
             ),
             if (isLocalResetRunning)
               const Padding(
-                padding: EdgeInsets.only(top: 16.0),
+                padding: EdgeInsets.only(top: DesignConstants.spacingL),
                 child: Center(child: CircularProgressIndicator()),
               ),
           ],

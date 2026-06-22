@@ -1,5 +1,7 @@
 // lib/features/supplements/presentation/dialogs/log_supplement_menu.dart
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import '../../domain/repositories/supplement_repository.dart';
 import '../../data/supplement_repository_impl.dart';
 import '../../data/sources/supplement_local_data_source.dart';
@@ -78,7 +80,7 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
       children: [
         ..._supplements.map(
           (s) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: DesignConstants.spacingXS),
             child: Material(
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.white.withValues(alpha: 0.06)
@@ -88,14 +90,13 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
                 borderRadius: BorderRadius.circular(16),
                 onTap: () => Navigator.of(context).pop(s),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
+                  padding: const EdgeInsets.symmetric(horizontal: 14,
+                    vertical: DesignConstants.spacingM,
                   ),
                   child: Row(
                     children: [
                       const Icon(LucideIcons.pill),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: DesignConstants.spacingM),
                       Expanded(child: Text(localizeSupplementName(s, l10n))),
                       const Icon(LucideIcons.chevron_right),
                     ],
@@ -105,7 +106,7 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Row(
           children: [
             Expanded(
@@ -159,7 +160,7 @@ class _LogSupplementDoseBodyState extends State<LogSupplementDoseBody> {
           initialDose: widget.initialDose,
           initialTimestamp: widget.initialTimestamp,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Row(
           children: [
             Expanded(
@@ -168,7 +169,7 @@ class _LogSupplementDoseBodyState extends State<LogSupplementDoseBody> {
                 child: Text(l10n.cancel),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DesignConstants.spacingM),
             Expanded(
               child: FilledButton(
                 onPressed: () {

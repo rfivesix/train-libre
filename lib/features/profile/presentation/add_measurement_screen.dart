@@ -246,10 +246,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
               const SizedBox(height: DesignConstants.spacingS),
               SummaryCard(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
+                  padding: DesignConstants.screenPadding,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -258,7 +255,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
                         child: Row(
                           children: [
                             const Icon(LucideIcons.calendar, size: 20),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: DesignConstants.spacingS),
                             Text(
                               formattedDate,
                               style: const TextStyle(fontSize: 16),
@@ -271,7 +268,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
                         child: Row(
                           children: [
                             const Icon(LucideIcons.clock, size: 20),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: DesignConstants.spacingS),
                             Text(
                               formattedTime,
                               style: const TextStyle(fontSize: 16),
@@ -290,8 +287,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
               const SizedBox(height: DesignConstants.spacingS),
               ..._measurementTypes.keys.map((key) {
                 return Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: 12.0,
+                  padding: const EdgeInsets.only(bottom: DesignConstants.spacingM,
                   ),
                   child: TextFormField(
                     controller: _controllers[key],

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
@@ -46,7 +48,7 @@ class InterruptionsDetailPage extends StatelessWidget {
       children: [
         SummaryCard(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(DesignConstants.spacingL),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -56,7 +58,7 @@ class InterruptionsDetailPage extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DesignConstants.spacingM),
         Text(l10n.sleepInterruptionsFootnote),
       ],
     );

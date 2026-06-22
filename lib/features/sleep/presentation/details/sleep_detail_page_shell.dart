@@ -39,7 +39,7 @@ class SleepDetailPageShell extends StatelessWidget {
         children: [
           SummaryCard(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesignConstants.spacingL),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -55,12 +55,12 @@ class SleepDetailPageShell extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: DesignConstants.spacingS),
                       Text(statusLabel),
                     ],
                   ),
                   if (subtitle != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: DesignConstants.spacingS),
                     Text(
                       subtitle!,
                       style: Theme.of(context).textTheme.bodyMedium,
@@ -70,7 +70,7 @@ class SleepDetailPageShell extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: DesignConstants.spacingM),
           ...children,
         ],
       ),

@@ -65,7 +65,7 @@ class CsvExportCard extends StatelessWidget {
             ),
             if (isCsvExportRunning)
               const Padding(
-                padding: EdgeInsets.only(top: 16.0),
+                padding: EdgeInsets.only(top: DesignConstants.spacingL),
                 child: Center(child: CircularProgressIndicator()),
               ),
           ],

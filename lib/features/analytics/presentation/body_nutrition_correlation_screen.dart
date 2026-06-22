@@ -82,8 +82,7 @@ class _BodyNutritionCorrelationScreenState
           : _analytics == null
               ? _buildUnavailableState(l10n)
               : SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    top: DesignConstants.screenPadding.top + topPadding,
+                  padding: EdgeInsets.only(top: DesignConstants.screenPadding.top + topPadding,
                     bottom: DesignConstants.bottomContentSpacer,
                   ),
                   child: Column(
@@ -92,8 +91,7 @@ class _BodyNutritionCorrelationScreenState
                       _buildRangeChips(l10n),
                       const SizedBox(height: DesignConstants.spacingM),
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesignConstants.screenPaddingHorizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.screenPaddingHorizontal,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +123,7 @@ class _BodyNutritionCorrelationScreenState
         padding: DesignConstants.screenPadding,
         child: SummaryCard(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(DesignConstants.spacingL),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +133,7 @@ class _BodyNutritionCorrelationScreenState
                   style: theme.textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: DesignConstants.spacingS),
                 Text(
                   _loadFailed
                       ? l10n.aiErrorNetwork
@@ -154,14 +152,13 @@ class _BodyNutritionCorrelationScreenState
     final labels = _ranges(l10n);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.screenPaddingHorizontal,
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.screenPaddingHorizontal,
       ),
       clipBehavior: Clip.none,
       child: Row(
         children: List.generate(labels.length, (index) {
           return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsets.only(right: DesignConstants.spacingS),
             child: ChoiceChip(
               label: Text(labels[index]),
               selected: _rangeIndex == index,
@@ -232,7 +229,7 @@ class _BodyNutritionCorrelationScreenState
               relationship,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Text(
               '${l10n.analyticsEffectiveRangeLabel}: ${_effectiveRangeDisclosure()}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -271,7 +268,7 @@ class _BodyNutritionCorrelationScreenState
 
   Widget _trendChip(String title, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
@@ -296,7 +293,7 @@ class _BodyNutritionCorrelationScreenState
 
   Widget _kpiPill(String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
@@ -325,7 +322,7 @@ class _BodyNutritionCorrelationScreenState
   ) {
     return SummaryCard(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(DesignConstants.spacingM),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -335,7 +332,7 @@ class _BodyNutritionCorrelationScreenState
                     color: Theme.of(context).colorScheme.outline,
                   ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Wrap(
               spacing: 12,
               runSpacing: 8,
@@ -415,7 +412,7 @@ class _BodyNutritionCorrelationScreenState
                   .labelLarge
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: DesignConstants.spacingXS),
             Text(
               StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
                 l10n,

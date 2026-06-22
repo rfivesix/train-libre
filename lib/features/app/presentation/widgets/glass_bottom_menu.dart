@@ -113,7 +113,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Container(
               width: 44,
               height: 5,
@@ -125,7 +125,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
             if (title != null) ...[
               const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
                 child: Text(
                   title!,
                   textAlign: TextAlign.center,
@@ -136,9 +136,9 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               ),
             ],
             if (contentBuilder != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM),
                 child: contentBuilder!(
                   context,
                   () => Navigator.of(context).maybePop(),
@@ -155,7 +155,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                       children: List.generate(actions.length, (i) {
                         final a = actions[i];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
+                          padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
                           child: _GlassTile(
                             icon: a.icon,
                             customIcon: a.customIcon, // <--- Pass new value
@@ -291,14 +291,14 @@ class _GlassTile extends StatelessWidget {
         customIcon != null ? customIcon! : Icon(icon, size: 22);
 
     final tileContent = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: DesignConstants.spacingM),
       child: Row(
         children: [
           Container(
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)
                   : Colors.white.withValues(alpha: 0.2),
@@ -309,7 +309,7 @@ class _GlassTile extends StatelessWidget {
             ),
             child: Center(child: leadingWidget),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: DesignConstants.spacingM),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,7 +336,7 @@ class _GlassTile extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: DesignConstants.spacingM),
           Icon(
             LucideIcons.chevron_right,
             size: 22,
@@ -410,14 +410,14 @@ Future<bool> showDeleteConfirmation(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
             child: Text(
               effectiveContent,
               textAlign: TextAlign.center,
               style: Theme.of(ctx).textTheme.bodyMedium,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DesignConstants.spacingXL),
           Row(
             children: [
               Expanded(
@@ -429,11 +429,11 @@ Future<bool> showDeleteConfirmation(
                   child: Text(l10n.cancel),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: DesignConstants.spacingM),
               Expanded(
                 child: FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: Theme.of(context).colorScheme.error,
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () {
@@ -452,3 +452,80 @@ Future<bool> showDeleteConfirmation(
 
   return result ?? false;
 }
+
+/// Represents the user's choice when there is an active workout conflict.
+enum ActiveWorkoutConflictResult {
+  resume,
+  discard,
+  cancel,
+}
+
+/// Shows a glass-styled modal bottom sheet when trying to start a new workout
+/// while another workout is already in progress.
+Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
+  BuildContext context,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+
+  final result = await showGlassBottomMenu<ActiveWorkoutConflictResult>(
+    context: context,
+    title: l10n.workoutConflictTitle,
+    contentBuilder: (ctx, close) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+            child: Text(
+              l10n.workoutConflictContent,
+              textAlign: TextAlign.center,
+              style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingXL),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    close();
+                    Navigator.of(ctx).pop(ActiveWorkoutConflictResult.cancel);
+                  },
+                  child: Text(l10n.cancel),
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    close();
+                    Navigator.of(ctx).pop(ActiveWorkoutConflictResult.discard);
+                  },
+                  child: Text(l10n.discardButton),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () {
+                close();
+                Navigator.of(ctx).pop(ActiveWorkoutConflictResult.resume);
+              },
+              child: Text(l10n.resumeWorkoutButton),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  return result ?? ActiveWorkoutConflictResult.cancel;
+}
+

@@ -373,7 +373,7 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
             onTap: () => setState(() => _isExpanded = !_isExpanded),
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(DesignConstants.spacingL),
               child: Row(
                 children: [
                   Expanded(
@@ -384,10 +384,10 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 2),
                     decoration: BoxDecoration(
                       color: countBadgeBg,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
                     ),
                     child: Text(
                       '${sessions.length}',
@@ -397,7 +397,7 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesignConstants.spacingM),
                   AnimatedRotation(
                     turns: _isExpanded ? 0.5 : 0.0,
                     duration: const Duration(milliseconds: 200),
@@ -415,15 +415,14 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 12,
-                    bottom: 16,
+                  padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                    right: DesignConstants.spacingL,
+                    top: DesignConstants.spacingM,
+                    bottom: DesignConstants.spacingL,
                   ),
                   itemCount: sessions.length,
                   separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
+                      const SizedBox(height: DesignConstants.spacingM),
                   itemBuilder: (context, index) {
                     final session = sessions[index];
                     final startLocal = session.startAtUtc.toLocal();
@@ -453,13 +452,12 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: DesignConstants.spacingM),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingXS),
                           decoration: BoxDecoration(
                             color: badgeColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
                             border: Border.all(
                               color: badgeColor.withValues(alpha: 0.3),
                               width: 1,
@@ -473,7 +471,7 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: DesignConstants.spacingM),
                         Expanded(
                           child: Row(
                             children: [
@@ -484,7 +482,7 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                                 ),
                               ),
                               if (startLocal.day != endLocal.day) ...[
-                                const SizedBox(width: 4),
+                                const SizedBox(width: DesignConstants.spacingXS),
                                 Text(
                                   '(+1)',
                                   style: theme.textTheme.labelSmall?.copyWith(
@@ -550,14 +548,14 @@ class _SleepEmptyStateCard extends StatelessWidget {
     return SummaryCard(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(l10n.sleepEmptyDayNoData),
-            const SizedBox(height: 8),
+            const SizedBox(height: DesignConstants.spacingS),
             Text(l10n.sleepEmptyDayConnectMessage),
-            const SizedBox(height: 12),
+            const SizedBox(height: DesignConstants.spacingM),
             Wrap(
               spacing: 8,
               runSpacing: 8,

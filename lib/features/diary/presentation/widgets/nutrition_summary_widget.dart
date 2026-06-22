@@ -84,7 +84,7 @@ class NutritionSummaryWidget extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: DesignConstants.spacingS),
           Expanded(
             flex: 4,
             child: Column(
@@ -122,7 +122,7 @@ class NutritionSummaryWidget extends StatelessWidget {
             ),
           ),
           if (isExpandedView) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: DesignConstants.spacingS),
             Expanded(
               flex: 4,
               child: Column(

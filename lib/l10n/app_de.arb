@@ -2379,8 +2379,39 @@
   "foodItemDeleted": "Lebensmittel gelöscht",
   "copySystemFoodTitle": "System-Lebensmittel kopieren",
   "copySystemFoodBody": "System-Lebensmittel können nicht direkt bearbeitet werden. Möchtest du eine eigene Kopie erstellen und bearbeiten?",
-  "createCopyAndEdit": "Kopie erstellen & bearbeiten",
   "foodCopyCreated": "Kopie erstellt: {name}",
   "nutritionPer100g": "Nährwerte pro 100g",
-  "nutritionPerPortion": "Nährwerte pro Portion ({grams}g)"
+  "nutritionPerPortion": "Nährwerte pro Portion ({grams}g)",
+  "workoutConflictTitle": "Laufendes Training",
+  "workoutConflictContent": "Du hast bereits ein aktives Training. Möchtest du dieses fortsetzen oder verwerfen, um ein neues zu starten?",
+  "resumeWorkoutButton": "Training fortsetzen",
+  "discardAndStartButton": "Verwerfen & neu starten",
+  "profileTapToSetUp": "Tippen zum Einrichten",
+  "customLabel": "Eigene",
+  "noData": "Keine Daten",
+  "languageAuto": "Automatisch",
+  "aiValidationCostEstimation": "Kosten: ~{tokenCount} Tokens",
+  "@aiValidationCostEstimation": {
+    "placeholders": {
+      "tokenCount": {
+        "type": "num"
+      }
+    }
+  },
+  "showAllWithCount": "Alle anzeigen ({count})",
+  "@showAllWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "repsCount": "{count, plural, =1{1 Wdh.} other{{count} Wdh.}}",
+  "@repsCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  }
 }

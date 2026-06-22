@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../util/design_constants.dart';
+
 import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
@@ -70,7 +72,7 @@ class PulseSectionCard extends StatelessWidget {
         key: const Key('statistics_pulse_card'),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -92,7 +94,7 @@ class PulseSectionCard extends StatelessWidget {
                       context, l10n.pulseRestingLabel, restingValue),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesignConstants.spacingS),
               Text(
                 stateText,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -125,7 +127,7 @@ class PulseSectionCard extends StatelessWidget {
   Widget _buildPulseMetricTile(
       BuildContext context, String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
