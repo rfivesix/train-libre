@@ -25,7 +25,7 @@ dependencies:
   dynamic_color: ^1.7.0
   url_launcher: ^6.2.6
   path_provider: ^2.1.6
-  file_picker: ^12.0.0-beta.5
+  file_picker: ^12.0.0-beta.7
   share_plus: ^13.1.0
   fl_chart: ^1.1.0
   flutter_svg: ^2.3.0
@@ -64,7 +64,7 @@ dependencies:
     git:
       url: https://github.com/rfivesix/flutter_body_highlighter
       ref: main
-  liquid_glass_widgets: ^0.16.1
+  liquid_glass_widgets: ^0.17.1
   flutter_lucide: ^1.11.0
 dev_dependencies:
   flutter_test:
@@ -72,7 +72,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
   build_runner: ^2.15.0
-  drift_dev: ^2.20.0
+  drift_dev: ^2.34.1
 # dependency_overrides:
 
 flutter_launcher_icons:
