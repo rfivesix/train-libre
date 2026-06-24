@@ -359,7 +359,23 @@ class _GlassPickerSheet extends StatelessWidget {
                         ),
                         Padding(
                           padding: EdgeInsets.only(bottom: bottomInset),
-                          child: child,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: DesignConstants.spacingS),
+                              Center(
+                                child: Container(
+                                  width: 44,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.75),
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                ),
+                              ),
+                              child,
+                            ],
+                          ),
                         ),
                       ],
                     ),

@@ -1,9 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
-
 import '../../../../generated/app_localizations.dart';
-import '../../../../util/time_util.dart';
 
+/// A dialog that lets the user pick a pause/rest duration using an iOS-style
+/// minute:second scroll wheel, matching the glass picker styling used in the
+/// food-logging bottom sheets.
 class RoutinePauseTimeDialog extends StatefulWidget {
   final int? initialPauseSeconds;
   final Function(int?) onSave;
@@ -21,85 +23,82 @@ class RoutinePauseTimeDialog extends StatefulWidget {
 }
 
 class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
-  late final TextEditingController _controller;
+  late Duration _selectedDuration;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(
-      text: widget.initialPauseSeconds == null || widget.initialPauseSeconds == 0
-          ? ''
-          : formatPauseDuration(widget.initialPauseSeconds),
+    final seconds = (widget.initialPauseSeconds != null &&
+            widget.initialPauseSeconds! > 0)
+        ? widget.initialPauseSeconds!
+        : 0;
+    _selectedDuration = Duration(
+      minutes: seconds ~/ 60,
+      seconds: seconds % 60,
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final brightness = Theme.of(context).brightness;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        TextField(
-          controller: _controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          inputFormatters: [TimerInputFormatter()],
-          onChanged: (_) => setState(() {}),
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) {
-            final seconds = parsePauseDuration(_controller.text);
-            widget.onSave(seconds);
-          },
-          decoration: InputDecoration(
-            labelText: l10n.restTimerLabel,
-            hintText: "00:00",
-            suffixIcon: _controller.text.isNotEmpty
-                ? IconButton(
-                    icon: Icon(Icons.clear, color: Theme.of(context).colorScheme.error),
-                    onPressed: () {
-                      _controller.clear();
-                      setState(() {});
-                    },
-                  )
-                : null,
-            filled: true,
-            fillColor: brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-              borderSide: BorderSide.none,
+        const SizedBox(height: DesignConstants.spacingS),
+        SizedBox(
+          height: 200,
+          child: CupertinoTheme(
+            data: CupertinoThemeData(
+              brightness: isDark ? Brightness.dark : Brightness.light,
+              textTheme: CupertinoTextThemeData(
+                dateTimePickerTextStyle: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontSize: 22,
+                ),
+              ),
+            ),
+            child: CupertinoTimerPicker(
+              mode: CupertinoTimerPickerMode.ms,
+              initialTimerDuration: _selectedDuration,
+              onTimerDurationChanged: (Duration newDuration) {
+                _selectedDuration = newDuration;
+              },
             ),
           ),
         ),
-        const SizedBox(height: DesignConstants.spacingL),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: widget.onCancel,
-                child: Text(l10n.cancel),
+        Padding(
+          padding: const EdgeInsets.only(
+            left: DesignConstants.spacingL,
+            right: DesignConstants.spacingL,
+            top: DesignConstants.spacingXS,
+            bottom: DesignConstants.spacingM,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: widget.onCancel,
+                  child: Text(l10n.cancel),
+                ),
               ),
-            ),
-            const SizedBox(width: DesignConstants.spacingM),
-            Expanded(
-              child: FilledButton(
-                onPressed: () {
-                  final seconds = parsePauseDuration(_controller.text);
-                  widget.onSave(seconds);
-                },
-                child: Text(l10n.save),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  onPressed: () {
+                    final totalSeconds = _selectedDuration.inSeconds;
+                    widget.onSave(totalSeconds > 0 ? totalSeconds : null);
+                  },
+                  child: Text(l10n.save),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

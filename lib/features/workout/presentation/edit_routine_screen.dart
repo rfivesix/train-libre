@@ -559,7 +559,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     if (result != null && result.saved) {
       await WorkoutLocalDataSource.instance
           .updatePauseTime(re.id!, result.value);
-      _loadExercisesForRoutine();
+      setState(() {
+        final exerciseIndex = _routineExercises.indexOf(re);
+        if (exerciseIndex != -1) {
+          _routineExercises[exerciseIndex] = re.copyWith(
+            pauseSeconds: result.value,
+          );
+        }
+      });
+      _originalState = _serializeState();
     }
   }
 

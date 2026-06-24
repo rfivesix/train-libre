@@ -30,12 +30,12 @@ import 'widgets/pr_celebration_banner.dart';
 import 'widgets/exercise_e1rm_summary.dart';
 import 'widgets/live_workout_set_row.dart';
 import 'widgets/exercise_notes_dialog.dart';
+import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../util/time_util.dart';
 
 String _formatPauseTime(int? seconds) => formatPauseDuration(seconds);
-int? _parsePauseTime(String text) => parsePauseDuration(text);
 
 /// The active workout tracking screen, managing the real-time session state.
 ///
@@ -462,69 +462,20 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     // Edit rest helper
     void editPauseTime(RoutineExercise routineExercise) async {
       final currentPause = manager.pauseTimes[routineExercise.id!];
-      final controller = TextEditingController(
-        text: currentPause == null || currentPause == 0
-            ? ''
-            : _formatPauseTime(currentPause),
-      );
 
       final result = await showGlassBottomMenu<({bool saved, int? value})>(
         context: context,
         title: l10n.editPauseTimeTitle,
         contentBuilder: (ctx, close) {
-          return StatefulBuilder(
-            builder: (ctx, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: controller,
-                    keyboardType: TextInputType.number,
-                    autofocus: true,
-                    inputFormatters: [TimerInputFormatter()],
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      labelText: l10n.restTimerLabel,
-                      hintText: "00:00",
-                      suffixIcon: controller.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear,
-                                  color: Colors.redAccent),
-                              onPressed: () {
-                                controller.clear();
-                                setState(() {});
-                              },
-                            )
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            close();
-                            Navigator.of(ctx).pop((saved: false, value: null));
-                          },
-                          child: Text(l10n.cancel),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: () {
-                            final val = _parsePauseTime(controller.text);
-                            close();
-                            Navigator.of(ctx).pop((saved: true, value: val));
-                          },
-                          child: Text(l10n.save),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
+          return RoutinePauseTimeDialog(
+            initialPauseSeconds: currentPause,
+            onSave: (seconds) {
+              close();
+              Navigator.of(ctx).pop((saved: true, value: seconds));
+            },
+            onCancel: () {
+              close();
+              Navigator.of(ctx).pop((saved: false, value: null));
             },
           );
         },

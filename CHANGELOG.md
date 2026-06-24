@@ -41,6 +41,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Onboarding Database Download Race Condition (`basis_data_manager.dart`):** Fixed a navigation race condition where tapping "Download" in the first-launch catalog prompt caused onboarding to advance immediately without downloading:
   - Root cause: the download button called `Navigator.of(ctx).pop()` inside the sheet closure, which immediately resolved the outer `await showGlassBottomMenu(...)` in `AppInitializerScreen._initialize()`, causing it to continue and navigate to `OnboardingScreen` before `AppInitializerScreen(isModal: true)` could be pushed.
   - Fix: the download button now returns `true` via `Navigator.of(ctx).pop(true)` (using the typed `showGlassBottomMenu<bool>` return value). The `AppInitializerScreen(forceUpdate: true, isModal: true)` push is performed sequentially after the sheet fully resolves, eliminating the race.
+- **Pause Time Edit Resets Unsaved Exercise Values (`edit_routine_screen.dart`):** Fixed a critical state bug where saving a pause time change reloaded the full exercise list from the database, overwriting all in-progress user edits (reps, weight, RIR) with persisted values:
+  - Replaced `_loadExercisesForRoutine()` call after pause time save with a targeted in-memory `setState` update using `RoutineExercise.copyWith(pauseSeconds: …)`, preserving all `TextEditingController` state.
+- **Missing Drag Handle on Glass Pickers (`platform_adaptive_pickers.dart`):** Added a visual drag handle pill (`44×5`) to `_GlassPickerSheet`, matching the existing design in `_GlassBottomMenuSheet` for consistent sheet UX.
+- **Pause Time Wheel Picker (`routine_pause_time_dialog.dart`, `live_workout_screen.dart`):** Replaced the `TextField` + `TimerInputFormatter` text input with an iOS-native `CupertinoTimerPicker` (minutes:seconds scroll wheel) for pause/rest timer editing:
+  - Matches the glass picker styling used in the food-logging bottom sheets.
+  - Refactored inline dialog code in `live_workout_screen.dart` to reuse `RoutinePauseTimeDialog`, eliminating duplicate text field and `StatefulBuilder` logic.
+  - Removed unused `_parsePauseTime` helper and `time_util.dart` dependency from the dialog.
 
 ## [0.9.34] - 2026-06-21
 
