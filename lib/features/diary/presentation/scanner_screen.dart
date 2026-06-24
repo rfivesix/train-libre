@@ -134,22 +134,26 @@ class _ScannerScreenState extends State<ScannerScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        title: Text(
-          l10n.scann_barcode_capslock,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+    return PopScope(
+      canPop: _cameraPermissionStatus.isGranted,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          automaticallyImplyLeading: _cameraPermissionStatus.isGranted,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: false,
+          title: Text(
+            l10n.scann_barcode_capslock,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
         ),
+        body: _buildBody(l10n),
       ),
-      body: _buildBody(l10n),
     );
   }
 

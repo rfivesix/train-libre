@@ -35,7 +35,7 @@ class StepsSyncService {
 
   Future<bool> isTrackingEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool(trackingEnabledKey) ?? true;
+    final enabled = prefs.getBool(trackingEnabledKey) ?? false;
     if (trackingEnabledListenable.value != enabled) {
       trackingEnabledListenable.value = enabled;
     }

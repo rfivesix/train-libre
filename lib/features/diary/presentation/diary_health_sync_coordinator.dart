@@ -24,7 +24,7 @@ class DiaryHealthSyncCoordinator extends ChangeNotifier {
 
   int? stepsForSelectedDay;
   bool isStepsWidgetLoading = false;
-  bool stepsTrackingEnabled = true;
+  bool stepsTrackingEnabled = false;
 
   SleepDayOverviewData? sleepOverview;
   bool isSleepWidgetLoading = false;

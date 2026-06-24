@@ -2172,7 +2172,7 @@
   "scannerPermissionRequired": "Per eseguire la scansione dei codici a barre è necessario l'accesso alla fotocamera.",
   "scannerPermissionPermanentlyDenied": "L'accesso alla telecamera è permanentemente negato. Abilitalo nelle impostazioni per scansionare i codici a barre.",
   "scannerOpenSettings": "Apri Impostazioni",
-  "scannerGrantPermission": "Concedere l'autorizzazione",
+  "scannerGrantPermission": "Continua",
   "scannerAlignInstruction": "Allinea il codice a barre orizzontalmente all'interno della linea laser rossa",
   "about_train_libre": "A proposito di Train Libre",
   "legal_notice": "Note legali",

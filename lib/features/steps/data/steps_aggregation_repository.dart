@@ -335,17 +335,6 @@ class HealthStepsAggregationRepository implements StepsAggregationRepository {
       );
     }
 
-    final hasPermission = await stepsSyncService.requestPermissions();
-    if (!hasPermission) {
-      return const StepsRefreshResult(
-        didRun: true,
-        permissionGranted: false,
-        skipped: true,
-        fetchedCount: 0,
-        upsertedCount: 0,
-      );
-    }
-
     final syncResult = await stepsSyncService.sync(
       now: now,
       forceRefresh: force,
@@ -353,7 +342,7 @@ class HealthStepsAggregationRepository implements StepsAggregationRepository {
     final updatedAt = await stepsSyncService.getLastSyncAt();
     return StepsRefreshResult(
       didRun: true,
-      permissionGranted: true,
+      permissionGranted: !syncResult.skipped,
       skipped: syncResult.skipped,
       fetchedCount: syncResult.fetchedCount,
       upsertedCount: syncResult.upsertedCount,

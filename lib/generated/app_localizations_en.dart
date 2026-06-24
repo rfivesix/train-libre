@@ -4793,7 +4793,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scannerOpenSettings => 'Open Settings';
 
   @override
-  String get scannerGrantPermission => 'Grant Permission';
+  String get scannerGrantPermission => 'Continue';
 
   @override
   String get scannerAlignInstruction =>

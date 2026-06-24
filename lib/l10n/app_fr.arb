@@ -2172,7 +2172,7 @@
   "scannerPermissionRequired": "L'accès à la caméra est requis pour scanner les codes-barres.",
   "scannerPermissionPermanentlyDenied": "L'accès à la caméra est définitivement refusé. Veuillez l'activer dans les paramètres pour scanner les codes-barres.",
   "scannerOpenSettings": "Ouvrir les paramètres",
-  "scannerGrantPermission": "Accorder l'autorisation",
+  "scannerGrantPermission": "Continuer",
   "scannerAlignInstruction": "Alignez le code-barres horizontalement à l'intérieur de la ligne laser rouge",
   "about_train_libre": "À propos de Train Libre",
   "legal_notice": "Mentions légales",

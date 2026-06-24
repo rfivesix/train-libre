@@ -4638,7 +4638,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scannerOpenSettings => '設定を開く';
 
   @override
-  String get scannerGrantPermission => '許可を与える';
+  String get scannerGrantPermission => '続行';
 
   @override
   String get scannerAlignInstruction => '赤いレーザーラインの内側にバーコードを水平に配置します。';

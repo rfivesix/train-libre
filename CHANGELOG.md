@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.35] - 2026-06-25
 
+### Fixed
+- **Camera & Health Pre-Permission Refactoring for App Store Compliance (`scanner_screen.dart`, `permission_dialogs.dart`):** Refactored permission-request screens and dialogs to strictly comply with Apple App Store Review Guidelines 5.1.1(iv):
+  - Made the Camera Pre-Permission screen non-dismissible by hiding the back button in the App Bar and blocking pop gestures / Android hardware back button.
+  - Updated the Camera primary action button text from "Grant Permission" to "Continue" (localized across all supported languages).
+  - Made the Steps/Health Pre-Permission dialog non-dismissible (disabling outside clicks, drags, and back gestures) and removed the "Cancel" option, leaving only a full-width "Continue" button.
+- **Steps / Health Sync Lifecycle & Navigation Fix (`steps_sync_service.dart`, `diary_health_sync_coordinator.dart`, `steps_settings_screen.dart`, `steps_aggregation_repository.dart`):** Resolved issues where the app blindly triggered steps-sync or health-permission prompts during screen transitions:
+  - Defaulted steps tracking setting to disabled (`false`) on fresh installs so background sync is not automatically triggered on startup.
+  - Removed the implicit permission request from the steps repository `refresh()` method so background checks run silently and handle lack of permissions gracefully without prompting the user.
+
 ## [0.9.34] - 2026-06-21
 
 ### Fixed

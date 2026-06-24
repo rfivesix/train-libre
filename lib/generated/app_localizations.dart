@@ -8451,7 +8451,7 @@ abstract class AppLocalizations {
   /// No description provided for @scannerGrantPermission.
   ///
   /// In en, this message translates to:
-  /// **'Grant Permission'**
+  /// **'Continue'**
   String get scannerGrantPermission;
 
   /// No description provided for @scannerAlignInstruction.

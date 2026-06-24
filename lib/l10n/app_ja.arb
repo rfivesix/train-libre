@@ -2172,7 +2172,7 @@
   "scannerPermissionRequired": "バーコードをスキャンするにはカメラへのアクセスが必要です。",
   "scannerPermissionPermanentlyDenied": "カメラへのアクセスは永久に拒否されます。バーコードをスキャンするには設定で有効にしてください。",
   "scannerOpenSettings": "設定を開く",
-  "scannerGrantPermission": "許可を与える",
+  "scannerGrantPermission": "続行",
   "scannerAlignInstruction": "赤いレーザーラインの内側にバーコードを水平に配置します。",
   "about_train_libre": "トレイン・リブレについて",
   "legal_notice": "法的通知",
