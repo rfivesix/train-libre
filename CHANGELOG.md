@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.35] - 2026-06-25
 
+### Added
+- **Dedicated Support Page (`support.html`):** Created a premium, localized developer support page resolving Apple App Store Review Guideline 1.5 (Safety - Support URL):
+  - Integrates direct email support (`support@schotte.me`), GitHub issue tracking and bug report links, and expected response time commitments.
+  - Styled with the branded dark theme background, theme switching logic, and transparent glassmorphic card containers matching the "Developed in public" layout blocks.
+  - Added full multi-language translations for the Support page copy in English, German, French, Italian, and Japanese (`script.js`).
+
+### Changed
+- **Footer Navigation Integration (All HTML files):** Added the new "Support" page link next to Privacy Policy and Imprint across all footers, inheriting identical styling, hover states, and font sizing.
+- **Removed F-Droid Footer Link:** Cleaned up the footer by removing the "Android APK / F-Droid" link across all page footers to keep the bottom navigation focused.
+
 ### Fixed
 - **Camera & Health Pre-Permission Refactoring for App Store Compliance (`scanner_screen.dart`, `permission_dialogs.dart`):** Refactored permission-request screens and dialogs to strictly comply with Apple App Store Review Guidelines 5.1.1(iv):
   - Made the Camera Pre-Permission screen non-dismissible by hiding the back button in the App Bar and blocking pop gestures / Android hardware back button.
