@@ -34,6 +34,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Steps / Health Sync Lifecycle & Navigation Fix (`steps_sync_service.dart`, `diary_health_sync_coordinator.dart`, `steps_settings_screen.dart`, `steps_aggregation_repository.dart`):** Resolved issues where the app blindly triggered steps-sync or health-permission prompts during screen transitions:
   - Defaulted steps tracking setting to disabled (`false`) on fresh installs so background sync is not automatically triggered on startup.
   - Removed the implicit permission request from the steps repository `refresh()` method so background checks run silently and handle lack of permissions gracefully without prompting the user.
+- **Barcode Scanner Crash on Camera Unavailable (`QRView.swift`, `scanner_screen.dart`):** Fixed a `SIGABRT` crash triggered whenever the camera could not be initialized (e.g. iOS Simulator, hardware failure):
+  - Root cause: `QRView.swift` passed a raw Swift `Error` (bridged as `NSError`) as the `details` field of `FlutterError`. `FlutterStandardMethodCodec` cannot serialize `NSError` objects and asserts, aborting the process.
+  - Fix: converted `error` to `error.localizedDescription` (a `String`) in the `catch` block of `startScan`. Applied via a local package override (`local_packages/qr_code_scanner_plus`) pending upstream patch in `qr_code_scanner_plus`.
+  - Additional hardening in `scanner_screen.dart`: decoupled permission status-checking (`_checkPermission`) from permission requesting (`_requestPermission`) so the native QRView lifecycle is never entangled with the permission dialog. Added an `_isRequestingPermission` guard and inline spinner on the CTA button to prevent re-entrancy.
+- **Onboarding Database Download Race Condition (`basis_data_manager.dart`):** Fixed a navigation race condition where tapping "Download" in the first-launch catalog prompt caused onboarding to advance immediately without downloading:
+  - Root cause: the download button called `Navigator.of(ctx).pop()` inside the sheet closure, which immediately resolved the outer `await showGlassBottomMenu(...)` in `AppInitializerScreen._initialize()`, causing it to continue and navigate to `OnboardingScreen` before `AppInitializerScreen(isModal: true)` could be pushed.
+  - Fix: the download button now returns `true` via `Navigator.of(ctx).pop(true)` (using the typed `showGlassBottomMenu<bool>` return value). The `AppInitializerScreen(forceUpdate: true, isModal: true)` push is performed sequentially after the sheet fully resolves, eliminating the race.
 
 ## [0.9.34] - 2026-06-21
 

@@ -1073,10 +1073,9 @@ packages:
   qr_code_scanner_plus:
     dependency: "direct main"
     description:
-      name: qr_code_scanner_plus
-      sha256: "2bcf9df32aa639fba07c183b1ab9c3f03eb6b1d688ab4f4f6bc868a75afd824d"
-      url: "https://pub.dev"
-    source: hosted
+      path: "local_packages/qr_code_scanner_plus"
+      relative: true
+    source: path
     version: "2.1.2"
   recase:
     dependency: transitive

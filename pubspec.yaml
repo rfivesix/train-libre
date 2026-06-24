@@ -114,3 +114,10 @@ flutter:
         - asset: assets/fonts/Inter-BoldItalic.ttf
           weight: 700
           style: italic
+
+# Overrides a local patched copy of qr_code_scanner_plus that fixes a crash
+# where a raw NSError was passed as FlutterError.details, which FlutterStandardMethodCodec
+# cannot serialize, causing a SIGABRT. See local_packages/qr_code_scanner_plus/ios/.
+dependency_overrides:
+  qr_code_scanner_plus:
+    path: local_packages/qr_code_scanner_plus

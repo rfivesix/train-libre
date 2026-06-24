@@ -29,6 +29,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   bool _isDone = false;
   PermissionStatus _cameraPermissionStatus = PermissionStatus.denied;
   bool _isCheckingPermission = true;
+  bool _isRequestingPermission = false;
   late final AnimationController _animationController;
   late final Animation<double> _animation;
 
@@ -119,6 +120,8 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
   }
 
+  /// Reads the current camera permission status without triggering a native
+  /// permission dialog. Safe to call at any point in the lifecycle.
   Future<void> _checkPermission({bool initial = false}) async {
     final status = await Permission.camera.status;
     if (mounted) {
@@ -129,13 +132,26 @@ class _ScannerScreenState extends State<ScannerScreen>
         }
       });
     }
+  }
 
-    if (status.isDenied && !initial) {
+  /// Triggers the native camera permission dialog. Must only be called from
+  /// an explicit user action (CTA button tap) so that the native QRView
+  /// lifecycle is never invoked before the widget is mounted.
+  Future<void> _requestPermission() async {
+    if (_isRequestingPermission) return;
+    if (mounted) {
+      setState(() => _isRequestingPermission = true);
+    }
+    try {
       final result = await Permission.camera.request();
       if (mounted) {
         setState(() {
           _cameraPermissionStatus = result;
         });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRequestingPermission = false);
       }
     }
   }
@@ -325,14 +341,22 @@ class _ScannerScreenState extends State<ScannerScreen>
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _cameraPermissionStatus.isPermanentlyDenied
-                  ? _openSettings
-                  : _checkPermission,
-              child: Text(
-                _cameraPermissionStatus.isPermanentlyDenied
-                    ? l10n.scannerOpenSettings
-                    : l10n.scannerGrantPermission,
-              ),
+              onPressed: _isRequestingPermission
+                  ? null
+                  : (_cameraPermissionStatus.isPermanentlyDenied
+                      ? _openSettings
+                      : _requestPermission),
+              child: _isRequestingPermission
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      _cameraPermissionStatus.isPermanentlyDenied
+                          ? l10n.scannerOpenSettings
+                          : l10n.scannerGrantPermission,
+                    ),
             ),
           ],
         ),

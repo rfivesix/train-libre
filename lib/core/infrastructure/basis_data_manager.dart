@@ -232,7 +232,7 @@ class BasisDataManager {
     if (!context.mounted) return;
     final l10n = AppLocalizations.of(context)!;
 
-    await showGlassBottomMenu<void>(
+    final shouldDownload = await showGlassBottomMenu<bool>(
       context: context,
       title: isMissingEither ? l10n.offDownloadTitle : "Update Available",
       isDismissible: true,
@@ -299,7 +299,7 @@ class BasisDataManager {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      Navigator.of(ctx).pop();
+                      Navigator.of(ctx).pop(false);
                     },
                     child: Text(l10n.offDownloadCancel),
                   ),
@@ -307,16 +307,13 @@ class BasisDataManager {
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: FilledButton(
-                    onPressed: () async {
-                      Navigator.of(ctx).pop();
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const AppInitializerScreen(
-                            forceUpdate: true,
-                            isModal: true,
-                          ),
-                        ),
-                      );
+                    onPressed: () {
+                      // Return true to signal the caller to launch the download
+                      // screen. Do NOT push here — the sheet must fully close
+                      // before the next route is pushed, otherwise the outer
+                      // await showGlassBottomMenu resolves before the push,
+                      // causing a navigation race condition.
+                      Navigator.of(ctx).pop(true);
                     },
                     child: Text(isMissingEither ? l10n.offDownloadConfirm : "Update Now"),
                   ),
@@ -327,6 +324,20 @@ class BasisDataManager {
         );
       },
     );
+
+    // The sheet is now fully closed. Only push the download screen if the
+    // user confirmed — this must happen after the sheet resolves so we don't
+    // race with any outer await on this method.
+    if (shouldDownload == true && context.mounted) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const AppInitializerScreen(
+            forceUpdate: true,
+            isModal: true,
+          ),
+        ),
+      );
+    }
   }
 
   /// Public method to trigger the exercise catalog check and update process.
