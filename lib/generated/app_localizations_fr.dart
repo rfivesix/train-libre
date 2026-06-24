@@ -4884,7 +4884,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get scannerOpenSettings => 'Ouvrir les paramètres';
 
   @override
-  String get scannerGrantPermission => 'Accorder l\'autorisation';
+  String get scannerGrantPermission => 'Continuer';
 
   @override
   String get scannerAlignInstruction =>
@@ -5503,4 +5503,36 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get offDownloadTitle =>
+      'Télécharger les catalogues de base de données';
+
+  @override
+  String get offDownloadBody =>
+      'Pour accéder à la recherche complète de produits hors ligne, au scanner de codes-barres et aux fonctionnalités d\'IA, veuillez initialiser les catalogues locaux. Vous téléchargerez les dernières versions de la base de données depuis GitHub.';
+
+  @override
+  String get offDownloadConfirm => 'Télécharger maintenant';
+
+  @override
+  String get offDownloadCancel => 'Pas maintenant';
+
+  @override
+  String get offDownloadCTA => 'Télécharger la base de données';
+
+  @override
+  String get offPlaceholderText =>
+      'Les fonctionnalités de nutrition nécessitent le catalogue de base de données local.';
+
+  @override
+  String get backupImportLockedTitle => 'Catalogue de base de données requis';
+
+  @override
+  String get backupImportLockedBody =>
+      'Avant d\'importer une sauvegarde, le catalogue d\'exercices et le catalogue nutritionnel doivent être entièrement téléchargés et initialisés pour éviter toute incohérence des données. Veuillez d\'abord télécharger les bases de données requises.';
+
+  @override
+  String get wgerPlaceholderText =>
+      'Le catalogue d\'exercices nécessite le téléchargement du catalogue de base de données local.';
 }

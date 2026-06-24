@@ -13,6 +13,8 @@ import '../../../widgets/common/glass_fab.dart';
 import 'widgets/off_attribution_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart'; // Added
+import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/database_placeholder_widget.dart';
 
 /// A screen for exploring and managing the food database independently of tracking.
 ///
@@ -37,11 +39,26 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
 
   late TabController _tabController;
   Timer? _searchDebounce;
+  bool _isOffDbInitialized = false;
+
+  Future<void> _checkDbStatus() async {
+    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    if (mounted) {
+      setState(() {
+        _isOffDbInitialized = initialized;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _checkDbStatus();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      await _checkDbStatus();
+    });
     _loadFavorites();
   }
 
@@ -188,6 +205,17 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   }
 
   Widget _buildSearchTab(AppLocalizations l10n) {
+    if (!_isOffDbInitialized) {
+      return DatabasePlaceholderWidget(
+        title: l10n.offDownloadTitle,
+        body: l10n.offPlaceholderText,
+        icon: LucideIcons.database,
+        onDownloadPressed: () async {
+          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+          await _checkDbStatus();
+        },
+      );
+    }
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Padding(

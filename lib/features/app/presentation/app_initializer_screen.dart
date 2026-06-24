@@ -22,11 +22,13 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 class AppInitializerScreen extends StatefulWidget {
   final bool forceUpdate;
   final bool isModal;
+  final bool skipOffDatabase;
 
   const AppInitializerScreen({
     super.key,
     this.forceUpdate = false,
     this.isModal = false,
+    this.skipOffDatabase = false,
   });
 
   @override
@@ -54,11 +56,26 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   Future<void> _initialize() async {
     if (!widget.isModal) {
       await _prepareCoreServices();
+
+      // Cold Start Prompt: On the very first fresh launch of the app (during Onboarding/Splash),
+      // invoke the dual-catalog installation sheet once.
+      final prefs = await SharedPreferences.getInstance();
+      final isFirstLaunch = prefs.getBool('is_first_launch_prompted') != true;
+      if (isFirstLaunch) {
+        await prefs.setBool('is_first_launch_prompted', true);
+        if (mounted) {
+          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+        }
+      }
     }
+
+    final isOffDbInitialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    final skipOffDb = widget.skipOffDatabase || (!isOffDbInitialized && !widget.forceUpdate);
 
     // 1) Run basis-data update checks and stream progress to the UI.
     await BasisDataManager.instance.checkForBasisDataUpdate(
       force: widget.forceUpdate,
+      skipOffDatabase: skipOffDb,
       onProgress: (task, detail, progress) {
         if (!mounted) return;
         setState(() {

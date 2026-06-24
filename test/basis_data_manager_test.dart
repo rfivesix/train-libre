@@ -146,6 +146,7 @@ void main() {
 
     test('skips update entirely when build number matches cached value', () async {
       SharedPreferences.setMockInitialValues({
+        'is_exercise_catalog_initialized': true,
         'last_db_sync_app_version': '80013',
         'installed_food_enrichment_v1': true,
         'installed_training_version': '999999999999',
@@ -166,20 +167,20 @@ void main() {
         },
       );
 
-      // Verify that it skipped and reported completion immediately for all areas (including exercises and products)
-      expect(progressCalls, hasLength(6));
+      // Verify that it skipped and reported completion immediately for all food areas
+      expect(progressCalls, hasLength(3));
 
-      expect(progressCalls[3]['task'], 'Basis-Produkte');
-      expect(progressCalls[3]['detail'], 'Basis-Produkte sind aktuell.');
-      expect(progressCalls[3]['progress'], 1.0);
+      expect(progressCalls[0]['task'], 'Basis-Produkte');
+      expect(progressCalls[0]['detail'], 'Basis-Produkte sind aktuell.');
+      expect(progressCalls[0]['progress'], 1.0);
 
-      expect(progressCalls[4]['task'], 'Kategorien');
-      expect(progressCalls[4]['detail'], 'Kategorien sind aktuell.');
-      expect(progressCalls[4]['progress'], 1.0);
+      expect(progressCalls[1]['task'], 'Kategorien');
+      expect(progressCalls[1]['detail'], 'Kategorien sind aktuell.');
+      expect(progressCalls[1]['progress'], 1.0);
 
-      expect(progressCalls[5]['task'], startsWith('Produktdatenbank'));
-      expect(progressCalls[5]['detail'], contains('ist aktuell'));
-      expect(progressCalls[5]['progress'], 1.0);
+      expect(progressCalls[2]['task'], startsWith('Produktdatenbank'));
+      expect(progressCalls[2]['detail'], contains('ist aktuell'));
+      expect(progressCalls[2]['progress'], 1.0);
     });
   });
 }

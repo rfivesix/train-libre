@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
-import '../../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../../../util/permission_dialogs.dart';
 import 'sleep_permission_models.dart';
 import 'sleep_permissions_service.dart';
 
@@ -27,48 +26,12 @@ class SleepPermissionController {
   Future<void> requestAccess(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
 
-    final confirmed = await showGlassBottomMenu<bool>(
+    final confirmed = await showPrePermissionDialog(
       context: context,
       title: l10n.sleepRequestAccessTitle,
-      contentBuilder: (ctx, close) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-              child: Text(
-                l10n.sleepRequestAccessSubtitle,
-                textAlign: TextAlign.center,
-                style: Theme.of(ctx).textTheme.bodyMedium,
-              ),
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop(false);
-                    },
-                    child: Text(l10n.cancel),
-                  ),
-                ),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () {
-                      close();
-                      Navigator.of(ctx).pop(true);
-                    },
-                    child: Text(l10n.onboardingNext),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
+      body: l10n.sleepRequestAccessSubtitle,
+      continueLabel: l10n.health_permission_continue,
+      cancelLabel: '',
     );
 
     if (confirmed != true) return;

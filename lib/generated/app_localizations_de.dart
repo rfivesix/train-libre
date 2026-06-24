@@ -4834,7 +4834,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get scannerOpenSettings => 'Einstellungen öffnen';
 
   @override
-  String get scannerGrantPermission => 'Berechtigung erteilen';
+  String get scannerGrantPermission => 'Weiter';
 
   @override
   String get scannerAlignInstruction =>
@@ -5450,4 +5450,35 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get offDownloadTitle => 'Datenbank-Kataloge herunterladen';
+
+  @override
+  String get offDownloadBody =>
+      'Um auf die vollständige Offline-Produktsuche, den Barcodescanner und die KI-Funktionen zuzugreifen, initialisiere bitte die lokalen Kataloge. Sie werden die neuesten Datenbank-Releases von GitHub herunterladen.';
+
+  @override
+  String get offDownloadConfirm => 'Jetzt herunterladen';
+
+  @override
+  String get offDownloadCancel => 'Später';
+
+  @override
+  String get offDownloadCTA => 'Datenbank herunterladen';
+
+  @override
+  String get offPlaceholderText =>
+      'Für Ernährungsfunktionen ist die lokale Produktdatenbank erforderlich.';
+
+  @override
+  String get backupImportLockedTitle => 'Datenbank-Katalog erforderlich';
+
+  @override
+  String get backupImportLockedBody =>
+      'Vor dem Importieren eines Backups müssen sowohl der Übungskatalog als auch der Lebensmittelkatalog vollständig heruntergeladen und initialisiert sein, um Dateninkonsistenzen zu vermeiden. Bitte laden Sie zuerst die erforderlichen Datenbanken herunter.';
+
+  @override
+  String get wgerPlaceholderText =>
+      'Der Übungskatalog erfordert das Herunterladen der lokalen Übungsdatenbank.';
 }

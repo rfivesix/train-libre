@@ -15,6 +15,8 @@ import 'widgets/wger_attribution_widget.dart';
 import 'create_exercise_screen.dart';
 import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/database_placeholder_widget.dart';
 
 /// A searchable list of all available exercises in the database.
 class ExerciseCatalogScreen extends StatefulWidget {
@@ -46,11 +48,29 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   List<String> _selectedCategories = [];
   Timer? _searchDebounce;
 
+  bool _isWgerDbInitialized = false;
+
+  Future<void> _checkDbStatus() async {
+    final initialized = await BasisDataManager.instance.isExerciseCatalogInitialized();
+    if (mounted) {
+      setState(() {
+        _isWgerDbInitialized = initialized;
+      });
+      if (initialized) {
+        _loadCategories();
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    _loadCategories();
+    _checkDbStatus();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      await _checkDbStatus();
+    });
   }
 
   @override
@@ -165,6 +185,21 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    if (!_isWgerDbInitialized) {
+      return Scaffold(
+        appBar: GlobalAppBar(title: l10n.shareExercisesLabel),
+        body: DatabasePlaceholderWidget(
+          title: l10n.offDownloadTitle,
+          body: l10n.wgerPlaceholderText,
+          icon: LucideIcons.dumbbell,
+          onDownloadPressed: () async {
+            await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+            await _checkDbStatus();
+          },
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: GlobalAppBar(

@@ -10,6 +10,8 @@ import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'dart:developer' as developer;
 import '../../../services/haptic_feedback_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/database_placeholder_widget.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
@@ -27,6 +29,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   bool _isDone = false;
   PermissionStatus _cameraPermissionStatus = PermissionStatus.denied;
   bool _isCheckingPermission = true;
+  bool _isRequestingPermission = false;
   late final AnimationController _animationController;
   late final Animation<double> _animation;
 
@@ -43,9 +46,21 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
   }
 
+  bool _isOffDbInitialized = false;
+
+  Future<void> _checkDbStatus() async {
+    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    if (mounted) {
+      setState(() {
+        _isOffDbInitialized = initialized;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkDbStatus();
     WidgetsBinding.instance.addObserver(this);
     _checkPermission(initial: true);
 
@@ -105,6 +120,8 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
   }
 
+  /// Reads the current camera permission status without triggering a native
+  /// permission dialog. Safe to call at any point in the lifecycle.
   Future<void> _checkPermission({bool initial = false}) async {
     final status = await Permission.camera.status;
     if (mounted) {
@@ -115,13 +132,26 @@ class _ScannerScreenState extends State<ScannerScreen>
         }
       });
     }
+  }
 
-    if (status.isDenied && !initial) {
+  /// Triggers the native camera permission dialog. Must only be called from
+  /// an explicit user action (CTA button tap) so that the native QRView
+  /// lifecycle is never invoked before the widget is mounted.
+  Future<void> _requestPermission() async {
+    if (_isRequestingPermission) return;
+    if (mounted) {
+      setState(() => _isRequestingPermission = true);
+    }
+    try {
       final result = await Permission.camera.request();
       if (mounted) {
         setState(() {
           _cameraPermissionStatus = result;
         });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRequestingPermission = false);
       }
     }
   }
@@ -134,22 +164,54 @@ class _ScannerScreenState extends State<ScannerScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        title: Text(
-          l10n.scann_barcode_capslock,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+    if (!_isOffDbInitialized) {
+      return Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: false,
+          title: Text(
+            l10n.scann_barcode_capslock,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
         ),
+        body: DatabasePlaceholderWidget(
+          title: l10n.offDownloadTitle,
+          body: l10n.offPlaceholderText,
+          icon: LucideIcons.database,
+          onDownloadPressed: () async {
+            await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+            await _checkDbStatus();
+          },
+        ),
+      );
+    }
+
+    return PopScope(
+      canPop: _cameraPermissionStatus.isGranted,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          automaticallyImplyLeading: _cameraPermissionStatus.isGranted,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: false,
+          title: Text(
+            l10n.scann_barcode_capslock,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+        ),
+        body: _buildBody(l10n),
       ),
-      body: _buildBody(l10n),
     );
   }
 
@@ -279,14 +341,22 @@ class _ScannerScreenState extends State<ScannerScreen>
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _cameraPermissionStatus.isPermanentlyDenied
-                  ? _openSettings
-                  : _checkPermission,
-              child: Text(
-                _cameraPermissionStatus.isPermanentlyDenied
-                    ? l10n.scannerOpenSettings
-                    : l10n.scannerGrantPermission,
-              ),
+              onPressed: _isRequestingPermission
+                  ? null
+                  : (_cameraPermissionStatus.isPermanentlyDenied
+                      ? _openSettings
+                      : _requestPermission),
+              child: _isRequestingPermission
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      _cameraPermissionStatus.isPermanentlyDenied
+                          ? l10n.scannerOpenSettings
+                          : l10n.scannerGrantPermission,
+                    ),
             ),
           ],
         ),

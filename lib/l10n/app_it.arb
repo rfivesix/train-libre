@@ -2172,7 +2172,7 @@
   "scannerPermissionRequired": "Per eseguire la scansione dei codici a barre è necessario l'accesso alla fotocamera.",
   "scannerPermissionPermanentlyDenied": "L'accesso alla telecamera è permanentemente negato. Abilitalo nelle impostazioni per scansionare i codici a barre.",
   "scannerOpenSettings": "Apri Impostazioni",
-  "scannerGrantPermission": "Concedere l'autorizzazione",
+  "scannerGrantPermission": "Continua",
   "scannerAlignInstruction": "Allinea il codice a barre orizzontalmente all'interno della linea laser rossa",
   "about_train_libre": "A proposito di Train Libre",
   "legal_notice": "Note legali",
@@ -2413,5 +2413,15 @@
         "type": "num"
       }
     }
-  }
+  },
+  "offDownloadTitle": "Scarica i cataloghi dei database",
+  "offDownloadBody": "Per accedere alla ricerca completa dei prodotti offline, alla scansione dei codici a barre e alle funzioni IA, inizializza i cataloghi locali. Scaricherai le ultime versioni del database da GitHub.",
+  "offDownloadConfirm": "Scarica ora",
+  "offDownloadCancel": "Non ora",
+  "offDownloadCTA": "Scarica il database",
+  "offPlaceholderText": "Le funzioni nutrizionali richiedono il catalogo del database locale.",
+  "backupImportLockedTitle": "Catalogo database richiesto",
+  "backupImportLockedBody": "Prima di importare un backup, sia il catalogo degli esercizi che quello nutrizionale devono essere completamente scaricati e inizializzati per evitare incongruenze nei dati. Si prega di scaricare prima i database richiesti.",
+  "wgerPlaceholderText": "Il catalogo degli esercizi richiede il caricamento del database locale."
 }
+

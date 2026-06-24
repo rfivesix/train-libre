@@ -8451,7 +8451,7 @@ abstract class AppLocalizations {
   /// No description provided for @scannerGrantPermission.
   ///
   /// In en, this message translates to:
-  /// **'Grant Permission'**
+  /// **'Continue'**
   String get scannerGrantPermission;
 
   /// No description provided for @scannerAlignInstruction.
@@ -9492,6 +9492,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 Rep} other{{count} Reps}}'**
   String repsCount(num count);
+
+  /// No description provided for @offDownloadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Database Catalogs'**
+  String get offDownloadTitle;
+
+  /// No description provided for @offDownloadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To access full offline product search, barcode scanning, and AI features, please initialize the local catalogs. You will download the latest database releases from GitHub.'**
+  String get offDownloadBody;
+
+  /// No description provided for @offDownloadConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Now'**
+  String get offDownloadConfirm;
+
+  /// No description provided for @offDownloadCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Now'**
+  String get offDownloadCancel;
+
+  /// No description provided for @offDownloadCTA.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Database'**
+  String get offDownloadCTA;
+
+  /// No description provided for @offPlaceholderText.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition features require the local database catalog.'**
+  String get offPlaceholderText;
+
+  /// No description provided for @backupImportLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Database Catalog Required'**
+  String get backupImportLockedTitle;
+
+  /// No description provided for @backupImportLockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Before importing a backup, both the exercise catalog and nutrition catalog must be fully downloaded and initialized to prevent data inconsistency. Please download the required databases first.'**
+  String get backupImportLockedBody;
+
+  /// No description provided for @wgerPlaceholderText.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise catalog features require the local database catalog.'**
+  String get wgerPlaceholderText;
 }
 
 class _AppLocalizationsDelegate

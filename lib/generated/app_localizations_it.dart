@@ -4873,7 +4873,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get scannerOpenSettings => 'Apri Impostazioni';
 
   @override
-  String get scannerGrantPermission => 'Concedere l\'autorizzazione';
+  String get scannerGrantPermission => 'Continua';
 
   @override
   String get scannerAlignInstruction =>
@@ -5490,4 +5490,35 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get offDownloadTitle => 'Scarica i cataloghi dei database';
+
+  @override
+  String get offDownloadBody =>
+      'Per accedere alla ricerca completa dei prodotti offline, alla scansione dei codici a barre e alle funzioni IA, inizializza i cataloghi locali. Scaricherai le ultime versioni del database da GitHub.';
+
+  @override
+  String get offDownloadConfirm => 'Scarica ora';
+
+  @override
+  String get offDownloadCancel => 'Non ora';
+
+  @override
+  String get offDownloadCTA => 'Scarica il database';
+
+  @override
+  String get offPlaceholderText =>
+      'Le funzioni nutrizionali richiedono il catalogo del database locale.';
+
+  @override
+  String get backupImportLockedTitle => 'Catalogo database richiesto';
+
+  @override
+  String get backupImportLockedBody =>
+      'Prima di importare un backup, sia il catalogo degli esercizi che quello nutrizionale devono essere completamente scaricati e inizializzati per evitare incongruenze nei dati. Si prega di scaricare prima i database richiesti.';
+
+  @override
+  String get wgerPlaceholderText =>
+      'Il catalogo degli esercizi richiede il caricamento del database locale.';
 }

@@ -17,6 +17,8 @@ import '../../settings/presentation/ai_settings_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/database_placeholder_widget.dart';
 
 /// Screen for capturing meal input via photo(s) or text before AI analysis.
 ///
@@ -51,9 +53,21 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   late AnimationController _analyzeButtonAnimationController;
 
+  bool _isOffDbInitialized = false;
+
+  Future<void> _checkDbStatus() async {
+    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    if (mounted) {
+      setState(() {
+        _isOffDbInitialized = initialized;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkDbStatus();
     _analyzeButtonAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -330,8 +344,18 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           ),
         ],
       ),
-      body: Column(
-        children: [
+      body: !_isOffDbInitialized
+          ? DatabasePlaceholderWidget(
+              title: l10n.offDownloadTitle,
+              body: l10n.offPlaceholderText,
+              icon: LucideIcons.database,
+              onDownloadPressed: () async {
+                await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+                await _checkDbStatus();
+              },
+            )
+          : Column(
+              children: [
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 20),

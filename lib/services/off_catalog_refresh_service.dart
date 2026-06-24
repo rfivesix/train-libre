@@ -163,6 +163,16 @@ class OffCatalogRefreshService {
     'salt',
   };
 
+  Future<OffCatalogManifest?> fetchManifestDirect() async {
+    final prefs = await _prefsProvider();
+    final activeCountry = OffCatalogCountryService.readActiveCountryFromPrefs(
+      prefs,
+    );
+    final config = _configResolver(activeCountry);
+    final manifestUri = _resolveUrlOrPath(config.baseUrl, config.manifestPath);
+    return _fetchManifest(manifestUri, config);
+  }
+
   Future<OffCatalogUpdateCandidate?> prepareUpdateCandidate({
     required String installedVersion,
     bool force = false,

@@ -19,43 +19,35 @@ Future<bool> showPrePermissionDialog({
   final result = await showGlassBottomMenu<bool>(
     context: context,
     title: title,
+    isDismissible: false,
+    enableDrag: false,
     contentBuilder: (ctx, close) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-            child: Text(
-              body,
-              textAlign: TextAlign.center,
-              style: Theme.of(ctx).textTheme.bodyMedium,
+      return PopScope(
+        canPop: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              child: Text(
+                body,
+                textAlign: TextAlign.center,
+                style: Theme.of(ctx).textTheme.bodyMedium,
+              ),
             ),
-          ),
-          const SizedBox(height: DesignConstants.spacingXL),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    close();
-                    Navigator.of(ctx).pop(false);
-                  },
-                  child: Text(cancelLabel),
-                ),
+            const SizedBox(height: DesignConstants.spacingXL),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  close();
+                  Navigator.of(ctx).pop(true);
+                },
+                child: Text(continueLabel),
               ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: FilledButton(
-                  onPressed: () {
-                    close();
-                    Navigator.of(ctx).pop(true);
-                  },
-                  child: Text(continueLabel),
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       );
     },
   );

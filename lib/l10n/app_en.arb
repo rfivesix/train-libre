@@ -2170,7 +2170,7 @@
   "scannerPermissionRequired": "Camera access is required to scan barcodes.",
   "scannerPermissionPermanentlyDenied": "Camera access is permanently denied. Please enable it in settings to scan barcodes.",
   "scannerOpenSettings": "Open Settings",
-  "scannerGrantPermission": "Grant Permission",
+  "scannerGrantPermission": "Continue",
   "scannerAlignInstruction": "Align barcode horizontally inside the red laser line",
   "about_train_libre": "About Train Libre",
   "legal_notice": "Legal Notice",
@@ -2540,5 +2540,15 @@
         "type": "num"
       }
     }
-  }
+  },
+  "offDownloadTitle": "Download Database Catalogs",
+  "offDownloadBody": "To access full offline product search, barcode scanning, and AI features, please initialize the local catalogs. You will download the latest database releases from GitHub.",
+  "offDownloadConfirm": "Download Now",
+  "offDownloadCancel": "Not Now",
+  "offDownloadCTA": "Download Database",
+  "offPlaceholderText": "Nutrition features require the local database catalog.",
+  "backupImportLockedTitle": "Database Catalog Required",
+  "backupImportLockedBody": "Before importing a backup, both the exercise catalog and nutrition catalog must be fully downloaded and initialized to prevent data inconsistency. Please download the required databases first.",
+  "wgerPlaceholderText": "Exercise catalog features require the local database catalog."
 }
+

@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.35] - 2026-06-25
+
+### Added
+- **Dedicated Support Page (`support.html`):** Created a premium, localized developer support page resolving Apple App Store Review Guideline 1.5 (Safety - Support URL):
+  - Integrates direct email support (`support@schotte.me`), GitHub issue tracking and bug report links, and expected response time commitments.
+  - Styled with the branded dark theme background, theme switching logic, and transparent glassmorphic card containers matching the "Developed in public" layout blocks.
+  - Added full multi-language translations for the Support page copy in English, German, French, Italian, and Japanese (`script.js`).
+- **Apple-Compliant Lazy Database Catalog Loading:** Decoupled local exercise database initialization from remote nutrition database sync to address Apple Guideline 4.2.3(ii):
+  - Exercise database is pre-seeded quietly on first launch using local assets and is guarded by a preference flag.
+  - Added dynamic file size extraction for remote exercise and nutrition catalogs using lightweight network checks.
+  - Introduced a centralized glassmorphic bottom sheet (`promptOffDatabaseDownloadIfFirstTime`) that displays dynamic sizes and lets the user choose between download and postponed state.
+  - Integrated premium fallback placeholder layouts (`DatabasePlaceholderWidget`) with download CTAs across food logs, diary searches, barcode scanner, and AI meal capture.
+
+### Changed
+- **Footer Navigation Integration (All HTML files):** Added the new "Support" page link next to Privacy Policy and Imprint across all footers, inheriting identical styling, hover states, and font sizing.
+- **Removed F-Droid Footer Link:** Cleaned up the footer by removing the "Android APK / F-Droid" link across all page footers to keep the bottom navigation focused.
+- **Strict Non-Dismissible Health Pre-Permissions:** Refactored Sleep and Pulse settings pre-permission dialogues to be non-dismissible (removing "Cancel" / "Abbrechen", expanding action buttons to full width, and blocking dismiss gestures).
+- **First Launch Database Sheet:** Added a cold-start prompt to invoke the dual-catalog download sheet once on onboarding/splash.
+- **Relaxed Backup Import Constraints:** Permitted full backup imports as long as the base exercise database is initialized, removing locks if the nutrition database download was postponed.
+
+### Fixed
+- **Camera & Health Pre-Permission Refactoring for App Store Compliance (`scanner_screen.dart`, `permission_dialogs.dart`):** Refactored permission-request screens and dialogs to strictly comply with Apple App Store Review Guidelines 5.1.1(iv):
+  - Made the Camera Pre-Permission screen non-dismissible by hiding the back button in the App Bar and blocking pop gestures / Android hardware back button.
+  - Updated the Camera primary action button text from "Grant Permission" to "Continue" (localized across all supported languages).
+  - Made the Steps/Health Pre-Permission dialog non-dismissible (disabling outside clicks, drags, and back gestures) and removed the "Cancel" option, leaving only a full-width "Continue" button.
+- **Database Download Abort Loop:** Fixed a critical bug in `AppInitializerScreen` where manual triggers (e.g. "Jetzt herunterladen" or "Download Now") were aborted instantly due to an incorrect status check fallback.
+- **Pulse Test Suite:** Updated `pulse_settings_screen_test.dart` to support the pre-permission flow.
+- **Steps / Health Sync Lifecycle & Navigation Fix (`steps_sync_service.dart`, `diary_health_sync_coordinator.dart`, `steps_settings_screen.dart`, `steps_aggregation_repository.dart`):** Resolved issues where the app blindly triggered steps-sync or health-permission prompts during screen transitions:
+  - Defaulted steps tracking setting to disabled (`false`) on fresh installs so background sync is not automatically triggered on startup.
+  - Removed the implicit permission request from the steps repository `refresh()` method so background checks run silently and handle lack of permissions gracefully without prompting the user.
+- **Barcode Scanner Crash on Camera Unavailable (`QRView.swift`, `scanner_screen.dart`):** Fixed a `SIGABRT` crash triggered whenever the camera could not be initialized (e.g. iOS Simulator, hardware failure):
+  - Root cause: `QRView.swift` passed a raw Swift `Error` (bridged as `NSError`) as the `details` field of `FlutterError`. `FlutterStandardMethodCodec` cannot serialize `NSError` objects and asserts, aborting the process.
+  - Fix: converted `error` to `error.localizedDescription` (a `String`) in the `catch` block of `startScan`. Applied via a local package override (`local_packages/qr_code_scanner_plus`) pending upstream patch in `qr_code_scanner_plus`.
+  - Additional hardening in `scanner_screen.dart`: decoupled permission status-checking (`_checkPermission`) from permission requesting (`_requestPermission`) so the native QRView lifecycle is never entangled with the permission dialog. Added an `_isRequestingPermission` guard and inline spinner on the CTA button to prevent re-entrancy.
+- **Onboarding Database Download Race Condition (`basis_data_manager.dart`):** Fixed a navigation race condition where tapping "Download" in the first-launch catalog prompt caused onboarding to advance immediately without downloading:
+  - Root cause: the download button called `Navigator.of(ctx).pop()` inside the sheet closure, which immediately resolved the outer `await showGlassBottomMenu(...)` in `AppInitializerScreen._initialize()`, causing it to continue and navigate to `OnboardingScreen` before `AppInitializerScreen(isModal: true)` could be pushed.
+  - Fix: the download button now returns `true` via `Navigator.of(ctx).pop(true)` (using the typed `showGlassBottomMenu<bool>` return value). The `AppInitializerScreen(forceUpdate: true, isModal: true)` push is performed sequentially after the sheet fully resolves, eliminating the race.
+- **Pause Time Edit Resets Unsaved Exercise Values (`edit_routine_screen.dart`):** Fixed a critical state bug where saving a pause time change reloaded the full exercise list from the database, overwriting all in-progress user edits (reps, weight, RIR) with persisted values:
+  - Replaced `_loadExercisesForRoutine()` call after pause time save with a targeted in-memory `setState` update using `RoutineExercise.copyWith(pauseSeconds: …)`, preserving all `TextEditingController` state.
+- **Missing Drag Handle on Glass Pickers (`platform_adaptive_pickers.dart`):** Added a visual drag handle pill (`44×5`) to `_GlassPickerSheet`, matching the existing design in `_GlassBottomMenuSheet` for consistent sheet UX.
+- **Pause Time Wheel Picker (`routine_pause_time_dialog.dart`, `live_workout_screen.dart`):** Replaced the `TextField` + `TimerInputFormatter` text input with an iOS-native `CupertinoTimerPicker` (minutes:seconds scroll wheel) for pause/rest timer editing:
+  - Matches the glass picker styling used in the food-logging bottom sheets.
+  - Refactored inline dialog code in `live_workout_screen.dart` to reuse `RoutinePauseTimeDialog`, eliminating duplicate text field and `StatefulBuilder` logic.
+  - Removed unused `_parsePauseTime` helper and `time_util.dart` dependency from the dialog.
+
 ## [0.9.34] - 2026-06-21
 
 ### Fixed

@@ -23,7 +23,7 @@ class StepsSettingsScreen extends StatefulWidget {
 
 class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
   final StepsSyncService _stepsSyncService = StepsSyncService();
-  bool _stepsTrackingEnabled = true;
+  bool _stepsTrackingEnabled = false;
   StepsProviderFilter _stepsProviderFilter = StepsProviderFilter.all;
   StepsSourcePolicy _stepsSourcePolicy = StepsSourcePolicy.autoDominant;
   bool _hasChanges = false;

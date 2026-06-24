@@ -55,6 +55,11 @@ void main() {
     expect(toggle.value, isFalse);
 
     await tester.tap(find.byKey(const Key('pulse_tracking_toggle')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // Confirm pre-permission dialog
+    await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
     expect(service.enabled, isTrue);
