@@ -5405,4 +5405,35 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get offDownloadTitle => 'Download Database Catalogs';
+
+  @override
+  String get offDownloadBody =>
+      'To access full offline product search, barcode scanning, and AI features, please initialize the local catalogs. You will download the latest database releases from GitHub.';
+
+  @override
+  String get offDownloadConfirm => 'Download Now';
+
+  @override
+  String get offDownloadCancel => 'Not Now';
+
+  @override
+  String get offDownloadCTA => 'Download Database';
+
+  @override
+  String get offPlaceholderText =>
+      'Nutrition features require the local database catalog.';
+
+  @override
+  String get backupImportLockedTitle => 'Database Catalog Required';
+
+  @override
+  String get backupImportLockedBody =>
+      'Before importing a backup, both the exercise catalog and nutrition catalog must be fully downloaded and initialized to prevent data inconsistency. Please download the required databases first.';
+
+  @override
+  String get wgerPlaceholderText =>
+      'Exercise catalog features require the local database catalog.';
 }

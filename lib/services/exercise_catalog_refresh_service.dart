@@ -148,6 +148,14 @@ class ExerciseCatalogRefreshService {
     'muscles_secondary',
   };
 
+  Future<ExerciseCatalogManifest?> fetchManifestDirect() async {
+    final manifestUri = _resolveUrlOrPath(
+      _config.baseUrl,
+      _config.manifestPath,
+    );
+    return _fetchManifest(manifestUri);
+  }
+
   Future<ExerciseCatalogUpdateCandidate?> prepareUpdateCandidate({
     required String installedVersion,
     bool force = false,

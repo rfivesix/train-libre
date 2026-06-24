@@ -10,6 +10,8 @@ import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'dart:developer' as developer;
 import '../../../services/haptic_feedback_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/database_placeholder_widget.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
@@ -43,9 +45,21 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
   }
 
+  bool _isOffDbInitialized = false;
+
+  Future<void> _checkDbStatus() async {
+    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    if (mounted) {
+      setState(() {
+        _isOffDbInitialized = initialized;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkDbStatus();
     WidgetsBinding.instance.addObserver(this);
     _checkPermission(initial: true);
 
@@ -133,6 +147,34 @@ class _ScannerScreenState extends State<ScannerScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    if (!_isOffDbInitialized) {
+      return Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: false,
+          title: Text(
+            l10n.scann_barcode_capslock,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+        ),
+        body: DatabasePlaceholderWidget(
+          title: l10n.offDownloadTitle,
+          body: l10n.offPlaceholderText,
+          icon: LucideIcons.database,
+          onDownloadPressed: () async {
+            await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+            await _checkDbStatus();
+          },
+        ),
+      );
+    }
 
     return PopScope(
       canPop: _cameraPermissionStatus.isGranted,

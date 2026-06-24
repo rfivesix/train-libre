@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import '../../../core/infrastructure/backup_manager.dart';
+import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../core/infrastructure/export_manager.dart';
 import '../../../core/infrastructure/import_manager.dart';
 import '../../../generated/app_localizations.dart';
@@ -128,8 +129,16 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     if (result == null || result.files.single.path == null) return;
     if (!mounted) return;
 
-    final filePath = result.files.single.path!;
     final l10n = AppLocalizations.of(context)!;
+    final wgerInitialized = await BasisDataManager.instance.isExerciseCatalogInitialized();
+    if (!mounted) return;
+
+    if (!wgerInitialized) {
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      return;
+    }
+
+    final filePath = result.files.single.path!;
     final confirmed = await showDeleteConfirmation(
       context,
       title: l10n.dialogConfirmTitle,
@@ -548,7 +557,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       );
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AppInitializerScreen()),
+        MaterialPageRoute(builder: (_) => const AppInitializerScreen(skipOffDatabase: true)),
         (route) => false,
       );
     } catch (_) {

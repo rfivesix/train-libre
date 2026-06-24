@@ -33,6 +33,8 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../../theme/color_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/database_placeholder_widget.dart';
 
 // lib/screens/add_food_screen.dart
 
@@ -244,6 +246,17 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     */
   }
 
+  bool _isOffDbInitialized = false;
+
+  Future<void> _checkDbStatus() async {
+    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    if (mounted) {
+      setState(() {
+        _isOffDbInitialized = initialized;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -259,6 +272,12 @@ class _AddFoodScreenState extends State<AddFoodScreen>
           _currentTab = _tabController.index;
         });
       }
+    });
+
+    _checkDbStatus();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      await _checkDbStatus();
     });
 
     _loadFavorites();
@@ -663,6 +682,17 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   }
 
   Widget _buildCatalogSearchTab(AppLocalizations l10n) {
+    if (!_isOffDbInitialized) {
+      return DatabasePlaceholderWidget(
+        title: l10n.offDownloadTitle,
+        body: l10n.offPlaceholderText,
+        icon: LucideIcons.database,
+        onDownloadPressed: () async {
+          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+          await _checkDbStatus();
+        },
+      );
+    }
     final colorScheme = Theme.of(context).colorScheme;
     //final textTheme = Theme.of(context).textTheme;
     //final isLightMode = Theme.of(context).brightness == Brightness.light;

@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show ByteData, rootBundle;
 import '../../data/database_helper.dart';
 import '../../data/drift_database.dart';
@@ -11,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 import 'package:drift/drift.dart' as drift;
+import 'package:http/http.dart' as http; // Added
 
 import '../../config/app_data_sources.dart';
 import '../../services/base_food_language_service.dart';
@@ -18,7 +20,13 @@ import '../../services/exercise_catalog_refresh_service.dart';
 import '../../services/off_catalog_country_service.dart';
 import '../../services/off_catalog_refresh_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../generated/app_localizations.dart';
 import '../../features/diary/domain/use_cases/retain_historical_off_products_use_case.dart';
+import '../../features/app/presentation/widgets/glass_bottom_menu.dart'; // Added
+import '../../features/app/presentation/app_initializer_screen.dart'; // Added
+import '../../util/design_constants.dart'; // Added
+import 'package:flutter_lucide/flutter_lucide.dart'; // Added
+
 
 // Type definition for the callback
 typedef ProgressCallback = void Function(
@@ -79,6 +87,13 @@ List<dynamic> _parseBatchInIsolate(_BatchImportPayload payload) {
   }
 }
 
+class CatalogSizes {
+  final double? offSizeMb;
+  final double? wgerSizeMb;
+
+  const CatalogSizes({this.offSizeMb, this.wgerSizeMb});
+}
+
 class BasisDataManager {
   /// Singleton instance of [BasisDataManager].
   static final BasisDataManager instance = BasisDataManager._init();
@@ -98,9 +113,226 @@ class BasisDataManager {
       (value as num?)?.toDouble() ?? 0.0;
   static String _parseString(dynamic value) => value?.toString() ?? '';
 
+  Future<bool> isExerciseCatalogInitialized() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('is_exercise_catalog_initialized') ?? false;
+  }
+
+  Future<bool> isOffDatabaseInitialized() async {
+    final prefs = await SharedPreferences.getInstance();
+    final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(prefs);
+    final activeOffCountry = OffCatalogCountryCodec.parseOrDefault(activeOffSource.countryCode);
+    final activeOffVersionKey = OffCatalogCountryService.installedVersionKeyForCountry(activeOffCountry);
+    final version = prefs.getString(activeOffVersionKey);
+    return version != null && version != '0' && version != '';
+  }
+
+  Future<int?> getRemoteFileSize(Uri uri) async {
+    try {
+      final client = http.Client();
+      final response = await client.head(uri).timeout(const Duration(seconds: 4));
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final contentLength = response.headers['content-length'];
+        if (contentLength != null) {
+          return int.tryParse(contentLength);
+        }
+      }
+      final response2 = await client.get(uri, headers: {'Range': 'bytes=0-0'}).timeout(const Duration(seconds: 4));
+      if (response2.statusCode == 206) {
+        final contentRange = response2.headers['content-range'];
+        if (contentRange != null) {
+          final parts = contentRange.split('/');
+          if (parts.length == 2) {
+            return int.tryParse(parts[1].trim());
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to get remote file size: $e');
+    }
+    return null;
+  }
+
+  Future<void> promptOffDatabaseDownloadIfFirstTime(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final wgerInitialized = await isExerciseCatalogInitialized();
+    final offInitialized = await isOffDatabaseInitialized();
+
+    bool wgerUpdateAvailable = false;
+    bool offUpdateAvailable = false;
+    double? wgerSize;
+    double? offSize;
+
+    try {
+      final wgerManifest = await ExerciseCatalogRefreshService.instance.fetchManifestDirect();
+      if (wgerManifest != null) {
+        final wgerInstalled = prefs.getString(_keyVersionTraining) ?? '0';
+        wgerUpdateAvailable = ExerciseCatalogRefreshService.isRemoteVersionNewer(
+          remoteVersion: wgerManifest.version,
+          installedVersion: wgerInstalled,
+        );
+        await prefs.setString('exercise_catalog_last_remote_version', wgerManifest.version);
+        final wgerBytes = await getRemoteFileSize(wgerManifest.dbUri);
+        if (wgerBytes != null) {
+          wgerSize = wgerBytes / (1024 * 1024);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting wger manifest: $e');
+    }
+
+    try {
+      final offManifest = await OffCatalogRefreshService.instance.fetchManifestDirect();
+      if (offManifest != null) {
+        final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(prefs);
+        final activeOffCountry = OffCatalogCountryCodec.parseOrDefault(activeOffSource.countryCode);
+        final activeOffVersionKey = OffCatalogCountryService.installedVersionKeyForCountry(activeOffCountry);
+        final offInstalled = prefs.getString(activeOffVersionKey) ?? '0';
+        offUpdateAvailable = OffCatalogRefreshService.isRemoteVersionNewer(
+          remoteVersion: offManifest.version,
+          installedVersion: offInstalled,
+        );
+        await prefs.setString('off_catalog_last_remote_version_${activeOffCountry.code}', offManifest.version);
+        final offBytes = await getRemoteFileSize(offManifest.dbUri);
+        if (offBytes != null) {
+          offSize = offBytes / (1024 * 1024);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting OFF manifest: $e');
+    }
+
+    final isMissingEither = !wgerInitialized || !offInitialized;
+    final isUpdateAvailable = wgerUpdateAvailable || offUpdateAvailable;
+
+    if (!isMissingEither && !isUpdateAvailable) {
+      return;
+    }
+
+    if (!isMissingEither) {
+      final lastPromptedWger = prefs.getString('last_prompted_wger_version') ?? '';
+      final lastPromptedOff = prefs.getString('last_prompted_off_version') ?? '';
+      final currentWgerRemote = prefs.getString('exercise_catalog_last_remote_version') ?? '';
+      final currentOffRemote = prefs.getString('off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ?? '';
+      
+      bool wgerMatch = !wgerUpdateAvailable || (lastPromptedWger == currentWgerRemote && currentWgerRemote.isNotEmpty);
+      bool offMatch = !offUpdateAvailable || (lastPromptedOff == currentOffRemote && currentOffRemote.isNotEmpty);
+      if (wgerMatch && offMatch) {
+        return;
+      }
+    }
+
+    if (wgerUpdateAvailable) {
+      await prefs.setString('last_prompted_wger_version', prefs.getString('exercise_catalog_last_remote_version') ?? '');
+    }
+    if (offUpdateAvailable) {
+      await prefs.setString('last_prompted_off_version', prefs.getString('off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ?? '');
+    }
+
+    if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+
+    await showGlassBottomMenu<void>(
+      context: context,
+      title: isMissingEither ? l10n.offDownloadTitle : "Update Available",
+      isDismissible: true,
+      enableDrag: true,
+      contentBuilder: (ctx, close) {
+        final wgerStatus = wgerInitialized
+            ? (wgerUpdateAvailable ? "Update Available" : "Ready")
+            : "Required";
+        final offStatus = offInitialized
+            ? (offUpdateAvailable ? "Update Available" : "Ready")
+            : "Required";
+
+        final wgerSizeText = wgerSize != null ? '${wgerSize.toStringAsFixed(1)} MB' : '1.4 MB';
+        final offSizeText = offSize != null ? '${offSize.toStringAsFixed(1)} MB' : '41.2 MB';
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              isMissingEither
+                  ? l10n.offDownloadBody
+                  : "New updates are available for your local catalogs. Would you like to update now?",
+              textAlign: TextAlign.center,
+              style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
+            Row(
+              children: [
+                const Icon(LucideIcons.dumbbell, size: 24),
+                const SizedBox(width: DesignConstants.spacingM),
+                const Expanded(
+                  child: Text("Exercise Catalog (wger)", style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+                Text(
+                  "$wgerStatus ($wgerSizeText)",
+                  style: TextStyle(
+                    color: wgerStatus == "Ready" ? Colors.green : Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
+            Row(
+              children: [
+                const Icon(LucideIcons.database, size: 24),
+                const SizedBox(width: DesignConstants.spacingM),
+                const Expanded(
+                  child: Text("Nutrition Catalog (OFF)", style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+                Text(
+                  "$offStatus ($offSizeText)",
+                  style: TextStyle(
+                    color: offStatus == "Ready" ? Colors.green : Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: DesignConstants.spacingXL),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                    child: Text(l10n.offDownloadCancel),
+                  ),
+                ),
+                const SizedBox(width: DesignConstants.spacingM),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () async {
+                      Navigator.of(ctx).pop();
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const AppInitializerScreen(
+                            forceUpdate: true,
+                            isModal: true,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(isMissingEither ? l10n.offDownloadConfirm : "Update Now"),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Public method to trigger the exercise catalog check and update process.
   Future<void> importExerciseCatalog({
     bool force = false,
+    bool checkRemote = false,
     ProgressCallback? onProgress,
     RemoteCatalogProgressCallback? onRemoteProgress,
     RemoteCatalogSkipRequested? isRemoteSkipRequested,
@@ -113,30 +345,32 @@ class BasisDataManager {
     String? remoteTrainingDbPath;
     final installedTrainingVersion =
         prefs.getString(_keyVersionTraining) ?? '0';
-    try {
-      onProgress?.call(
-        "Prüfe Übungen...",
-        "Suche nach Remote-Katalog-Updates...",
-        0.0,
-      );
-      final remoteCandidate =
-          await ExerciseCatalogRefreshService.instance.prepareUpdateCandidate(
-        installedVersion: installedTrainingVersion,
-        force: force,
-        onProgress: onRemoteProgress,
-        isSkipRequested: isRemoteSkipRequested,
-      );
-      if (remoteCandidate != null) {
-        remoteTrainingDbPath = remoteCandidate.localDbPath;
-        debugPrint('[ExerciseCatalog] Remote update available: v${remoteCandidate.version}');
+    if (force || checkRemote) {
+      try {
         onProgress?.call(
-          "Update Übungen",
-          "Remote-Katalog ${remoteCandidate.version} gefunden.",
-          0.02,
+          "Prüfe Übungen...",
+          "Suche nach Remote-Katalog-Updates...",
+          0.0,
         );
+        final remoteCandidate =
+            await ExerciseCatalogRefreshService.instance.prepareUpdateCandidate(
+          installedVersion: installedTrainingVersion,
+          force: force,
+          onProgress: onRemoteProgress,
+          isSkipRequested: isRemoteSkipRequested,
+        );
+        if (remoteCandidate != null) {
+          remoteTrainingDbPath = remoteCandidate.localDbPath;
+          debugPrint('[ExerciseCatalog] Remote update available: v${remoteCandidate.version}');
+          onProgress?.call(
+            "Update Übungen",
+            "Remote-Katalog ${remoteCandidate.version} gefunden.",
+            0.02,
+          );
+        }
+      } catch (e) {
+        debugPrint('[ExerciseCatalog] Remote check failed (non-fatal): $e');
       }
-    } catch (e) {
-      debugPrint('[ExerciseCatalog] Remote check failed (non-fatal): $e');
     }
 
     await _updateDatabaseFromSource(
@@ -156,12 +390,14 @@ class BasisDataManager {
     );
   }
 
+
   /// Checks for updates to the basis data and performs an import if necessary.
   ///
   /// The [force] parameter triggers a re-import regardless of version mismatch.
   /// The [onProgress] callback reports the ongoing task, details, and percentage.
   Future<void> checkForBasisDataUpdate({
     bool force = false,
+    bool skipOffDatabase = false,
     ProgressCallback? onProgress, // New: callback
     RemoteCatalogProgressCallback? onRemoteProgress,
     RemoteCatalogSkipRequested? isRemoteSkipRequested,
@@ -174,51 +410,47 @@ class BasisDataManager {
       await prefs.remove(_keyVersionCats);
     }
 
-    // --- FIX 1 & 2: Always run the exercise catalog check, independent of the
-    // food/category sync gate. This decouples exercise versioning (uses its own
-    // _keyVersionTraining pref key) from the food enrichment guard.
-    //
-    // Additionally, if the exercises table is empty but SharedPreferences still
-    // holds a version (e.g. after an iOS sandbox reset that wiped SQLite while
-    // NSUserDefaults survived), we force a re-seed to recover the catalog.
+    final isExerciseInitialized = prefs.getBool('is_exercise_catalog_initialized') ?? false;
     final mainDb = await DatabaseHelper.instance.database;
 
-    final exerciseCountRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercises')
-        .getSingleOrNull();
-    final exerciseCountDb = exerciseCountRow?.read<int>('c') ?? 0;
-    final translationCountRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercise_translations')
-        .getSingleOrNull();
-    final translationCountDb = translationCountRow?.read<int>('c') ?? 0;
+    if (!isExerciseInitialized || force) {
+      final exerciseCountRow = await mainDb
+          .customSelect('SELECT COUNT(*) AS c FROM exercises')
+          .getSingleOrNull();
+      final exerciseCountDb = exerciseCountRow?.read<int>('c') ?? 0;
+      final translationCountRow = await mainDb
+          .customSelect('SELECT COUNT(*) AS c FROM exercise_translations')
+          .getSingleOrNull();
+      final translationCountDb = translationCountRow?.read<int>('c') ?? 0;
 
-    final exercisesEmpty = exerciseCountDb == 0;
-    // Treat severely under-translated catalogs as corrupt: a real wger import
-    // gives at least 1 translation per exercise. Fewer means Phase 2 failed.
-    final translationsHealthy =
-        exerciseCountDb == 0 || (translationCountDb >= exerciseCountDb);
+      final exercisesEmpty = exerciseCountDb == 0;
+      final translationsHealthy =
+          exerciseCountDb == 0 || (translationCountDb >= exerciseCountDb);
 
-    if (exercisesEmpty || !translationsHealthy) {
-      await prefs.remove(_keyVersionTraining);
-      if (exercisesEmpty) {
-        debugPrint(
-          '[ExerciseCatalog] ⚠️  exercises table empty → forcing re-seed '
-          '(sandbox reset: NSUserDefaults survived SQLite wipe).',
-        );
-      } else {
-        debugPrint(
-          '[ExerciseCatalog] ⚠️  Under-translated: $translationCountDb translations '
-          'for $exerciseCountDb exercises → forcing re-seed.',
-        );
+      if (exercisesEmpty || !translationsHealthy) {
+        await prefs.remove(_keyVersionTraining);
+        if (exercisesEmpty) {
+          debugPrint(
+            '[ExerciseCatalog] ⚠️  exercises table empty → forcing re-seed '
+            '(sandbox reset: NSUserDefaults survived SQLite wipe).',
+          );
+        } else {
+          debugPrint(
+            '[ExerciseCatalog] ⚠️  Under-translated: $translationCountDb translations '
+            'for $exerciseCountDb exercises → forcing re-seed.',
+          );
+        }
       }
-    }
 
-    await importExerciseCatalog(
-      force: force,
-      onProgress: onProgress,
-      onRemoteProgress: onRemoteProgress,
-      isRemoteSkipRequested: isRemoteSkipRequested,
-    );
+      await importExerciseCatalog(
+        force: force,
+        checkRemote: force,
+        onProgress: force ? onProgress : null,
+        onRemoteProgress: force ? onRemoteProgress : null,
+        isRemoteSkipRequested: force ? isRemoteSkipRequested : null,
+      );
+      await prefs.setBool('is_exercise_catalog_initialized', true);
+    }
 
     // Post-import sanity check – only log if something looks wrong.
     final postExRow = await mainDb
@@ -341,31 +573,43 @@ class BasisDataManager {
       legacyAssetPath: AppDataSources.legacyFoodCategoriesAssetDbPath,
     );
 
+    if (skipOffDatabase) {
+      await prefs.setString('last_db_sync_app_version', currentAppBuild);
+      onProgress?.call(
+        'Produktdatenbank (${activeOffCountry.upperCode})',
+        'OFF-Katalog übersprungen.',
+        1.0,
+      );
+      return;
+    }
+
     String? remoteOffDbPath;
     final installedOffVersion = prefs.getString(activeOffVersionKey) ?? '0';
-    try {
-      onProgress?.call(
-        'Prüfe Produktdatenbank (${activeOffCountry.upperCode})...',
-        'Suche nach Remote-OFF-Katalog-Updates...',
-        0.0,
-      );
-      final remoteOffCandidate =
-          await OffCatalogRefreshService.instance.prepareUpdateCandidate(
-        installedVersion: installedOffVersion,
-        force: force,
-        onProgress: onRemoteProgress,
-        isSkipRequested: isRemoteSkipRequested,
-      );
-      if (remoteOffCandidate != null) {
-        remoteOffDbPath = remoteOffCandidate.localDbPath;
+    if (force) {
+      try {
         onProgress?.call(
-          'Update Produktdatenbank (${activeOffCountry.upperCode})',
-          'Remote-OFF-Katalog ${remoteOffCandidate.version} gefunden.',
-          0.02,
+          'Prüfe Produktdatenbank (${activeOffCountry.upperCode})...',
+          'Suche nach Remote-OFF-Katalog-Updates...',
+          0.0,
         );
+        final remoteOffCandidate =
+            await OffCatalogRefreshService.instance.prepareUpdateCandidate(
+          installedVersion: installedOffVersion,
+          force: force,
+          onProgress: onRemoteProgress,
+          isSkipRequested: isRemoteSkipRequested,
+        );
+        if (remoteOffCandidate != null) {
+          remoteOffDbPath = remoteOffCandidate.localDbPath;
+          onProgress?.call(
+            'Update Produktdatenbank (${activeOffCountry.upperCode})',
+            'Remote-OFF-Katalog ${remoteOffCandidate.version} gefunden.',
+            0.02,
+          );
+        }
+      } catch (e) {
+        debugPrint('Remote OFF catalog check skipped safely: $e');
       }
-    } catch (e) {
-      debugPrint('Remote OFF catalog check skipped safely: $e');
     }
 
     final hasBundledOffAsset =

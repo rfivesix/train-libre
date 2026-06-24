@@ -132,8 +132,8 @@ void main() async {
         ],
         child: MyApp(
           home: hasAcceptedConsent
-              ? const AppInitializerScreen()
-              : InitialConsentScreen(nextScreen: const AppInitializerScreen()),
+              ? const AppInitializerScreen(skipOffDatabase: true)
+              : InitialConsentScreen(nextScreen: const AppInitializerScreen(skipOffDatabase: true)),
         ),
       ),
     ),

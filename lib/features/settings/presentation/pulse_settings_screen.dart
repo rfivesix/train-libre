@@ -6,6 +6,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../util/permission_dialogs.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class PulseSettingsScreen extends StatefulWidget {
@@ -101,9 +102,25 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
   Future<void> _setEnabled(bool value) async {
     setState(() => _requesting = value);
     await _trackingService.setTrackingEnabled(value);
+    if (!mounted) return;
     var granted = true;
     if (value) {
-      granted = await _trackingService.requestPermissions();
+      final currentL10n = AppLocalizations.of(context)!;
+      final confirmed = await showPrePermissionDialog(
+        context: context,
+        title: currentL10n.pulseSettingsPermissionTitle,
+        body: currentL10n.pulseSettingsPermissionSubtitle,
+        continueLabel: currentL10n.health_permission_continue,
+        cancelLabel: '',
+      );
+      if (!mounted) return;
+      if (confirmed) {
+        granted = await _trackingService.requestPermissions();
+      } else {
+        await _trackingService.setTrackingEnabled(false);
+        granted = false;
+        value = false;
+      }
     }
     if (!mounted) return;
     setState(() {
@@ -119,6 +136,16 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
   }
 
   Future<void> _requestAccess() async {
+    final currentL10n = AppLocalizations.of(context)!;
+    final confirmed = await showPrePermissionDialog(
+      context: context,
+      title: currentL10n.pulseSettingsPermissionTitle,
+      body: currentL10n.pulseSettingsPermissionSubtitle,
+      continueLabel: currentL10n.health_permission_continue,
+      cancelLabel: '',
+    );
+    if (!mounted || !confirmed) return;
+
     setState(() => _requesting = true);
     final granted = await _trackingService.requestPermissions();
     if (!mounted) return;

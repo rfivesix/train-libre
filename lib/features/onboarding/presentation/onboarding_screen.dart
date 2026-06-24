@@ -6,6 +6,7 @@ import '../../../util/design_constants.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/infrastructure/backup_manager.dart';
+import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
 import '../../app/presentation/main_screen.dart';
@@ -373,6 +374,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   /// Lets the user pick a backup JSON file and import it, skipping onboarding.
   Future<void> _restoreFromBackup() async {
     final l10n = AppLocalizations.of(context)!;
+
+    final wgerInitialized = await BasisDataManager.instance.isExerciseCatalogInitialized();
+
+    if (!wgerInitialized) {
+      if (!mounted) return;
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      return;
+    }
 
     final result = await FilePicker.pickFiles(
       type: FileType.custom,

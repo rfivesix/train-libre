@@ -2413,5 +2413,15 @@
         "type": "num"
       }
     }
-  }
+  },
+  "offDownloadTitle": "Datenbank-Kataloge herunterladen",
+  "offDownloadBody": "Um auf die vollständige Offline-Produktsuche, den Barcodescanner und die KI-Funktionen zuzugreifen, initialisiere bitte die lokalen Kataloge. Sie werden die neuesten Datenbank-Releases von GitHub herunterladen.",
+  "offDownloadConfirm": "Jetzt herunterladen",
+  "offDownloadCancel": "Später",
+  "offDownloadCTA": "Datenbank herunterladen",
+  "offPlaceholderText": "Für Ernährungsfunktionen ist die lokale Produktdatenbank erforderlich.",
+  "backupImportLockedTitle": "Datenbank-Katalog erforderlich",
+  "backupImportLockedBody": "Vor dem Importieren eines Backups müssen sowohl der Übungskatalog als auch der Lebensmittelkatalog vollständig heruntergeladen und initialisiert sein, um Dateninkonsistenzen zu vermeiden. Bitte laden Sie zuerst die erforderlichen Datenbanken herunter.",
+  "wgerPlaceholderText": "Der Übungskatalog erfordert das Herunterladen der lokalen Übungsdatenbank."
 }
+

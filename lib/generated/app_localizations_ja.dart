@@ -5236,4 +5236,33 @@ class AppLocalizationsJa extends AppLocalizations {
   String repsCount(num count) {
     return '$count回';
   }
+
+  @override
+  String get offDownloadTitle => 'データベースカタログをダウンロード';
+
+  @override
+  String get offDownloadBody =>
+      'オフラインでの食品検索、バーコードスキャン、およびAI機能を利用するには、ローカルカタログを初期化してください。GitHubから最新のデータベースリリースをダウンロードします。';
+
+  @override
+  String get offDownloadConfirm => '今すぐダウンロード';
+
+  @override
+  String get offDownloadCancel => '後で';
+
+  @override
+  String get offDownloadCTA => 'データベースをダウンロード';
+
+  @override
+  String get offPlaceholderText => '栄養機能を使用するにはローカルデータベースカタログが必要です。';
+
+  @override
+  String get backupImportLockedTitle => 'データベースカタログが必要です';
+
+  @override
+  String get backupImportLockedBody =>
+      'バックアップをインポートする前に、データの不整合を防ぐため、エクササイズカタログと栄養カタログの両方を完全にダウンロードして初期化する必要があります。まず必要なデータベースをダウンロードしてください。';
+
+  @override
+  String get wgerPlaceholderText => 'エクササイズカタログ機能を使用するにはローカルデータベースカタログが必要です。';
 }

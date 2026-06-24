@@ -12,6 +12,8 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/app_section_header.dart';
 import 'widgets/off_attribution_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/database_placeholder_widget.dart';
 
 /// A lightweight, general-purpose food picker that returns a [FoodItem].
 ///
@@ -38,9 +40,21 @@ class _GeneralFoodSelectionScreenState
   List<FoodItem> _customFoodItems = [];
   bool _isLoadingCustomFoods = false;
 
+  bool _isOffDbInitialized = false;
+
+  Future<void> _checkDbStatus() async {
+    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    if (mounted) {
+      setState(() {
+        _isOffDbInitialized = initialized;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkDbStatus();
     _loadBaseCategories();
     _loadCustomFoods();
   }
@@ -213,10 +227,20 @@ class _GeneralFoodSelectionScreenState
 
     return Scaffold(
       appBar: GlobalAppBar(title: l10n.addFoodTitle),
-      body: Padding(
-        padding: DesignConstants.cardPadding,
-        child: Column(
-          children: [
+      body: !_isOffDbInitialized
+          ? DatabasePlaceholderWidget(
+              title: l10n.offDownloadTitle,
+              body: l10n.offPlaceholderText,
+              icon: LucideIcons.database,
+              onDownloadPressed: () async {
+                await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+                await _checkDbStatus();
+              },
+            )
+          : Padding(
+              padding: DesignConstants.cardPadding,
+              child: Column(
+                children: [
             SizedBox(
               height: 48,
               child: ValueListenableBuilder<TextEditingValue>(

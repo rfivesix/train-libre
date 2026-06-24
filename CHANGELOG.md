@@ -11,16 +11,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Integrates direct email support (`support@schotte.me`), GitHub issue tracking and bug report links, and expected response time commitments.
   - Styled with the branded dark theme background, theme switching logic, and transparent glassmorphic card containers matching the "Developed in public" layout blocks.
   - Added full multi-language translations for the Support page copy in English, German, French, Italian, and Japanese (`script.js`).
+- **Apple-Compliant Lazy Database Catalog Loading:** Decoupled local exercise database initialization from remote nutrition database sync to address Apple Guideline 4.2.3(ii):
+  - Exercise database is pre-seeded quietly on first launch using local assets and is guarded by a preference flag.
+  - Added dynamic file size extraction for remote exercise and nutrition catalogs using lightweight network checks.
+  - Introduced a centralized glassmorphic bottom sheet (`promptOffDatabaseDownloadIfFirstTime`) that displays dynamic sizes and lets the user choose between download and postponed state.
+  - Integrated premium fallback placeholder layouts (`DatabasePlaceholderWidget`) with download CTAs across food logs, diary searches, barcode scanner, and AI meal capture.
 
 ### Changed
 - **Footer Navigation Integration (All HTML files):** Added the new "Support" page link next to Privacy Policy and Imprint across all footers, inheriting identical styling, hover states, and font sizing.
 - **Removed F-Droid Footer Link:** Cleaned up the footer by removing the "Android APK / F-Droid" link across all page footers to keep the bottom navigation focused.
+- **Strict Non-Dismissible Health Pre-Permissions:** Refactored Sleep and Pulse settings pre-permission dialogues to be non-dismissible (removing "Cancel" / "Abbrechen", expanding action buttons to full width, and blocking dismiss gestures).
+- **First Launch Database Sheet:** Added a cold-start prompt to invoke the dual-catalog download sheet once on onboarding/splash.
+- **Relaxed Backup Import Constraints:** Permitted full backup imports as long as the base exercise database is initialized, removing locks if the nutrition database download was postponed.
 
 ### Fixed
 - **Camera & Health Pre-Permission Refactoring for App Store Compliance (`scanner_screen.dart`, `permission_dialogs.dart`):** Refactored permission-request screens and dialogs to strictly comply with Apple App Store Review Guidelines 5.1.1(iv):
   - Made the Camera Pre-Permission screen non-dismissible by hiding the back button in the App Bar and blocking pop gestures / Android hardware back button.
   - Updated the Camera primary action button text from "Grant Permission" to "Continue" (localized across all supported languages).
   - Made the Steps/Health Pre-Permission dialog non-dismissible (disabling outside clicks, drags, and back gestures) and removed the "Cancel" option, leaving only a full-width "Continue" button.
+- **Database Download Abort Loop:** Fixed a critical bug in `AppInitializerScreen` where manual triggers (e.g. "Jetzt herunterladen" or "Download Now") were aborted instantly due to an incorrect status check fallback.
+- **Pulse Test Suite:** Updated `pulse_settings_screen_test.dart` to support the pre-permission flow.
 - **Steps / Health Sync Lifecycle & Navigation Fix (`steps_sync_service.dart`, `diary_health_sync_coordinator.dart`, `steps_settings_screen.dart`, `steps_aggregation_repository.dart`):** Resolved issues where the app blindly triggered steps-sync or health-permission prompts during screen transitions:
   - Defaulted steps tracking setting to disabled (`false`) on fresh installs so background sync is not automatically triggered on startup.
   - Removed the implicit permission request from the steps repository `refresh()` method so background checks run silently and handle lack of permissions gracefully without prompting the user.
