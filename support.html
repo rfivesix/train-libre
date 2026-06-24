@@ -4,11 +4,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Train Libre - Imprint / Legal Notice">
-  <title>Imprint | Train Libre</title>
+  <meta name="description"
+    content="Support & Contact details for Train Libre. Reach out for help, report bugs, or request features.">
+  <meta name="theme-color" content="#000000">
+  <meta property="og:title" content="Support | Train Libre">
+  <meta property="og:description"
+    content="Official developer support and contact channels for Train Libre.">
+  <meta property="og:type" content="website">
+  <title>Support & Contact | Train Libre</title>
   <link rel="icon" href="../web/favicon.png">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="katex.min.css">
   <script>
     (function () {
       const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
@@ -21,7 +26,7 @@
   <div class="page">
     <header class="site-header">
       <nav class="nav" aria-label="Primary navigation">
-        <a class="brand" href="./index.html" aria-label="Train Libre home">
+        <a class="brand" href="index.html" aria-label="Train Libre home">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 270.933 270.933" role="img">
               <path fill="#ddff00"
@@ -31,12 +36,9 @@
           <span>Train Libre</span>
         </a>
         <div class="nav-links">
-          <a href="#provider" data-i18n="nav_imp_provider">Provider</a>
-          <a href="#contact" data-i18n="nav_imp_contact">Contact</a>
-          <a href="#representative" data-i18n="nav_imp_representative">Representative</a>
+          <a href="index.html" class="nav-priority">← Back to home</a>
           <a href="https://github.com/rfivesix/train-libre/releases" data-link="android_release" data-i18n="nav_android_apk" target="_blank" rel="noreferrer">Android APK</a>
-          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank"
-            rel="noreferrer">GitHub</a>
+          <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
         </div>
         <div class="nav-controls">
           <div class="dropdown" id="lang-dropdown">
@@ -52,17 +54,11 @@
             <div class="dropdown-menu">
               <button class="dropdown-item" data-lang="en">
                 <span>English</span>
-                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button class="dropdown-item" data-lang="de">
                 <span>Deutsch</span>
-                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
               <button class="dropdown-item" data-lang="fr">
                 <span>Français</span>
@@ -100,58 +96,31 @@
       </nav>
     </header>
 
-    <main>
-      <section class="hero hero-compact" aria-labelledby="imp-title">
-        <div class="hero-content reveal">
-          <h1 id="imp-title" data-i18n="imp_title">Legal Notice</h1>
+    <main style="margin-top: 120px;">
+      <section class="support-container">
+        <h1 data-i18n="support_hero_title">Support & Contact for Train Libre</h1>
+        <p data-i18n="support_hero_copy">If you have any questions, encounter issues, or want to report a bug in <strong>Train Libre</strong>, please reach out through one of our official developer support channels:</p>
+        
+        <div class="support-card">
+          <h3 data-i18n="support_email_title">Direct Email Support</h3>
+          <p data-i18n="support_email_copy">For personal or account-related inquiries, contact us directly at: <a href="mailto:support@schotte.me">support@schotte.me</a></p>
+        </div>
 
-          <div class="legal-notice-container"
-            style="text-align: left; max-width: 600px; margin: 2rem auto; display: flex; flex-direction: column; gap: 2rem;">
-            <p class="hero-copy" style="font-weight: bold; margin-bottom: -1rem;" data-i18n="imp_angaben">Information
-              according to § 5 DDG:</p>
+        <div class="support-card">
+          <h3 data-i18n="support_issues_title">Issue Tracker & Community</h3>
+          <p data-i18n="support_issues_copy">Train Libre is Open Source. You can directly browse known bugs or submit technical issue reports on our GitHub Repository: <a href="https://github.com/rfivesix/train-libre/issues" target="_blank">Submit a Bug Report</a></p>
+        </div>
 
-            <section id="provider" class="reveal" style="padding-top: 1rem;">
-              <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: var(--color-accent);"
-                data-i18n="nav_imp_provider">Provider</h2>
-              <p class="hero-copy" style="font-size: 0.95rem; line-height: 1.6; margin: 0;">
-                <span data-i18n="imp_service_provider">Service Provider / Responsible for the App “Train
-                  Libre”:</span><br>
-                <strong data-i18n="imp_name">Richard Georg Schotte</strong><br>
-                <span data-i18n="imp_address">Bundesallee 114<br>12161 Berlin<br>Germany</span>
-              </p>
-            </section>
-
-            <section id="contact" class="reveal" style="padding-top: 1rem;">
-              <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: var(--color-accent);"
-                data-i18n="nav_imp_contact">Contact</h2>
-              <p class="hero-copy" style="font-size: 0.95rem; line-height: 1.6; margin: 0;">
-                <span data-i18n="imp_email">E-Mail: feedback@schotte.me</span><br>
-                <span data-i18n="imp_phone">Phone: (+49) 1520 6915571</span>
-              </p>
-            </section>
-
-            <section id="representative" class="reveal" style="padding-top: 1rem;">
-              <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: var(--color-accent);"
-                data-i18n="nav_imp_representative">Representative</h2>
-              <p class="hero-copy" style="font-size: 0.95rem; line-height: 1.6; margin: 0;">
-                <strong data-i18n="imp_rep_label">Authorized Representative:</strong><br>
-                <span data-i18n="imp_rep_val">Richard Georg Schotte (Sole Developer)</span><br><br>
-                <span data-i18n="imp_vat_label">Umsatzsteuer-ID:</span> <span data-i18n="imp_vat_val">Nicht
-                  vorhanden</span>
-              </p>
-            </section>
-          </div>
-
-          <div class="hero-actions">
-            <a href="./index.html" class="button button-primary">← Back to home</a>
-          </div>
+        <div class="support-meta">
+          <h4 data-i18n="support_meta_title">Expected Response Time</h4>
+          <p data-i18n="support_meta_copy">We are fully committed to high software quality. All support requests via email are typically reviewed and answered within <strong>48 hours</strong>.</p>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
       <div>
-        <a class="brand" href="#top" aria-label="Train Libre home">
+        <a class="brand" href="index.html" aria-label="Train Libre home">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 270.933 270.933" role="img">
               <path fill="#ddff00"
@@ -165,14 +134,14 @@
           context, not medical diagnosis or treatment.</p>
       </div>
       <div class="footer-links">
-        <a href="./ai-nutrition/" data-i18n="intel_c1_label">AI meal recognition</a>
-        <a href="./adaptive-nutrition/" data-i18n="intel_c2_label">Calorie estimation</a>
-        <a href="./recovery/" data-i18n="footer_recovery">Recovery Tracker</a>
-        <a href="./sleep-score/" data-i18n="sleep_score_hero_t">Sleep Health Score</a>
-        <a href="./privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
-        <a href="./terms.html" data-i18n="footer_terms">Terms of Service</a>
-        <a href="./impressum.html" data-i18n="footer_imprint">Imprint</a>
-        <a href="./support.html" data-i18n="footer_support">Support</a>
+        <a href="ai-nutrition/" data-i18n="intel_c1_label">AI meal recognition</a>
+        <a href="adaptive-nutrition/" data-i18n="intel_c2_label">Calorie estimation</a>
+        <a href="recovery/" data-i18n="footer_recovery">Recovery Tracker</a>
+        <a href="sleep-score/" data-i18n="sleep_score_hero_t">Sleep Health Score</a>
+        <a href="privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
+        <a href="terms.html" data-i18n="footer_terms">Terms of Service</a>
+        <a href="impressum.html" data-i18n="footer_imprint">Imprint</a>
+        <a href="support.html" data-i18n="footer_support">Support</a>
         <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
       </div>
     </footer>

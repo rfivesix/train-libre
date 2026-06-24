@@ -1887,3 +1887,96 @@ h1 {
   color: var(--muted);
   line-height: 1.4;
 }
+
+/* Support Page Styles */
+.support-container {
+  width: min(var(--max), calc(100% - 32px));
+  margin: 0 auto;
+  padding: 0 0 88px;
+  max-width: 800px;
+}
+
+.support-container h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--fg);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.support-container > p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.support-card {
+  background: var(--summary-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: var(--transition-snappy);
+}
+
+.support-card:hover {
+  background: color-mix(in srgb, var(--summary-bg), var(--fg) 4%);
+}
+
+.support-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--fg);
+}
+
+.support-card p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0;
+}
+
+.support-card a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 150ms ease;
+}
+
+.support-card a:hover {
+  text-decoration: underline;
+}
+
+[data-theme="light"] .support-card a {
+  color: #8da100;
+}
+
+.support-meta {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 20px;
+  margin-top: 32px;
+  text-align: center;
+}
+
+.support-meta h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 8px;
+}
+
+.support-meta p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0;
+}
+
