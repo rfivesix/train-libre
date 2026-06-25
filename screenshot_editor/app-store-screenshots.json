@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 2,
+  "appName": "Train Libre",
+  "themeId": "liquid-glass",
+  "connectedCanvas": true,
+  "locales": [
+    "en",
+    "de"
+  ],
+  "locale": "de",
+  "device": "iphone",
+  "orientation": "portrait",
+  "appIcon": "/app-icon.png",
+  "slidesByDevice": {
+    "iphone": [
+      {
+        "id": "s_iphone_1",
+        "layout": "device-bottom",
+        "label": {
+          "en": "DIARY",
+          "de": "DIARY"
+        },
+        "headline": {
+          "en": "All-in-One Diary: Macros, Water & More",
+          "de": "Alles im Blick: Kalorien, Makros & Wasser"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_diary.png",
+        "transforms": {
+          "device": {
+            "x": 156.54056165594628,
+            "y": 681.8720374707259,
+            "width": 1013.6355043227666,
+            "height": 2064.96,
+            "rotation": 0,
+            "zIndex": 3
+          },
+          "caption": {
+            "x": 88.80843091334896,
+            "y": 142.12384074941457,
+            "width": 1108.8,
+            "height": 803.0400000000001,
+            "rotation": 0,
+            "zIndex": 4
+          }
+        }
+      },
+      {
+        "id": "s_iphone_2",
+        "layout": "device-top",
+        "label": {
+          "en": "WORKOUT",
+          "de": "WORKOUT"
+        },
+        "headline": {
+          "en": "Intuitive Workout Tracking (Sets, Reps, RIR)",
+          "de": "Intuitives Workout-Tracking"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_running_workout.png",
+        "inverted": true,
+        "transforms": {
+          "device": {
+            "x": 153.1822478386166,
+            "y": -286.80000000000007,
+            "width": 1013.6355043227666,
+            "height": 2064.96,
+            "rotation": 0,
+            "zIndex": 3
+          }
+        }
+      },
+      {
+        "id": "s_iphone_3",
+        "layout": "device-bottom",
+        "label": {
+          "en": "METABOLISM / TDEE",
+          "de": "METABOLISM / TDEE"
+        },
+        "headline": {
+          "en": "Adaptive TDEE & Smart Calorie Recommendations",
+          "de": "Errechne deinen echten Kalorienverbrauch (TDEE)"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_nutrition.png",
+        "transforms": {
+          "caption": {
+            "x": 105.59916763028968,
+            "y": 145.4524964597907,
+            "width": 1109,
+            "height": 887,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 153.1822478386166,
+            "y": 745.68,
+            "width": 1013.6355043227666,
+            "height": 2064.96,
+            "rotation": 0,
+            "zIndex": 3
+          }
+        }
+      },
+      {
+        "id": "s_iphone_4",
+        "layout": "device-bottom",
+        "label": {
+          "en": "AI CAPTURE",
+          "de": "AI CAPTURE"
+        },
+        "headline": {
+          "en": "Snap a Photo to Log Your Meals Instantly",
+          "de": "Mahlzeiten einfach per Foto loggen"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_ai.png"
+      },
+      {
+        "id": "s_iphone_5",
+        "layout": "device-top",
+        "label": {
+          "en": "RECOVERY",
+          "de": "RECOVERY"
+        },
+        "headline": {
+          "en": "Know Exactly When Your Muscles Are Recovered",
+          "de": "Sehe genau, wann deine Muskeln bereit sind"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_recovery.png",
+        "inverted": true
+      },
+      {
+        "id": "s_iphone_6",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PRIVACY / DATA",
+          "de": "PRIVACY / DATA"
+        },
+        "headline": {
+          "en": "Your Data Belongs to You: 100% Offline & Secure",
+          "de": "Deine Daten gehören dir: 100% offline & sicher"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_data.png"
+      }
+    ],
+    "android": [
+      {
+        "id": "s_android_1",
+        "layout": "device-bottom",
+        "label": {
+          "en": "DIARY",
+          "de": "DIARY"
+        },
+        "headline": {
+          "en": "All-in-One Diary: Macros, Water & More",
+          "de": "Alles im Blick: Kalorien, Makros & Wasser"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_diary.png"
+      },
+      {
+        "id": "s_android_2",
+        "layout": "device-top",
+        "label": {
+          "en": "WORKOUT",
+          "de": "WORKOUT"
+        },
+        "headline": {
+          "en": "Intuitive Workout Tracking (Sets, Reps, RIR)",
+          "de": "Intuitives Workout-Tracking"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_running_workout.png",
+        "inverted": true
+      },
+      {
+        "id": "s_android_3",
+        "layout": "device-bottom",
+        "label": {
+          "en": "METABOLISM / TDEE",
+          "de": "METABOLISM / TDEE"
+        },
+        "headline": {
+          "en": "Adaptive TDEE & Smart Calorie Recommendations",
+          "de": "Errechne deinen echten Kalorienverbrauch (TDEE)"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_nutrition.png"
+      },
+      {
+        "id": "s_android_4",
+        "layout": "device-bottom",
+        "label": {
+          "en": "AI CAPTURE",
+          "de": "AI CAPTURE"
+        },
+        "headline": {
+          "en": "Snap a Photo to Log Your Meals Instantly",
+          "de": "Mahlzeiten einfach per Foto loggen"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_ai.png"
+      },
+      {
+        "id": "s_android_5",
+        "layout": "device-top",
+        "label": {
+          "en": "RECOVERY",
+          "de": "RECOVERY"
+        },
+        "headline": {
+          "en": "Know Exactly When Your Muscles Are Recovered",
+          "de": "Sehe genau, wann deine Muskeln bereit sind"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_recovery.png",
+        "inverted": true
+      },
+      {
+        "id": "s_android_6",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PRIVACY / DATA",
+          "de": "PRIVACY / DATA"
+        },
+        "headline": {
+          "en": "Your Data Belongs to You: 100% Offline & Secure",
+          "de": "Deine Daten gehören dir: 100% offline & sicher"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_data.png"
+      }
+    ],
+    "ipad": [],
+    "android-7": [],
+    "android-10": [],
+    "feature-graphic": []
+  },
+  "crossScreenMockupsByDevice": {
+    "iphone": [],
+    "ipad": [],
+    "android": [],
+    "android-7": [],
+    "android-10": [],
+    "feature-graphic": []
+  }
+}
