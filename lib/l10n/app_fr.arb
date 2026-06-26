@@ -2424,6 +2424,9 @@
   "offPlaceholderText": "Les fonctionnalités de nutrition nécessitent le catalogue de base de données local.",
   "backupImportLockedTitle": "Catalogue de base de données requis",
   "backupImportLockedBody": "Avant d'importer une sauvegarde, le catalogue d'exercices et le catalogue nutritionnel doivent être entièrement téléchargés et initialisés pour éviter toute incohérence des données. Veuillez d'abord télécharger les bases de données requises.",
-  "wgerPlaceholderText": "Le catalogue d'exercices nécessite le téléchargement du catalogue de base de données local."
+  "wgerPlaceholderText": "Le catalogue d'exercices nécessite le téléchargement du catalogue de base de données local.",
+  "onboardingRegionTitle": "Sélectionner la région",
+  "onboardingRegionExplanation": "Sélectionnez le pays où vous achetez vos courses. Cela garantit que nous téléchargeons la base de données Open Food Facts correcte pour vos produits locaux.",
+  "onboardingRegionSettingsHint": "Vous pouvez modifier cela à tout moment plus tard dans Paramètres → Nutrition → Région de la base de données."
 }
 

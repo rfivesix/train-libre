@@ -9,11 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - **In-App Markdown Asset References:** Added dedicated scientific references and sources sections with clickable DOI links directly within the in-app markdown documentation assets (`muscle_recovery_model.md`, `bayesian_tdee_estimator.md`, and `sleep_scoring_engine.md`).
 - **Localization Keys:** Introduced `infoScientificReferencesButton` and `infoScientificDisclaimer` translations in English, German, French, Italian, and Japanese ARB files.
+- **Onboarding Region Selection Slide:** Introduced a new region/country selection step (`RegionSelectionSlide`) at the start of onboarding to allow users to select their local database region before any download.
+- **Device Locale Autodetection:** Added automatic detection of the user's home country from `Platform.localeName` to pre-select the dropdown default value.
+- **Onboarding Region Localization:** Added translation strings for the new selection screen in English, German, French, Italian, and Japanese ARB files.
 
 ### Changed
 - **In-App Information Transparency & Citations:** Upgraded the `AlgorithmInfoButton` widget and bottom sheet to render clinical disclaimers and clickable scientific citation external links when a `citationUrl` is provided.
 - **Algorithm Call Site Citation Wiring:** Wired up `citationUrl` properties for the Adaptive TDEE Engine (`nutrition_recommendation_card.dart`), Muscle Recovery Tracker (`recovery_tracker_screen.dart`), and Sleep Health Score (`sleep_score_card.dart` and `sleep_period_scope_layout.dart`) to deep-link users to relevant website evidence pages.
 - **Website Citations Expansion:** Expanded the `#evidence` sections on the public-facing website pages (`adaptive-nutrition`, `recovery`, and `sleep-score`) with peer-reviewed medical and sports science references (including Mifflin, Harris-Benedict, Ratamess, AASM, SATED, and Buysse).
+- **Splash Screen Database Prompt Removal:** Removed the automatic first-launch database catalog prompt from the initializer splash screen (`AppInitializerScreen`) to avoid showing it before onboarding.
+- **Region-scoped Database Download:** Configured the onboarding "Next" action on the region selection screen to actively write the user's chosen region configuration and prompt for the regional database download/unpacking cycle.
+- **Onboarding Widget Tests:** Updated the test suites in `onboarding_test.dart` and `adaptive_recommendation_settings_flow_test.dart` to support the updated page indices and bypass the dialog in test environments.
 
 ### Fixed
 - **LaTeX Parser Crash in Recovery Info Dialog:** Resolved a KaTeX rendering crash (`Parser Error: Can't use function '$' in math mode`) inside markdown headings in the Muscle Recovery Tracker details sheet by replacing greedy inline `$` math delimiters with markdown-compatible `\(...\)` delimiters.

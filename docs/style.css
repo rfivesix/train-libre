@@ -1786,6 +1786,7 @@ h1 {
   border-radius: 12px;
   color: var(--fg);
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .math-block .katex-display {
@@ -1799,6 +1800,20 @@ h1 {
   padding: 1px 5px;
   border-radius: 4px;
   font-size: 0.95rem;
+}
+
+/* Ensure rendered KaTeX inline math scales and scrolls cleanly without breaking layouts */
+.katex {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  vertical-align: middle;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.katex::-webkit-scrollbar {
+  display: none;
 }
 
 .math-var {
@@ -1873,6 +1888,7 @@ h1 {
 
 .pipeline-meta {
   flex-grow: 1;
+  min-width: 0;
 }
 
 .pipeline-title {
@@ -1880,12 +1896,14 @@ h1 {
   color: var(--fg);
   font-size: 0.95rem;
   margin-bottom: 2px;
+  overflow-wrap: break-word;
 }
 
 .pipeline-desc {
   font-size: 0.88rem;
   color: var(--muted);
   line-height: 1.4;
+  overflow-wrap: break-word;
 }
 
 /* Support Page Styles */

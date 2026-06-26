@@ -9558,6 +9558,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exercise catalog features require the local database catalog.'**
   String get wgerPlaceholderText;
+
+  /// No description provided for @onboardingRegionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Region'**
+  String get onboardingRegionTitle;
+
+  /// No description provided for @onboardingRegionExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the country where you buy your groceries. This ensures we download the correct Open Food Facts database for your local products.'**
+  String get onboardingRegionExplanation;
+
+  /// No description provided for @onboardingRegionSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change this at any time later in Settings → Nutrition → Database Region.'**
+  String get onboardingRegionSettingsHint;
 }
 
 class _AppLocalizationsDelegate

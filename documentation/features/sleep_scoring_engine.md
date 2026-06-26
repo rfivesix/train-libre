@@ -1,6 +1,5 @@
 # Fitness-Oriented Sleep Health Score (SHS v3.5) Heuristic
 
-> [!IMPORTANT]
 > **Non-Medical Disclaimer**: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking recovery, performance, and general well-being. It is not a diagnostic tool and does not apply to clinical sleep disorders (such as insomnia, sleep apnea, or other sleep pathologies). All scoring weights, optimal targets (e.g. 90 minutes deep sleep), and threshold boundaries are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or diagnostic criteria.
 
 This document defines the mathematical architecture of the fitness-oriented **Sleep Health Score v3.5 (SHS v3.5)** engine. Moving away from rigid, binary hard-cap cutoffs (SHS v3), version 3.5 implements a continuous, multi-domain soft-cap multiplier system that dynamically degrades the composite sleep score based on the single worst-performing biological bottleneck.

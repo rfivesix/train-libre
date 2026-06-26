@@ -5272,4 +5272,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get wgerPlaceholderText => 'エクササイズカタログ機能を使用するにはローカルデータベースカタログが必要です。';
+
+  @override
+  String get onboardingRegionTitle => '地域の選択';
+
+  @override
+  String get onboardingRegionExplanation =>
+      '食料品を購入する国を選択してください。これにより、地域の製品に適した正しいOpen Food Factsデータベースがダウンロードされます。';
+
+  @override
+  String get onboardingRegionSettingsHint =>
+      'これは後でいつでも「設定 → 栄養 → データベース地域」で変更できます。';
 }

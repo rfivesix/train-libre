@@ -1,6 +1,5 @@
 # Fitness-Oriented Muscle Recovery & Fatigue Heuristic
 
-> [!IMPORTANT]
 > **Non-Medical Disclaimer**: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking performance and workout recovery. It does not apply to clinical conditions, injury diagnosis, or medical rehabilitation. All recovery timelines, baseline windows (e.g. 24–120 hours), set extensions, and readiness categories are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or direct experimental derivations.
 
 The **Muscle Recovery Model** in Train Libre is a fitness-oriented, non-clinical piecewise linear decay heuristic designed to estimate readiness scores *R*(*t*) for individual muscle groups. It accounts for non-linear recovery curves, set-weighting based on primary vs. secondary involvement, and sports-science-inspired baseline extensions.

@@ -5489,4 +5489,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get wgerPlaceholderText =>
       'Der Übungskatalog erfordert das Herunterladen der lokalen Übungsdatenbank.';
+
+  @override
+  String get onboardingRegionTitle => 'Region auswählen';
+
+  @override
+  String get onboardingRegionExplanation =>
+      'Wähle das Land aus, in dem du deine Lebensmittel kaufst. Dies stellt sicher, dass wir die richtige Open Food Facts-Datenbank für deine lokalen Produkte herunterladen.';
+
+  @override
+  String get onboardingRegionSettingsHint =>
+      'Du kannst dies später jederzeit unter Einstellungen → Ernährung → Datenbank-Region ändern.';
 }

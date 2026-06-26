@@ -1,6 +1,5 @@
 # Fitness-Oriented Bayesian TDEE Estimator & Adaptive Diet Phase Engine
 
-> [!IMPORTANT]
 > **Non-Medical Disclaimer**: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking performance and dietary habits. It is not intended for clinical use, diagnostics, or managing medical conditions (such as eating disorders or endocrine/metabolic diseases). All calorie estimates, adaptive calculations, and target adjustment suggestions are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or direct experimental derivations.
 
 The **Bayesian TDEE Estimator** is the mathematical foundation of Train Libre's adaptive diet recommendations. It runs entirely on-device, implementing a customized one-dimensional **Recursive Kalman Filter** to estimate a user's latent Total Daily Energy Expenditure (TDEE). Unlike simple moving averages or static calculators, this estimator models metabolic changes dynamically, using a simplified dynamic energy balance heuristic inspired by Hall’s mathematical models of human body weight change and energy imbalance. It assigns mathematical certainty to logging habits, scales observation variance based on logging completeness, and automatically manages calorie target changes.

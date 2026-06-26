@@ -2551,6 +2551,9 @@
   "offPlaceholderText": "Nutrition features require the local database catalog.",
   "backupImportLockedTitle": "Database Catalog Required",
   "backupImportLockedBody": "Before importing a backup, both the exercise catalog and nutrition catalog must be fully downloaded and initialized to prevent data inconsistency. Please download the required databases first.",
-  "wgerPlaceholderText": "Exercise catalog features require the local database catalog."
+  "wgerPlaceholderText": "Exercise catalog features require the local database catalog.",
+  "onboardingRegionTitle": "Select Region",
+  "onboardingRegionExplanation": "Select the country where you buy your groceries. This ensures we download the correct Open Food Facts database for your local products.",
+  "onboardingRegionSettingsHint": "You can change this at any time later in Settings → Nutrition → Database Region."
 }
 

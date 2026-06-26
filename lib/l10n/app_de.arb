@@ -2424,6 +2424,9 @@
   "offPlaceholderText": "Für Ernährungsfunktionen ist die lokale Produktdatenbank erforderlich.",
   "backupImportLockedTitle": "Datenbank-Katalog erforderlich",
   "backupImportLockedBody": "Vor dem Importieren eines Backups müssen sowohl der Übungskatalog als auch der Lebensmittelkatalog vollständig heruntergeladen und initialisiert sein, um Dateninkonsistenzen zu vermeiden. Bitte laden Sie zuerst die erforderlichen Datenbanken herunter.",
-  "wgerPlaceholderText": "Der Übungskatalog erfordert das Herunterladen der lokalen Übungsdatenbank."
+  "wgerPlaceholderText": "Der Übungskatalog erfordert das Herunterladen der lokalen Übungsdatenbank.",
+  "onboardingRegionTitle": "Region auswählen",
+  "onboardingRegionExplanation": "Wähle das Land aus, in dem du deine Lebensmittel kaufst. Dies stellt sicher, dass wir die richtige Open Food Facts-Datenbank für deine lokalen Produkte herunterladen.",
+  "onboardingRegionSettingsHint": "Du kannst dies später jederzeit unter Einstellungen → Ernährung → Datenbank-Region ändern."
 }
 

@@ -5444,4 +5444,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get wgerPlaceholderText =>
       'Exercise catalog features require the local database catalog.';
+
+  @override
+  String get onboardingRegionTitle => 'Select Region';
+
+  @override
+  String get onboardingRegionExplanation =>
+      'Select the country where you buy your groceries. This ensures we download the correct Open Food Facts database for your local products.';
+
+  @override
+  String get onboardingRegionSettingsHint =>
+      'You can change this at any time later in Settings → Nutrition → Database Region.';
 }

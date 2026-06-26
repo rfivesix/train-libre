@@ -5529,4 +5529,15 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get wgerPlaceholderText =>
       'Il catalogo degli esercizi richiede il caricamento del database locale.';
+
+  @override
+  String get onboardingRegionTitle => 'Seleziona regione';
+
+  @override
+  String get onboardingRegionExplanation =>
+      'Seleziona il paese in cui acquisti la spesa. Ciò garantisce il download del database Open Food Facts corretto per i tuoi prodotti locali.';
+
+  @override
+  String get onboardingRegionSettingsHint =>
+      'Puoi modificarlo in qualsiasi momento in Impostazioni → Nutrizione → Regione del database.';
 }
