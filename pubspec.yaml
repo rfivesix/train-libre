@@ -88,7 +88,6 @@ flutter:
 
   assets:
     - assets/icon/train-libre_icon_dark_green_no_bg.svg
-    - assets/images/max_mustermann.png
     - assets/db/
     - assets/privacy/
     - assets/legal/

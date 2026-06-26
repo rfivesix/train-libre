@@ -1,8 +1,9 @@
-# Bayesian TDEE Estimator & Adaptive Diet Phase Engine
+# Fitness-Oriented Bayesian TDEE Estimator & Adaptive Diet Phase Engine
 
-The **Bayesian TDEE Estimator** is the mathematical foundation of Train Libre's adaptive diet recommendations. It runs entirely on-device, implementing a customized one-dimensional **Recursive Kalman Filter** to estimate a user's latent Total Daily Energy Expenditure (TDEE). 
+> [!IMPORTANT]
+> **Non-Medical Disclaimer**: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking performance and dietary habits. It is not intended for clinical use, diagnostics, or managing medical conditions (such as eating disorders or endocrine/metabolic diseases). All calorie estimates, adaptive calculations, and target adjustment suggestions are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or direct experimental derivations.
 
-Unlike simple moving averages or static calculators, this estimator models metabolic changes dynamically, assigns mathematical certainty to logging habits, scales observation variance based on logging completeness, and automatically manages calorie target changes.
+The **Bayesian TDEE Estimator** is the mathematical foundation of Train Libre's adaptive diet recommendations. It runs entirely on-device, implementing a customized one-dimensional **Recursive Kalman Filter** to estimate a user's latent Total Daily Energy Expenditure (TDEE). Unlike simple moving averages or static calculators, this estimator models metabolic changes dynamically, using a simplified dynamic energy balance heuristic inspired by Hall’s mathematical models of human body weight change and energy imbalance. It assigns mathematical certainty to logging habits, scales observation variance based on logging completeness, and automatically manages calorie target changes.
 
 ---
 
@@ -22,6 +23,8 @@ The energetic value of bodyweight changes (*kcalPerKg*) is not static. During tr
 *   **Week 9+ (Mature)**: Scales to the physiological standard:
     $$\text{kcalPerKg} = 7700 \text{ kcal/kg}$$
 
+*Note: The 3000→7700 kcal/kg 9-week linear ramp is an engineering safeguard and modeling abstraction to attenuate early water-driven weight changes; it is not directly specified in any single study but is chosen to be conservative relative to empirically observed weight change energy densities.*
+
 This linear transition prevents sudden, massive adjustments to calorie recommendations during the initial, highly volatile weeks of a new diet phase.
 
 ---
@@ -29,6 +32,8 @@ This linear transition prevents sudden, massive adjustments to calorie recommend
 ## 2. Mathematical Modeling of Uncertainty (Observation Variance)
 
 A Kalman Filter relies on the ratio of system process noise to observation noise to adjust its update weight (Kalman Gain). Train Libre computes the **Observation Variance** (*R_t*) dynamically for each logging cycle based on data density and accuracy.
+
+*Note: Numeric values for base model error, day-to-day logging noise, and slope deviations are heuristic engineering parameters and modeling abstractions calibrated from the variability reported in free-living energy intake modeling studies rather than formal inferential statistics from a single paper.*
 
 ### Step 2.1: Reference Variance (*V_ref*)
 The baseline uncertainty is a combination of three independent standard error sources:
@@ -120,15 +125,15 @@ $$Q_{\text{scale}} = \text{clamp}\left(\left(\frac{\text{weeklyRmsDelta}}{40}\ri
 
 ---
 
-## 5. Diagnostic Residual Bias & Stabilization
+## 5. Residual Variance Bias & Stabilization Heuristic
 
-### Residual Bias Diagnostics
-The estimator summarizes the 8-week history of residuals (*e_t* = *M_t* - *X_{t|t-1}*) to check for persistent systematic bias:
-*   **Likely Overestimating Energy Density**: If the mean residual is > +40 kcal/day, the user may be under-reporting portion sizes or overestimating calorie burns.
-*   **Likely Underestimating Energy Density**: If the mean residual is < -40 kcal/day, the user may be over-reporting portion sizes.
+### Residual Bias Indicators
+The estimator summarizes the 8-week history of residuals (*e_t* = *M_t* - *X_{t|t-1}*) to check for persistent systematic bias. These indicators are data-quality suggestions rather than metabolic or clinical diagnostics:
+*   **Potential Logging Variance Indicator (data-quality hint, not a metabolic diagnosis)**: If the mean residual is > +40 kcal/day, the user's logs may be under-reporting portion sizes or overestimating calorie burns.
+*   **Potential Logging Variance Indicator (data-quality hint, not a metabolic diagnosis)**: If the mean residual is < -40 kcal/day, the user's logs may be over-reporting portion sizes.
 
 ### Confidence Ratings
-Recommendations are given a confidence rating based on logging history and uncertainty:
+Recommendations are given an interpretative confidence rating based on logging history and uncertainty:
 1.  **High Confidence**: Logging history ≥ 21 days, effective sample size ≥ 10, and posterior variance ≤ 25% of the variance cap.
 2.  **Medium Confidence**: Logging history ≥ 14 days, effective sample size ≥ 7, and posterior variance ≤ 45% of the variance cap.
 3.  **Low Confidence**: Logging history ≥ 7 days, effective sample size ≥ 4, and posterior variance ≤ 70% of the variance cap.
@@ -136,8 +141,8 @@ Recommendations are given a confidence rating based on logging history and uncer
 
 ---
 
-## 6. Clinical Disclaimer
-The Bayesian TDEE Estimator is a mathematical heuristic based on thermodynamic energy balance principles and recursive filtering. While highly accurate for most individuals, it cannot account for complex metabolic pathologies, medication-induced thermal variance, or severe hormonal disruptions. Users should consult a qualified nutrition professional before making aggressive adjustments to their caloric intake based on these estimates.
+## 6. Non-Clinical Heuristic Disclaimer
+The Bayesian TDEE Estimator is a sports-science-inspired, non-clinical fitness heuristic based on thermodynamic energy balance concepts and recursive filtering. While highly stable for healthy individuals tracking physical performance, it is not a diagnostic tool and does not apply to clinical conditions (such as eating disorders, endocrine disorders, or metabolic pathologies). The underlying mathematical model is based on healthy population averages and may not apply to individuals with metabolic or medical concerns. Users should consult a qualified healthcare professional before making changes to their caloric intake.
 
 ---
 
