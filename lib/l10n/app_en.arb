@@ -2236,6 +2236,8 @@
   "infoRecoveryKeyPoints": "• Accounts for overlapping muscle stress (e.g., Bench Press counts for Chest, Triceps, and Shoulders).\n• Scales recovery speed based on RIR/RPE and extends the window for sets taken to failure.\n• Calibrates baseline recovery windows based on muscle group size and metabolic properties.",
   "infoRecoveryTechnicalTitle": "Equivalent Set Fatigue & Piecewise Decay Model",
   "infoRecoveryTechnicalExplanation": "Calculates dynamic readiness via non-linear decay curves. Volume tracking automatically distributes load between primary and secondary muscle groups. Recovery speed scales based on proximity to failure (RIR) and applies a strict timeline extension for sets taken to absolute failure.",
+  "infoScientificReferencesButton": "View Scientific References & Sources",
+  "infoScientificDisclaimer": "This feature uses established sports science and metabolic modeling literature as its foundation. The full list of peer-reviewed sources is available on our website.",
   "infoAiMealTitle": "AI Meal Capture Hub",
   "infoAiMealExplanation": "Converts meal photos or text descriptions into structured diary entries and matches them against your private product database.",
   "infoAiMealKeyPoints": "• Translates imprecise descriptions (e.g., 'a slice of bread') into metric weight estimates.\n• Matches AI suggestions offline against the local product database on your device.\n• Computes nutrition locally instead of delegating calculations to external servers.",
@@ -2549,6 +2551,9 @@
   "offPlaceholderText": "Nutrition features require the local database catalog.",
   "backupImportLockedTitle": "Database Catalog Required",
   "backupImportLockedBody": "Before importing a backup, both the exercise catalog and nutrition catalog must be fully downloaded and initialized to prevent data inconsistency. Please download the required databases first.",
-  "wgerPlaceholderText": "Exercise catalog features require the local database catalog."
+  "wgerPlaceholderText": "Exercise catalog features require the local database catalog.",
+  "onboardingRegionTitle": "Select Region",
+  "onboardingRegionExplanation": "Select the country where you buy your groceries. This ensures we download the correct Open Food Facts database for your local products.",
+  "onboardingRegionSettingsHint": "You can change this at any time later in Settings → Nutrition → Database Region."
 }
 

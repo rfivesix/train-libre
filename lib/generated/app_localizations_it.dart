@@ -5092,6 +5092,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Calcola la prontezza dinamica tramite curve di decadimento non lineari. Il monitoraggio del volume distribuisce automaticamente il carico tra i gruppi muscolari primari e secondari. La velocità di recupero scala in base alla prossimità al fallimento (RIR) e applica una rigorosa estensione temporale per i set portati al fallimento assoluto.';
 
   @override
+  String get infoScientificReferencesButton =>
+      'Visualizza riferimenti scientifici e fonti';
+
+  @override
+  String get infoScientificDisclaimer =>
+      'Questa funzionalità si basa su letteratura consolidata di scienze dello sport e modellazione metabolica. L\'elenco completo delle fonti peer-reviewed è disponibile sul nostro sito web.';
+
+  @override
   String get infoAiMealTitle => 'Hub di acquisizione pasti AI';
 
   @override
@@ -5521,4 +5529,15 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get wgerPlaceholderText =>
       'Il catalogo degli esercizi richiede il caricamento del database locale.';
+
+  @override
+  String get onboardingRegionTitle => 'Seleziona regione';
+
+  @override
+  String get onboardingRegionExplanation =>
+      'Seleziona il paese in cui acquisti la spesa. Ciò garantisce il download del database Open Food Facts corretto per i tuoi prodotti locali.';
+
+  @override
+  String get onboardingRegionSettingsHint =>
+      'Puoi modificarlo in qualsiasi momento in Impostazioni → Nutrizione → Regione del database.';
 }

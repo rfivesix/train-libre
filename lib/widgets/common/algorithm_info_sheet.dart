@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_markdown_plus_latex/flutter_markdown_plus_latex.dart';
 import 'package:markdown/markdown.dart' as md;
+import 'package:url_launcher/url_launcher.dart';
+import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -27,6 +29,9 @@ class AlgorithmInfoButton extends StatelessWidget {
   /// Optional asset path to a markdown file containing a clinical-grade deep dive.
   final String? markdownAssetPath;
 
+  /// Optional URL to external scientific references & citations page.
+  final String? citationUrl;
+
   /// Custom icon color to override the theme primary color.
   final Color? iconColor;
 
@@ -38,6 +43,7 @@ class AlgorithmInfoButton extends StatelessWidget {
     required this.technicalTitle,
     required this.technicalExplanation,
     this.markdownAssetPath,
+    this.citationUrl,
     this.iconColor,
   });
 
@@ -60,6 +66,7 @@ class AlgorithmInfoButton extends StatelessWidget {
               technicalTitle: technicalTitle,
               technicalExplanation: technicalExplanation,
               markdownAssetPath: markdownAssetPath,
+              citationUrl: citationUrl,
             );
           },
           child: Tooltip(
@@ -87,6 +94,7 @@ void showAlgorithmInfoBottomSheet(
   required String technicalTitle,
   required String technicalExplanation,
   String? markdownAssetPath,
+  String? citationUrl,
 }) {
   showModalBottomSheet(
     context: context,
@@ -100,6 +108,7 @@ void showAlgorithmInfoBottomSheet(
       technicalTitle: technicalTitle,
       technicalExplanation: technicalExplanation,
       markdownAssetPath: markdownAssetPath,
+      citationUrl: citationUrl,
     ),
   );
 }
@@ -111,6 +120,7 @@ class _AlgorithmInfoBottomSheet extends StatefulWidget {
   final String technicalTitle;
   final String technicalExplanation;
   final String? markdownAssetPath;
+  final String? citationUrl;
 
   const _AlgorithmInfoBottomSheet({
     required this.title,
@@ -119,6 +129,7 @@ class _AlgorithmInfoBottomSheet extends StatefulWidget {
     required this.technicalTitle,
     required this.technicalExplanation,
     this.markdownAssetPath,
+    this.citationUrl,
   });
 
   @override
@@ -406,6 +417,53 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                         ],
                       ),
                     ),
+                    if (widget.citationUrl != null) ...[
+                      const SizedBox(height: DesignConstants.spacingL),
+                      // Clinical disclaimer
+                      Text(
+                        AppLocalizations.of(context)!
+                            .infoScientificDisclaimer,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: cs.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
+                      // Clickable citation link
+                      InkWell(
+                        onTap: () => launchUrl(
+                          Uri.parse(widget.citationUrl!),
+                          mode: LaunchMode.externalApplication,
+                        ),
+                        borderRadius: BorderRadius.circular(
+                            DesignConstants.borderRadiusS),
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            children: [
+                              Icon(LucideIcons.external_link,
+                                  size: 16, color: cs.primary),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  AppLocalizations.of(context)!
+                                      .infoScientificReferencesButton,
+                                  style: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                    color: cs.primary,
+                                    fontWeight: FontWeight.w600,
+                                    decoration:
+                                        TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: DesignConstants.bottomContentSpacer),
                   ],
                 ),

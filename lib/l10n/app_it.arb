@@ -2238,6 +2238,8 @@
   "infoRecoveryKeyPoints": "• Tiene conto dello stress muscolare sovrapposto (ad esempio, la distensione su panca conta per petto, tricipiti e spalle).\n• Ridimensiona la velocità di recupero in base a RIR/RPE ed estende la finestra per i set portati al fallimento.\n• Calibra le finestre di recupero di base in base alle dimensioni del gruppo muscolare e alle proprietà metaboliche.",
   "infoRecoveryTechnicalTitle": "Modello di fatica dell'insieme equivalente e di decadimento a pezzi",
   "infoRecoveryTechnicalExplanation": "Calcola la prontezza dinamica tramite curve di decadimento non lineari. Il monitoraggio del volume distribuisce automaticamente il carico tra i gruppi muscolari primari e secondari. La velocità di recupero scala in base alla prossimità al fallimento (RIR) e applica una rigorosa estensione temporale per i set portati al fallimento assoluto.",
+  "infoScientificReferencesButton": "Visualizza riferimenti scientifici e fonti",
+  "infoScientificDisclaimer": "Questa funzionalità si basa su letteratura consolidata di scienze dello sport e modellazione metabolica. L'elenco completo delle fonti peer-reviewed è disponibile sul nostro sito web.",
   "infoAiMealTitle": "Hub di acquisizione pasti AI",
   "infoAiMealExplanation": "Converte le foto dei pasti o le descrizioni testuali in voci di diario strutturato e le confronta con il database dei prodotti privato.",
   "infoAiMealKeyPoints": "• Traduce descrizioni imprecise (ad esempio, \"una fetta di pane\") in stime di peso metrico.\n• Confronta i suggerimenti dell'intelligenza artificiale offline con il database dei prodotti locali sul tuo dispositivo.\n• Calcola la nutrizione localmente invece di delegare i calcoli a server esterni.",
@@ -2422,6 +2424,9 @@
   "offPlaceholderText": "Le funzioni nutrizionali richiedono il catalogo del database locale.",
   "backupImportLockedTitle": "Catalogo database richiesto",
   "backupImportLockedBody": "Prima di importare un backup, sia il catalogo degli esercizi che quello nutrizionale devono essere completamente scaricati e inizializzati per evitare incongruenze nei dati. Si prega di scaricare prima i database richiesti.",
-  "wgerPlaceholderText": "Il catalogo degli esercizi richiede il caricamento del database locale."
+  "wgerPlaceholderText": "Il catalogo degli esercizi richiede il caricamento del database locale.",
+  "onboardingRegionTitle": "Seleziona regione",
+  "onboardingRegionExplanation": "Seleziona il paese in cui acquisti la spesa. Ciò garantisce il download del database Open Food Facts corretto per i tuoi prodotti locali.",
+  "onboardingRegionSettingsHint": "Puoi modificarlo in qualsiasi momento in Impostazioni → Nutrizione → Regione del database."
 }
 

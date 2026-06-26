@@ -5052,6 +5052,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Berechnet die dynamische Muskelbereitschaft über nicht-lineare Abklingskurven. Das Volumen-Tracking ordnet Sätze automatisch primären und sekundären Zielmuskeln zu, wodurch die Belastung bei Verbundübungen auf synergistische Fasern verteilt wird. Die Erholungsgeschwindigkeit skaliert basierend auf der Nähe zum Muskelversagen (RIR) und verhängt eine strikte Verlängerung für Sätze bis zum absoluten Versagen.';
 
   @override
+  String get infoScientificReferencesButton =>
+      'Wissenschaftliche Referenzen & Quellen ansehen';
+
+  @override
+  String get infoScientificDisclaimer =>
+      'Diese Funktion basiert auf etablierter sportwissenschaftlicher und metabolischer Fachliteratur. Die vollständige Liste der begutachteten Quellen ist auf unserer Website verfügbar.';
+
+  @override
   String get infoAiMealTitle => 'KI-Mahlzeitenerkennung Hub';
 
   @override
@@ -5481,4 +5489,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get wgerPlaceholderText =>
       'Der Übungskatalog erfordert das Herunterladen der lokalen Übungsdatenbank.';
+
+  @override
+  String get onboardingRegionTitle => 'Region auswählen';
+
+  @override
+  String get onboardingRegionExplanation =>
+      'Wähle das Land aus, in dem du deine Lebensmittel kaufst. Dies stellt sicher, dass wir die richtige Open Food Facts-Datenbank für deine lokalen Produkte herunterladen.';
+
+  @override
+  String get onboardingRegionSettingsHint =>
+      'Du kannst dies später jederzeit unter Einstellungen → Ernährung → Datenbank-Region ändern.';
 }

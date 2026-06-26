@@ -5103,6 +5103,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Calcule la préparation dynamique via des courbes de décroissance non linéaires. Le suivi du volume répartit automatiquement la charge entre les groupes musculaires primaires et secondaires. La vitesse de récupération évolue en fonction de la proximité de la défaillance (RIR) et applique une extension de délai stricte pour les ensembles amenés à une défaillance absolue.';
 
   @override
+  String get infoScientificReferencesButton =>
+      'Voir les références scientifiques et sources';
+
+  @override
+  String get infoScientificDisclaimer =>
+      'Cette fonctionnalité repose sur la littérature établie en sciences du sport et en modélisation métabolique. La liste complète des sources évaluées par des pairs est disponible sur notre site web.';
+
+  @override
   String get infoAiMealTitle => 'Centre de capture de repas IA';
 
   @override
@@ -5535,4 +5543,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get wgerPlaceholderText =>
       'Le catalogue d\'exercices nécessite le téléchargement du catalogue de base de données local.';
+
+  @override
+  String get onboardingRegionTitle => 'Sélectionner la région';
+
+  @override
+  String get onboardingRegionExplanation =>
+      'Sélectionnez le pays où vous achetez vos courses. Cela garantit que nous téléchargeons la base de données Open Food Facts correcte pour vos produits locaux.';
+
+  @override
+  String get onboardingRegionSettingsHint =>
+      'Vous pouvez modifier cela à tout moment plus tard dans Paramètres → Nutrition → Région de la base de données.';
 }

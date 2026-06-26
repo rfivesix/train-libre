@@ -123,6 +123,10 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
+      // Navigate past region selection slide to profile slide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
+
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
@@ -186,6 +190,10 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
+      // Navigate past region selection slide to profile slide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
+
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
@@ -239,11 +247,15 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
+      // Navigate past region selection slide to profile slide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
+
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
       );
-      // Navigate: profile(1) → measurements(2) → adaptive goals(3)
+      // Navigate: profile(2) → measurements(3) → adaptive goals(4)
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
@@ -305,13 +317,17 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
+      // Navigate past region selection slide to profile slide
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         'Alex',
       );
-      // Navigate through the 6-page onboarding flow:
-      // profile(1) → measurements(2) → adaptive(3) → nutrition(4) →
-      // ai_health(5, last page)
+      // Navigate through the 7-page onboarding flow:
+      // profile(2) → measurements(3) → adaptive(4) → nutrition(5) →
+      // ai_health(6, last page)
       await tester.tap(nextButton); // profile -> measurements
       await tester.pumpAndSettle();
       await tester.tap(nextButton); // measurements -> adaptive

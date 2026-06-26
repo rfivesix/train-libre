@@ -57,16 +57,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     if (!widget.isModal) {
       await _prepareCoreServices();
 
-      // Cold Start Prompt: On the very first fresh launch of the app (during Onboarding/Splash),
-      // invoke the dual-catalog installation sheet once.
-      final prefs = await SharedPreferences.getInstance();
-      final isFirstLaunch = prefs.getBool('is_first_launch_prompted') != true;
-      if (isFirstLaunch) {
-        await prefs.setBool('is_first_launch_prompted', true);
-        if (mounted) {
-          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
-        }
-      }
+      // Cold Start first launch prompt is handled during onboarding region selection.
     }
 
     final isOffDbInitialized = await BasisDataManager.instance.isOffDatabaseInitialized();

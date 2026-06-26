@@ -8844,6 +8844,18 @@ abstract class AppLocalizations {
   /// **'Calculates dynamic readiness via non-linear decay curves. Volume tracking automatically distributes load between primary and secondary muscle groups. Recovery speed scales based on proximity to failure (RIR) and applies a strict timeline extension for sets taken to absolute failure.'**
   String get infoRecoveryTechnicalExplanation;
 
+  /// No description provided for @infoScientificReferencesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'View Scientific References & Sources'**
+  String get infoScientificReferencesButton;
+
+  /// No description provided for @infoScientificDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature uses established sports science and metabolic modeling literature as its foundation. The full list of peer-reviewed sources is available on our website.'**
+  String get infoScientificDisclaimer;
+
   /// No description provided for @infoAiMealTitle.
   ///
   /// In en, this message translates to:
@@ -9546,6 +9558,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exercise catalog features require the local database catalog.'**
   String get wgerPlaceholderText;
+
+  /// No description provided for @onboardingRegionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Region'**
+  String get onboardingRegionTitle;
+
+  /// No description provided for @onboardingRegionExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the country where you buy your groceries. This ensures we download the correct Open Food Facts database for your local products.'**
+  String get onboardingRegionExplanation;
+
+  /// No description provided for @onboardingRegionSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change this at any time later in Settings → Nutrition → Database Region.'**
+  String get onboardingRegionSettingsHint;
 }
 
 class _AppLocalizationsDelegate

@@ -2238,6 +2238,8 @@
   "infoRecoveryKeyPoints": "• Tient compte du stress musculaire qui se chevauche (par exemple, le développé couché compte pour la poitrine, les triceps et les épaules).\n• Ajuste la vitesse de récupération en fonction du RIR/RPE et étend la fenêtre pour les ensembles mis en échec.\n• Calibre les fenêtres de récupération de base en fonction de la taille du groupe musculaire et des propriétés métaboliques.",
   "infoRecoveryTechnicalTitle": "Modèle équivalent de fatigue et de décroissance par morceaux",
   "infoRecoveryTechnicalExplanation": "Calcule la préparation dynamique via des courbes de décroissance non linéaires. Le suivi du volume répartit automatiquement la charge entre les groupes musculaires primaires et secondaires. La vitesse de récupération évolue en fonction de la proximité de la défaillance (RIR) et applique une extension de délai stricte pour les ensembles amenés à une défaillance absolue.",
+  "infoScientificReferencesButton": "Voir les références scientifiques et sources",
+  "infoScientificDisclaimer": "Cette fonctionnalité repose sur la littérature établie en sciences du sport et en modélisation métabolique. La liste complète des sources évaluées par des pairs est disponible sur notre site web.",
   "infoAiMealTitle": "Centre de capture de repas IA",
   "infoAiMealExplanation": "Convertit les photos de repas ou les descriptions textuelles en entrées de journal structurées et les compare à votre base de données de produits privée.",
   "infoAiMealKeyPoints": "• Traduit des descriptions imprécises (par exemple, « une tranche de pain ») en estimations de poids métriques.\n• Fait correspondre les suggestions d'IA hors ligne avec la base de données de produits locale sur votre appareil.\n• Calcule la nutrition localement au lieu de déléguer les calculs à des serveurs externes.",
@@ -2422,6 +2424,9 @@
   "offPlaceholderText": "Les fonctionnalités de nutrition nécessitent le catalogue de base de données local.",
   "backupImportLockedTitle": "Catalogue de base de données requis",
   "backupImportLockedBody": "Avant d'importer une sauvegarde, le catalogue d'exercices et le catalogue nutritionnel doivent être entièrement téléchargés et initialisés pour éviter toute incohérence des données. Veuillez d'abord télécharger les bases de données requises.",
-  "wgerPlaceholderText": "Le catalogue d'exercices nécessite le téléchargement du catalogue de base de données local."
+  "wgerPlaceholderText": "Le catalogue d'exercices nécessite le téléchargement du catalogue de base de données local.",
+  "onboardingRegionTitle": "Sélectionner la région",
+  "onboardingRegionExplanation": "Sélectionnez le pays où vous achetez vos courses. Cela garantit que nous téléchargeons la base de données Open Food Facts correcte pour vos produits locaux.",
+  "onboardingRegionSettingsHint": "Vous pouvez modifier cela à tout moment plus tard dans Paramètres → Nutrition → Région de la base de données."
 }
 

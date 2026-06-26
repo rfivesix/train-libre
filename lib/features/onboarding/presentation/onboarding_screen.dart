@@ -28,6 +28,10 @@ import '../../settings/presentation/steps_settings_screen.dart';
 import 'widgets/welcome_slide.dart';
 import 'widgets/profile_slide.dart';
 import 'widgets/adaptive_goal_slide.dart';
+import 'widgets/region_selection_slide.dart';
+import '../../../services/off_catalog_country_service.dart';
+import '../../../config/app_data_sources.dart';
+import 'dart:io';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart';
 
@@ -50,11 +54,13 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const int _profilePageIndex = 1;
-  static const int _adaptiveGoalPageIndex = 3;
-  static const int _pageCount = 6;
+  static const int _regionSelectionPageIndex = 1;
+  static const int _profilePageIndex = 2;
+  static const int _adaptiveGoalPageIndex = 4;
+  static const int _pageCount = 7;
   static const int _lastPageIndex = _pageCount - 1;
 
+  OffCatalogCountry _selectedOffCountry = OffCatalogCountry.de;
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool _isRestoring = false;
@@ -106,6 +112,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _recommendationService = widget.recommendationService ??
         AdaptiveNutritionRecommendationService(databaseHelper: _databaseHelper);
     _loadAdaptiveGoalSettings();
+    _initSelectedCountry();
+  }
+
+  Future<void> _initSelectedCountry() async {
+    final active = await OffCatalogCountryService.readActiveCountry();
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey(OffCatalogCountryService.preferenceKey)) {
+      final detected = _detectDeviceCountry();
+      setState(() {
+        _selectedOffCountry = detected;
+      });
+    } else {
+      setState(() {
+        _selectedOffCountry = active;
+      });
+    }
+  }
+
+  OffCatalogCountry _detectDeviceCountry() {
+    try {
+      final locale = Platform.localeName.toLowerCase();
+      final parts = locale.split(RegExp('[_-]'));
+      if (parts.length > 1) {
+        final countryPart = parts[1];
+        final code = countryPart == 'gb' ? 'uk' : countryPart;
+        for (final c in AppDataSources.supportedOffCatalogCountries) {
+          if (c.code == code) {
+            return c;
+          }
+        }
+      }
+      final langPart = parts.first;
+      for (final c in AppDataSources.supportedOffCatalogCountries) {
+        if (c.code == langPart) {
+          return c;
+        }
+      }
+    } catch (_) {}
+    return AppDataSources.defaultOffCatalogCountry;
   }
 
   @override
@@ -470,6 +515,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _nextPage() async {
+    if (_currentPage == _regionSelectionPageIndex) {
+      await OffCatalogCountryService.writeActiveCountry(_selectedOffCountry);
+      if (mounted) {
+        final isTesting = Platform.environment.containsKey('FLUTTER_TEST');
+        if (!isTesting) {
+          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+        }
+      }
+    }
+
     if (_currentPage == _profilePageIndex) {
       if (_nameController.text.trim().isEmpty) return;
     }
@@ -534,6 +589,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     isRestoring: _isRestoring,
                     onContinue: _nextPage,
                     onRestore: _restoreFromBackup,
+                  ),
+                  RegionSelectionSlide(
+                    selectedCountry: _selectedOffCountry,
+                    onSelectCountry: (country) {
+                      setState(() {
+                        _selectedOffCountry = country;
+                      });
+                    },
                   ),
                   ProfileSlide(
                     nameController: _nameController,

@@ -1,6 +1,8 @@
-# Sleep Health Score (SHS v3.5) Architecture
+# Fitness-Oriented Sleep Health Score (SHS v3.5) Heuristic
 
-This document defines the production-grade mathematical architecture of the **Sleep Health Score v3.5 (SHS v3.5)** engine. Moving away from rigid, binary hard-cap cutoffs (SHS v3), version 3.5 implements a continuous, multi-domain soft-cap multiplier system that dynamically degrades the composite sleep score based on the single worst-performing biological bottleneck.
+> **Non-Medical Disclaimer**: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking recovery, performance, and general well-being. It is not a diagnostic tool and does not apply to clinical sleep disorders (such as insomnia, sleep apnea, or other sleep pathologies). All scoring weights, optimal targets (e.g. 90 minutes deep sleep), and threshold boundaries are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or diagnostic criteria.
+
+This document defines the mathematical architecture of the fitness-oriented **Sleep Health Score v3.5 (SHS v3.5)** engine. Moving away from rigid, binary hard-cap cutoffs (SHS v3), version 3.5 implements a continuous, multi-domain soft-cap multiplier system that dynamically degrades the composite sleep score based on the single worst-performing biological bottleneck.
 
 ---
 
@@ -12,7 +14,7 @@ The Sleep Health Score (*SHS*) is constructed in two sequential phases:
 
 ### Top-Level Weighted Aggregation
 
-The base score *SHS_base* ∈ [0, 100] aggregates 5 dimensions according to specific clinical weight allocations:
+The base score *SHS_base* ∈ [0, 100] aggregates 5 dimensions according to specific fitness-oriented weight allocations. These relative weights and mathematical curves are engineering design choices tuned for sports recovery and performance tracking, using consensus guidelines and sleep quality indicators as qualitative anchors rather than prescriptive clinical thresholds:
 
 *   **Sleep Duration (*D*)** - **30%**: Evaluates overall sleep volume against homeostatic sleep need.
 *   **Sleep Continuity (*C*)** - **20%**: Assesses fragmentation, divided equally (50/50) between Sleep Efficiency (*C_SE*) and Wake After Sleep Onset (*C_WASO*).
@@ -120,9 +122,9 @@ $$S_R(SD_{mid}) = \frac{1}{1 + (SD_{mid} / 1.0)^2}$$
 
 ## 3. Smartwatch Data Mapping Spec
 
-Clinical sleep studies (Polysomnography or PSG) differentiate between four distinct sleep stages: Wake, N1 (lightest), N2 (moderate light), and N3 (deep slow-wave sleep). However, commercial smartwatches and fitness trackers (Apple Watch, Garmin, Fitbit, Oura) compress these clinical categories into a unified, consumer-friendly taxonomy. 
+Scientific sleep studies (Polysomnography or PSG) differentiate between four distinct sleep stages: Wake, N1 (lightest), N2 (moderate light), and N3 (deep slow-wave sleep). However, commercial smartwatches and fitness trackers (Apple Watch, Garmin, Fitbit, Oura) compress these categories into a unified, consumer-friendly taxonomy. 
 
-To bridge the gap between academic clinical science and commercial API constraints, the Sleep Health Scoring Engine maps wearable data streams to the mathematical models as follows:
+To bridge the gap between academic sports science and commercial API constraints, the Sleep Health Scoring Engine maps wearable data streams to the mathematical models as follows:
 
 ### 3.1 Parameter Translation Matrix
 
@@ -132,9 +134,9 @@ To bridge the gap between academic clinical science and commercial API constrain
 | **REM Sleep** | *t_REM* | Stage REM (Rapid Eye Movement) | Absolute minutes spent in dream sleep. Fed directly into REM sleep quality score (*A_REM*) and REM Sleep Multiplier (*M_REM*). |
 | **Light Sleep** | *p_light* | Stage N1 + Stage N2 | Expressed as a percentage of Total Sleep Time (TST): <br> $$p_{light} = 100 \cdot \left( \frac{\text{Vendor Light Sleep Minutes}}{\text{Total Sleep Time Minutes}} \right)$$ <br> Fed into the Light-stage Percentage Penalty (*P_light*) curve. |
 
-### 3.2 Clinical Rationale for Smartwatch Mapping
+### 3.2 Sports-Science Rationale for Smartwatch Mapping
 
-1. **Light Sleep Compression (*p_light*)**: Smartwatches are highly accurate at separating overall light sleep from deep/REM, but lack the EEG resolution to reliably differentiate PSG Stage N1 from Stage N2. In healthy PSG, N1 constitutes ~5% and N2 constitutes ~50% of sleep (totaling ~55%). To account for this wearable limitation, our engine establishes an optimal threshold for Light-stage sleep at ≤ 65%. This grants a generous 10% clinical buffer to prevent false penalties from tracking noise while strictly penalizing highly fragmented sleep (where light sleep exceeds 65% due to stage-regression).
+1. **Light Sleep Compression (*p_light*)**: Smartwatches are highly accurate at separating overall light sleep from deep/REM, but lack the EEG resolution to reliably differentiate PSG Stage N1 from Stage N2. In healthy PSG, N1 constitutes ~5% and N2 constitutes ~50% of sleep (totaling ~55%). To account for this wearable limitation, our engine establishes an optimal threshold for Light-stage sleep at ≤ 65%. This grants a generous 10% non-clinical buffer to prevent false penalties from tracking noise while strictly penalizing highly fragmented sleep (where light sleep exceeds 65% due to stage-regression).
 2. **Missing SE/WASO Continuity Fallback**: Classic sleep continuity metrics require explicit and highly accurate recognition of micro-arousals (WASO) and total sleep opportunity (Sleep Efficiency). Cheap trackers or restrictive API integrations often do not export total awake minutes or time-in-bed. When WASO/SE are missing:
    - The engine falls back to an architecture-continuity proxy (*S_C, fallback*).
    - The fallback is weighted 90% towards 1.0 - *lightSleepPenalty* and 10% towards the *S_D*(*h*) duration score.
@@ -201,5 +203,16 @@ The following table summarizes the boundary conditions of the continuous soft-ca
 
 ---
 
-## 6. Clinical Disclaimer
-The Sleep Health Score (SHS) is a directional heuristic designed for health optimization and educational purposes. It is not a diagnostic tool for sleep apnea, insomnia, or other clinical sleep disorders. The accuracy of the score is inherently dependent on the data quality and sampling frequency of the underlying wearable hardware.
+## 6. Non-Clinical Heuristic Disclaimer
+The Sleep Health Score (SHS) is a fitness-oriented, non-clinical directional heuristic designed for sleep recovery tracking and educational purposes. It is not a diagnostic tool and does not identify or manage clinical sleep disorders (such as insomnia, sleep apnea, or other sleep pathologies). The accuracy of the score is dependent on the data quality and sampling frequency of the underlying wearable hardware. The mathematical curves and optimal targets are modeling choices designed for athletic recovery tracking in healthy individuals rather than medical thresholds.
+
+---
+
+## 7. Scientific References & Sources
+- Ohayon et al. (2017) — *National Sleep Foundation's sleep quality recommendations: first report*. DOI: [10.1016/j.sleh.2016.11.002](https://doi.org/10.1016/j.sleh.2016.11.002)
+- Watson et al. (2015) — *Recommended Amount of Sleep for a Healthy Adult: A Joint Consensus Statement of the American Academy of Sleep Medicine and Sleep Research Society*. DOI: [10.5664/jcsm.9538](https://doi.org/10.5664/jcsm.9538)
+- AASM (2020) — *Consensus Statement on Sleep Duration for Healthy Adults*. DOI: [10.3389/fneur.2020.00762](https://doi.org/10.3389/fneur.2020.00762)
+- Buysse (2014) — *Sleep Health: Can We Define It? Does It Matter?*. DOI: [10.1093/sleep/zsu056](https://doi.org/10.1093/sleep/zsu056)
+- Ruhr-Universität Bochum (RU-SATED) — *Multi-domain continuous sleep tracking validation*. DOI: [10.1093/sleep/zsab134](https://doi.org/10.1093/sleep/zsab134)
+- SATED Index — *Quantifying Sleep Health Beyond Subjective Inventories*. DOI: [10.1016/j.physbeh.2018.11.032](https://doi.org/10.1016/j.physbeh.2018.11.032)
+

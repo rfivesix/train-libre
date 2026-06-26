@@ -32,9 +32,13 @@ void main() {
     await tester.tap(button);
     await tester.pumpAndSettle();
 
-    // Now on page 1: Unit System. Need to tap Next to go to Profile.
+    // Now on page 1: Region Selection. Need to tap Next to go to Profile.
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
     expect(nextButton, findsOneWidget);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    // Now on page 2: Profile. Need to tap Next to go to Measurements.
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
