@@ -8,28 +8,28 @@ The **Muscle Recovery Model** in Train Libre is a piecewise linear decay heurist
 
 The readiness of a muscle group at time *t* (hours since last load) is calculated using a 3-phase piecewise interpolation mapping, ensuring a non-linear recovery curve that accounts for acute fatigue, adaptation, and supercompensation.
 
-### Phase 1: Acute Recovery ($t \leq T_{rec}$)
+### Phase 1: Acute Recovery (\(t \leq T_{rec}\))
 During the initial recovery window, readiness scales from 10% to 60%:
 $$R(t) = 10.0 + (60.0 - 10.0) \cdot \frac{t}{T_{rec}}$$
 
-### Phase 2: Adaptation Window ($T_{rec} < t \leq T_{ready}$)
+### Phase 2: Adaptation Window (\(T_{rec} < t \leq T_{ready}\))
 As the muscle enters the adaptation phase, readiness scales from 60% to 85%:
 $$R(t) = 60.0 + (85.0 - 60.0) \cdot \frac{t - T_{rec}}{T_{ready} - T_{rec}}$$
 
-### Phase 3: Supercompensation ($t > T_{ready}$)
+### Phase 3: Supercompensation (\(t > T_{ready}\))
 Beyond the primary recovery window, the muscle enters supercompensation, scaling from 85% toward 100% over a 48-hour rolling window:
 $$R(t) = \text{clamp}\left( 85.0 + (100.0 - 85.0) \cdot \frac{t - T_{ready}}{48.0}, \; 85.0, \; 100.0 \right)$$
 
 ### Dynamic Recovery Windows
-The time thresholds ($T_{rec}$ and $T_{ready}$) are determined by muscle-specific baselines modified by volume and intensity extensions.
+The time thresholds (\(T_{rec}\) and \(T_{ready}\)) are determined by muscle-specific baselines modified by volume and intensity extensions.
 
-- **Muscle Baselines**: Standard groups (e.g., Chest) default to $T_{rec}=48h$ and $T_{ready}=72h$, while smaller groups (e.g., Biceps) use shorter windows (36h/60h), and large posterior chain groups (e.g., Quads/Lower Back) use extended windows (up to 72h/120h).
+- **Muscle Baselines**: Standard groups (e.g., Chest) default to \(T_{rec}=48h\) and \(T_{ready}=72h\), while smaller groups (e.g., Biceps) use shorter windows (36h/60h), and large posterior chain groups (e.g., Quads/Lower Back) use extended windows (up to 72h/120h).
 - **Volume Extensions**: Training volume beyond metabolic clearing thresholds expands the windows:
     - 3–5 sets: +6 hours
     - 5–8 sets: +12 hours
     - 8–11 sets: +24 hours
     - 11+ sets: +36 hours
-- **Intensity Extensions**: High-intensity efforts (Session $avgRIR \leq 0.5$ or $avgRPE \geq 8.5$) add a flat +24 hour penalty to both $T_{rec}$ and $T_{ready}$.
+- **Intensity Extensions**: High-intensity efforts (Session \(avgRIR \leq 0.5\) or \(avgRPE \geq 8.5\)) add a flat +24 hour penalty to both \(T_{rec}\) and \(T_{ready}\).
 
 ---
 
@@ -71,3 +71,14 @@ Readiness is categorized into three discrete states for user presentation:
 
 ## 5. Clinical Disclaimer
 This model is a directional heuristic based on established sports science literature (NSCA, AASM) regarding muscle protein synthesis and nervous system recovery windows. It does not account for individual genetic variance, nutrition quality, or systemic stressors.
+
+---
+
+## 6. Scientific References & Sources
+- Morán-Navarro et al. (2017) — *Time course of recovery following resistance training leading or not to failure*. DOI: [10.1007/s00421-017-3704-9](https://doi.org/10.1007/s00421-017-3704-9)
+- Schoenfeld et al. (2017) — *Dose-response relationship between weekly resistance training volume and increases in muscle mass*. DOI: [10.1080/02640414.2016.1243800](https://doi.org/10.1080/02640414.2016.1243800)
+- Sánchez-Medina & González-Badillo (2011) — *Velocity loss as an indicator of neuromuscular fatigue*. DOI: [10.1249/MSS.0b013e318213f880](https://doi.org/10.1249/MSS.0b013e318213f880)
+- Ratamess et al. (2009) — *NSCA Position Stand: Progression Models in Resistance Training*. DOI: [10.1519/JSC.0b013e3181e382ec](https://doi.org/10.1519/JSC.0b013e3181e382ec)
+- Vieira et al. (2016) — *Effects of resistance training to failure on recovery kinetics*. DOI: [10.1007/s40279-016-0543-8](https://doi.org/10.1007/s40279-016-0543-8)
+- Watson et al. (2015) — *AASM Recommended Amount of Sleep for a Healthy Adult*. DOI: [10.5664/jcsm.9538](https://doi.org/10.5664/jcsm.9538)
+- Damas et al. (2019) — *Resistance training‐induced changes in integrated myofibrillar protein synthesis*. DOI: [10.1249/MSS.0000000000002473](https://doi.org/10.1249/MSS.0000000000002473)

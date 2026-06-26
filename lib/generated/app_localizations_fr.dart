@@ -5103,6 +5103,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Calcule la préparation dynamique via des courbes de décroissance non linéaires. Le suivi du volume répartit automatiquement la charge entre les groupes musculaires primaires et secondaires. La vitesse de récupération évolue en fonction de la proximité de la défaillance (RIR) et applique une extension de délai stricte pour les ensembles amenés à une défaillance absolue.';
 
   @override
+  String get infoScientificReferencesButton =>
+      'Voir les références scientifiques et sources';
+
+  @override
+  String get infoScientificDisclaimer =>
+      'Cette fonctionnalité repose sur la littérature établie en sciences du sport et en modélisation métabolique. La liste complète des sources évaluées par des pairs est disponible sur notre site web.';
+
+  @override
   String get infoAiMealTitle => 'Centre de capture de repas IA';
 
   @override

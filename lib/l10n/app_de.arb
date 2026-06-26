@@ -2238,6 +2238,8 @@
   "infoRecoveryKeyPoints": "• Berücksichtigt überlappende Muskelbelastungen (z. B. wird Bankdrücken der Brust, dem Trizeps und der vorderen Schulter angerechnet).\n• Skaliert die Regenerationsgeschwindigkeit basierend auf RIR/RPE und verlängert das Fenster bei Sätzen bis zum Muskelversagen.\n• Kalibriert die Basis-Erholungszeit je nach Größe der Muskelgruppe.",
   "infoRecoveryTechnicalTitle": "Equivalent Set Fatigue & Piecewise Decay Model",
   "infoRecoveryTechnicalExplanation": "Berechnet die dynamische Muskelbereitschaft über nicht-lineare Abklingskurven. Das Volumen-Tracking ordnet Sätze automatisch primären und sekundären Zielmuskeln zu, wodurch die Belastung bei Verbundübungen auf synergistische Fasern verteilt wird. Die Erholungsgeschwindigkeit skaliert basierend auf der Nähe zum Muskelversagen (RIR) und verhängt eine strikte Verlängerung für Sätze bis zum absoluten Versagen.",
+  "infoScientificReferencesButton": "Wissenschaftliche Referenzen & Quellen ansehen",
+  "infoScientificDisclaimer": "Diese Funktion basiert auf etablierter sportwissenschaftlicher und metabolischer Fachliteratur. Die vollständige Liste der begutachteten Quellen ist auf unserer Website verfügbar.",
   "infoAiMealTitle": "KI-Mahlzeitenerkennung Hub",
   "infoAiMealExplanation": "Trägt Mahlzeitenfotos oder Freitexte in strukturierte Tagebucheinträge ein und gleicht diese mit deiner privaten Produktdatenbank ab.",
   "infoAiMealKeyPoints": "• Übersetzt ungenaue Beschreibungen (z. B. 'eine Scheibe Brot') in metrische Gewichtsschätzungen.\n• Gleicht KI-Vorschläge offline mit der lokalen Produktdatenbank du deinem Gerät ab.\n• Berechnet Nährwerte lokal auf deinem Gerät, anstatt Berechnungen an externe Server zu delegieren.",

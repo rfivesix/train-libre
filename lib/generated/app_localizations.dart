@@ -8844,6 +8844,18 @@ abstract class AppLocalizations {
   /// **'Calculates dynamic readiness via non-linear decay curves. Volume tracking automatically distributes load between primary and secondary muscle groups. Recovery speed scales based on proximity to failure (RIR) and applies a strict timeline extension for sets taken to absolute failure.'**
   String get infoRecoveryTechnicalExplanation;
 
+  /// No description provided for @infoScientificReferencesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'View Scientific References & Sources'**
+  String get infoScientificReferencesButton;
+
+  /// No description provided for @infoScientificDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature uses established sports science and metabolic modeling literature as its foundation. The full list of peer-reviewed sources is available on our website.'**
+  String get infoScientificDisclaimer;
+
   /// No description provided for @infoAiMealTitle.
   ///
   /// In en, this message translates to:

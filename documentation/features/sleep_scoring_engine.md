@@ -203,3 +203,14 @@ The following table summarizes the boundary conditions of the continuous soft-ca
 
 ## 6. Clinical Disclaimer
 The Sleep Health Score (SHS) is a directional heuristic designed for health optimization and educational purposes. It is not a diagnostic tool for sleep apnea, insomnia, or other clinical sleep disorders. The accuracy of the score is inherently dependent on the data quality and sampling frequency of the underlying wearable hardware.
+
+---
+
+## 7. Scientific References & Sources
+- Ohayon et al. (2017) — *National Sleep Foundation's sleep quality recommendations: first report*. DOI: [10.1016/j.sleh.2016.11.002](https://doi.org/10.1016/j.sleh.2016.11.002)
+- Watson et al. (2015) — *Recommended Amount of Sleep for a Healthy Adult: A Joint Consensus Statement of the American Academy of Sleep Medicine and Sleep Research Society*. DOI: [10.5664/jcsm.9538](https://doi.org/10.5664/jcsm.9538)
+- AASM (2020) — *Consensus Statement on Sleep Duration for Healthy Adults*. DOI: [10.3389/fneur.2020.00762](https://doi.org/10.3389/fneur.2020.00762)
+- Buysse (2014) — *Sleep Health: Can We Define It? Does It Matter?*. DOI: [10.1093/sleep/zsu056](https://doi.org/10.1093/sleep/zsu056)
+- Ruhr-Universität Bochum (RU-SATED) — *Multi-domain continuous sleep tracking validation*. DOI: [10.1093/sleep/zsab134](https://doi.org/10.1093/sleep/zsab134)
+- SATED Index — *Quantifying Sleep Health Beyond Subjective Inventories*. DOI: [10.1016/j.physbeh.2018.11.032](https://doi.org/10.1016/j.physbeh.2018.11.032)
+

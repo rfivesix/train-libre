@@ -4852,6 +4852,13 @@ class AppLocalizationsJa extends AppLocalizations {
       '非線形減衰曲線を介して動的準備状況を計算します。ボリューム追跡により、一次筋群と二次筋群の間で負荷が自動的に分散されます。回復速度は障害近接度 (RIR) に基づいて調整され、絶対的な障害に至るまでのセットに対して厳密なタイムライン延長が適用されます。';
 
   @override
+  String get infoScientificReferencesButton => '科学的参考文献とソースを表示';
+
+  @override
+  String get infoScientificDisclaimer =>
+      'この機能は、確立されたスポーツ科学および代謝モデリングの文献に基づいています。査読付き文献の完全なリストは当社ウェブサイトでご覧いただけます。';
+
+  @override
   String get infoAiMealTitle => 'AIミールキャプチャハブ';
 
   @override

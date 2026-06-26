@@ -626,6 +626,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
             technicalExplanation: l10n.infoRecoveryTechnicalExplanation,
             markdownAssetPath:
                 'documentation/features/muscle_recovery_model.md',
+            citationUrl:
+                'https://rfivesix.github.io/train-libre/recovery/#evidence',
             iconColor: Theme.of(context).colorScheme.onSurface,
           ),
         ],

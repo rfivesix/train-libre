@@ -138,3 +138,14 @@ Recommendations are given a confidence rating based on logging history and uncer
 
 ## 6. Clinical Disclaimer
 The Bayesian TDEE Estimator is a mathematical heuristic based on thermodynamic energy balance principles and recursive filtering. While highly accurate for most individuals, it cannot account for complex metabolic pathologies, medication-induced thermal variance, or severe hormonal disruptions. Users should consult a qualified nutrition professional before making aggressive adjustments to their caloric intake based on these estimates.
+
+---
+
+## 7. Scientific References & Sources
+- Hall, K. D. (2008) — *The dynamics of human body weight change*. DOI: [10.1371/journal.pcbi.1000045](https://doi.org/10.1371/journal.pcbi.1000045)
+- Hall et al. (2011) — *Quantification of the effect of energy imbalance on bodyweight*. DOI: [10.1016/S0140-6736(11)60812-X](https://doi.org/10.1016/S0140-6736(11)60812-X)
+- Mifflin et al. (1990) — *A new predictive equation for resting energy expenditure in healthy individuals*. DOI: [10.1016/0002-8223(05)80008-1](https://doi.org/10.1016/0002-8223(05)80008-1)
+- Müller & Bosy-Westphal (2013) — *Adaptive thermogenesis with weight loss in humans*. DOI: [10.1111/j.1467-789X.2012.01045.x](https://doi.org/10.1111/j.1467-789X.2012.01045.x)
+- Frankenfield et al. (2005) — *Comparison of predictive equations for resting metabolic rate*. DOI: [10.1249/MSS.0b013e3181aff2ab](https://doi.org/10.1249/MSS.0b013e3181aff2ab)
+- Hall & Chow (2011) — *Estimating changes in free-living energy intake and its confidence interval*. DOI: [10.3945/ajcn.111.014399](https://doi.org/10.3945/ajcn.111.014399)
+- Westerterp (2004) — *Diet induced thermogenesis*. DOI: [10.1007/s00421-003-0988-y](https://doi.org/10.1007/s00421-003-0988-y)

@@ -5052,6 +5052,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Berechnet die dynamische Muskelbereitschaft über nicht-lineare Abklingskurven. Das Volumen-Tracking ordnet Sätze automatisch primären und sekundären Zielmuskeln zu, wodurch die Belastung bei Verbundübungen auf synergistische Fasern verteilt wird. Die Erholungsgeschwindigkeit skaliert basierend auf der Nähe zum Muskelversagen (RIR) und verhängt eine strikte Verlängerung für Sätze bis zum absoluten Versagen.';
 
   @override
+  String get infoScientificReferencesButton =>
+      'Wissenschaftliche Referenzen & Quellen ansehen';
+
+  @override
+  String get infoScientificDisclaimer =>
+      'Diese Funktion basiert auf etablierter sportwissenschaftlicher und metabolischer Fachliteratur. Die vollständige Liste der begutachteten Quellen ist auf unserer Website verfügbar.';
+
+  @override
   String get infoAiMealTitle => 'KI-Mahlzeitenerkennung Hub';
 
   @override
