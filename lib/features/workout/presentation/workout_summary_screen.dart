@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../widgets/common/algorithm_info_sheet.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
 import '../data/sources/workout_local_data_source.dart';
@@ -306,12 +307,29 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
                             // NEW RECORDS SECTION
                             if (_newRecordsPerExercise.isNotEmpty) ...[
-                              Text(
-                                l10n.workoutSummaryNewRecordsTitle,
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: Colors.amber[800],
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    l10n.workoutSummaryNewRecordsTitle,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: Colors.amber[800],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  AlgorithmInfoButton(
+                                    title: "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                                    explanation: "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                                    keyPoints: const [
+                                      "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
+                                      "Estimates are sports-science heuristics designed for healthy individuals.",
+                                      "Provides a safe way to track strength progression without testing true failure.",
+                                    ],
+                                    technicalTitle: "Epley Equation Details",
+                                    technicalExplanation: "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                                    citationUrl: "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: DesignConstants.spacingS),
                               ..._newRecordsPerExercise.entries.map((entry) {

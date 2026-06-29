@@ -34,3 +34,11 @@ A local synchronization pipe that bridges local wellness data with native system
 A clinical-grade sleep analysis engine that evaluates overnight recovery across 5 domains (Sleep Duration, Sleep Continuity, Sleep Stage Depth / Architecture, Circadian Timing, and Sleep Regularity). Shifting from rigid binary limits to a continuous soft-cap multiplier model, the engine dynamically applies penalty factors based on the single worst-performing biological bottleneck (such as severe REM or N3 deep sleep deprivation, insufficient TST, or late circadian mid-sleep delays) to guide users with precise, contextual biological feedback.
 *   *Learn more in the [**Sleep Health Score Engine Documentation**](sleep_scoring_engine.md).*
 
+### 5. Muscle Recovery Model
+A fitness-oriented piecewise linear decay heuristic designed to estimate readiness scores for individual muscle groups. It accounts for set-weighting based on primary vs. secondary involvement and intensity/RIR-based timeline extensions.
+*   *Learn more in the [**Muscle Recovery Model Documentation**](muscle_recovery_model.md).*
+
+### 6. Estimated 1-Rep Max (1RM) Heuristics
+A physical capacity estimation model that computes estimated maximum strength capabilities from submaximal resistance training loads using the Epley formula. It enables users to track strength progression safely without testing true physical failure limits.
+*   *Learn more in the [**Estimated 1-Rep Max Documentation**](intelligent_workouts.md).*
+
