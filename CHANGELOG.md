@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.37] - 2026-06-29
 
+### Changed
+- **My Goals Citation Integration:** Added the `AlgorithmInfoButton` to the "My goals" settings screen's "Daily Goals" section header (matching the card layout from the nutrition screen), configured to display scientific citations for Mifflin-St Jeor and Kevin Hall energy balance models, and appended an in-line italicized non-clinical disclaimer at the bottom of the screen's scroll view.
+
 ## [0.9.36] - 2026-06-26
 
 ### Added
