@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../data/database_helper.dart';
 import '../../features/diary/domain/models/food_entry.dart';
+import '../../features/diary/domain/models/food_item.dart';
 import '../../features/workout/domain/models/set_log.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../features/sleep/data/repository/sleep_query_repository.dart';
@@ -65,10 +66,25 @@ class ShareService {
 
     // 1. Fetch Food Entries and map them to Food Items
     final foodEntries = await dbHelper.getEntriesForDate(targetDate);
-    final barcodes = foodEntries.map((e) => e.barcode).toSet().toList();
-    final foodItemsList =
-        await dbHelper.productLocalDataSource.getProductsByBarcodes(barcodes);
-    final foodItemsMap = {for (final item in foodItemsList) item.barcode: item};
+    final archivedEntries = foodEntries.where((e) => e.archiveLocalId != null).toList();
+    final legacyEntries = foodEntries.where((e) => e.archiveLocalId == null).toList();
+
+    final Map<int, FoodItem> archiveProductsMap = {};
+    final Map<String, FoodItem> legacyProductsMap = {};
+
+    if (archivedEntries.isNotEmpty) {
+      final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+      final archivedProducts = await dbHelper.productLocalDataSource.getProductsByArchiveIds(archiveIds);
+      archiveProductsMap.addAll(archivedProducts);
+    }
+
+    if (legacyEntries.isNotEmpty) {
+      final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+      final legacyProducts = await dbHelper.productLocalDataSource.getProductsByBarcodes(barcodes);
+      for (final p in legacyProducts) {
+        legacyProductsMap[p.barcode] = p;
+      }
+    }
 
     // 2. Fetch Fluids
     final fluidEntries =
@@ -191,7 +207,9 @@ class ShareService {
         final groupTitle = _getMealName(mealKey, l10n);
         buffer.writeln('### $groupTitle');
         for (final entry in entries) {
-          final item = foodItemsMap[entry.barcode];
+          final item = entry.archiveLocalId != null
+              ? archiveProductsMap[entry.archiveLocalId!]
+              : legacyProductsMap[entry.barcode];
           final grams = entry.quantityInGrams;
           if (item != null) {
             final name =

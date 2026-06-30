@@ -30,7 +30,8 @@ class CalculateDailyNutritionUseCase {
     required int targetCaffeine,
     required List<FoodEntry> foodEntries,
     required List<FluidEntry> fluidEntries,
-    required List<FoodItem> foodProducts,
+    required Map<String, FoodItem> foodProductsByBarcode,
+    required Map<int, FoodItem> foodProductsByArchiveLocalId,
     required List<WorkoutLog> workoutLogs,
     required List<Supplement> supplementsForDate,
     required List<Supplement> allSupplements,
@@ -75,9 +76,7 @@ class CalculateDailyNutritionUseCase {
       };
     }
 
-    final foodProductsByBarcode = {
-      for (final product in foodProducts) product.barcode: product,
-    };
+    // Removed foodProducts list conversion, maps are passed as parameters
 
     // Fluids
     summary.water =
@@ -85,7 +84,9 @@ class CalculateDailyNutritionUseCase {
     for (final entry in fluidEntries) {
       final isLinked = entry.linkedFoodEntryId != null;
       final isDuplicateOfFood = foodEntries.any((food) {
-        final foodItem = foodProductsByBarcode[food.barcode];
+        final foodItem = food.archiveLocalId != null
+            ? foodProductsByArchiveLocalId[food.archiveLocalId!]
+            : foodProductsByBarcode[food.barcode];
         final isFluidFood = foodItem != null &&
             (foodItem.isFluid || (foodItem.isLiquid ?? false));
         if (!isFluidFood) return false;
@@ -122,7 +123,9 @@ class CalculateDailyNutritionUseCase {
     };
 
     for (final entry in foodEntries) {
-      final foodItem = foodProductsByBarcode[entry.barcode];
+      final foodItem = entry.archiveLocalId != null
+          ? foodProductsByArchiveLocalId[entry.archiveLocalId!]
+          : foodProductsByBarcode[entry.barcode];
       if (foodItem != null) {
         summary.calories +=
             (foodItem.calories / 100 * entry.quantityInGrams).round();

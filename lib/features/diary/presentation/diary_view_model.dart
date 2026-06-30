@@ -11,6 +11,7 @@ import '../domain/models/fluid_entry.dart';
 import '../domain/models/tracked_food_item.dart';
 import '../../supplements/domain/models/tracked_supplement.dart';
 import '../domain/models/food_entry.dart';
+import '../domain/models/food_item.dart';
 import '../../supplements/domain/models/supplement.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import '../../../util/date_util.dart';
@@ -264,8 +265,25 @@ class DiaryViewModel extends ChangeNotifier {
       final targetCaffeine = await _prefsRepo.getTargetCaffeine() ?? 400;
       showSugarInOverview = await _prefsRepo.getShowSugarInDiaryOverview();
 
-      final barcodes = _activeEntries.map((e) => e.barcode).toSet().toList();
-      final products = await _nutritionRepo.getProductsByBarcodes(barcodes);
+      final archivedEntries = _activeEntries.where((e) => e.archiveLocalId != null).toList();
+      final legacyEntries = _activeEntries.where((e) => e.archiveLocalId == null).toList();
+
+      final Map<int, FoodItem> archiveProductsMap = {};
+      final Map<String, FoodItem> legacyProductsMap = {};
+
+      if (archivedEntries.isNotEmpty) {
+        final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+        final archivedProducts = await _nutritionRepo.getProductsByArchiveIds(archiveIds);
+        archiveProductsMap.addAll(archivedProducts);
+      }
+
+      if (legacyEntries.isNotEmpty) {
+        final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+        final legacyProducts = await _nutritionRepo.getProductsByBarcodes(barcodes);
+        for (final p in legacyProducts) {
+          legacyProductsMap[p.barcode] = p;
+        }
+      }
 
       final allSupplements = await _supplementRepo.getAllSupplements();
 
@@ -275,7 +293,8 @@ class DiaryViewModel extends ChangeNotifier {
         targetCaffeine: targetCaffeine,
         foodEntries: _activeEntries,
         fluidEntries: _activeFluids,
-        foodProducts: products,
+        foodProductsByBarcode: legacyProductsMap,
+        foodProductsByArchiveLocalId: archiveProductsMap,
         workoutLogs: _activeWorkouts,
         supplementsForDate: _activeSupplements,
         allSupplements: allSupplements,
