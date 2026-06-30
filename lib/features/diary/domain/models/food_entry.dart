@@ -22,6 +22,9 @@ class FoodEntry {
   /// Last modification timestamp from persistence when available.
   final DateTime? updatedAt;
 
+  /// FK to the archived POINT-IN-TIME snapshot in OffProductsArchive.
+  final int? archiveLocalId;
+
   /// Creates a new [FoodEntry] instance.
   FoodEntry({
     this.id,
@@ -30,6 +33,7 @@ class FoodEntry {
     required this.quantityInGrams,
     required this.mealType,
     this.updatedAt,
+    this.archiveLocalId,
   });
 
   /// Converts the [FoodEntry] instance to a Map for database storage.
@@ -40,6 +44,27 @@ class FoodEntry {
       'timestamp': timestamp.toIso8601String(),
       'quantity_in_grams': quantityInGrams,
       'meal_type': mealType,
+      'archive_local_id': archiveLocalId,
     };
+  }
+
+  FoodEntry copyWith({
+    int? id,
+    String? barcode,
+    DateTime? timestamp,
+    int? quantityInGrams,
+    String? mealType,
+    DateTime? updatedAt,
+    int? archiveLocalId,
+  }) {
+    return FoodEntry(
+      id: id ?? this.id,
+      barcode: barcode ?? this.barcode,
+      timestamp: timestamp ?? this.timestamp,
+      quantityInGrams: quantityInGrams ?? this.quantityInGrams,
+      mealType: mealType ?? this.mealType,
+      updatedAt: updatedAt ?? this.updatedAt,
+      archiveLocalId: archiveLocalId ?? this.archiveLocalId,
+    );
   }
 }

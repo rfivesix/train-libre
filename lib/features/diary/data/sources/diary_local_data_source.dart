@@ -1,5 +1,6 @@
 // lib/features/diary/data/sources/diary_local_data_source.dart
 import 'dart:async';
+import 'package:uuid/uuid.dart';
 import '../../../../data/drift_database.dart' as drift_db
     hide Supplement, SupplementLog, WorkoutLog;
 import 'package:drift/drift.dart' as drift;
@@ -76,6 +77,7 @@ class DiaryLocalDataSource {
               quantityInGrams: row.amount.toInt(),
               mealType: row.mealType,
               updatedAt: row.updatedAt,
+              archiveLocalId: row.archiveLocalId,
             ),
           )
           .toList();
@@ -181,6 +183,7 @@ class DiaryLocalDataSource {
             quantityInGrams: row.amount.toInt(),
             mealType: row.mealType,
             updatedAt: row.updatedAt,
+            archiveLocalId: row.archiveLocalId,
           ),
         )
         .toList();
@@ -255,6 +258,93 @@ class DiaryLocalDataSource {
 
   Future<void> updateFoodEntry(FoodEntry entry) async {
     if (entry.id == null) return;
+
+    final product = await (_db.select(_db.products)
+          ..where((tbl) => tbl.barcode.equals(entry.barcode))
+          ..limit(1))
+        .getSingleOrNull();
+
+    int? archiveId = entry.archiveLocalId;
+
+    if (archiveId == null && product != null) {
+      final override = await (_db.select(_db.userFoodOverrides)
+            ..where((tbl) => tbl.barcode.equals(entry.barcode))
+            ..limit(1))
+          .getSingleOrNull();
+
+      final pName = override?.name ?? product.name;
+      final pBrand = override?.brand ?? product.brand;
+      final pCalories = override?.calories ?? product.calories;
+      final pProtein = override?.protein ?? product.protein;
+      final pCarbs = override?.carbs ?? product.carbs;
+      final pFat = override?.fat ?? product.fat;
+      final pSugar = override?.sugar ?? product.sugar;
+      final pFiber = override?.fiber ?? product.fiber;
+      final pSalt = override?.salt ?? product.salt;
+      final pCaffeine = override?.caffeine ?? product.caffeine;
+      final pCaffeineMgPer100g = override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pProductQuantity = override?.productQuantity ?? product.productQuantity;
+      final pProductQuantityUnit = override?.productQuantityUnit ?? product.productQuantityUnit;
+      final pIsFluid = override?.isFluid ?? product.isFluid;
+      final pIsLiquid = override?.isLiquid ?? product.isLiquid;
+      final pCategory = override?.category ?? product.category;
+
+      final hash = drift_db.calculateProductContentHash(
+        barcode: product.barcode,
+        name: pName,
+        brand: pBrand,
+        calories: pCalories,
+        protein: pProtein,
+        carbs: pCarbs,
+        fat: pFat,
+        sugar: pSugar,
+        fiber: pFiber,
+        salt: pSalt,
+        caffeine: pCaffeine,
+        caffeineMgPer100g: pCaffeineMgPer100g,
+        productQuantity: pProductQuantity,
+        productQuantityUnit: pProductQuantityUnit,
+        isFluid: pIsFluid,
+        isLiquid: pIsLiquid,
+        hadUserOverride: override != null,
+      );
+
+      final existingArchive = await (_db.select(_db.offProductsArchive)
+            ..where((tbl) => tbl.contentHash.equals(hash))
+            ..limit(1))
+          .getSingleOrNull();
+
+      if (existingArchive != null) {
+        archiveId = existingArchive.localId;
+      } else {
+        archiveId = await _db.into(_db.offProductsArchive).insert(
+              drift_db.OffProductsArchiveCompanion.insert(
+                id: drift.Value(const Uuid().v4()),
+                barcode: product.barcode,
+                productName: pName,
+                brand: drift.Value(pBrand),
+                calories: pCalories,
+                protein: pProtein,
+                carbs: pCarbs,
+                fat: pFat,
+                sugar: drift.Value(pSugar),
+                fiber: drift.Value(pFiber),
+                salt: drift.Value(pSalt),
+                caffeine: drift.Value(pCaffeine),
+                caffeineMgPer100g: drift.Value(pCaffeineMgPer100g),
+                productQuantity: drift.Value(pProductQuantity),
+                productQuantityUnit: drift.Value(pProductQuantityUnit),
+                isFluid: drift.Value(pIsFluid),
+                isLiquid: drift.Value(pIsLiquid),
+                category: drift.Value(pCategory),
+                contentHash: hash,
+                source: product.source,
+                hadUserOverride: drift.Value(override != null),
+              ),
+            );
+      }
+    }
+
     await (_db.update(_db.nutritionLogs)
           ..where((tbl) => tbl.localId.equals(entry.id!)))
         .write(
@@ -264,6 +354,7 @@ class DiaryLocalDataSource {
         amount: drift.Value(entry.quantityInGrams.toDouble()),
         mealType: drift.Value(entry.mealType),
         updatedAt: drift.Value(DateTime.now()),
+        archiveLocalId: drift.Value(archiveId),
       ),
     );
   }
@@ -301,11 +392,98 @@ class DiaryLocalDataSource {
   }
 
   Future<int> insertFoodEntry(FoodEntry entry) async {
+    final product = await (_db.select(_db.products)
+          ..where((tbl) => tbl.barcode.equals(entry.barcode))
+          ..limit(1))
+        .getSingleOrNull();
+
+    int? archiveId = entry.archiveLocalId;
+
+    if (archiveId == null && product != null) {
+      final override = await (_db.select(_db.userFoodOverrides)
+            ..where((tbl) => tbl.barcode.equals(entry.barcode))
+            ..limit(1))
+          .getSingleOrNull();
+
+      final pName = override?.name ?? product.name;
+      final pBrand = override?.brand ?? product.brand;
+      final pCalories = override?.calories ?? product.calories;
+      final pProtein = override?.protein ?? product.protein;
+      final pCarbs = override?.carbs ?? product.carbs;
+      final pFat = override?.fat ?? product.fat;
+      final pSugar = override?.sugar ?? product.sugar;
+      final pFiber = override?.fiber ?? product.fiber;
+      final pSalt = override?.salt ?? product.salt;
+      final pCaffeine = override?.caffeine ?? product.caffeine;
+      final pCaffeineMgPer100g = override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pProductQuantity = override?.productQuantity ?? product.productQuantity;
+      final pProductQuantityUnit = override?.productQuantityUnit ?? product.productQuantityUnit;
+      final pIsFluid = override?.isFluid ?? product.isFluid;
+      final pIsLiquid = override?.isLiquid ?? product.isLiquid;
+      final pCategory = override?.category ?? product.category;
+
+      final hash = drift_db.calculateProductContentHash(
+        barcode: product.barcode,
+        name: pName,
+        brand: pBrand,
+        calories: pCalories,
+        protein: pProtein,
+        carbs: pCarbs,
+        fat: pFat,
+        sugar: pSugar,
+        fiber: pFiber,
+        salt: pSalt,
+        caffeine: pCaffeine,
+        caffeineMgPer100g: pCaffeineMgPer100g,
+        productQuantity: pProductQuantity,
+        productQuantityUnit: pProductQuantityUnit,
+        isFluid: pIsFluid,
+        isLiquid: pIsLiquid,
+        hadUserOverride: override != null,
+      );
+
+      final existingArchive = await (_db.select(_db.offProductsArchive)
+            ..where((tbl) => tbl.contentHash.equals(hash))
+            ..limit(1))
+          .getSingleOrNull();
+
+      if (existingArchive != null) {
+        archiveId = existingArchive.localId;
+      } else {
+        archiveId = await _db.into(_db.offProductsArchive).insert(
+              drift_db.OffProductsArchiveCompanion.insert(
+                id: drift.Value(const Uuid().v4()),
+                barcode: product.barcode,
+                productName: pName,
+                brand: drift.Value(pBrand),
+                calories: pCalories,
+                protein: pProtein,
+                carbs: pCarbs,
+                fat: pFat,
+                sugar: drift.Value(pSugar),
+                fiber: drift.Value(pFiber),
+                salt: drift.Value(pSalt),
+                caffeine: drift.Value(pCaffeine),
+                caffeineMgPer100g: drift.Value(pCaffeineMgPer100g),
+                productQuantity: drift.Value(pProductQuantity),
+                productQuantityUnit: drift.Value(pProductQuantityUnit),
+                isFluid: drift.Value(pIsFluid),
+                isLiquid: drift.Value(pIsLiquid),
+                category: drift.Value(pCategory),
+                contentHash: hash,
+                source: product.source,
+                hadUserOverride: drift.Value(override != null),
+              ),
+            );
+      }
+    }
+
     final companion = drift_db.NutritionLogsCompanion(
       legacyBarcode: drift.Value(entry.barcode),
       consumedAt: drift.Value(entry.timestamp),
       amount: drift.Value(entry.quantityInGrams.toDouble()),
       mealType: drift.Value(entry.mealType),
+      archiveLocalId: drift.Value(archiveId),
     );
     return await _db.into(_db.nutritionLogs).insert(companion);
   }
@@ -358,6 +536,7 @@ class DiaryLocalDataSource {
       quantityInGrams: row.amount.toInt(),
       mealType: row.mealType,
       updatedAt: row.updatedAt,
+      archiveLocalId: row.archiveLocalId,
     );
   }
 
@@ -423,6 +602,7 @@ class DiaryLocalDataSource {
             quantityInGrams: row.amount.toInt(),
             mealType: row.mealType,
             updatedAt: row.updatedAt,
+            archiveLocalId: row.archiveLocalId,
           ),
         )
         .toList();
@@ -455,6 +635,7 @@ class DiaryLocalDataSource {
         quantityInGrams: log.amount.toInt(),
         mealType: log.mealType,
         updatedAt: log.updatedAt,
+        archiveLocalId: log.archiveLocalId,
       ));
     }
     return result;
@@ -485,6 +666,7 @@ class DiaryLocalDataSource {
             quantityInGrams: row.amount.toInt(),
             mealType: row.mealType,
             updatedAt: row.updatedAt,
+            archiveLocalId: row.archiveLocalId,
           ),
         )
         .toList();
@@ -558,6 +740,10 @@ class DiaryLocalDataSource {
 
     final query = _db.select(_db.nutritionLogs).join([
       drift.leftOuterJoin(
+        _db.offProductsArchive,
+        _db.offProductsArchive.localId.equalsExp(_db.nutritionLogs.archiveLocalId),
+      ),
+      drift.leftOuterJoin(
         _db.products,
         _db.products.id.equalsExp(_db.nutritionLogs.productId),
       ),
@@ -577,19 +763,26 @@ class DiaryLocalDataSource {
 
     for (final row in rows) {
       final log = row.readTable(_db.nutritionLogs);
+      final archivedProduct = row.readTableOrNull(_db.offProductsArchive);
       final productByJoin = row.readTableOrNull(_db.products);
       final productByBarcode = row.readTableOrNull(productsByBarcode);
 
-      final product = productByJoin ?? productByBarcode;
       final day = DateTime(
           log.consumedAt.year, log.consumedAt.month, log.consumedAt.day);
 
-      if (product != null) {
+      if (archivedProduct != null) {
         final ratio = log.amount / 100.0;
-        final kcal = product.calories * ratio;
+        final kcal = archivedProduct.calories * ratio;
         caloriesByDay[day] = (caloriesByDay[day] ?? 0.0) + kcal;
       } else {
-        unresolvedCount++;
+        final product = productByJoin ?? productByBarcode;
+        if (product != null) {
+          final ratio = log.amount / 100.0;
+          final kcal = product.calories * ratio;
+          caloriesByDay[day] = (caloriesByDay[day] ?? 0.0) + kcal;
+        } else {
+          unresolvedCount++;
+        }
       }
     }
 

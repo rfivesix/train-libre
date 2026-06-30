@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -230,6 +232,33 @@ class Products extends Table with HybridId, MetaColumns {
 
 // 12. NutritionLogs (replaces food_entries)
 /// Table definition for nutrition consumption logs.
+class OffProductsArchive extends Table with HybridId, MetaColumns {
+  TextColumn get barcode => text()();
+  TextColumn get productName => text()();
+  TextColumn get brand => text().nullable()();
+
+  // Nutrients per 100g/ml
+  IntColumn get calories => integer()();
+  RealColumn get protein => real()();
+  RealColumn get carbs => real()();
+  RealColumn get fat => real()();
+
+  RealColumn get sugar => real().nullable()();
+  RealColumn get fiber => real().nullable()();
+  RealColumn get salt => real().nullable()();
+  RealColumn get caffeine => real().nullable()();
+  RealColumn get caffeineMgPer100g => real().named('caffeine_mg_per_100g').nullable()();
+  RealColumn get productQuantity => real().nullable()();
+  TextColumn get productQuantityUnit => text().nullable()();
+  BoolColumn get isFluid => boolean().withDefault(const Constant(false))();
+  BoolColumn get isLiquid => boolean().withDefault(const Constant(false))();
+  TextColumn get category => text().nullable()();
+
+  TextColumn get contentHash => text()();
+  TextColumn get source => text()();
+  BoolColumn get hadUserOverride => boolean().withDefault(const Constant(false))();
+}
+
 class NutritionLogs extends Table with HybridId, MetaColumns {
   TextColumn get userId => text().nullable()();
   TextColumn get productId => text().nullable().references(Products, #id)();
@@ -241,6 +270,8 @@ class NutritionLogs extends Table with HybridId, MetaColumns {
   RealColumn get amount => real()(); // In grams or ml
   TextColumn get mealType =>
       text().withDefault(const Constant('Snack'))(); // Breakfast, Lunch, etc.
+
+  IntColumn get archiveLocalId => integer().nullable().references(OffProductsArchive, #localId)();
 }
 
 // 13. Supplements
@@ -472,6 +503,7 @@ class UserFoodOverrideTranslations extends Table with HybridId, MetaColumns {
     UserFoodOverrides,
     ExerciseTranslations,
     UserFoodOverrideTranslations,
+    OffProductsArchive, // Added
   ],
 )
 
@@ -480,7 +512,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 23;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -504,6 +536,12 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             'CREATE INDEX IF NOT EXISTS products_usage_count_idx ON products (usage_count);',
+          );
+          await customStatement(
+            'CREATE UNIQUE INDEX IF NOT EXISTS idx_archive_content_hash ON off_products_archive (content_hash);',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_archive_barcode ON off_products_archive (barcode);',
           );
         },
         onUpgrade: (Migrator m, int from, int to) async {
@@ -740,6 +778,165 @@ class AppDatabase extends _$AppDatabase {
             await customStatement('ALTER TABLE user_food_overrides DROP COLUMN name_de;');
             await customStatement('ALTER TABLE user_food_overrides DROP COLUMN name_en;');
           }
+          if (from < 24) {
+            // Phase 1: CREATE new table
+            await m.createTable(offProductsArchive);
+
+            // Phase 2: ADD new column to NutritionLogs
+            await m.addColumn(nutritionLogs, nutritionLogs.archiveLocalId);
+
+            // Phase 3: BACKFILL archive from existing Products + NutritionLogs
+            final productsToArchive = await customSelect('''
+              SELECT DISTINCT p.* FROM products p
+              WHERE p.barcode IN (SELECT DISTINCT legacy_barcode FROM nutrition_logs WHERE legacy_barcode IS NOT NULL AND legacy_barcode != '')
+                 OR p.id IN (SELECT DISTINCT product_id FROM nutrition_logs WHERE product_id IS NOT NULL)
+            ''').get();
+
+            final overridesRows = await customSelect('SELECT * FROM user_food_overrides').get();
+            final overridesMap = {
+              for (final row in overridesRows)
+                row.read<String>('barcode'): row
+            };
+
+            final productIdToHash = <String, String>{};
+            final barcodeToHash = <String, String>{};
+
+            for (final row in productsToArchive) {
+              final id = row.read<String>('id');
+              final barcode = row.read<String>('barcode');
+              final pName = row.read<String>('name');
+              final pBrand = row.read<String?>('brand');
+              final pCalories = row.read<int>('calories');
+              final pProtein = row.read<double>('protein');
+              final pCarbs = row.read<double>('carbs');
+              final pFat = row.read<double>('fat');
+              final pSugar = row.read<double?>('sugar');
+              final pFiber = row.read<double?>('fiber');
+              final pSalt = row.read<double?>('salt');
+              final pCaffeine = row.read<double?>('caffeine');
+              final pCaffeineMgPer100g = row.read<double?>('caffeine_mg_per_100g');
+              final pProductQuantity = row.read<double?>('product_quantity');
+              final pProductQuantityUnit = row.read<String?>('product_quantity_unit');
+              final pIsFluid = row.read<bool>('is_fluid');
+              final pIsLiquid = row.read<bool>('is_liquid');
+              final pSource = row.read<String>('source');
+              final pCategory = row.read<String?>('category');
+
+              final o = overridesMap[barcode];
+              final hadOverride = o != null;
+
+              final name = o?.read<String>('name') ?? pName;
+              final brand = o?.read<String?>('brand') ?? pBrand;
+              final calories = o?.read<int>('calories') ?? pCalories;
+              final protein = o?.read<double>('protein') ?? pProtein;
+              final carbs = o?.read<double>('carbs') ?? pCarbs;
+              final fat = o?.read<double>('fat') ?? pFat;
+              final sugar = o?.read<double?>('sugar') ?? pSugar;
+              final fiber = o?.read<double?>('fiber') ?? pFiber;
+              final salt = o?.read<double?>('salt') ?? pSalt;
+              final caffeine = o?.read<double?>('caffeine') ?? pCaffeine;
+              final caffeineMgPer100g = o?.read<double?>('caffeine_mg_per_100g') ?? pCaffeineMgPer100g;
+              final productQuantity = o?.read<double?>('product_quantity') ?? pProductQuantity;
+              final productQuantityUnit = o?.read<String?>('product_quantity_unit') ?? pProductQuantityUnit;
+              final isFluid = o?.read<bool>('is_fluid') ?? pIsFluid;
+              final isLiquid = o?.read<bool>('is_liquid') ?? pIsLiquid;
+              final category = o?.read<String?>('category') ?? pCategory;
+
+              final contentHash = calculateProductContentHash(
+                barcode: barcode,
+                name: name,
+                brand: brand,
+                calories: calories,
+                protein: protein,
+                carbs: carbs,
+                fat: fat,
+                sugar: sugar,
+                fiber: fiber,
+                salt: salt,
+                caffeine: caffeine,
+                caffeineMgPer100g: caffeineMgPer100g,
+                productQuantity: productQuantity,
+                productQuantityUnit: productQuantityUnit,
+                isFluid: isFluid,
+                isLiquid: isLiquid,
+                hadUserOverride: hadOverride,
+              );
+
+              productIdToHash[id] = contentHash;
+              barcodeToHash[barcode] = contentHash;
+
+              await customStatement('''
+                INSERT OR IGNORE INTO off_products_archive (
+                  id, barcode, product_name, brand, calories, protein, carbs, fat,
+                  sugar, fiber, salt, caffeine, caffeine_mg_per_100g, product_quantity, product_quantity_unit,
+                  is_fluid, is_liquid, category, content_hash, source, had_user_override, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              ''', [
+                const Uuid().v4(),
+                barcode,
+                name,
+                brand,
+                calories,
+                protein,
+                carbs,
+                fat,
+                sugar,
+                fiber,
+                salt,
+                caffeine,
+                caffeineMgPer100g,
+                productQuantity,
+                productQuantityUnit,
+                isFluid ? 1 : 0,
+                isLiquid ? 1 : 0,
+                category,
+                contentHash,
+                pSource,
+                hadOverride ? 1 : 0,
+                DateTime.now().millisecondsSinceEpoch,
+                DateTime.now().millisecondsSinceEpoch,
+              ]);
+            }
+
+            final archiveRows = await customSelect('SELECT local_id, content_hash FROM off_products_archive').get();
+            final hashToLocalId = {
+              for (final row in archiveRows)
+                row.read<String>('content_hash'): row.read<int>('local_id')
+            };
+
+            final logs = await customSelect('SELECT local_id, product_id, legacy_barcode FROM nutrition_logs').get();
+            for (final log in logs) {
+              final logLocalId = log.read<int>('local_id');
+              final productId = log.read<String?>('product_id');
+              final legacyBarcode = log.read<String?>('legacy_barcode');
+
+              String? matchedHash;
+              if (productId != null) {
+                matchedHash = productIdToHash[productId];
+              }
+              if (matchedHash == null && legacyBarcode != null) {
+                matchedHash = barcodeToHash[legacyBarcode];
+              }
+
+              if (matchedHash != null) {
+                final archiveLocalId = hashToLocalId[matchedHash];
+                if (archiveLocalId != null) {
+                  await customStatement(
+                    'UPDATE nutrition_logs SET archive_local_id = ? WHERE local_id = ?',
+                    [archiveLocalId, logLocalId],
+                  );
+                }
+              }
+            }
+
+            // Phase 4: CREATE indexes
+            await customStatement(
+              'CREATE UNIQUE INDEX IF NOT EXISTS idx_archive_content_hash ON off_products_archive (content_hash);',
+            );
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_archive_barcode ON off_products_archive (barcode);',
+            );
+          }
         },
       );
 
@@ -928,4 +1125,46 @@ LazyDatabase _openConnection() {
       },
     );
   });
+}
+
+String calculateProductContentHash({
+  required String barcode,
+  required String name,
+  required String? brand,
+  required int calories,
+  required double protein,
+  required double carbs,
+  required double fat,
+  required double? sugar,
+  required double? fiber,
+  required double? salt,
+  required double? caffeine,
+  required double? caffeineMgPer100g,
+  required double? productQuantity,
+  required String? productQuantityUnit,
+  required bool isFluid,
+  required bool isLiquid,
+  required bool hadUserOverride,
+}) {
+  final parts = [
+    barcode,
+    name,
+    brand ?? 'null',
+    calories.toString(),
+    protein.toString(),
+    carbs.toString(),
+    fat.toString(),
+    sugar?.toString() ?? 'null',
+    fiber?.toString() ?? 'null',
+    salt?.toString() ?? 'null',
+    caffeine?.toString() ?? 'null',
+    caffeineMgPer100g?.toString() ?? 'null',
+    productQuantity?.toString() ?? 'null',
+    productQuantityUnit ?? 'null',
+    isFluid.toString(),
+    isLiquid.toString(),
+    hadUserOverride.toString(),
+  ];
+  final bytes = utf8.encode(parts.join('|'));
+  return sha256.convert(bytes).toString();
 }

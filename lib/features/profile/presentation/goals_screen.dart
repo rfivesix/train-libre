@@ -7,6 +7,7 @@ import '../domain/repositories/profile_repository.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/domain/goal_models.dart';
 import '../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
@@ -348,9 +349,27 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: DesignConstants.spacingXL),
-                    AppSectionHeader(
-                      key: const Key('goals_daily_section_title'),
-                      title: l10n.profileDailyGoalsCL,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        AppSectionHeader(
+                          key: const Key('goals_daily_section_title'),
+                          title: l10n.profileDailyGoalsCL,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4.0),
+                          child: AlgorithmInfoButton(
+                            title: l10n.infoTdeeTitle,
+                            explanation: l10n.infoTdeeExplanation,
+                            keyPoints: l10n.infoTdeeKeyPoints.split('\n'),
+                            technicalTitle: l10n.infoTdeeTechnicalTitle,
+                            technicalExplanation: l10n.infoTdeeTechnicalExplanation,
+                            markdownAssetPath: 'documentation/features/bayesian_tdee_estimator.md',
+                            citationUrl: 'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
                     _buildSettingsField(
@@ -391,6 +410,23 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     _buildSettingsField(
                       controller: _saltController,
                       label: l10n.salt,
+                    ),
+                    const SizedBox(height: DesignConstants.spacingL),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingM,
+                      ),
+                      child: Text(
+                        'Nutritional estimates are sports-science-inspired heuristics calibrated for healthy individuals and are not intended for medical diagnosis or treatment. See scientific references via the info button.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontStyle: FontStyle.italic,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.6),
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ],
                 ),

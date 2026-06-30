@@ -65,6 +65,7 @@ class DatabaseHelper {
         await dbInst.delete(dbInst.supplementLogs).go();
         await dbInst.delete(dbInst.fluidLogs).go();
         await dbInst.delete(dbInst.nutritionLogs).go();
+        await dbInst.customStatement('DELETE FROM off_products_archive');
         await dbInst.delete(dbInst.measurements).go();
         await dbInst.delete(dbInst.mealItems).go();
         await dbInst.delete(dbInst.favorites).go();
@@ -121,11 +122,12 @@ class DatabaseHelper {
       for (final e in foodEntries) {
         batch.insert(
             dbInst.nutritionLogs,
-            db.NutritionLogsCompanion.insert(
+            db.NutritionLogsCompanion(
                 legacyBarcode: drift.Value(e.barcode),
-                consumedAt: e.timestamp,
-                amount: e.quantityInGrams.toDouble(),
-                mealType: drift.Value(e.mealType)),
+                consumedAt: drift.Value(e.timestamp),
+                amount: drift.Value(e.quantityInGrams.toDouble()),
+                mealType: drift.Value(e.mealType),
+                archiveLocalId: drift.Value(e.archiveLocalId)),
             mode: drift.InsertMode.insertOrReplace);
       }
       for (final e in fluidEntries) {

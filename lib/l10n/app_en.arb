@@ -960,6 +960,8 @@
   "onboardingHeightLabel": "Height",
   "onboardingGenderLabel": "Gender",
   "onboardingBioDataInfo": "Your age and biological sex determine the baseline recovery windows of your muscle recovery model and feed into the algorithms of your Sleep Health Engine.",
+  "onboardingFieldCannotBeEmpty": "This field cannot be empty.",
+  "onboardingPhysiologicalRangeWarning": "Warning: This value is outside the expected physiological range. Our sports-science analytics and heuristic engines are not calibrated for extreme metrics. If this value is intentional, click 'Next' again to proceed anyway.",
   "onboardingMeasurementsTitle": "Measurements & Baseline",
   "onboardingMeasurementsSubtitle": "Set your current baseline for the adaptive recommendation.",
   "onboardingMeasurementsDisclaimer": "You can enter and log your weight, body fat, and other measurements at any time in the dashboard.",

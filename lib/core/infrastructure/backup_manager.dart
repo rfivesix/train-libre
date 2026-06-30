@@ -38,7 +38,7 @@ class BackupManager {
   static const String currentApplicationId = 'com.rfivesix.trainlibre';
 
   // Backwards compatibility for tests
-  static const int currentSchemaVersion = 4;
+  static const int currentSchemaVersion = 5;
   static const List<String> legacyBackupAppNames = ['Hypertrack'];
   static const List<String> legacyApplicationIds = ['com.rfivesix.hypertrack'];
   static const List<String> legacyBackupFilePrefixes = ['hypertrack-backup'];
@@ -289,7 +289,8 @@ class BackupManager {
         profile: profileMap,
         userFoodOverrides: await _fetchTable('user_food_overrides'),
         userFoodOverrideTranslations: await _fetchTable('user_food_override_translations'),
-        healthStepSegments: healthStepSegments);
+        healthStepSegments: healthStepSegments,
+        offProductsArchive: await _fetchTable('off_products_archive'));
     final payload = backup.toJson();
     payload['appName'] = currentBackupAppName;
     payload['applicationId'] = currentApplicationId;
@@ -606,6 +607,7 @@ class BackupManager {
         await dbInst.delete(dbInst.supplementLogs).go();
         await dbInst.delete(dbInst.fluidLogs).go();
         await dbInst.delete(dbInst.nutritionLogs).go();
+        await dbInst.customStatement('DELETE FROM off_products_archive');
         await dbInst.delete(dbInst.measurements).go();
         await dbInst.delete(dbInst.mealItems).go();
         await dbInst.delete(dbInst.favorites).go();
@@ -640,6 +642,10 @@ class BackupManager {
             await prefs.setStringList(k, v.cast<String>());
           }
         }
+        token?.throwIfCancelled();
+
+        onProgress?.call('products_archive', 0.30);
+        await _importTable('off_products_archive', payload['offProductsArchive']);
         token?.throwIfCancelled();
 
         onProgress?.call('user_data', 0.35);
@@ -1178,9 +1184,25 @@ class BackupManager {
     final fluidEntries = await _diaryDb.getAllFluidEntries();
     if (entries.isEmpty && fluidEntries.isEmpty) return false;
 
-    final barcodes = entries.map((e) => e.barcode).toSet().toList();
-    final products = await _productDb.getProductsByBarcodes(barcodes);
-    final pMap = {for (var p in products) p.barcode: p};
+    final archivedEntries = entries.where((e) => e.archiveLocalId != null).toList();
+    final legacyEntries = entries.where((e) => e.archiveLocalId == null).toList();
+
+    final Map<int, FoodItem> archiveProductsMap = {};
+    final Map<String, FoodItem> legacyProductsMap = {};
+
+    if (archivedEntries.isNotEmpty) {
+      final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+      final archivedProducts = await _productDb.getProductsByArchiveIds(archiveIds);
+      archiveProductsMap.addAll(archivedProducts);
+    }
+
+    if (legacyEntries.isNotEmpty) {
+      final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+      final legacyProducts = await _productDb.getProductsByBarcodes(barcodes);
+      for (final p in legacyProducts) {
+        legacyProductsMap[p.barcode] = p;
+      }
+    }
 
     List<List<dynamic>> rows = [
       [
@@ -1201,7 +1223,9 @@ class BackupManager {
     ];
 
     for (final e in entries) {
-      final p = pMap[e.barcode];
+      final p = e.archiveLocalId != null
+          ? archiveProductsMap[e.archiveLocalId!]
+          : legacyProductsMap[e.barcode];
       if (p != null) {
         final ratio = e.quantityInGrams / 100.0;
         final calories = p.calories * ratio;

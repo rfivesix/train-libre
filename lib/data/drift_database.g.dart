@@ -7416,6 +7416,1130 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   }
 }
 
+class $OffProductsArchiveTable extends OffProductsArchive
+    with TableInfo<$OffProductsArchiveTable, OffProductsArchiveData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OffProductsArchiveTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _barcodeMeta =
+      const VerificationMeta('barcode');
+  @override
+  late final GeneratedColumn<String> barcode = GeneratedColumn<String>(
+      'barcode', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _productNameMeta =
+      const VerificationMeta('productName');
+  @override
+  late final GeneratedColumn<String> productName = GeneratedColumn<String>(
+      'product_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
+  @override
+  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
+      'brand', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _caloriesMeta =
+      const VerificationMeta('calories');
+  @override
+  late final GeneratedColumn<int> calories = GeneratedColumn<int>(
+      'calories', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _proteinMeta =
+      const VerificationMeta('protein');
+  @override
+  late final GeneratedColumn<double> protein = GeneratedColumn<double>(
+      'protein', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _carbsMeta = const VerificationMeta('carbs');
+  @override
+  late final GeneratedColumn<double> carbs = GeneratedColumn<double>(
+      'carbs', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _fatMeta = const VerificationMeta('fat');
+  @override
+  late final GeneratedColumn<double> fat = GeneratedColumn<double>(
+      'fat', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _sugarMeta = const VerificationMeta('sugar');
+  @override
+  late final GeneratedColumn<double> sugar = GeneratedColumn<double>(
+      'sugar', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _fiberMeta = const VerificationMeta('fiber');
+  @override
+  late final GeneratedColumn<double> fiber = GeneratedColumn<double>(
+      'fiber', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _saltMeta = const VerificationMeta('salt');
+  @override
+  late final GeneratedColumn<double> salt = GeneratedColumn<double>(
+      'salt', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _caffeineMeta =
+      const VerificationMeta('caffeine');
+  @override
+  late final GeneratedColumn<double> caffeine = GeneratedColumn<double>(
+      'caffeine', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _caffeineMgPer100gMeta =
+      const VerificationMeta('caffeineMgPer100g');
+  @override
+  late final GeneratedColumn<double> caffeineMgPer100g =
+      GeneratedColumn<double>('caffeine_mg_per_100g', aliasedName, true,
+          type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _productQuantityMeta =
+      const VerificationMeta('productQuantity');
+  @override
+  late final GeneratedColumn<double> productQuantity = GeneratedColumn<double>(
+      'product_quantity', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _productQuantityUnitMeta =
+      const VerificationMeta('productQuantityUnit');
+  @override
+  late final GeneratedColumn<String> productQuantityUnit =
+      GeneratedColumn<String>('product_quantity_unit', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isFluidMeta =
+      const VerificationMeta('isFluid');
+  @override
+  late final GeneratedColumn<bool> isFluid = GeneratedColumn<bool>(
+      'is_fluid', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_fluid" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isLiquidMeta =
+      const VerificationMeta('isLiquid');
+  @override
+  late final GeneratedColumn<bool> isLiquid = GeneratedColumn<bool>(
+      'is_liquid', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_liquid" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+      'category', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _contentHashMeta =
+      const VerificationMeta('contentHash');
+  @override
+  late final GeneratedColumn<String> contentHash = GeneratedColumn<String>(
+      'content_hash', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+      'source', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _hadUserOverrideMeta =
+      const VerificationMeta('hadUserOverride');
+  @override
+  late final GeneratedColumn<bool> hadUserOverride = GeneratedColumn<bool>(
+      'had_user_override', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("had_user_override" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        barcode,
+        productName,
+        brand,
+        calories,
+        protein,
+        carbs,
+        fat,
+        sugar,
+        fiber,
+        salt,
+        caffeine,
+        caffeineMgPer100g,
+        productQuantity,
+        productQuantityUnit,
+        isFluid,
+        isLiquid,
+        category,
+        contentHash,
+        source,
+        hadUserOverride
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'off_products_archive';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<OffProductsArchiveData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('barcode')) {
+      context.handle(_barcodeMeta,
+          barcode.isAcceptableOrUnknown(data['barcode']!, _barcodeMeta));
+    } else if (isInserting) {
+      context.missing(_barcodeMeta);
+    }
+    if (data.containsKey('product_name')) {
+      context.handle(
+          _productNameMeta,
+          productName.isAcceptableOrUnknown(
+              data['product_name']!, _productNameMeta));
+    } else if (isInserting) {
+      context.missing(_productNameMeta);
+    }
+    if (data.containsKey('brand')) {
+      context.handle(
+          _brandMeta, brand.isAcceptableOrUnknown(data['brand']!, _brandMeta));
+    }
+    if (data.containsKey('calories')) {
+      context.handle(_caloriesMeta,
+          calories.isAcceptableOrUnknown(data['calories']!, _caloriesMeta));
+    } else if (isInserting) {
+      context.missing(_caloriesMeta);
+    }
+    if (data.containsKey('protein')) {
+      context.handle(_proteinMeta,
+          protein.isAcceptableOrUnknown(data['protein']!, _proteinMeta));
+    } else if (isInserting) {
+      context.missing(_proteinMeta);
+    }
+    if (data.containsKey('carbs')) {
+      context.handle(
+          _carbsMeta, carbs.isAcceptableOrUnknown(data['carbs']!, _carbsMeta));
+    } else if (isInserting) {
+      context.missing(_carbsMeta);
+    }
+    if (data.containsKey('fat')) {
+      context.handle(
+          _fatMeta, fat.isAcceptableOrUnknown(data['fat']!, _fatMeta));
+    } else if (isInserting) {
+      context.missing(_fatMeta);
+    }
+    if (data.containsKey('sugar')) {
+      context.handle(
+          _sugarMeta, sugar.isAcceptableOrUnknown(data['sugar']!, _sugarMeta));
+    }
+    if (data.containsKey('fiber')) {
+      context.handle(
+          _fiberMeta, fiber.isAcceptableOrUnknown(data['fiber']!, _fiberMeta));
+    }
+    if (data.containsKey('salt')) {
+      context.handle(
+          _saltMeta, salt.isAcceptableOrUnknown(data['salt']!, _saltMeta));
+    }
+    if (data.containsKey('caffeine')) {
+      context.handle(_caffeineMeta,
+          caffeine.isAcceptableOrUnknown(data['caffeine']!, _caffeineMeta));
+    }
+    if (data.containsKey('caffeine_mg_per_100g')) {
+      context.handle(
+          _caffeineMgPer100gMeta,
+          caffeineMgPer100g.isAcceptableOrUnknown(
+              data['caffeine_mg_per_100g']!, _caffeineMgPer100gMeta));
+    }
+    if (data.containsKey('product_quantity')) {
+      context.handle(
+          _productQuantityMeta,
+          productQuantity.isAcceptableOrUnknown(
+              data['product_quantity']!, _productQuantityMeta));
+    }
+    if (data.containsKey('product_quantity_unit')) {
+      context.handle(
+          _productQuantityUnitMeta,
+          productQuantityUnit.isAcceptableOrUnknown(
+              data['product_quantity_unit']!, _productQuantityUnitMeta));
+    }
+    if (data.containsKey('is_fluid')) {
+      context.handle(_isFluidMeta,
+          isFluid.isAcceptableOrUnknown(data['is_fluid']!, _isFluidMeta));
+    }
+    if (data.containsKey('is_liquid')) {
+      context.handle(_isLiquidMeta,
+          isLiquid.isAcceptableOrUnknown(data['is_liquid']!, _isLiquidMeta));
+    }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    }
+    if (data.containsKey('content_hash')) {
+      context.handle(
+          _contentHashMeta,
+          contentHash.isAcceptableOrUnknown(
+              data['content_hash']!, _contentHashMeta));
+    } else if (isInserting) {
+      context.missing(_contentHashMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(_sourceMeta,
+          source.isAcceptableOrUnknown(data['source']!, _sourceMeta));
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('had_user_override')) {
+      context.handle(
+          _hadUserOverrideMeta,
+          hadUserOverride.isAcceptableOrUnknown(
+              data['had_user_override']!, _hadUserOverrideMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  OffProductsArchiveData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OffProductsArchiveData(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      barcode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}barcode'])!,
+      productName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}product_name'])!,
+      brand: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}brand']),
+      calories: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}calories'])!,
+      protein: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}protein'])!,
+      carbs: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}carbs'])!,
+      fat: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}fat'])!,
+      sugar: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}sugar']),
+      fiber: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}fiber']),
+      salt: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}salt']),
+      caffeine: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}caffeine']),
+      caffeineMgPer100g: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}caffeine_mg_per_100g']),
+      productQuantity: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}product_quantity']),
+      productQuantityUnit: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}product_quantity_unit']),
+      isFluid: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_fluid'])!,
+      isLiquid: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_liquid'])!,
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category']),
+      contentHash: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content_hash'])!,
+      source: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source'])!,
+      hadUserOverride: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}had_user_override'])!,
+    );
+  }
+
+  @override
+  $OffProductsArchiveTable createAlias(String alias) {
+    return $OffProductsArchiveTable(attachedDatabase, alias);
+  }
+}
+
+class OffProductsArchiveData extends DataClass
+    implements Insertable<OffProductsArchiveData> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String barcode;
+  final String productName;
+  final String? brand;
+  final int calories;
+  final double protein;
+  final double carbs;
+  final double fat;
+  final double? sugar;
+  final double? fiber;
+  final double? salt;
+  final double? caffeine;
+  final double? caffeineMgPer100g;
+  final double? productQuantity;
+  final String? productQuantityUnit;
+  final bool isFluid;
+  final bool isLiquid;
+  final String? category;
+  final String contentHash;
+  final String source;
+  final bool hadUserOverride;
+  const OffProductsArchiveData(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.barcode,
+      required this.productName,
+      this.brand,
+      required this.calories,
+      required this.protein,
+      required this.carbs,
+      required this.fat,
+      this.sugar,
+      this.fiber,
+      this.salt,
+      this.caffeine,
+      this.caffeineMgPer100g,
+      this.productQuantity,
+      this.productQuantityUnit,
+      required this.isFluid,
+      required this.isLiquid,
+      this.category,
+      required this.contentHash,
+      required this.source,
+      required this.hadUserOverride});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['barcode'] = Variable<String>(barcode);
+    map['product_name'] = Variable<String>(productName);
+    if (!nullToAbsent || brand != null) {
+      map['brand'] = Variable<String>(brand);
+    }
+    map['calories'] = Variable<int>(calories);
+    map['protein'] = Variable<double>(protein);
+    map['carbs'] = Variable<double>(carbs);
+    map['fat'] = Variable<double>(fat);
+    if (!nullToAbsent || sugar != null) {
+      map['sugar'] = Variable<double>(sugar);
+    }
+    if (!nullToAbsent || fiber != null) {
+      map['fiber'] = Variable<double>(fiber);
+    }
+    if (!nullToAbsent || salt != null) {
+      map['salt'] = Variable<double>(salt);
+    }
+    if (!nullToAbsent || caffeine != null) {
+      map['caffeine'] = Variable<double>(caffeine);
+    }
+    if (!nullToAbsent || caffeineMgPer100g != null) {
+      map['caffeine_mg_per_100g'] = Variable<double>(caffeineMgPer100g);
+    }
+    if (!nullToAbsent || productQuantity != null) {
+      map['product_quantity'] = Variable<double>(productQuantity);
+    }
+    if (!nullToAbsent || productQuantityUnit != null) {
+      map['product_quantity_unit'] = Variable<String>(productQuantityUnit);
+    }
+    map['is_fluid'] = Variable<bool>(isFluid);
+    map['is_liquid'] = Variable<bool>(isLiquid);
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    map['content_hash'] = Variable<String>(contentHash);
+    map['source'] = Variable<String>(source);
+    map['had_user_override'] = Variable<bool>(hadUserOverride);
+    return map;
+  }
+
+  OffProductsArchiveCompanion toCompanion(bool nullToAbsent) {
+    return OffProductsArchiveCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      barcode: Value(barcode),
+      productName: Value(productName),
+      brand:
+          brand == null && nullToAbsent ? const Value.absent() : Value(brand),
+      calories: Value(calories),
+      protein: Value(protein),
+      carbs: Value(carbs),
+      fat: Value(fat),
+      sugar:
+          sugar == null && nullToAbsent ? const Value.absent() : Value(sugar),
+      fiber:
+          fiber == null && nullToAbsent ? const Value.absent() : Value(fiber),
+      salt: salt == null && nullToAbsent ? const Value.absent() : Value(salt),
+      caffeine: caffeine == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caffeine),
+      caffeineMgPer100g: caffeineMgPer100g == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caffeineMgPer100g),
+      productQuantity: productQuantity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productQuantity),
+      productQuantityUnit: productQuantityUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productQuantityUnit),
+      isFluid: Value(isFluid),
+      isLiquid: Value(isLiquid),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      contentHash: Value(contentHash),
+      source: Value(source),
+      hadUserOverride: Value(hadUserOverride),
+    );
+  }
+
+  factory OffProductsArchiveData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OffProductsArchiveData(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      barcode: serializer.fromJson<String>(json['barcode']),
+      productName: serializer.fromJson<String>(json['productName']),
+      brand: serializer.fromJson<String?>(json['brand']),
+      calories: serializer.fromJson<int>(json['calories']),
+      protein: serializer.fromJson<double>(json['protein']),
+      carbs: serializer.fromJson<double>(json['carbs']),
+      fat: serializer.fromJson<double>(json['fat']),
+      sugar: serializer.fromJson<double?>(json['sugar']),
+      fiber: serializer.fromJson<double?>(json['fiber']),
+      salt: serializer.fromJson<double?>(json['salt']),
+      caffeine: serializer.fromJson<double?>(json['caffeine']),
+      caffeineMgPer100g:
+          serializer.fromJson<double?>(json['caffeineMgPer100g']),
+      productQuantity: serializer.fromJson<double?>(json['productQuantity']),
+      productQuantityUnit:
+          serializer.fromJson<String?>(json['productQuantityUnit']),
+      isFluid: serializer.fromJson<bool>(json['isFluid']),
+      isLiquid: serializer.fromJson<bool>(json['isLiquid']),
+      category: serializer.fromJson<String?>(json['category']),
+      contentHash: serializer.fromJson<String>(json['contentHash']),
+      source: serializer.fromJson<String>(json['source']),
+      hadUserOverride: serializer.fromJson<bool>(json['hadUserOverride']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'barcode': serializer.toJson<String>(barcode),
+      'productName': serializer.toJson<String>(productName),
+      'brand': serializer.toJson<String?>(brand),
+      'calories': serializer.toJson<int>(calories),
+      'protein': serializer.toJson<double>(protein),
+      'carbs': serializer.toJson<double>(carbs),
+      'fat': serializer.toJson<double>(fat),
+      'sugar': serializer.toJson<double?>(sugar),
+      'fiber': serializer.toJson<double?>(fiber),
+      'salt': serializer.toJson<double?>(salt),
+      'caffeine': serializer.toJson<double?>(caffeine),
+      'caffeineMgPer100g': serializer.toJson<double?>(caffeineMgPer100g),
+      'productQuantity': serializer.toJson<double?>(productQuantity),
+      'productQuantityUnit': serializer.toJson<String?>(productQuantityUnit),
+      'isFluid': serializer.toJson<bool>(isFluid),
+      'isLiquid': serializer.toJson<bool>(isLiquid),
+      'category': serializer.toJson<String?>(category),
+      'contentHash': serializer.toJson<String>(contentHash),
+      'source': serializer.toJson<String>(source),
+      'hadUserOverride': serializer.toJson<bool>(hadUserOverride),
+    };
+  }
+
+  OffProductsArchiveData copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? barcode,
+          String? productName,
+          Value<String?> brand = const Value.absent(),
+          int? calories,
+          double? protein,
+          double? carbs,
+          double? fat,
+          Value<double?> sugar = const Value.absent(),
+          Value<double?> fiber = const Value.absent(),
+          Value<double?> salt = const Value.absent(),
+          Value<double?> caffeine = const Value.absent(),
+          Value<double?> caffeineMgPer100g = const Value.absent(),
+          Value<double?> productQuantity = const Value.absent(),
+          Value<String?> productQuantityUnit = const Value.absent(),
+          bool? isFluid,
+          bool? isLiquid,
+          Value<String?> category = const Value.absent(),
+          String? contentHash,
+          String? source,
+          bool? hadUserOverride}) =>
+      OffProductsArchiveData(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        barcode: barcode ?? this.barcode,
+        productName: productName ?? this.productName,
+        brand: brand.present ? brand.value : this.brand,
+        calories: calories ?? this.calories,
+        protein: protein ?? this.protein,
+        carbs: carbs ?? this.carbs,
+        fat: fat ?? this.fat,
+        sugar: sugar.present ? sugar.value : this.sugar,
+        fiber: fiber.present ? fiber.value : this.fiber,
+        salt: salt.present ? salt.value : this.salt,
+        caffeine: caffeine.present ? caffeine.value : this.caffeine,
+        caffeineMgPer100g: caffeineMgPer100g.present
+            ? caffeineMgPer100g.value
+            : this.caffeineMgPer100g,
+        productQuantity: productQuantity.present
+            ? productQuantity.value
+            : this.productQuantity,
+        productQuantityUnit: productQuantityUnit.present
+            ? productQuantityUnit.value
+            : this.productQuantityUnit,
+        isFluid: isFluid ?? this.isFluid,
+        isLiquid: isLiquid ?? this.isLiquid,
+        category: category.present ? category.value : this.category,
+        contentHash: contentHash ?? this.contentHash,
+        source: source ?? this.source,
+        hadUserOverride: hadUserOverride ?? this.hadUserOverride,
+      );
+  OffProductsArchiveData copyWithCompanion(OffProductsArchiveCompanion data) {
+    return OffProductsArchiveData(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      barcode: data.barcode.present ? data.barcode.value : this.barcode,
+      productName:
+          data.productName.present ? data.productName.value : this.productName,
+      brand: data.brand.present ? data.brand.value : this.brand,
+      calories: data.calories.present ? data.calories.value : this.calories,
+      protein: data.protein.present ? data.protein.value : this.protein,
+      carbs: data.carbs.present ? data.carbs.value : this.carbs,
+      fat: data.fat.present ? data.fat.value : this.fat,
+      sugar: data.sugar.present ? data.sugar.value : this.sugar,
+      fiber: data.fiber.present ? data.fiber.value : this.fiber,
+      salt: data.salt.present ? data.salt.value : this.salt,
+      caffeine: data.caffeine.present ? data.caffeine.value : this.caffeine,
+      caffeineMgPer100g: data.caffeineMgPer100g.present
+          ? data.caffeineMgPer100g.value
+          : this.caffeineMgPer100g,
+      productQuantity: data.productQuantity.present
+          ? data.productQuantity.value
+          : this.productQuantity,
+      productQuantityUnit: data.productQuantityUnit.present
+          ? data.productQuantityUnit.value
+          : this.productQuantityUnit,
+      isFluid: data.isFluid.present ? data.isFluid.value : this.isFluid,
+      isLiquid: data.isLiquid.present ? data.isLiquid.value : this.isLiquid,
+      category: data.category.present ? data.category.value : this.category,
+      contentHash:
+          data.contentHash.present ? data.contentHash.value : this.contentHash,
+      source: data.source.present ? data.source.value : this.source,
+      hadUserOverride: data.hadUserOverride.present
+          ? data.hadUserOverride.value
+          : this.hadUserOverride,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OffProductsArchiveData(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('barcode: $barcode, ')
+          ..write('productName: $productName, ')
+          ..write('brand: $brand, ')
+          ..write('calories: $calories, ')
+          ..write('protein: $protein, ')
+          ..write('carbs: $carbs, ')
+          ..write('fat: $fat, ')
+          ..write('sugar: $sugar, ')
+          ..write('fiber: $fiber, ')
+          ..write('salt: $salt, ')
+          ..write('caffeine: $caffeine, ')
+          ..write('caffeineMgPer100g: $caffeineMgPer100g, ')
+          ..write('productQuantity: $productQuantity, ')
+          ..write('productQuantityUnit: $productQuantityUnit, ')
+          ..write('isFluid: $isFluid, ')
+          ..write('isLiquid: $isLiquid, ')
+          ..write('category: $category, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('source: $source, ')
+          ..write('hadUserOverride: $hadUserOverride')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        barcode,
+        productName,
+        brand,
+        calories,
+        protein,
+        carbs,
+        fat,
+        sugar,
+        fiber,
+        salt,
+        caffeine,
+        caffeineMgPer100g,
+        productQuantity,
+        productQuantityUnit,
+        isFluid,
+        isLiquid,
+        category,
+        contentHash,
+        source,
+        hadUserOverride
+      ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OffProductsArchiveData &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.barcode == this.barcode &&
+          other.productName == this.productName &&
+          other.brand == this.brand &&
+          other.calories == this.calories &&
+          other.protein == this.protein &&
+          other.carbs == this.carbs &&
+          other.fat == this.fat &&
+          other.sugar == this.sugar &&
+          other.fiber == this.fiber &&
+          other.salt == this.salt &&
+          other.caffeine == this.caffeine &&
+          other.caffeineMgPer100g == this.caffeineMgPer100g &&
+          other.productQuantity == this.productQuantity &&
+          other.productQuantityUnit == this.productQuantityUnit &&
+          other.isFluid == this.isFluid &&
+          other.isLiquid == this.isLiquid &&
+          other.category == this.category &&
+          other.contentHash == this.contentHash &&
+          other.source == this.source &&
+          other.hadUserOverride == this.hadUserOverride);
+}
+
+class OffProductsArchiveCompanion
+    extends UpdateCompanion<OffProductsArchiveData> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> barcode;
+  final Value<String> productName;
+  final Value<String?> brand;
+  final Value<int> calories;
+  final Value<double> protein;
+  final Value<double> carbs;
+  final Value<double> fat;
+  final Value<double?> sugar;
+  final Value<double?> fiber;
+  final Value<double?> salt;
+  final Value<double?> caffeine;
+  final Value<double?> caffeineMgPer100g;
+  final Value<double?> productQuantity;
+  final Value<String?> productQuantityUnit;
+  final Value<bool> isFluid;
+  final Value<bool> isLiquid;
+  final Value<String?> category;
+  final Value<String> contentHash;
+  final Value<String> source;
+  final Value<bool> hadUserOverride;
+  const OffProductsArchiveCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.barcode = const Value.absent(),
+    this.productName = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.calories = const Value.absent(),
+    this.protein = const Value.absent(),
+    this.carbs = const Value.absent(),
+    this.fat = const Value.absent(),
+    this.sugar = const Value.absent(),
+    this.fiber = const Value.absent(),
+    this.salt = const Value.absent(),
+    this.caffeine = const Value.absent(),
+    this.caffeineMgPer100g = const Value.absent(),
+    this.productQuantity = const Value.absent(),
+    this.productQuantityUnit = const Value.absent(),
+    this.isFluid = const Value.absent(),
+    this.isLiquid = const Value.absent(),
+    this.category = const Value.absent(),
+    this.contentHash = const Value.absent(),
+    this.source = const Value.absent(),
+    this.hadUserOverride = const Value.absent(),
+  });
+  OffProductsArchiveCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String barcode,
+    required String productName,
+    this.brand = const Value.absent(),
+    required int calories,
+    required double protein,
+    required double carbs,
+    required double fat,
+    this.sugar = const Value.absent(),
+    this.fiber = const Value.absent(),
+    this.salt = const Value.absent(),
+    this.caffeine = const Value.absent(),
+    this.caffeineMgPer100g = const Value.absent(),
+    this.productQuantity = const Value.absent(),
+    this.productQuantityUnit = const Value.absent(),
+    this.isFluid = const Value.absent(),
+    this.isLiquid = const Value.absent(),
+    this.category = const Value.absent(),
+    required String contentHash,
+    required String source,
+    this.hadUserOverride = const Value.absent(),
+  })  : barcode = Value(barcode),
+        productName = Value(productName),
+        calories = Value(calories),
+        protein = Value(protein),
+        carbs = Value(carbs),
+        fat = Value(fat),
+        contentHash = Value(contentHash),
+        source = Value(source);
+  static Insertable<OffProductsArchiveData> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? barcode,
+    Expression<String>? productName,
+    Expression<String>? brand,
+    Expression<int>? calories,
+    Expression<double>? protein,
+    Expression<double>? carbs,
+    Expression<double>? fat,
+    Expression<double>? sugar,
+    Expression<double>? fiber,
+    Expression<double>? salt,
+    Expression<double>? caffeine,
+    Expression<double>? caffeineMgPer100g,
+    Expression<double>? productQuantity,
+    Expression<String>? productQuantityUnit,
+    Expression<bool>? isFluid,
+    Expression<bool>? isLiquid,
+    Expression<String>? category,
+    Expression<String>? contentHash,
+    Expression<String>? source,
+    Expression<bool>? hadUserOverride,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (barcode != null) 'barcode': barcode,
+      if (productName != null) 'product_name': productName,
+      if (brand != null) 'brand': brand,
+      if (calories != null) 'calories': calories,
+      if (protein != null) 'protein': protein,
+      if (carbs != null) 'carbs': carbs,
+      if (fat != null) 'fat': fat,
+      if (sugar != null) 'sugar': sugar,
+      if (fiber != null) 'fiber': fiber,
+      if (salt != null) 'salt': salt,
+      if (caffeine != null) 'caffeine': caffeine,
+      if (caffeineMgPer100g != null) 'caffeine_mg_per_100g': caffeineMgPer100g,
+      if (productQuantity != null) 'product_quantity': productQuantity,
+      if (productQuantityUnit != null)
+        'product_quantity_unit': productQuantityUnit,
+      if (isFluid != null) 'is_fluid': isFluid,
+      if (isLiquid != null) 'is_liquid': isLiquid,
+      if (category != null) 'category': category,
+      if (contentHash != null) 'content_hash': contentHash,
+      if (source != null) 'source': source,
+      if (hadUserOverride != null) 'had_user_override': hadUserOverride,
+    });
+  }
+
+  OffProductsArchiveCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? barcode,
+      Value<String>? productName,
+      Value<String?>? brand,
+      Value<int>? calories,
+      Value<double>? protein,
+      Value<double>? carbs,
+      Value<double>? fat,
+      Value<double?>? sugar,
+      Value<double?>? fiber,
+      Value<double?>? salt,
+      Value<double?>? caffeine,
+      Value<double?>? caffeineMgPer100g,
+      Value<double?>? productQuantity,
+      Value<String?>? productQuantityUnit,
+      Value<bool>? isFluid,
+      Value<bool>? isLiquid,
+      Value<String?>? category,
+      Value<String>? contentHash,
+      Value<String>? source,
+      Value<bool>? hadUserOverride}) {
+    return OffProductsArchiveCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      barcode: barcode ?? this.barcode,
+      productName: productName ?? this.productName,
+      brand: brand ?? this.brand,
+      calories: calories ?? this.calories,
+      protein: protein ?? this.protein,
+      carbs: carbs ?? this.carbs,
+      fat: fat ?? this.fat,
+      sugar: sugar ?? this.sugar,
+      fiber: fiber ?? this.fiber,
+      salt: salt ?? this.salt,
+      caffeine: caffeine ?? this.caffeine,
+      caffeineMgPer100g: caffeineMgPer100g ?? this.caffeineMgPer100g,
+      productQuantity: productQuantity ?? this.productQuantity,
+      productQuantityUnit: productQuantityUnit ?? this.productQuantityUnit,
+      isFluid: isFluid ?? this.isFluid,
+      isLiquid: isLiquid ?? this.isLiquid,
+      category: category ?? this.category,
+      contentHash: contentHash ?? this.contentHash,
+      source: source ?? this.source,
+      hadUserOverride: hadUserOverride ?? this.hadUserOverride,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (barcode.present) {
+      map['barcode'] = Variable<String>(barcode.value);
+    }
+    if (productName.present) {
+      map['product_name'] = Variable<String>(productName.value);
+    }
+    if (brand.present) {
+      map['brand'] = Variable<String>(brand.value);
+    }
+    if (calories.present) {
+      map['calories'] = Variable<int>(calories.value);
+    }
+    if (protein.present) {
+      map['protein'] = Variable<double>(protein.value);
+    }
+    if (carbs.present) {
+      map['carbs'] = Variable<double>(carbs.value);
+    }
+    if (fat.present) {
+      map['fat'] = Variable<double>(fat.value);
+    }
+    if (sugar.present) {
+      map['sugar'] = Variable<double>(sugar.value);
+    }
+    if (fiber.present) {
+      map['fiber'] = Variable<double>(fiber.value);
+    }
+    if (salt.present) {
+      map['salt'] = Variable<double>(salt.value);
+    }
+    if (caffeine.present) {
+      map['caffeine'] = Variable<double>(caffeine.value);
+    }
+    if (caffeineMgPer100g.present) {
+      map['caffeine_mg_per_100g'] = Variable<double>(caffeineMgPer100g.value);
+    }
+    if (productQuantity.present) {
+      map['product_quantity'] = Variable<double>(productQuantity.value);
+    }
+    if (productQuantityUnit.present) {
+      map['product_quantity_unit'] =
+          Variable<String>(productQuantityUnit.value);
+    }
+    if (isFluid.present) {
+      map['is_fluid'] = Variable<bool>(isFluid.value);
+    }
+    if (isLiquid.present) {
+      map['is_liquid'] = Variable<bool>(isLiquid.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (contentHash.present) {
+      map['content_hash'] = Variable<String>(contentHash.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (hadUserOverride.present) {
+      map['had_user_override'] = Variable<bool>(hadUserOverride.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OffProductsArchiveCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('barcode: $barcode, ')
+          ..write('productName: $productName, ')
+          ..write('brand: $brand, ')
+          ..write('calories: $calories, ')
+          ..write('protein: $protein, ')
+          ..write('carbs: $carbs, ')
+          ..write('fat: $fat, ')
+          ..write('sugar: $sugar, ')
+          ..write('fiber: $fiber, ')
+          ..write('salt: $salt, ')
+          ..write('caffeine: $caffeine, ')
+          ..write('caffeineMgPer100g: $caffeineMgPer100g, ')
+          ..write('productQuantity: $productQuantity, ')
+          ..write('productQuantityUnit: $productQuantityUnit, ')
+          ..write('isFluid: $isFluid, ')
+          ..write('isLiquid: $isLiquid, ')
+          ..write('category: $category, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('source: $source, ')
+          ..write('hadUserOverride: $hadUserOverride')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $NutritionLogsTable extends NutritionLogs
     with TableInfo<$NutritionLogsTable, NutritionLog> {
   @override
@@ -7501,6 +8625,15 @@ class $NutritionLogsTable extends NutritionLogs
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('Snack'));
+  static const VerificationMeta _archiveLocalIdMeta =
+      const VerificationMeta('archiveLocalId');
+  @override
+  late final GeneratedColumn<int> archiveLocalId = GeneratedColumn<int>(
+      'archive_local_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES off_products_archive (local_id)'));
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -7513,7 +8646,8 @@ class $NutritionLogsTable extends NutritionLogs
         legacyBarcode,
         consumedAt,
         amount,
-        mealType
+        mealType,
+        archiveLocalId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -7576,6 +8710,12 @@ class $NutritionLogsTable extends NutritionLogs
       context.handle(_mealTypeMeta,
           mealType.isAcceptableOrUnknown(data['meal_type']!, _mealTypeMeta));
     }
+    if (data.containsKey('archive_local_id')) {
+      context.handle(
+          _archiveLocalIdMeta,
+          archiveLocalId.isAcceptableOrUnknown(
+              data['archive_local_id']!, _archiveLocalIdMeta));
+    }
     return context;
   }
 
@@ -7607,6 +8747,8 @@ class $NutritionLogsTable extends NutritionLogs
           .read(DriftSqlType.double, data['${effectivePrefix}amount'])!,
       mealType: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}meal_type'])!,
+      archiveLocalId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}archive_local_id']),
     );
   }
 
@@ -7628,6 +8770,7 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
   final DateTime consumedAt;
   final double amount;
   final String mealType;
+  final int? archiveLocalId;
   const NutritionLog(
       {required this.localId,
       required this.id,
@@ -7639,7 +8782,8 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
       this.legacyBarcode,
       required this.consumedAt,
       required this.amount,
-      required this.mealType});
+      required this.mealType,
+      this.archiveLocalId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -7662,6 +8806,9 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
     map['consumed_at'] = Variable<DateTime>(consumedAt);
     map['amount'] = Variable<double>(amount);
     map['meal_type'] = Variable<String>(mealType);
+    if (!nullToAbsent || archiveLocalId != null) {
+      map['archive_local_id'] = Variable<int>(archiveLocalId);
+    }
     return map;
   }
 
@@ -7685,6 +8832,9 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
       consumedAt: Value(consumedAt),
       amount: Value(amount),
       mealType: Value(mealType),
+      archiveLocalId: archiveLocalId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archiveLocalId),
     );
   }
 
@@ -7703,6 +8853,7 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
       consumedAt: serializer.fromJson<DateTime>(json['consumedAt']),
       amount: serializer.fromJson<double>(json['amount']),
       mealType: serializer.fromJson<String>(json['mealType']),
+      archiveLocalId: serializer.fromJson<int?>(json['archiveLocalId']),
     );
   }
   @override
@@ -7720,6 +8871,7 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
       'consumedAt': serializer.toJson<DateTime>(consumedAt),
       'amount': serializer.toJson<double>(amount),
       'mealType': serializer.toJson<String>(mealType),
+      'archiveLocalId': serializer.toJson<int?>(archiveLocalId),
     };
   }
 
@@ -7734,7 +8886,8 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
           Value<String?> legacyBarcode = const Value.absent(),
           DateTime? consumedAt,
           double? amount,
-          String? mealType}) =>
+          String? mealType,
+          Value<int?> archiveLocalId = const Value.absent()}) =>
       NutritionLog(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -7748,6 +8901,8 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
         consumedAt: consumedAt ?? this.consumedAt,
         amount: amount ?? this.amount,
         mealType: mealType ?? this.mealType,
+        archiveLocalId:
+            archiveLocalId.present ? archiveLocalId.value : this.archiveLocalId,
       );
   NutritionLog copyWithCompanion(NutritionLogsCompanion data) {
     return NutritionLog(
@@ -7765,6 +8920,9 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
           data.consumedAt.present ? data.consumedAt.value : this.consumedAt,
       amount: data.amount.present ? data.amount.value : this.amount,
       mealType: data.mealType.present ? data.mealType.value : this.mealType,
+      archiveLocalId: data.archiveLocalId.present
+          ? data.archiveLocalId.value
+          : this.archiveLocalId,
     );
   }
 
@@ -7781,14 +8939,26 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
           ..write('legacyBarcode: $legacyBarcode, ')
           ..write('consumedAt: $consumedAt, ')
           ..write('amount: $amount, ')
-          ..write('mealType: $mealType')
+          ..write('mealType: $mealType, ')
+          ..write('archiveLocalId: $archiveLocalId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
-      userId, productId, legacyBarcode, consumedAt, amount, mealType);
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      userId,
+      productId,
+      legacyBarcode,
+      consumedAt,
+      amount,
+      mealType,
+      archiveLocalId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -7803,7 +8973,8 @@ class NutritionLog extends DataClass implements Insertable<NutritionLog> {
           other.legacyBarcode == this.legacyBarcode &&
           other.consumedAt == this.consumedAt &&
           other.amount == this.amount &&
-          other.mealType == this.mealType);
+          other.mealType == this.mealType &&
+          other.archiveLocalId == this.archiveLocalId);
 }
 
 class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
@@ -7818,6 +8989,7 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
   final Value<DateTime> consumedAt;
   final Value<double> amount;
   final Value<String> mealType;
+  final Value<int?> archiveLocalId;
   const NutritionLogsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -7830,6 +9002,7 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
     this.consumedAt = const Value.absent(),
     this.amount = const Value.absent(),
     this.mealType = const Value.absent(),
+    this.archiveLocalId = const Value.absent(),
   });
   NutritionLogsCompanion.insert({
     this.localId = const Value.absent(),
@@ -7843,6 +9016,7 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
     required DateTime consumedAt,
     required double amount,
     this.mealType = const Value.absent(),
+    this.archiveLocalId = const Value.absent(),
   })  : consumedAt = Value(consumedAt),
         amount = Value(amount);
   static Insertable<NutritionLog> custom({
@@ -7857,6 +9031,7 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
     Expression<DateTime>? consumedAt,
     Expression<double>? amount,
     Expression<String>? mealType,
+    Expression<int>? archiveLocalId,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -7870,6 +9045,7 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
       if (consumedAt != null) 'consumed_at': consumedAt,
       if (amount != null) 'amount': amount,
       if (mealType != null) 'meal_type': mealType,
+      if (archiveLocalId != null) 'archive_local_id': archiveLocalId,
     });
   }
 
@@ -7884,7 +9060,8 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
       Value<String?>? legacyBarcode,
       Value<DateTime>? consumedAt,
       Value<double>? amount,
-      Value<String>? mealType}) {
+      Value<String>? mealType,
+      Value<int?>? archiveLocalId}) {
     return NutritionLogsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -7897,6 +9074,7 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
       consumedAt: consumedAt ?? this.consumedAt,
       amount: amount ?? this.amount,
       mealType: mealType ?? this.mealType,
+      archiveLocalId: archiveLocalId ?? this.archiveLocalId,
     );
   }
 
@@ -7936,6 +9114,9 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
     if (mealType.present) {
       map['meal_type'] = Variable<String>(mealType.value);
     }
+    if (archiveLocalId.present) {
+      map['archive_local_id'] = Variable<int>(archiveLocalId.value);
+    }
     return map;
   }
 
@@ -7952,7 +9133,8 @@ class NutritionLogsCompanion extends UpdateCompanion<NutritionLog> {
           ..write('legacyBarcode: $legacyBarcode, ')
           ..write('consumedAt: $consumedAt, ')
           ..write('amount: $amount, ')
-          ..write('mealType: $mealType')
+          ..write('mealType: $mealType, ')
+          ..write('archiveLocalId: $archiveLocalId')
           ..write(')'))
         .toString();
   }
@@ -16938,6 +18120,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $CardioActivitiesTable(this);
   late final $CardioSamplesTable cardioSamples = $CardioSamplesTable(this);
   late final $ProductsTable products = $ProductsTable(this);
+  late final $OffProductsArchiveTable offProductsArchive =
+      $OffProductsArchiveTable(this);
   late final $NutritionLogsTable nutritionLogs = $NutritionLogsTable(this);
   late final $SupplementsTable supplements = $SupplementsTable(this);
   late final $SupplementLogsTable supplementLogs = $SupplementLogsTable(this);
@@ -16980,6 +18164,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         cardioActivities,
         cardioSamples,
         products,
+        offProductsArchive,
         nutritionLogs,
         supplements,
         supplementLogs,
@@ -17142,8 +18327,7 @@ final class $$ProfilesTableReferences
   static MultiTypedResultKey<$AppSettingsTable, List<AppSetting>>
       _appSettingsRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.appSettings,
-              aliasName:
-                  $_aliasNameGenerator(db.profiles.id, db.appSettings.userId));
+              aliasName: 'profiles__id__app_settings__user_id');
 
   $$AppSettingsTableProcessedTableManager get appSettingsRefs {
     final manager = $$AppSettingsTableTableManager($_db, $_db.appSettings)
@@ -17497,8 +18681,8 @@ final class $$AppSettingsTableReferences
     extends BaseReferences<_$AppDatabase, $AppSettingsTable, AppSetting> {
   $$AppSettingsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $ProfilesTable _userIdTable(_$AppDatabase db) => db.profiles
-      .createAlias($_aliasNameGenerator(db.appSettings.userId, db.profiles.id));
+  static $ProfilesTable _userIdTable(_$AppDatabase db) =>
+      db.profiles.createAlias('app_settings__user_id__profiles__id');
 
   $$ProfilesTableProcessedTableManager get userId {
     final $_column = $_itemColumn<String>('user_id')!;
@@ -17902,8 +19086,8 @@ final class $$ExercisesTableReferences
   $$ExercisesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $ExercisesTable _replacesExerciseIdTable(_$AppDatabase db) =>
-      db.exercises.createAlias($_aliasNameGenerator(
-          db.exercises.replacesExerciseId, db.exercises.id));
+      db.exercises
+          .createAlias('exercises__replaces_exercise_id__exercises__id');
 
   $$ExercisesTableProcessedTableManager? get replacesExerciseId {
     final $_column = $_itemColumn<String>('replaces_exercise_id');
@@ -17919,8 +19103,7 @@ final class $$ExercisesTableReferences
   static MultiTypedResultKey<$RoutineExercisesTable, List<RoutineExercise>>
       _routineExercisesRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.routineExercises,
-              aliasName: $_aliasNameGenerator(
-                  db.exercises.id, db.routineExercises.exerciseId));
+              aliasName: 'exercises__id__routine_exercises__exercise_id');
 
   $$RoutineExercisesTableProcessedTableManager get routineExercisesRefs {
     final manager = $$RoutineExercisesTableTableManager(
@@ -17936,8 +19119,7 @@ final class $$ExercisesTableReferences
   static MultiTypedResultKey<$SetLogsTable, List<SetLog>> _setLogsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.setLogs,
-          aliasName:
-              $_aliasNameGenerator(db.exercises.id, db.setLogs.exerciseId));
+          aliasName: 'exercises__id__set_logs__exercise_id');
 
   $$SetLogsTableProcessedTableManager get setLogsRefs {
     final manager = $$SetLogsTableTableManager($_db, $_db.setLogs)
@@ -17952,8 +19134,7 @@ final class $$ExercisesTableReferences
       List<WorkoutExerciseLog>> _workoutExerciseLogsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.workoutExerciseLogs,
-          aliasName: $_aliasNameGenerator(
-              db.exercises.id, db.workoutExerciseLogs.exerciseId));
+          aliasName: 'exercises__id__workout_exercise_logs__exercise_id');
 
   $$WorkoutExerciseLogsTableProcessedTableManager get workoutExerciseLogsRefs {
     final manager = $$WorkoutExerciseLogsTableTableManager(
@@ -17970,8 +19151,7 @@ final class $$ExercisesTableReferences
       List<ExerciseTranslation>> _exerciseTranslationsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.exerciseTranslations,
-          aliasName: $_aliasNameGenerator(
-              db.exercises.id, db.exerciseTranslations.exerciseId));
+          aliasName: 'exercises__id__exercise_translations__exercise_id');
 
   $$ExerciseTranslationsTableProcessedTableManager
       get exerciseTranslationsRefs {
@@ -18615,8 +19795,7 @@ final class $$RoutinesTableReferences
   static MultiTypedResultKey<$RoutineExercisesTable, List<RoutineExercise>>
       _routineExercisesRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.routineExercises,
-              aliasName: $_aliasNameGenerator(
-                  db.routines.id, db.routineExercises.routineId));
+              aliasName: 'routines__id__routine_exercises__routine_id');
 
   $$RoutineExercisesTableProcessedTableManager get routineExercisesRefs {
     final manager = $$RoutineExercisesTableTableManager(
@@ -18630,10 +19809,9 @@ final class $$RoutinesTableReferences
   }
 
   static MultiTypedResultKey<$WorkoutLogsTable, List<WorkoutLog>>
-      _workoutLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-          db.workoutLogs,
-          aliasName:
-              $_aliasNameGenerator(db.routines.id, db.workoutLogs.routineId));
+      _workoutLogsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.workoutLogs,
+              aliasName: 'routines__id__workout_logs__routine_id');
 
   $$WorkoutLogsTableProcessedTableManager get workoutLogsRefs {
     final manager = $$WorkoutLogsTableTableManager($_db, $_db.workoutLogs)
@@ -18986,8 +20164,7 @@ final class $$RoutineExercisesTableReferences extends BaseReferences<
       super.$_db, super.$_table, super.$_typedResult);
 
   static $RoutinesTable _routineIdTable(_$AppDatabase db) =>
-      db.routines.createAlias(
-          $_aliasNameGenerator(db.routineExercises.routineId, db.routines.id));
+      db.routines.createAlias('routine_exercises__routine_id__routines__id');
 
   $$RoutinesTableProcessedTableManager get routineId {
     final $_column = $_itemColumn<String>('routine_id')!;
@@ -19001,8 +20178,7 @@ final class $$RoutineExercisesTableReferences extends BaseReferences<
   }
 
   static $ExercisesTable _exerciseIdTable(_$AppDatabase db) =>
-      db.exercises.createAlias($_aliasNameGenerator(
-          db.routineExercises.exerciseId, db.exercises.id));
+      db.exercises.createAlias('routine_exercises__exercise_id__exercises__id');
 
   $$ExercisesTableProcessedTableManager get exerciseId {
     final $_column = $_itemColumn<String>('exercise_id')!;
@@ -19019,8 +20195,8 @@ final class $$RoutineExercisesTableReferences extends BaseReferences<
       List<RoutineSetTemplate>> _routineSetTemplatesRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.routineSetTemplates,
-          aliasName: $_aliasNameGenerator(db.routineExercises.id,
-              db.routineSetTemplates.routineExerciseId));
+          aliasName:
+              'routine_exercises__id__routine_set_templates__routine_exercise_id');
 
   $$RoutineSetTemplatesTableProcessedTableManager get routineSetTemplatesRefs {
     final manager =
@@ -19495,8 +20671,8 @@ final class $$RoutineSetTemplatesTableReferences extends BaseReferences<
       super.$_db, super.$_table, super.$_typedResult);
 
   static $RoutineExercisesTable _routineExerciseIdTable(_$AppDatabase db) =>
-      db.routineExercises.createAlias($_aliasNameGenerator(
-          db.routineSetTemplates.routineExerciseId, db.routineExercises.id));
+      db.routineExercises.createAlias(
+          'routine_set_templates__routine_exercise_id__routine_exercises__id');
 
   $$RoutineExercisesTableProcessedTableManager get routineExerciseId {
     final $_column = $_itemColumn<String>('routine_exercise_id')!;
@@ -19851,8 +21027,7 @@ final class $$WorkoutLogsTableReferences
   $$WorkoutLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $RoutinesTable _routineIdTable(_$AppDatabase db) =>
-      db.routines.createAlias(
-          $_aliasNameGenerator(db.workoutLogs.routineId, db.routines.id));
+      db.routines.createAlias('workout_logs__routine_id__routines__id');
 
   $$RoutinesTableProcessedTableManager? get routineId {
     final $_column = $_itemColumn<String>('routine_id');
@@ -19868,8 +21043,7 @@ final class $$WorkoutLogsTableReferences
   static MultiTypedResultKey<$SetLogsTable, List<SetLog>> _setLogsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.setLogs,
-          aliasName:
-              $_aliasNameGenerator(db.workoutLogs.id, db.setLogs.workoutLogId));
+          aliasName: 'workout_logs__id__set_logs__workout_log_id');
 
   $$SetLogsTableProcessedTableManager get setLogsRefs {
     final manager = $$SetLogsTableTableManager($_db, $_db.setLogs).filter(
@@ -19883,8 +21057,7 @@ final class $$WorkoutLogsTableReferences
   static MultiTypedResultKey<$CardioActivitiesTable, List<CardioActivity>>
       _cardioActivitiesRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.cardioActivities,
-              aliasName: $_aliasNameGenerator(
-                  db.workoutLogs.id, db.cardioActivities.workoutLogId));
+              aliasName: 'workout_logs__id__cardio_activities__workout_log_id');
 
   $$CardioActivitiesTableProcessedTableManager get cardioActivitiesRefs {
     final manager =
@@ -19901,8 +21074,7 @@ final class $$WorkoutLogsTableReferences
       List<WorkoutExerciseLog>> _workoutExerciseLogsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.workoutExerciseLogs,
-          aliasName: $_aliasNameGenerator(
-              db.workoutLogs.id, db.workoutExerciseLogs.workoutLogId));
+          aliasName: 'workout_logs__id__workout_exercise_logs__workout_log_id');
 
   $$WorkoutExerciseLogsTableProcessedTableManager get workoutExerciseLogsRefs {
     final manager = $$WorkoutExerciseLogsTableTableManager(
@@ -20486,8 +21658,7 @@ final class $$SetLogsTableReferences
   $$SetLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $WorkoutLogsTable _workoutLogIdTable(_$AppDatabase db) =>
-      db.workoutLogs.createAlias(
-          $_aliasNameGenerator(db.setLogs.workoutLogId, db.workoutLogs.id));
+      db.workoutLogs.createAlias('set_logs__workout_log_id__workout_logs__id');
 
   $$WorkoutLogsTableProcessedTableManager get workoutLogId {
     final $_column = $_itemColumn<String>('workout_log_id')!;
@@ -20501,8 +21672,7 @@ final class $$SetLogsTableReferences
   }
 
   static $ExercisesTable _exerciseIdTable(_$AppDatabase db) =>
-      db.exercises.createAlias(
-          $_aliasNameGenerator(db.setLogs.exerciseId, db.exercises.id));
+      db.exercises.createAlias('set_logs__exercise_id__exercises__id');
 
   $$ExercisesTableProcessedTableManager? get exerciseId {
     final $_column = $_itemColumn<String>('exercise_id');
@@ -21030,8 +22200,8 @@ final class $$CardioActivitiesTableReferences extends BaseReferences<
       super.$_db, super.$_table, super.$_typedResult);
 
   static $WorkoutLogsTable _workoutLogIdTable(_$AppDatabase db) =>
-      db.workoutLogs.createAlias($_aliasNameGenerator(
-          db.cardioActivities.workoutLogId, db.workoutLogs.id));
+      db.workoutLogs
+          .createAlias('cardio_activities__workout_log_id__workout_logs__id');
 
   $$WorkoutLogsTableProcessedTableManager get workoutLogId {
     final $_column = $_itemColumn<String>('workout_log_id')!;
@@ -21047,8 +22217,8 @@ final class $$CardioActivitiesTableReferences extends BaseReferences<
   static MultiTypedResultKey<$CardioSamplesTable, List<CardioSample>>
       _cardioSamplesRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.cardioSamples,
-              aliasName: $_aliasNameGenerator(
-                  db.cardioActivities.id, db.cardioSamples.cardioActivityId));
+              aliasName:
+                  'cardio_activities__id__cardio_samples__cardio_activity_id');
 
   $$CardioSamplesTableProcessedTableManager get cardioSamplesRefs {
     final manager = $$CardioSamplesTableTableManager($_db, $_db.cardioSamples)
@@ -21462,9 +22632,9 @@ final class $$CardioSamplesTableReferences
   $$CardioSamplesTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
 
-  static $CardioActivitiesTable _cardioActivityIdTable(_$AppDatabase db) =>
-      db.cardioActivities.createAlias($_aliasNameGenerator(
-          db.cardioSamples.cardioActivityId, db.cardioActivities.id));
+  static $CardioActivitiesTable _cardioActivityIdTable(_$AppDatabase db) => db
+      .cardioActivities
+      .createAlias('cardio_samples__cardio_activity_id__cardio_activities__id');
 
   $$CardioActivitiesTableProcessedTableManager get cardioActivityId {
     final $_column = $_itemColumn<String>('cardio_activity_id')!;
@@ -21833,8 +23003,7 @@ final class $$ProductsTableReferences
   static MultiTypedResultKey<$NutritionLogsTable, List<NutritionLog>>
       _nutritionLogsRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.nutritionLogs,
-              aliasName: $_aliasNameGenerator(
-                  db.products.id, db.nutritionLogs.productId));
+              aliasName: 'products__id__nutrition_logs__product_id');
 
   $$NutritionLogsTableProcessedTableManager get nutritionLogsRefs {
     final manager = $$NutritionLogsTableTableManager($_db, $_db.nutritionLogs)
@@ -21848,8 +23017,7 @@ final class $$ProductsTableReferences
   static MultiTypedResultKey<$MealItemsTable, List<MealItem>>
       _mealItemsRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.mealItems,
-              aliasName:
-                  $_aliasNameGenerator(db.products.id, db.mealItems.productId));
+              aliasName: 'products__id__meal_items__product_id');
 
   $$MealItemsTableProcessedTableManager get mealItemsRefs {
     final manager = $$MealItemsTableTableManager($_db, $_db.mealItems)
@@ -22531,6 +23699,570 @@ typedef $$ProductsTableProcessedTableManager = ProcessedTableManager<
     (Product, $$ProductsTableReferences),
     Product,
     PrefetchHooks Function({bool nutritionLogsRefs, bool mealItemsRefs})>;
+typedef $$OffProductsArchiveTableCreateCompanionBuilder
+    = OffProductsArchiveCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String barcode,
+  required String productName,
+  Value<String?> brand,
+  required int calories,
+  required double protein,
+  required double carbs,
+  required double fat,
+  Value<double?> sugar,
+  Value<double?> fiber,
+  Value<double?> salt,
+  Value<double?> caffeine,
+  Value<double?> caffeineMgPer100g,
+  Value<double?> productQuantity,
+  Value<String?> productQuantityUnit,
+  Value<bool> isFluid,
+  Value<bool> isLiquid,
+  Value<String?> category,
+  required String contentHash,
+  required String source,
+  Value<bool> hadUserOverride,
+});
+typedef $$OffProductsArchiveTableUpdateCompanionBuilder
+    = OffProductsArchiveCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> barcode,
+  Value<String> productName,
+  Value<String?> brand,
+  Value<int> calories,
+  Value<double> protein,
+  Value<double> carbs,
+  Value<double> fat,
+  Value<double?> sugar,
+  Value<double?> fiber,
+  Value<double?> salt,
+  Value<double?> caffeine,
+  Value<double?> caffeineMgPer100g,
+  Value<double?> productQuantity,
+  Value<String?> productQuantityUnit,
+  Value<bool> isFluid,
+  Value<bool> isLiquid,
+  Value<String?> category,
+  Value<String> contentHash,
+  Value<String> source,
+  Value<bool> hadUserOverride,
+});
+
+final class $$OffProductsArchiveTableReferences extends BaseReferences<
+    _$AppDatabase, $OffProductsArchiveTable, OffProductsArchiveData> {
+  $$OffProductsArchiveTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$NutritionLogsTable,
+      List<NutritionLog>> _nutritionLogsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.nutritionLogs,
+          aliasName:
+              'off_products_archive__local_id__nutrition_logs__archive_local_id');
+
+  $$NutritionLogsTableProcessedTableManager get nutritionLogsRefs {
+    final manager = $$NutritionLogsTableTableManager($_db, $_db.nutritionLogs)
+        .filter((f) =>
+            f.archiveLocalId.localId.sqlEquals($_itemColumn<int>('local_id')!));
+
+    final cache = $_typedResult.readTableOrNull(_nutritionLogsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$OffProductsArchiveTableFilterComposer
+    extends Composer<_$AppDatabase, $OffProductsArchiveTable> {
+  $$OffProductsArchiveTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get barcode => $composableBuilder(
+      column: $table.barcode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get productName => $composableBuilder(
+      column: $table.productName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get brand => $composableBuilder(
+      column: $table.brand, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get calories => $composableBuilder(
+      column: $table.calories, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get protein => $composableBuilder(
+      column: $table.protein, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get carbs => $composableBuilder(
+      column: $table.carbs, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get fat => $composableBuilder(
+      column: $table.fat, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get sugar => $composableBuilder(
+      column: $table.sugar, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get fiber => $composableBuilder(
+      column: $table.fiber, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get salt => $composableBuilder(
+      column: $table.salt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get caffeine => $composableBuilder(
+      column: $table.caffeine, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get caffeineMgPer100g => $composableBuilder(
+      column: $table.caffeineMgPer100g,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get productQuantity => $composableBuilder(
+      column: $table.productQuantity,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get productQuantityUnit => $composableBuilder(
+      column: $table.productQuantityUnit,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isFluid => $composableBuilder(
+      column: $table.isFluid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isLiquid => $composableBuilder(
+      column: $table.isLiquid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get contentHash => $composableBuilder(
+      column: $table.contentHash, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get hadUserOverride => $composableBuilder(
+      column: $table.hadUserOverride,
+      builder: (column) => ColumnFilters(column));
+
+  Expression<bool> nutritionLogsRefs(
+      Expression<bool> Function($$NutritionLogsTableFilterComposer f) f) {
+    final $$NutritionLogsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.localId,
+        referencedTable: $db.nutritionLogs,
+        getReferencedColumn: (t) => t.archiveLocalId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$NutritionLogsTableFilterComposer(
+              $db: $db,
+              $table: $db.nutritionLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$OffProductsArchiveTableOrderingComposer
+    extends Composer<_$AppDatabase, $OffProductsArchiveTable> {
+  $$OffProductsArchiveTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get barcode => $composableBuilder(
+      column: $table.barcode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get productName => $composableBuilder(
+      column: $table.productName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get brand => $composableBuilder(
+      column: $table.brand, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get calories => $composableBuilder(
+      column: $table.calories, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get protein => $composableBuilder(
+      column: $table.protein, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get carbs => $composableBuilder(
+      column: $table.carbs, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get fat => $composableBuilder(
+      column: $table.fat, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get sugar => $composableBuilder(
+      column: $table.sugar, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get fiber => $composableBuilder(
+      column: $table.fiber, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get salt => $composableBuilder(
+      column: $table.salt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get caffeine => $composableBuilder(
+      column: $table.caffeine, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get caffeineMgPer100g => $composableBuilder(
+      column: $table.caffeineMgPer100g,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get productQuantity => $composableBuilder(
+      column: $table.productQuantity,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get productQuantityUnit => $composableBuilder(
+      column: $table.productQuantityUnit,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isFluid => $composableBuilder(
+      column: $table.isFluid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isLiquid => $composableBuilder(
+      column: $table.isLiquid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get contentHash => $composableBuilder(
+      column: $table.contentHash, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get hadUserOverride => $composableBuilder(
+      column: $table.hadUserOverride,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$OffProductsArchiveTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OffProductsArchiveTable> {
+  $$OffProductsArchiveTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get barcode =>
+      $composableBuilder(column: $table.barcode, builder: (column) => column);
+
+  GeneratedColumn<String> get productName => $composableBuilder(
+      column: $table.productName, builder: (column) => column);
+
+  GeneratedColumn<String> get brand =>
+      $composableBuilder(column: $table.brand, builder: (column) => column);
+
+  GeneratedColumn<int> get calories =>
+      $composableBuilder(column: $table.calories, builder: (column) => column);
+
+  GeneratedColumn<double> get protein =>
+      $composableBuilder(column: $table.protein, builder: (column) => column);
+
+  GeneratedColumn<double> get carbs =>
+      $composableBuilder(column: $table.carbs, builder: (column) => column);
+
+  GeneratedColumn<double> get fat =>
+      $composableBuilder(column: $table.fat, builder: (column) => column);
+
+  GeneratedColumn<double> get sugar =>
+      $composableBuilder(column: $table.sugar, builder: (column) => column);
+
+  GeneratedColumn<double> get fiber =>
+      $composableBuilder(column: $table.fiber, builder: (column) => column);
+
+  GeneratedColumn<double> get salt =>
+      $composableBuilder(column: $table.salt, builder: (column) => column);
+
+  GeneratedColumn<double> get caffeine =>
+      $composableBuilder(column: $table.caffeine, builder: (column) => column);
+
+  GeneratedColumn<double> get caffeineMgPer100g => $composableBuilder(
+      column: $table.caffeineMgPer100g, builder: (column) => column);
+
+  GeneratedColumn<double> get productQuantity => $composableBuilder(
+      column: $table.productQuantity, builder: (column) => column);
+
+  GeneratedColumn<String> get productQuantityUnit => $composableBuilder(
+      column: $table.productQuantityUnit, builder: (column) => column);
+
+  GeneratedColumn<bool> get isFluid =>
+      $composableBuilder(column: $table.isFluid, builder: (column) => column);
+
+  GeneratedColumn<bool> get isLiquid =>
+      $composableBuilder(column: $table.isLiquid, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get contentHash => $composableBuilder(
+      column: $table.contentHash, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<bool> get hadUserOverride => $composableBuilder(
+      column: $table.hadUserOverride, builder: (column) => column);
+
+  Expression<T> nutritionLogsRefs<T extends Object>(
+      Expression<T> Function($$NutritionLogsTableAnnotationComposer a) f) {
+    final $$NutritionLogsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.localId,
+        referencedTable: $db.nutritionLogs,
+        getReferencedColumn: (t) => t.archiveLocalId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$NutritionLogsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.nutritionLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$OffProductsArchiveTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $OffProductsArchiveTable,
+    OffProductsArchiveData,
+    $$OffProductsArchiveTableFilterComposer,
+    $$OffProductsArchiveTableOrderingComposer,
+    $$OffProductsArchiveTableAnnotationComposer,
+    $$OffProductsArchiveTableCreateCompanionBuilder,
+    $$OffProductsArchiveTableUpdateCompanionBuilder,
+    (OffProductsArchiveData, $$OffProductsArchiveTableReferences),
+    OffProductsArchiveData,
+    PrefetchHooks Function({bool nutritionLogsRefs})> {
+  $$OffProductsArchiveTableTableManager(
+      _$AppDatabase db, $OffProductsArchiveTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OffProductsArchiveTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OffProductsArchiveTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OffProductsArchiveTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> barcode = const Value.absent(),
+            Value<String> productName = const Value.absent(),
+            Value<String?> brand = const Value.absent(),
+            Value<int> calories = const Value.absent(),
+            Value<double> protein = const Value.absent(),
+            Value<double> carbs = const Value.absent(),
+            Value<double> fat = const Value.absent(),
+            Value<double?> sugar = const Value.absent(),
+            Value<double?> fiber = const Value.absent(),
+            Value<double?> salt = const Value.absent(),
+            Value<double?> caffeine = const Value.absent(),
+            Value<double?> caffeineMgPer100g = const Value.absent(),
+            Value<double?> productQuantity = const Value.absent(),
+            Value<String?> productQuantityUnit = const Value.absent(),
+            Value<bool> isFluid = const Value.absent(),
+            Value<bool> isLiquid = const Value.absent(),
+            Value<String?> category = const Value.absent(),
+            Value<String> contentHash = const Value.absent(),
+            Value<String> source = const Value.absent(),
+            Value<bool> hadUserOverride = const Value.absent(),
+          }) =>
+              OffProductsArchiveCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            barcode: barcode,
+            productName: productName,
+            brand: brand,
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            sugar: sugar,
+            fiber: fiber,
+            salt: salt,
+            caffeine: caffeine,
+            caffeineMgPer100g: caffeineMgPer100g,
+            productQuantity: productQuantity,
+            productQuantityUnit: productQuantityUnit,
+            isFluid: isFluid,
+            isLiquid: isLiquid,
+            category: category,
+            contentHash: contentHash,
+            source: source,
+            hadUserOverride: hadUserOverride,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String barcode,
+            required String productName,
+            Value<String?> brand = const Value.absent(),
+            required int calories,
+            required double protein,
+            required double carbs,
+            required double fat,
+            Value<double?> sugar = const Value.absent(),
+            Value<double?> fiber = const Value.absent(),
+            Value<double?> salt = const Value.absent(),
+            Value<double?> caffeine = const Value.absent(),
+            Value<double?> caffeineMgPer100g = const Value.absent(),
+            Value<double?> productQuantity = const Value.absent(),
+            Value<String?> productQuantityUnit = const Value.absent(),
+            Value<bool> isFluid = const Value.absent(),
+            Value<bool> isLiquid = const Value.absent(),
+            Value<String?> category = const Value.absent(),
+            required String contentHash,
+            required String source,
+            Value<bool> hadUserOverride = const Value.absent(),
+          }) =>
+              OffProductsArchiveCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            barcode: barcode,
+            productName: productName,
+            brand: brand,
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            sugar: sugar,
+            fiber: fiber,
+            salt: salt,
+            caffeine: caffeine,
+            caffeineMgPer100g: caffeineMgPer100g,
+            productQuantity: productQuantity,
+            productQuantityUnit: productQuantityUnit,
+            isFluid: isFluid,
+            isLiquid: isLiquid,
+            category: category,
+            contentHash: contentHash,
+            source: source,
+            hadUserOverride: hadUserOverride,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$OffProductsArchiveTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({nutritionLogsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (nutritionLogsRefs) db.nutritionLogs
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (nutritionLogsRefs)
+                    await $_getPrefetchedData<OffProductsArchiveData,
+                            $OffProductsArchiveTable, NutritionLog>(
+                        currentTable: table,
+                        referencedTable: $$OffProductsArchiveTableReferences
+                            ._nutritionLogsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$OffProductsArchiveTableReferences(db, table, p0)
+                                .nutritionLogsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.archiveLocalId == item.localId),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$OffProductsArchiveTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $OffProductsArchiveTable,
+    OffProductsArchiveData,
+    $$OffProductsArchiveTableFilterComposer,
+    $$OffProductsArchiveTableOrderingComposer,
+    $$OffProductsArchiveTableAnnotationComposer,
+    $$OffProductsArchiveTableCreateCompanionBuilder,
+    $$OffProductsArchiveTableUpdateCompanionBuilder,
+    (OffProductsArchiveData, $$OffProductsArchiveTableReferences),
+    OffProductsArchiveData,
+    PrefetchHooks Function({bool nutritionLogsRefs})>;
 typedef $$NutritionLogsTableCreateCompanionBuilder = NutritionLogsCompanion
     Function({
   Value<int> localId,
@@ -22544,6 +24276,7 @@ typedef $$NutritionLogsTableCreateCompanionBuilder = NutritionLogsCompanion
   required DateTime consumedAt,
   required double amount,
   Value<String> mealType,
+  Value<int?> archiveLocalId,
 });
 typedef $$NutritionLogsTableUpdateCompanionBuilder = NutritionLogsCompanion
     Function({
@@ -22558,6 +24291,7 @@ typedef $$NutritionLogsTableUpdateCompanionBuilder = NutritionLogsCompanion
   Value<DateTime> consumedAt,
   Value<double> amount,
   Value<String> mealType,
+  Value<int?> archiveLocalId,
 });
 
 final class $$NutritionLogsTableReferences
@@ -22566,8 +24300,7 @@ final class $$NutritionLogsTableReferences
       super.$_db, super.$_table, super.$_typedResult);
 
   static $ProductsTable _productIdTable(_$AppDatabase db) =>
-      db.products.createAlias(
-          $_aliasNameGenerator(db.nutritionLogs.productId, db.products.id));
+      db.products.createAlias('nutrition_logs__product_id__products__id');
 
   $$ProductsTableProcessedTableManager? get productId {
     final $_column = $_itemColumn<String>('product_id');
@@ -22580,11 +24313,28 @@ final class $$NutritionLogsTableReferences
         manager.$state.copyWith(prefetchedData: [item]));
   }
 
-  static MultiTypedResultKey<$SupplementLogsTable, List<SupplementLog>>
-      _supplementLogsRefsTable(_$AppDatabase db) =>
-          MultiTypedResultKey.fromTable(db.supplementLogs,
-              aliasName: $_aliasNameGenerator(
-                  db.nutritionLogs.id, db.supplementLogs.sourceNutritionLogId));
+  static $OffProductsArchiveTable _archiveLocalIdTable(_$AppDatabase db) =>
+      db.offProductsArchive.createAlias(
+          'nutrition_logs__archive_local_id__off_products_archive__local_id');
+
+  $$OffProductsArchiveTableProcessedTableManager? get archiveLocalId {
+    final $_column = $_itemColumn<int>('archive_local_id');
+    if ($_column == null) return null;
+    final manager =
+        $$OffProductsArchiveTableTableManager($_db, $_db.offProductsArchive)
+            .filter((f) => f.localId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_archiveLocalIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$SupplementLogsTable,
+      List<SupplementLog>> _supplementLogsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.supplementLogs,
+          aliasName:
+              'nutrition_logs__id__supplement_logs__source_nutrition_log_id');
 
   $$SupplementLogsTableProcessedTableManager get supplementLogsRefs {
     final manager = $$SupplementLogsTableTableManager($_db, $_db.supplementLogs)
@@ -22597,10 +24347,9 @@ final class $$NutritionLogsTableReferences
   }
 
   static MultiTypedResultKey<$FluidLogsTable, List<FluidLog>>
-      _fluidLogsRefsTable(_$AppDatabase db) =>
-          MultiTypedResultKey.fromTable(db.fluidLogs,
-              aliasName: $_aliasNameGenerator(
-                  db.nutritionLogs.id, db.fluidLogs.linkedNutritionLogId));
+      _fluidLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.fluidLogs,
+          aliasName: 'nutrition_logs__id__fluid_logs__linked_nutrition_log_id');
 
   $$FluidLogsTableProcessedTableManager get fluidLogsRefs {
     final manager = $$FluidLogsTableTableManager($_db, $_db.fluidLogs).filter(
@@ -22664,6 +24413,26 @@ class $$NutritionLogsTableFilterComposer
             $$ProductsTableFilterComposer(
               $db: $db,
               $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$OffProductsArchiveTableFilterComposer get archiveLocalId {
+    final $$OffProductsArchiveTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.archiveLocalId,
+        referencedTable: $db.offProductsArchive,
+        getReferencedColumn: (t) => t.localId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$OffProductsArchiveTableFilterComposer(
+              $db: $db,
+              $table: $db.offProductsArchive,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -22774,6 +24543,26 @@ class $$NutritionLogsTableOrderingComposer
             ));
     return composer;
   }
+
+  $$OffProductsArchiveTableOrderingComposer get archiveLocalId {
+    final $$OffProductsArchiveTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.archiveLocalId,
+        referencedTable: $db.offProductsArchive,
+        getReferencedColumn: (t) => t.localId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$OffProductsArchiveTableOrderingComposer(
+              $db: $db,
+              $table: $db.offProductsArchive,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$NutritionLogsTableAnnotationComposer
@@ -22835,6 +24624,27 @@ class $$NutritionLogsTableAnnotationComposer
     return composer;
   }
 
+  $$OffProductsArchiveTableAnnotationComposer get archiveLocalId {
+    final $$OffProductsArchiveTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.archiveLocalId,
+            referencedTable: $db.offProductsArchive,
+            getReferencedColumn: (t) => t.localId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$OffProductsArchiveTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.offProductsArchive,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
   Expression<T> supplementLogsRefs<T extends Object>(
       Expression<T> Function($$SupplementLogsTableAnnotationComposer a) f) {
     final $$SupplementLogsTableAnnotationComposer composer = $composerBuilder(
@@ -22890,7 +24700,10 @@ class $$NutritionLogsTableTableManager extends RootTableManager<
     (NutritionLog, $$NutritionLogsTableReferences),
     NutritionLog,
     PrefetchHooks Function(
-        {bool productId, bool supplementLogsRefs, bool fluidLogsRefs})> {
+        {bool productId,
+        bool archiveLocalId,
+        bool supplementLogsRefs,
+        bool fluidLogsRefs})> {
   $$NutritionLogsTableTableManager(_$AppDatabase db, $NutritionLogsTable table)
       : super(TableManagerState(
           db: db,
@@ -22913,6 +24726,7 @@ class $$NutritionLogsTableTableManager extends RootTableManager<
             Value<DateTime> consumedAt = const Value.absent(),
             Value<double> amount = const Value.absent(),
             Value<String> mealType = const Value.absent(),
+            Value<int?> archiveLocalId = const Value.absent(),
           }) =>
               NutritionLogsCompanion(
             localId: localId,
@@ -22926,6 +24740,7 @@ class $$NutritionLogsTableTableManager extends RootTableManager<
             consumedAt: consumedAt,
             amount: amount,
             mealType: mealType,
+            archiveLocalId: archiveLocalId,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -22939,6 +24754,7 @@ class $$NutritionLogsTableTableManager extends RootTableManager<
             required DateTime consumedAt,
             required double amount,
             Value<String> mealType = const Value.absent(),
+            Value<int?> archiveLocalId = const Value.absent(),
           }) =>
               NutritionLogsCompanion.insert(
             localId: localId,
@@ -22952,6 +24768,7 @@ class $$NutritionLogsTableTableManager extends RootTableManager<
             consumedAt: consumedAt,
             amount: amount,
             mealType: mealType,
+            archiveLocalId: archiveLocalId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -22961,6 +24778,7 @@ class $$NutritionLogsTableTableManager extends RootTableManager<
               .toList(),
           prefetchHooksCallback: (
               {productId = false,
+              archiveLocalId = false,
               supplementLogsRefs = false,
               fluidLogsRefs = false}) {
             return PrefetchHooks(
@@ -22990,6 +24808,17 @@ class $$NutritionLogsTableTableManager extends RootTableManager<
                         $$NutritionLogsTableReferences._productIdTable(db),
                     referencedColumn:
                         $$NutritionLogsTableReferences._productIdTable(db).id,
+                  ) as T;
+                }
+                if (archiveLocalId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.archiveLocalId,
+                    referencedTable:
+                        $$NutritionLogsTableReferences._archiveLocalIdTable(db),
+                    referencedColumn: $$NutritionLogsTableReferences
+                        ._archiveLocalIdTable(db)
+                        .localId,
                   ) as T;
                 }
 
@@ -23042,7 +24871,10 @@ typedef $$NutritionLogsTableProcessedTableManager = ProcessedTableManager<
     (NutritionLog, $$NutritionLogsTableReferences),
     NutritionLog,
     PrefetchHooks Function(
-        {bool productId, bool supplementLogsRefs, bool fluidLogsRefs})>;
+        {bool productId,
+        bool archiveLocalId,
+        bool supplementLogsRefs,
+        bool fluidLogsRefs})>;
 typedef $$SupplementsTableCreateCompanionBuilder = SupplementsCompanion
     Function({
   Value<int> localId,
@@ -23085,8 +24917,7 @@ final class $$SupplementsTableReferences
   static MultiTypedResultKey<$SupplementLogsTable, List<SupplementLog>>
       _supplementLogsRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.supplementLogs,
-              aliasName: $_aliasNameGenerator(
-                  db.supplements.id, db.supplementLogs.supplementId));
+              aliasName: 'supplements__id__supplement_logs__supplement_id');
 
   $$SupplementLogsTableProcessedTableManager get supplementLogsRefs {
     final manager = $$SupplementLogsTableTableManager($_db, $_db.supplementLogs)
@@ -23102,8 +24933,8 @@ final class $$SupplementsTableReferences
       List<SupplementSettingsHistoryData>> _supplementSettingsHistoryRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.supplementSettingsHistory,
-          aliasName: $_aliasNameGenerator(
-              db.supplements.id, db.supplementSettingsHistory.supplementId));
+          aliasName:
+              'supplements__id__supplement_settings_history__supplement_id');
 
   $$SupplementSettingsHistoryTableProcessedTableManager
       get supplementSettingsHistoryRefs {
@@ -23547,8 +25378,8 @@ final class $$SupplementLogsTableReferences
       super.$_db, super.$_table, super.$_typedResult);
 
   static $SupplementsTable _supplementIdTable(_$AppDatabase db) =>
-      db.supplements.createAlias($_aliasNameGenerator(
-          db.supplementLogs.supplementId, db.supplements.id));
+      db.supplements
+          .createAlias('supplement_logs__supplement_id__supplements__id');
 
   $$SupplementsTableProcessedTableManager get supplementId {
     final $_column = $_itemColumn<String>('supplement_id')!;
@@ -23562,8 +25393,8 @@ final class $$SupplementLogsTableReferences
   }
 
   static $NutritionLogsTable _sourceNutritionLogIdTable(_$AppDatabase db) =>
-      db.nutritionLogs.createAlias($_aliasNameGenerator(
-          db.supplementLogs.sourceNutritionLogId, db.nutritionLogs.id));
+      db.nutritionLogs.createAlias(
+          'supplement_logs__source_nutrition_log_id__nutrition_logs__id');
 
   $$NutritionLogsTableProcessedTableManager? get sourceNutritionLogId {
     final $_column = $_itemColumn<String>('source_nutrition_log_id');
@@ -23962,9 +25793,9 @@ final class $$FluidLogsTableReferences
     extends BaseReferences<_$AppDatabase, $FluidLogsTable, FluidLog> {
   $$FluidLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $NutritionLogsTable _linkedNutritionLogIdTable(_$AppDatabase db) =>
-      db.nutritionLogs.createAlias($_aliasNameGenerator(
-          db.fluidLogs.linkedNutritionLogId, db.nutritionLogs.id));
+  static $NutritionLogsTable _linkedNutritionLogIdTable(_$AppDatabase db) => db
+      .nutritionLogs
+      .createAlias('fluid_logs__linked_nutrition_log_id__nutrition_logs__id');
 
   $$NutritionLogsTableProcessedTableManager? get linkedNutritionLogId {
     final $_column = $_itemColumn<String>('linked_nutrition_log_id');
@@ -24611,8 +26442,7 @@ final class $$PostsTableReferences
   static MultiTypedResultKey<$SocialInteractionsTable, List<SocialInteraction>>
       _socialInteractionsRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.socialInteractions,
-              aliasName: $_aliasNameGenerator(
-                  db.posts.id, db.socialInteractions.postId));
+              aliasName: 'posts__id__social_interactions__post_id');
 
   $$SocialInteractionsTableProcessedTableManager get socialInteractionsRefs {
     final manager =
@@ -24933,8 +26763,8 @@ final class $$SocialInteractionsTableReferences extends BaseReferences<
   $$SocialInteractionsTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
 
-  static $PostsTable _postIdTable(_$AppDatabase db) => db.posts.createAlias(
-      $_aliasNameGenerator(db.socialInteractions.postId, db.posts.id));
+  static $PostsTable _postIdTable(_$AppDatabase db) =>
+      db.posts.createAlias('social_interactions__post_id__posts__id');
 
   $$PostsTableProcessedTableManager get postId {
     final $_column = $_itemColumn<String>('post_id')!;
@@ -25260,9 +27090,9 @@ final class $$MealsTableReferences
   $$MealsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static MultiTypedResultKey<$MealItemsTable, List<MealItem>>
-      _mealItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-          db.mealItems,
-          aliasName: $_aliasNameGenerator(db.meals.id, db.mealItems.mealId));
+      _mealItemsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.mealItems,
+              aliasName: 'meals__id__meal_items__meal_id');
 
   $$MealItemsTableProcessedTableManager get mealItemsRefs {
     final manager = $$MealItemsTableTableManager($_db, $_db.mealItems)
@@ -25547,8 +27377,8 @@ final class $$MealItemsTableReferences
     extends BaseReferences<_$AppDatabase, $MealItemsTable, MealItem> {
   $$MealItemsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $MealsTable _mealIdTable(_$AppDatabase db) => db.meals
-      .createAlias($_aliasNameGenerator(db.mealItems.mealId, db.meals.id));
+  static $MealsTable _mealIdTable(_$AppDatabase db) =>
+      db.meals.createAlias('meal_items__meal_id__meals__id');
 
   $$MealsTableProcessedTableManager get mealId {
     final $_column = $_itemColumn<String>('meal_id')!;
@@ -25562,8 +27392,7 @@ final class $$MealItemsTableReferences
   }
 
   static $ProductsTable _productIdTable(_$AppDatabase db) =>
-      db.products.createAlias(
-          $_aliasNameGenerator(db.mealItems.productId, db.products.id));
+      db.products.createAlias('meal_items__product_id__products__id');
 
   $$ProductsTableProcessedTableManager? get productId {
     final $_column = $_itemColumn<String>('product_id');
@@ -26579,8 +28408,8 @@ final class $$SupplementSettingsHistoryTableReferences extends BaseReferences<
       super.$_db, super.$_table, super.$_typedResult);
 
   static $SupplementsTable _supplementIdTable(_$AppDatabase db) =>
-      db.supplements.createAlias($_aliasNameGenerator(
-          db.supplementSettingsHistory.supplementId, db.supplements.id));
+      db.supplements.createAlias(
+          'supplement_settings_history__supplement_id__supplements__id');
 
   $$SupplementsTableProcessedTableManager get supplementId {
     final $_column = $_itemColumn<String>('supplement_id')!;
@@ -27189,9 +29018,9 @@ final class $$WorkoutExerciseLogsTableReferences extends BaseReferences<
   $$WorkoutExerciseLogsTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
 
-  static $WorkoutLogsTable _workoutLogIdTable(_$AppDatabase db) =>
-      db.workoutLogs.createAlias($_aliasNameGenerator(
-          db.workoutExerciseLogs.workoutLogId, db.workoutLogs.id));
+  static $WorkoutLogsTable _workoutLogIdTable(_$AppDatabase db) => db
+      .workoutLogs
+      .createAlias('workout_exercise_logs__workout_log_id__workout_logs__id');
 
   $$WorkoutLogsTableProcessedTableManager get workoutLogId {
     final $_column = $_itemColumn<String>('workout_log_id')!;
@@ -27204,9 +29033,8 @@ final class $$WorkoutExerciseLogsTableReferences extends BaseReferences<
         manager.$state.copyWith(prefetchedData: [item]));
   }
 
-  static $ExercisesTable _exerciseIdTable(_$AppDatabase db) =>
-      db.exercises.createAlias($_aliasNameGenerator(
-          db.workoutExerciseLogs.exerciseId, db.exercises.id));
+  static $ExercisesTable _exerciseIdTable(_$AppDatabase db) => db.exercises
+      .createAlias('workout_exercise_logs__exercise_id__exercises__id');
 
   $$ExercisesTableProcessedTableManager? get exerciseId {
     final $_column = $_itemColumn<String>('exercise_id');
@@ -27638,8 +29466,8 @@ final class $$UserFoodOverridesTableReferences extends BaseReferences<
       List<UserFoodOverrideTranslation>> _userFoodOverrideTranslationsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.userFoodOverrideTranslations,
-          aliasName: $_aliasNameGenerator(db.userFoodOverrides.id,
-              db.userFoodOverrideTranslations.userFoodOverrideId));
+          aliasName:
+              'user_food_overrides__id__user_food_override_translations__user_food_override_id');
 
   $$UserFoodOverrideTranslationsTableProcessedTableManager
       get userFoodOverrideTranslationsRefs {
@@ -28181,9 +30009,8 @@ final class $$ExerciseTranslationsTableReferences extends BaseReferences<
   $$ExerciseTranslationsTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
 
-  static $ExercisesTable _exerciseIdTable(_$AppDatabase db) =>
-      db.exercises.createAlias($_aliasNameGenerator(
-          db.exerciseTranslations.exerciseId, db.exercises.id));
+  static $ExercisesTable _exerciseIdTable(_$AppDatabase db) => db.exercises
+      .createAlias('exercise_translations__exercise_id__exercises__id');
 
   $$ExercisesTableProcessedTableManager get exerciseId {
     final $_column = $_itemColumn<String>('exercise_id')!;
@@ -28517,9 +30344,8 @@ final class $$UserFoodOverrideTranslationsTableReferences
       super.$_db, super.$_table, super.$_typedResult);
 
   static $UserFoodOverridesTable _userFoodOverrideIdTable(_$AppDatabase db) =>
-      db.userFoodOverrides.createAlias($_aliasNameGenerator(
-          db.userFoodOverrideTranslations.userFoodOverrideId,
-          db.userFoodOverrides.id));
+      db.userFoodOverrides.createAlias(
+          'user_food_override_translations__user_food_override_id__user_food_overrides__id');
 
   $$UserFoodOverridesTableProcessedTableManager get userFoodOverrideId {
     final $_column = $_itemColumn<String>('user_food_override_id')!;
@@ -28847,6 +30673,8 @@ class $AppDatabaseManager {
       $$CardioSamplesTableTableManager(_db, _db.cardioSamples);
   $$ProductsTableTableManager get products =>
       $$ProductsTableTableManager(_db, _db.products);
+  $$OffProductsArchiveTableTableManager get offProductsArchive =>
+      $$OffProductsArchiveTableTableManager(_db, _db.offProductsArchive);
   $$NutritionLogsTableTableManager get nutritionLogs =>
       $$NutritionLogsTableTableManager(_db, _db.nutritionLogs);
   $$SupplementsTableTableManager get supplements =>

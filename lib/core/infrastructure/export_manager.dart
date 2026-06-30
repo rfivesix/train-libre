@@ -15,6 +15,7 @@ import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../data/database_helper.dart';
 import '../../services/health/steps_sync_service.dart';
 import '../../services/health/health_models.dart';
+import '../../features/diary/domain/models/food_item.dart';
 
 // =============================================================================
 // PURE DART DTOS FOR TYPE-SAFE ISOLATE MESSAGE PASSING
@@ -267,13 +268,31 @@ class ExportManager {
     // -------------------------------------------------------------------------
     final entries = await foodHelper.getAllFoodEntries();
     final fluidEntries = await foodHelper.getAllFluidEntries();
-    final barcodes = entries.map((e) => e.barcode).toSet().toList();
-    final products = await foodHelper.productLocalDataSource.getProductsByBarcodes(barcodes);
-    final pMap = {for (var p in products) p.barcode: p};
+    final archivedEntries = entries.where((e) => e.archiveLocalId != null).toList();
+    final legacyEntries = entries.where((e) => e.archiveLocalId == null).toList();
+
+    final Map<int, FoodItem> archiveProductsMap = {};
+    final Map<String, FoodItem> legacyProductsMap = {};
+
+    if (archivedEntries.isNotEmpty) {
+      final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+      final archivedProducts = await foodHelper.productLocalDataSource.getProductsByArchiveIds(archiveIds);
+      archiveProductsMap.addAll(archivedProducts);
+    }
+
+    if (legacyEntries.isNotEmpty) {
+      final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+      final legacyProducts = await foodHelper.productLocalDataSource.getProductsByBarcodes(barcodes);
+      for (final p in legacyProducts) {
+        legacyProductsMap[p.barcode] = p;
+      }
+    }
 
     final List<NutritionRowDto> nutritionRows = [];
     for (var entry in entries) {
-      final p = pMap[entry.barcode];
+      final p = entry.archiveLocalId != null
+          ? archiveProductsMap[entry.archiveLocalId!]
+          : legacyProductsMap[entry.barcode];
       if (p != null) {
         final ratio = entry.quantityInGrams / 100.0;
         nutritionRows.add(NutritionRowDto(

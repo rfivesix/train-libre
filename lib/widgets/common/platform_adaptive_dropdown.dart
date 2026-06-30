@@ -82,6 +82,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
   final FormFieldValidator<T>? validator;
   final FormFieldSetter<T>? onSaved;
   final AutovalidateMode? autovalidateMode;
+  final String? errorText;
 
   const PlatformAdaptiveDropdownFormField({
     super.key,
@@ -93,6 +94,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
     this.validator,
     this.onSaved,
     this.autovalidateMode,
+    this.errorText,
   });
 
   T? get _effectiveValue => value ?? initialValue;
@@ -128,7 +130,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
 
         final selectedText = selectedItem != null ? _getItemText(selectedItem.child) : '';
         final effectiveDecoration = (decoration ?? const InputDecoration()).copyWith(
-          errorText: state.errorText,
+          errorText: state.errorText ?? errorText,
         );
 
         return LayoutBuilder(

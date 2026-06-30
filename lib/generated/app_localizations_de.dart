@@ -2397,6 +2397,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dein Alter und biologisches Geschlecht bestimmen die basalen Regenerationsfenster deines Muskel-Recovery-Modells und fließen in die Algorithmen deiner Sleep Health Engine ein.';
 
   @override
+  String get onboardingFieldCannotBeEmpty =>
+      'Dieses Feld darf nicht leer sein.';
+
+  @override
+  String get onboardingPhysiologicalRangeWarning =>
+      'Warnung: Dieser Wert liegt außerhalb des erwarteten physiologischen Bereichs. Unsere sportwissenschaftlichen Analysen und heuristischen Engines sind nicht für extreme Messwerte kalibriert. Wenn dieser Wert beabsichtigt ist, klicke erneut auf \'Weiter\', um trotzdem fortzufahren.';
+
+  @override
   String get onboardingMeasurementsTitle => 'Maße & Baseline';
 
   @override

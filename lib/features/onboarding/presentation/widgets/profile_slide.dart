@@ -15,6 +15,10 @@ class ProfileSlide extends StatelessWidget {
   final String? selectedGender;
   final ValueChanged<DateTime> onSelectDate;
   final ValueChanged<String?> onSelectGender;
+  final String? heightError;
+  final String? heightWarning;
+  final String? dobError;
+  final String? genderError;
 
   const ProfileSlide({
     super.key,
@@ -24,6 +28,10 @@ class ProfileSlide extends StatelessWidget {
     required this.selectedGender,
     required this.onSelectDate,
     required this.onSelectGender,
+    this.heightError,
+    this.heightWarning,
+    this.dobError,
+    this.genderError,
   });
 
   @override
@@ -47,7 +55,8 @@ class ProfileSlide extends StatelessWidget {
               labelText: l10n.onboardingNameLabel,
               prefixIcon: const Icon(LucideIcons.user),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
             textCapitalization: TextCapitalization.words,
@@ -72,12 +81,14 @@ class ProfileSlide extends StatelessWidget {
                 labelText: l10n.onboardingDobLabel,
                 prefixIcon: const Icon(LucideIcons.cake),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
                 ),
+                errorText: dobError,
               ),
               child: Text(
                 selectedDate == null
-                    ? 'DD.MM.YYYY'
+                    ? ''
                     : DateFormat.yMMMd(
                         Localizations.localeOf(context).toString(),
                       ).format(selectedDate!),
@@ -106,10 +117,22 @@ class ProfileSlide extends StatelessWidget {
                         labelText:
                             '${l10n.onboardingHeightLabel} (${unitService.suffixFor(UnitDimension.height)})',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                          borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusM),
                         ),
+                        errorText: heightError,
                       ),
                     ),
+                    if (heightWarning != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        heightWarning!,
+                        style: TextStyle(
+                          color: Colors.orange.shade800,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -125,11 +148,14 @@ class ProfileSlide extends StatelessWidget {
                     PlatformAdaptiveDropdownFormField<String>(
                       key: const Key('onboarding_gender_dropdown'),
                       initialValue: selectedGender,
+                      errorText: genderError,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                          borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusM),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: DesignConstants.spacingM,
                           vertical: DesignConstants.spacingL,
                         ),
                       ),
@@ -163,7 +189,8 @@ class ProfileSlide extends StatelessWidget {
                   .colorScheme
                   .surfaceContainerHighest
                   .withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
             ),
             child: Text(
               l10n.onboardingBioDataInfo,

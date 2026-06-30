@@ -2,7 +2,7 @@ name: train_libre
 description: "Train Libre is a modern, privacy-first fitness and nutrition
   tracking app. Offline-first, no cloud dependency, built with Flutter."
 publish_to: "none"
-version: 0.9.36+90057
+version: 0.9.37+90057
 environment:
   sdk: ">=3.0.0 <4.0.0" # Adjusted for modern SDKs
 
@@ -55,7 +55,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.6.0+eol
   uuid: ^4.3.3
   json_annotation: ^4.12.0
-  qr_code_scanner_plus: ^2.1.2
+  qr_code_scanner_plus: ^2.2.0
   permission_handler: ^12.0.3
   flutter_markdown_plus: ^1.0.7
   flutter_markdown_plus_latex: ^1.0.5
@@ -114,9 +114,3 @@ flutter:
           weight: 700
           style: italic
 
-# Overrides a local patched copy of qr_code_scanner_plus that fixes a crash
-# where a raw NSError was passed as FlutterError.details, which FlutterStandardMethodCodec
-# cannot serialize, causing a SIGABRT. See local_packages/qr_code_scanner_plus/ios/.
-dependency_overrides:
-  qr_code_scanner_plus:
-    path: local_packages/qr_code_scanner_plus

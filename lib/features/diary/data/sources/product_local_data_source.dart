@@ -149,6 +149,53 @@ class ProductLocalDataSource {
     );
   }
 
+  FoodItem _mapArchiveRowToFoodItem(db.OffProductsArchiveData row) {
+    FoodItemSource source;
+    switch (row.source) {
+      case 'base':
+        source = FoodItemSource.base;
+        break;
+      case 'off':
+        source = FoodItemSource.off;
+        break;
+      default:
+        source = FoodItemSource.user;
+    }
+
+    return FoodItem(
+      id: row.id,
+      barcode: row.barcode,
+      name: row.productName,
+      nameDe: row.productName,
+      nameEn: row.productName,
+      nameFr: row.productName,
+      nameIt: row.productName,
+      nameJa: row.productName,
+      brand: row.brand ?? '',
+      calories: row.calories,
+      protein: row.protein,
+      carbs: row.carbs,
+      fat: row.fat,
+      source: source,
+      category: row.category,
+      sugar: row.sugar,
+      fiber: row.fiber,
+      salt: row.salt,
+      sodium: row.salt != null ? row.salt! / 2.5 : null,
+      kj: row.calories * 4.184,
+      calcium: null,
+      isLiquid: row.isLiquid,
+      isFluid: row.isFluid,
+      caffeineMgPer100ml: row.caffeine,
+      caffeineMgPer100g: row.caffeineMgPer100g,
+      ingredientsText: null,
+      ingredientsAnalysisTags: const [],
+      additivesTags: const [],
+      productQuantity: row.productQuantity,
+      productQuantityUnit: row.productQuantityUnit,
+    );
+  }
+
   Future<List<FoodItem>> _enrichProductsWithOverrides(
       List<db.Product> rows) async {
     if (rows.isEmpty) return [];
@@ -184,7 +231,13 @@ class ProductLocalDataSource {
           ..where((tbl) => tbl.barcode.equals(item.barcode)))
         .write(_mapModelToCompanion(item));
 
+    final existingOverride = await (dbInstance.select(dbInstance.userFoodOverrides)
+          ..where((tbl) => tbl.barcode.equals(item.barcode)))
+        .getSingleOrNull();
+
     final overrideCompanion = db.UserFoodOverridesCompanion(
+      localId: existingOverride != null ? Value(existingOverride.localId) : const Value.absent(),
+      id: existingOverride != null ? Value(existingOverride.id) : const Value.absent(),
       barcode: Value(item.barcode),
       name: Value(item.name),
       brand: Value(item.brand),
@@ -229,6 +282,28 @@ class ProductLocalDataSource {
       label: 'getProductsByBarcodes',
       elapsed: stopwatch.elapsed,
       fields: {'barcodes': barcodes.length, 'rows': rows.length},
+    );
+    return result;
+  }
+
+  /// Retrieves a map of [localId] to [FoodItem]s matching the provided [archiveLocalIds].
+  Future<Map<int, FoodItem>> getProductsByArchiveIds(List<int> archiveLocalIds) async {
+    if (archiveLocalIds.isEmpty) return {};
+    final stopwatch = Stopwatch()..start();
+    final dbInstance = await database;
+
+    final rows = await (dbInstance.select(dbInstance.offProductsArchive)
+          ..where((tbl) => tbl.localId.isIn(archiveLocalIds)))
+        .get();
+
+    final result = {
+      for (final row in rows) row.localId: _mapArchiveRowToFoodItem(row)
+    };
+    PerfDebugTimer.logDuration(
+      area: 'db',
+      label: 'getProductsByArchiveIds',
+      elapsed: stopwatch.elapsed,
+      fields: {'ids': archiveLocalIds.length, 'rows': rows.length},
     );
     return result;
   }

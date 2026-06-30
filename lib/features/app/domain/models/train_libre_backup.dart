@@ -79,6 +79,9 @@ class TrainLibreBackup {
   /// Raw imported health step segments for deduplicated restoration.
   final List<Map<String, dynamic>> healthStepSegments;
 
+  /// Snapshots of offline OFF products transaction history.
+  final List<Map<String, dynamic>> offProductsArchive;
+
   /// Creates a new [TrainLibreBackup] instance.
   TrainLibreBackup({
     required this.schemaVersion,
@@ -101,6 +104,7 @@ class TrainLibreBackup {
     this.userFoodOverrides = const [],
     this.userFoodOverrideTranslations = const [],
     this.healthStepSegments = const [],
+    this.offProductsArchive = const [],
   });
 
   /// Creates a [TrainLibreBackup] instance from a JSON map.
@@ -117,6 +121,7 @@ class TrainLibreBackup {
                   timestamp: DateTime.parse(e['timestamp']),
                   quantityInGrams: e['quantity_in_grams'],
                   mealType: e['meal_type'],
+                  archiveLocalId: e['archive_local_id'],
                 ),
               )
               .toList() ??
@@ -233,6 +238,10 @@ class TrainLibreBackup {
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
+      offProductsArchive: (json['offProductsArchive'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
     );
   }
 
@@ -276,6 +285,7 @@ class TrainLibreBackup {
       'userFoodOverrides': userFoodOverrides,
       'userFoodOverrideTranslations': userFoodOverrideTranslations,
       'healthStepSegments': healthStepSegments,
+      'offProductsArchive': offProductsArchive,
     };
   }
 }

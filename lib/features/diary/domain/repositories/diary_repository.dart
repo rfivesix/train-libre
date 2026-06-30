@@ -20,6 +20,7 @@ abstract class IDiaryRepository {
   Future<List<FluidEntry>> getFluidEntriesForDate(DateTime date);
 
   Future<List<FoodItem>> getProductsByBarcodes(List<String> barcodes);
+  Future<Map<int, FoodItem>> getProductsByArchiveIds(List<int> ids);
 
   Future<void> deleteFoodEntry(int id);
   Future<void> deleteFluidEntry(int id);

@@ -270,36 +270,77 @@ class HealthExportDataSource {
     );
     if (entries.isEmpty) return const <ExportNutritionRecord>[];
 
-    final barcodes = entries.map((entry) => entry.barcode).toSet().toList();
-    final products = await _loadProductsByBarcode(barcodes);
-    final byBarcode = {
-      for (final product in products) product.barcode: product,
-    };
+    final archivedEntries = entries.where((e) => e.archiveLocalId != null).toList();
+    final legacyEntries = entries.where((e) => e.archiveLocalId == null).toList();
+
+    final Map<int, db.OffProductsArchiveData> archiveProductsMap = {};
+    final Map<String, db.Product> legacyProductsMap = {};
+
+    if (archivedEntries.isNotEmpty) {
+      final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+      final dbInstance = await _db.database;
+      final rows = await (dbInstance.select(dbInstance.offProductsArchive)
+            ..where((tbl) => tbl.localId.isIn(archiveIds)))
+          .get();
+      for (final r in rows) {
+        archiveProductsMap[r.localId] = r;
+      }
+    }
+
+    if (legacyEntries.isNotEmpty) {
+      final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+      final products = await _loadProductsByBarcode(barcodes);
+      for (final p in products) {
+        legacyProductsMap[p.barcode] = p;
+      }
+    }
 
     final records = <ExportNutritionRecord>[];
     for (final entry in entries) {
-      final product = byBarcode[entry.barcode];
-      if (product == null) continue;
       if (entry.id == null) continue;
       final factor = entry.quantityInGrams / 100.0;
-      // Nutritional labeling commonly uses salt; sodium = salt / 2.5.
-      final sodium = ((product.salt ?? 0) > 0
-          ? (product.salt! / _saltToSodiumFactor)
-          : null);
-      final record = ExportNutritionRecord(
-        idempotencyKey: 'nutrition_entry:${entry.id}',
-        timestampUtc: entry.timestamp.toUtc(),
-        zoneOffsetMinutes: entry.timestamp.timeZoneOffset.inMinutes,
-        caloriesKcal: product.calories * factor,
-        proteinGrams: product.protein * factor,
-        carbsGrams: product.carbs * factor,
-        fatGrams: product.fat * factor,
-        fiberGrams: product.fiber == null ? null : product.fiber! * factor,
-        sugarGrams: product.sugar == null ? null : product.sugar! * factor,
-        sodiumGrams: sodium == null ? null : sodium * factor,
-      );
-      if (record.hasAnyValue) {
-        records.add(record);
+
+      if (entry.archiveLocalId != null && archiveProductsMap.containsKey(entry.archiveLocalId)) {
+        final archivedProduct = archiveProductsMap[entry.archiveLocalId!]!;
+        final sodium = ((archivedProduct.salt ?? 0) > 0
+            ? (archivedProduct.salt! / _saltToSodiumFactor)
+            : null);
+        final record = ExportNutritionRecord(
+          idempotencyKey: 'nutrition_entry:${entry.id}',
+          timestampUtc: entry.timestamp.toUtc(),
+          zoneOffsetMinutes: entry.timestamp.timeZoneOffset.inMinutes,
+          caloriesKcal: archivedProduct.calories * factor,
+          proteinGrams: archivedProduct.protein * factor,
+          carbsGrams: archivedProduct.carbs * factor,
+          fatGrams: archivedProduct.fat * factor,
+          fiberGrams: archivedProduct.fiber == null ? null : archivedProduct.fiber! * factor,
+          sugarGrams: archivedProduct.sugar == null ? null : archivedProduct.sugar! * factor,
+          sodiumGrams: sodium == null ? null : sodium * factor,
+        );
+        if (record.hasAnyValue) {
+          records.add(record);
+        }
+      } else {
+        final product = legacyProductsMap[entry.barcode];
+        if (product == null) continue;
+        final sodium = ((product.salt ?? 0) > 0
+            ? (product.salt! / _saltToSodiumFactor)
+            : null);
+        final record = ExportNutritionRecord(
+          idempotencyKey: 'nutrition_entry:${entry.id}',
+          timestampUtc: entry.timestamp.toUtc(),
+          zoneOffsetMinutes: entry.timestamp.timeZoneOffset.inMinutes,
+          caloriesKcal: product.calories * factor,
+          proteinGrams: product.protein * factor,
+          carbsGrams: product.carbs * factor,
+          fatGrams: product.fat * factor,
+          fiberGrams: product.fiber == null ? null : product.fiber! * factor,
+          sugarGrams: product.sugar == null ? null : product.sugar! * factor,
+          sodiumGrams: sodium == null ? null : sodium * factor,
+        );
+        if (record.hasAnyValue) {
+          records.add(record);
+        }
       }
     }
     return records;

@@ -967,7 +967,7 @@ class BasisDataManager {
     required bool collectProductBarcodes,
   }) async {
     final mainDb = await DatabaseHelper.instance.database;
-    const int batchSize = 2000;
+    const int batchSize = 5000;
     int offset = 0;
     final importedProductBarcodes = <String>{};
 
@@ -988,77 +988,94 @@ class BasisDataManager {
       return importedProductBarcodes;
     }
 
+    // Query original PRAGMAs
+    String originalJournalMode = 'WAL';
+    int originalSynchronous = 1; // NORMAL
+    try {
+      final journalModeRow = await mainDb.customSelect('PRAGMA journal_mode;').getSingle();
+      originalJournalMode = journalModeRow.read<String>('journal_mode');
+      final syncRow = await mainDb.customSelect('PRAGMA synchronous;').getSingle();
+      originalSynchronous = syncRow.read<int>('synchronous');
+    } catch (e) {
+      debugPrint('[ExerciseCatalog] Warning: could not query original PRAGMAs: $e');
+    }
+
+    // Configure performance PRAGMAs before transaction
+    try {
+      await mainDb.customStatement('PRAGMA synchronous = OFF;');
+      await mainDb.customStatement('PRAGMA journal_mode = MEMORY;');
+    } catch (e) {
+      debugPrint('[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e');
+    }
+
     int processed = 0;
     int totalExercisesInserted = 0;
     int totalTranslationsInserted = 0;
     int batchNumber = 0;
 
-    while (true) {
-      final rows = await assetDb.query(
-        tableName,
-        limit: batchSize,
-        offset: offset,
-      );
-      if (rows.isEmpty) break;
-      batchNumber++;
+    try {
+      await mainDb.transaction(() async {
+        while (true) {
+          final rows = await assetDb.query(
+            tableName,
+            limit: batchSize,
+            offset: offset,
+          );
+          if (rows.isEmpty) break;
+          batchNumber++;
 
-      final mappedCompanions = await compute(
-        _parseBatchInIsolate,
-        _BatchImportPayload(
-          rows: rows,
-          type: importType,
-          preferredLanguage: preferredLanguage,
-        ),
-      );
+          final mappedCompanions = await compute(
+            _parseBatchInIsolate,
+            _BatchImportPayload(
+              rows: rows,
+              type: importType,
+              preferredLanguage: preferredLanguage,
+            ),
+          );
 
-      // Exercise bundles need two passes: first insert exercises, then translations.
-      final exerciseBundles =
-          mappedCompanions.whereType<_ExerciseBundle>().toList();
-      final otherCompanions =
-          mappedCompanions.where((c) => c is! _ExerciseBundle).toList();
+          // Exercise bundles need two passes: first insert exercises, then translations.
+          final exerciseBundles =
+              mappedCompanions.whereType<_ExerciseBundle>().toList();
+          final otherCompanions =
+              mappedCompanions.where((c) => c is! _ExerciseBundle).toList();
 
-      debugPrint(
-        '[ExerciseCatalog]   [$taskLabel] Batch #$batchNumber: '
-        '${rows.length} source rows → '
-        '${exerciseBundles.length} exercise bundles, '
-        '${otherCompanions.length} other companions',
-      );
-      await mainDb.batch((batch) {
-        for (final companion in otherCompanions) {
-          try {
-            if (companion is ProductsCompanion) {
-              if (collectProductBarcodes &&
-                  companion.barcode.present &&
-                  companion.barcode.value.trim().isNotEmpty) {
-                importedProductBarcodes.add(companion.barcode.value.trim());
+          debugPrint(
+            '[ExerciseCatalog]   [$taskLabel] Batch #$batchNumber: '
+            '${rows.length} source rows → '
+            '${exerciseBundles.length} exercise bundles, '
+            '${otherCompanions.length} other companions',
+          );
+          await mainDb.batch((batch) {
+            for (final companion in otherCompanions) {
+              try {
+                if (companion is ProductsCompanion) {
+                  if (collectProductBarcodes &&
+                      companion.barcode.present &&
+                      companion.barcode.value.trim().isNotEmpty) {
+                    importedProductBarcodes.add(companion.barcode.value.trim());
+                  }
+                  batch.insert(
+                    mainDb.products,
+                    companion,
+                    mode: drift.InsertMode.insertOrReplace,
+                  );
+                } else if (companion is FoodCategoriesCompanion) {
+                  batch.insert(
+                    mainDb.foodCategories,
+                    companion,
+                    mode: drift.InsertMode.insertOrReplace,
+                  );
+                }
+              } catch (e) {
+                debugPrint('[ExerciseCatalog]   [$taskLabel] Skipping malformed non-exercise row: $e');
               }
-              batch.insert(
-                mainDb.products,
-                companion,
-                mode: drift.InsertMode.insertOrReplace,
-              );
-            } else if (companion is FoodCategoriesCompanion) {
-              batch.insert(
-                mainDb.foodCategories,
-                companion,
-                mode: drift.InsertMode.insertOrReplace,
-              );
             }
-          } catch (e) {
-            debugPrint('[ExerciseCatalog]   [$taskLabel] Skipping malformed non-exercise row: $e');
-          }
-        }
-      });
+          });
 
-      if (exerciseBundles.isNotEmpty) {
-        // Wrap the two-phase exercise + translation insert in a single atomic
-        // transaction. An iOS background process kill between Phase 1 and
-        // Phase 2 would otherwise leave exercises with no translations.
-        int batchExCount = 0;
-        int batchTrCount = 0;
+          if (exerciseBundles.isNotEmpty) {
+            int batchExCount = 0;
+            int batchTrCount = 0;
 
-        try {
-          await mainDb.transaction(() async {
             // Phase 1: Upsert base exercise rows.
             await mainDb.batch((batch) {
               for (final bundle in exerciseBundles) {
@@ -1096,7 +1113,7 @@ class BasisDataManager {
               }
             });
 
-            // Phase 2: Upsert translations — FK-safe within the same transaction.
+            // Phase 2: Upsert translations.
             await mainDb.batch((batch) {
               for (final bundle in exerciseBundles) {
                 for (final t in bundle.translationFields) {
@@ -1126,147 +1143,138 @@ class BasisDataManager {
                 }
               }
             });
-          });
 
-          totalExercisesInserted += batchExCount;
-          totalTranslationsInserted += batchTrCount;
-        } catch (e) {
-          debugPrint(
-            '[ExerciseCatalog] ❌ [$taskLabel] Batch #$batchNumber TRANSACTION FAILED – rolled back: $e',
-          );
-        }
-      }
+            totalExercisesInserted += batchExCount;
+            totalTranslationsInserted += batchTrCount;
+          }
 
-      processed += rows.length;
-      offset += batchSize;
+          processed += rows.length;
+          offset += batchSize;
 
-      // Progress melden
-      if (onProgress != null) {
-        final double progress = (processed / totalCount).clamp(0.0, 1.0);
-        onProgress(
-          "Update $taskLabel",
-          "$processed / $totalCount Einträge",
-          progress,
-        );
-      }
-
-      // Let the UI thread breathe
-      await Future.delayed(const Duration(milliseconds: 1));
-    }
-
-    // ── Relational translation pass ─────────────────────────────────────────
-    // The current asset DB schema stores translations in a separate
-    // `exercise_translations` table, not as flat columns (name_de/name_en)
-    // on the exercise row. _mapExerciseBundle only handles flat columns, so
-    // translations were never written in the loop above.
-    // This pass reads the source DB's exercise_translations table directly.
-    if (importType == BatchImportType.exercises) {
-      final trTables = await assetDb.query(
-        'sqlite_master',
-        columns: ['name'],
-        where: "type = 'table' AND name = 'exercise_translations'",
-      );
-      if (trTables.isNotEmpty) {
-        int trTotal = 0;
-        try {
-          final countResult = await assetDb.query(
-            'exercise_translations',
-            columns: ['COUNT(*) as c'],
-          );
-          trTotal = sqflite.Sqflite.firstIntValue(countResult) ?? 0;
-        } catch (_) {}
-
-        debugPrint(
-          '[ExerciseCatalog]   [$taskLabel] Relational translation pass: '
-          '$trTotal rows in source exercise_translations table',
-        );
-
-        int trOffset = 0;
-        int trBatch = 0;
-        int relationalTrInserted = 0;
-
-        while (true) {
-          final trRows = await assetDb.query(
-            'exercise_translations',
-            limit: batchSize,
-            offset: trOffset,
-          );
-          if (trRows.isEmpty) break;
-          trBatch++;
-
-          try {
-            await mainDb.batch((batch) {
-              for (final t in trRows) {
-                try {
-                  final exerciseId = _parseString(t['exercise_id']);
-                  final langCode = _parseString(t['language_code']);
-                  final name = _parseString(t['name']);
-                  if (exerciseId.isEmpty || langCode.isEmpty || name.isEmpty) {
-                    continue;
-                  }
-                  final companion = ExerciseTranslationsCompanion(
-                    exerciseId: drift.Value(exerciseId),
-                    languageCode: drift.Value(langCode),
-                    name: drift.Value(name),
-                    description: drift.Value(t['description'] as String?),
-                  );
-                  batch.insert(
-                    mainDb.exerciseTranslations,
-                    companion,
-                    onConflict: drift.DoUpdate(
-                      (_) => companion,
-                      target: [
-                        mainDb.exerciseTranslations.exerciseId,
-                        mainDb.exerciseTranslations.languageCode,
-                      ],
-                    ),
-                  );
-                  relationalTrInserted++;
-                } catch (e) {
-                  debugPrint(
-                    '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed relational translation: $e',
-                  );
-                }
-              }
-            });
-          } catch (e) {
-            debugPrint(
-              '[ExerciseCatalog] ❌ [$taskLabel] Relational translation batch #$trBatch FAILED: $e',
+          // Progress melden
+          if (onProgress != null) {
+            final double progress = (processed / totalCount).clamp(0.0, 1.0);
+            onProgress(
+              "Update $taskLabel",
+              "$processed / $totalCount Einträge",
+              progress,
             );
           }
 
-          trOffset += batchSize;
+          // Let the UI thread breathe
           await Future.delayed(const Duration(milliseconds: 1));
         }
 
-        totalTranslationsInserted += relationalTrInserted;
-        debugPrint(
-          '[ExerciseCatalog]   [$taskLabel] Relational translation pass complete: '
-          '$relationalTrInserted / $trTotal rows written',
-        );
-      } else {
-        debugPrint(
-          '[ExerciseCatalog]   [$taskLabel] No exercise_translations table in source DB '
-          '– relying on flat-column translations only ($totalTranslationsInserted written)',
-        );
-      }
+        // ── Relational translation pass ─────────────────────────────────────────
+        if (importType == BatchImportType.exercises) {
+          final trTables = await assetDb.query(
+            'sqlite_master',
+            columns: ['name'],
+            where: "type = 'table' AND name = 'exercise_translations'",
+          );
+          if (trTables.isNotEmpty) {
+            int trTotal = 0;
+            try {
+              final countResult = await assetDb.query(
+                'exercise_translations',
+                columns: ['COUNT(*) as c'],
+              );
+              trTotal = sqflite.Sqflite.firstIntValue(countResult) ?? 0;
+            } catch (_) {}
 
-      debugPrint(
-        '[ExerciseCatalog]   [$taskLabel] ── Batch import complete ──────────────────',
-      );
-      debugPrint(
-        '[ExerciseCatalog]   [$taskLabel]   Source rows processed  : $processed / $totalCount',
-      );
-      debugPrint(
-        '[ExerciseCatalog]   [$taskLabel]   Exercises inserted/updated: $totalExercisesInserted',
-      );
-      debugPrint(
-        '[ExerciseCatalog]   [$taskLabel]   Translations inserted/updated: $totalTranslationsInserted',
-      );
-      if (totalExercisesInserted == 0) {
-        debugPrint('[ExerciseCatalog] ❌ [$taskLabel] ZERO exercises written – check source DB and mapping!');
-      } else if (totalTranslationsInserted == 0) {
-        debugPrint('[ExerciseCatalog] ❌ [$taskLabel] ZERO translations written – exercises will be invisible!');
+            debugPrint(
+              '[ExerciseCatalog]   [$taskLabel] Relational translation pass: '
+              '$trTotal rows in source exercise_translations table',
+            );
+
+            int trOffset = 0;
+            int trBatch = 0;
+            int relationalTrInserted = 0;
+
+            while (true) {
+              final trRows = await assetDb.query(
+                'exercise_translations',
+                limit: batchSize,
+                offset: trOffset,
+              );
+              if (trRows.isEmpty) break;
+              trBatch++;
+
+              await mainDb.batch((batch) {
+                for (final t in trRows) {
+                  try {
+                    final exerciseId = _parseString(t['exercise_id']);
+                    final langCode = _parseString(t['language_code']);
+                    final name = _parseString(t['name']);
+                    if (exerciseId.isEmpty || langCode.isEmpty || name.isEmpty) {
+                      continue;
+                    }
+                    final companion = ExerciseTranslationsCompanion(
+                      exerciseId: drift.Value(exerciseId),
+                      languageCode: drift.Value(langCode),
+                      name: drift.Value(name),
+                      description: drift.Value(t['description'] as String?),
+                    );
+                    batch.insert(
+                      mainDb.exerciseTranslations,
+                      companion,
+                      onConflict: drift.DoUpdate(
+                        (_) => companion,
+                        target: [
+                          mainDb.exerciseTranslations.exerciseId,
+                          mainDb.exerciseTranslations.languageCode,
+                        ],
+                      ),
+                    );
+                    relationalTrInserted++;
+                  } catch (e) {
+                    debugPrint(
+                      '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed relational translation: $e',
+                    );
+                  }
+                }
+              });
+
+              trOffset += batchSize;
+              await Future.delayed(const Duration(milliseconds: 1));
+            }
+
+            totalTranslationsInserted += relationalTrInserted;
+            debugPrint(
+              '[ExerciseCatalog]   [$taskLabel] Relational translation pass complete: '
+              '$relationalTrInserted / $trTotal rows written',
+            );
+          }
+        }
+      });
+
+      if (importType == BatchImportType.exercises) {
+        debugPrint(
+          '[ExerciseCatalog]   [$taskLabel] ── Batch import complete ──────────────────',
+        );
+        debugPrint(
+          '[ExerciseCatalog]   [$taskLabel]   Source rows processed  : $processed / $totalCount',
+        );
+        debugPrint(
+          '[ExerciseCatalog]   [$taskLabel]   Exercises inserted/updated: $totalExercisesInserted',
+        );
+        debugPrint(
+          '[ExerciseCatalog]   [$taskLabel]   Translations inserted/updated: $totalTranslationsInserted',
+        );
+        if (totalExercisesInserted == 0) {
+          debugPrint('[ExerciseCatalog] ❌ [$taskLabel] ZERO exercises written – check source DB and mapping!');
+        } else if (totalTranslationsInserted == 0) {
+          debugPrint('[ExerciseCatalog] ❌ [$taskLabel] ZERO translations written – exercises will be invisible!');
+        }
+      }
+    } finally {
+      // Restore original PRAGMAs
+      debugPrint('[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous');
+      try {
+        await mainDb.customStatement('PRAGMA synchronous = $originalSynchronous;');
+        await mainDb.customStatement('PRAGMA journal_mode = $originalJournalMode;');
+      } catch (e) {
+        debugPrint('[ExerciseCatalog] Error restoring PRAGMAs: $e');
       }
     }
 

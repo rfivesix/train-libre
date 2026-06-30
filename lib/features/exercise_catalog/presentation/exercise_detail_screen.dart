@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 import '../../../generated/app_localizations.dart';
+import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../domain/body_slug_mapper.dart';
 import '../domain/models/exercise.dart';
 import '../../workout/domain/models/set_log.dart';
@@ -489,51 +490,71 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        MenuAnchor(
-          builder: (context, controller, child) {
-            return GestureDetector(
-              onTap: () {
-                if (controller.isOpen) {
-                  controller.close();
-                } else {
-                  controller.open();
-                }
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MenuAnchor(
+              builder: (context, controller, child) {
+                return GestureDetector(
+                  onTap: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        metricTitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: DesignConstants.spacingXS),
+                      Icon(
+                        LucideIcons.chevron_down,
+                        size: 18,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ],
+                  ),
+                );
               },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    metricTitle,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingXS),
-                  Icon(
-                    LucideIcons.chevron_down,
-                    size: 18,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
+              menuChildren: [
+                MenuItemButton(
+                  onPressed: () =>
+                      setState(() => _selectedMetric = ExerciseMetric.maxWeight),
+                  child: Text(l10n.exerciseMetricMaxWeight),
+                ),
+                MenuItemButton(
+                  onPressed: () =>
+                      setState(() => _selectedMetric = ExerciseMetric.volume),
+                  child: Text(l10n.exerciseMetricVolume),
+                ),
+                MenuItemButton(
+                  onPressed: () =>
+                      setState(() => _selectedMetric = ExerciseMetric.est1rm),
+                  child: Text(l10n.exerciseMetricEst1RM),
+                ),
+              ],
+            ),
+            if (_selectedMetric == ExerciseMetric.est1rm) ...[
+              const SizedBox(width: DesignConstants.spacingXS),
+              AlgorithmInfoButton(
+                title: "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                explanation: "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                keyPoints: const [
+                  "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
+                  "Estimates are sports-science heuristics designed for healthy individuals.",
+                  "Provides a safe way to track strength progression without testing true failure.",
                 ],
+                technicalTitle: "Epley Equation Details",
+                technicalExplanation: "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                citationUrl: "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
               ),
-            );
-          },
-          menuChildren: [
-            MenuItemButton(
-              onPressed: () =>
-                  setState(() => _selectedMetric = ExerciseMetric.maxWeight),
-              child: Text(l10n.exerciseMetricMaxWeight),
-            ),
-            MenuItemButton(
-              onPressed: () =>
-                  setState(() => _selectedMetric = ExerciseMetric.volume),
-              child: Text(l10n.exerciseMetricVolume),
-            ),
-            MenuItemButton(
-              onPressed: () =>
-                  setState(() => _selectedMetric = ExerciseMetric.est1rm),
-              child: Text(l10n.exerciseMetricEst1RM),
-            ),
+            ],
           ],
         ),
         Wrap(

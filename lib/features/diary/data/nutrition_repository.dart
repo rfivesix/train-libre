@@ -72,6 +72,12 @@ class NutritionRepository implements IDiaryRepository {
   }
 
   @override
+  Future<Map<int, FoodItem>> getProductsByArchiveIds(List<int> ids) {
+    return ProductLocalDataSource(_localDataSource.db)
+        .getProductsByArchiveIds(ids);
+  }
+
+  @override
   Future<void> deleteFoodEntry(int id) => _localDataSource.deleteFoodEntry(id);
 
   @override

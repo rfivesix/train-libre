@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.9.37] - 2026-06-29
+
+### Added
+- **Point-in-Time OFF Product Archive:** Introduced a transactional, append-only table `off_products_archive` storing immutable snapshots of Open Food Facts (OFF) products with content hashing (SHA-256) to ensure absolute historical consistency of user food logs.
+- **Archive Verification Suite:** Created `offline_food_archive_test.dart` verifying auto-archiving, duplicate deduplication, override immutability, 3-tier lookup resolution, and backup/restore round-trip integrity.
+
+### Changed
+- **Write Path Auto-Archiving:** Configured `DiaryLocalDataSource` to automatically resolve, hash, and archive food item and override snapshots at write time transparently during `insertFoodEntry` and `updateFoodEntry` calls.
+- **3-Tier Product Resolution Chain:** Refactored nutritional calculations, view models, stats charts (`getFoodCaloriesByDayForDateRange`), Apple Health exports (`HealthExportDataSource`), and daily log sharing (`ShareService`) to resolve product details using a 3-tier priority lookup: archived snapshot first, catalog product second, and legacy barcode fallback third.
+- **Backup & Restore Format (v5):** Bumped the backup schema version to `5`. Updated `BackupManager` and `TrainLibreBackup` models to serialize, deserialize, clear, and restore archived product records and foreign keys.
+- **OFF Lifecycle Pruning Protection:** Integrated `off_products_archive` distinct barcodes query inside `RetainHistoricalOffProductsUseCase` to protect historically logged barcodes from database pruning passes.
+- **My Goals Citation Integration:** Added the `AlgorithmInfoButton` to the "My goals" settings screen's "Daily Goals" section header (matching the card layout from the nutrition screen), configured to display scientific citations for Mifflin-St Jeor and Kevin Hall energy balance models, and appended an in-line italicized non-clinical disclaimer at the bottom of the screen's scroll view.
+- **1RM Citation Integration:** Integrated a non-intrusive `AlgorithmInfoButton` on the Exercise Detail chart header (visible when the Est. 1RM metric is selected) and on the Workout Summary accomplishments section header, providing clear scientific context and Epley equation disclosures.
+- **QR Scanner Upstream Migration:** Removed the temporary local path override for `qr_code_scanner_plus` and migrated to the official upstream stable release (`v2.2.0`) on pub.dev, which resolves the iOS NSError codec serialization crash.
+- **Database Catalog Import Optimizations:** Refactored the bulk database import sequence (`BasisDataManager._performBatchImport`) to execute all chunks in a single native database transaction, dynamically loosen disk synchronization guarantees during import (`PRAGMA synchronous = OFF;` and `PRAGMA journal_mode = MEMORY;`) with automatic restoring, and tune chunk size to `5000` to minimize isolate IPC overhead.
+
+### Fixed
+- **Food Entry Alignment in General Food Selection Screen:** Resolved an issue where food entry cards in the general food selection screen had double horizontal padding, causing them to be narrower and misaligned with the search bar.
+
 ## [0.9.36] - 2026-06-26
 
 ### Added

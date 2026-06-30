@@ -324,7 +324,9 @@ class _MainScreenState extends State<MainScreen>
             borderRadius: BorderRadius.circular(18),
             child: Padding(
               padding: padding ??
-                  const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM, vertical: DesignConstants.spacingM),
+                  const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingM,
+                      vertical: DesignConstants.spacingM),
               child: child,
             ),
           );
@@ -404,7 +406,8 @@ class _MainScreenState extends State<MainScreen>
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                        borderRadius: BorderRadius.circular(
+                            DesignConstants.borderRadiusM),
                         onTap: () {
                           // Editing navigates directly (that is ok because it is a new screen).
                           // pop+push would also be better here, but keep this for edit,
@@ -1195,7 +1198,8 @@ class _MainScreenState extends State<MainScreen>
                       // Shadow layers underneath the glass tabs & FAB to provide physical depth matching standard style
                       IgnorePointer(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
                             vertical: verticalPadding,
                           ),
                           child: Row(
@@ -1238,7 +1242,8 @@ class _MainScreenState extends State<MainScreen>
                             letterSpacing: -0.2,
                           ),
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: horizontalPadding,
                               vertical: verticalPadding,
                             ),
                             child: GlassAdaptiveScope(
@@ -1404,7 +1409,8 @@ class _MainScreenState extends State<MainScreen>
 
   Widget _profileAppBarButton(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: DesignConstants.screenPaddingHorizontal,
+      padding: const EdgeInsets.only(
+        right: DesignConstants.screenPaddingHorizontal,
       ),
       child: Semantics(
         label: AppLocalizations.of(context)!.profile,
@@ -1422,7 +1428,8 @@ class _MainScreenState extends State<MainScreen>
             builder: (context, profileService, _) {
               return CircleAvatar(
                 radius: 18,
-                backgroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                backgroundColor: Colors
+                    .grey, //Theme.of(context).colorScheme.onSurfaceVariant,
                 backgroundImage: (profileService.profileImagePath != null)
                     ? FileImage(File(profileService.profileImagePath!))
                     : null,

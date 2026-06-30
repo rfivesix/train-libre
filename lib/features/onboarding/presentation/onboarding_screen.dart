@@ -34,6 +34,7 @@ import '../../../config/app_data_sources.dart';
 import 'dart:io';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/algorithm_info_sheet.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -56,9 +57,21 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   static const int _regionSelectionPageIndex = 1;
   static const int _profilePageIndex = 2;
+  static const int _measurementsPageIndex = 3;
   static const int _adaptiveGoalPageIndex = 4;
   static const int _pageCount = 7;
   static const int _lastPageIndex = _pageCount - 1;
+
+  String? _heightError;
+  String? _dobError;
+  String? _genderError;
+  String? _weightError;
+
+  String? _heightWarning;
+  String? _weightWarning;
+
+  String? _lastWarnedHeightValue;
+  String? _lastWarnedWeightValue;
 
   OffCatalogCountry _selectedOffCountry = OffCatalogCountry.de;
   final PageController _pageController = PageController();
@@ -79,7 +92,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final TextEditingController _nameController = TextEditingController();
   DateTime? _selectedDate;
   final TextEditingController _heightController = TextEditingController();
-  String? _selectedGender;
+  String? _selectedGender = 'male';
   final TextEditingController _bodyFatPercentController =
       TextEditingController();
   PriorActivityLevel _selectedPriorActivityLevel =
@@ -113,6 +126,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         AdaptiveNutritionRecommendationService(databaseHelper: _databaseHelper);
     _loadAdaptiveGoalSettings();
     _initSelectedCountry();
+
+    _heightController.addListener(() {
+      if (_heightError != null || _heightWarning != null) {
+        setState(() {
+          _heightError = null;
+          _heightWarning = null;
+        });
+      }
+    });
+    _weightController.addListener(() {
+      if (_weightError != null || _weightWarning != null) {
+        setState(() {
+          _weightError = null;
+          _weightWarning = null;
+        });
+      }
+    });
   }
 
   Future<void> _initSelectedCountry() async {
@@ -420,11 +450,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _restoreFromBackup() async {
     final l10n = AppLocalizations.of(context)!;
 
-    final wgerInitialized = await BasisDataManager.instance.isExerciseCatalogInitialized();
+    final wgerInitialized =
+        await BasisDataManager.instance.isExerciseCatalogInitialized();
 
     if (!wgerInitialized) {
       if (!mounted) return;
-      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance
+          .promptOffDatabaseDownloadIfFirstTime(context);
       return;
     }
 
@@ -515,18 +547,102 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _nextPage() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_currentPage == _regionSelectionPageIndex) {
       await OffCatalogCountryService.writeActiveCountry(_selectedOffCountry);
       if (mounted) {
         final isTesting = Platform.environment.containsKey('FLUTTER_TEST');
         if (!isTesting) {
-          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+          await BasisDataManager.instance
+              .promptOffDatabaseDownloadIfFirstTime(context);
         }
       }
     }
 
     if (_currentPage == _profilePageIndex) {
       if (_nameController.text.trim().isEmpty) return;
+
+      bool hasProfileErrors = false;
+      _dobError = null;
+      _genderError = null;
+      _heightError = null;
+
+      if (_selectedDate == null) {
+        _dobError = l10n.onboardingFieldCannotBeEmpty;
+        hasProfileErrors = true;
+      }
+      if (_selectedGender == null) {
+        _genderError = l10n.onboardingFieldCannotBeEmpty;
+        hasProfileErrors = true;
+      }
+      if (_heightController.text.trim().isEmpty) {
+        _heightError = l10n.onboardingFieldCannotBeEmpty;
+        hasProfileErrors = true;
+        _heightWarning = null;
+        _lastWarnedHeightValue = null;
+      }
+
+      if (hasProfileErrors) {
+        setState(() {});
+        return;
+      }
+
+      final heightInput =
+          double.tryParse(_heightController.text.replaceAll(',', '.'));
+      if (heightInput != null) {
+        final heightCm =
+            _unitService.convertToMetric(heightInput, UnitDimension.height);
+        if (heightCm < 100 || heightCm > 250) {
+          if (_lastWarnedHeightValue != _heightController.text) {
+            setState(() {
+              _heightWarning = l10n.onboardingPhysiologicalRangeWarning;
+              _lastWarnedHeightValue = _heightController.text;
+            });
+            return;
+          }
+        } else {
+          _heightWarning = null;
+          _lastWarnedHeightValue = null;
+        }
+      } else {
+        _heightWarning = null;
+        _lastWarnedHeightValue = null;
+      }
+    }
+
+    if (_currentPage == _measurementsPageIndex) {
+      final weightText = _weightController.text.trim();
+      if (weightText.isEmpty) {
+        setState(() {
+          _weightError = l10n.onboardingFieldCannotBeEmpty;
+          _weightWarning = null;
+          _lastWarnedWeightValue = null;
+        });
+        return;
+      } else {
+        _weightError = null;
+      }
+
+      final weightInput = double.tryParse(weightText.replaceAll(',', '.'));
+      if (weightInput != null) {
+        final weightKg =
+            _unitService.convertToMetric(weightInput, UnitDimension.weight);
+        if (weightKg < 35 || weightKg > 250) {
+          if (_lastWarnedWeightValue != _weightController.text) {
+            setState(() {
+              _weightWarning = l10n.onboardingPhysiologicalRangeWarning;
+              _lastWarnedWeightValue = _weightController.text;
+            });
+            return;
+          }
+        } else {
+          _weightWarning = null;
+          _lastWarnedWeightValue = null;
+        }
+      } else {
+        _weightWarning = null;
+        _lastWarnedWeightValue = null;
+      }
     }
 
     if (_currentPage == _adaptiveGoalPageIndex) {
@@ -603,14 +719,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     selectedDate: _selectedDate,
                     heightController: _heightController,
                     selectedGender: _selectedGender,
+                    heightError: _heightError,
+                    heightWarning: _heightWarning,
+                    dobError: _dobError,
+                    genderError: _genderError,
                     onSelectDate: (picked) {
-                      setState(() => _selectedDate = picked);
+                      setState(() {
+                        _selectedDate = picked;
+                        _dobError = null;
+                      });
                       if (_currentPage >= _adaptiveGoalPageIndex) {
                         _refreshOnboardingRecommendationPreview();
                       }
                     },
                     onSelectGender: (val) {
-                      setState(() => _selectedGender = val);
+                      setState(() {
+                        _selectedGender = val;
+                        _genderError = null;
+                      });
                     },
                   ),
                   _OnboardingMeasurementsStep(
@@ -622,6 +748,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       }
                     },
                     onOpenBodyFatHelp: _openBodyFatHelperEntryPoint,
+                    weightError: _weightError,
+                    weightWarning: _weightWarning,
                   ),
                   AdaptiveGoalSlide(
                     selectedGoal: _selectedGoal,
@@ -690,7 +818,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ? null
                           : _nextPage,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXXL,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: DesignConstants.spacingXXL,
                           vertical: DesignConstants.spacingL,
                         ),
                         shape: RoundedRectangleBorder(
@@ -758,12 +887,16 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
     required this.bodyFatPercentController,
     required this.onBodyFatChanged,
     required this.onOpenBodyFatHelp,
+    this.weightError,
+    this.weightWarning,
   });
 
   final TextEditingController weightController;
   final TextEditingController bodyFatPercentController;
   final ValueChanged<String> onBodyFatChanged;
   final VoidCallback onOpenBodyFatHelp;
+  final String? weightError;
+  final String? weightWarning;
 
   @override
   Widget build(BuildContext context) {
@@ -801,10 +934,22 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
               labelText: '${l10n.onboardingWeightTitle} ($weightSuffix)',
               suffixText: weightSuffix,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
+              errorText: weightError,
             ),
           ),
+          if (weightWarning != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              weightWarning!,
+              style: TextStyle(
+                color: Colors.orange.shade800,
+                fontSize: 12,
+              ),
+            ),
+          ],
           const SizedBox(height: 18),
           TextField(
             key: const Key('onboarding_body_fat_text_field'),
@@ -815,7 +960,8 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
               labelText: l10n.onboardingBodyFatOptionalLabel,
               suffixText: '%',
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),
@@ -873,11 +1019,30 @@ class _OnboardingNutritionStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: DesignConstants.spacingM),
-          Text(
-            l10n.onboardingGoalsTitle,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.onboardingGoalsTitle,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              AlgorithmInfoButton(
+                title: l10n.infoTdeeTitle,
+                explanation: l10n.infoTdeeExplanation,
+                keyPoints: l10n.infoTdeeKeyPoints.split('\n'),
+                technicalTitle: l10n.infoTdeeTechnicalTitle,
+                technicalExplanation: l10n.infoTdeeTechnicalExplanation,
+                markdownAssetPath:
+                    'documentation/features/bayesian_tdee_estimator.md',
+                citationUrl:
+                    'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
+              ),
+            ],
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Text(

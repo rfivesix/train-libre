@@ -343,7 +343,7 @@ class _GeneralFoodSelectionScreenState
                                           ListView.builder(
                                             shrinkWrap: true,
                                             physics: const NeverScrollableScrollPhysics(),
-                                            padding: DesignConstants.cardPadding.copyWith(top: 0),
+                                            padding: const EdgeInsets.only(bottom: 16.0),
                                             itemCount: _customFoodItems.length,
                                             itemBuilder: (context, i) => _buildFoodListItem(_customFoodItems[i], l10n),
                                           ),
@@ -408,8 +408,7 @@ class _GeneralFoodSelectionScreenState
                                           shrinkWrap: true,
                                           physics:
                                               const NeverScrollableScrollPhysics(),
-                                          padding: DesignConstants.cardPadding
-                                              .copyWith(top: 0),
+                                          padding: const EdgeInsets.only(bottom: 16.0),
                                           itemCount: items.length,
                                           itemBuilder: (_, i) =>
                                               _buildFoodListItem(
@@ -451,7 +450,7 @@ class _GeneralFoodSelectionScreenState
 
                                   return ListView.builder(
                                     scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
-                                    padding: DesignConstants.cardPadding.copyWith(bottom: 56),
+                                    padding: const EdgeInsets.only(bottom: 56.0),
                                     itemCount: listItems.length,
                                     itemBuilder: (context, index) {
                                       final item = listItems[index];

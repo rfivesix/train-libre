@@ -68,6 +68,16 @@ class RetainHistoricalOffProductsUseCase {
       if (barcode.isNotEmpty) protected.add(barcode);
     }
 
+    final archiveRows = await db.customSelect('''
+      SELECT DISTINCT barcode
+      FROM off_products_archive
+      WHERE barcode IS NOT NULL AND TRIM(barcode) != ''
+      ''').get();
+    for (final row in archiveRows) {
+      final barcode = (row.data['barcode'] as String?)?.trim() ?? '';
+      if (barcode.isNotEmpty) protected.add(barcode);
+    }
+
     final favoritesRows = await db.customSelect('''
       SELECT DISTINCT barcode
       FROM favorites
