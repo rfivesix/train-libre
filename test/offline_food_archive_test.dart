@@ -141,9 +141,6 @@ void main() {
       expect(archiveRow1.hadUserOverride, isTrue);
 
       // 4. Update the override again (simulate future edits)
-      await (database.delete(database.userFoodOverrides)
-            ..where((tbl) => tbl.barcode.equals(barcode)))
-          .go();
 
       final secondaryOverride = FoodItem(
         barcode: barcode,

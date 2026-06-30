@@ -191,5 +191,40 @@ void main() {
       expect(searchResult.first.name, 'Monster Ultra');
       expect(searchResult.first.caffeineMgPer100ml, 32.0);
     });
+
+    test('can call updateProduct consecutively for the same barcode without unique constraint exceptions', () async {
+      final barcode = '9999999999999';
+      final item1 = FoodItem(
+        barcode: barcode,
+        name: 'First Version',
+        brand: 'Brand',
+        calories: 100,
+        protein: 1.0,
+        carbs: 10.0,
+        fat: 1.0,
+        source: FoodItemSource.user,
+      );
+
+      await productDb.insertProduct(item1);
+
+      final item2 = FoodItem(
+        barcode: barcode,
+        name: 'Second Version',
+        brand: 'Brand',
+        calories: 120,
+        protein: 2.0,
+        carbs: 12.0,
+        fat: 2.0,
+        source: FoodItemSource.user,
+      );
+
+      // Verify that this call succeeds without throwing any UNIQUE constraint SQLite exception!
+      await productDb.updateProduct(item2);
+
+      final fetched = await productDb.getProductByBarcode(barcode);
+      expect(fetched, isNotNull);
+      expect(fetched!.name, 'Second Version');
+      expect(fetched.calories, 120);
+    });
   });
 }
