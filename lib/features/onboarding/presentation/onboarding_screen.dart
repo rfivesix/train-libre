@@ -34,6 +34,7 @@ import '../../../config/app_data_sources.dart';
 import 'dart:io';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/algorithm_info_sheet.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -873,11 +874,28 @@ class _OnboardingNutritionStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: DesignConstants.spacingM),
-          Text(
-            l10n.onboardingGoalsTitle,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.onboardingGoalsTitle,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              AlgorithmInfoButton(
+                title: l10n.infoTdeeTitle,
+                explanation: l10n.infoTdeeExplanation,
+                keyPoints: l10n.infoTdeeKeyPoints.split('\n'),
+                technicalTitle: l10n.infoTdeeTechnicalTitle,
+                technicalExplanation: l10n.infoTdeeTechnicalExplanation,
+                markdownAssetPath: 'documentation/features/bayesian_tdee_estimator.md',
+                citationUrl: 'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
+              ),
+            ],
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Text(
