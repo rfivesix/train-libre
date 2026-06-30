@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **OFF Lifecycle Pruning Protection:** Integrated `off_products_archive` distinct barcodes query inside `RetainHistoricalOffProductsUseCase` to protect historically logged barcodes from database pruning passes.
 - **My Goals Citation Integration:** Added the `AlgorithmInfoButton` to the "My goals" settings screen's "Daily Goals" section header (matching the card layout from the nutrition screen), configured to display scientific citations for Mifflin-St Jeor and Kevin Hall energy balance models, and appended an in-line italicized non-clinical disclaimer at the bottom of the screen's scroll view.
 - **1RM Citation Integration:** Integrated a non-intrusive `AlgorithmInfoButton` on the Exercise Detail chart header (visible when the Est. 1RM metric is selected) and on the Workout Summary accomplishments section header, providing clear scientific context and Epley equation disclosures.
+- **QR Scanner Upstream Migration:** Removed the temporary local path override for `qr_code_scanner_plus` and migrated to the official upstream stable release (`v2.2.0`) on pub.dev, which resolves the iOS NSError codec serialization crash.
 
 ### Fixed
 - **Food Entry Alignment in General Food Selection Screen:** Resolved an issue where food entry cards in the general food selection screen had double horizontal padding, causing them to be narrower and misaligned with the search bar.

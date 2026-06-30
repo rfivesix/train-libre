@@ -28,7 +28,7 @@ class ArchiveService {
     final caffeineMgPer100g = foodItem.caffeineMgPer100g;
     final productQuantity = foodItem.productQuantity;
     final productQuantityUnit = foodItem.productQuantityUnit;
-    final isFluid = foodItem.isFluid ?? false;
+    final isFluid = foodItem.isFluid;
     final isLiquid = foodItem.isLiquid ?? false;
     final source = _sourceToString(foodItem.source);
     final category = foodItem.category;

@@ -1,4 +1,0 @@
-analyzer:
-  errors:
-    strict_top_level_inference: ignore
-include: package:flutter_lints/flutter.yaml
