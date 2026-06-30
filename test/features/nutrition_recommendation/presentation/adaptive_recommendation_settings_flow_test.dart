@@ -13,6 +13,7 @@ import 'package:train_libre/features/onboarding/presentation/onboarding_screen.d
 import 'package:train_libre/services/unit_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +50,34 @@ void main() {
         create: (_) => UnitService(),
         child: child,
       );
+    }
+
+    Future<void> fillProfileSlide(WidgetTester tester, {String name = 'Alex', String height = '180'}) async {
+      await tester.enterText(
+        find.byKey(const Key('onboarding_name_text_field')),
+        name,
+      );
+      await tester.pumpAndSettle();
+
+      final genderDropdown = find.byKey(const Key('onboarding_gender_dropdown'));
+      await tester.tap(genderDropdown);
+      await tester.pumpAndSettle();
+      final maleItem = find.text('Male').last;
+      await tester.tap(maleItem);
+      await tester.pumpAndSettle();
+
+      final dobField = find.byIcon(LucideIcons.cake);
+      await tester.tap(dobField);
+      await tester.pumpAndSettle();
+      final okButton = find.text('OK');
+      await tester.tap(okButton);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('onboarding_height_text_field')),
+        height,
+      );
+      await tester.pumpAndSettle();
     }
 
     testWidgets('goals screen keeps adaptive sections above daily goals',
@@ -127,10 +156,7 @@ void main() {
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const Key('onboarding_name_text_field')),
-        'Alex',
-      );
+      await fillProfileSlide(tester, name: 'Alex');
       // Navigate from profile page to the combined measurements page.
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
@@ -155,9 +181,17 @@ void main() {
         findsOneWidget,
       );
 
+      // Enter weight before advancing
+      await tester.enterText(
+        find.byKey(const Key('onboarding_weight_text_field')),
+        '70',
+      );
+      await tester.pumpAndSettle();
+
       // Advance to the adaptive goal page.
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(
         find.byKey(const Key('onboarding_adaptive_goal_page')),
@@ -194,10 +228,7 @@ void main() {
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const Key('onboarding_name_text_field')),
-        'Alex',
-      );
+      await fillProfileSlide(tester, name: 'Alex');
       // Navigate to the combined measurements page (page 2) — contains the
       // body-fat help button.
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
@@ -251,15 +282,20 @@ void main() {
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const Key('onboarding_name_text_field')),
-        'Alex',
-      );
+      await fillProfileSlide(tester, name: 'Alex');
       // Navigate: profile(2) → measurements(3) → adaptive goals(4)
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+
+      await tester.enterText(
+        find.byKey(const Key('onboarding_weight_text_field')),
+        '70',
+      );
       await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       final onboardingDropdown =
           find.byKey(const Key('onboarding_prior_activity_dropdown'));
@@ -321,17 +357,23 @@ void main() {
       await tester.tap(nextButton);
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const Key('onboarding_name_text_field')),
-        'Alex',
-      );
+      await fillProfileSlide(tester, name: 'Alex');
       // Navigate through the 7-page onboarding flow:
       // profile(2) → measurements(3) → adaptive(4) → nutrition(5) →
       // ai_health(6, last page)
       await tester.tap(nextButton); // profile -> measurements
       await tester.pumpAndSettle();
-      await tester.tap(nextButton); // measurements -> adaptive
+
+      await tester.enterText(
+        find.byKey(const Key('onboarding_weight_text_field')),
+        '70',
+      );
       await tester.pumpAndSettle();
+
+      await tester.tap(nextButton); // measurements -> adaptive
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
       await tester.tap(nextButton); // adaptive -> nutrition
       await tester.pumpAndSettle();
       await tester.tap(nextButton); // nutrition -> ai_health (last page)

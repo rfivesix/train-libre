@@ -2339,6 +2339,13 @@ class AppLocalizationsJa extends AppLocalizations {
       '年齢と生物学的性別は、筋肉回復モデルの基礎回復ウィンドウを決定し、Sleep Health Engineのアルゴリズムにも反映されます。';
 
   @override
+  String get onboardingFieldCannotBeEmpty => 'このフィールドは必須です。';
+
+  @override
+  String get onboardingPhysiologicalRangeWarning =>
+      '警告：この値は想定される生理学的範囲外です。当社のスポーツ科学分析およびヒューリスティックエンジンは、極端な測定値には対応していません。この値が意図的なものである場合は、もう一度「次へ」をクリックして続行してください。';
+
+  @override
   String get onboardingMeasurementsTitle => '測定値とベースライン';
 
   @override

@@ -2386,6 +2386,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your age and biological sex determine the baseline recovery windows of your muscle recovery model and feed into the algorithms of your Sleep Health Engine.';
 
   @override
+  String get onboardingFieldCannotBeEmpty => 'This field cannot be empty.';
+
+  @override
+  String get onboardingPhysiologicalRangeWarning =>
+      'Warning: This value is outside the expected physiological range. Our sports-science analytics and heuristic engines are not calibrated for extreme metrics. If this value is intentional, click \'Next\' again to proceed anyway.';
+
+  @override
   String get onboardingMeasurementsTitle => 'Measurements & Baseline';
 
   @override

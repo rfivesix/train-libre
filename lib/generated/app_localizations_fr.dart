@@ -2421,6 +2421,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Votre âge et votre sexe biologique déterminent les fenêtres de récupération de base de votre modèle de récupération musculaire et alimentent les algorithmes de votre Sleep Health Engine.';
 
   @override
+  String get onboardingFieldCannotBeEmpty => 'Ce champ ne peut pas être vide.';
+
+  @override
+  String get onboardingPhysiologicalRangeWarning =>
+      'Attention : Cette valeur est en dehors de la plage physiologique attendue. Nos analyses en sciences du sport et nos moteurs heuristiques ne sont pas calibrés pour des mesures extrêmes. Si cette valeur est intentionnelle, cliquez à nouveau sur \'Suivant\' pour continuer malgré tout.';
+
+  @override
   String get onboardingMeasurementsTitle => 'Mesures et référence';
 
   @override

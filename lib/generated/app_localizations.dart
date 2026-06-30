@@ -4346,6 +4346,18 @@ abstract class AppLocalizations {
   /// **'Your age and biological sex determine the baseline recovery windows of your muscle recovery model and feed into the algorithms of your Sleep Health Engine.'**
   String get onboardingBioDataInfo;
 
+  /// No description provided for @onboardingFieldCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'This field cannot be empty.'**
+  String get onboardingFieldCannotBeEmpty;
+
+  /// No description provided for @onboardingPhysiologicalRangeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: This value is outside the expected physiological range. Our sports-science analytics and heuristic engines are not calibrated for extreme metrics. If this value is intentional, click \'Next\' again to proceed anyway.'**
+  String get onboardingPhysiologicalRangeWarning;
+
   /// No description provided for @onboardingMeasurementsTitle.
   ///
   /// In en, this message translates to:
