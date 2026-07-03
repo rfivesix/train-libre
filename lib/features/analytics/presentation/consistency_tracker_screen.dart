@@ -525,8 +525,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                                 },
                                 markerBuilder: (context, day, events) {
                                   final count = _dailyCount(day);
-                                  if (count <= 0)
+                                  if (count <= 0) {
                                     return const SizedBox.shrink();
+                                  }
                                   return Positioned(
                                     bottom: 3,
                                     child: Text(

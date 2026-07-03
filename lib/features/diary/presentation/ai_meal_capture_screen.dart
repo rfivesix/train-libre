@@ -101,51 +101,72 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     // English
     if (lower.contains('breakfast')) return 'mealtypeBreakfast';
     if (lower.contains('lunch')) return 'mealtypeLunch';
-    if (lower.contains('dinner') || lower.contains('supper'))
+    if (lower.contains('dinner') || lower.contains('supper')) {
       return 'mealtypeDinner';
+    }
     if (lower.contains('snack')) return 'mealtypeSnack';
 
     // German
-    if (lower.contains('frühstück') || lower.contains('fruhstuck'))
+    if (lower.contains('frühstück') || lower.contains('fruhstuck')) {
       return 'mealtypeBreakfast';
+    }
     if (lower.contains('mittag')) return 'mealtypeLunch';
     if (lower.contains('abend')) return 'mealtypeDinner';
-    if (lower.contains('snack') || lower.contains('zwischenmahlzeit'))
+    if (lower.contains('snack') || lower.contains('zwischenmahlzeit')) {
       return 'mealtypeSnack';
+    }
 
     // French
     if (lower.contains('petit-déjeuner') ||
         lower.contains('petit déjeuner') ||
-        lower.contains('matin')) return 'mealtypeBreakfast';
+        lower.contains('matin')) {
+      return 'mealtypeBreakfast';
+    }
     if (lower.contains('déjeuner') ||
         lower.contains('dejeuner') ||
-        lower.contains('midi')) return 'mealtypeLunch';
+        lower.contains('midi')) {
+      return 'mealtypeLunch';
+    }
     if (lower.contains('dîner') ||
         lower.contains('diner') ||
         lower.contains('souper') ||
-        lower.contains('soir')) return 'mealtypeDinner';
+        lower.contains('soir')) {
+      return 'mealtypeDinner';
+    }
     if (lower.contains('collation') ||
         lower.contains('goûter') ||
-        lower.contains('gouter')) return 'mealtypeSnack';
+        lower.contains('gouter')) {
+      return 'mealtypeSnack';
+    }
 
     // Italian
     if (lower.contains('colazione')) return 'mealtypeBreakfast';
     if (lower.contains('pranzo')) return 'mealtypeLunch';
     if (lower.contains('cena')) return 'mealtypeDinner';
-    if (lower.contains('spuntino') || lower.contains('merenda'))
+    if (lower.contains('spuntino') || lower.contains('merenda')) {
       return 'mealtypeSnack';
+    }
 
     // Japanese
-    if (lower.contains('朝食') || lower.contains('朝ごはん'))
+    if (lower.contains('朝食') || lower.contains('朝ごはん')) {
       return 'mealtypeBreakfast';
-    if (lower.contains('昼食') || lower.contains('昼ごはん') || lower.contains('ランチ'))
+    }
+    if (lower.contains('昼食') ||
+        lower.contains('昼ごはん') ||
+        lower.contains('ランチ')) {
       return 'mealtypeLunch';
+    }
     if (lower.contains('夕食') ||
         lower.contains('晩ごはん') ||
         lower.contains('ディナー') ||
-        lower.contains('夜ごはん')) return 'mealtypeDinner';
-    if (lower.contains('間食') || lower.contains('おやつ') || lower.contains('スナック'))
+        lower.contains('夜ごはん')) {
+      return 'mealtypeDinner';
+    }
+    if (lower.contains('間食') ||
+        lower.contains('おやつ') ||
+        lower.contains('スナック')) {
       return 'mealtypeSnack';
+    }
 
     return null;
   }

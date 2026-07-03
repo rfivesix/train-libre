@@ -47,15 +47,19 @@ class MacroBadgeRow extends StatelessWidget {
   Widget _buildPlainRow(BuildContext context) {
     final items = <String>[];
     if (kcal != null) items.add('$kcal kcal');
-    if (protein != null && protein! > 0)
+    if (protein != null && protein! > 0) {
       items.add('${protein!.toStringAsFixed(0)}g P');
-    if (carbs != null && carbs! > 0)
+    }
+    if (carbs != null && carbs! > 0) {
       items.add('${carbs!.toStringAsFixed(0)}g C');
+    }
     if (fat != null && fat! > 0) items.add('${fat!.toStringAsFixed(0)}g F');
-    if (sugar != null && sugar! > 0)
+    if (sugar != null && sugar! > 0) {
       items.add('${sugar!.toStringAsFixed(0)}g Sugar');
-    if (caffeine != null && caffeine! > 0)
+    }
+    if (caffeine != null && caffeine! > 0) {
       items.add('${caffeine!.toStringAsFixed(0)}mg Caffeine');
+    }
     if (waterMl != null && waterMl! > 0) items.add('${waterMl}ml');
 
     return AppMetadataRow(
