@@ -180,37 +180,44 @@ class _PulseAnalysisContent extends StatelessWidget {
       children: [
         _KpiCard(summary: summary),
         const SizedBox(height: DesignConstants.spacingM),
-        SummaryCard(
-          margin: EdgeInsets.zero,
-          padding: const EdgeInsets.all(DesignConstants.spacingL),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.screenPaddingHorizontal,
+              ),
+              child: Text(
                 copy.chartTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
               ),
-              const SizedBox(height: DesignConstants.spacingS),
-              if (summary.canRenderChart)
-                MeasurementChartWidget.fromData(
-                  dataPoints: points,
-                  unit: l10n.sleepBpmUnit,
-                  axisMode: MeasurementChartAxisMode.time,
-                  valueFractionDigits: 0,
-                  valueLabelBuilder: (value, unit) => '${value.round()} $unit',
-                  selectedDateLabelBuilder: (value) =>
-                      scope == SleepPeriodScope.day
-                          ? timeFormatter.format(value)
-                          : DateFormat.MMMd(locale).add_Hm().format(value),
-                  axisLabelBuilder: (value, _) => scope == SleepPeriodScope.day
-                      ? timeFormatter.format(value)
-                      : DateFormat.MMMd(locale).format(value),
-                  emptyStateLabel: copy.noDataMessage(summary.noDataReason),
-                )
-              else
-                SizedBox(
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            if (summary.canRenderChart)
+              MeasurementChartWidget.fromData(
+                dataPoints: points,
+                unit: l10n.sleepBpmUnit,
+                axisMode: MeasurementChartAxisMode.time,
+                valueFractionDigits: 0,
+                valueLabelBuilder: (value, unit) => '${value.round()} $unit',
+                selectedDateLabelBuilder: (value) =>
+                    scope == SleepPeriodScope.day
+                        ? timeFormatter.format(value)
+                        : DateFormat.MMMd(locale).add_Hm().format(value),
+                axisLabelBuilder: (value, _) => scope == SleepPeriodScope.day
+                    ? timeFormatter.format(value)
+                    : DateFormat.MMMd(locale).format(value),
+                emptyStateLabel: copy.noDataMessage(summary.noDataReason),
+                edgeToEdge: true,
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.screenPaddingHorizontal,
+                ),
+                child: SizedBox(
                   height: 220,
                   child: Center(
                     child: Text(
@@ -222,15 +229,20 @@ class _PulseAnalysisContent extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
+              ),
+            const SizedBox(height: DesignConstants.spacingS),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.screenPaddingHorizontal,
+              ),
+              child: Text(
                 '${copy.sampleCount(summary.sampleCount)} - ${copy.qualityLabel(summary.quality)}',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline,
                     ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: DesignConstants.spacingM),
         Text(

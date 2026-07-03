@@ -34,6 +34,7 @@ class MeasurementChartWidget extends StatefulWidget {
     this.selectedDateLabelBuilder,
     this.axisLabelBuilder,
     this.repository,
+    this.edgeToEdge = false,
   })  : dataPoints = null,
         axisMode = MeasurementChartAxisMode.day;
 
@@ -50,8 +51,12 @@ class MeasurementChartWidget extends StatefulWidget {
     this.selectedDateLabelBuilder,
     this.axisLabelBuilder,
     this.repository,
+    this.edgeToEdge = false,
   })  : chartType = null,
         dateRange = null;
+
+  /// Whether the chart should render from edge to edge of the screen, removing internal padding and overlaying right titles.
+  final bool edgeToEdge;
 
   /// The type of measurement (e.g., 'weight', 'fat_percent').
   final String? chartType;
@@ -303,30 +308,37 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
           (widget.usesExternalData ? null : _dataPoints.first.value),
     );
 
-    return SizedBox(
+    final chartWidget = SizedBox(
       height: 250,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                displayValue,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(width: DesignConstants.spacingS),
-              Text(
-                displayDate,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-              ),
-            ],
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: widget.edgeToEdge
+                  ? DesignConstants.screenPaddingHorizontal
+                  : 0.0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  displayValue,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(width: DesignConstants.spacingS),
+                Text(
+                  displayDate,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Expanded(
@@ -371,12 +383,44 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                   rightTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 56,
-                      getTitlesWidget: (value, meta) => Text(
-                        value.toStringAsFixed(0),
-                        style: Theme.of(context).textTheme.bodySmall,
-                        textAlign: TextAlign.right,
-                      ),
+                      reservedSize: widget.edgeToEdge ? 40 : 56,
+                      getTitlesWidget: (value, meta) {
+                        final bgColor =
+                            Theme.of(context).scaffoldBackgroundColor;
+                        final hardShadows = [
+                          for (final dx in <double>[-2, -1, 0, 1, 2])
+                            for (final dy in <double>[-2, -1, 0, 1, 2])
+                              if (dx != 0 || dy != 0)
+                                Shadow(
+                                    color: bgColor,
+                                    offset: Offset(dx, dy),
+                                    blurRadius: 0),
+                        ];
+                        final textWidget = Text(
+                          value.toStringAsFixed(0),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6),
+                                shadows: hardShadows,
+                              ),
+                          textAlign: TextAlign.right,
+                        );
+
+                        if (widget.edgeToEdge) {
+                          return SideTitleWidget(
+                            meta: meta,
+                            space: 4,
+                            child: textWidget,
+                          );
+                        }
+
+                        return textWidget;
+                      },
                     ),
                   ),
                   bottomTitles: AxisTitles(
@@ -399,9 +443,19 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                         return SideTitleWidget(
                           meta: meta,
                           space: 8,
+                          fitInside: SideTitleFitInsideData.fromTitleMeta(
+                            meta,
+                            enabled: widget.edgeToEdge,
+                            distanceFromEdge: 16.0,
+                          ),
                           child: Text(
                             axisLabelFor(date),
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.6),
+                                ),
                           ),
                         );
                       },
@@ -420,7 +474,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                         .toList(),
                     isCurved: false,
                     color: Theme.of(context).colorScheme.primary,
-                    barWidth: 3,
+                    barWidth: widget.edgeToEdge ? 2.5 : 3,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
                       show: true,
@@ -440,7 +494,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                       ),
                     ),
                     belowBarData: BarAreaData(
-                      show: true,
+                      show: !widget.edgeToEdge,
                       gradient: LinearGradient(
                         colors: [
                           Theme.of(
@@ -462,6 +516,21 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
         ],
       ),
     );
+
+    if (widget.edgeToEdge) {
+      return SizedBox(
+        width: double.infinity,
+        height: 250,
+        child: OverflowBox(
+          maxWidth: MediaQuery.of(context).size.width,
+          minWidth: MediaQuery.of(context).size.width,
+          maxHeight: 250,
+          minHeight: 250,
+          child: chartWidget,
+        ),
+      );
+    }
+    return chartWidget;
   }
 
   double _displayValue(double value) {

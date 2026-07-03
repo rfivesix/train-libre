@@ -218,12 +218,14 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final unitService = context.watch<UnitService>();
     if (_selectedChartType == null) return const SizedBox.shrink();
 
-    return SummaryCard(
-      padding: DesignConstants.cardPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.screenPaddingHorizontal,
+          ),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
@@ -256,15 +258,16 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: DesignConstants.spacingS),
-          MeasurementChartWidget(
-            chartType: _selectedChartType!,
-            dateRange: _currentChartDateRange,
-            unit: _getMeasurementUnit(_selectedChartType!, unitService),
-            repository: _repository,
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        MeasurementChartWidget(
+          chartType: _selectedChartType!,
+          dateRange: _currentChartDateRange,
+          unit: _getMeasurementUnit(_selectedChartType!, unitService),
+          repository: _repository,
+          edgeToEdge: true,
+        ),
+      ],
     );
   }
 

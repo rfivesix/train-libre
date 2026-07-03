@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../../profile/presentation/widgets/measurement_chart_widget.dart';
 
 class WeightChartCard extends StatefulWidget {
@@ -77,17 +76,16 @@ class _WeightChartCardState extends State<WeightChartCard> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return RepaintBoundary(
-      child: SummaryCard(
-        padding: DesignConstants.cardPadding,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.screenPaddingHorizontal,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  l10n.weightHistoryTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
                 Wrap(
                   spacing: 8.0,
                   children: [
@@ -98,14 +96,15 @@ class _WeightChartCardState extends State<WeightChartCard> {
                 ),
               ],
             ),
-            const SizedBox(height: DesignConstants.spacingS),
-            MeasurementChartWidget(
-              chartType: 'weight',
-              dateRange: _calculateDateRange(),
-              unit: context.read<UnitService>().suffixFor(UnitDimension.weight),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          MeasurementChartWidget(
+            chartType: 'weight',
+            dateRange: _calculateDateRange(),
+            unit: context.read<UnitService>().suffixFor(UnitDimension.weight),
+            edgeToEdge: true,
+          ),
+        ],
       ),
     );
   }

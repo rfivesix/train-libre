@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [1.0.0-alpha.1] - 2026-06-29
+
+### Changed
+- **Edge-to-Edge Chart Layout:** Refactored `MeasurementChartWidget`, `BodyNutritionNormalizedTrendChart`, and the Body & Nutrition correlation chart to render without a card container, extending the chart canvas from the left to the right screen edge — matching the Trade Republic–style full-bleed chart aesthetic.
+- **Chart Line Right Boundary:** The chart line now ends just before the Y-axis label area rather than at the very right screen edge, leaving a small visual gap consistent with the reference design.
+- **Weight History Widget Title Removed (Diary & Measurements Screens):** Removed the redundant "Weight History" section title from the Diary and Measurements screens since the section header directly above the chart already provides context.
+- **Exercise Detail Chart:** Extended the exercise progress chart in the Exercise Detail Screen to the same edge-to-edge layout as the other charts.
+- **Y-Axis Labels on Top of Chart Lines:** Fixed Z-ordering so Y-axis label text always renders above the chart's line and area data. Previously, labels were injected into fl_chart's internal paint pipeline and appeared behind lines; they are now placed as Flutter `Stack` overlay widgets drawn after the chart canvas.
+- **Hard-Edged Axis Label Knockout:** Replaced soft Gaussian blur (`blurRadius: 6`) text shadows with a multi-directional `blurRadius: 0` shadow grid (±2 px in all directions) that produces a sharp, text-shaped background mask — so axis labels remain readable where they overlap chart lines without a blurry halo or a rectangular block.
+- **Exercise Detail Empty State:** The "Not enough data" placeholder in the Exercise Detail Screen no longer uses the old `SummaryCard` container. It now renders in the same open, edge-to-edge style as when data is present.
+- **Exercise Detail Y-Axis Clipping Fixed:** Added `clipBehavior: Clip.none` to the `SingleChildScrollView` in `ExerciseDetailScreen` so the chart's `OverflowBox` can reach the screen edges without being clipped by the scroll view.
+- **Body & Nutrition Bottom Axis Edge Labels Fixed:** In edge-to-edge mode the chart domain is now padded by ±1 day (`minX: -1`, `maxX: maxX + 1`) so the first and last date labels are no longer centered at the very edge of the canvas, preventing them from being half-clipped and showing as lone digits ("4" / "0").
+
 ## [0.9.37] - 2026-06-29
 
 ### Added

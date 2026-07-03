@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../analytics/domain/models/chart_data_point.dart';
 import '../../../profile/presentation/widgets/measurement_chart_widget.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../data/sleep_day_repository.dart';
 import 'sleep_data_unavailable_card.dart';
 import 'sleep_detail_page_shell.dart';
@@ -98,21 +97,16 @@ class HeartRateDetailPage extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingM),
         ],
         if (hasSamples)
-          SummaryCard(
-            child: Padding(
-              padding: const EdgeInsets.all(DesignConstants.spacingL),
-              child: MeasurementChartWidget.fromData(
-                dataPoints: chartPoints,
-                unit: l10n.sleepBpmUnit,
-                axisMode: MeasurementChartAxisMode.time,
-                valueFractionDigits: 0,
-                referenceLineValue: established ? baseline : null,
-                valueLabelBuilder: (value, unit) => '${value.round()} $unit',
-                selectedDateLabelBuilder: (value) =>
-                    timeFormatter.format(value),
-                axisLabelBuilder: (value, _) => timeFormatter.format(value),
-              ),
-            ),
+          MeasurementChartWidget.fromData(
+            dataPoints: chartPoints,
+            unit: l10n.sleepBpmUnit,
+            axisMode: MeasurementChartAxisMode.time,
+            valueFractionDigits: 0,
+            referenceLineValue: established ? baseline : null,
+            valueLabelBuilder: (value, unit) => '${value.round()} $unit',
+            selectedDateLabelBuilder: (value) => timeFormatter.format(value),
+            axisLabelBuilder: (value, _) => timeFormatter.format(value),
+            edgeToEdge: true,
           )
         else
           SleepDataUnavailableCard(

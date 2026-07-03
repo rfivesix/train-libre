@@ -248,6 +248,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         ],
       ),
       body: SingleChildScrollView(
+        clipBehavior: Clip.none,
         padding: DesignConstants.cardPadding.copyWith(
           top: DesignConstants.cardPadding.top + topPadding,
         ),
@@ -428,19 +429,28 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     final filteredData = _filteredTimeSeriesData;
 
     if (filteredData.isEmpty) {
-      return SummaryCard(
-        child: Column(
-          children: [
-            _buildChartHeader(l10n),
-            const SizedBox(height: DesignConstants.spacingL),
-            Container(
-              height: 200,
-              width: double.infinity,
-              alignment: Alignment.center,
-              child: Text(l10n.exerciseAnalyticsNotEnoughData),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.screenPaddingHorizontal,
             ),
-          ],
-        ),
+            child: _buildChartHeader(l10n),
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+          Container(
+            height: 160,
+            width: double.infinity,
+            alignment: Alignment.center,
+            child: Text(
+              l10n.exerciseAnalyticsNotEnoughData,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
       );
     }
 
@@ -460,111 +470,75 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       return ChartDataPoint(date: e['date'] as DateTime, value: y);
     }).toList();
 
-    return SummaryCard(
-      padding: DesignConstants.cardPadding,
-      child: Column(
-        children: [
-          _buildChartHeader(l10n),
-          const SizedBox(height: DesignConstants.spacingS),
-          MeasurementChartWidget.fromData(
-            dataPoints: dataPoints,
-            unit: unitService.suffixFor(UnitDimension.weight),
-            axisMode: MeasurementChartAxisMode.day,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.screenPaddingHorizontal,
           ),
-        ],
-      ),
+          child: _buildChartHeader(l10n),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        MeasurementChartWidget.fromData(
+          dataPoints: dataPoints,
+          unit: unitService.suffixFor(UnitDimension.weight),
+          axisMode: MeasurementChartAxisMode.day,
+          edgeToEdge: true,
+        ),
+      ],
     );
   }
 
   Widget _buildChartHeader(AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    String metricTitle = '';
-    switch (_selectedMetric) {
-      case ExerciseMetric.maxWeight:
-        metricTitle = l10n.exerciseMetricMaxWeight;
-        break;
-      case ExerciseMetric.volume:
-        metricTitle = l10n.exerciseMetricVolume;
-        break;
-      case ExerciseMetric.est1rm:
-        metricTitle = l10n.exerciseMetricEst1RM;
-        break;
-    }
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            MenuAnchor(
-              builder: (context, controller, child) {
-                return GestureDetector(
-                  onTap: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        metricTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: DesignConstants.spacingXS),
-                      Icon(
-                        LucideIcons.chevron_down,
-                        size: 18,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              menuChildren: [
-                MenuItemButton(
-                  onPressed: () => setState(
-                      () => _selectedMetric = ExerciseMetric.maxWeight),
-                  child: Text(l10n.exerciseMetricMaxWeight),
-                ),
-                MenuItemButton(
-                  onPressed: () =>
-                      setState(() => _selectedMetric = ExerciseMetric.volume),
-                  child: Text(l10n.exerciseMetricVolume),
-                ),
-                MenuItemButton(
-                  onPressed: () =>
-                      setState(() => _selectedMetric = ExerciseMetric.est1rm),
-                  child: Text(l10n.exerciseMetricEst1RM),
-                ),
-              ],
-            ),
-            if (_selectedMetric == ExerciseMetric.est1rm) ...[
-              const SizedBox(width: DesignConstants.spacingXS),
-              AlgorithmInfoButton(
-                title: "Estimated 1-Rep Max Heuristic (Epley Equation)",
-                explanation:
-                    "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
-                keyPoints: const [
-                  "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
-                  "Estimates are sports-science heuristics designed for healthy individuals.",
-                  "Provides a safe way to track strength progression without testing true failure.",
-                ],
-                technicalTitle: "Epley Equation Details",
-                technicalExplanation:
-                    "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
-                citationUrl:
-                    "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+        Expanded(
+          child: PlatformAdaptiveDropdownFormField<ExerciseMetric>(
+            value: _selectedMetric,
+            onChanged: (ExerciseMetric? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  _selectedMetric = newValue;
+                });
+              }
+            },
+            items: [
+              DropdownMenuItem(
+                value: ExerciseMetric.maxWeight,
+                child: Text(l10n.exerciseMetricMaxWeight),
+              ),
+              DropdownMenuItem(
+                value: ExerciseMetric.volume,
+                child: Text(l10n.exerciseMetricVolume),
+              ),
+              DropdownMenuItem(
+                value: ExerciseMetric.est1rm,
+                child: Text(l10n.exerciseMetricEst1RM),
               ),
             ],
-          ],
+          ),
         ),
+        if (_selectedMetric == ExerciseMetric.est1rm) ...[
+          const SizedBox(width: DesignConstants.spacingXS),
+          AlgorithmInfoButton(
+            title: "Estimated 1-Rep Max Heuristic (Epley Equation)",
+            explanation:
+                "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+            keyPoints: const [
+              "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
+              "Estimates are sports-science heuristics designed for healthy individuals.",
+              "Provides a safe way to track strength progression without testing true failure.",
+            ],
+            technicalTitle: "Epley Equation Details",
+            technicalExplanation:
+                "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+            citationUrl:
+                "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+          ),
+        ],
+        const SizedBox(width: DesignConstants.spacingS),
         Wrap(
           spacing: 8.0,
           children: [

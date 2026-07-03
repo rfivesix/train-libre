@@ -4,7 +4,6 @@ import '../../../../util/design_constants.dart';
 import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/health/workout_heart_rate_models.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../../analytics/domain/models/chart_data_point.dart';
 import '../../../profile/presentation/widgets/measurement_chart_widget.dart';
 
@@ -33,82 +32,94 @@ class WorkoutHeartRateSection extends StatelessWidget {
         )
         .toList(growable: false);
 
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.workoutHeartRateSectionTitle,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 10),
-            if (summary.hasSummaryMetrics)
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildHeartRateMetricTile(
-                    context: context,
-                    label: l10n.workoutHeartRateAverageLabel,
-                    value:
-                        '${summary.averageBpm!.round()} ${l10n.sleepBpmUnit}',
-                  ),
-                  _buildHeartRateMetricTile(
-                    context: context,
-                    label: l10n.workoutHeartRateMaxLabel,
-                    value: '${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}',
-                  ),
-                  _buildHeartRateMetricTile(
-                    context: context,
-                    label: l10n.workoutHeartRateMinLabel,
-                    value: '${summary.minBpm!.round()} ${l10n.sleepBpmUnit}',
-                  ),
-                ],
-              )
-            else
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.screenPaddingHorizontal,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                _heartRateNoDataMessage(l10n, summary.noDataReason),
-                style: Theme.of(context).textTheme.bodyMedium,
+                l10n.workoutHeartRateSectionTitle,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
-            const SizedBox(height: 10),
-            if (summary.canRenderChart)
-              SizedBox(
-                height: 220,
-                child: MeasurementChartWidget.fromData(
-                  dataPoints: points,
-                  unit: l10n.sleepBpmUnit,
-                  axisMode: MeasurementChartAxisMode.time,
-                  valueFractionDigits: 0,
-                  valueLabelBuilder: (value, unit) => '${value.round()} $unit',
-                  selectedDateLabelBuilder: (value) =>
-                      timeFormatter.format(value),
-                  axisLabelBuilder: (value, _) => timeFormatter.format(value),
-                ),
-              )
-            else if (summary.hasSummaryMetrics)
-              Text(
-                summary.quality == WorkoutHeartRateDataQuality.insufficient
-                    ? l10n.workoutHeartRateLimitedChartHint
-                    : _heartRateNoDataMessage(l10n, summary.noDataReason),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+              const SizedBox(height: 10),
+              if (summary.hasSummaryMetrics)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildHeartRateMetricTile(
+                      context: context,
+                      label: l10n.workoutHeartRateAverageLabel,
+                      value:
+                          '${summary.averageBpm!.round()} ${l10n.sleepBpmUnit}',
                     ),
-              ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(
-              '${l10n.workoutHeartRateSampleCount(summary.sampleCount)} • ${_heartRateQualityLabel(l10n, summary.quality)}',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    _buildHeartRateMetricTile(
+                      context: context,
+                      label: l10n.workoutHeartRateMaxLabel,
+                      value: '${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}',
+                    ),
+                    _buildHeartRateMetricTile(
+                      context: context,
+                      label: l10n.workoutHeartRateMinLabel,
+                      value: '${summary.minBpm!.round()} ${l10n.sleepBpmUnit}',
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  _heartRateNoDataMessage(l10n, summary.noDataReason),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (summary.canRenderChart)
+          MeasurementChartWidget.fromData(
+            dataPoints: points,
+            unit: l10n.sleepBpmUnit,
+            axisMode: MeasurementChartAxisMode.time,
+            valueFractionDigits: 0,
+            valueLabelBuilder: (value, unit) => '${value.round()} $unit',
+            selectedDateLabelBuilder: (value) => timeFormatter.format(value),
+            axisLabelBuilder: (value, _) => timeFormatter.format(value),
+            edgeToEdge: true,
+          )
+        else if (summary.hasSummaryMetrics)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.screenPaddingHorizontal,
+            ),
+            child: Text(
+              summary.quality == WorkoutHeartRateDataQuality.insufficient
+                  ? l10n.workoutHeartRateLimitedChartHint
+                  : _heartRateNoDataMessage(l10n, summary.noDataReason),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
             ),
-          ],
+          ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.screenPaddingHorizontal,
+          ),
+          child: Text(
+            '${l10n.workoutHeartRateSampleCount(summary.sampleCount)} • ${_heartRateQualityLabel(l10n, summary.quality)}',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+          ),
         ),
-      ),
+      ],
     );
   }
 

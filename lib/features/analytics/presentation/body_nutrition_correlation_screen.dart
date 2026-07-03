@@ -325,51 +325,47 @@ class _BodyNutritionCorrelationScreenState
     AppLocalizations l10n,
     BodyNutritionAnalyticsResult data,
   ) {
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingM),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.analyticsBodyNutritionNormalizedHint,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                _legendDot(
-                  color: Theme.of(context).colorScheme.primary,
-                  label: l10n.analyticsWeightTrendLabel,
-                  shape: BoxShape.circle,
-                ),
-                _legendDot(
-                  color: const Color(0xFFF97316),
-                  label: l10n.analyticsCaloriesTrendLabel,
-                  shape: BoxShape.rectangle,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            RepaintBoundary(
-              child: SizedBox(
-                height: 250,
-                child: BodyNutritionNormalizedTrendChart(
-                  range: data.range,
-                  weightSeries: data.weightDaily,
-                  calorieSeries: data.caloriesDaily
-                      .where((point) => point.value > 0)
-                      .toList(growable: false),
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.analyticsBodyNutritionNormalizedHint,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
               ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            _legendDot(
+              color: Theme.of(context).colorScheme.primary,
+              label: l10n.analyticsWeightTrendLabel,
+              shape: BoxShape.circle,
+            ),
+            _legendDot(
+              color: const Color(0xFFF97316),
+              label: l10n.analyticsCaloriesTrendLabel,
+              shape: BoxShape.rectangle,
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 10),
+        RepaintBoundary(
+          child: SizedBox(
+            height: 250,
+            child: BodyNutritionNormalizedTrendChart(
+              range: data.range,
+              weightSeries: data.weightDaily,
+              calorieSeries: data.caloriesDaily
+                  .where((point) => point.value > 0)
+                  .toList(growable: false),
+              edgeToEdge: true,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
