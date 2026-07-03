@@ -13,7 +13,8 @@ import '../domain/recommendation_models.dart';
 typedef SharedPreferencesLoader = Future<SharedPreferences> Function();
 
 class RecommendationRepository {
-  static final StreamController<AdaptiveRecommendationSnapshot> _updateController =
+  static final StreamController<AdaptiveRecommendationSnapshot>
+      _updateController =
       StreamController<AdaptiveRecommendationSnapshot>.broadcast();
 
   Stream<AdaptiveRecommendationSnapshot> get onRecommendationUpdated =>

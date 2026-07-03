@@ -145,8 +145,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     ).padding.top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
-    const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
+    const EdgeInsets basePadding = DesignConstants
+        .cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(
@@ -364,7 +364,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   }) {
     return SummaryCard(
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: DesignConstants.spacingM,
           horizontal: DesignConstants.spacingL,
         ),
         leading: Icon(

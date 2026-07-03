@@ -49,7 +49,8 @@ class _ScannerScreenState extends State<ScannerScreen>
   bool _isOffDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized =
+        await BasisDataManager.instance.isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -185,7 +186,8 @@ class _ScannerScreenState extends State<ScannerScreen>
           body: l10n.offPlaceholderText,
           icon: LucideIcons.database,
           onDownloadPressed: () async {
-            await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+            await BasisDataManager.instance
+                .promptOffDatabaseDownloadIfFirstTime(context);
             await _checkDbStatus();
           },
         ),

@@ -37,7 +37,11 @@ class MealItemCard extends StatelessWidget {
 
     return SummaryCard(
       onTap: onTap,
-      padding: const EdgeInsets.only(left: DesignConstants.spacingL, right: DesignConstants.spacingS, top: DesignConstants.spacingL, bottom: DesignConstants.spacingL),
+      padding: const EdgeInsets.only(
+          left: DesignConstants.spacingL,
+          right: DesignConstants.spacingS,
+          top: DesignConstants.spacingL,
+          bottom: DesignConstants.spacingL),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -74,7 +78,8 @@ class MealItemCard extends StatelessWidget {
                         Text(
                           '${AppLocalizations.of(context)!.mealIngredientsTitle}: $count',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: DesignConstants.spacingXS),
@@ -85,7 +90,8 @@ class MealItemCard extends StatelessWidget {
                           fat: totals.fat,
                           useBadges: themeService.useColorfulMacroBadges,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],

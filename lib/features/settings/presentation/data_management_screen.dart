@@ -130,11 +130,13 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     if (!mounted) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final wgerInitialized = await BasisDataManager.instance.isExerciseCatalogInitialized();
+    final wgerInitialized =
+        await BasisDataManager.instance.isExerciseCatalogInitialized();
     if (!mounted) return;
 
     if (!wgerInitialized) {
-      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance
+          .promptOffDatabaseDownloadIfFirstTime(context);
       return;
     }
 
@@ -557,7 +559,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       );
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AppInitializerScreen(skipOffDatabase: true)),
+        MaterialPageRoute(
+            builder: (_) => const AppInitializerScreen(skipOffDatabase: true)),
         (route) => false,
       );
     } catch (_) {
@@ -655,7 +658,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.autoBackupRequestAccessSubtitle,
                 textAlign: TextAlign.center,

@@ -30,9 +30,13 @@ class DatabasePlaceholderWidget extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.02),
             border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05),
               width: 1.2,
             ),
           ),
@@ -66,9 +70,11 @@ class DatabasePlaceholderWidget extends StatelessWidget {
               ),
               const SizedBox(height: DesignConstants.spacingXL),
               FilledButton.icon(
-                onPressed: onDownloadPressed ?? () async {
-                  await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
-                },
+                onPressed: onDownloadPressed ??
+                    () async {
+                      await BasisDataManager.instance
+                          .promptOffDatabaseDownloadIfFirstTime(context);
+                    },
                 icon: const Icon(LucideIcons.download),
                 label: Text(l10n.offDownloadCTA),
               ),

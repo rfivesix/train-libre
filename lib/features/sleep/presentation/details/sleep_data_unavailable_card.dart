@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
-
 import '../../../../widgets/common/summary_card.dart';
 
 class SleepDataUnavailableCard extends StatelessWidget {
@@ -18,7 +17,9 @@ class SleepDataUnavailableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SummaryCard(
       margin: margin,
-      child: Padding(padding: const EdgeInsets.all(DesignConstants.spacingL), child: Text(message)),
+      child: Padding(
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
+          child: Text(message)),
     );
   }
 }

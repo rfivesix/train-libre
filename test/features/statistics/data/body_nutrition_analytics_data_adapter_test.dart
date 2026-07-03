@@ -152,7 +152,9 @@ void main() {
       expect(result.weightPoints, isEmpty);
     });
 
-    test('deduplicates fluid entries that are linked or match food entries defensively', () async {
+    test(
+        'deduplicates fluid entries that are linked or match food entries defensively',
+        () async {
       final logDate = DateTime(2026, 4, 2, 10, 0, 0);
 
       // Create a fluid food item

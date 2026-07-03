@@ -181,7 +181,8 @@ class SleepPeriodAggregationEngine {
       }
 
       byDate[key] = primary.copyWith(
-        totalSleepMinutes: totalMinutes > 0 ? totalMinutes : primary.totalSleepMinutes,
+        totalSleepMinutes:
+            totalMinutes > 0 ? totalMinutes : primary.totalSleepMinutes,
       );
     }
     return byDate;

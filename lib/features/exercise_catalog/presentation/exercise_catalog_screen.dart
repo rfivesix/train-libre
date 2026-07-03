@@ -51,7 +51,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   bool _isWgerDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance.isExerciseCatalogInitialized();
+    final initialized =
+        await BasisDataManager.instance.isExerciseCatalogInitialized();
     if (mounted) {
       setState(() {
         _isWgerDbInitialized = initialized;
@@ -68,7 +69,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     _searchController.addListener(_onSearchChanged);
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance
+          .promptOffDatabaseDownloadIfFirstTime(context);
       await _checkDbStatus();
     });
   }
@@ -194,7 +196,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           body: l10n.wgerPlaceholderText,
           icon: LucideIcons.dumbbell,
           onDownloadPressed: () async {
-            await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+            await BasisDataManager.instance
+                .promptOffDatabaseDownloadIfFirstTime(context);
             await _checkDbStatus();
           },
         ),
@@ -224,7 +227,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           Column(
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
                   right: DesignConstants.spacingL,
                   top: DesignConstants.spacingS,
                   bottom: DesignConstants.spacingS,
@@ -280,7 +284,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                             ),
                           )
                         : ListView.builder(
-                            scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
+                            scrollCacheExtent:
+                                const ScrollCacheExtent.pixels(1500.0),
                             padding: DesignConstants.cardPadding,
                             itemCount: _foundExercises.length,
                             itemBuilder: (context, index) {
@@ -298,7 +303,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                         ),
                                       ),
                                       if (exercise.source == 'user') ...[
-                                        const SizedBox(width: DesignConstants.spacingS),
+                                        const SizedBox(
+                                            width: DesignConstants.spacingS),
                                         _buildSourceBadge(
                                             context, exercise.source),
                                       ],
@@ -425,7 +431,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     const color = Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),

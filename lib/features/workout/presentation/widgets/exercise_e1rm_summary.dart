@@ -71,7 +71,10 @@ class ExerciseE1rmSummary extends StatelessWidget {
         final deltaPrefix = isPositive ? '+' : '-';
 
         return Padding(
-          padding: const EdgeInsets.only(left: DesignConstants.spacingL, right: DesignConstants.spacingL, bottom: DesignConstants.spacingS),
+          padding: const EdgeInsets.only(
+              left: DesignConstants.spacingL,
+              right: DesignConstants.spacingL,
+              bottom: DesignConstants.spacingS),
           child: Row(
             children: [
               Expanded(
@@ -134,8 +137,6 @@ class ExerciseE1rmSummary extends StatelessWidget {
     final weight = setLog.weightKg!;
     return weight * (36 / (37 - reps));
   }
-
-
 
   double? _getLastSessionBestE1rm(String exerciseName) {
     final lastSets = manager.lastPerformances[exerciseName] ?? const <SetLog>[];

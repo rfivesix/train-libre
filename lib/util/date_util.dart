@@ -20,5 +20,3 @@ extension DateOnlyCompare on DateTime {
     return DateTime(year, month, day, now.hour, now.minute);
   }
 }
-
-

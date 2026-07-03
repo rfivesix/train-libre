@@ -21,7 +21,8 @@ class OffAttributionWidget extends StatelessWidget {
     final theme = Theme.of(context);
 
     final currentTextStyle = textStyle ??
-        theme.textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
+        theme.textTheme.bodySmall
+            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
 
     return Center(
       child: Padding(

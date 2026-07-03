@@ -383,11 +383,12 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                     ),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingS, vertical: 2),
                     decoration: BoxDecoration(
                       color: countBadgeBg,
-                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM),
                     ),
                     child: Text(
                       '${sessions.length}',
@@ -415,7 +416,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                  padding: const EdgeInsets.only(
+                    left: DesignConstants.spacingL,
                     right: DesignConstants.spacingL,
                     top: DesignConstants.spacingM,
                     bottom: DesignConstants.spacingL,
@@ -454,10 +456,13 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                         ),
                         const SizedBox(width: DesignConstants.spacingM),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingXS),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: DesignConstants.spacingXS),
                           decoration: BoxDecoration(
                             color: badgeColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                            borderRadius: BorderRadius.circular(
+                                DesignConstants.borderRadiusS),
                             border: Border.all(
                               color: badgeColor.withValues(alpha: 0.3),
                               width: 1,
@@ -482,7 +487,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                                 ),
                               ),
                               if (startLocal.day != endLocal.day) ...[
-                                const SizedBox(width: DesignConstants.spacingXS),
+                                const SizedBox(
+                                    width: DesignConstants.spacingXS),
                                 Text(
                                   '(+1)',
                                   style: theme.textTheme.labelSmall?.copyWith(

@@ -45,16 +45,19 @@ class DriftSleepQueryRepository implements SleepQueryRepository {
       });
 
     final primaryRow = sortedRows.first;
-    final sessionsById = await _loadSessionsById(sortedRows.map((r) => r.sessionId));
+    final sessionsById =
+        await _loadSessionsById(sortedRows.map((r) => r.sessionId));
 
     int totalSleep = 0;
     for (final row in sortedRows) {
       totalSleep += row.totalSleepMinutes ?? 0;
     }
 
-    final domainAnalysis = _toDomain(primaryRow, sessionsById[primaryRow.sessionId]);
+    final domainAnalysis =
+        _toDomain(primaryRow, sessionsById[primaryRow.sessionId]);
     return domainAnalysis.copyWith(
-      totalSleepMinutes: totalSleep > 0 ? totalSleep : primaryRow.totalSleepMinutes,
+      totalSleepMinutes:
+          totalSleep > 0 ? totalSleep : primaryRow.totalSleepMinutes,
     );
   }
 

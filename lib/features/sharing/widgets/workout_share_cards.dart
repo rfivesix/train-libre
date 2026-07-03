@@ -89,7 +89,8 @@ class _WorkoutMuscleFocusCard extends StatelessWidget {
     for (final m in muscles) {
       workload[m.name] = m.volume;
     }
-    final highlights = MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
+    final highlights =
+        MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
 
     return _ShareScaffold(
       labels: labels,
@@ -115,18 +116,22 @@ class _WorkoutMuscleFocusCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: BodyHighlighter(
-                      gender: context.read<ProfileService>().gender.toBodyGender(),
+                      gender:
+                          context.read<ProfileService>().gender.toBodyGender(),
                       side: BodySide.front,
-                      highlightedParts: BodySlugMapper.forSide(highlights, BodySide.front),
+                      highlightedParts:
+                          BodySlugMapper.forSide(highlights, BodySide.front),
                       outlineWidth: 2.0,
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingXXL),
                   Expanded(
                     child: BodyHighlighter(
-                      gender: context.read<ProfileService>().gender.toBodyGender(),
+                      gender:
+                          context.read<ProfileService>().gender.toBodyGender(),
                       side: BodySide.back,
-                      highlightedParts: BodySlugMapper.forSide(highlights, BodySide.back),
+                      highlightedParts:
+                          BodySlugMapper.forSide(highlights, BodySide.back),
                       outlineWidth: 2.0,
                     ),
                   ),

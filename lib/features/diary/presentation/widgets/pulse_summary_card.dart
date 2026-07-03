@@ -34,7 +34,8 @@ class PulseSummaryCard extends StatelessWidget {
         if (data.isPulseWidgetLoading) {
           return SummaryCard(
             padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            margin:
+                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
               contentPadding: DesignConstants.screenPadding,
               title: Text(
@@ -67,7 +68,8 @@ class PulseSummaryCard extends StatelessWidget {
         return RepaintBoundary(
           child: SummaryCard(
             padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            margin:
+                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
               onTap: () {
                 Navigator.of(context).push(

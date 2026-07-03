@@ -118,7 +118,8 @@ class WorkoutHeartRateSection extends StatelessWidget {
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),

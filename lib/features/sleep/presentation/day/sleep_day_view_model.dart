@@ -54,7 +54,8 @@ class SleepDayViewModel extends ChangeNotifier {
     }
 
     _overviewSubscription?.cancel();
-    _overviewSubscription = _repository.watchOverview(_period.anchorDate).listen(
+    _overviewSubscription =
+        _repository.watchOverview(_period.anchorDate).listen(
       (data) {
         _overview = data;
         _isLoading = false;

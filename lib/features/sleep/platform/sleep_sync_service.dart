@@ -190,8 +190,16 @@ class SleepSyncService implements SleepSettingsService {
     token?.throwIfCancelled();
 
     final result = Platform.isIOS
-        ? await _importWithHealthKit(fromUtc: fromUtc, toUtc: nowUtc, token: token, onProgress: onProgress)
-        : await _importWithHealthConnect(fromUtc: fromUtc, toUtc: nowUtc, token: token, onProgress: onProgress);
+        ? await _importWithHealthKit(
+            fromUtc: fromUtc,
+            toUtc: nowUtc,
+            token: token,
+            onProgress: onProgress)
+        : await _importWithHealthConnect(
+            fromUtc: fromUtc,
+            toUtc: nowUtc,
+            token: token,
+            onProgress: onProgress);
 
     if (result.success) {
       lastImportAtListenable.value = DateTime.now().toUtc();
@@ -266,7 +274,8 @@ class SleepSyncService implements SleepSettingsService {
       );
     }
     token?.throwIfCancelled();
-    final run = await _runPipelineImport(import.batch!, token: token, onProgress: onProgress);
+    final run = await _runPipelineImport(import.batch!,
+        token: token, onProgress: onProgress);
     return SleepSyncResult(
       success: true,
       permissionState: SleepPermissionState.ready,
@@ -300,7 +309,8 @@ class SleepSyncService implements SleepSettingsService {
       );
     }
     token?.throwIfCancelled();
-    final run = await _runPipelineImport(import.batch!, token: token, onProgress: onProgress);
+    final run = await _runPipelineImport(import.batch!,
+        token: token, onProgress: onProgress);
     return SleepSyncResult(
       success: true,
       permissionState: SleepPermissionState.ready,

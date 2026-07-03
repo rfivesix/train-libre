@@ -762,7 +762,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 class _OffCatalogRegionPickerContent extends StatefulWidget {
   final OffCatalogCountry initialSelection;
-  final String Function(OffCatalogCountry, AppLocalizations) countryLabelResolver;
+  final String Function(OffCatalogCountry, AppLocalizations)
+      countryLabelResolver;
 
   const _OffCatalogRegionPickerContent({
     required this.initialSelection,
@@ -799,7 +800,8 @@ class __OffCatalogRegionPickerContentState
     final colorScheme = Theme.of(context).colorScheme;
 
     final query = _searchQuery.toLowerCase().trim();
-    final filteredCountries = AppDataSources.supportedOffCatalogCountries.where((country) {
+    final filteredCountries =
+        AppDataSources.supportedOffCatalogCountries.where((country) {
       if (query.isEmpty) return true;
       final label = widget.countryLabelResolver(country, l10n).toLowerCase();
       final code = country.code.toLowerCase();
@@ -870,7 +872,8 @@ class __OffCatalogRegionPickerContentState
                           RadioListTile<OffCatalogCountry>(
                             contentPadding: EdgeInsets.zero,
                             value: country,
-                            title: Text(widget.countryLabelResolver(country, l10n)),
+                            title: Text(
+                                widget.countryLabelResolver(country, l10n)),
                           ),
                       ],
                     ),

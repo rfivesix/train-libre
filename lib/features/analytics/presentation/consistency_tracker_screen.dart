@@ -301,7 +301,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                                 : BarChart(
                                     BarChartData(
                                       alignment: BarChartAlignment.spaceAround,
-                                      borderData: AnalyticsChartDefaults.noBorder,
+                                      borderData:
+                                          AnalyticsChartDefaults.noBorder,
                                       gridData:
                                           AnalyticsChartDefaults.compactGrid,
                                       barTouchData: BarTouchData(
@@ -313,7 +314,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                                               BorderRadius.circular(16),
                                           tooltipMargin: 12,
                                           tooltipPadding:
-                                              const EdgeInsets.symmetric(horizontal: 14,
+                                              const EdgeInsets.symmetric(
+                                            horizontal: 14,
                                             vertical: 10,
                                           ),
                                           getTooltipColor: (_) {
@@ -333,8 +335,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                                                 .onSurface
                                                 .withValues(alpha: 0.08),
                                           ),
-                                          getTooltipItem:
-                                              (group, groupIndex, rod, rodIndex) {
+                                          getTooltipItem: (group, groupIndex,
+                                              rod, rodIndex) {
                                             final i = group.x.toInt();
                                             if (i < 0 ||
                                                 i >= _weeklyMetrics.length) {
@@ -369,7 +371,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                                             showTitles: true,
                                             reservedSize: 28,
                                             getTitlesWidget: (value, meta) =>
-                                                AnalyticsChartDefaults.tickLabel(
+                                                AnalyticsChartDefaults
+                                                    .tickLabel(
                                               context,
                                               _formatAxisValue(value),
                                             ),
@@ -452,9 +455,11 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                         const SizedBox(height: DesignConstants.spacingS),
                         RepaintBoundary(
                           child: Container(
-                            padding: const EdgeInsets.all(DesignConstants.spacingS),
+                            padding:
+                                const EdgeInsets.all(DesignConstants.spacingS),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                              borderRadius: BorderRadius.circular(
+                                  DesignConstants.borderRadiusM),
                               color: Theme.of(context)
                                   .colorScheme
                                   .surfaceContainerHighest
@@ -482,8 +487,10 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                                 titleTextStyle: Theme.of(context)
                                         .textTheme
                                         .titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.bold) ??
-                                    const TextStyle(fontWeight: FontWeight.bold),
+                                        ?.copyWith(
+                                            fontWeight: FontWeight.bold) ??
+                                    const TextStyle(
+                                        fontWeight: FontWeight.bold),
                               ),
                               calendarStyle: CalendarStyle(
                                 outsideDaysVisible: false,
@@ -518,7 +525,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                                 },
                                 markerBuilder: (context, day, events) {
                                   final count = _dailyCount(day);
-                                  if (count <= 0) return const SizedBox.shrink();
+                                  if (count <= 0)
+                                    return const SizedBox.shrink();
                                   return Positioned(
                                     bottom: 3,
                                     child: Text(

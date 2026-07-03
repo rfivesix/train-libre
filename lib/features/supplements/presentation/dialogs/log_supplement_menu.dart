@@ -80,7 +80,8 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
       children: [
         ..._supplements.map(
           (s) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: DesignConstants.spacingXS),
+            padding: const EdgeInsets.symmetric(
+                vertical: 6, horizontal: DesignConstants.spacingXS),
             child: Material(
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.white.withValues(alpha: 0.06)
@@ -90,7 +91,8 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
                 borderRadius: BorderRadius.circular(16),
                 onTap: () => Navigator.of(context).pop(s),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
                     vertical: DesignConstants.spacingM,
                   ),
                   child: Row(

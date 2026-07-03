@@ -503,7 +503,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
                 // Add item button
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: DesignConstants.spacingS),
                   child: OutlinedButton.icon(
                     onPressed: _addManualItem,
                     icon: const Icon(LucideIcons.plus),
@@ -583,7 +584,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     initialValue: _selectedMealType,
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
                         vertical: DesignConstants.spacingS,
                       ),
                       isDense: true,

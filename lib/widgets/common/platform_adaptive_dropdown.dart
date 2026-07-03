@@ -128,14 +128,17 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           }
         }
 
-        final selectedText = selectedItem != null ? _getItemText(selectedItem.child) : '';
-        final effectiveDecoration = (decoration ?? const InputDecoration()).copyWith(
+        final selectedText =
+            selectedItem != null ? _getItemText(selectedItem.child) : '';
+        final effectiveDecoration =
+            (decoration ?? const InputDecoration()).copyWith(
           errorText: state.errorText ?? errorText,
         );
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            final menuWidth = constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
+            final menuWidth =
+                constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
             return GlassMenu(
               menuWidth: menuWidth,
               settings: menuSettings,
@@ -149,10 +152,13 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                         Expanded(
+                        Expanded(
                           child: Text(
                             selectedText,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
                                   color: isDark ? Colors.white : Colors.black87,
                                 ),
                             maxLines: 1,

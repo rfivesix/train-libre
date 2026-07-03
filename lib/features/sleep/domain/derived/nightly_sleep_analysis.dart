@@ -92,7 +92,8 @@ class NightlySleepAnalysis {
       sleepEfficiencyPct: sleepEfficiencyPct ?? this.sleepEfficiencyPct,
       restingHeartRateBpm: restingHeartRateBpm ?? this.restingHeartRateBpm,
       interruptionsCount: interruptionsCount ?? this.interruptionsCount,
-      interruptionsWakeMinutes: interruptionsWakeMinutes ?? this.interruptionsWakeMinutes,
+      interruptionsWakeMinutes:
+          interruptionsWakeMinutes ?? this.interruptionsWakeMinutes,
       scoreCompleteness: scoreCompleteness ?? this.scoreCompleteness,
       regularitySri: regularitySri ?? this.regularitySri,
       regularityValidDays: regularityValidDays ?? this.regularityValidDays,

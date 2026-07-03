@@ -45,7 +45,8 @@ class SleepPeriodScopeLayout extends StatelessWidget {
             technicalTitle: l10n.infoSleepTechnicalTitle,
             technicalExplanation: l10n.infoSleepTechnicalExplanation,
             markdownAssetPath: 'documentation/features/sleep_scoring_engine.md',
-            citationUrl: 'https://rfivesix.github.io/train-libre/sleep-score/#evidence',
+            citationUrl:
+                'https://rfivesix.github.io/train-libre/sleep-score/#evidence',
             iconColor: Theme.of(context).colorScheme.onSurface,
           ),
         ],
@@ -68,7 +69,8 @@ class SleepPeriodScopeLayout extends StatelessWidget {
                 onScopeChanged(SleepPeriodScope.values[index]),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.cardPaddingInternal,
               vertical: DesignConstants.spacingS,
             ),
             child: Row(
@@ -98,7 +100,8 @@ class SleepPeriodScopeLayout extends StatelessWidget {
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.cardPaddingInternal,
             ),
             child: child,
           ),

@@ -87,7 +87,9 @@ void main() {
       await db.close();
     });
 
-    test('fetchSummary returns empty summary with hasData == false when database is empty', () async {
+    test(
+        'fetchSummary returns empty summary with hasData == false when database is empty',
+        () async {
       final summary = await repository.fetchSummary(
         endDate: DateTime.utc(2026, 3, 10),
         daysBack: 7,
@@ -102,7 +104,8 @@ void main() {
       expect(summary.nightsCount, 0);
     });
 
-    test('fetchSummary returns empty summary when daysBack is 0 or negative', () async {
+    test('fetchSummary returns empty summary when daysBack is 0 or negative',
+        () async {
       // Seed some data first to ensure it's ignored when daysBack <= 0
       await pipeline.runImport(
         batch: _batchForNight(
@@ -162,7 +165,8 @@ void main() {
       expect(summary.averageWakeDuration, const Duration(minutes: 10));
     });
 
-    test('fetchSummary handles multiple nights simple averages correctly', () async {
+    test('fetchSummary handles multiple nights simple averages correctly',
+        () async {
       // Import 3 nights on separate days
       await pipeline.runImport(
         batch: _batchForNight(
@@ -214,7 +218,9 @@ void main() {
       expect(summary.averageWakeDuration, const Duration(minutes: 15));
     });
 
-    test('fetchSummary resolves bedtime circular mean around midnight crossings correctly', () async {
+    test(
+        'fetchSummary resolves bedtime circular mean around midnight crossings correctly',
+        () async {
       // Let's seed two nights with bedtimes crossing midnight on separate days (e.g. index 0 and 2)
       final start1 = DateTime.utc(2026, 3, 1, 23, 30);
       final start2 = DateTime.utc(2026, 3, 3, 0, 30);
@@ -262,12 +268,15 @@ void main() {
       final avgCos = (math.cos(angle1) + math.cos(angle2)) / 2;
       final avgAngle = math.atan2(avgSin, avgCos);
       final normalized = avgAngle < 0 ? avgAngle + 2 * math.pi : avgAngle;
-      final expectedCircularMean = (normalized / (2 * math.pi) * 1440).round() % 1440;
+      final expectedCircularMean =
+          (normalized / (2 * math.pi) * 1440).round() % 1440;
 
       expect(summary.averageBedtimeMinutes, expectedCircularMean);
     });
 
-    test('fetchSummary computes fallback for interruptions and wake when persisted fields are null', () async {
+    test(
+        'fetchSummary computes fallback for interruptions and wake when persisted fields are null',
+        () async {
       await pipeline.runImport(
         batch: _batchForNight(
           index: 0,

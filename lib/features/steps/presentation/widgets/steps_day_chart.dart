@@ -142,7 +142,8 @@ class StepsDayChart extends StatelessWidget {
               ),
               Positioned.fill(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: chartLeftInset,
+                  padding: const EdgeInsets.only(
+                    left: chartLeftInset,
                     top: chartTopInset,
                     right: DesignConstants.spacingXS,
                     bottom: chartBottomInset,

@@ -29,7 +29,9 @@ class OnboardingCaloriesSlide extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingGoalCalories,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 16),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
           TextField(
@@ -46,7 +48,8 @@ class OnboardingCaloriesSlide extends StatelessWidget {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXL),
+              contentPadding: const EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingXL),
             ),
           ),
         ],
@@ -84,7 +87,9 @@ class OnboardingMacrosSlide extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingMacrosStepSubtitle,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 16),
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
           _MacroInput(
@@ -144,7 +149,8 @@ class _MacroInput extends StatelessWidget {
             ),
             decoration: InputDecoration(
               suffixText: l10n.unit_grams,
-              contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingM,
               ),
             ),
           ),

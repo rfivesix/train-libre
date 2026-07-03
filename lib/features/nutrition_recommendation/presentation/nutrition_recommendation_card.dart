@@ -166,8 +166,10 @@ class _EmptyRecommendationContent extends StatelessWidget {
               keyPoints: l10n.infoTdeeKeyPoints.split('\n'),
               technicalTitle: l10n.infoTdeeTechnicalTitle,
               technicalExplanation: l10n.infoTdeeTechnicalExplanation,
-              markdownAssetPath: 'documentation/features/bayesian_tdee_estimator.md',
-              citationUrl: 'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
+              markdownAssetPath:
+                  'documentation/features/bayesian_tdee_estimator.md',
+              citationUrl:
+                  'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
             ),
           ],
         ),
@@ -408,8 +410,10 @@ class _RecommendationHeader extends StatelessWidget {
               keyPoints: l10n.infoTdeeKeyPoints.split('\n'),
               technicalTitle: l10n.infoTdeeTechnicalTitle,
               technicalExplanation: l10n.infoTdeeTechnicalExplanation,
-              markdownAssetPath: 'documentation/features/bayesian_tdee_estimator.md',
-              citationUrl: 'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
+              markdownAssetPath:
+                  'documentation/features/bayesian_tdee_estimator.md',
+              citationUrl:
+                  'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
             ),
           ],
         ),
@@ -641,7 +645,8 @@ class _MacroTargetGrid extends StatelessWidget {
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth < 430 ? 2 : 4;
             return GridView.count(
-              padding: EdgeInsets.only(top: DesignConstants.spacingM), //EdgeInsets.zero,
+              padding: EdgeInsets.only(
+                  top: DesignConstants.spacingM), //EdgeInsets.zero,
               crossAxisCount: crossAxisCount,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -679,7 +684,8 @@ class _MacroTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return _SoftPanel(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingM,
         vertical: DesignConstants.spacingS,
       ),
       child: Column(
@@ -923,7 +929,8 @@ class _StatusPill extends StatelessWidget {
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 132),
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingS,
         vertical: 6,
       ),
       decoration: BoxDecoration(
@@ -954,7 +961,8 @@ class _CompactChip extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingS,
         vertical: 5,
       ),
       decoration: BoxDecoration(

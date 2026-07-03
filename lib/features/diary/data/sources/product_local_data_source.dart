@@ -231,13 +231,18 @@ class ProductLocalDataSource {
           ..where((tbl) => tbl.barcode.equals(item.barcode)))
         .write(_mapModelToCompanion(item));
 
-    final existingOverride = await (dbInstance.select(dbInstance.userFoodOverrides)
-          ..where((tbl) => tbl.barcode.equals(item.barcode)))
-        .getSingleOrNull();
+    final existingOverride =
+        await (dbInstance.select(dbInstance.userFoodOverrides)
+              ..where((tbl) => tbl.barcode.equals(item.barcode)))
+            .getSingleOrNull();
 
     final overrideCompanion = db.UserFoodOverridesCompanion(
-      localId: existingOverride != null ? Value(existingOverride.localId) : const Value.absent(),
-      id: existingOverride != null ? Value(existingOverride.id) : const Value.absent(),
+      localId: existingOverride != null
+          ? Value(existingOverride.localId)
+          : const Value.absent(),
+      id: existingOverride != null
+          ? Value(existingOverride.id)
+          : const Value.absent(),
       barcode: Value(item.barcode),
       name: Value(item.name),
       brand: Value(item.brand),
@@ -287,7 +292,8 @@ class ProductLocalDataSource {
   }
 
   /// Retrieves a map of [localId] to [FoodItem]s matching the provided [archiveLocalIds].
-  Future<Map<int, FoodItem>> getProductsByArchiveIds(List<int> archiveLocalIds) async {
+  Future<Map<int, FoodItem>> getProductsByArchiveIds(
+      List<int> archiveLocalIds) async {
     if (archiveLocalIds.isEmpty) return {};
     final stopwatch = Stopwatch()..start();
     final dbInstance = await database;

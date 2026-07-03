@@ -22,7 +22,8 @@ void main() {
 
     // Helper to invoke private _mapProductRow via the visibleForTesting helper
     dynamic mapProductRowHelper(Map<String, dynamic> row, String sourceLabel) {
-      return BasisDataManager.instance.mapProductRowForTesting(row, sourceLabel: sourceLabel);
+      return BasisDataManager.instance
+          .mapProductRowForTesting(row, sourceLabel: sourceLabel);
     }
 
     test('default fallback isFluid is false', () {
@@ -67,7 +68,9 @@ void main() {
       expect(companion.isFluid.value, isTrue);
     });
 
-    test('isFluid is true when category contains beverages, drinks, or waters tags', () {
+    test(
+        'isFluid is true when category contains beverages, drinks, or waters tags',
+        () {
       final row1 = {
         'barcode': '789',
         'name': 'Cola',
@@ -119,7 +122,8 @@ void main() {
       await database.close();
     });
 
-    test('prioritizes user overrides over static OFF catalog records', () async {
+    test('prioritizes user overrides over static OFF catalog records',
+        () async {
       // 1. Insert static uncorrected OFF item
       final barcode = '4012345678901';
       await database.into(database.products).insert(
@@ -192,7 +196,9 @@ void main() {
       expect(searchResult.first.caffeineMgPer100ml, 32.0);
     });
 
-    test('can call updateProduct consecutively for the same barcode without unique constraint exceptions', () async {
+    test(
+        'can call updateProduct consecutively for the same barcode without unique constraint exceptions',
+        () async {
       final barcode = '9999999999999';
       final item1 = FoodItem(
         barcode: barcode,

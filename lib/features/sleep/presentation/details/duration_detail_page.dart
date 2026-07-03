@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
-
 import '../../../../generated/app_localizations.dart';
 import '../../data/sleep_day_repository.dart';
 import 'sleep_data_unavailable_card.dart';

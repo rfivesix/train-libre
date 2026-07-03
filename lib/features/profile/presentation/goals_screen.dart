@@ -103,13 +103,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
         int targetWater = settings?.targetWater ?? 3000;
         if (settings?.targetWater == null) {
-          _repository.getChartDataForTypeAndRange(
+          _repository
+              .getChartDataForTypeAndRange(
             'weight',
             DateTimeRange(
               start: DateTime.now().subtract(const Duration(days: 365)),
               end: DateTime.now(),
             ),
-          ).then((weightData) {
+          )
+              .then((weightData) {
             if (weightData.isNotEmpty && mounted) {
               final latestWeight = weightData.last.value;
               setState(() {
@@ -364,9 +366,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
                             explanation: l10n.infoTdeeExplanation,
                             keyPoints: l10n.infoTdeeKeyPoints.split('\n'),
                             technicalTitle: l10n.infoTdeeTechnicalTitle,
-                            technicalExplanation: l10n.infoTdeeTechnicalExplanation,
-                            markdownAssetPath: 'documentation/features/bayesian_tdee_estimator.md',
-                            citationUrl: 'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
+                            technicalExplanation:
+                                l10n.infoTdeeTechnicalExplanation,
+                            markdownAssetPath:
+                                'documentation/features/bayesian_tdee_estimator.md',
+                            citationUrl:
+                                'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
                           ),
                         ),
                       ],

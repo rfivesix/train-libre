@@ -29,7 +29,8 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
         : 'assets/legal/terms_of_service_en.md';
 
     try {
-      final content = await DefaultAssetBundle.of(context).loadString(assetPath);
+      final content =
+          await DefaultAssetBundle.of(context).loadString(assetPath);
       if (mounted) {
         setState(() {
           _markdownContent = content;
@@ -82,7 +83,8 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                         child: MarkdownBody(
                           data: _markdownContent ?? '',
                           selectable: true,
-                          styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+                          styleSheet:
+                              MarkdownStyleSheet.fromTheme(theme).copyWith(
                             p: theme.textTheme.bodyMedium?.copyWith(
                               fontSize: 14,
                               height: 1.6,
@@ -107,7 +109,8 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: DesignConstants.bottomContentSpacer),
+                      const SizedBox(
+                          height: DesignConstants.bottomContentSpacer),
                     ]),
                   ),
                 ),

@@ -39,6 +39,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
     'Shoulders',
     'Cardio',
   ];
+
   /// Canonical muscle list that is always available in the chip selector,
   /// regardless of what the exercise DB contains. Muscles such as Adductors
   /// and Forearms do not exist as wger muscle IDs, so they would never appear
@@ -245,9 +246,11 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
                       items: _allCategories.map((cat) {
                         return DropdownMenuItem(value: cat, child: Text(cat));
                       }).toList(),
-                      onChanged: _isReadOnly ? null : (val) {
-                        setState(() => _selectedCategory = val);
-                      },
+                      onChanged: _isReadOnly
+                          ? null
+                          : (val) {
+                              setState(() => _selectedCategory = val);
+                            },
                       decoration: InputDecoration(
                         labelText: l10n.category_label,
                         hintText: l10n.categoryHint,
@@ -304,15 +307,17 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
         return FilterChip(
           label: Text(muscle),
           selected: isSelected,
-          onSelected: _isReadOnly ? null : (bool selected) {
-            setState(() {
-              if (selected) {
-                selectedMuscles.add(muscle);
-              } else {
-                selectedMuscles.remove(muscle);
-              }
-            });
-          },
+          onSelected: _isReadOnly
+              ? null
+              : (bool selected) {
+                  setState(() {
+                    if (selected) {
+                      selectedMuscles.add(muscle);
+                    } else {
+                      selectedMuscles.remove(muscle);
+                    }
+                  });
+                },
           checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
         );
       }).toList(),

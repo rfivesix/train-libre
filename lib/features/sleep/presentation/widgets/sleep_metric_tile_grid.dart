@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
-
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../domain/sleep_domain.dart';

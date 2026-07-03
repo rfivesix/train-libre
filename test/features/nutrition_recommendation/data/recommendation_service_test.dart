@@ -651,17 +651,20 @@ void main() {
       );
     });
 
-    test('refreshRecommendationIfDue broadcasts updated snapshot on stream', () async {
+    test('refreshRecommendationIfDue broadcasts updated snapshot on stream',
+        () async {
       final monday = DateTime(2026, 4, 6, 10, 0);
 
       final futureSnapshot = repository.onRecommendationUpdated.first;
 
-      final recommendation = await service.refreshRecommendationIfDue(now: monday, force: true);
+      final recommendation =
+          await service.refreshRecommendationIfDue(now: monday, force: true);
 
       final broadcasted = await futureSnapshot;
 
       expect(recommendation, isNotNull);
-      expect(broadcasted.recommendation.recommendedCalories, recommendation!.recommendedCalories);
+      expect(broadcasted.recommendation.recommendedCalories,
+          recommendation!.recommendedCalories);
       expect(broadcasted.dueWeekKey, '2026-04-06');
     });
   });

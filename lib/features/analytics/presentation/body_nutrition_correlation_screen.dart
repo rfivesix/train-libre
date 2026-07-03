@@ -82,7 +82,8 @@ class _BodyNutritionCorrelationScreenState
           : _analytics == null
               ? _buildUnavailableState(l10n)
               : SingleChildScrollView(
-                  padding: EdgeInsets.only(top: DesignConstants.screenPadding.top + topPadding,
+                  padding: EdgeInsets.only(
+                    top: DesignConstants.screenPadding.top + topPadding,
                     bottom: DesignConstants.bottomContentSpacer,
                   ),
                   child: Column(
@@ -91,7 +92,8 @@ class _BodyNutritionCorrelationScreenState
                       _buildRangeChips(l10n),
                       const SizedBox(height: DesignConstants.spacingM),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.screenPaddingHorizontal,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: DesignConstants.screenPaddingHorizontal,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,7 +154,8 @@ class _BodyNutritionCorrelationScreenState
     final labels = _ranges(l10n);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.screenPaddingHorizontal,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.screenPaddingHorizontal,
       ),
       clipBehavior: Clip.none,
       child: Row(
@@ -268,7 +271,8 @@ class _BodyNutritionCorrelationScreenState
 
   Widget _trendChip(String title, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
@@ -293,7 +297,8 @@ class _BodyNutritionCorrelationScreenState
 
   Widget _kpiPill(String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),

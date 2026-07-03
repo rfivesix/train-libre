@@ -116,7 +116,8 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                   SummaryCard(
                     child: _notableImprovements.isEmpty
                         ? Padding(
-                            padding: const EdgeInsets.all(DesignConstants.spacingM),
+                            padding:
+                                const EdgeInsets.all(DesignConstants.spacingM),
                             child: Text(l10n.analyticsNoPrTrendInWindow),
                           )
                         : Column(
@@ -193,7 +194,8 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                   SummaryCard(
                     child: _recentPrs.isEmpty
                         ? Padding(
-                            padding: const EdgeInsets.all(DesignConstants.spacingM),
+                            padding:
+                                const EdgeInsets.all(DesignConstants.spacingM),
                             child: Text(l10n.noWorkoutDataLabel),
                           )
                         : Column(
@@ -212,7 +214,8 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                   SummaryCard(
                     child: _allTimePrs.isEmpty
                         ? Padding(
-                            padding: const EdgeInsets.all(DesignConstants.spacingM),
+                            padding:
+                                const EdgeInsets.all(DesignConstants.spacingM),
                             child: Text(l10n.noWorkoutDataLabel),
                           )
                         : LayoutBuilder(
@@ -315,7 +318,8 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                                         .labelMedium
                                         ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
-                                  const SizedBox(height: DesignConstants.spacingXS),
+                                  const SizedBox(
+                                      height: DesignConstants.spacingXS),
                                   if (hasData) ...[
                                     Text(
                                       l10n.analyticsPerfWithReps(

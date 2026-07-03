@@ -40,7 +40,8 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Future<void> updatePauseTime(int routineExerciseId, int? seconds) async {}
   @override
-  Future<void> updateRoutineExerciseNotes(int routineExerciseId, String? notes) async {}
+  Future<void> updateRoutineExerciseNotes(
+      int routineExerciseId, String? notes) async {}
   @override
   Future<void> saveWorkoutExerciseNote({
     required int workoutLogId,
@@ -48,7 +49,8 @@ class FakeWorkoutRepository implements IWorkoutRepository {
     required String? notes,
   }) async {}
   @override
-  Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async => {};
+  Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async =>
+      {};
   @override
   Future<List<SetLog>> getLastSetsForExercise(String exerciseName) async => [];
   @override
@@ -58,11 +60,14 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Stream<List<WorkoutLog>> watchFullWorkoutLogs() => const Stream.empty();
   @override
-  Stream<List<SetLog>> watchSetLogsForWorkout(int workoutLogId) => const Stream.empty();
+  Stream<List<SetLog>> watchSetLogsForWorkout(int workoutLogId) =>
+      const Stream.empty();
   @override
   Stream<List<Routine>> watchAllRoutines() => const Stream.empty();
   @override
-  Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(DateTime start, DateTime end) => Stream.value([]);
+  Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
+          DateTime start, DateTime end) =>
+      Stream.value([]);
   @override
   Future<Routine?> getRoutineByUuid(String uuid) async => null;
   @override
@@ -75,7 +80,8 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<Routine> createRoutineFromWorkout({
     required int workoutLogId,
     required String name,
-  }) async => Routine(id: 1, name: name);
+  }) async =>
+      Routine(id: 1, name: name);
 }
 
 Future<void> _pumpUntilScopeLoaded(WidgetTester tester) async {

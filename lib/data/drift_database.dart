@@ -247,7 +247,8 @@ class OffProductsArchive extends Table with HybridId, MetaColumns {
   RealColumn get fiber => real().nullable()();
   RealColumn get salt => real().nullable()();
   RealColumn get caffeine => real().nullable()();
-  RealColumn get caffeineMgPer100g => real().named('caffeine_mg_per_100g').nullable()();
+  RealColumn get caffeineMgPer100g =>
+      real().named('caffeine_mg_per_100g').nullable()();
   RealColumn get productQuantity => real().nullable()();
   TextColumn get productQuantityUnit => text().nullable()();
   BoolColumn get isFluid => boolean().withDefault(const Constant(false))();
@@ -256,7 +257,8 @@ class OffProductsArchive extends Table with HybridId, MetaColumns {
 
   TextColumn get contentHash => text()();
   TextColumn get source => text()();
-  BoolColumn get hadUserOverride => boolean().withDefault(const Constant(false))();
+  BoolColumn get hadUserOverride =>
+      boolean().withDefault(const Constant(false))();
 }
 
 class NutritionLogs extends Table with HybridId, MetaColumns {
@@ -271,7 +273,8 @@ class NutritionLogs extends Table with HybridId, MetaColumns {
   TextColumn get mealType =>
       text().withDefault(const Constant('Snack'))(); // Breakfast, Lunch, etc.
 
-  IntColumn get archiveLocalId => integer().nullable().references(OffProductsArchive, #localId)();
+  IntColumn get archiveLocalId =>
+      integer().nullable().references(OffProductsArchive, #localId)();
 }
 
 // 13. Supplements
@@ -449,7 +452,8 @@ class UserFoodOverrides extends Table with HybridId, MetaColumns {
   RealColumn get fiber => real().nullable()();
   RealColumn get salt => real().nullable()();
   RealColumn get caffeine => real().nullable()();
-  RealColumn get caffeineMgPer100g => real().named('caffeine_mg_per_100g').nullable()();
+  RealColumn get caffeineMgPer100g =>
+      real().named('caffeine_mg_per_100g').nullable()();
   TextColumn get ingredientsText => text().nullable()();
   TextColumn get ingredientsAnalysisTags => text().nullable()();
   TextColumn get additivesTags => text().nullable()();
@@ -701,7 +705,9 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 19) {
             // Defensive migration for auto-restored databases
-            final columns = await customSelect('PRAGMA table_info(sleep_nightly_analyses)').get();
+            final columns =
+                await customSelect('PRAGMA table_info(sleep_nightly_analyses)')
+                    .get();
             final names = columns.map((c) => c.read<String>('name')).toSet();
 
             if (!names.contains('score_breakdown_json')) {
@@ -712,7 +718,9 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 20) {
             // Defensive migration for auto-restored databases / existing installs at v19
-            final columns = await customSelect('PRAGMA table_info(sleep_nightly_analyses)').get();
+            final columns =
+                await customSelect('PRAGMA table_info(sleep_nightly_analyses)')
+                    .get();
             final names = columns.map((c) => c.read<String>('name')).toSet();
 
             if (!names.contains('score_breakdown_json')) {
@@ -726,7 +734,8 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 22) {
             await m.addColumn(exercises, exercises.replacesExerciseId);
-            await customStatement("UPDATE exercises SET source = 'wger' WHERE source = 'base'");
+            await customStatement(
+                "UPDATE exercises SET source = 'wger' WHERE source = 'base'");
           }
           if (from < 23) {
             // 1. Create translation tables
@@ -772,11 +781,15 @@ class AppDatabase extends _$AppDatabase {
             // 5. Drop legacy columns
             await customStatement('ALTER TABLE exercises DROP COLUMN name_de;');
             await customStatement('ALTER TABLE exercises DROP COLUMN name_en;');
-            await customStatement('ALTER TABLE exercises DROP COLUMN description_de;');
-            await customStatement('ALTER TABLE exercises DROP COLUMN description_en;');
+            await customStatement(
+                'ALTER TABLE exercises DROP COLUMN description_de;');
+            await customStatement(
+                'ALTER TABLE exercises DROP COLUMN description_en;');
 
-            await customStatement('ALTER TABLE user_food_overrides DROP COLUMN name_de;');
-            await customStatement('ALTER TABLE user_food_overrides DROP COLUMN name_en;');
+            await customStatement(
+                'ALTER TABLE user_food_overrides DROP COLUMN name_de;');
+            await customStatement(
+                'ALTER TABLE user_food_overrides DROP COLUMN name_en;');
           }
           if (from < 24) {
             // Phase 1: CREATE new table
@@ -792,10 +805,10 @@ class AppDatabase extends _$AppDatabase {
                  OR p.id IN (SELECT DISTINCT product_id FROM nutrition_logs WHERE product_id IS NOT NULL)
             ''').get();
 
-            final overridesRows = await customSelect('SELECT * FROM user_food_overrides').get();
+            final overridesRows =
+                await customSelect('SELECT * FROM user_food_overrides').get();
             final overridesMap = {
-              for (final row in overridesRows)
-                row.read<String>('barcode'): row
+              for (final row in overridesRows) row.read<String>('barcode'): row
             };
 
             final productIdToHash = <String, String>{};
@@ -814,9 +827,11 @@ class AppDatabase extends _$AppDatabase {
               final pFiber = row.read<double?>('fiber');
               final pSalt = row.read<double?>('salt');
               final pCaffeine = row.read<double?>('caffeine');
-              final pCaffeineMgPer100g = row.read<double?>('caffeine_mg_per_100g');
+              final pCaffeineMgPer100g =
+                  row.read<double?>('caffeine_mg_per_100g');
               final pProductQuantity = row.read<double?>('product_quantity');
-              final pProductQuantityUnit = row.read<String?>('product_quantity_unit');
+              final pProductQuantityUnit =
+                  row.read<String?>('product_quantity_unit');
               final pIsFluid = row.read<bool>('is_fluid');
               final pIsLiquid = row.read<bool>('is_liquid');
               final pSource = row.read<String>('source');
@@ -835,9 +850,14 @@ class AppDatabase extends _$AppDatabase {
               final fiber = o?.read<double?>('fiber') ?? pFiber;
               final salt = o?.read<double?>('salt') ?? pSalt;
               final caffeine = o?.read<double?>('caffeine') ?? pCaffeine;
-              final caffeineMgPer100g = o?.read<double?>('caffeine_mg_per_100g') ?? pCaffeineMgPer100g;
-              final productQuantity = o?.read<double?>('product_quantity') ?? pProductQuantity;
-              final productQuantityUnit = o?.read<String?>('product_quantity_unit') ?? pProductQuantityUnit;
+              final caffeineMgPer100g =
+                  o?.read<double?>('caffeine_mg_per_100g') ??
+                      pCaffeineMgPer100g;
+              final productQuantity =
+                  o?.read<double?>('product_quantity') ?? pProductQuantity;
+              final productQuantityUnit =
+                  o?.read<String?>('product_quantity_unit') ??
+                      pProductQuantityUnit;
               final isFluid = o?.read<bool>('is_fluid') ?? pIsFluid;
               final isLiquid = o?.read<bool>('is_liquid') ?? pIsLiquid;
               final category = o?.read<String?>('category') ?? pCategory;
@@ -898,13 +918,17 @@ class AppDatabase extends _$AppDatabase {
               ]);
             }
 
-            final archiveRows = await customSelect('SELECT local_id, content_hash FROM off_products_archive').get();
+            final archiveRows = await customSelect(
+                    'SELECT local_id, content_hash FROM off_products_archive')
+                .get();
             final hashToLocalId = {
               for (final row in archiveRows)
                 row.read<String>('content_hash'): row.read<int>('local_id')
             };
 
-            final logs = await customSelect('SELECT local_id, product_id, legacy_barcode FROM nutrition_logs').get();
+            final logs = await customSelect(
+                    'SELECT local_id, product_id, legacy_barcode FROM nutrition_logs')
+                .get();
             for (final log in logs) {
               final logLocalId = log.read<int>('local_id');
               final productId = log.read<String?>('product_id');
@@ -939,7 +963,6 @@ class AppDatabase extends _$AppDatabase {
           }
         },
       );
-
 }
 
 Future<void> _createPulsePersistenceSchema(GeneratedDatabase db) async {

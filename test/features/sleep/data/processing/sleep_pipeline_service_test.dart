@@ -507,25 +507,29 @@ void main() {
       expect(result.importedSessions, 2);
       expect(result.analyzedNights, 2);
 
-      final dbSessions = await db.customSelect(
-        'SELECT id, session_type FROM sleep_canonical_sessions ORDER BY id'
-      ).get();
+      final dbSessions = await db
+          .customSelect(
+              'SELECT id, session_type FROM sleep_canonical_sessions ORDER BY id')
+          .get();
       expect(dbSessions.length, 2);
       expect(dbSessions[0].read<String>('id'), 'core-session');
       expect(dbSessions[0].read<String>('session_type'), 'mainSleep');
       expect(dbSessions[1].read<String>('id'), 'nap-session');
       expect(dbSessions[1].read<String>('session_type'), 'nap');
 
-      final dbAnalyses = await db.customSelect(
-        'SELECT id, session_id, score, total_sleep_minutes FROM sleep_nightly_analyses ORDER BY session_id'
-      ).get();
+      final dbAnalyses = await db
+          .customSelect(
+              'SELECT id, session_id, score, total_sleep_minutes FROM sleep_nightly_analyses ORDER BY session_id')
+          .get();
       expect(dbAnalyses.length, 2);
 
-      final coreAnalysis = dbAnalyses.firstWhere((a) => a.read<String>('session_id') == 'core-session');
+      final coreAnalysis = dbAnalyses
+          .firstWhere((a) => a.read<String>('session_id') == 'core-session');
       expect(coreAnalysis.readNullable<double>('score'), isNotNull);
       expect(coreAnalysis.readNullable<int>('total_sleep_minutes'), 525);
 
-      final napAnalysis = dbAnalyses.firstWhere((a) => a.read<String>('session_id') == 'nap-session');
+      final napAnalysis = dbAnalyses
+          .firstWhere((a) => a.read<String>('session_id') == 'nap-session');
       expect(napAnalysis.readNullable<double>('score'), isNull);
 
       final shorterOverlappingNap = SleepRawIngestionBatch(
@@ -562,9 +566,9 @@ void main() {
       final resultLong = await service.runImport(batch: longerOverlappingNap);
       expect(resultLong.importedSessions, 1);
 
-      final finalSessions = await db.customSelect(
-        'SELECT id FROM sleep_canonical_sessions ORDER BY id'
-      ).get();
+      final finalSessions = await db
+          .customSelect('SELECT id FROM sleep_canonical_sessions ORDER BY id')
+          .get();
       expect(finalSessions.length, 2);
       final finalIds = finalSessions.map((s) => s.read<String>('id')).toList();
       expect(finalIds.contains('core-session'), isTrue);

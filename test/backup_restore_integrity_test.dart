@@ -779,7 +779,9 @@ void main() {
       expect(segments.first.externalKey, 'valid-1');
     });
 
-    test('supplements is_tracked states (true/false) survive backup and restore', () async {
+    test(
+        'supplements is_tracked states (true/false) survive backup and restore',
+        () async {
       // 1. Insert initial supplements with mixed isTracked states
       await dbHelper.insertSupplement(
         'Creatine Gold',
@@ -814,8 +816,10 @@ void main() {
 
       // Verify they are initially stored correctly
       var currentSupps = await dbHelper.getAllSupplements();
-      final untrackedInDb = currentSupps.firstWhere((s) => s.name == 'Untracked Beta-Alanine');
-      final trackedInDb = currentSupps.firstWhere((s) => s.name == 'Tracked Citrulline');
+      final untrackedInDb =
+          currentSupps.firstWhere((s) => s.name == 'Untracked Beta-Alanine');
+      final trackedInDb =
+          currentSupps.firstWhere((s) => s.name == 'Tracked Citrulline');
       expect(untrackedInDb.isTracked, isFalse);
       expect(trackedInDb.isTracked, isTrue);
 
@@ -824,20 +828,25 @@ void main() {
 
       // Verify the JSON backup payload contains the correct attributes
       final suppList = payload['supplements'] as List<dynamic>;
-      final rawUntracked = suppList.firstWhere((s) => s['name'] == 'Untracked Beta-Alanine');
-      final rawTracked = suppList.firstWhere((s) => s['name'] == 'Tracked Citrulline');
+      final rawUntracked =
+          suppList.firstWhere((s) => s['name'] == 'Untracked Beta-Alanine');
+      final rawTracked =
+          suppList.firstWhere((s) => s['name'] == 'Tracked Citrulline');
       expect(rawUntracked['is_tracked'], 0);
       expect(rawTracked['is_tracked'], 1);
 
       // 3. Clear database and restore
       await dbHelper.clearAllUserData();
-      final imported = await backupManager.importBackupPayloadForTesting(payload);
+      final imported =
+          await backupManager.importBackupPayloadForTesting(payload);
       expect(imported, isTrue);
 
       // 4. Verify post-restoration states match original values
       final restoredSupps = await dbHelper.getAllSupplements();
-      final restoredUntracked = restoredSupps.firstWhere((s) => s.name == 'Untracked Beta-Alanine');
-      final restoredTracked = restoredSupps.firstWhere((s) => s.name == 'Tracked Citrulline');
+      final restoredUntracked =
+          restoredSupps.firstWhere((s) => s.name == 'Untracked Beta-Alanine');
+      final restoredTracked =
+          restoredSupps.firstWhere((s) => s.name == 'Tracked Citrulline');
       expect(restoredUntracked.isTracked, isFalse);
       expect(restoredTracked.isTracked, isTrue);
 
@@ -900,15 +909,36 @@ void main() {
       };
 
       await dbHelper.clearAllUserData();
-      final compatImported = await backupManager.importBackupPayloadForTesting(compatPayload);
+      final compatImported =
+          await backupManager.importBackupPayloadForTesting(compatPayload);
       expect(compatImported, isTrue);
 
       final restoredCompat = await dbHelper.getAllSupplements();
-      expect(restoredCompat.firstWhere((s) => s.name == 'Legacy Int Tracked').isTracked, isTrue);
-      expect(restoredCompat.firstWhere((s) => s.name == 'Legacy Int Untracked').isTracked, isFalse);
-      expect(restoredCompat.firstWhere((s) => s.name == 'Boolean Tracked').isTracked, isTrue);
-      expect(restoredCompat.firstWhere((s) => s.name == 'Boolean Untracked').isTracked, isFalse);
-      expect(restoredCompat.firstWhere((s) => s.name == 'Null Fallback Tracked').isTracked, isTrue);
+      expect(
+          restoredCompat
+              .firstWhere((s) => s.name == 'Legacy Int Tracked')
+              .isTracked,
+          isTrue);
+      expect(
+          restoredCompat
+              .firstWhere((s) => s.name == 'Legacy Int Untracked')
+              .isTracked,
+          isFalse);
+      expect(
+          restoredCompat
+              .firstWhere((s) => s.name == 'Boolean Tracked')
+              .isTracked,
+          isTrue);
+      expect(
+          restoredCompat
+              .firstWhere((s) => s.name == 'Boolean Untracked')
+              .isTracked,
+          isFalse);
+      expect(
+          restoredCompat
+              .firstWhere((s) => s.name == 'Null Fallback Tracked')
+              .isTracked,
+          isTrue);
     });
   });
 }

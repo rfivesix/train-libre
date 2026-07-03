@@ -20,7 +20,9 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('InitialConsentScreen button remains disabled until both checkboxes are checked', (
+  testWidgets(
+      'InitialConsentScreen button remains disabled until both checkboxes are checked',
+      (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -32,7 +34,7 @@ void main() {
 
     final nextButton = find.byType(FilledButton);
     expect(nextButton, findsOneWidget);
-    
+
     // Check if button is disabled
     var button = tester.widget<FilledButton>(nextButton);
     expect(button.onPressed, isNull);

@@ -92,7 +92,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.unsavedChangesContent,
                 textAlign: TextAlign.center,
@@ -503,7 +504,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       {
         'type': 'normal',
         'label': l10n.set_type_normal,
-        'symbol': buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
+        'symbol':
+            buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
       },
       {
         'type': 'warmup',
@@ -705,7 +707,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
                                     itemCount: _routineExercises.length,
-                                    padding: EdgeInsets.only(bottom: DesignConstants
+                                    padding: EdgeInsets.only(
+                                      bottom: DesignConstants
                                               .bottomContentSpacer +
                                           MediaQuery.paddingOf(context).bottom,
                                     ),
@@ -718,7 +721,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         child: child,
                                       );
                                     },
-                                     onReorderItem: _onReorderItem,
+                                    onReorderItem: _onReorderItem,
                                     itemBuilder: (context, index) {
                                       final routineExercise =
                                           _routineExercises[index];
@@ -861,7 +864,8 @@ class _KeyboardDoneBarState extends State<_KeyboardDoneBar>
               ),
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+          padding:
+              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [

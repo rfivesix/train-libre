@@ -46,7 +46,8 @@ class AppearanceSettingsScreen extends StatelessWidget {
                           decoration: InputDecoration(
                             labelText: l10n.settingsAppearance,
                             border: const OutlineInputBorder(),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: DesignConstants.spacingM,
                               vertical: DesignConstants.spacingS,
                             ),
                           ),

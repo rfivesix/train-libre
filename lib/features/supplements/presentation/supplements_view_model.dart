@@ -71,7 +71,8 @@ class SupplementsViewModel extends ChangeNotifier {
 
     final date = _selectedDate;
 
-    _supplementsForDateSubscription = _repository.watchSupplementsForDate(date).listen(
+    _supplementsForDateSubscription =
+        _repository.watchSupplementsForDate(date).listen(
       (data) {
         _supplementsForDateList = data;
         _hasReceivedSupplements = true;
@@ -137,8 +138,7 @@ class SupplementsViewModel extends ChangeNotifier {
       final hasLog = doses.containsKey(s.id);
       if (s.isTracked || hasLog) {
         tracked.add(
-          TrackedSupplement(
-              supplement: s, totalDosedToday: doses[s.id] ?? 0.0),
+          TrackedSupplement(supplement: s, totalDosedToday: doses[s.id] ?? 0.0),
         );
       }
     }

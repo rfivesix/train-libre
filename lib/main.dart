@@ -133,7 +133,9 @@ void main() async {
         child: MyApp(
           home: hasAcceptedConsent
               ? const AppInitializerScreen(skipOffDatabase: true)
-              : InitialConsentScreen(nextScreen: const AppInitializerScreen(skipOffDatabase: true)),
+              : InitialConsentScreen(
+                  nextScreen:
+                      const AppInitializerScreen(skipOffDatabase: true)),
         ),
       ),
     ),
@@ -254,14 +256,17 @@ class _MyAppState extends State<MyApp> {
             filled: true,
             fillColor: const Color(0xFFF3F3F3),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide(color: lightScheme.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
               vertical: DesignConstants.spacingM,
             ),
           ),
@@ -282,7 +287,8 @@ class _MyAppState extends State<MyApp> {
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
             ),
           ),
 
@@ -370,7 +376,8 @@ class _MyAppState extends State<MyApp> {
               backgroundColor: lightScheme.primary,
               foregroundColor: lightScheme.onPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),
@@ -463,14 +470,17 @@ class _MyAppState extends State<MyApp> {
             filled: true,
             fillColor: const Color(0xFF1C1C1C),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide(color: darkScheme.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
               vertical: DesignConstants.spacingM,
             ),
           ),
@@ -491,7 +501,8 @@ class _MyAppState extends State<MyApp> {
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
             ),
           ),
 
@@ -578,7 +589,8 @@ class _MyAppState extends State<MyApp> {
               backgroundColor: darkScheme.primary,
               foregroundColor: darkScheme.onPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),

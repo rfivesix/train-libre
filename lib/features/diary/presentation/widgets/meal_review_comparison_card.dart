@@ -99,7 +99,9 @@ class MealReviewComparisonCard extends StatelessWidget {
                           Text(
                             l10n.aiReviewNoMatch,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                               fontStyle: FontStyle.italic,
                             ),
                           ),
@@ -109,12 +111,14 @@ class MealReviewComparisonCard extends StatelessWidget {
                         const SizedBox(height: DesignConstants.spacingXS),
                         // Confidence chip
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.spacingS,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
                             color: confidenceColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                            borderRadius: BorderRadius.circular(
+                                DesignConstants.borderRadiusM),
                           ),
                           child: Text(
                             '${(confidence * 100).round()}%',
@@ -167,12 +171,14 @@ class MealReviewComparisonCard extends StatelessWidget {
                   GestureDetector(
                     onTap: onEditQuantity,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingM,
                         vertical: DesignConstants.spacingS,
                       ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                        borderRadius: BorderRadius.circular(
+                            DesignConstants.borderRadiusS),
                       ),
                       child: Text(
                         '${estimatedGrams}g',

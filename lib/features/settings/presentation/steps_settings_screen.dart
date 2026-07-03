@@ -83,7 +83,7 @@ class _StepsSettingsScreenState extends State<StepsSettingsScreen> {
                       _stepsTrackingEnabled = value;
                       _hasChanges = true;
                     });
- 
+
                     if (value) {
                       const platform = HealthPlatformSteps();
                       final availability = await platform.getAvailability();

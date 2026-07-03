@@ -133,8 +133,8 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     ).padding.top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
-    const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
+    const EdgeInsets basePadding = DesignConstants
+        .cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(

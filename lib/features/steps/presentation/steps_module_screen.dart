@@ -84,7 +84,8 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
 
       switch (_scope) {
         case StepsScope.day:
-          _dayStepsSubscription = _repository.watchDayAggregation(anchor).listen(
+          _dayStepsSubscription =
+              _repository.watchDayAggregation(anchor).listen(
             (data) {
               if (!mounted) return;
               setState(() {
@@ -219,7 +220,8 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
           children: [
             _ScopeSwitcher(scope: _scope, onChanged: _onScopeChanged),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.cardPaddingInternal,
               ),
               child: StepsPeriodNavigator(
                 periodLabel: _periodLabel(context),
@@ -233,7 +235,8 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.cardPaddingInternal,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +257,8 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
                             const SizedBox(height: DesignConstants.spacingS),
                           if (_lastUpdatedAtUtc != null)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DesignConstants.spacingS,
                                 vertical: DesignConstants.spacingXS,
                               ),
                               child: Text(

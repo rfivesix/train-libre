@@ -47,9 +47,8 @@ class PerformanceSectionCard extends StatelessWidget {
     final data = state.data;
     final notableImprovements = data?.notableImprovements ?? const [];
 
-    final topImprovement = notableImprovements.isNotEmpty
-        ? notableImprovements.first
-        : null;
+    final topImprovement =
+        notableImprovements.isNotEmpty ? notableImprovements.first : null;
     final momentumValue = topImprovement == null
         ? '-'
         : '+${((topImprovement['improvementPct'] as num).toDouble()).toStringAsFixed(1)}%';
@@ -103,7 +102,8 @@ class PerformanceSectionCard extends StatelessWidget {
                     ),
               ),
               const SizedBox(height: DesignConstants.spacingS),
-              AnalyticsCardBase.buildMicroCaption(context, l10n.analyticsRecentRecords),
+              AnalyticsCardBase.buildMicroCaption(
+                  context, l10n.analyticsRecentRecords),
               const SizedBox(height: DesignConstants.spacingXS),
               AnalyticsCardBase.buildMiniBars(
                 context,

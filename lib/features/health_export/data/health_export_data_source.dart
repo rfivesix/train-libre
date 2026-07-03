@@ -270,14 +270,17 @@ class HealthExportDataSource {
     );
     if (entries.isEmpty) return const <ExportNutritionRecord>[];
 
-    final archivedEntries = entries.where((e) => e.archiveLocalId != null).toList();
-    final legacyEntries = entries.where((e) => e.archiveLocalId == null).toList();
+    final archivedEntries =
+        entries.where((e) => e.archiveLocalId != null).toList();
+    final legacyEntries =
+        entries.where((e) => e.archiveLocalId == null).toList();
 
     final Map<int, db.OffProductsArchiveData> archiveProductsMap = {};
     final Map<String, db.Product> legacyProductsMap = {};
 
     if (archivedEntries.isNotEmpty) {
-      final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+      final archiveIds =
+          archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
       final dbInstance = await _db.database;
       final rows = await (dbInstance.select(dbInstance.offProductsArchive)
             ..where((tbl) => tbl.localId.isIn(archiveIds)))
@@ -300,7 +303,8 @@ class HealthExportDataSource {
       if (entry.id == null) continue;
       final factor = entry.quantityInGrams / 100.0;
 
-      if (entry.archiveLocalId != null && archiveProductsMap.containsKey(entry.archiveLocalId)) {
+      if (entry.archiveLocalId != null &&
+          archiveProductsMap.containsKey(entry.archiveLocalId)) {
         final archivedProduct = archiveProductsMap[entry.archiveLocalId!]!;
         final sodium = ((archivedProduct.salt ?? 0) > 0
             ? (archivedProduct.salt! / _saltToSodiumFactor)
@@ -313,8 +317,12 @@ class HealthExportDataSource {
           proteinGrams: archivedProduct.protein * factor,
           carbsGrams: archivedProduct.carbs * factor,
           fatGrams: archivedProduct.fat * factor,
-          fiberGrams: archivedProduct.fiber == null ? null : archivedProduct.fiber! * factor,
-          sugarGrams: archivedProduct.sugar == null ? null : archivedProduct.sugar! * factor,
+          fiberGrams: archivedProduct.fiber == null
+              ? null
+              : archivedProduct.fiber! * factor,
+          sugarGrams: archivedProduct.sugar == null
+              ? null
+              : archivedProduct.sugar! * factor,
           sodiumGrams: sodium == null ? null : sodium * factor,
         );
         if (record.hasAnyValue) {

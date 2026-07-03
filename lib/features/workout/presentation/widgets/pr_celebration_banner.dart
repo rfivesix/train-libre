@@ -54,8 +54,9 @@ class PrCelebrationBanner extends StatelessWidget {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL, vertical: DesignConstants.spacingM),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingL,
+                      vertical: DesignConstants.spacingM),
                   decoration: BoxDecoration(
                     color: backgroundColor,
                     borderRadius: BorderRadius.circular(16),

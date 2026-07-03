@@ -48,15 +48,14 @@ class MuscleVolumeSectionCard extends StatelessWidget {
     final data = state.data;
     final muscleAnalytics = data?.muscleAnalytics ?? const {};
 
-    final muscles =
-        (muscleAnalytics['muscles'] as List<dynamic>? ?? const [])
-            .cast<Map<String, dynamic>>()
-            .where(
-              (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
-                m['muscleGroup'] as String?,
-              ),
-            )
-            .toList(growable: false);
+    final muscles = (muscleAnalytics['muscles'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>()
+        .where(
+          (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
+            m['muscleGroup'] as String?,
+          ),
+        )
+        .toList(growable: false);
     final topMuscle = muscles.isNotEmpty ? muscles.first : null;
     final topMuscleShare =
         (topMuscle?['distributionShare'] as num?)?.toDouble() ?? 0.0;
@@ -105,7 +104,8 @@ class MuscleVolumeSectionCard extends StatelessWidget {
               if (topMuscleShare > 0) ...[
                 const SizedBox(height: DesignConstants.spacingS),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusS),
                   child: LinearProgressIndicator(
                     minHeight: 6,
                     value: topMuscleShare.clamp(0.0, 1.0),

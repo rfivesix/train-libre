@@ -96,7 +96,8 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
                 key: const Key('onboarding_continue_setup_button'),
                 onPressed: widget.isRestoring ? null : widget.onContinue,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: DesignConstants.spacingL),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),

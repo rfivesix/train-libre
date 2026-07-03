@@ -224,7 +224,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final log = context.select<LiveWorkoutViewModel, SetLog?>((vm) => vm.setLogs[templateId]) ?? setLog;
+    final log = context.select<LiveWorkoutViewModel, SetLog?>(
+            (vm) => vm.setLogs[templateId]) ??
+        setLog;
     final bool isCompleted = log.isCompleted ?? false;
     final unitService = context.read<UnitService>();
 

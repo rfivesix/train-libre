@@ -51,7 +51,8 @@ class RegionSelectionSlide extends StatelessWidget {
               decoration: InputDecoration(
                 prefixIcon: const Icon(LucideIcons.globe),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: DesignConstants.spacingM,
@@ -59,7 +60,8 @@ class RegionSelectionSlide extends StatelessWidget {
                 ),
               ),
               items: [
-                for (final country in AppDataSources.supportedOffCatalogCountries)
+                for (final country
+                    in AppDataSources.supportedOffCatalogCountries)
                   DropdownMenuItem(
                     value: country,
                     child: Text(
@@ -80,8 +82,10 @@ class RegionSelectionSlide extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.45),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
             ),
             child: Text(
               l10n.onboardingRegionSettingsHint,

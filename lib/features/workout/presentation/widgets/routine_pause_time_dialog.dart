@@ -28,10 +28,10 @@ class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
   @override
   void initState() {
     super.initState();
-    final seconds = (widget.initialPauseSeconds != null &&
-            widget.initialPauseSeconds! > 0)
-        ? widget.initialPauseSeconds!
-        : 0;
+    final seconds =
+        (widget.initialPauseSeconds != null && widget.initialPauseSeconds! > 0)
+            ? widget.initialPauseSeconds!
+            : 0;
     _selectedDuration = Duration(
       minutes: seconds ~/ 60,
       seconds: seconds % 60,

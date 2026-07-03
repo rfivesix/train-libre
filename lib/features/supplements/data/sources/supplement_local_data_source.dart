@@ -370,7 +370,8 @@ class SupplementLocalDataSource {
     if (fluidLog != null) {
       if (fluidLog.linkedNutritionLogId != null) {
         await (dbInstance.delete(dbInstance.supplementLogs)
-              ..where((tbl) => tbl.sourceNutritionLogId.equals(fluidLog.linkedNutritionLogId!)))
+              ..where((tbl) => tbl.sourceNutritionLogId
+                  .equals(fluidLog.linkedNutritionLogId!)))
             .go();
       } else {
         await (dbInstance.delete(dbInstance.supplementLogs)

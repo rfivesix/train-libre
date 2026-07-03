@@ -157,7 +157,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.cardPaddingInternal,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,20 +189,24 @@ class _StatisticsHubScreenView extends StatelessWidget {
                       const SizedBox(height: DesignConstants.spacingL),
                       AppSectionHeader(title: l10n.statisticsSectionTraining),
                       RepaintBoundary(
-                        child: _buildConsistencySection(context, viewModel, l10n),
+                        child:
+                            _buildConsistencySection(context, viewModel, l10n),
                       ),
                       const SizedBox(height: DesignConstants.spacingS),
                       RepaintBoundary(
-                        child: _buildPerformanceSection(context, viewModel, l10n),
+                        child:
+                            _buildPerformanceSection(context, viewModel, l10n),
                       ),
                       const SizedBox(height: DesignConstants.spacingS),
                       RepaintBoundary(
-                        child: _buildMuscleVolumeSection(context, viewModel, l10n),
+                        child:
+                            _buildMuscleVolumeSection(context, viewModel, l10n),
                       ),
                       const SizedBox(height: DesignConstants.spacingL),
                       AppSectionHeader(title: l10n.statisticsSectionBody),
                       RepaintBoundary(
-                        child: _buildBodyMetricsSection(context, viewModel, l10n),
+                        child:
+                            _buildBodyMetricsSection(context, viewModel, l10n),
                       ),
                       const SizedBox(height: DesignConstants.spacingS),
                       _buildMeasurementsShortcutCard(context, l10n),

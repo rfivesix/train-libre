@@ -39,7 +39,8 @@ class SleepSummaryCard extends StatelessWidget {
         if (data.isSleepWidgetLoading) {
           return SummaryCard(
             padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            margin:
+                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
               contentPadding: DesignConstants.screenPadding,
               title: Text(
@@ -68,7 +69,8 @@ class SleepSummaryCard extends StatelessWidget {
         return RepaintBoundary(
           child: SummaryCard(
             padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            margin:
+                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
               onTap: () =>
                   SleepNavigation.openDayForDate(context, data.selectedDate),

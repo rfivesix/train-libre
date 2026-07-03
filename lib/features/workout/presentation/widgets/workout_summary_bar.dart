@@ -47,8 +47,12 @@ class WorkoutSummaryBar extends StatelessWidget {
       children: [
         // Header without gray box
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingXS),
-          padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM, horizontal: DesignConstants.spacingL),
+          margin: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingS,
+              vertical: DesignConstants.spacingXS),
+          padding: const EdgeInsets.symmetric(
+              vertical: DesignConstants.spacingM,
+              horizontal: DesignConstants.spacingL),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [

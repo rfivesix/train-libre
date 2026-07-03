@@ -93,7 +93,8 @@ class DiaryLocalDataSource {
         _db.nutritionLogs,
         _db.nutritionLogs.id.equalsExp(_db.fluidLogs.linkedNutritionLogId),
       ),
-    ])..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
+    ])
+      ..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
 
     return query.watch().map((rows) {
       return rows.map((row) {
@@ -113,7 +114,6 @@ class DiaryLocalDataSource {
       }).toList();
     });
   }
-
 
   Future<drift_db.DailyGoalsHistoryData?> getGoalsForDate(DateTime date) async {
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
@@ -198,7 +198,8 @@ class DiaryLocalDataSource {
         _db.nutritionLogs,
         _db.nutritionLogs.id.equalsExp(_db.fluidLogs.linkedNutritionLogId),
       ),
-    ])..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
+    ])
+      ..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
 
     final rows = await query.get();
     return rows.map((row) {
@@ -282,9 +283,12 @@ class DiaryLocalDataSource {
       final pFiber = override?.fiber ?? product.fiber;
       final pSalt = override?.salt ?? product.salt;
       final pCaffeine = override?.caffeine ?? product.caffeine;
-      final pCaffeineMgPer100g = override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
-      final pProductQuantity = override?.productQuantity ?? product.productQuantity;
-      final pProductQuantityUnit = override?.productQuantityUnit ?? product.productQuantityUnit;
+      final pCaffeineMgPer100g =
+          override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pProductQuantity =
+          override?.productQuantity ?? product.productQuantity;
+      final pProductQuantityUnit =
+          override?.productQuantityUnit ?? product.productQuantityUnit;
       final pIsFluid = override?.isFluid ?? product.isFluid;
       final pIsLiquid = override?.isLiquid ?? product.isLiquid;
       final pCategory = override?.category ?? product.category;
@@ -415,9 +419,12 @@ class DiaryLocalDataSource {
       final pFiber = override?.fiber ?? product.fiber;
       final pSalt = override?.salt ?? product.salt;
       final pCaffeine = override?.caffeine ?? product.caffeine;
-      final pCaffeineMgPer100g = override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
-      final pProductQuantity = override?.productQuantity ?? product.productQuantity;
-      final pProductQuantityUnit = override?.productQuantityUnit ?? product.productQuantityUnit;
+      final pCaffeineMgPer100g =
+          override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pProductQuantity =
+          override?.productQuantity ?? product.productQuantity;
+      final pProductQuantityUnit =
+          override?.productQuantityUnit ?? product.productQuantityUnit;
       final pIsFluid = override?.isFluid ?? product.isFluid;
       final pIsLiquid = override?.isLiquid ?? product.isLiquid;
       final pCategory = override?.category ?? product.category;
@@ -647,7 +654,8 @@ class DiaryLocalDataSource {
     DateTime? updatedSince,
   }) async {
     final startOfDay = start.dateOnly.add(const Duration(hours: 4));
-    final endOfDay = end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
+    final endOfDay =
+        end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
 
     final query = _db.select(_db.nutritionLogs)
       ..where((tbl) => tbl.consumedAt.isBetweenValues(startOfDay, endOfDay));
@@ -678,14 +686,16 @@ class DiaryLocalDataSource {
     DateTime? updatedSince,
   }) async {
     final startOfDay = start.dateOnly.add(const Duration(hours: 4));
-    final endOfDay = end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
+    final endOfDay =
+        end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
 
     final query = _db.select(_db.fluidLogs).join([
       drift.leftOuterJoin(
         _db.nutritionLogs,
         _db.nutritionLogs.id.equalsExp(_db.fluidLogs.linkedNutritionLogId),
       ),
-    ])..where(_db.fluidLogs.consumedAt.isBetweenValues(startOfDay, endOfDay));
+    ])
+      ..where(_db.fluidLogs.consumedAt.isBetweenValues(startOfDay, endOfDay));
 
     if (updatedSince != null) {
       query.where(_db.fluidLogs.updatedAt.isBiggerOrEqualValue(updatedSince));
@@ -741,7 +751,8 @@ class DiaryLocalDataSource {
     final query = _db.select(_db.nutritionLogs).join([
       drift.leftOuterJoin(
         _db.offProductsArchive,
-        _db.offProductsArchive.localId.equalsExp(_db.nutritionLogs.archiveLocalId),
+        _db.offProductsArchive.localId
+            .equalsExp(_db.nutritionLogs.archiveLocalId),
       ),
       drift.leftOuterJoin(
         _db.products,

@@ -230,10 +230,11 @@ class TrainLibreBackup {
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
-      userFoodOverrideTranslations: (json['userFoodOverrideTranslations'] as List<dynamic>?)
-              ?.map((e) => Map<String, dynamic>.from(e as Map))
-              .toList() ??
-          [],
+      userFoodOverrideTranslations:
+          (json['userFoodOverrideTranslations'] as List<dynamic>?)
+                  ?.map((e) => Map<String, dynamic>.from(e as Map))
+                  .toList() ??
+              [],
       healthStepSegments: (json['healthStepSegments'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??

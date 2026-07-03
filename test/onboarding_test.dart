@@ -8,7 +8,8 @@ import 'package:train_libre/generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 void main() {
-  testWidgets('OnboardingScreen flow validation and physiological bounds check', (WidgetTester tester) async {
+  testWidgets('OnboardingScreen flow validation and physiological bounds check',
+      (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(
@@ -25,7 +26,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Welcome Screen
-    final startButton = find.byKey(const Key('onboarding_continue_setup_button'));
+    final startButton =
+        find.byKey(const Key('onboarding_continue_setup_button'));
     expect(startButton, findsOneWidget);
     await tester.tap(startButton);
     await tester.pumpAndSettle();
@@ -41,7 +43,8 @@ void main() {
     expect(find.text('This field cannot be empty.'), findsNothing);
 
     // Enter name to pass the initial name check
-    await tester.enterText(find.byKey(const Key('onboarding_name_text_field')), 'John Doe');
+    await tester.enterText(
+        find.byKey(const Key('onboarding_name_text_field')), 'John Doe');
     await tester.pumpAndSettle();
 
     // Tap Next with Height, DOB, Sex empty
@@ -74,14 +77,16 @@ void main() {
     await tester.pumpAndSettle();
 
     // Enter Height out of physiological bounds (> 250 cm / in)
-    await tester.enterText(find.byKey(const Key('onboarding_height_text_field')), '419');
+    await tester.enterText(
+        find.byKey(const Key('onboarding_height_text_field')), '419');
     await tester.pumpAndSettle();
 
     // Tap Next -> should show physiological warning intercept
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    final warningTextFinder = find.textContaining('expected physiological range');
+    final warningTextFinder =
+        find.textContaining('expected physiological range');
     expect(warningTextFinder, findsOneWidget);
 
     // Tap Next again -> should bypass warning and advance to Measurements page

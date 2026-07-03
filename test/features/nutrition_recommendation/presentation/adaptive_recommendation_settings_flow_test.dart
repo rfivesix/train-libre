@@ -52,14 +52,16 @@ void main() {
       );
     }
 
-    Future<void> fillProfileSlide(WidgetTester tester, {String name = 'Alex', String height = '180'}) async {
+    Future<void> fillProfileSlide(WidgetTester tester,
+        {String name = 'Alex', String height = '180'}) async {
       await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')),
         name,
       );
       await tester.pumpAndSettle();
 
-      final genderDropdown = find.byKey(const Key('onboarding_gender_dropdown'));
+      final genderDropdown =
+          find.byKey(const Key('onboarding_gender_dropdown'));
       await tester.tap(genderDropdown);
       await tester.pumpAndSettle();
       final maleItem = find.text('Male').last;
@@ -162,8 +164,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // The measurements page (page 2) combines weight and body-fat fields.
-      expect(
-          find.byKey(const Key('onboarding_measurements_page')), findsOneWidget);
+      expect(find.byKey(const Key('onboarding_measurements_page')),
+          findsOneWidget);
       expect(
         find.byKey(const Key('onboarding_weight_text_field')),
         findsOneWidget,

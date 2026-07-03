@@ -46,7 +46,8 @@ void main() {
       expect(resultCleared.updatedSet.rir, isNull);
     });
 
-    test('Rep range average fallback parses hyphen range and rounds correctly', () {
+    test('Rep range average fallback parses hyphen range and rounds correctly',
+        () {
       final oldLog = SetLog(
         id: 1,
         workoutLogId: 10,
@@ -77,7 +78,8 @@ void main() {
       expect(result.updatedSet.isCompleted, isTrue);
     });
 
-    test('Rep range average fallback handles odd range and rounds correctly', () {
+    test('Rep range average fallback handles odd range and rounds correctly',
+        () {
       final oldLog = SetLog(
         id: 1,
         workoutLogId: 10,

@@ -105,23 +105,22 @@ class GlassProgressBar extends StatelessWidget {
                         : Colors.black;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingM,
                     vertical: DesignConstants.spacingXS,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: filledTextColor,
-                            shadows: withShadow ? textShadows : null,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: filledTextColor,
+                          shadows: withShadow ? textShadows : null,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 2),

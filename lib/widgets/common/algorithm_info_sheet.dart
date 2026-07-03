@@ -259,7 +259,8 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                       final cleanPoint =
                           point.trim().replaceFirst(RegExp(r'^[•\-\*]\s*'), '');
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+                        padding: const EdgeInsets.only(
+                            bottom: DesignConstants.spacingS),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -362,7 +363,8 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                               child: _isLoading
                                   ? const Center(
                                       child: Padding(
-                                        padding: EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: DesignConstants.spacingL),
                                         child: CircularProgressIndicator(),
                                       ),
                                     )
@@ -421,8 +423,7 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                       const SizedBox(height: DesignConstants.spacingL),
                       // Clinical disclaimer
                       Text(
-                        AppLocalizations.of(context)!
-                            .infoScientificDisclaimer,
+                        AppLocalizations.of(context)!.infoScientificDisclaimer,
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontSize: 12,
                           fontStyle: FontStyle.italic,
@@ -439,8 +440,7 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                         borderRadius: BorderRadius.circular(
                             DesignConstants.borderRadiusS),
                         child: Padding(
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             children: [
                               Icon(LucideIcons.external_link,
@@ -450,12 +450,10 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                                 child: Text(
                                   AppLocalizations.of(context)!
                                       .infoScientificReferencesButton,
-                                  style: theme.textTheme.bodyMedium
-                                      ?.copyWith(
+                                  style: theme.textTheme.bodyMedium?.copyWith(
                                     color: cs.primary,
                                     fontWeight: FontWeight.w600,
-                                    decoration:
-                                        TextDecoration.underline,
+                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
                               ),

@@ -130,7 +130,8 @@ class StepsWeekChart extends StatelessWidget {
               ),
               Positioned.fill(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: chartLeftInset,
+                  padding: const EdgeInsets.only(
+                    left: chartLeftInset,
                     top: weekChartTopInset,
                     right: DesignConstants.spacingXS,
                     bottom: chartBottomInset,
@@ -169,7 +170,8 @@ class StepsWeekChart extends StatelessWidget {
                                       color: Theme.of(
                                         context,
                                       ).colorScheme.primary,
-                                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                                      borderRadius: BorderRadius.circular(
+                                          DesignConstants.borderRadiusS),
                                     ),
                                   ),
                                 if (isGoalHit && bucket.steps > 0)

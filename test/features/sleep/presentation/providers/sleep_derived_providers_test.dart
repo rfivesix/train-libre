@@ -103,7 +103,9 @@ void main() {
     });
 
     group('loadWeek', () {
-      test('correctly calculates week boundaries (Monday to Sunday) and loads successfully', () async {
+      test(
+          'correctly calculates week boundaries (Monday to Sunday) and loads successfully',
+          () async {
         // Wednesday, June 17, 2026
         final anchor = DateTime(2026, 6, 17);
         // Expect Monday June 15 to Sunday June 21
@@ -129,7 +131,8 @@ void main() {
         expect(mockRepository.lastQueryTo, expectedEnd);
       });
 
-      test('handles loadWeek errors and populates week error message', () async {
+      test('handles loadWeek errors and populates week error message',
+          () async {
         final anchor = DateTime(2026, 6, 17);
         mockRepository.throwError = true;
 
@@ -142,7 +145,8 @@ void main() {
     });
 
     group('loadMonth', () {
-      test('correctly calculates month boundaries and loads successfully', () async {
+      test('correctly calculates month boundaries and loads successfully',
+          () async {
         // June 15, 2026
         final anchor = DateTime(2026, 6, 15);
         final expectedStart = DateTime(2026, 6, 1);
@@ -167,7 +171,8 @@ void main() {
         expect(mockRepository.lastQueryTo, expectedEnd);
       });
 
-      test('handles loadMonth errors and populates month error message', () async {
+      test('handles loadMonth errors and populates month error message',
+          () async {
         final anchor = DateTime(2026, 6, 15);
         mockRepository.throwError = true;
 

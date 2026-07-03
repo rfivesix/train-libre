@@ -31,7 +31,9 @@ void main() {
       await database.close();
     });
 
-    test('Auto-creates archive snapshots upon diary log insertions and reuse existing snaps', () async {
+    test(
+        'Auto-creates archive snapshots upon diary log insertions and reuse existing snaps',
+        () async {
       final barcode = '4008400401821';
       // 1. Insert product into catalog
       await database.into(database.products).insert(
@@ -88,11 +90,14 @@ void main() {
       expect(insertedLog2.archiveLocalId, equals(insertedLog1.archiveLocalId));
 
       // Assert archive row count is 1
-      final allArchiveRows = await database.select(database.offProductsArchive).get();
+      final allArchiveRows =
+          await database.select(database.offProductsArchive).get();
       expect(allArchiveRows.length, 1);
     });
 
-    test('Bakes custom overrides into the snapshot and keeps historical records immune from edits', () async {
+    test(
+        'Bakes custom overrides into the snapshot and keeps historical records immune from edits',
+        () async {
       final barcode = '4001234567890';
       // 1. Insert product
       await database.into(database.products).insert(
@@ -176,31 +181,34 @@ void main() {
       expect(archiveRow2.calories, 650);
 
       // Verify historical first log is immune (keeps pointing to version 1)
-      final archiveRow1Verify = await (database.select(database.offProductsArchive)
+      final archiveRow1Verify = await (database
+              .select(database.offProductsArchive)
             ..where((tbl) => tbl.localId.equals(insertedLog1.archiveLocalId!)))
           .getSingle();
       expect(archiveRow1Verify.productName, 'Organic Peanut Butter');
       expect(archiveRow1Verify.calories, 620);
     });
 
-    test('3-Tier lookup resolution chain calculates correct nutrition values', () async {
+    test('3-Tier lookup resolution chain calculates correct nutrition values',
+        () async {
       final barcode1 = 'EAN1';
       final barcode2 = 'EAN2';
 
       // 1. Create a product in offProductsArchive (mocking archived product)
-      final archiveLocalId = await database.into(database.offProductsArchive).insert(
-            db.OffProductsArchiveCompanion.insert(
-              id: const drift.Value('uuid-archive-1'),
-              barcode: barcode1,
-              productName: 'Archived Granola',
-              calories: 400,
-              protein: 10.0,
-              carbs: 60.0,
-              fat: 15.0,
-              contentHash: 'hash1',
-              source: 'off',
-            ),
-          );
+      final archiveLocalId =
+          await database.into(database.offProductsArchive).insert(
+                db.OffProductsArchiveCompanion.insert(
+                  id: const drift.Value('uuid-archive-1'),
+                  barcode: barcode1,
+                  productName: 'Archived Granola',
+                  calories: 400,
+                  protein: 10.0,
+                  carbs: 60.0,
+                  fat: 15.0,
+                  contentHash: 'hash1',
+                  source: 'off',
+                ),
+              );
 
       // 2. Create a product in Products (catalog product)
       await database.into(database.products).insert(
@@ -239,7 +247,8 @@ void main() {
       final legacyProductsMap = <String, FoodItem>{};
 
       // Query archived products
-      final archivedProducts = await productDb.getProductsByArchiveIds([archiveLocalId]);
+      final archivedProducts =
+          await productDb.getProductsByArchiveIds([archiveLocalId]);
       archiveProductsMap.addAll(archivedProducts);
 
       // Query legacy products
@@ -265,12 +274,14 @@ void main() {
       );
 
       expect(state.summary.calories, 590); // 400 + 190
-      expect(state.summary.protein, 14);  // 10 + 4
-      expect(state.summary.carbs, 85);    // 60 + 25
-      expect(state.summary.fat, 21);      // 15 + 6
+      expect(state.summary.protein, 14); // 10 + 4
+      expect(state.summary.carbs, 85); // 60 + 25
+      expect(state.summary.fat, 21); // 15 + 6
     });
 
-    test('Backup and restore preserves archive references and snapshots round-trip (Backup format v5)', () async {
+    test(
+        'Backup and restore preserves archive references and snapshots round-trip (Backup format v5)',
+        () async {
       final barcode = '4008400401821';
       // 1. Setup DB state with an archived log
       await database.into(database.products).insert(
@@ -305,7 +316,8 @@ void main() {
 
       // Clear all data
       await DatabaseHelper.instance.clearAllUserData();
-      final afterClearArchive = await database.select(database.offProductsArchive).get();
+      final afterClearArchive =
+          await database.select(database.offProductsArchive).get();
       expect(afterClearArchive, isEmpty);
 
       // Restore backup payload
@@ -313,12 +325,14 @@ void main() {
       expect(success, isTrue);
 
       // Verify restoration of archive snapshots and FK linkages
-      final restoredArchive = await database.select(database.offProductsArchive).get();
+      final restoredArchive =
+          await database.select(database.offProductsArchive).get();
       expect(restoredArchive, isNotEmpty);
       expect(restoredArchive.first.productName, 'Nutella');
 
       final restoredLogs = await database.select(database.nutritionLogs).get();
-      expect(restoredLogs.first.archiveLocalId, equals(restoredArchive.first.localId));
+      expect(restoredLogs.first.archiveLocalId,
+          equals(restoredArchive.first.localId));
     });
   });
 }

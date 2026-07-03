@@ -37,7 +37,8 @@ Widget _wrap(Widget child, {Locale locale = const Locale('en')}) {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('TermsOfServiceScreen loads and renders English Markdown content', (
+  testWidgets('TermsOfServiceScreen loads and renders English Markdown content',
+      (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -50,7 +51,8 @@ void main() {
     expect(find.text('This is a statistical approximation...'), findsOneWidget);
   });
 
-  testWidgets('TermsOfServiceScreen loads and renders German Markdown content', (
+  testWidgets('TermsOfServiceScreen loads and renders German Markdown content',
+      (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -60,6 +62,7 @@ void main() {
 
     expect(find.byType(MarkdownBody), findsOneWidget);
     expect(find.text('Nutzungsbedingungen (DE)'), findsOneWidget);
-    expect(find.text('Dies ist eine statistische Schätzung...'), findsOneWidget);
+    expect(
+        find.text('Dies ist eine statistische Schätzung...'), findsOneWidget);
   });
 }

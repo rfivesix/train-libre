@@ -14,9 +14,10 @@ extension AiParsing on AiService {
       final decoded = jsonDecode(cleaned);
       if (decoded is Map<String, dynamic>) {
         final contextMap = decoded['mealContext'];
-        final AiMealContext? mealContext = contextMap != null && contextMap is Map<String, dynamic>
-            ? AiMealContext.fromJson(contextMap)
-            : null;
+        final AiMealContext? mealContext =
+            contextMap != null && contextMap is Map<String, dynamic>
+                ? AiMealContext.fromJson(contextMap)
+                : null;
 
         final rawItems = decoded['items'];
         if (rawItems is List) {
@@ -55,9 +56,10 @@ extension AiParsing on AiService {
         final jsonStr = cleaned.substring(startBracket, endBracket + 1);
         final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
         final contextMap = decoded['mealContext'];
-        final AiMealContext? mealContext = contextMap != null && contextMap is Map<String, dynamic>
-            ? AiMealContext.fromJson(contextMap)
-            : null;
+        final AiMealContext? mealContext =
+            contextMap != null && contextMap is Map<String, dynamic>
+                ? AiMealContext.fromJson(contextMap)
+                : null;
 
         final rawItems = decoded['items'];
         if (rawItems is List) {
@@ -95,7 +97,8 @@ extension AiParsing on AiService {
       } catch (_) {}
     }
 
-    throw const AiParseException('No valid JSON object or array found in response.');
+    throw const AiParseException(
+        'No valid JSON object or array found in response.');
   }
 
   /// Extracts the JSON array from the AI response text.

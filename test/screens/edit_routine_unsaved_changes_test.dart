@@ -60,7 +60,8 @@ void main() {
   });
 
   Future<void> openScreen(WidgetTester tester) async {
-    await tester.pumpWidget(_wrapWithPushButton((_) => const EditRoutineScreen()));
+    await tester
+        .pumpWidget(_wrapWithPushButton((_) => const EditRoutineScreen()));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('open_route')));
     await tester.pumpAndSettle();
@@ -78,7 +79,9 @@ void main() {
     expect(find.byType(EditRoutineScreen), findsNothing);
   });
 
-  testWidgets('dirty state shows confirmation sheet on pop attempt, discard leaves without saving', (tester) async {
+  testWidgets(
+      'dirty state shows confirmation sheet on pop attempt, discard leaves without saving',
+      (tester) async {
     await openScreen(tester);
 
     // Make dirty by typing in name field
@@ -105,7 +108,9 @@ void main() {
     expect(routines.isEmpty, true);
   });
 
-  testWidgets('dirty state shows confirmation sheet on pop attempt, save persists and leaves', (tester) async {
+  testWidgets(
+      'dirty state shows confirmation sheet on pop attempt, save persists and leaves',
+      (tester) async {
     await openScreen(tester);
 
     // Make dirty by typing in name field

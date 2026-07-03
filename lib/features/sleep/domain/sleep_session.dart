@@ -93,7 +93,7 @@ List<SleepInterval> mergeOverlappingIntervals(List<SleepInterval> intervals) {
     final newType = duration >= const Duration(hours: 3)
         ? SleepSessionType.mainSleep
         : SleepSessionType.nap;
-        
+
     return SleepSession(
       id: s.id,
       startAtUtc: s.startAtUtc,
@@ -109,4 +109,3 @@ List<SleepInterval> mergeOverlappingIntervals(List<SleepInterval> intervals) {
     );
   }).toList();
 }
-

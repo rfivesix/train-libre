@@ -15,4 +15,3 @@ export 'platform_adaptive_switch.dart';
 export 'platform_adaptive_switch_list_tile.dart';
 export 'platform_adaptive_pickers.dart';
 export 'platform_adaptive_dropdown.dart';
-

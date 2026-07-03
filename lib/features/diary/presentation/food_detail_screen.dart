@@ -274,7 +274,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     const color = Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
@@ -300,7 +301,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.copySystemFoodBody,
                 textAlign: TextAlign.center,
@@ -438,7 +440,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.deleteFoodConfirmBody,
                 textAlign: TextAlign.center,
@@ -585,8 +588,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           IconButton(
             icon: Icon(
               _isFavorite ? LucideIcons.heart : LucideIcons.heart,
-              color:
-                  _isFavorite ? Theme.of(context).colorScheme.error : colorScheme.onSurfaceVariant,
+              color: _isFavorite
+                  ? Theme.of(context).colorScheme.error
+                  : colorScheme.onSurfaceVariant,
             ),
             onPressed: _toggleFavorite,
           ),
@@ -730,7 +734,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         title: Text(l10n.ingredients),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(DesignConstants.spacingL),
+                            padding:
+                                const EdgeInsets.all(DesignConstants.spacingL),
                             child: Text(
                               _displayItem.ingredientsText!,
                               style: textTheme.bodyMedium,
@@ -809,7 +814,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
                 if (!_displayItem.barcode.startsWith('user_created_'))
                   Padding(
-                    padding: const EdgeInsets.only(top: DesignConstants.spacingXL, bottom: DesignConstants.spacingS),
+                    padding: const EdgeInsets.only(
+                        top: DesignConstants.spacingXL,
+                        bottom: DesignConstants.spacingS),
                     child: OffAttributionWidget(
                       textStyle: textTheme.bodySmall,
                     ),
@@ -1023,7 +1030,9 @@ class _GlassBadge extends StatelessWidget {
     final isDarkMode = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingXS),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS,
+          vertical: DesignConstants.spacingXS),
       decoration: BoxDecoration(
         // Im Dark Mode helles Glas, im Light Mode dunkles Glas
         color: isDarkMode

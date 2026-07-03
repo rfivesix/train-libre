@@ -69,8 +69,6 @@ class _MuscleGroupAnalyticsScreenState
     return StatisticsPresentationFormatter.compactNumber(value);
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -98,7 +96,8 @@ class _MuscleGroupAnalyticsScreenState
         workload[name] = sets;
       }
     }
-    final highlights = MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
+    final highlights =
+        MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
 
     final selectedWeek =
         (_selectedWeekIndex >= 0 && _selectedWeekIndex < weekly.length)
@@ -194,8 +193,7 @@ class _MuscleGroupAnalyticsScreenState
                                 .textTheme
                                 .bodySmall
                                 ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.outline,
+                                  color: Theme.of(context).colorScheme.outline,
                                 ),
                           ),
                         ],
@@ -207,69 +205,69 @@ class _MuscleGroupAnalyticsScreenState
                     l10n.analyticsWeeklySetsByMuscle,
                     isPrimary: true,
                   ),
-                    if (weekly.isNotEmpty) ...[
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: List.generate(weekly.length, (index) {
-                            final row = weekly[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(right: DesignConstants.spacingS),
-                              child: ChoiceChip(
-                                label: Text(row['weekLabel'] as String),
-                                selected: _selectedWeekIndex == index,
-                                onSelected: (selected) {
-                                  if (!selected) return;
-                                  setState(() => _selectedWeekIndex = index);
-                                },
-                              ),
-                            );
-                          }),
-                        ),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingS),
-                    ],
-                    RepaintBoundary(
-                      child: _buildWeeklySetsCard(selectedWeek),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    _sectionLabel(l10n.analyticsFrequencyByMuscle),
-                    RepaintBoundary(
-                      child: _buildFrequencyCard(muscles),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    _sectionLabel(l10n.analyticsGuidanceTitle),
-                    SummaryCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(14.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              dataQualityOk
-                                  ? l10n.analyticsGuidanceDirectionalDisclaimer
-                                  : l10n.analyticsGuidanceSoftenedDisclaimer,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
+                  if (weekly.isNotEmpty) ...[
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: List.generate(weekly.length, (index) {
+                          final row = weekly[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                                right: DesignConstants.spacingS),
+                            child: ChoiceChip(
+                              label: Text(row['weekLabel'] as String),
+                              selected: _selectedWeekIndex == index,
+                              onSelected: (selected) {
+                                if (!selected) return;
+                                setState(() => _selectedWeekIndex = index);
+                              },
                             ),
-                            const SizedBox(height: DesignConstants.spacingS),
-                            Text(
-                              _guidanceLabel(dataQualityOk, undertrained),
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
+                          );
+                        }),
                       ),
                     ),
+                    const SizedBox(height: DesignConstants.spacingS),
                   ],
-                ),
+                  RepaintBoundary(
+                    child: _buildWeeklySetsCard(selectedWeek),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  _sectionLabel(l10n.analyticsFrequencyByMuscle),
+                  RepaintBoundary(
+                    child: _buildFrequencyCard(muscles),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  _sectionLabel(l10n.analyticsGuidanceTitle),
+                  SummaryCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            dataQualityOk
+                                ? l10n.analyticsGuidanceDirectionalDisclaimer
+                                : l10n.analyticsGuidanceSoftenedDisclaimer,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.outline,
+                                ),
+                          ),
+                          const SizedBox(height: DesignConstants.spacingS),
+                          Text(
+                            _guidanceLabel(dataQualityOk, undertrained),
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-      );
+            ),
+    );
   }
 
   Widget _buildBodyHeatmap(
@@ -515,8 +513,10 @@ class _MuscleGroupAnalyticsScreenState
               Align(
                 alignment: Alignment.centerLeft,
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
-                  padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+                  margin:
+                      const EdgeInsets.only(bottom: DesignConstants.spacingS),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingS,
                     vertical: DesignConstants.spacingXS,
                   ),
                   decoration: BoxDecoration(
@@ -551,7 +551,8 @@ class _MuscleGroupAnalyticsScreenState
                     touchTooltipData: BarTouchTooltipData(
                       tooltipBorderRadius: BorderRadius.circular(16),
                       tooltipMargin: 12,
-                      tooltipPadding: const EdgeInsets.symmetric(horizontal: 14,
+                      tooltipPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
                         vertical: 10,
                       ),
                       getTooltipColor: (_) {
@@ -681,8 +682,12 @@ class _MuscleGroupAnalyticsScreenState
   Widget _sectionLabel(String text, {bool isPrimary = false}) {
     return AppSectionHeader(
       title: text,
-      padding:
-          isPrimary ? const EdgeInsets.only(left: DesignConstants.spacingXS, bottom: DesignConstants.spacingS, top: DesignConstants.spacingXS) : null,
+      padding: isPrimary
+          ? const EdgeInsets.only(
+              left: DesignConstants.spacingXS,
+              bottom: DesignConstants.spacingS,
+              top: DesignConstants.spacingXS)
+          : null,
     );
   }
 }

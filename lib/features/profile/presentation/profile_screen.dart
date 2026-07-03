@@ -132,7 +132,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     labelText: l10n.onboardingNameLabel,
                     prefixIcon: const Icon(LucideIcons.user),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM),
                     ),
                   ),
                 ),
@@ -157,7 +158,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             labelText: l10n.onboardingDobLabel,
                             prefixIcon: const Icon(LucideIcons.cake),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                              borderRadius: BorderRadius.circular(
+                                  DesignConstants.borderRadiusM),
                             ),
                           ),
                           child: Text(
@@ -174,9 +176,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         decoration: InputDecoration(
                           labelText: l10n.onboardingGenderLabel,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                            borderRadius: BorderRadius.circular(
+                                DesignConstants.borderRadiusM),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 10,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
                             vertical: DesignConstants.spacingL,
                           ),
                         ),
@@ -370,7 +374,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: DesignConstants.spacingXS),
+                                const SizedBox(
+                                    height: DesignConstants.spacingXS),
                                 if (subline.isNotEmpty)
                                   Text(
                                     subline,
@@ -519,10 +524,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             context,
           ).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
         },
-        contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingL,
           vertical: DesignConstants.spacingM,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
       ),
     );
   }

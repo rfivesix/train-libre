@@ -500,8 +500,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingXS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS,
+                  vertical: DesignConstants.spacingXS),
               child: Text(
                 l10n.saveAsRoutinePrompt,
                 style: Theme.of(ctx).textTheme.bodyMedium,
@@ -515,7 +516,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
               decoration: InputDecoration(
                 labelText: l10n.formFieldRoutineName,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
                 ),
               ),
             ),
@@ -711,7 +713,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             padding: DesignConstants.cardPadding,
                             child: SummaryCard(
                               child: Padding(
-                                padding: const EdgeInsets.all(DesignConstants.spacingL),
+                                padding: const EdgeInsets.all(
+                                    DesignConstants.spacingL),
                                 child: Form(
                                   key: _formKey,
                                   child: Column(
@@ -776,7 +779,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                         _buildMuscleHeatmap(l10n),
                                       ],
                                       if (!_isEditMode) ...[
-                                        const SizedBox(height: DesignConstants.spacingM),
+                                        const SizedBox(
+                                            height: DesignConstants.spacingM),
                                         Center(
                                           child: TextButton.icon(
                                             onPressed: _showSaveAsRoutineDialog,
@@ -955,7 +959,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                           // Add Exercise (Edit Mode)
                           if (_isEditMode)
                             Padding(
-                              padding: const EdgeInsets.all(DesignConstants.spacingL),
+                              padding: const EdgeInsets.all(
+                                  DesignConstants.spacingL),
                               child: TextButton.icon(
                                 onPressed: () async {
                                   final selectedExercise =
@@ -1011,7 +1016,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                             child: WgerAttributionWidget(
                               textStyle: textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -1104,7 +1111,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       {
         'type': 'normal',
         'label': l10n.set_type_normal,
-        'symbol': buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
+        'symbol':
+            buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
       },
       {
         'type': 'warmup',

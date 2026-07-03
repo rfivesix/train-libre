@@ -127,7 +127,9 @@ void main() {
       expect(logs, isEmpty); // Old caffeine log is deleted
     });
 
-    test('insertSupplementLog resolves sourceNutritionLogId for food entry and deletes on food entry delete', () async {
+    test(
+        'insertSupplementLog resolves sourceNutritionLogId for food entry and deletes on food entry delete',
+        () async {
       final timestamp = DateTime(2026, 3, 30, 10, 0);
       final foodId = await dbHelper.insertFoodEntry(
         FoodEntry(
@@ -166,9 +168,11 @@ void main() {
       expect(logs, isEmpty);
     });
 
-    test('insertSupplementLog resolves sourceNutritionLogId for linked fluid entry and deletes by fluid ID', () async {
+    test(
+        'insertSupplementLog resolves sourceNutritionLogId for linked fluid entry and deletes by fluid ID',
+        () async {
       final timestamp = DateTime(2026, 3, 30, 10, 0);
-      
+
       final foodId = await dbHelper.insertFoodEntry(
         FoodEntry(
           barcode: '123456',
@@ -214,7 +218,8 @@ void main() {
       expect(logs.first.sourceNutritionLogId, nutritionRow.id);
 
       // Verify deletion of fluid deletes the caffeine log via repository/datasource method
-      await dbHelper.supplementLocalDataSource.deleteCaffeineLogByFluidEntryId(fluidId);
+      await dbHelper.supplementLocalDataSource
+          .deleteCaffeineLogByFluidEntryId(fluidId);
       logs = await db.select(db.supplementLogs).get();
       expect(logs, isEmpty);
     });

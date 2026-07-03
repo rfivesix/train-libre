@@ -5,7 +5,6 @@ import '../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
 
-
 enum MealType { breakfast, lunch, dinner, snack }
 
 extension MealTypeTimeExtension on MealType {
@@ -42,7 +41,6 @@ extension MealTypeTimeExtension on MealType {
     }
   }
 }
-
 
 /// A screen for creating or editing the basic metadata of a meal.
 ///
@@ -113,7 +111,8 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
         title: Text(l10n.mealsEdit),
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingS, vertical: 6),
             child: ElevatedButton(
               onPressed: _canSave ? _onSave : null,
               child: _saving

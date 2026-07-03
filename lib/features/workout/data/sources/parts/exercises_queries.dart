@@ -23,8 +23,10 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     final Set<String> muscles = {};
 
     for (var ex in exercises) {
-      muscles.addAll(WorkoutLocalDataSource._parseMuscleList(ex.musclesPrimary));
-      muscles.addAll(WorkoutLocalDataSource._parseMuscleList(ex.musclesSecondary));
+      muscles
+          .addAll(WorkoutLocalDataSource._parseMuscleList(ex.musclesPrimary));
+      muscles
+          .addAll(WorkoutLocalDataSource._parseMuscleList(ex.musclesSecondary));
     }
     return muscles.toList()..sort();
   }
@@ -163,8 +165,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     return rows.map((row) {
       final rawExercise = dbInstance.exercises.map(row.data);
       final displayName = row.readNullable<String>('display_name') ?? '';
-      final displayDescription = row.readNullable<String>('display_description') ?? '';
-      
+      final displayDescription =
+          row.readNullable<String>('display_description') ?? '';
+
       final nameDe = row.readNullable<String>('name_de') ?? displayName;
       final nameEn = row.readNullable<String>('name_en') ?? displayName;
       final descDe = row.readNullable<String>('desc_de') ?? displayDescription;
@@ -181,8 +184,10 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         descriptionEn: descEn,
         categoryName: rawExercise.categoryName ?? 'Other',
         imagePath: rawExercise.imagePath,
-        primaryMuscles: WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesPrimary),
-        secondaryMuscles: WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesSecondary),
+        primaryMuscles:
+            WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesPrimary),
+        secondaryMuscles: WorkoutLocalDataSource._parseMuscleList(
+            rawExercise.musclesSecondary),
       );
     }).toList();
   }
@@ -293,7 +298,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
 
     return await dbInstance.transaction(() async {
       final companion = db.ExercisesCompanion(
-        id: exercise.uuid != null ? drift.Value(exercise.uuid!) : const drift.Value.absent(),
+        id: exercise.uuid != null
+            ? drift.Value(exercise.uuid!)
+            : const drift.Value.absent(),
         source: drift.Value(exercise.source),
         replacesExerciseId: drift.Value(exercise.replacesExerciseId),
         categoryName: drift.Value(exercise.categoryName),
@@ -303,8 +310,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         isCustom: const drift.Value(true),
       );
 
-      final row =
-          await dbInstance.into(dbInstance.exercises).insertReturning(companion);
+      final row = await dbInstance
+          .into(dbInstance.exercises)
+          .insertReturning(companion);
 
       // Insert translations
       await _upsertTranslations(dbInstance, row.id, exercise);
@@ -390,14 +398,22 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     Exercise exercise,
   ) async {
     final langs = <String, (String name, String? desc)>{
-      if (exercise.nameDe.isNotEmpty) 'de': (exercise.nameDe, exercise.descriptionDe.isNotEmpty ? exercise.descriptionDe : null),
-      if (exercise.nameEn.isNotEmpty) 'en': (exercise.nameEn, exercise.descriptionEn.isNotEmpty ? exercise.descriptionEn : null),
+      if (exercise.nameDe.isNotEmpty)
+        'de': (
+          exercise.nameDe,
+          exercise.descriptionDe.isNotEmpty ? exercise.descriptionDe : null
+        ),
+      if (exercise.nameEn.isNotEmpty)
+        'en': (
+          exercise.nameEn,
+          exercise.descriptionEn.isNotEmpty ? exercise.descriptionEn : null
+        ),
     };
 
     for (final entry in langs.entries) {
       final langCode = entry.key;
       final (name, desc) = entry.value;
-      
+
       final companion = db.ExerciseTranslationsCompanion(
         exerciseId: drift.Value(exerciseId),
         languageCode: drift.Value(langCode),
@@ -406,12 +422,15 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       );
 
       await dbInstance.into(dbInstance.exerciseTranslations).insert(
-        companion,
-        onConflict: drift.DoUpdate(
-          (old) => companion,
-          target: [dbInstance.exerciseTranslations.exerciseId, dbInstance.exerciseTranslations.languageCode],
-        ),
-      );
+            companion,
+            onConflict: drift.DoUpdate(
+              (old) => companion,
+              target: [
+                dbInstance.exerciseTranslations.exerciseId,
+                dbInstance.exerciseTranslations.languageCode
+              ],
+            ),
+          );
     }
   }
 
@@ -419,7 +438,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
   Exercise _mapRowToExercise(db.AppDatabase dbInstance, drift.QueryRow row) {
     final rawExercise = dbInstance.exercises.map(row.data);
     final displayName = row.readNullable<String>('display_name') ?? '';
-    final displayDescription = row.readNullable<String>('display_description') ?? '';
+    final displayDescription =
+        row.readNullable<String>('display_description') ?? '';
 
     final nameDe = row.readNullable<String>('name_de') ?? displayName;
     final nameEn = row.readNullable<String>('name_en') ?? displayName;
@@ -437,8 +457,10 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       descriptionEn: descEn,
       categoryName: rawExercise.categoryName ?? 'Other',
       imagePath: rawExercise.imagePath,
-      primaryMuscles: WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesPrimary),
-      secondaryMuscles: WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesSecondary),
+      primaryMuscles:
+          WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesPrimary),
+      secondaryMuscles:
+          WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesSecondary),
     );
   }
 
@@ -447,9 +469,10 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     db.AppDatabase dbInstance,
     db.Exercise row,
   ) async {
-    final translations = await (dbInstance.select(dbInstance.exerciseTranslations)
-          ..where((t) => t.exerciseId.equals(row.id)))
-        .get();
+    final translations =
+        await (dbInstance.select(dbInstance.exerciseTranslations)
+              ..where((t) => t.exerciseId.equals(row.id)))
+            .get();
 
     String nameDe = '';
     String nameEn = '';
@@ -482,8 +505,10 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       descriptionEn: descriptionEn,
       categoryName: row.categoryName ?? 'Other',
       imagePath: row.imagePath,
-      primaryMuscles: WorkoutLocalDataSource._parseMuscleList(row.musclesPrimary),
-      secondaryMuscles: WorkoutLocalDataSource._parseMuscleList(row.musclesSecondary),
+      primaryMuscles:
+          WorkoutLocalDataSource._parseMuscleList(row.musclesPrimary),
+      secondaryMuscles:
+          WorkoutLocalDataSource._parseMuscleList(row.musclesSecondary),
     );
   }
 }

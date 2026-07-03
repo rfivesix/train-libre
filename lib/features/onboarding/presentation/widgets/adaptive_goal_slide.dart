@@ -45,19 +45,23 @@ class AdaptiveGoalSlide extends StatelessWidget {
           Text(
             l10n.onboardingAdaptiveGoalTitle,
             textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingAdaptiveGoalSubtitle,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 16),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           PlatformAdaptiveDropdownFormField<BodyweightGoal>(
             initialValue: selectedGoal,
             decoration: InputDecoration(
               labelText: l10n.adaptiveGoalDirectionLabel,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
             items: BodyweightGoal.values
                 .map(
@@ -77,7 +81,8 @@ class AdaptiveGoalSlide extends StatelessWidget {
             initialValue: selectedPriorActivityLevel,
             decoration: InputDecoration(
               labelText: l10n.adaptivePriorActivityLabel,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
             items: PriorActivityLevel.values
                 .map(
@@ -102,7 +107,8 @@ class AdaptiveGoalSlide extends StatelessWidget {
             initialValue: selectedExtraCardioHoursOption,
             decoration: InputDecoration(
               labelText: l10n.adaptiveExtraCardioLabel,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
             items: ExtraCardioHoursCatalog.supportedOptions
                 .map(
@@ -124,7 +130,8 @@ class AdaptiveGoalSlide extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.adaptiveRatePerWeekLabel,
-            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: DesignConstants.spacingM),
           Wrap(
@@ -141,17 +148,26 @@ class AdaptiveGoalSlide extends StatelessWidget {
                   label: Text(
                     _rateLabel(l10n, option.kgPerWeek),
                     style: TextStyle(
-                      color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected
+                          ? theme.colorScheme.onPrimary
+                          : theme.colorScheme.onSurface,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
                   selected: isSelected,
-                  onSelected: (_) => onTargetRateKgPerWeekChanged(option.kgPerWeek),
+                  onSelected: (_) =>
+                      onTargetRateKgPerWeekChanged(option.kgPerWeek),
                   selectedColor: theme.colorScheme.primary,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.5),
                   showCheckmark: false,
-                  padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM, vertical: DesignConstants.spacingS),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingM,
+                      vertical: DesignConstants.spacingS),
+                  shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM)),
                 ),
               );
             }).toList(growable: false),

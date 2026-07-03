@@ -635,11 +635,12 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final hasWorkoutSummary =
         context.select<DiaryViewModel, bool>((vm) => vm.workoutSummary != null);
     final l10n = AppLocalizations.of(context)!;
-    final double appBarHeight = MediaQuery.paddingOf(context).top; // + kToolbarHeight;
+    final double appBarHeight =
+        MediaQuery.paddingOf(context).top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
-    const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
+    const EdgeInsets basePadding = DesignConstants
+        .cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(
@@ -680,11 +681,14 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   if (dailyNutrition != null &&
-                                      data.selectedDate.isSameDate(DateTime.now()))
+                                      data.selectedDate
+                                          .isSameDate(DateTime.now()))
                                     RecommendationBanner(
-                                      currentCalories: dailyNutrition.targetCalories,
+                                      currentCalories:
+                                          dailyNutrition.targetCalories,
                                     ),
-                                  AppSectionHeader(title: l10n.today_overview_text),
+                                  AppSectionHeader(
+                                      title: l10n.today_overview_text),
                                   if (dailyNutrition != null)
                                     RepaintBoundary(
                                       key: _macroSummaryKey,
@@ -692,7 +696,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                         nutritionData: dailyNutrition,
                                         l10n: l10n,
                                         isExpandedView: false,
-                                        showSugarInOverview: data.showSugarInOverview,
+                                        showSugarInOverview:
+                                            data.showSugarInOverview,
                                       ),
                                     ),
                                 ],
@@ -734,7 +739,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                   return const SizedBox.shrink();
                                 }
                                 return TodaysWorkoutSummaryCard(
-                                  duration: workoutSummary['duration'] as Duration,
+                                  duration:
+                                      workoutSummary['duration'] as Duration,
                                   volume: workoutSummary['volume'] as double,
                                   sets: workoutSummary['sets'] as int,
                                   workoutCount: workoutSummary['count'] as int,
@@ -769,7 +775,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   ),
                 ),
                 SliverPadding(
-                  padding: EdgeInsets.only(left: finalPadding.left,
+                  padding: EdgeInsets.only(
+                    left: finalPadding.left,
                     right: finalPadding.right,
                     bottom: finalPadding.bottom,
                   ),
@@ -780,7 +787,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const SizedBox(height: DesignConstants.spacingXL),
-                          AppSectionHeader(title: l10n.measurementWeightCapslock),
+                          AppSectionHeader(
+                              title: l10n.measurementWeightCapslock),
                           const WeightChartCard(),
                           const BottomContentSpacer(),
                         ],
@@ -1067,7 +1075,9 @@ class _DiaryDateNavigator extends StatelessWidget {
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
             onTap: onPickDate,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXS, vertical: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingXS,
+                  vertical: DesignConstants.spacingS),
               child: Text(
                 title,
                 maxLines: 1,
@@ -1225,7 +1235,8 @@ class _MealCardState extends State<_MealCard> {
                         const SizedBox(height: DesignConstants.spacingXS),
                         TextButton(
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 0,
                               vertical: DesignConstants.spacingXS,
                             ),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,

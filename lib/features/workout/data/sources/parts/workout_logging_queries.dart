@@ -291,13 +291,13 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
   Stream<List<WorkoutLog>> watchFullWorkoutLogs() {
     final dbInstance = DatabaseHelper.instance.dbInstance;
     final query = dbInstance.select(dbInstance.workoutLogs)
-          ..where((tbl) => tbl.status.equals('completed'))
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                  expression: t.startTime,
-                  mode: drift.OrderingMode.desc,
-                ),
-          ]);
+      ..where((tbl) => tbl.status.equals('completed'))
+      ..orderBy([
+        (t) => drift.OrderingTerm(
+              expression: t.startTime,
+              mode: drift.OrderingMode.desc,
+            ),
+      ]);
     return query.watch().asyncMap((rows) => _loadWorkoutLogsWithSets(rows));
   }
 
@@ -412,9 +412,10 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
     final query = dbInstance.select(dbInstance.setLogs)
       ..where((tbl) => tbl.workoutLogId.equals(logRow.id))
       ..orderBy([(t) => drift.OrderingTerm(expression: t.logOrder)]);
-      
+
     yield* query.watch().map(
-          (rows) => rows.map((r) => _mapSetLogToModel(r, workoutLogId)).toList(),
+          (rows) =>
+              rows.map((r) => _mapSetLogToModel(r, workoutLogId)).toList(),
         );
   }
 
@@ -438,7 +439,8 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           // Check exercise mapping (name -> UUID).
           // Search for the exercise in the DB. If custom and present in the backup, it should already be imported.
           final exModel = re.exercise;
-          final exercise = await getExerciseByName(exModel.nameEn) ?? await getExerciseByName(exModel.nameDe);
+          final exercise = await getExerciseByName(exModel.nameEn) ??
+              await getExerciseByName(exModel.nameDe);
 
           if (exercise == null) continue;
 

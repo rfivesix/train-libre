@@ -60,7 +60,8 @@ class StatisticsStepsCard extends StatelessWidget {
                       if (chipText != null && chipText!.isNotEmpty) ...[
                         const SizedBox(width: DesignConstants.spacingS),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.spacingS,
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
@@ -100,7 +101,8 @@ class StatisticsStepsCard extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Padding(
-                    padding: const EdgeInsets.only(right: DesignConstants.spacingS),
+                    padding:
+                        const EdgeInsets.only(right: DesignConstants.spacingS),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -240,7 +242,8 @@ class StatisticsStepsCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXS,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.spacingXS,
                             vertical: 1,
                           ),
                           child: Text(
@@ -266,7 +269,8 @@ class StatisticsStepsCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXS,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: DesignConstants.spacingXS,
                               vertical: 1,
                             ),
                             child: Text(
@@ -315,7 +319,8 @@ class StatisticsStepsCard extends StatelessWidget {
 
                 return Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: isSevenDays ? 3.0 : 1.0,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSevenDays ? 3.0 : 1.0,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,

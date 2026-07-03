@@ -73,7 +73,8 @@ class WorkoutRepository implements IWorkoutRepository {
       _localDataSource.updatePauseTime(routineExerciseId, seconds);
 
   @override
-  Future<void> updateRoutineExerciseNotes(int routineExerciseId, String? notes) =>
+  Future<void> updateRoutineExerciseNotes(
+          int routineExerciseId, String? notes) =>
       _localDataSource.updateRoutineExerciseNotes(routineExerciseId, notes);
 
   @override

@@ -125,7 +125,8 @@ class _GlassBottomMenuSheet extends StatelessWidget {
             if (title != null) ...[
               const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingL),
                 child: Text(
                   title!,
                   textAlign: TextAlign.center,
@@ -138,7 +139,8 @@ class _GlassBottomMenuSheet extends StatelessWidget {
             if (contentBuilder != null) ...[
               const SizedBox(height: DesignConstants.spacingS),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingM),
                 child: contentBuilder!(
                   context,
                   () => Navigator.of(context).maybePop(),
@@ -155,7 +157,8 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                       children: List.generate(actions.length, (i) {
                         final a = actions[i];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+                          padding: const EdgeInsets.only(
+                              bottom: DesignConstants.spacingS),
                           child: _GlassTile(
                             icon: a.icon,
                             customIcon: a.customIcon, // <--- Pass new value
@@ -291,14 +294,16 @@ class _GlassTile extends StatelessWidget {
         customIcon != null ? customIcon! : Icon(icon, size: 22);
 
     final tileContent = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: DesignConstants.spacingM),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 14, vertical: DesignConstants.spacingM),
       child: Row(
         children: [
           Container(
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)
                   : Colors.white.withValues(alpha: 0.2),
@@ -410,7 +415,8 @@ Future<bool> showDeleteConfirmation(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingS),
             child: Text(
               effectiveContent,
               textAlign: TextAlign.center,
@@ -475,7 +481,8 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingS),
             child: Text(
               l10n.workoutConflictContent,
               textAlign: TextAlign.center,
@@ -528,4 +535,3 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
 
   return result ?? ActiveWorkoutConflictResult.cancel;
 }
-

@@ -158,11 +158,10 @@ class ProfileLocalDataSource {
       throw ArgumentError('Invalid arguments');
     }
     final query = dbInstance.select(dbInstance.measurements)
-      ..where(
-          (tbl) => tbl.type.equals(type) & tbl.date.isBetweenValues(s, e))
+      ..where((tbl) => tbl.type.equals(type) & tbl.date.isBetweenValues(s, e))
       ..orderBy([
-        (t) => drift.OrderingTerm(
-            expression: t.date, mode: drift.OrderingMode.asc)
+        (t) =>
+            drift.OrderingTerm(expression: t.date, mode: drift.OrderingMode.asc)
       ]);
     return query.watch().map((rows) {
       return rows

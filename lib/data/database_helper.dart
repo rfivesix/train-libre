@@ -53,8 +53,10 @@ class DatabaseHelper {
         await dbInst.customStatement('DELETE FROM health_step_segments');
         await dbInst.customStatement('DELETE FROM health_export_records');
         await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
-        await dbInst.customStatement('DELETE FROM sleep_canonical_stage_segments');
-        await dbInst.customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
+        await dbInst
+            .customStatement('DELETE FROM sleep_canonical_stage_segments');
+        await dbInst
+            .customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
         await dbInst.customStatement('DELETE FROM sleep_canonical_sessions');
         await dbInst.customStatement('DELETE FROM sleep_raw_imports');
         await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
@@ -402,7 +404,8 @@ class DatabaseHelper {
   Future<double?> getLatestWeight() async {
     final sessions = await getMeasurementSessions();
     for (final session in sessions) {
-      final m = session.measurements.where((m) => m.type == 'weight').firstOrNull;
+      final m =
+          session.measurements.where((m) => m.type == 'weight').firstOrNull;
       if (m != null) return m.value;
     }
     return null;

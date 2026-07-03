@@ -138,7 +138,8 @@ class AnalyticsCardBase {
         ),
         if (chipText != null && chipText.isNotEmpty)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingS,
               vertical: 3,
             ),
             decoration: BoxDecoration(
@@ -197,7 +198,8 @@ class AnalyticsCardBase {
   static Widget buildRangeChip(BuildContext context, String label) {
     final chipColor = Theme.of(context).colorScheme.primary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingS,
         vertical: 3,
       ),
       decoration: BoxDecoration(

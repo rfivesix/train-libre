@@ -28,7 +28,8 @@ Future<bool> showPrePermissionDialog({
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS),
               child: Text(
                 body,
                 textAlign: TextAlign.center,

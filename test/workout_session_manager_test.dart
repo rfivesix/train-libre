@@ -302,21 +302,21 @@ void main() {
             ),
           );
       await database.into(database.exerciseTranslations).insert(
-        db.ExerciseTranslationsCompanion.insert(
-          exerciseId: 'catalog-bench-1',
-          languageCode: 'de',
-          name: 'Bankdruecken Alt',
-          description: const drift.Value('alt'),
-        ),
-      );
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-bench-1',
+              languageCode: 'de',
+              name: 'Bankdruecken Alt',
+              description: const drift.Value('alt'),
+            ),
+          );
       await database.into(database.exerciseTranslations).insert(
-        db.ExerciseTranslationsCompanion.insert(
-          exerciseId: 'catalog-bench-1',
-          languageCode: 'en',
-          name: 'Bench Press Old',
-          description: const drift.Value('old'),
-        ),
-      );
+            db.ExerciseTranslationsCompanion.insert(
+              exerciseId: 'catalog-bench-1',
+              languageCode: 'en',
+              name: 'Bench Press Old',
+              description: const drift.Value('old'),
+            ),
+          );
 
       final log = await workoutDb.startWorkout(routineName: 'Rename Case');
       await workoutDb.insertSetLog(
@@ -339,13 +339,16 @@ void main() {
         description: const drift.Value('neu'),
       );
       await database.into(database.exerciseTranslations).insert(
-        deCompanion,
-        onConflict: drift.DoUpdate(
-          (old) => deCompanion,
-          target: [database.exerciseTranslations.exerciseId, database.exerciseTranslations.languageCode],
-        ),
-      );
-      
+            deCompanion,
+            onConflict: drift.DoUpdate(
+              (old) => deCompanion,
+              target: [
+                database.exerciseTranslations.exerciseId,
+                database.exerciseTranslations.languageCode
+              ],
+            ),
+          );
+
       final enCompanion = db.ExerciseTranslationsCompanion.insert(
         exerciseId: 'catalog-bench-1',
         languageCode: 'en',
@@ -353,12 +356,15 @@ void main() {
         description: const drift.Value('new'),
       );
       await database.into(database.exerciseTranslations).insert(
-        enCompanion,
-        onConflict: drift.DoUpdate(
-          (old) => enCompanion,
-          target: [database.exerciseTranslations.exerciseId, database.exerciseTranslations.languageCode],
-        ),
-      );
+            enCompanion,
+            onConflict: drift.DoUpdate(
+              (old) => enCompanion,
+              target: [
+                database.exerciseTranslations.exerciseId,
+                database.exerciseTranslations.languageCode
+              ],
+            ),
+          );
 
       await manager.restoreWorkoutSession(log);
 
@@ -382,19 +388,19 @@ void main() {
               ),
             );
         await database.into(database.exerciseTranslations).insert(
-          db.ExerciseTranslationsCompanion.insert(
-            exerciseId: 'catalog-missing-1',
-            languageCode: 'de',
-            name: 'Historische Uebung',
-          ),
-        );
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'catalog-missing-1',
+                languageCode: 'de',
+                name: 'Historische Uebung',
+              ),
+            );
         await database.into(database.exerciseTranslations).insert(
-          db.ExerciseTranslationsCompanion.insert(
-            exerciseId: 'catalog-missing-1',
-            languageCode: 'en',
-            name: 'Historical Exercise',
-          ),
-        );
+              db.ExerciseTranslationsCompanion.insert(
+                exerciseId: 'catalog-missing-1',
+                languageCode: 'en',
+                name: 'Historical Exercise',
+              ),
+            );
 
         final log = await workoutDb.startWorkout(routineName: 'Missing Case');
         await workoutDb.insertSetLog(
@@ -613,13 +619,14 @@ void main() {
 
       expect(manager.exercises.first.id, 400);
 
-      await manager.reorderExercise(0, 2); // Move 400 from index 0 to after index 1 (newIndex = 2 in ReorderableListView logic)
+      await manager.reorderExercise(0,
+          2); // Move 400 from index 0 to after index 1 (newIndex = 2 in ReorderableListView logic)
 
       expect(manager.exercises.first.id, 500);
       expect(manager.exercises.last.id, 400);
-      });
+    });
 
-      test('updatePauseTime updates memory and repository', () async {
+    test('updatePauseTime updates memory and repository', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
         id: 1,
@@ -644,9 +651,9 @@ void main() {
 
       expect(manager.pauseTimes[400], 120);
       expect(manager.setLogs[4001]!.restTimeSeconds, 120);
-      });
+    });
 
-      test('updateExerciseNotes updates memory and repository', () async {
+    test('updateExerciseNotes updates memory and repository', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
         id: 1,
@@ -670,9 +677,9 @@ void main() {
       await manager.updateExerciseNotes('Exercise A', 'Focus on form');
 
       expect(manager.exercises.first.notes, 'Focus on form');
-      });
+    });
 
-      test('clearLocalSessionState resets manager state', () async {
+    test('clearLocalSessionState resets manager state', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       await manager.startWorkout(log, []);
 
@@ -681,46 +688,46 @@ void main() {
       expect(manager.workoutLog, isNull);
       expect(manager.exercises, isEmpty);
       expect(manager.isActive, isFalse);
-      });
+    });
 
-      test('adjustRestTime adds and subtracts remaining rest seconds', () async {
-        final log = await workoutDb.startWorkout(routineName: 'Session');
-        final exerciseA = const model.Exercise(
-          id: 1,
-          nameDe: 'A',
-          nameEn: 'Exercise A',
-          descriptionDe: '',
-          descriptionEn: '',
-          categoryName: 'Strength',
-          primaryMuscles: ['x'],
-          secondaryMuscles: [],
-        );
-        await manager.startWorkout(log, [
-          RoutineExercise(
-            id: 400,
-            exercise: exerciseA,
-            pauseSeconds: 60,
-            setTemplates: [SetTemplate(id: 4001, setType: 'normal')],
-          ),
-        ]);
-        await _waitFor(() => manager.setLogs.length == 1);
+    test('adjustRestTime adds and subtracts remaining rest seconds', () async {
+      final log = await workoutDb.startWorkout(routineName: 'Session');
+      final exerciseA = const model.Exercise(
+        id: 1,
+        nameDe: 'A',
+        nameEn: 'Exercise A',
+        descriptionDe: '',
+        descriptionEn: '',
+        categoryName: 'Strength',
+        primaryMuscles: ['x'],
+        secondaryMuscles: [],
+      );
+      await manager.startWorkout(log, [
+        RoutineExercise(
+          id: 400,
+          exercise: exerciseA,
+          pauseSeconds: 60,
+          setTemplates: [SetTemplate(id: 4001, setType: 'normal')],
+        ),
+      ]);
+      await _waitFor(() => manager.setLogs.length == 1);
 
-        // complete set to trigger rest timer
-        await manager.updateSet(4001, isCompleted: true);
-        expect(manager.remainingRestSeconds, 60);
+      // complete set to trigger rest timer
+      await manager.updateSet(4001, isCompleted: true);
+      expect(manager.remainingRestSeconds, 60);
 
-        // Adjust positive
-        manager.adjustRestTime(15);
-        expect(manager.remainingRestSeconds, 75);
+      // Adjust positive
+      manager.adjustRestTime(15);
+      expect(manager.remainingRestSeconds, 75);
 
-        // Adjust negative
-        manager.adjustRestTime(-30);
-        expect(manager.remainingRestSeconds, 45);
+      // Adjust negative
+      manager.adjustRestTime(-30);
+      expect(manager.remainingRestSeconds, 45);
 
-        // Adjust below zero cancels rest
-        manager.adjustRestTime(-50);
-        expect(manager.remainingRestSeconds, 0);
-        expect(manager.showRestDone, isTrue);
-      });
-      });
-      }
+      // Adjust below zero cancels rest
+      manager.adjustRestTime(-50);
+      expect(manager.remainingRestSeconds, 0);
+      expect(manager.showRestDone, isTrue);
+    });
+  });
+}

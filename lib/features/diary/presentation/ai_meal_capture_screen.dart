@@ -56,7 +56,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   bool _isOffDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized =
+        await BasisDataManager.instance.isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -100,32 +101,51 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     // English
     if (lower.contains('breakfast')) return 'mealtypeBreakfast';
     if (lower.contains('lunch')) return 'mealtypeLunch';
-    if (lower.contains('dinner') || lower.contains('supper')) return 'mealtypeDinner';
+    if (lower.contains('dinner') || lower.contains('supper'))
+      return 'mealtypeDinner';
     if (lower.contains('snack')) return 'mealtypeSnack';
 
     // German
-    if (lower.contains('frühstück') || lower.contains('fruhstuck')) return 'mealtypeBreakfast';
+    if (lower.contains('frühstück') || lower.contains('fruhstuck'))
+      return 'mealtypeBreakfast';
     if (lower.contains('mittag')) return 'mealtypeLunch';
     if (lower.contains('abend')) return 'mealtypeDinner';
-    if (lower.contains('snack') || lower.contains('zwischenmahlzeit')) return 'mealtypeSnack';
+    if (lower.contains('snack') || lower.contains('zwischenmahlzeit'))
+      return 'mealtypeSnack';
 
     // French
-    if (lower.contains('petit-déjeuner') || lower.contains('petit déjeuner') || lower.contains('matin')) return 'mealtypeBreakfast';
-    if (lower.contains('déjeuner') || lower.contains('dejeuner') || lower.contains('midi')) return 'mealtypeLunch';
-    if (lower.contains('dîner') || lower.contains('diner') || lower.contains('souper') || lower.contains('soir')) return 'mealtypeDinner';
-    if (lower.contains('collation') || lower.contains('goûter') || lower.contains('gouter')) return 'mealtypeSnack';
+    if (lower.contains('petit-déjeuner') ||
+        lower.contains('petit déjeuner') ||
+        lower.contains('matin')) return 'mealtypeBreakfast';
+    if (lower.contains('déjeuner') ||
+        lower.contains('dejeuner') ||
+        lower.contains('midi')) return 'mealtypeLunch';
+    if (lower.contains('dîner') ||
+        lower.contains('diner') ||
+        lower.contains('souper') ||
+        lower.contains('soir')) return 'mealtypeDinner';
+    if (lower.contains('collation') ||
+        lower.contains('goûter') ||
+        lower.contains('gouter')) return 'mealtypeSnack';
 
     // Italian
     if (lower.contains('colazione')) return 'mealtypeBreakfast';
     if (lower.contains('pranzo')) return 'mealtypeLunch';
     if (lower.contains('cena')) return 'mealtypeDinner';
-    if (lower.contains('spuntino') || lower.contains('merenda')) return 'mealtypeSnack';
+    if (lower.contains('spuntino') || lower.contains('merenda'))
+      return 'mealtypeSnack';
 
     // Japanese
-    if (lower.contains('朝食') || lower.contains('朝ごはん')) return 'mealtypeBreakfast';
-    if (lower.contains('昼食') || lower.contains('昼ごはん') || lower.contains('ランチ')) return 'mealtypeLunch';
-    if (lower.contains('夕食') || lower.contains('晩ごはん') || lower.contains('ディナー') || lower.contains('夜ごはん')) return 'mealtypeDinner';
-    if (lower.contains('間食') || lower.contains('おやつ') || lower.contains('スナック')) return 'mealtypeSnack';
+    if (lower.contains('朝食') || lower.contains('朝ごはん'))
+      return 'mealtypeBreakfast';
+    if (lower.contains('昼食') || lower.contains('昼ごはん') || lower.contains('ランチ'))
+      return 'mealtypeLunch';
+    if (lower.contains('夕食') ||
+        lower.contains('晩ごはん') ||
+        lower.contains('ディナー') ||
+        lower.contains('夜ごはん')) return 'mealtypeDinner';
+    if (lower.contains('間食') || lower.contains('おやつ') || lower.contains('スナック'))
+      return 'mealtypeSnack';
 
     return null;
   }
@@ -350,42 +370,43 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               body: l10n.offPlaceholderText,
               icon: LucideIcons.database,
               onDownloadPressed: () async {
-                await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+                await BasisDataManager.instance
+                    .promptOffDatabaseDownloadIfFirstTime(context);
                 await _checkDbStatus();
               },
             )
           : Column(
               children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_images.isNotEmpty) ...[
-                    _buildUnifiedPhotoList(theme),
-                    const SizedBox(height: 20),
-                  ],
-                ],
-              ),
-            ),
-          ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_images.isNotEmpty) ...[
+                          _buildUnifiedPhotoList(theme),
+                          const SizedBox(height: 20),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
 
-          // Unified Input Area
-          _buildUnifiedInputArea(l10n, theme),
+                // Unified Input Area
+                _buildUnifiedInputArea(l10n, theme),
 
-          // Analyze button — AI gradient CTA with inline loading
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
-            child: _AiAnalyzeButton(
-              onPressed: (_hasInput && !_isAnalyzing) ? _analyze : null,
-              isAnalyzing: _isAnalyzing,
-              l10n: l10n,
-              pulseController: _analyzeButtonAnimationController,
+                // Analyze button — AI gradient CTA with inline loading
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
+                  child: _AiAnalyzeButton(
+                    onPressed: (_hasInput && !_isAnalyzing) ? _analyze : null,
+                    isAnalyzing: _isAnalyzing,
+                    l10n: l10n,
+                    pulseController: _analyzeButtonAnimationController,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -400,7 +421,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         SizedBox(
           height: 140,
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingXL),
             scrollDirection: Axis.horizontal,
             itemCount: _images.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
@@ -409,7 +431,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ),
         const SizedBox(height: DesignConstants.spacingS),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
+          padding:
+              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
           child: Text(
             '${_images.length} / $_maxImages',
             style: theme.textTheme.bodySmall?.copyWith(
@@ -464,7 +487,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     ThemeData theme,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
+      padding:
+          const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
       child: Column(
         children: [
           TextField(
@@ -480,7 +504,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               ),
               filled: true,
               fillColor: theme.colorScheme.surfaceContainerLow,
-              contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingL,
                 vertical: DesignConstants.spacingM,
               ),
               enabledBorder: OutlineInputBorder(

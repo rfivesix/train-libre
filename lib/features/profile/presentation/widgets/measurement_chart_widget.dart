@@ -184,9 +184,8 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
       _touchedIndex = null;
     });
     final repo = widget.repository ?? context.read<IProfileRepository>();
-    _chartDataSubscription = repo
-        .watchChartDataForTypeAndRange(chartType, dateRange)
-        .listen((data) {
+    _chartDataSubscription =
+        repo.watchChartDataForTypeAndRange(chartType, dateRange).listen((data) {
       if (mounted) {
         final sorted = List<ChartDataPoint>.from(data)
           ..sort((a, b) => a.date.compareTo(b.date));

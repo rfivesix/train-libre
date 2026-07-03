@@ -167,8 +167,6 @@ class DiaryViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-
-
   void setSelectedDate(DateTime date) {
     final diaryDate = normalizeDiaryDate(date);
     selectedDateNotifier.value = diaryDate;
@@ -185,27 +183,32 @@ class DiaryViewModel extends ChangeNotifier {
     notifyListeners();
 
     // Re-establish reactive stream listeners for the new selected date
-    _goalsSubscription = _nutritionRepo.watchGoalsForDate(diaryDate).listen((goals) {
+    _goalsSubscription =
+        _nutritionRepo.watchGoalsForDate(diaryDate).listen((goals) {
       _activeGoals = goals;
       _updateCalculatedState();
     });
 
-    _entriesSubscription = _nutritionRepo.watchEntriesForDate(diaryDate).listen((entries) {
+    _entriesSubscription =
+        _nutritionRepo.watchEntriesForDate(diaryDate).listen((entries) {
       _activeEntries = entries;
       _updateCalculatedState();
     });
 
-    _fluidsSubscription = _nutritionRepo.watchFluidEntriesForDate(diaryDate).listen((fluids) {
+    _fluidsSubscription =
+        _nutritionRepo.watchFluidEntriesForDate(diaryDate).listen((fluids) {
       _activeFluids = fluids;
       _updateCalculatedState();
     });
 
-    _supplementsSubscription = _supplementRepo.watchSupplementsForDate(diaryDate).listen((supps) {
+    _supplementsSubscription =
+        _supplementRepo.watchSupplementsForDate(diaryDate).listen((supps) {
       _activeSupplements = supps;
       _updateCalculatedState();
     });
 
-    _supplementLogsSubscription = _supplementRepo.watchSupplementLogsForDate(diaryDate).listen((logs) {
+    _supplementLogsSubscription =
+        _supplementRepo.watchSupplementLogsForDate(diaryDate).listen((logs) {
       _activeSupplementLogs = logs;
       _updateCalculatedState();
     });
@@ -265,21 +268,26 @@ class DiaryViewModel extends ChangeNotifier {
       final targetCaffeine = await _prefsRepo.getTargetCaffeine() ?? 400;
       showSugarInOverview = await _prefsRepo.getShowSugarInDiaryOverview();
 
-      final archivedEntries = _activeEntries.where((e) => e.archiveLocalId != null).toList();
-      final legacyEntries = _activeEntries.where((e) => e.archiveLocalId == null).toList();
+      final archivedEntries =
+          _activeEntries.where((e) => e.archiveLocalId != null).toList();
+      final legacyEntries =
+          _activeEntries.where((e) => e.archiveLocalId == null).toList();
 
       final Map<int, FoodItem> archiveProductsMap = {};
       final Map<String, FoodItem> legacyProductsMap = {};
 
       if (archivedEntries.isNotEmpty) {
-        final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
-        final archivedProducts = await _nutritionRepo.getProductsByArchiveIds(archiveIds);
+        final archiveIds =
+            archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+        final archivedProducts =
+            await _nutritionRepo.getProductsByArchiveIds(archiveIds);
         archiveProductsMap.addAll(archivedProducts);
       }
 
       if (legacyEntries.isNotEmpty) {
         final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
-        final legacyProducts = await _nutritionRepo.getProductsByBarcodes(barcodes);
+        final legacyProducts =
+            await _nutritionRepo.getProductsByBarcodes(barcodes);
         for (final p in legacyProducts) {
           legacyProductsMap[p.barcode] = p;
         }
@@ -306,7 +314,8 @@ class DiaryViewModel extends ChangeNotifier {
       fluidEntries = _activeFluids;
       trackedSupplements = state.trackedSupplements;
       workoutSummary = state.workoutSummary;
-      targetSteps = _activeGoals?.targetSteps ?? StepsSyncService.defaultStepsGoal;
+      targetSteps =
+          _activeGoals?.targetSteps ?? StepsSyncService.defaultStepsGoal;
 
       isLoading = false;
       notifyListeners();

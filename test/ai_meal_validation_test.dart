@@ -252,7 +252,8 @@ void main() {
     });
 
     test('AiRepairCandidate prompt line', () {
-      final f = food('Chicken breast', kcal: 120, protein: 24, carbs: 0, fat: 2);
+      final f =
+          food('Chicken breast', kcal: 120, protein: 24, carbs: 0, fat: 2);
       final candidate = AiRepairCandidate.fromFoodItem(f);
       expect(candidate.exactName, 'Chicken breast');
       expect(candidate.kcalPer100g, 120);
@@ -284,7 +285,11 @@ void main() {
         ),
         mode: AiValidationMode.capture,
       );
-      expect(result.allIssues.any((issue) => issue.code == 'anchor_kcal_deviation' || issue.code == 'anchor_kcal_extreme'), isFalse);
+      expect(
+          result.allIssues.any((issue) =>
+              issue.code == 'anchor_kcal_deviation' ||
+              issue.code == 'anchor_kcal_extreme'),
+          isFalse);
 
       // 2. Deviates by >25% (e.g. 290 kcal is below 400 * 0.75 = 300 kcal) -> warning
       result = await engine.validateMealCandidate(
@@ -294,7 +299,10 @@ void main() {
         ),
         mode: AiValidationMode.capture,
       );
-      expect(result.allIssues.any((issue) => issue.code == 'anchor_kcal_deviation'), isTrue);
+      expect(
+          result.allIssues
+              .any((issue) => issue.code == 'anchor_kcal_deviation'),
+          isTrue);
 
       // 3. Deviates by >50% (e.g. 190 kcal is below 400 * 0.50 = 200 kcal) -> error
       result = await engine.validateMealCandidate(
@@ -304,12 +312,16 @@ void main() {
         ),
         mode: AiValidationMode.capture,
       );
-      expect(result.allIssues.any((issue) => issue.code == 'anchor_kcal_extreme'), isTrue);
+      expect(
+          result.allIssues.any((issue) => issue.code == 'anchor_kcal_extreme'),
+          isTrue);
     });
 
     test('C2: expected macro profile percent checks', () async {
       final engine = engineWith({
-        'high fat food': [food('High Fat Food', kcal: 200, protein: 5, carbs: 5, fat: 18)], // P10% C10% F81% approx
+        'high fat food': [
+          food('High Fat Food', kcal: 200, protein: 5, carbs: 5, fat: 18)
+        ], // P10% C10% F81% approx
       });
 
       final context = const AiMealContext(
@@ -328,7 +340,10 @@ void main() {
         mode: AiValidationMode.capture,
       );
 
-      expect(result.allIssues.any((issue) => issue.code == 'anchor_macro_profile_deviation'), isTrue);
+      expect(
+          result.allIssues
+              .any((issue) => issue.code == 'anchor_macro_profile_deviation'),
+          isTrue);
     });
 
     test('C3: cooking state mismatch escalation to error', () async {
@@ -352,7 +367,8 @@ void main() {
         mode: AiValidationMode.capture,
       );
 
-      final issue = result.allIssues.firstWhere((issue) => issue.code == 'state_mismatch');
+      final issue = result.allIssues
+          .firstWhere((issue) => issue.code == 'state_mismatch');
       expect(issue.severity, AiValidationSeverity.error);
     });
   });

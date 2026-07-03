@@ -53,7 +53,8 @@ class SupplementSummaryWidget extends StatelessWidget {
           return GestureDetector(
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+              padding: const EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingXS),
               child: GlassProgressBar(
                 label: supplement.getLocalizedName(context),
                 unit: supplement.unit,

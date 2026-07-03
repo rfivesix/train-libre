@@ -21,7 +21,8 @@ class TimeRangeFilter extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal,
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.cardPaddingInternal,
         ),
         child: Row(
           children: List.generate(ranges.length, (index) {

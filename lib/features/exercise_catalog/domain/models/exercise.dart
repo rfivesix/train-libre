@@ -128,7 +128,8 @@ class Exercise {
       if (id != null) 'id': id,
       if (uuid != null) 'uuid': uuid,
       'source': source,
-      if (replacesExerciseId != null) 'replaces_exercise_id': replacesExerciseId,
+      if (replacesExerciseId != null)
+        'replaces_exercise_id': replacesExerciseId,
       'name_de': nameDe,
       'name_en': nameEn,
       'description_de': descriptionDe,

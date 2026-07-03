@@ -120,5 +120,6 @@ class AiRateLimitException extends AiServiceException {
 }
 
 class AiUnsupportedFeatureException extends AiServiceException {
-  const AiUnsupportedFeatureException([super.message = 'Feature not supported.']);
+  const AiUnsupportedFeatureException(
+      [super.message = 'Feature not supported.']);
 }

@@ -220,10 +220,12 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                                 ? Colors.white.withValues(alpha: 0.05)
                                 : Colors.black.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                          borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusM),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: DesignConstants.spacingM,
                           vertical: 14,
                         ),
                       ),

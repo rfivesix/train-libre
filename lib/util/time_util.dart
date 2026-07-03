@@ -72,9 +72,8 @@ class TimerInputFormatter extends TextInputFormatter {
     }
 
     // Limit to 4 digits (MM:SS)
-    final String cleanDigits = digits.length > 4
-        ? digits.substring(digits.length - 4)
-        : digits;
+    final String cleanDigits =
+        digits.length > 4 ? digits.substring(digits.length - 4) : digits;
 
     // Pad to 4 characters with leading zeros
     final padded = cleanDigits.padLeft(4, '0');

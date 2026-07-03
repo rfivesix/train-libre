@@ -30,7 +30,8 @@ class MealReviewMacrosBar extends StatelessWidget {
         ),
         child: Text(
           '---',
-          style: theme.textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: theme.textTheme.labelSmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       );
     }
@@ -40,7 +41,8 @@ class MealReviewMacrosBar extends StatelessWidget {
       protein: nutrition.proteinRounded.toDouble(),
       carbs: nutrition.carbsRounded.toDouble(),
       fat: nutrition.fatRounded.toDouble(),
-      useBadges: Provider.of<ThemeService>(context, listen: false).useColorfulMacroBadges,
+      useBadges: Provider.of<ThemeService>(context, listen: false)
+          .useColorfulMacroBadges,
     );
   }
 }

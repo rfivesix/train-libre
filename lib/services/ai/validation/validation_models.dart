@@ -404,7 +404,8 @@ class AiValidationResult {
       buffer
         ..writeln('')
         ..writeln('CANDIDATES for item ${i + 1} ("${item.candidate.name}"):')
-        ..writeln('Choose the EXACT name from one of these real database entries:');
+        ..writeln(
+            'Choose the EXACT name from one of these real database entries:');
       for (final candidate in candidates) {
         buffer.writeln(candidate.toPromptLine());
       }

@@ -66,21 +66,26 @@ class ShareService {
 
     // 1. Fetch Food Entries and map them to Food Items
     final foodEntries = await dbHelper.getEntriesForDate(targetDate);
-    final archivedEntries = foodEntries.where((e) => e.archiveLocalId != null).toList();
-    final legacyEntries = foodEntries.where((e) => e.archiveLocalId == null).toList();
+    final archivedEntries =
+        foodEntries.where((e) => e.archiveLocalId != null).toList();
+    final legacyEntries =
+        foodEntries.where((e) => e.archiveLocalId == null).toList();
 
     final Map<int, FoodItem> archiveProductsMap = {};
     final Map<String, FoodItem> legacyProductsMap = {};
 
     if (archivedEntries.isNotEmpty) {
-      final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
-      final archivedProducts = await dbHelper.productLocalDataSource.getProductsByArchiveIds(archiveIds);
+      final archiveIds =
+          archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+      final archivedProducts = await dbHelper.productLocalDataSource
+          .getProductsByArchiveIds(archiveIds);
       archiveProductsMap.addAll(archivedProducts);
     }
 
     if (legacyEntries.isNotEmpty) {
       final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
-      final legacyProducts = await dbHelper.productLocalDataSource.getProductsByBarcodes(barcodes);
+      final legacyProducts =
+          await dbHelper.productLocalDataSource.getProductsByBarcodes(barcodes);
       for (final p in legacyProducts) {
         legacyProductsMap[p.barcode] = p;
       }

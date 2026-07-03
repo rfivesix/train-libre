@@ -105,13 +105,27 @@ extension RulesLogic on AiMealValidationEngine {
     bool stateMismatch = _hasStateMismatch(item.name, match.bestMatch!.name);
     if (!stateMismatch && item.stateHint != null) {
       final hint = item.stateHint!.toLowerCase();
-      final dbName = AiMealValidationEngine._normalizeText(match.bestMatch!.name);
+      final dbName =
+          AiMealValidationEngine._normalizeText(match.bestMatch!.name);
 
       bool isRawHint = hint == 'raw' || hint == 'roh';
-      bool isCookedHint = hint == 'cooked' || hint == 'boiled' || hint == 'gekocht' || hint == 'fried' || hint == 'gebraten' || hint == 'baked' || hint == 'gebacken';
+      bool isCookedHint = hint == 'cooked' ||
+          hint == 'boiled' ||
+          hint == 'gekocht' ||
+          hint == 'fried' ||
+          hint == 'gebraten' ||
+          hint == 'baked' ||
+          hint == 'gebacken';
 
       bool isRawDb = dbName.contains('raw') || dbName.contains('roh');
-      bool isCookedDb = dbName.contains('cooked') || dbName.contains('boiled') || dbName.contains('gekocht') || dbName.contains('fried') || dbName.contains('gebraten') || dbName.contains('baked') || dbName.contains('gebacken') || dbName.contains('zubereitet');
+      bool isCookedDb = dbName.contains('cooked') ||
+          dbName.contains('boiled') ||
+          dbName.contains('gekocht') ||
+          dbName.contains('fried') ||
+          dbName.contains('gebraten') ||
+          dbName.contains('baked') ||
+          dbName.contains('gebacken') ||
+          dbName.contains('zubereitet');
 
       if ((isRawHint && isCookedDb) || (isCookedHint && isRawDb)) {
         stateMismatch = true;
@@ -125,13 +139,26 @@ extension RulesLogic on AiMealValidationEngine {
       if (item.stateHint != null) {
         final hint = item.stateHint!.toLowerCase();
         bool isRawHint = hint == 'raw' || hint == 'roh';
-        bool isCookedHint = hint == 'cooked' || hint == 'boiled' || hint == 'gekocht' || hint == 'fried' || hint == 'gebraten' || hint == 'baked' || hint == 'gebacken';
+        bool isCookedHint = hint == 'cooked' ||
+            hint == 'boiled' ||
+            hint == 'gekocht' ||
+            hint == 'fried' ||
+            hint == 'gebraten' ||
+            hint == 'baked' ||
+            hint == 'gebacken';
 
         FoodItem? alternativeWithHintState;
         for (final alt in match.alternatives) {
           final altName = AiMealValidationEngine._normalizeText(alt.name);
           bool isRawAlt = altName.contains('raw') || altName.contains('roh');
-          bool isCookedAlt = altName.contains('cooked') || altName.contains('boiled') || altName.contains('gekocht') || altName.contains('fried') || altName.contains('gebraten') || altName.contains('baked') || altName.contains('gebacken') || altName.contains('zubereitet');
+          bool isCookedAlt = altName.contains('cooked') ||
+              altName.contains('boiled') ||
+              altName.contains('gekocht') ||
+              altName.contains('fried') ||
+              altName.contains('gebraten') ||
+              altName.contains('baked') ||
+              altName.contains('gebacken') ||
+              altName.contains('zubereitet');
 
           if ((isRawHint && isRawAlt) || (isCookedHint && isCookedAlt)) {
             alternativeWithHintState = alt;
@@ -150,7 +177,14 @@ extension RulesLogic on AiMealValidationEngine {
         } else {
           final dbName = AiMealValidationEngine._normalizeText(food.name);
           bool isRawDb = dbName.contains('raw') || dbName.contains('roh');
-          bool isCookedDb = dbName.contains('cooked') || dbName.contains('boiled') || dbName.contains('gekocht') || dbName.contains('fried') || dbName.contains('gebraten') || dbName.contains('baked') || dbName.contains('gebacken') || dbName.contains('zubereitet');
+          bool isCookedDb = dbName.contains('cooked') ||
+              dbName.contains('boiled') ||
+              dbName.contains('gekocht') ||
+              dbName.contains('fried') ||
+              dbName.contains('gebraten') ||
+              dbName.contains('baked') ||
+              dbName.contains('gebacken') ||
+              dbName.contains('zubereitet');
 
           if ((isRawHint && isCookedDb) || (isCookedHint && isRawDb)) {
             isExtremeMismatch = true;
@@ -160,10 +194,23 @@ extension RulesLogic on AiMealValidationEngine {
         final ai = AiMealValidationEngine._normalizeText(item.name);
         final db = AiMealValidationEngine._normalizeText(food.name);
         bool isRawAi = ai.contains('raw') || ai.contains('roh');
-        bool isCookedAi = ai.contains('cooked') || ai.contains('boiled') || ai.contains('gekocht') || ai.contains('fried') || ai.contains('gebraten') || ai.contains('baked') || ai.contains('gebacken');
+        bool isCookedAi = ai.contains('cooked') ||
+            ai.contains('boiled') ||
+            ai.contains('gekocht') ||
+            ai.contains('fried') ||
+            ai.contains('gebraten') ||
+            ai.contains('baked') ||
+            ai.contains('gebacken');
 
         bool isRawDb = db.contains('raw') || db.contains('roh');
-        bool isCookedDb = db.contains('cooked') || db.contains('boiled') || db.contains('gekocht') || db.contains('fried') || db.contains('gebraten') || db.contains('baked') || db.contains('gebacken') || db.contains('zubereitet');
+        bool isCookedDb = db.contains('cooked') ||
+            db.contains('boiled') ||
+            db.contains('gekocht') ||
+            db.contains('fried') ||
+            db.contains('gebraten') ||
+            db.contains('baked') ||
+            db.contains('gebacken') ||
+            db.contains('zubereitet');
 
         if ((isRawAi && isCookedDb) || (isCookedAi && isRawDb)) {
           isExtremeMismatch = true;
@@ -172,7 +219,9 @@ extension RulesLogic on AiMealValidationEngine {
 
       issues.add(
         AiValidationIssue(
-          severity: isExtremeMismatch ? AiValidationSeverity.error : AiValidationSeverity.warning,
+          severity: isExtremeMismatch
+              ? AiValidationSeverity.error
+              : AiValidationSeverity.warning,
           code: 'state_mismatch',
           message: 'The AI item state may not match the database entry.',
           itemIndex: index,
@@ -235,12 +284,14 @@ extension RulesLogic on AiMealValidationEngine {
     if (food.calories > 0 && item.grams > 0) {
       final effectiveDensity = nutrition.kcal / item.grams * 100;
       final dbDensity = food.calories.toDouble();
-      if (effectiveDensity > dbDensity * 2.0 || effectiveDensity < dbDensity / 2.0) {
+      if (effectiveDensity > dbDensity * 2.0 ||
+          effectiveDensity < dbDensity / 2.0) {
         issues.add(
           AiValidationIssue(
             severity: AiValidationSeverity.warning,
             code: 'implausible_portion_density',
-            message: 'Portion calories deviate significantly from product density.',
+            message:
+                'Portion calories deviate significantly from product density.',
             itemIndex: index,
           ),
         );
@@ -349,7 +400,8 @@ extension RulesLogic on AiMealValidationEngine {
               AiValidationIssue(
                 severity: AiValidationSeverity.error,
                 code: 'anchor_kcal_extreme',
-                message: 'Total kcal (${totals.kcalRounded} kcal) deviates extremely from meal context expected range [$low-$high].',
+                message:
+                    'Total kcal (${totals.kcalRounded} kcal) deviates extremely from meal context expected range [$low-$high].',
               ),
             );
           } else if (totals.kcal < low * 0.75 || totals.kcal > high * 1.25) {
@@ -357,7 +409,8 @@ extension RulesLogic on AiMealValidationEngine {
               AiValidationIssue(
                 severity: AiValidationSeverity.warning,
                 code: 'anchor_kcal_deviation',
-                message: 'Total kcal (${totals.kcalRounded} kcal) deviates from meal context expected range [$low-$high].',
+                message:
+                    'Total kcal (${totals.kcalRounded} kcal) deviates from meal context expected range [$low-$high].',
               ),
             );
           }
@@ -379,7 +432,8 @@ extension RulesLogic on AiMealValidationEngine {
                 AiValidationIssue(
                   severity: AiValidationSeverity.warning,
                   code: 'anchor_macro_profile_deviation',
-                  message: 'Actual $macroName percent (${actualVal.round()}%) deviates by >15% from expected context range [$low-$high%].',
+                  message:
+                      'Actual $macroName percent (${actualVal.round()}%) deviates by >15% from expected context range [$low-$high%].',
                 ),
               );
             }

@@ -56,12 +56,13 @@ class ProfileService extends ChangeNotifier {
   }
 
   /// Updates the user's gender and persists it to the database.
-  Future<void> updateGender(UserGender newGender, IProfileRepository repository) async {
+  Future<void> updateGender(
+      UserGender newGender, IProfileRepository repository) async {
     if (_gender == newGender) return;
 
     _gender = newGender;
     final profile = await repository.getUserProfile();
-    
+
     await repository.saveUserProfile(
       name: profile?.username ?? 'User',
       birthday: profile?.birthday,

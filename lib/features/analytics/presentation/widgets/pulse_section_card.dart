@@ -47,8 +47,9 @@ class PulseSectionCard extends StatelessWidget {
     }
 
     final summary = state.data;
-    final chipLabel =
-        summary == null ? fallbackRangeLabel : _pulseRangeLabel(context, summary);
+    final chipLabel = summary == null
+        ? fallbackRangeLabel
+        : _pulseRangeLabel(context, summary);
     final hasMetrics = summary?.hasCoreMetrics ?? false;
     final rangeValue = !hasMetrics
         ? '--'
@@ -127,7 +128,8 @@ class PulseSectionCard extends StatelessWidget {
   Widget _buildPulseMetricTile(
       BuildContext context, String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),

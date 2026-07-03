@@ -85,7 +85,8 @@ Future<DateTime?> _showGlassDatePicker({
             children: [
               // Title at the top
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
+                padding: const EdgeInsets.symmetric(
+                    vertical: DesignConstants.spacingL),
                 child: Center(
                   child: Text(
                     _getSelectDateTitle(ctx),
@@ -123,7 +124,8 @@ Future<DateTime?> _showGlassDatePicker({
               ),
               // Action Buttons
               Padding(
-                padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
                   right: DesignConstants.spacingL,
                   top: DesignConstants.spacingXS,
                   bottom: DesignConstants.spacingM,
@@ -199,7 +201,8 @@ Future<TimeOfDay?> _showGlassTimePicker({
             children: [
               // Title at the top
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
+                padding: const EdgeInsets.symmetric(
+                    vertical: DesignConstants.spacingL),
                 child: Center(
                   child: Text(
                     _getSelectTimeTitle(ctx),
@@ -235,7 +238,8 @@ Future<TimeOfDay?> _showGlassTimePicker({
               ),
               // Action Buttons
               Padding(
-                padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
                   right: DesignConstants.spacingL,
                   top: DesignConstants.spacingXS,
                   bottom: DesignConstants.spacingM,

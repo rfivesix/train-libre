@@ -29,7 +29,8 @@ void main() {
       expect(result.length, 2);
 
       // Verify first workout (Upper Body Workout)
-      final workout1 = result.firstWhere((w) => w.title == 'Upper Body Workout');
+      final workout1 =
+          result.firstWhere((w) => w.title == 'Upper Body Workout');
       expect(workout1.notes, isNull);
       expect(workout1.startTime, DateTime(2026, 5, 20, 10, 0, 0));
       expect(workout1.endTime, DateTime(2026, 5, 20, 11, 30, 0));
@@ -66,8 +67,7 @@ void main() {
     });
 
     test('CSV parsing with German headers and set-type abbreviations', () {
-      final csvString =
-          'übung,typ,gewicht,wiederholungen,notiz,datum,name\n'
+      final csvString = 'übung,typ,gewicht,wiederholungen,notiz,datum,name\n'
           'Kniebeugen,w,120,5,Erster Satz,23.05.2026 15:30,Leg Day\n'
           'Kniebeugen,f,150,3,Failure set,23.05.2026 15:30,Leg Day\n'
           'Kreuzheben,d,100,8,Drop set,23.05.2026 15:30,Leg Day\n';
@@ -105,8 +105,7 @@ void main() {
     });
 
     test('CSV parsing with imperial flag converts lbs to kg', () {
-      final csvString =
-          'workout,start,exercise,mass,reps\n'
+      final csvString = 'workout,start,exercise,mass,reps\n'
           'Chest Day,2026-05-22 18:00,Incline Press,220.46,8\n';
 
       final params = ImportBackgroundTaskParams(
@@ -136,8 +135,7 @@ void main() {
       ];
 
       for (final rawDate in formats) {
-        final csvString =
-            'title,start_time,exercise,weight,reps\n'
+        final csvString = 'title,start_time,exercise,weight,reps\n'
             'Test Date,"$rawDate",Curls,20,10\n';
 
         final params = ImportBackgroundTaskParams(
@@ -147,7 +145,8 @@ void main() {
         );
 
         final result = ImportManager.decodeAndGroupWorkouts(params);
-        expect(result.length, 1, reason: 'Failed parsing date string: $rawDate');
+        expect(result.length, 1,
+            reason: 'Failed parsing date string: $rawDate');
         expect(result.first.startTime.year, 2026);
         expect(result.first.startTime.month, 5);
         expect(result.first.startTime.day, 20);
@@ -157,8 +156,7 @@ void main() {
     });
 
     test('Missing date fallback returns current date', () {
-      final csvString =
-          'title,start_time,exercise,weight,reps\n'
+      final csvString = 'title,start_time,exercise,weight,reps\n'
           'Test Date,,Curls,20,10\n';
 
       final params = ImportBackgroundTaskParams(
@@ -193,7 +191,8 @@ void main() {
       expect(result1, isEmpty);
 
       final paramsHeaderOnly = ImportBackgroundTaskParams(
-        fileBytes: Uint8List.fromList(utf8.encode('title,start_time,exercise\n')),
+        fileBytes:
+            Uint8List.fromList(utf8.encode('title,start_time,exercise\n')),
         extension: 'csv',
         isImperial: false,
       );

@@ -18,7 +18,6 @@ import '../../../widgets/common/swipe_action_background.dart';
 import '../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
-
 /// A screen that displays a list of all saved [Routine] templates.
 ///
 /// Users can start a workout from a routine, duplicate existing ones,

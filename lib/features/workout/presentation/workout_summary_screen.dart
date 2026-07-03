@@ -308,7 +308,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                             // NEW RECORDS SECTION
                             if (_newRecordsPerExercise.isNotEmpty) ...[
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     l10n.workoutSummaryNewRecordsTitle,
@@ -318,16 +319,20 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                     ),
                                   ),
                                   AlgorithmInfoButton(
-                                    title: "Estimated 1-Rep Max Heuristic (Epley Equation)",
-                                    explanation: "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                                    title:
+                                        "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                                    explanation:
+                                        "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
                                     keyPoints: const [
                                       "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
                                       "Estimates are sports-science heuristics designed for healthy individuals.",
                                       "Provides a safe way to track strength progression without testing true failure.",
                                     ],
                                     technicalTitle: "Epley Equation Details",
-                                    technicalExplanation: "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
-                                    citationUrl: "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                                    technicalExplanation:
+                                        "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                                    citationUrl:
+                                        "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
                                   ),
                                 ],
                               ),
@@ -390,7 +395,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: DesignConstants.spacingL),
                             backgroundColor: colorScheme.primary,
                             foregroundColor: colorScheme.onPrimary,
                           ),
@@ -472,7 +478,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
   Widget _buildMetricTile({required String label, required String value}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
@@ -734,9 +741,11 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                        borderRadius: BorderRadius.circular(
+                            DesignConstants.borderRadiusS),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingL,
                         vertical: 10,
                       ),
                     ),

@@ -30,7 +30,8 @@ class BodyFatSlide extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.onboardingBodyFatPageTitle,
-            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Text(
@@ -48,7 +49,8 @@ class BodyFatSlide extends StatelessWidget {
             decoration: InputDecoration(
               labelText: l10n.onboardingBodyFatOptionalLabel,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),

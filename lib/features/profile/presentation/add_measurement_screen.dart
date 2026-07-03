@@ -287,7 +287,8 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
               const SizedBox(height: DesignConstants.spacingS),
               ..._measurementTypes.keys.map((key) {
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: DesignConstants.spacingM,
+                  padding: const EdgeInsets.only(
+                    bottom: DesignConstants.spacingM,
                   ),
                   child: TextFormField(
                     controller: _controllers[key],

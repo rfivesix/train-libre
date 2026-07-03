@@ -17,12 +17,14 @@ class StepsSummaryCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return Selector<DiaryViewModel, ({
-      bool isStepsWidgetLoading,
-      int? stepsForSelectedDay,
-      int targetSteps,
-      DateTime selectedDate,
-    })>(
+    return Selector<
+        DiaryViewModel,
+        ({
+          bool isStepsWidgetLoading,
+          int? stepsForSelectedDay,
+          int targetSteps,
+          DateTime selectedDate,
+        })>(
       selector: (context, vm) => (
         isStepsWidgetLoading: vm.isStepsWidgetLoading,
         stepsForSelectedDay: vm.stepsForSelectedDay,
@@ -32,7 +34,8 @@ class StepsSummaryCard extends StatelessWidget {
       builder: (context, data, child) {
         if (data.isStepsWidgetLoading) {
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            padding:
+                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: SummaryCard(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -58,7 +61,8 @@ class StepsSummaryCard extends StatelessWidget {
 
         return RepaintBoundary(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            padding:
+                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: GestureDetector(
               onTap: () {
                 Navigator.of(context).push(

@@ -51,7 +51,8 @@ class FoodItemSearchTile extends StatelessWidget {
               child: Text(
                 () {
                   final name = item.source == FoodItemSource.base
-                      ? item.getLocalizedName(context, languageCode: baseFoodLang)
+                      ? item.getLocalizedName(context,
+                          languageCode: baseFoodLang)
                       : item.getLocalizedName(context);
                   return name.isNotEmpty ? name : l10n.unknown;
                 }(),
@@ -67,7 +68,9 @@ class FoodItemSearchTile extends StatelessWidget {
         subtitle: Row(
           children: [
             Text(
-              l10n.foodItemSubtitle('', item.calories).replaceFirst(RegExp(r'^.*?-\s*'), ''),
+              l10n
+                  .foodItemSubtitle('', item.calories)
+                  .replaceFirst(RegExp(r'^.*?-\s*'), ''),
             ),
             if (item.brand.isNotEmpty &&
                 item.brand != 'Keine Marke' &&
@@ -101,7 +104,8 @@ class FoodItemSearchTile extends StatelessWidget {
     const color = Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),

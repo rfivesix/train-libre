@@ -83,18 +83,26 @@ class BodySlugMapper {
   ///
   /// Returns an empty list when no mapping can be determined.
   static List<BodyPartSlug> fromRawName(String rawName) {
-    final cleaned = rawName.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
+    final cleaned =
+        rawName.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
 
     // Explicit manual mappings for specific muscle queries to bridge cleanly to visual slugs
-    if (cleaned == 'traps' || cleaned == 'trapezius' || cleaned == 'neck' || cleaned == 'lower neck') {
+    if (cleaned == 'traps' ||
+        cleaned == 'trapezius' ||
+        cleaned == 'neck' ||
+        cleaned == 'lower neck') {
       return [BodyPartSlug.trapezius];
     }
-    if (cleaned == 'lower back' || cleaned == 'erector spinae' ||
-        cleaned == 'erectors' || cleaned == 'spinal erectors') {
+    if (cleaned == 'lower back' ||
+        cleaned == 'erector spinae' ||
+        cleaned == 'erectors' ||
+        cleaned == 'spinal erectors') {
       return [BodyPartSlug.lowerBack];
     }
-    if (cleaned == 'adductor' || cleaned == 'adductors' ||
-        cleaned == 'hip adductor' || cleaned == 'hip adductors') {
+    if (cleaned == 'adductor' ||
+        cleaned == 'adductors' ||
+        cleaned == 'hip adductor' ||
+        cleaned == 'hip adductors') {
       return [BodyPartSlug.adductors];
     }
     if (cleaned == 'forearm' || cleaned == 'forearms') {

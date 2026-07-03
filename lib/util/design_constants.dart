@@ -99,8 +99,9 @@ class DesignConstants {
       (isDark ? Colors.white : Colors.white).withValues(alpha: 0.10);
 
   /// Unified base color tint for the glass shader.
-  static Color glassColor(bool isDark) =>
-      isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.15);
+  static Color glassColor(bool isDark) => isDark
+      ? Colors.white.withValues(alpha: 0.12)
+      : Colors.white.withValues(alpha: 0.15);
 
   /// Unified settings for liquid glassmorphic rendering.
   static LiquidGlassSettings liquidGlassSettings(bool isDark) =>
@@ -124,7 +125,8 @@ class ShadowOuterClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    final Path outer = Path()..addRect(Rect.fromLTWH(-100, -100, size.width + 200, size.height + 200));
+    final Path outer = Path()
+      ..addRect(Rect.fromLTWH(-100, -100, size.width + 200, size.height + 200));
     final Path inner = Path();
     if (isOval) {
       inner.addOval(Rect.fromLTWH(0, 0, size.width, size.height));
@@ -139,6 +141,7 @@ class ShadowOuterClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant ShadowOuterClipper oldClipper) {
-    return oldClipper.borderRadius != borderRadius || oldClipper.isOval != isOval;
+    return oldClipper.borderRadius != borderRadius ||
+        oldClipper.isOval != isOval;
   }
 }

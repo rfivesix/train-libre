@@ -42,7 +42,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   bool _isOffDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized =
+        await BasisDataManager.instance.isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -56,7 +57,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
     _tabController = TabController(length: 2, vsync: this);
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance
+          .promptOffDatabaseDownloadIfFirstTime(context);
       await _checkDbStatus();
     });
     _loadFavorites();
@@ -141,7 +143,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingL,
               vertical: DesignConstants.spacingXL,
             ),
             child: Column(
@@ -164,7 +167,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                   dividerColor: Colors.transparent,
                   // FIX: Dynamic color based on theme mode.
                   labelColor: isLightMode ? Colors.black : Colors.white,
-                  unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                  unselectedLabelColor:
+                      Theme.of(context).colorScheme.onSurfaceVariant,
                   labelStyle: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
@@ -211,7 +215,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
         body: l10n.offPlaceholderText,
         icon: LucideIcons.database,
         onDownloadPressed: () async {
-          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+          await BasisDataManager.instance
+              .promptOffDatabaseDownloadIfFirstTime(context);
           await _checkDbStatus();
         },
       );
@@ -258,7 +263,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                 ? const Center(child: CircularProgressIndicator())
                 : _foundFoodItems.isNotEmpty
                     ? ListView.builder(
-                        scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
+                        scrollCacheExtent:
+                            const ScrollCacheExtent.pixels(1500.0),
                         itemCount: _foundFoodItems.length,
                         itemBuilder: (context, index) =>
                             _buildFoodListItem(_foundFoodItems[index]),
@@ -339,7 +345,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
         subtitle: Row(
           children: [
             Text(
-              l10n.foodItemSubtitle('', item.calories).replaceFirst(RegExp(r'^.*?-\s*'), ''),
+              l10n
+                  .foodItemSubtitle('', item.calories)
+                  .replaceFirst(RegExp(r'^.*?-\s*'), ''),
             ),
             if (item.brand.isNotEmpty &&
                 item.brand != 'Keine Marke' &&

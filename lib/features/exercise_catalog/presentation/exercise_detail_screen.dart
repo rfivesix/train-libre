@@ -168,8 +168,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS,
+                  vertical: DesignConstants.spacingS),
               child: Text(
                 body,
                 textAlign: TextAlign.center,
@@ -302,7 +303,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 _prMap.values.every((v) => v == null))
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXL),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: DesignConstants.spacingXL),
                   child: Text(
                     l10n.exerciseAnalyticsNoData,
                     style: textTheme.bodyMedium?.copyWith(
@@ -322,7 +324,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             const SizedBox(height: DesignConstants.spacingXL),
             Center(
               child: Padding(
-                padding: const EdgeInsets.only(top: DesignConstants.spacingS,
+                padding: const EdgeInsets.only(
+                  top: DesignConstants.spacingS,
                   bottom: DesignConstants.spacingM,
                 ),
                 child: WgerAttributionWidget(
@@ -358,7 +361,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 color: theme.colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.5,
                 ),
-                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusS),
                 border: Border.all(
                   color: prSet != null
                       ? theme.colorScheme.primary.withValues(alpha: 0.3)
@@ -516,7 +520,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       Icon(
                         LucideIcons.chevron_down,
                         size: 18,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ],
                   ),
@@ -524,8 +529,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               },
               menuChildren: [
                 MenuItemButton(
-                  onPressed: () =>
-                      setState(() => _selectedMetric = ExerciseMetric.maxWeight),
+                  onPressed: () => setState(
+                      () => _selectedMetric = ExerciseMetric.maxWeight),
                   child: Text(l10n.exerciseMetricMaxWeight),
                 ),
                 MenuItemButton(
@@ -544,15 +549,18 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               const SizedBox(width: DesignConstants.spacingXS),
               AlgorithmInfoButton(
                 title: "Estimated 1-Rep Max Heuristic (Epley Equation)",
-                explanation: "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                explanation:
+                    "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
                 keyPoints: const [
                   "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
                   "Estimates are sports-science heuristics designed for healthy individuals.",
                   "Provides a safe way to track strength progression without testing true failure.",
                 ],
                 technicalTitle: "Epley Equation Details",
-                technicalExplanation: "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
-                citationUrl: "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                technicalExplanation:
+                    "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                citationUrl:
+                    "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
               ),
             ],
           ],
@@ -609,7 +617,8 @@ class _CategoryBadge extends StatelessWidget {
     final fg = theme.colorScheme.primary;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: DesignConstants.spacingS),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 14, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),
@@ -788,7 +797,8 @@ class _MuscleChipRow extends StatelessWidget {
             children: muscles
                 .map(
                   (m) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.spacingS,
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(

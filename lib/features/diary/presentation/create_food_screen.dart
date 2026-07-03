@@ -75,9 +75,12 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
 
   void _calculateCaloriesFromMacros() {
     HapticFeedbackService.instance.selectionFeedback();
-    final protein = double.tryParse(_proteinController.text.replaceAll(',', '.')) ?? 0.0;
-    final carbs = double.tryParse(_carbsController.text.replaceAll(',', '.')) ?? 0.0;
-    final fat = double.tryParse(_fatController.text.replaceAll(',', '.')) ?? 0.0;
+    final protein =
+        double.tryParse(_proteinController.text.replaceAll(',', '.')) ?? 0.0;
+    final carbs =
+        double.tryParse(_carbsController.text.replaceAll(',', '.')) ?? 0.0;
+    final fat =
+        double.tryParse(_fatController.text.replaceAll(',', '.')) ?? 0.0;
     final calories = (protein * 4) + (carbs * 4) + (fat * 9);
     _caloriesController.text = calories.round().toString();
   }
@@ -85,8 +88,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
   Future<void> _saveFoodItem() async {
     if (_formKey.currentState?.validate() ?? false) {
       final l10n = AppLocalizations.of(context)!;
-      final isLiquidOrFluid =
-          widget.foodItemToEdit?.isLiquid == true || widget.foodItemToEdit?.isFluid == true;
+      final isLiquidOrFluid = widget.foodItemToEdit?.isLiquid == true ||
+          widget.foodItemToEdit?.isFluid == true;
       final caffeineVal = double.tryParse(_caffeineController.text);
 
       final foodData = FoodItem(
@@ -180,7 +183,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
               const SizedBox(height: DesignConstants.spacingXL),
               AppSectionHeader(title: l10n.formSectionMainNutrients),
               const SizedBox(height: DesignConstants.spacingL),
-               _buildFoodInputField(
+              _buildFoodInputField(
                 controller: _caloriesController,
                 label: l10n.formFieldCalories,
                 isNumeric: true, // Fix

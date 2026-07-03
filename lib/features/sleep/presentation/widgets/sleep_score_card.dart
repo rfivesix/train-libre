@@ -72,9 +72,12 @@ class SleepScoreCard extends StatelessWidget {
                         explanation: l10n.infoSleepExplanation,
                         keyPoints: l10n.infoSleepKeyPoints.split('\n'),
                         technicalTitle: l10n.infoSleepTechnicalTitle,
-                        technicalExplanation: l10n.infoSleepTechnicalExplanation,
-                        markdownAssetPath: 'documentation/features/sleep_scoring_engine.md',
-                        citationUrl: 'https://rfivesix.github.io/train-libre/sleep-score/#evidence',
+                        technicalExplanation:
+                            l10n.infoSleepTechnicalExplanation,
+                        markdownAssetPath:
+                            'documentation/features/sleep_scoring_engine.md',
+                        citationUrl:
+                            'https://rfivesix.github.io/train-libre/sleep-score/#evidence',
                       ),
                     ],
                   ),

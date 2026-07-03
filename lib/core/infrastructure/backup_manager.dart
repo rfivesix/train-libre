@@ -288,7 +288,8 @@ class BackupManager {
         appSettings: appSettingsMap,
         profile: profileMap,
         userFoodOverrides: await _fetchTable('user_food_overrides'),
-        userFoodOverrideTranslations: await _fetchTable('user_food_override_translations'),
+        userFoodOverrideTranslations:
+            await _fetchTable('user_food_override_translations'),
         healthStepSegments: healthStepSegments,
         offProductsArchive: await _fetchTable('off_products_archive'));
     final payload = backup.toJson();
@@ -302,31 +303,38 @@ class BackupManager {
     token?.throwIfCancelled();
 
     onProgress?.call('sleep_sessions', 0.88);
-    payload['sleep_canonical_sessions'] = await _fetchTable('sleep_canonical_sessions');
+    payload['sleep_canonical_sessions'] =
+        await _fetchTable('sleep_canonical_sessions');
     token?.throwIfCancelled();
 
     onProgress?.call('sleep_stages', 0.90);
-    payload['sleep_canonical_stage_segments'] = await _fetchTable('sleep_canonical_stage_segments');
+    payload['sleep_canonical_stage_segments'] =
+        await _fetchTable('sleep_canonical_stage_segments');
     token?.throwIfCancelled();
 
     onProgress?.call('sleep_hr', 0.92);
-    payload['sleep_canonical_heart_rate_samples'] = await _fetchTable('sleep_canonical_heart_rate_samples');
+    payload['sleep_canonical_heart_rate_samples'] =
+        await _fetchTable('sleep_canonical_heart_rate_samples');
     token?.throwIfCancelled();
 
     onProgress?.call('sleep_analyses', 0.94);
-    payload['sleep_nightly_analyses'] = await _fetchTable('sleep_nightly_analyses');
+    payload['sleep_nightly_analyses'] =
+        await _fetchTable('sleep_nightly_analyses');
     token?.throwIfCancelled();
 
     onProgress?.call('pulse_data', 0.96);
-    payload['pulse_hourly_aggregates'] = await _fetchTable('pulse_hourly_aggregates');
-    payload['pulse_aggregate_metadata'] = await _fetchTable('pulse_aggregate_metadata');
+    payload['pulse_hourly_aggregates'] =
+        await _fetchTable('pulse_hourly_aggregates');
+    payload['pulse_aggregate_metadata'] =
+        await _fetchTable('pulse_aggregate_metadata');
     token?.throwIfCancelled();
 
     onProgress?.call('cardio_data', 0.98);
     payload['cardio_activities'] = await _fetchTable('cardio_activities');
     payload['cardio_samples'] = await _fetchTable('cardio_samples');
     payload['user_food_overrides'] = payload['userFoodOverrides'];
-    payload['user_food_override_translations'] = payload['userFoodOverrideTranslations'];
+    payload['user_food_override_translations'] =
+        payload['userFoodOverrideTranslations'];
     token?.throwIfCancelled();
 
     onProgress?.call('done', 1.0);
@@ -335,7 +343,9 @@ class BackupManager {
 
   Future<List<Map<String, dynamic>>> _fetchTable(String tableName) async {
     try {
-      final rows = await _dbHelper.dbInstance.customSelect('SELECT * FROM $tableName').get();
+      final rows = await _dbHelper.dbInstance
+          .customSelect('SELECT * FROM $tableName')
+          .get();
       return rows.map((r) => Map<String, dynamic>.from(r.data)).toList();
     } catch (e) {
       debugPrint('Error fetching table $tableName: $e');
@@ -588,14 +598,17 @@ class BackupManager {
 
         // Clear dynamic sleep and pulse tables first
         await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
-        await dbInst.customStatement('DELETE FROM sleep_canonical_stage_segments');
-        await dbInst.customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
+        await dbInst
+            .customStatement('DELETE FROM sleep_canonical_stage_segments');
+        await dbInst
+            .customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
         await dbInst.customStatement('DELETE FROM sleep_canonical_sessions');
         await dbInst.customStatement('DELETE FROM sleep_raw_imports');
         await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
         await dbInst.customStatement('DELETE FROM pulse_aggregate_metadata');
         await dbInst.customStatement('DELETE FROM user_food_overrides');
-        await dbInst.customStatement('DELETE FROM user_food_override_translations');
+        await dbInst
+            .customStatement('DELETE FROM user_food_override_translations');
         await dbInst.delete(dbInst.cardioSamples).go();
         await dbInst.delete(dbInst.cardioActivities).go();
 
@@ -615,7 +628,9 @@ class BackupManager {
         await dbInst.delete(dbInst.meals).go();
         await dbInst.delete(dbInst.appSettings).go();
         await dbInst.delete(dbInst.profiles).go();
-        await (dbInst.delete(dbInst.products)..where((t) => t.source.equals('user'))).go();
+        await (dbInst.delete(dbInst.products)
+              ..where((t) => t.source.equals('user')))
+            .go();
 
         // Clear workout tables
         await dbInst.delete(dbInst.setLogs).go();
@@ -623,7 +638,9 @@ class BackupManager {
         await dbInst.delete(dbInst.routineSetTemplates).go();
         await dbInst.delete(dbInst.routineExercises).go();
         await dbInst.delete(dbInst.routines).go();
-        await (dbInst.delete(dbInst.exercises)..where((tbl) => tbl.isCustom.equals(true))).go();
+        await (dbInst.delete(dbInst.exercises)
+              ..where((tbl) => tbl.isCustom.equals(true)))
+            .go();
 
         token?.throwIfCancelled();
         onProgress?.call('preferences', 0.25);
@@ -645,7 +662,8 @@ class BackupManager {
         token?.throwIfCancelled();
 
         onProgress?.call('products_archive', 0.30);
-        await _importTable('off_products_archive', payload['offProductsArchive']);
+        await _importTable(
+            'off_products_archive', payload['offProductsArchive']);
         token?.throwIfCancelled();
 
         onProgress?.call('user_data', 0.35);
@@ -688,8 +706,13 @@ class BackupManager {
                 nameDe: drift.Value(item.nameDe),
                 nameEn: drift.Value(item.nameEn),
                 ingredientsText: drift.Value(item.ingredientsText),
-                ingredientsAnalysisTags: drift.Value(item.ingredientsAnalysisTags != null ? jsonEncode(item.ingredientsAnalysisTags) : null),
-                additivesTags: drift.Value(item.additivesTags != null ? jsonEncode(item.additivesTags) : null),
+                ingredientsAnalysisTags: drift.Value(
+                    item.ingredientsAnalysisTags != null
+                        ? jsonEncode(item.ingredientsAnalysisTags)
+                        : null),
+                additivesTags: drift.Value(item.additivesTags != null
+                    ? jsonEncode(item.additivesTags)
+                    : null),
                 productQuantity: drift.Value(item.productQuantity),
                 productQuantityUnit: drift.Value(item.productQuantityUnit),
               ),
@@ -863,13 +886,15 @@ class BackupManager {
             await dbInst.into(dbInst.appSettings).insert(
                   db.AppSettingsCompanion(
                     userId: drift.Value(userId),
-                    themeMode: drift.Value(s['themeMode']?.toString() ?? 'system'),
+                    themeMode:
+                        drift.Value(s['themeMode']?.toString() ?? 'system'),
                     unitSystem:
                         drift.Value(s['unitSystem']?.toString() ?? 'metric'),
                     targetCalories: drift.Value(
                       _asInt(s['targetCalories']) ?? 2500,
                     ),
-                    targetProtein: drift.Value(_asInt(s['targetProtein']) ?? 180),
+                    targetProtein:
+                        drift.Value(_asInt(s['targetProtein']) ?? 180),
                     targetCarbs: drift.Value(_asInt(s['targetCarbs']) ?? 250),
                     targetFat: drift.Value(_asInt(s['targetFat']) ?? 80),
                     targetWater: drift.Value(_asInt(s['targetWater']) ?? 3000),
@@ -910,31 +935,41 @@ class BackupManager {
         token?.throwIfCancelled();
 
         onProgress?.call('sleep_sessions', 0.96);
-        await _importTable('sleep_canonical_sessions', payload['sleep_canonical_sessions']);
+        await _importTable(
+            'sleep_canonical_sessions', payload['sleep_canonical_sessions']);
         token?.throwIfCancelled();
 
         onProgress?.call('sleep_stages', 0.97);
-        await _importTable('sleep_canonical_stage_segments', payload['sleep_canonical_stage_segments']);
+        await _importTable('sleep_canonical_stage_segments',
+            payload['sleep_canonical_stage_segments']);
         token?.throwIfCancelled();
 
         onProgress?.call('sleep_hr', 0.98);
-        await _importTable('sleep_canonical_heart_rate_samples', payload['sleep_canonical_heart_rate_samples']);
+        await _importTable('sleep_canonical_heart_rate_samples',
+            payload['sleep_canonical_heart_rate_samples']);
         token?.throwIfCancelled();
 
         onProgress?.call('sleep_analyses', 0.99);
-        await _importTable('sleep_nightly_analyses', payload['sleep_nightly_analyses']);
+        await _importTable(
+            'sleep_nightly_analyses', payload['sleep_nightly_analyses']);
         token?.throwIfCancelled();
 
         onProgress?.call('pulse_data', 0.995);
-        await _importTable('pulse_hourly_aggregates', payload['pulse_hourly_aggregates']);
-        await _importTable('pulse_aggregate_metadata', payload['pulse_aggregate_metadata']);
+        await _importTable(
+            'pulse_hourly_aggregates', payload['pulse_hourly_aggregates']);
+        await _importTable(
+            'pulse_aggregate_metadata', payload['pulse_aggregate_metadata']);
         token?.throwIfCancelled();
 
         onProgress?.call('cardio_data', 0.999);
         await _importTable('cardio_activities', payload['cardio_activities']);
         await _importTable('cardio_samples', payload['cardio_samples']);
-        await _importTable('user_food_overrides', payload['user_food_overrides'] ?? payload['userFoodOverrides']);
-        await _importTable('user_food_override_translations', payload['user_food_override_translations'] ?? payload['userFoodOverrideTranslations']);
+        await _importTable('user_food_overrides',
+            payload['user_food_overrides'] ?? payload['userFoodOverrides']);
+        await _importTable(
+            'user_food_override_translations',
+            payload['user_food_override_translations'] ??
+                payload['userFoodOverrideTranslations']);
         token?.throwIfCancelled();
       });
       success = true;
@@ -977,7 +1012,8 @@ class BackupManager {
       final columns = map.keys.toList();
       final placeholders = List.filled(columns.length, '?').join(', ');
       final values = columns.map((col) => map[col]).toList();
-      final sql = 'INSERT OR REPLACE INTO $tableName (${columns.join(', ')}) VALUES ($placeholders)';
+      final sql =
+          'INSERT OR REPLACE INTO $tableName (${columns.join(', ')}) VALUES ($placeholders)';
       await dbInst.customStatement(sql, values);
     }
   }
@@ -1012,7 +1048,8 @@ class BackupManager {
 
       final savedDir = prefs.getString('auto_backup_dir');
       final treeUri = prefs.getString('auto_backup_tree_uri');
-      final isAndroidSaf = Platform.isAndroid && treeUri != null && treeUri.trim().isNotEmpty;
+      final isAndroidSaf =
+          Platform.isAndroid && treeUri != null && treeUri.trim().isNotEmpty;
 
       if (isAndroidSaf) {
         final ts = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -1032,7 +1069,8 @@ class BackupManager {
           await prefs.setInt('last_auto_backup_timestamp',
               DateTime.now().millisecondsSinceEpoch);
           await prefs.setString('auto_backup_last_file_path', savedSafPath);
-          await prefs.setString('auto_backup_last_dir_used', savedDir ?? 'SAF Shared Storage');
+          await prefs.setString(
+              'auto_backup_last_dir_used', savedDir ?? 'SAF Shared Storage');
           await prefs.setBool('auto_backup_last_used_fallback', false);
           await prefs.remove('auto_backup_last_error');
 
@@ -1049,7 +1087,8 @@ class BackupManager {
           }
           return true;
         } else {
-          debugPrint('Auto-backup SAF write returned null, falling back to local sandbox...');
+          debugPrint(
+              'Auto-backup SAF write returned null, falling back to local sandbox...');
         }
       }
 
@@ -1062,7 +1101,9 @@ class BackupManager {
 
       final chosenPath = (dirPath != null && dirPath.trim().isNotEmpty)
           ? dirPath.trim()
-          : (savedDir != null && savedDir.trim().isNotEmpty ? savedDir.trim() : null);
+          : (savedDir != null && savedDir.trim().isNotEmpty
+              ? savedDir.trim()
+              : null);
       final isFallbackUsed = chosenPath != null && directory.path != chosenPath;
 
       final ts = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -1108,7 +1149,8 @@ class BackupManager {
     }
   }
 
-  static Future<Map<String, double>?> _getWorkoutHeartRate(String workoutLogId, DateTime startTime, DateTime endTime) async {
+  static Future<Map<String, double>?> _getWorkoutHeartRate(
+      String workoutLogId, DateTime startTime, DateTime endTime) async {
     final dbInst = DatabaseHelper.instance.dbInstance;
     // 1. Try to read from cardio_samples
     try {
@@ -1155,7 +1197,10 @@ class BackupManager {
         SELECT min_bpm, max_bpm, sum_bpm, sample_count
         FROM pulse_hourly_aggregates
         WHERE bucket_end_ms > ? AND bucket_start_ms < ?
-      ''', variables: [drift.Variable<int>(startMs), drift.Variable<int>(endMs)]).get();
+      ''', variables: [
+        drift.Variable<int>(startMs),
+        drift.Variable<int>(endMs)
+      ]).get();
       if (rows.isNotEmpty) {
         double min = double.infinity;
         double max = double.negativeInfinity;
@@ -1184,15 +1229,19 @@ class BackupManager {
     final fluidEntries = await _diaryDb.getAllFluidEntries();
     if (entries.isEmpty && fluidEntries.isEmpty) return false;
 
-    final archivedEntries = entries.where((e) => e.archiveLocalId != null).toList();
-    final legacyEntries = entries.where((e) => e.archiveLocalId == null).toList();
+    final archivedEntries =
+        entries.where((e) => e.archiveLocalId != null).toList();
+    final legacyEntries =
+        entries.where((e) => e.archiveLocalId == null).toList();
 
     final Map<int, FoodItem> archiveProductsMap = {};
     final Map<String, FoodItem> legacyProductsMap = {};
 
     if (archivedEntries.isNotEmpty) {
-      final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
-      final archivedProducts = await _productDb.getProductsByArchiveIds(archiveIds);
+      final archiveIds =
+          archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+      final archivedProducts =
+          await _productDb.getProductsByArchiveIds(archiveIds);
       archiveProductsMap.addAll(archivedProducts);
     }
 
@@ -1234,8 +1283,9 @@ class BackupManager {
         final fat = p.fat * ratio;
         final sugar = (p.sugar ?? 0.0) * ratio;
         final fiber = (p.fiber ?? 0.0) * ratio;
-        final caffeine = (p.caffeineMgPer100g ?? p.caffeineMgPer100ml ?? 0.0) * ratio;
-        
+        final caffeine =
+            (p.caffeineMgPer100g ?? p.caffeineMgPer100ml ?? 0.0) * ratio;
+
         rows.add([
           DateFormat('yyyy-MM-dd').format(e.timestamp),
           DateFormat('HH:mm').format(e.timestamp),
@@ -1401,7 +1451,7 @@ class BackupManager {
         final endedAt = row.read<int>('ended_at');
         final minutes = (endedAt - startedAt) / 60000.0;
         sessionStages.putIfAbsent(sessionId, () => {});
-        
+
         String canonicalStage = 'light';
         if (stage.contains('deep')) {
           canonicalStage = 'deep';
@@ -1410,8 +1460,9 @@ class BackupManager {
         } else if (stage.contains('awake') || stage.contains('wake')) {
           canonicalStage = 'awake';
         }
-        
-        sessionStages[sessionId]![canonicalStage] = (sessionStages[sessionId]![canonicalStage] ?? 0.0) + minutes;
+
+        sessionStages[sessionId]![canonicalStage] =
+            (sessionStages[sessionId]![canonicalStage] ?? 0.0) + minutes;
       }
 
       List<List<dynamic>> sleepCsvRows = [
@@ -1429,10 +1480,12 @@ class BackupManager {
       ];
       for (final r in sleepRows) {
         final sessionId = r.read<String>('session_id');
-        final startTime = DateTime.fromMillisecondsSinceEpoch(r.read<int>('started_at'));
-        final endTime = DateTime.fromMillisecondsSinceEpoch(r.read<int>('ended_at'));
+        final startTime =
+            DateTime.fromMillisecondsSinceEpoch(r.read<int>('started_at'));
+        final endTime =
+            DateTime.fromMillisecondsSinceEpoch(r.read<int>('ended_at'));
         final stages = sessionStages[sessionId] ?? {};
-        
+
         sleepCsvRows.add([
           r.read<String>('night_date'),
           startTime.toIso8601String(),
@@ -1497,7 +1550,8 @@ class BackupManager {
         ['Date/Timestamp', 'Context', 'Min BPM', 'Max BPM', 'Avg BPM']
       ];
       for (final r in baselineRows) {
-        final t = DateTime.fromMillisecondsSinceEpoch(r.read<int>('bucket_start_ms'));
+        final t =
+            DateTime.fromMillisecondsSinceEpoch(r.read<int>('bucket_start_ms'));
         final count = r.read<num>('sample_count').toInt();
         final avg = count > 0 ? r.read<double>('sum_bpm') / count : 0.0;
         hrCsvRows.add([
@@ -1511,8 +1565,10 @@ class BackupManager {
 
       for (final w in workoutList) {
         final wId = w.read<String>('id');
-        final startTime = DateTime.fromMillisecondsSinceEpoch(w.read<int>('start_time'));
-        final endTime = DateTime.fromMillisecondsSinceEpoch(w.read<int>('end_time'));
+        final startTime =
+            DateTime.fromMillisecondsSinceEpoch(w.read<int>('start_time'));
+        final endTime =
+            DateTime.fromMillisecondsSinceEpoch(w.read<int>('end_time'));
         final hr = await _getWorkoutHeartRate(wId, startTime, endTime);
         if (hr != null) {
           hrCsvRows.add([

@@ -144,9 +144,31 @@ class BodyNutritionAnalyticsDataAdapter {
     required List<FluidEntry> fluidEntries,
   }) async {
     final map = <DateTime, double>{};
-    final foodProductsByBarcode = await _hydrateProductsByBarcode(
-      foodEntries,
-    );
+
+    final archivedEntries =
+        foodEntries.where((e) => e.archiveLocalId != null).toList();
+    final legacyEntries =
+        foodEntries.where((e) => e.archiveLocalId == null).toList();
+
+    final Map<int, FoodItem> archiveProductsMap = {};
+    final Map<String, FoodItem> legacyProductsMap = {};
+
+    if (archivedEntries.isNotEmpty) {
+      final archiveIds =
+          archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+      final archivedProducts =
+          await _productDatabaseHelper.getProductsByArchiveIds(archiveIds);
+      archiveProductsMap.addAll(archivedProducts);
+    }
+
+    if (legacyEntries.isNotEmpty) {
+      final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+      final legacyProducts =
+          await _productDatabaseHelper.getProductsByBarcodes(barcodes);
+      for (final p in legacyProducts) {
+        legacyProductsMap[p.barcode] = p;
+      }
+    }
 
     for (final entry in foodEntries) {
       final day = DateTime.utc(
@@ -154,8 +176,9 @@ class BodyNutritionAnalyticsDataAdapter {
         entry.timestamp.month,
         entry.timestamp.day,
       );
-      final barcode = entry.barcode;
-      final product = foodProductsByBarcode[barcode];
+      final product = entry.archiveLocalId != null
+          ? archiveProductsMap[entry.archiveLocalId!]
+          : legacyProductsMap[entry.barcode];
       final caloriesPer100g = product?.calories ?? 0;
       final amountGrams = entry.quantityInGrams.toDouble();
       final added = caloriesPer100g * (amountGrams / 100.0);
@@ -165,7 +188,9 @@ class BodyNutritionAnalyticsDataAdapter {
     for (final entry in fluidEntries) {
       final isLinked = entry.linkedFoodEntryId != null;
       final isDuplicateOfFood = foodEntries.any((food) {
-        final foodItem = foodProductsByBarcode[food.barcode];
+        final foodItem = food.archiveLocalId != null
+            ? archiveProductsMap[food.archiveLocalId!]
+            : legacyProductsMap[food.barcode];
         final isFluidFood = foodItem != null &&
             (foodItem.isFluid || (foodItem.isLiquid ?? false));
         if (!isFluidFood) return false;
@@ -196,25 +221,5 @@ class BodyNutritionAnalyticsDataAdapter {
     }
 
     return map;
-  }
-
-  Future<Map<String, FoodItem>> _hydrateProductsByBarcode(
-    List<FoodEntry> foodEntries,
-  ) async {
-    final uniqueBarcodes = foodEntries
-        .map((e) => e.barcode)
-        .where((barcode) => barcode.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
-    if (uniqueBarcodes.isEmpty) {
-      return const {};
-    }
-
-    final products = await _productDatabaseHelper.getProductsByBarcodes(
-      uniqueBarcodes,
-    );
-    return {
-      for (final product in products) product.barcode: product,
-    };
   }
 }
