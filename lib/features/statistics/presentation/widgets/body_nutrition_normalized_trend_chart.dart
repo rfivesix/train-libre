@@ -537,6 +537,7 @@ class _BodyNutritionNormalizedTrendChartState
     );
   }
 
+  // TODO: On layer base the order should be like this: background -> Chart data -> axis-description and shadow -> tooltip
   Widget _buildTooltipOverlay({
     required BuildContext context,
     required List<_ChartSeries> series,
