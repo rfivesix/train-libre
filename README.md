@@ -45,14 +45,14 @@ Designed for people who want serious tracking without social feeds, gamification
 <table align="center">
   <tr>
     <td align="center" valign="middle" width="250">
-      <a href="https://testflight.apple.com/join/x1UaM6TQ">
+      <a href="https://apps.apple.com/us/app/train-libre/id6767055511">
         <img
           src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-          alt="Download on the App Store"
+          alt="Get it on App Store"
           width="100%"
         />
       </a>
-      <br><sub><b>iOS Public TestFlight Beta</b></sub>
+      <br><sub><b>App Store Release</b></sub>
     </td>
     <td width="30"></td>
     <td align="center" valign="middle" width="250">
