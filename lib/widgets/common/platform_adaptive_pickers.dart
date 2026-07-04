@@ -298,7 +298,7 @@ class _GlassPickerSheet extends StatelessWidget {
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
     const double r = 24;
-    const EdgeInsets outerMargin = EdgeInsets.fromLTRB(16, 0, 16, 16);
+    const EdgeInsets outerMargin = EdgeInsets.zero;
 
     return SafeArea(
       top: false,
@@ -314,7 +314,7 @@ class _GlassPickerSheet extends StatelessWidget {
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(r),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.18),
@@ -329,35 +329,23 @@ class _GlassPickerSheet extends StatelessWidget {
                 RepaintBoundary(
                   child: AdaptiveGlass(
                     settings: LiquidGlassSettings(
-                      thickness: 30,
+                      thickness: 0,
                       blur: 8,
                       glassColor: effectiveGlass,
-                      lightIntensity: isDark ? 0.55 : 0.80,
+                      lightIntensity: 0,
                       saturation: 1.20,
                     ),
-                    shape: const LiquidRoundedSuperellipse(borderRadius: r),
+                    shape: const LiquidVerticalRoundedSuperellipse(
+                      topRadius: r,
+                      bottomRadius: 0,
+                    ),
                     child: Stack(
                       children: [
                         Positioned.fill(
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               color: neutralTint,
-                              borderRadius: BorderRadius.circular(r),
-                            ),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(r),
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.20)
-                                      : Colors.black.withValues(alpha: 0.08),
-                                  width: 1.2,
-                                ),
-                              ),
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
                             ),
                           ),
                         ),
