@@ -441,9 +441,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     );
                   },
                 ),
-                AppSectionHeader(title: l10n.about_section),
-                _buildNavigationCard(
-                  icon: LucideIcons.info,
+                _buildMinimalLink(
                   title: l10n.about_train_libre,
                   subtitle: l10n.app_version,
                   onTap: () {
@@ -454,10 +452,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     );
                   },
                 ),
-                const SizedBox(height: DesignConstants.spacingM),
-                AppSectionHeader(title: l10n.legal_section),
-                _buildNavigationCard(
-                  icon: LucideIcons.scale,
+                _buildMinimalLink(
                   title: l10n.legal_section,
                   subtitle: '${l10n.legal_notice} & ${l10n.privacy_policy}',
                   onTap: () {
@@ -494,6 +489,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onTap: onTap,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24.0),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMinimalLink({
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 12.0,
+            horizontal: 16.0,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(
+                LucideIcons.chevron_right,
+                size: 20,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
+            ],
+          ),
         ),
       ),
     );

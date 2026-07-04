@@ -178,7 +178,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
             child: ListView(
               padding: finalPadding,
               children: [
-                AppSectionHeader(title: l10n.nutritionSectionTodayInFocus),
+                AppSectionHeader(title: l10n.adaptiveRecommendationCardTitle.toUpperCase()),
                 _buildGoalsAndRecommendationCard(
                   context,
                   recommendationState,

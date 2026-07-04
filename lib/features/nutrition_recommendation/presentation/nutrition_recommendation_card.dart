@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
+import '../../../widgets/common/summary_card.dart';
 import '../domain/bayesian_tdee_estimator.dart';
 import '../domain/confidence_models.dart';
 import '../domain/goal_models.dart';
@@ -47,50 +47,45 @@ class NutritionRecommendationCard extends StatelessWidget {
         ? null
         : RecommendationUiCopy.warningMessage(l10n, recommendation!);
 
-    return SummaryCard(
-      padding: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.cardPaddingInternal),
-        child: SingleChildScrollView(
-          child: recommendation == null
-              ? _EmptyRecommendationContent(
-                  goalLine: l10n.adaptiveRecommendationGoalLine(
-                    _goalLabel(l10n, goal),
-                    _rateLabel(l10n, targetRateKgPerWeek),
-                  ),
-                  nextDueLine: l10n.adaptiveRecommendationNextDueLine(
-                    _formatDate(context, nextAdaptiveRecommendationDueAt),
-                  ),
-                  isAdaptiveRecommendationDueNow:
-                      isAdaptiveRecommendationDueNow,
-                  isRecalculating: isRecalculating,
-                  onRecalculate: onRecalculate,
-                )
-              : _GeneratedRecommendationContent(
-                  recommendation: recommendation!,
-                  maintenanceEstimate: maintenanceEstimate,
-                  isAdaptiveRecommendationDueNow:
-                      isAdaptiveRecommendationDueNow,
-                  activeTargetCalories: activeTargetCalories,
-                  recommendationWarning: recommendationWarning,
-                  isRecalculating: isRecalculating,
-                  isApplying: isApplying,
-                  onRecalculate: onRecalculate,
-                  onApply: onApply,
-                  goalLabel: _goalLabel(l10n, recommendation!.goal),
-                  rateLabel: _rateLabel(
-                    l10n,
-                    recommendation!.targetRateKgPerWeek,
-                  ),
-                  formattedGeneratedAt: _formatDateTime(
-                    context,
-                    generatedAt ?? recommendation!.generatedAt,
-                  ),
-                  formattedNextDue:
-                      _formatDate(context, nextAdaptiveRecommendationDueAt),
-                ),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
+      child: recommendation == null
+          ? _EmptyRecommendationContent(
+              goalLine: l10n.adaptiveRecommendationGoalLine(
+                _goalLabel(l10n, goal),
+                _rateLabel(l10n, targetRateKgPerWeek),
+              ),
+              nextDueLine: l10n.adaptiveRecommendationNextDueLine(
+                _formatDate(context, nextAdaptiveRecommendationDueAt),
+              ),
+              isAdaptiveRecommendationDueNow:
+                  isAdaptiveRecommendationDueNow,
+              isRecalculating: isRecalculating,
+              onRecalculate: onRecalculate,
+            )
+          : _GeneratedRecommendationContent(
+              recommendation: recommendation!,
+              maintenanceEstimate: maintenanceEstimate,
+              isAdaptiveRecommendationDueNow:
+                  isAdaptiveRecommendationDueNow,
+              activeTargetCalories: activeTargetCalories,
+              recommendationWarning: recommendationWarning,
+              isRecalculating: isRecalculating,
+              isApplying: isApplying,
+              onRecalculate: onRecalculate,
+              onApply: onApply,
+              goalLabel: _goalLabel(l10n, recommendation!.goal),
+              rateLabel: _rateLabel(
+                l10n,
+                recommendation!.targetRateKgPerWeek,
+              ),
+              formattedGeneratedAt: _formatDateTime(
+                context,
+                generatedAt ?? recommendation!.generatedAt,
+              ),
+              formattedNextDue:
+                  _formatDate(context, nextAdaptiveRecommendationDueAt),
+            ),
     );
   }
 
@@ -152,14 +147,8 @@ class _EmptyRecommendationContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(
-              l10n.adaptiveRecommendationCardTitle,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             AlgorithmInfoButton(
               title: l10n.infoTdeeTitle,
               explanation: l10n.infoTdeeExplanation,
@@ -173,7 +162,6 @@ class _EmptyRecommendationContent extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: DesignConstants.spacingS),
         _SoftPanel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +251,6 @@ class _GeneratedRecommendationContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _RecommendationHeader(
-          title: l10n.adaptiveRecommendationCardTitle,
           goalLine: l10n.adaptiveRecommendationGoalLine(goalLabel, rateLabel),
           statusText: isAdaptiveRecommendationDueNow
               ? l10n.adaptiveRecommendationDueNowShort
@@ -356,13 +343,11 @@ class _GeneratedRecommendationContent extends StatelessWidget {
 }
 
 class _RecommendationHeader extends StatelessWidget {
-  final String title;
   final String goalLine;
   final String statusText;
   final bool isDueNow;
 
   const _RecommendationHeader({
-    required this.title,
     required this.goalLine,
     required this.statusText,
     required this.isDueNow,
@@ -374,19 +359,12 @@ class _RecommendationHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: DesignConstants.spacingXS),
               Text(
                 goalLine,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -442,20 +420,12 @@ class _MaintenanceHero extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final accent = colorScheme.primary;
-    final panelColor = isDark
-        ? Colors.black.withValues(alpha: 0.22)
-        : Colors.white.withValues(alpha: 0.42);
-    final borderColor = colorScheme.onSurface.withValues(alpha: 0.10);
 
     return Semantics(
       label: l10n.adaptiveRecommendationMaintenanceLine(value),
-      child: Container(
+      child: SummaryCard(
+        margin: EdgeInsets.zero,
         padding: const EdgeInsets.all(DesignConstants.spacingM),
-        decoration: BoxDecoration(
-          color: panelColor,
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-          border: Border.all(color: borderColor),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -683,7 +653,8 @@ class _MacroTile extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return _SoftPanel(
+    return SummaryCard(
+      margin: EdgeInsets.zero,
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.spacingM,
         vertical: DesignConstants.spacingS,
@@ -742,50 +713,48 @@ class _RecommendationContextPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return _SoftPanel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.adaptiveRecommendationDataQualityLabel,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.adaptiveRecommendationDataQualityLabel,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w800,
           ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        _DetailLine(text: dataBasisLine),
+        const SizedBox(height: DesignConstants.spacingXS),
+        _DetailLine(
+          text: dataBasisMessage,
+          key: const Key('adaptive_recommendation_data_basis_message'),
+        ),
+        if (effectiveEnergyDensity != null) ...[
           const SizedBox(height: DesignConstants.spacingS),
-          _DetailLine(text: dataBasisLine),
-          const SizedBox(height: DesignConstants.spacingXS),
           _DetailLine(
-            text: dataBasisMessage,
-            key: const Key('adaptive_recommendation_data_basis_message'),
+            text: 'Effektive Energiedichte: '
+                '${effectiveEnergyDensity!.round()} kcal/kg',
           ),
-          if (effectiveEnergyDensity != null) ...[
-            const SizedBox(height: DesignConstants.spacingS),
-            _DetailLine(
-              text: 'Effektive Energiedichte: '
-                  '${effectiveEnergyDensity!.round()} kcal/kg',
+          Text(
+            'Dynamischer Wert basierend auf Gewichts- und Wasserverlust-Ratio',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
             ),
-            Text(
-              'Dynamischer Wert basierend auf Gewichts- und Wasserverlust-Ratio',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-          const SizedBox(height: DesignConstants.spacingS),
-          Wrap(
-            spacing: DesignConstants.spacingS,
-            runSpacing: DesignConstants.spacingXS,
-            children: [
-              _CompactChip(text: activeCaloriesLine),
-              _CompactChip(text: calculatedAtLine),
-              _CompactChip(text: nextDueLine),
-            ],
           ),
         ],
-      ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Wrap(
+          spacing: DesignConstants.spacingS,
+          runSpacing: DesignConstants.spacingXS,
+          children: [
+            _CompactChip(text: activeCaloriesLine),
+            _CompactChip(text: calculatedAtLine),
+            _CompactChip(text: nextDueLine),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -878,11 +847,9 @@ class _RecommendationActions extends StatelessWidget {
 
 class _SoftPanel extends StatelessWidget {
   final Widget child;
-  final EdgeInsetsGeometry padding;
 
   const _SoftPanel({
     required this.child,
-    this.padding = const EdgeInsets.all(DesignConstants.spacingM),
   });
 
   @override
@@ -895,7 +862,7 @@ class _SoftPanel extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: padding,
+      padding: const EdgeInsets.all(DesignConstants.spacingM),
       decoration: BoxDecoration(
         color: surface,
         borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),

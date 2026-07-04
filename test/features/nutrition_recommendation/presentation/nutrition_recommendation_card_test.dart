@@ -8,6 +8,12 @@ import 'package:train_libre/features/nutrition_recommendation/presentation/nutri
 import 'package:train_libre/generated/app_localizations.dart';
 
 void main() {
+  setUp(() {
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.platformDispatcher.views.first.physicalSize = const Size(800, 1200);
+    binding.platformDispatcher.views.first.devicePixelRatio = 1.0;
+  });
+
   testWidgets('renders empty state without recommendation', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -34,7 +40,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
-    expect(find.text(l10n.adaptiveRecommendationCardTitle), findsOneWidget);
+    expect(find.text(l10n.adaptiveRecommendationCardTitle), findsNothing);
     expect(find.text(l10n.adaptiveRecommendationEmptyBody), findsOneWidget);
     expect(find.text(l10n.adaptiveRecommendationApplyAction), findsNothing);
   });
@@ -234,7 +240,7 @@ void main() {
     );
   });
 
-  testWidgets('renders localized recommendation title for german locale',
+  testWidgets('renders localized empty body text for german locale',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -260,7 +266,10 @@ void main() {
       ),
     );
 
-    expect(find.text('Adaptive Empfehlung'), findsOneWidget);
+    expect(
+      find.text('Tracke Gewicht und Ernährung etwa eine Woche, um die erste wöchentliche Empfehlung freizuschalten.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('renders maintenance credible interval and uncertainty hint',

@@ -473,7 +473,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                         )
                         .toList(),
                     isCurved: true,
-                    curveSmoothness: 0.15,
+                    curveSmoothness: 0.05,
                     color: Theme.of(context).colorScheme.primary,
                     barWidth: widget.edgeToEdge ? 3.5 : 4.0,
                     isStrokeCapRound: true,

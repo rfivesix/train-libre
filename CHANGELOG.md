@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Localized Chart Range Filters:** Localized the chart range selector buttons (`30d`, `90d`, `180d`, `All`) across all supported languages (English, German, French, Italian, Japanese).
 - **Tooltip Rendering Order:** Adjusted Stack Z-ordering in the body & nutrition trend chart so the tooltip overlay renders on top of the Y-axis labels.
 - **Enhanced Chart Lines Styling:** Increased line thickness (bar width) on all main line charts and added a subtle, minimal curvature (`curveSmoothness: 0.15`) for smoother edges.
+- **Monotonic/Overshoot-Free Splines for Line Charts:** Configured `curveSmoothness: 0.05` across all line graphs. This tighter curvature removes hard edges and rounds corners cleanly, while preventing overshoots and loops over large data gaps without the flattening artifacts of standard overshoot prevention.
 - **TDEE Notification Scheduling & First-Launch Filtering:**
   - Configured `AppInitializerScreen` to asynchronously trigger a recommendation refresh check in the background on startup, ensuring TDEE recalculation alerts can be sent without requiring the user to open the nutrition screen.
   - Added a first-launch guard to `saveLatestRecommendationSnapshot` in the repository so that the initial default TDEE setup does not fire a system notification to new users on their very first app launch.
@@ -26,6 +27,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Configured `_performBatchImport` in the database manager to temporarily disable SQLite foreign key checks (`PRAGMA foreign_keys = OFF;`) during bulk batch imports of base foods, exercises, and OFF products. This significantly speeds up the catalog sync and update process by bypassing constraint validation on each inserted row, restoring the original state afterwards.
 - **Repeat Onboarding Option Location:**
   - Moved the "Repeat Onboarding" (tutorial) card from the profile screen to the Settings Screen, placing it directly under the "Restart App Tour" card.
+- **Container-Slop Hunting (Design Level 1):**
+  - Dissolved the `SummaryCard` container wrapper around the adaptive nutrition recommendation views in `NutritionRecommendationCard` to render them inline/flat with minimalist margins.
+  - Eliminated chunky card containers from the Legal and About section navigation options in the Profile Screen, converting them into clean, flat text links with inline chevrons and hover/ink tap responses.
+  - Removed section headers ("About", "Legal") and leading icons from the minimal links at the bottom of the Profile Screen.
+  - Replaced the "Today in focus" section header on the Nutrition screen with an uppercase "ADAPTIVE RECOMMENDATION" header, removing the redundant duplicate title inside the card.
+  - Refactored "Estimated maintenance" and "Recommended targets" grids/tiles in the recommendation card to use the standard, premium `SummaryCard` widget.
+  - Removed the outer container panel around the "Data quality" block so it renders flat and clean.
 
 ## [0.9.37] - 2026-06-29
 
