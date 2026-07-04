@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Configured `_performBatchImport` in the database manager to temporarily disable SQLite foreign key checks (`PRAGMA foreign_keys = OFF;`) during bulk batch imports of base foods, exercises, and OFF products. This significantly speeds up the catalog sync and update process by bypassing constraint validation on each inserted row, restoring the original state afterwards.
 - **Repeat Onboarding Option Location:**
   - Moved the "Repeat Onboarding" (tutorial) card from the profile screen to the Settings Screen, placing it directly under the "Restart App Tour" card.
+- **Settings Section Card Consolidation:** Reworked the Settings screen so each section now uses one unified SummaryCard with dividers between its existing rows, matching the card grouping style used in Appearance settings.
 - **Container-Slop Hunting (Design Level 1):**
   - Dissolved the `SummaryCard` container wrapper around the adaptive nutrition recommendation views in `NutritionRecommendationCard` to render them inline/flat with minimalist margins.
   - Eliminated chunky card containers from the Legal and About section navigation options in the Profile Screen, converting them into clean, flat text links with inline chevrons and hover/ink tap responses.

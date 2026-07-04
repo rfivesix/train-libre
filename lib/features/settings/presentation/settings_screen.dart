@@ -285,261 +285,294 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: const Key('settings_section_app'),
             title: l10n.settingsSectionApp,
           ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.palette,
-            title: l10n.settingsAppearance,
-            subtitle: l10n.settingsAppearanceSubtitle,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AppearanceSettingsScreen(),
-                ),
-              );
-            },
-            tileKey: const Key('settings_appearance_entry'),
-          ),
           SummaryCard(
-            child: PlatformAdaptiveSwitchListTile(
-              secondary: Icon(
-                LucideIcons.candy,
-                size: 36,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text(
-                l10n.settingsShowSugarInDiaryOverviewTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                l10n.settingsShowSugarInDiaryOverviewSubtitle,
-              ),
-              value: _showSugarInDiaryOverview,
-              onChanged: (value) async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool(_showSugarInDiaryOverviewPrefKey, value);
-                if (!mounted) return;
-                setState(() => _showSugarInDiaryOverview = value);
-                hasStepsSettingsChanged = true;
-              },
-            ),
-          ),
-          SummaryCard(
-            child: PlatformAdaptiveSwitchListTile(
-              secondary: Icon(
-                LucideIcons.ruler_dimension_line,
-                size: 36,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: const Text(
-                'Unit System',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                unitService.isMetric
-                    ? 'Metric (kg, cm, ml)'
-                    : 'Imperial (lbs, in, fl oz)',
-              ),
-              value: unitService.isImperial,
-              onChanged: (value) {
-                unitService.setUnitSystem(
-                  value ? UnitSystem.imperial : UnitSystem.metric,
-                );
-              },
-            ),
-          ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.compass,
-            title: l10n.settingsRestartAppTourTitle,
-            subtitle: l10n.settingsRestartAppTourSubtitle,
-            tileKey: const Key('settings_restart_app_tour_tile'),
-            onTap: _restartAppTour,
-          ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.graduation_cap,
-            title: l10n.onbShowTutorialAgain,
-            subtitle: l10n.onbFinishBody,
-            tileKey: const Key('settings_repeat_onboarding_tile'),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const OnboardingScreen(),
+            child: Column(
+              children: [
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.palette,
+                  title: l10n.settingsAppearance,
+                  subtitle: l10n.settingsAppearanceSubtitle,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AppearanceSettingsScreen(),
+                      ),
+                    );
+                  },
+                  tileKey: const Key('settings_appearance_entry'),
+                  wrapInCard: false,
                 ),
-              );
-            },
+                const Divider(height: 1),
+                PlatformAdaptiveSwitchListTile(
+                  secondary: Icon(
+                    LucideIcons.candy,
+                    size: 36,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: Text(
+                    l10n.settingsShowSugarInDiaryOverviewTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    l10n.settingsShowSugarInDiaryOverviewSubtitle,
+                  ),
+                  value: _showSugarInDiaryOverview,
+                  onChanged: (value) async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool(_showSugarInDiaryOverviewPrefKey, value);
+                    if (!mounted) return;
+                    setState(() => _showSugarInDiaryOverview = value);
+                    hasStepsSettingsChanged = true;
+                  },
+                ),
+                const Divider(height: 1),
+                PlatformAdaptiveSwitchListTile(
+                  secondary: Icon(
+                    LucideIcons.ruler_dimension_line,
+                    size: 36,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: const Text(
+                    'Unit System',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    unitService.isMetric
+                        ? 'Metric (kg, cm, ml)'
+                        : 'Imperial (lbs, in, fl oz)',
+                  ),
+                  value: unitService.isImperial,
+                  onChanged: (value) {
+                    unitService.setUnitSystem(
+                      value ? UnitSystem.imperial : UnitSystem.metric,
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.compass,
+                  title: l10n.settingsRestartAppTourTitle,
+                  subtitle: l10n.settingsRestartAppTourSubtitle,
+                  tileKey: const Key('settings_restart_app_tour_tile'),
+                  onTap: _restartAppTour,
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.graduation_cap,
+                  title: l10n.onbShowTutorialAgain,
+                  subtitle: l10n.onbFinishBody,
+                  tileKey: const Key('settings_repeat_onboarding_tile'),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const OnboardingScreen(),
+                      ),
+                    );
+                  },
+                  wrapInCard: false,
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(
             key: const Key('settings_section_health_tracking'),
             title: l10n.settingsSectionHealthTracking,
           ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.footprints,
-            title: l10n.steps,
-            subtitle: l10n.settingsStepsSubtitle,
-            tileKey: const Key('settings_steps_entry'),
-            onTap: () async {
-              final changed = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(
-                  builder: (context) => const StepsSettingsScreen(),
+          SummaryCard(
+            child: Column(
+              children: [
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.footprints,
+                  title: l10n.steps,
+                  subtitle: l10n.settingsStepsSubtitle,
+                  tileKey: const Key('settings_steps_entry'),
+                  onTap: () async {
+                    final changed = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (context) => const StepsSettingsScreen(),
+                      ),
+                    );
+                    if (_settingsChildMayHaveChanged(changed)) {
+                      hasStepsSettingsChanged = true;
+                    }
+                  },
+                  wrapInCard: false,
                 ),
-              );
-              if (_settingsChildMayHaveChanged(changed)) {
-                hasStepsSettingsChanged = true;
-              }
-            },
-          ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.moon,
-            title: l10n.sleepSettingsSectionTitle,
-            subtitle: l10n.settingsSleepSubtitle,
-            tileKey: const Key('settings_sleep_entry'),
-            onTap: () async {
-              final changed = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(
-                  builder: (context) => SleepSettingsScreen(
-                    sleepSyncService: _sleepSyncService,
-                    sleepPermissionController: _sleepPermissionController,
-                  ),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.moon,
+                  title: l10n.sleepSettingsSectionTitle,
+                  subtitle: l10n.settingsSleepSubtitle,
+                  tileKey: const Key('settings_sleep_entry'),
+                  onTap: () async {
+                    final changed = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (context) => SleepSettingsScreen(
+                          sleepSyncService: _sleepSyncService,
+                          sleepPermissionController: _sleepPermissionController,
+                        ),
+                      ),
+                    );
+                    if (_settingsChildMayHaveChanged(changed)) {
+                      hasStepsSettingsChanged = true;
+                    }
+                  },
+                  wrapInCard: false,
                 ),
-              );
-              if (_settingsChildMayHaveChanged(changed)) {
-                hasStepsSettingsChanged = true;
-              }
-            },
-          ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.heart_pulse,
-            title: l10n.pulseTitle,
-            subtitle: l10n.settingsPulseSubtitle,
-            tileKey: const Key('settings_pulse_entry'),
-            onTap: () async {
-              final changed = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(
-                  builder: (context) => const PulseSettingsScreen(),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.heart_pulse,
+                  title: l10n.pulseTitle,
+                  subtitle: l10n.settingsPulseSubtitle,
+                  tileKey: const Key('settings_pulse_entry'),
+                  onTap: () async {
+                    final changed = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (context) => const PulseSettingsScreen(),
+                      ),
+                    );
+                    if (_settingsChildMayHaveChanged(changed)) {
+                      hasStepsSettingsChanged = true;
+                    }
+                  },
+                  wrapInCard: false,
                 ),
-              );
-              if (_settingsChildMayHaveChanged(changed)) {
-                hasStepsSettingsChanged = true;
-              }
-            },
-          ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.heart,
-            title: l10n.healthExportTitle,
-            subtitle: l10n.settingsHealthExportSubtitle,
-            tileKey: const Key('settings_health_export_entry'),
-            onTap: () async {
-              final changed = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(
-                  builder: (context) => const HealthExportSettingsScreen(),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.heart,
+                  title: l10n.healthExportTitle,
+                  subtitle: l10n.settingsHealthExportSubtitle,
+                  tileKey: const Key('settings_health_export_entry'),
+                  onTap: () async {
+                    final changed = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (context) => const HealthExportSettingsScreen(),
+                      ),
+                    );
+                    if (_settingsChildMayHaveChanged(changed)) {
+                      hasStepsSettingsChanged = true;
+                    }
+                  },
+                  wrapInCard: false,
                 ),
-              );
-              if (_settingsChildMayHaveChanged(changed)) {
-                hasStepsSettingsChanged = true;
-              }
-            },
+              ],
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(
             key: const Key('settings_section_nutrition_data'),
             title: l10n.settingsSectionNutritionAndData,
           ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.sparkles,
-            title: l10n.aiSettingsTitle,
-            subtitle: l10n.aiSettingsDescription,
-            useGradientIcon: true,
-            tileKey: const Key('settings_ai_entry'),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AiSettingsScreen(),
+          SummaryCard(
+            child: Column(
+              children: [
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.sparkles,
+                  title: l10n.aiSettingsTitle,
+                  subtitle: l10n.aiSettingsDescription,
+                  useGradientIcon: true,
+                  tileKey: const Key('settings_ai_entry'),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AiSettingsScreen(),
+                      ),
+                    );
+                  },
+                  wrapInCard: false,
                 ),
-              );
-            },
-          ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.database_backup,
-            title: l10n.backup_and_import,
-            subtitle: l10n.backup_and_import_description,
-            tileKey: const Key('settings_backup_import_entry'),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const DataManagementScreen(),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.database_backup,
+                  title: l10n.backup_and_import,
+                  subtitle: l10n.backup_and_import_description,
+                  tileKey: const Key('settings_backup_import_entry'),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const DataManagementScreen(),
+                      ),
+                    );
+                  },
+                  wrapInCard: false,
                 ),
-              );
-            },
-          ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.cloud_download,
-            title: l10n.settingsUpdateFoodDatabase,
-            subtitle: l10n.settingsUpdateFoodDatabaseSubtitle,
-            tileKey: const Key('settings_sync_off_database'),
-            onTap: () async {
-              final result = await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AppInitializerScreen(
-                    forceUpdate: true,
-                    isModal: true,
-                  ),
-                ),
-              );
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.cloud_download,
+                  title: l10n.settingsUpdateFoodDatabase,
+                  subtitle: l10n.settingsUpdateFoodDatabaseSubtitle,
+                  tileKey: const Key('settings_sync_off_database'),
+                  onTap: () async {
+                    final result = await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AppInitializerScreen(
+                          forceUpdate: true,
+                          isModal: true,
+                        ),
+                      ),
+                    );
 
-              if (result == true && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(l10n.settingsUpdateFoodDatabaseSuccess)),
-                );
-              }
-            },
-          ),
-          SummaryCard(
-            child: ListTile(
-              leading: Icon(
-                LucideIcons.earth,
-                size: 36,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text(
-                l10n.settingsFoodDbRegionTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                '${l10n.settingsFoodDbRegionSubtitle}\n'
-                '${l10n.settingsFoodDbRegionCurrent}: '
-                '${_offCountryLabel(_activeOffCatalogCountry, l10n)}',
-              ),
-              isThreeLine: true,
-              trailing: const Icon(LucideIcons.chevron_right),
-              onTap: _showOffCatalogRegionPicker,
-            ),
-          ),
-          SummaryCard(
-            child: ListTile(
-              leading: Icon(
-                LucideIcons.languages,
-                size: 36,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text(
-                l10n.settingsBaseFoodLanguageTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                _baseFoodLanguageLabel(_baseFoodLanguage, l10n),
-              ),
-              trailing: const Icon(LucideIcons.chevron_right),
-              onTap: _showBaseFoodLanguagePicker,
+                    if (result == true && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content:
+                              Text(l10n.settingsUpdateFoodDatabaseSuccess),
+                        ),
+                      );
+                    }
+                  },
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(
+                    LucideIcons.earth,
+                    size: 36,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: Text(
+                    l10n.settingsFoodDbRegionTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    '${l10n.settingsFoodDbRegionSubtitle}\n'
+                    '${l10n.settingsFoodDbRegionCurrent}: '
+                    '${_offCountryLabel(_activeOffCatalogCountry, l10n)}',
+                  ),
+                  isThreeLine: true,
+                  trailing: const Icon(LucideIcons.chevron_right),
+                  onTap: _showOffCatalogRegionPicker,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(
+                    LucideIcons.languages,
+                    size: 36,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: Text(
+                    l10n.settingsBaseFoodLanguageTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    _baseFoodLanguageLabel(_baseFoodLanguage, l10n),
+                  ),
+                  trailing: const Icon(LucideIcons.chevron_right),
+                  onTap: _showBaseFoodLanguagePicker,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
@@ -547,19 +580,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: const Key('settings_section_support_about'),
             title: l10n.settingsSectionSupportAbout,
           ),
-          _buildNavigationCard(
-            context: context,
-            icon: LucideIcons.message_square,
-            title: l10n.feedbackReportSettingsEntryTitle,
-            subtitle: l10n.feedbackReportSettingsEntrySubtitle,
-            tileKey: const Key('settings_feedback_entry'),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const FeedbackReportScreen(),
-                ),
-              );
-            },
+          SummaryCard(
+            child: _buildNavigationCard(
+              context: context,
+              icon: LucideIcons.message_square,
+              title: l10n.feedbackReportSettingsEntryTitle,
+              subtitle: l10n.feedbackReportSettingsEntrySubtitle,
+              tileKey: const Key('settings_feedback_entry'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const FeedbackReportScreen(),
+                  ),
+                );
+              },
+              wrapInCard: false,
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(
@@ -743,6 +779,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback onTap,
     Key? tileKey,
     bool useGradientIcon = false,
+    bool wrapInCard = true,
   }) {
     Widget iconWidget = Icon(
       icon,
@@ -758,19 +795,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     }
 
-    return SummaryCard(
-      child: ListTile(
-        key: tileKey,
-        contentPadding: DesignConstants.screenPadding,
-        leading: iconWidget,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle),
-        trailing: const Icon(LucideIcons.chevron_right),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+    final tile = ListTile(
+      key: tileKey,
+      contentPadding: DesignConstants.screenPadding,
+      leading: iconWidget,
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle),
+      trailing: const Icon(LucideIcons.chevron_right),
+      onTap: onTap,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
       ),
+    );
+
+    if (!wrapInCard) {
+      return tile;
+    }
+
+    return SummaryCard(
+      child: tile,
     );
   }
 }
