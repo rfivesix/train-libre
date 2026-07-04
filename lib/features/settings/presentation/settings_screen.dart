@@ -320,7 +320,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _showSugarInDiaryOverview,
                   onChanged: (value) async {
                     final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool(_showSugarInDiaryOverviewPrefKey, value);
+                    await prefs.setBool(
+                        _showSugarInDiaryOverviewPrefKey, value);
                     if (!mounted) return;
                     setState(() => _showSugarInDiaryOverview = value);
                     hasStepsSettingsChanged = true;
@@ -455,7 +456,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () async {
                     final changed = await Navigator.of(context).push<bool>(
                       MaterialPageRoute(
-                        builder: (context) => const HealthExportSettingsScreen(),
+                        builder: (context) =>
+                            const HealthExportSettingsScreen(),
                       ),
                     );
                     if (_settingsChildMayHaveChanged(changed)) {
@@ -527,8 +529,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (result == true && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content:
-                              Text(l10n.settingsUpdateFoodDatabaseSuccess),
+                          content: Text(l10n.settingsUpdateFoodDatabaseSuccess),
                         ),
                       );
                     }
