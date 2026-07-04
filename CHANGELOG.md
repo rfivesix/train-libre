@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Added a first-launch guard to `saveLatestRecommendationSnapshot` in the repository so that the initial default TDEE setup does not fire a system notification to new users on their very first app launch.
 - **Database Catalog Import Performance Optimization:**
   - Configured `_performBatchImport` in the database manager to temporarily disable SQLite foreign key checks (`PRAGMA foreign_keys = OFF;`) during bulk batch imports of base foods, exercises, and OFF products. This significantly speeds up the catalog sync and update process by bypassing constraint validation on each inserted row, restoring the original state afterwards.
+- **Repeat Onboarding Option Location:**
+  - Moved the "Repeat Onboarding" (tutorial) card from the profile screen to the Settings Screen, placing it directly under the "Restart App Tour" card.
 
 ## [0.9.37] - 2026-06-29
 

@@ -7,9 +7,8 @@ import '../domain/repositories/profile_repository.dart';
 import '../domain/models/user_gender.dart';
 import '../../../data/drift_database.dart' as db; // Access to Profile class
 import '../../../generated/app_localizations.dart';
-import 'goals_screen.dart';
-import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
+import 'goals_screen.dart';
 import '../../../services/profile_service.dart';
 import '../../../services/unit_service.dart';
 import '../../app/presentation/about_screen.dart';
@@ -442,8 +441,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     );
                   },
                 ),
-                _buildOnboardingCard(l10n),
-                const SizedBox(height: DesignConstants.spacingM),
                 AppSectionHeader(title: l10n.about_section),
                 _buildNavigationCard(
                   icon: LucideIcons.info,
@@ -498,38 +495,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24.0),
         ),
-      ),
-    );
-  }
-
-  Widget _buildOnboardingCard(AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    return SummaryCard(
-      child: ListTile(
-        leading: Icon(
-          LucideIcons.graduation_cap,
-          size: 36,
-          color: theme.colorScheme.primary,
-        ),
-        title: Text(
-          l10n.onbShowTutorialAgain,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        subtitle: Text(l10n.onbFinishBody, style: theme.textTheme.bodyMedium),
-        trailing: const Icon(LucideIcons.chevron_right),
-        onTap: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
-        },
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingL,
-          vertical: DesignConstants.spacingM,
-        ),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
       ),
     );
   }

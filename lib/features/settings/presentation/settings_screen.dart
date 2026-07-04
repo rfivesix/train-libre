@@ -28,6 +28,7 @@ import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../widgets/common/common.dart';
 import '../../app/presentation/app_initializer_screen.dart';
+import '../../onboarding/presentation/onboarding_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -353,6 +354,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: l10n.settingsRestartAppTourSubtitle,
             tileKey: const Key('settings_restart_app_tour_tile'),
             onTap: _restartAppTour,
+          ),
+          _buildNavigationCard(
+            context: context,
+            icon: LucideIcons.graduation_cap,
+            title: l10n.onbShowTutorialAgain,
+            subtitle: l10n.onbFinishBody,
+            tileKey: const Key('settings_repeat_onboarding_tile'),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const OnboardingScreen(),
+                ),
+              );
+            },
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(
