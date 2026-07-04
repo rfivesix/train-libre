@@ -1,5 +1,4 @@
-// lib/screens/app_initializer_screen.dart
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
 
@@ -11,6 +10,7 @@ import '../../../services/local_notification_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import 'main_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
+import '../../nutrition_recommendation/data/recommendation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -155,6 +155,13 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
     try {
       await LocalNotificationService.instance.initialize();
+      // Asynchronously trigger recommendation check on startup
+      unawaited(AdaptiveNutritionRecommendationService()
+          .refreshRecommendationIfDue()
+          .catchError((e) {
+        debugPrint("Startup recommendation check failed: $e");
+        return null;
+      }));
     } catch (e) {
       debugPrint("Local notification initialization failed: $e");
     }

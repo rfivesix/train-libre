@@ -1041,6 +1041,7 @@ class BasisDataManager {
     // Query original PRAGMAs
     String originalJournalMode = 'WAL';
     int originalSynchronous = 1; // NORMAL
+    int originalForeignKeys = 1; // ON
     try {
       final journalModeRow =
           await mainDb.customSelect('PRAGMA journal_mode;').getSingle();
@@ -1048,6 +1049,9 @@ class BasisDataManager {
       final syncRow =
           await mainDb.customSelect('PRAGMA synchronous;').getSingle();
       originalSynchronous = syncRow.read<int>('synchronous');
+      final fkRow =
+          await mainDb.customSelect('PRAGMA foreign_keys;').getSingle();
+      originalForeignKeys = fkRow.read<int>('foreign_keys');
     } catch (e) {
       debugPrint(
           '[ExerciseCatalog] Warning: could not query original PRAGMAs: $e');
@@ -1057,6 +1061,7 @@ class BasisDataManager {
     try {
       await mainDb.customStatement('PRAGMA synchronous = OFF;');
       await mainDb.customStatement('PRAGMA journal_mode = MEMORY;');
+      await mainDb.customStatement('PRAGMA foreign_keys = OFF;');
     } catch (e) {
       debugPrint(
           '[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e');
@@ -1333,12 +1338,14 @@ class BasisDataManager {
     } finally {
       // Restore original PRAGMAs
       debugPrint(
-          '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous');
+          '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous, foreign_keys=$originalForeignKeys');
       try {
         await mainDb
             .customStatement('PRAGMA synchronous = $originalSynchronous;');
         await mainDb
             .customStatement('PRAGMA journal_mode = $originalJournalMode;');
+        await mainDb
+            .customStatement('PRAGMA foreign_keys = $originalForeignKeys;');
       } catch (e) {
         debugPrint('[ExerciseCatalog] Error restoring PRAGMAs: $e');
       }

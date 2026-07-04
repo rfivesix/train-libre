@@ -206,9 +206,12 @@ class RecommendationRepository {
     }
 
     final prefs = await _prefsLoader();
+    final hasPrevious = prefs.containsKey(_latestSnapshotKey);
     await prefs.setString(_latestSnapshotKey, jsonEncode(snapshot.toJson()));
     await prefs.setString(_lastGeneratedDueWeekKey, snapshot.dueWeekKey);
-    _updateController.add(snapshot);
+    if (hasPrevious) {
+      _updateController.add(snapshot);
+    }
   }
 
   Future<NutritionRecommendation?> getLatestGeneratedRecommendation() async {

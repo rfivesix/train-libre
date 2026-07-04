@@ -19,6 +19,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Localized Chart Range Filters:** Localized the chart range selector buttons (`30d`, `90d`, `180d`, `All`) across all supported languages (English, German, French, Italian, Japanese).
 - **Tooltip Rendering Order:** Adjusted Stack Z-ordering in the body & nutrition trend chart so the tooltip overlay renders on top of the Y-axis labels.
 - **Enhanced Chart Lines Styling:** Increased line thickness (bar width) on all main line charts and added a subtle, minimal curvature (`curveSmoothness: 0.15`) for smoother edges.
+- **TDEE Notification Scheduling & First-Launch Filtering:**
+  - Configured `AppInitializerScreen` to asynchronously trigger a recommendation refresh check in the background on startup, ensuring TDEE recalculation alerts can be sent without requiring the user to open the nutrition screen.
+  - Added a first-launch guard to `saveLatestRecommendationSnapshot` in the repository so that the initial default TDEE setup does not fire a system notification to new users on their very first app launch.
+- **Database Catalog Import Performance Optimization:**
+  - Configured `_performBatchImport` in the database manager to temporarily disable SQLite foreign key checks (`PRAGMA foreign_keys = OFF;`) during bulk batch imports of base foods, exercises, and OFF products. This significantly speeds up the catalog sync and update process by bypassing constraint validation on each inserted row, restoring the original state afterwards.
 
 ## [0.9.37] - 2026-06-29
 

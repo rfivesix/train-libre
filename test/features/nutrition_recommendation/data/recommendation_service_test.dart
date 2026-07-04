@@ -655,6 +655,16 @@ void main() {
         () async {
       final monday = DateTime(2026, 4, 6, 10, 0);
 
+      // Pre-populate with a dummy snapshot to ensure there is a previous snapshot
+      await repository.saveLatestRecommendationSnapshot(
+        snapshot: AdaptiveRecommendationSnapshot(
+          recommendation: _recommendationForDueWeek('2026-03-30'),
+          maintenanceEstimate: _estimateForDueWeek('2026-03-30'),
+          dueWeekKey: '2026-03-30',
+          algorithmVersion: AdaptiveNutritionRecommendationService.algorithmVersion,
+        ),
+      );
+
       final futureSnapshot = repository.onRecommendationUpdated.first;
 
       final recommendation =
