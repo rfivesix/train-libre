@@ -4343,6 +4343,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'Data quality';
 
   @override
+  String get adaptiveRecommendationEnergyDensityLabel =>
+      'Effective energy density';
+
+  @override
+  String adaptiveRecommendationEnergyDensityValue(int value) {
+    return '$value kcal/kg';
+  }
+
+  @override
+  String get adaptiveRecommendationEnergyDensityExplanation =>
+      'Dynamic value based on weight and water-loss ratio';
+
+  @override
   String get adaptiveRecommendationRecalculateNowAction => 'Recalculate now';
 
   @override
@@ -4352,8 +4365,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveRecommendationApplying => 'Applying...';
 
   @override
-  String get adaptiveRecommendationApplyAction =>
-      'Apply recommendation to active goals';
+  String get adaptiveRecommendationApplyAction => 'Apply recommendation';
 
   @override
   String get adaptiveRecommendationWarningCalorieFloor =>

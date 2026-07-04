@@ -7656,6 +7656,24 @@ abstract class AppLocalizations {
   /// **'Data quality'**
   String get adaptiveRecommendationDataQualityLabel;
 
+  /// No description provided for @adaptiveRecommendationEnergyDensityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective energy density'**
+  String get adaptiveRecommendationEnergyDensityLabel;
+
+  /// No description provided for @adaptiveRecommendationEnergyDensityValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} kcal/kg'**
+  String adaptiveRecommendationEnergyDensityValue(int value);
+
+  /// No description provided for @adaptiveRecommendationEnergyDensityExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Dynamic value based on weight and water-loss ratio'**
+  String get adaptiveRecommendationEnergyDensityExplanation;
+
   /// No description provided for @adaptiveRecommendationRecalculateNowAction.
   ///
   /// In en, this message translates to:
@@ -7677,7 +7695,7 @@ abstract class AppLocalizations {
   /// No description provided for @adaptiveRecommendationApplyAction.
   ///
   /// In en, this message translates to:
-  /// **'Apply recommendation to active goals'**
+  /// **'Apply recommendation'**
   String get adaptiveRecommendationApplyAction;
 
   /// No description provided for @adaptiveRecommendationWarningCalorieFloor.

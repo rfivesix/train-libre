@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
@@ -18,7 +19,6 @@ class NutritionRecommendationCard extends StatelessWidget {
   final DateTime? generatedAt;
   final DateTime nextAdaptiveRecommendationDueAt;
   final bool isAdaptiveRecommendationDueNow;
-  final int activeTargetCalories;
   final bool isRecalculating;
   final bool isApplying;
   final VoidCallback? onRecalculate;
@@ -33,7 +33,6 @@ class NutritionRecommendationCard extends StatelessWidget {
     required this.generatedAt,
     required this.nextAdaptiveRecommendationDueAt,
     required this.isAdaptiveRecommendationDueNow,
-    required this.activeTargetCalories,
     required this.isRecalculating,
     required this.isApplying,
     required this.onRecalculate,
@@ -58,27 +57,21 @@ class NutritionRecommendationCard extends StatelessWidget {
               nextDueLine: l10n.adaptiveRecommendationNextDueLine(
                 _formatDate(context, nextAdaptiveRecommendationDueAt),
               ),
-              isAdaptiveRecommendationDueNow:
-                  isAdaptiveRecommendationDueNow,
+              isAdaptiveRecommendationDueNow: isAdaptiveRecommendationDueNow,
               isRecalculating: isRecalculating,
               onRecalculate: onRecalculate,
             )
           : _GeneratedRecommendationContent(
               recommendation: recommendation!,
               maintenanceEstimate: maintenanceEstimate,
-              isAdaptiveRecommendationDueNow:
-                  isAdaptiveRecommendationDueNow,
-              activeTargetCalories: activeTargetCalories,
+              isAdaptiveRecommendationDueNow: isAdaptiveRecommendationDueNow,
               recommendationWarning: recommendationWarning,
               isRecalculating: isRecalculating,
               isApplying: isApplying,
               onRecalculate: onRecalculate,
               onApply: onApply,
               goalLabel: _goalLabel(l10n, recommendation!.goal),
-              rateLabel: _rateLabel(
-                l10n,
-                recommendation!.targetRateKgPerWeek,
-              ),
+              rateLabel: _rateLabel(l10n, recommendation!.targetRateKgPerWeek),
               formattedGeneratedAt: _formatDateTime(
                 context,
                 generatedAt ?? recommendation!.generatedAt,
@@ -187,12 +180,16 @@ class _EmptyRecommendationContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        FilledButton.tonal(
-          onPressed: isRecalculating ? null : onRecalculate,
-          child: Text(
-            isRecalculating
-                ? l10n.adaptiveRecommendationRecalculating
-                : l10n.adaptiveRecommendationRecalculateNowAction,
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.tonalIcon(
+            onPressed: isRecalculating ? null : onRecalculate,
+            icon: const Icon(LucideIcons.rotate_cw, size: 18),
+            label: Text(
+              isRecalculating
+                  ? l10n.adaptiveRecommendationRecalculating
+                  : l10n.adaptiveRecommendationRecalculateNowAction,
+            ),
           ),
         ),
       ],
@@ -204,7 +201,6 @@ class _GeneratedRecommendationContent extends StatelessWidget {
   final NutritionRecommendation recommendation;
   final BayesianMaintenanceEstimate? maintenanceEstimate;
   final bool isAdaptiveRecommendationDueNow;
-  final int activeTargetCalories;
   final String? recommendationWarning;
   final bool isRecalculating;
   final bool isApplying;
@@ -219,7 +215,6 @@ class _GeneratedRecommendationContent extends StatelessWidget {
     required this.recommendation,
     required this.maintenanceEstimate,
     required this.isAdaptiveRecommendationDueNow,
-    required this.activeTargetCalories,
     required this.recommendationWarning,
     required this.isRecalculating,
     required this.isApplying,
@@ -314,13 +309,9 @@ class _GeneratedRecommendationContent extends StatelessWidget {
           ),
           effectiveEnergyDensity:
               recommendation.inputSummary.phaseEffectiveKcalPerKg,
-          activeCaloriesLine: l10n.adaptiveRecommendationActiveCaloriesLine(
-            activeTargetCalories,
-          ),
           calculatedAtLine: l10n.adaptiveRecommendationCalculatedAtLine(
             formattedGeneratedAt,
           ),
-          nextDueLine: l10n.adaptiveRecommendationNextDueLine(formattedNextDue),
         ),
         if (recommendationWarning != null)
           Padding(
@@ -536,13 +527,13 @@ class _MaintenanceHero extends StatelessWidget {
     // see a visible bar rather than an invisible one.
     switch (confidence) {
       case RecommendationConfidence.notEnoughData:
-        return 0.22;
+        return 0.1;
       case RecommendationConfidence.low:
-        return 0.42;
+        return 0.4;
       case RecommendationConfidence.medium:
-        return 0.68;
+        return 0.7;
       case RecommendationConfidence.high:
-        return 0.90;
+        return 1.0;
     }
   }
 }
@@ -625,7 +616,8 @@ class _MacroTargetGrid extends StatelessWidget {
               childAspectRatio: crossAxisCount == 2 ? 2.45 : 2.65,
               children: [
                 for (final item in items)
-                  _MacroTile(label: item.label, value: item.value),
+                  _RecommendationValueCard(
+                      label: item.label, value: item.value),
               ],
             );
           },
@@ -642,16 +634,18 @@ class _MacroTarget {
   const _MacroTarget({required this.label, required this.value});
 }
 
-class _MacroTile extends StatelessWidget {
+class _RecommendationValueCard extends StatelessWidget {
   final String label;
   final String value;
 
-  const _MacroTile({required this.label, required this.value});
+  const _RecommendationValueCard({
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return SummaryCard(
       margin: EdgeInsets.zero,
@@ -681,7 +675,7 @@ class _MacroTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.58),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -695,34 +689,30 @@ class _RecommendationContextPanel extends StatelessWidget {
   final String dataBasisLine;
   final String dataBasisMessage;
   final double? effectiveEnergyDensity;
-  final String activeCaloriesLine;
   final String calculatedAtLine;
-  final String nextDueLine;
 
   const _RecommendationContextPanel({
     required this.dataBasisLine,
     required this.dataBasisMessage,
     this.effectiveEnergyDensity,
-    required this.activeCaloriesLine,
     required this.calculatedAtLine,
-    required this.nextDueLine,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           l10n.adaptiveRecommendationDataQualityLabel,
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
+        _DetailLine(text: calculatedAtLine),
+        const SizedBox(height: DesignConstants.spacingXS),
         _DetailLine(text: dataBasisLine),
         const SizedBox(height: DesignConstants.spacingXS),
         _DetailLine(
@@ -731,29 +721,29 @@ class _RecommendationContextPanel extends StatelessWidget {
         ),
         if (effectiveEnergyDensity != null) ...[
           const SizedBox(height: DesignConstants.spacingS),
-          _DetailLine(
-            text: 'Effektive Energiedichte: '
-                '${effectiveEnergyDensity!.round()} kcal/kg',
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final tileHeight =
+                  ((constraints.maxWidth - DesignConstants.spacingS) / 2) /
+                      2.45;
+
+              return SizedBox(
+                width: double.infinity,
+                height: tileHeight,
+                child: _RecommendationValueCard(
+                  label: l10n.adaptiveRecommendationEnergyDensityLabel,
+                  value: l10n.adaptiveRecommendationEnergyDensityValue(
+                    effectiveEnergyDensity!.round(),
+                  ),
+                ),
+              );
+            },
           ),
-          Text(
-            'Dynamischer Wert basierend auf Gewichts- und Wasserverlust-Ratio',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-            ),
+          const SizedBox(height: DesignConstants.spacingXS),
+          _DetailLine(
+            text: l10n.adaptiveRecommendationEnergyDensityExplanation,
           ),
         ],
-        const SizedBox(height: DesignConstants.spacingS),
-        Wrap(
-          spacing: DesignConstants.spacingS,
-          runSpacing: DesignConstants.spacingXS,
-          children: [
-            _CompactChip(text: activeCaloriesLine),
-            _CompactChip(text: calculatedAtLine),
-            _CompactChip(text: nextDueLine),
-          ],
-        ),
       ],
     );
   }
@@ -824,20 +814,28 @@ class _RecommendationActions extends StatelessWidget {
       runSpacing: DesignConstants.spacingS,
       alignment: WrapAlignment.start,
       children: [
-        FilledButton.tonal(
-          onPressed: isRecalculating ? null : onRecalculate,
-          child: Text(
-            isRecalculating
-                ? l10n.adaptiveRecommendationRecalculating
-                : l10n.adaptiveRecommendationRecalculateNowAction,
+        SizedBox(
+          width: 168,
+          child: OutlinedButton.icon(
+            onPressed: isRecalculating ? null : onRecalculate,
+            icon: const Icon(LucideIcons.rotate_cw, size: 18),
+            label: Text(
+              isRecalculating
+                  ? l10n.adaptiveRecommendationRecalculating
+                  : l10n.adaptiveRecommendationRecalculateNowAction,
+            ),
           ),
         ),
-        ElevatedButton(
-          onPressed: isApplying ? null : onApply,
-          child: Text(
-            isApplying
-                ? l10n.adaptiveRecommendationApplying
-                : l10n.adaptiveRecommendationApplyAction,
+        SizedBox(
+          width: 168,
+          child: FilledButton.icon(
+            onPressed: isApplying ? null : onApply,
+            icon: const Icon(LucideIcons.check, size: 18),
+            label: Text(
+              isApplying
+                  ? l10n.adaptiveRecommendationApplying
+                  : l10n.adaptiveRecommendationApplyAction,
+            ),
           ),
         ),
       ],
@@ -912,35 +910,6 @@ class _StatusPill extends StatelessWidget {
         style: theme.textTheme.labelSmall?.copyWith(
           color: foregroundColor,
           fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
-
-class _CompactChip extends StatelessWidget {
-  final String text;
-
-  const _CompactChip({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingS,
-        vertical: 5,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.74),
-          fontWeight: FontWeight.w700,
         ),
       ),
     );

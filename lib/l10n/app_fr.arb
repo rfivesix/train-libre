@@ -2015,10 +2015,20 @@
   "adaptiveRecommendationMacroTargetsLabel": "Cibles recommandées",
   "adaptiveRecommendationTargetCaloriesLabel": "Kcal cible",
   "adaptiveRecommendationDataQualityLabel": "Qualité des données",
+  "adaptiveRecommendationEnergyDensityLabel": "Densité énergétique effective",
+  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
+  "@adaptiveRecommendationEnergyDensityValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationEnergyDensityExplanation": "Valeur dynamique basée sur le poids et le ratio de perte d’eau",
   "adaptiveRecommendationRecalculateNowAction": "Recalculer maintenant",
   "adaptiveRecommendationRecalculating": "Recalculer...",
   "adaptiveRecommendationApplying": "Candidature...",
-  "adaptiveRecommendationApplyAction": "Appliquer la recommandation aux objectifs actifs",
+  "adaptiveRecommendationApplyAction": "Appliquer la recommandation",
   "adaptiveRecommendationWarningCalorieFloor": "Recommandation limitée par un seuil minimum de sécurité calorique. Examinez les données de profil et les journaux récents avant de postuler.",
   "adaptiveRecommendationWarningUnresolvedFood": "Certaines entrées nutritionnelles n'ont pas pu être entièrement résolues pour les calories. Vérifiez les journaux récents avant de postuler.",
   "adaptiveRecommendationWarningLargeAdjustment": "Ajustement important détecté. Veuillez vérifier l'intégralité de votre journalisation récente avant de postuler.",

@@ -178,7 +178,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
             child: ListView(
               padding: finalPadding,
               children: [
-                AppSectionHeader(title: l10n.adaptiveRecommendationCardTitle.toUpperCase()),
+                AppSectionHeader(
+                    title: l10n.adaptiveRecommendationCardTitle.toUpperCase()),
                 _buildGoalsAndRecommendationCard(
                   context,
                   recommendationState,
@@ -252,7 +253,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
               recommendationState.nextAdaptiveRecommendationDueAt,
           isAdaptiveRecommendationDueNow:
               recommendationState.isAdaptiveRecommendationDueNow,
-          activeTargetCalories: targetCalories,
           isRecalculating: _isRecalculatingRecommendation,
           isApplying: _isApplyingRecommendation,
           onRecalculate: _recalculateRecommendationNow,

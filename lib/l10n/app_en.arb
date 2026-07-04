@@ -2014,10 +2014,20 @@
   "adaptiveRecommendationMacroTargetsLabel": "Recommended targets",
   "adaptiveRecommendationTargetCaloriesLabel": "Target kcal",
   "adaptiveRecommendationDataQualityLabel": "Data quality",
+  "adaptiveRecommendationEnergyDensityLabel": "Effective energy density",
+  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
+  "@adaptiveRecommendationEnergyDensityValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationEnergyDensityExplanation": "Dynamic value based on weight and water-loss ratio",
   "adaptiveRecommendationRecalculateNowAction": "Recalculate now",
   "adaptiveRecommendationRecalculating": "Recalculating...",
   "adaptiveRecommendationApplying": "Applying...",
-  "adaptiveRecommendationApplyAction": "Apply recommendation to active goals",
+  "adaptiveRecommendationApplyAction": "Apply recommendation",
   "adaptiveRecommendationWarningCalorieFloor": "Recommendation constrained by a minimum calorie safety floor. Review profile data and recent logs before applying.",
   "adaptiveRecommendationWarningUnresolvedFood": "Some nutrition entries could not be fully resolved for calories. Check recent logs before applying.",
   "adaptiveRecommendationWarningLargeAdjustment": "Large adjustment detected. Please review your recent logging completeness before applying.",

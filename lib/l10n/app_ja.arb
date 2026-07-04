@@ -2015,6 +2015,16 @@
   "adaptiveRecommendationMacroTargetsLabel": "推奨ターゲット",
   "adaptiveRecommendationTargetCaloriesLabel": "目標kcal",
   "adaptiveRecommendationDataQualityLabel": "データ品質",
+  "adaptiveRecommendationEnergyDensityLabel": "実効エネルギー密度",
+  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
+  "@adaptiveRecommendationEnergyDensityValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationEnergyDensityExplanation": "体重と水分損失の比率に基づく動的な値です",
   "adaptiveRecommendationRecalculateNowAction": "今すぐ再計算してください",
   "adaptiveRecommendationRecalculating": "再計算中...",
   "adaptiveRecommendationApplying": "申請中...",

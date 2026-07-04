@@ -2015,10 +2015,20 @@
   "adaptiveRecommendationMacroTargetsLabel": "Empfohlene Ziele",
   "adaptiveRecommendationTargetCaloriesLabel": "Ziel-kcal",
   "adaptiveRecommendationDataQualityLabel": "Datenqualität",
+  "adaptiveRecommendationEnergyDensityLabel": "Effektive Energiedichte",
+  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
+  "@adaptiveRecommendationEnergyDensityValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationEnergyDensityExplanation": "Dynamischer Wert basierend auf Gewichts- und Wasserverlust-Ratio",
   "adaptiveRecommendationRecalculateNowAction": "Jetzt neu berechnen",
   "adaptiveRecommendationRecalculating": "Wird neu berechnet...",
   "adaptiveRecommendationApplying": "Wird angewendet...",
-  "adaptiveRecommendationApplyAction": "Empfehlung auf aktive Ziele anwenden",
+  "adaptiveRecommendationApplyAction": "Empfehlung anwenden",
   "adaptiveRecommendationWarningCalorieFloor": "Empfehlung wurde durch ein Mindest-Kalorien-Sicherheitslimit begrenzt. Bitte Profil und aktuelle Logs vor dem Anwenden prüfen.",
   "adaptiveRecommendationWarningUnresolvedFood": "Einige Ernährungseinträge konnten kalorisch nicht vollständig aufgelöst werden. Bitte prüfe deine letzten Logs vor dem Anwenden.",
   "adaptiveRecommendationWarningLargeAdjustment": "Große Anpassung erkannt. Bitte prüfe vor dem Anwenden die Vollständigkeit deiner letzten Logs.",

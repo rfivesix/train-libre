@@ -2015,10 +2015,20 @@
   "adaptiveRecommendationMacroTargetsLabel": "Obiettivi consigliati",
   "adaptiveRecommendationTargetCaloriesLabel": "Obiettivo kcal",
   "adaptiveRecommendationDataQualityLabel": "Qualità dei dati",
+  "adaptiveRecommendationEnergyDensityLabel": "Densità energetica effettiva",
+  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
+  "@adaptiveRecommendationEnergyDensityValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationEnergyDensityExplanation": "Valore dinamico basato sul rapporto tra peso e perdita di acqua",
   "adaptiveRecommendationRecalculateNowAction": "Ricalcola ora",
   "adaptiveRecommendationRecalculating": "Ricalcolo in corso...",
   "adaptiveRecommendationApplying": "Applicazione...",
-  "adaptiveRecommendationApplyAction": "Applicare il consiglio agli obiettivi attivi",
+  "adaptiveRecommendationApplyAction": "Applicare il consiglio",
   "adaptiveRecommendationWarningCalorieFloor": "Raccomandazione vincolata da un livello minimo di sicurezza calorica. Esamina i dati del profilo e i registri recenti prima di candidarti.",
   "adaptiveRecommendationWarningUnresolvedFood": "Non è stato possibile risolvere completamente alcune voci nutrizionali per le calorie. Controlla i registri recenti prima di applicare.",
   "adaptiveRecommendationWarningLargeAdjustment": "Rilevata grande regolazione. Si prega di verificare la completezza della registrazione recente prima di presentare domanda.",

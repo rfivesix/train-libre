@@ -44,6 +44,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Replaced the "Today in focus" section header on the Nutrition screen with an uppercase "ADAPTIVE RECOMMENDATION" header, removing the redundant duplicate title inside the card.
   - Refactored "Estimated maintenance" and "Recommended targets" grids/tiles in the recommendation card to use the standard, premium `SummaryCard` widget.
   - Removed the outer container panel around the "Data quality" block so it renders flat and clean.
+- **Nutrition Recommendation Card Alignment:** Synced the "Data quality" heading with the same section-header treatment used by "Recommended targets" and matched the effective energy density card height, spacing, and text treatment to the target tiles.
 
 ## [0.9.37] - 2026-06-29
 

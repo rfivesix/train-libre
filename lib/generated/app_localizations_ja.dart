@@ -4205,6 +4205,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'データ品質';
 
   @override
+  String get adaptiveRecommendationEnergyDensityLabel => '実効エネルギー密度';
+
+  @override
+  String adaptiveRecommendationEnergyDensityValue(int value) {
+    return '$value kcal/kg';
+  }
+
+  @override
+  String get adaptiveRecommendationEnergyDensityExplanation =>
+      '体重と水分損失の比率に基づく動的な値です';
+
+  @override
   String get adaptiveRecommendationRecalculateNowAction => '今すぐ再計算してください';
 
   @override
