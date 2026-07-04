@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.2] - 2026-06-29
 
@@ -12,7 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Adjusted background to match the exact dark gray of the summary cards by defining `DesignConstants.summaryCardDarkMode` (`Color(0xFF2A2A2A)`) and using it consistently across both components and the custom date/time pickers (`_GlassPickerSheet` with `0.95` opacity in dark mode) to clearly separate the menu sheet from the background content.
   - Added a clean top and side border (`1.5` width) that adapts to light/dark themes to define the sheet boundary.
   - Changed the drag handle color to adaptively use `onSurface` with `0.3` opacity, improving visibility in both light and dark modes.
+- **Settings Section Card Consolidation:** Reworked the Settings screen so each section now uses one unified SummaryCard with dividers between its existing rows, matching the card grouping style used in Appearance settings.
 - **Localized Food Titles in Dialogs & Lists:** Updated the food quantity bottom sheets (`_showQuantityMenu` in both `diary_screen.dart` and `main_screen.dart`), the ingredient logs in `ConfirmLogMealBottomSheet`, the ingredient card/edit list in `MealScreen`, and the AI validation review widgets (`AiMealReviewScreen` / `MealReviewComparisonCard`) to dynamically fetch and display the user's localized base food names (based on the language chosen in the settings) instead of showing the raw database/German names. Also resolved the root localization issue in the main diary list (`FoodEntryTile` / `getProductsByArchiveIds`) by dynamically enriching archived food entries with their name translations from the primary database products table.
+- **Nutrition Recommendation Card Alignment:** Synced the "Data quality" heading with the same section-header treatment used by "Recommended targets" and matched the effective energy density card height, spacing, and text treatment to the target tiles.
 
 ## [1.0.0-alpha.1] - 2026-06-29
 
@@ -37,7 +39,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Configured `_performBatchImport` in the database manager to temporarily disable SQLite foreign key checks (`PRAGMA foreign_keys = OFF;`) during bulk batch imports of base foods, exercises, and OFF products. This significantly speeds up the catalog sync and update process by bypassing constraint validation on each inserted row, restoring the original state afterwards.
 - **Repeat Onboarding Option Location:**
   - Moved the "Repeat Onboarding" (tutorial) card from the profile screen to the Settings Screen, placing it directly under the "Restart App Tour" card.
-- **Settings Section Card Consolidation:** Reworked the Settings screen so each section now uses one unified SummaryCard with dividers between its existing rows, matching the card grouping style used in Appearance settings.
 - **Container-Slop Hunting (Design Level 1):**
   - Dissolved the `SummaryCard` container wrapper around the adaptive nutrition recommendation views in `NutritionRecommendationCard` to render them inline/flat with minimalist margins.
   - Eliminated chunky card containers from the Legal and About section navigation options in the Profile Screen, converting them into clean, flat text links with inline chevrons and hover/ink tap responses.
@@ -45,7 +46,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Replaced the "Today in focus" section header on the Nutrition screen with an uppercase "ADAPTIVE RECOMMENDATION" header, removing the redundant duplicate title inside the card.
   - Refactored "Estimated maintenance" and "Recommended targets" grids/tiles in the recommendation card to use the standard, premium `SummaryCard` widget.
   - Removed the outer container panel around the "Data quality" block so it renders flat and clean.
-- **Nutrition Recommendation Card Alignment:** Synced the "Data quality" heading with the same section-header treatment used by "Recommended targets" and matched the effective energy density card height, spacing, and text treatment to the target tiles.
 
 ## [0.9.37] - 2026-06-29
 
