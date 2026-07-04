@@ -9,6 +9,7 @@ import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../core/infrastructure/export_manager.dart';
 import '../../../core/infrastructure/import_manager.dart';
 import '../../../generated/app_localizations.dart';
+import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/app_initializer_screen.dart';
 import '../../exercise_catalog/presentation/exercise_mapping_screen.dart';
 import '../../../services/local_app_data_reset_service.dart';
@@ -91,13 +92,13 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         initialStatus: l10n.backupExportTitle,
         icon: LucideIcons.upload,
         operation: (token, updateProgress) async {
-          await BackupManager.instance.exportFullBackup(
-            token,
-            (tableName, progress) {
-              final statusText = l10n.progressExportingTable(tableName);
-              updateProgress(statusText, progress);
-            },
-          );
+          await BackupManager.instance.exportFullBackup(token, (
+            tableName,
+            progress,
+          ) {
+            final statusText = l10n.progressExportingTable(tableName);
+            updateProgress(statusText, progress);
+          });
         },
       );
     } catch (e) {
@@ -108,8 +109,9 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     }
 
     if (success) {
-      messenger
-          .showSnackBar(SnackBar(content: Text(l10n.snackbarExportSuccess)));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.snackbarExportSuccess)),
+      );
     } else if (!wasCanceled) {
       messenger.showSnackBar(
         SnackBar(
@@ -135,8 +137,9 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     if (!mounted) return;
 
     if (!wgerInitialized) {
-      await BasisDataManager.instance
-          .promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+        context,
+      );
       return;
     }
 
@@ -350,9 +353,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(
-        title: l10n.dataHubTitle,
-      ),
+      appBar: GlobalAppBar(title: l10n.dataHubTitle),
       body: SingleChildScrollView(
         padding: DesignConstants.cardPadding.copyWith(
           top: DesignConstants.cardPadding.top + topPadding,
@@ -360,95 +361,105 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DataBackupCard(
-              isFullBackupRunning: false,
-              onExportPressed: _performFullExport,
-              onImportPressed: _performFullImport,
-              onExportEncryptedPressed: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final pw = await _askPassword(
-                  title: l10n.dialogPasswordForExport,
-                );
-                if (!context.mounted) return;
-                if (pw == null || pw.isEmpty) return;
+            SummaryCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DataBackupCard(
+                    isFullBackupRunning: false,
+                    onExportPressed: _performFullExport,
+                    onImportPressed: _performFullImport,
+                    onExportEncryptedPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final pw = await _askPassword(
+                        title: l10n.dialogPasswordForExport,
+                      );
+                      if (!context.mounted) return;
+                      if (pw == null || pw.isEmpty) return;
 
-                bool ok = false;
-                bool wasCanceled = false;
-                try {
-                  ok = await LongRunningOperationOverlay.run(
-                    context: context,
-                    title: l10n.backupExportTitle,
-                    initialStatus: l10n.backupExportTitle,
-                    icon: LucideIcons.lock,
-                    operation: (token, updateProgress) async {
-                      await BackupManager.instance.exportFullBackupEncrypted(
-                        pw,
-                        token,
-                        (tableName, progress) {
-                          final statusText =
-                              l10n.progressExportingTable(tableName);
-                          updateProgress(statusText, progress);
-                        },
+                      bool ok = false;
+                      bool wasCanceled = false;
+                      try {
+                        ok = await LongRunningOperationOverlay.run(
+                          context: context,
+                          title: l10n.backupExportTitle,
+                          initialStatus: l10n.backupExportTitle,
+                          icon: LucideIcons.lock,
+                          operation: (token, updateProgress) async {
+                            await BackupManager.instance
+                                .exportFullBackupEncrypted(pw, token, (
+                              tableName,
+                              progress,
+                            ) {
+                              final statusText =
+                                  l10n.progressExportingTable(tableName);
+                              updateProgress(statusText, progress);
+                            });
+                          },
+                        );
+                      } catch (e) {
+                        if (e is OperationCanceledException) {
+                          wasCanceled = true;
+                        }
+                        ok = false;
+                      }
+
+                      if (!wasCanceled) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              ok
+                                  ? l10n.snackbarEncryptedBackupShared
+                                  : l10n.exportFailed,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  const Divider(height: 1),
+                  DataAutoBackupCard(
+                    autoBackupDir: _autoBackupDir,
+                    lastAutoBackupFilePath: _lastAutoBackupFilePath,
+                    lastAutoBackupDirUsed: _lastAutoBackupDirUsed,
+                    lastAutoBackupUsedFallback: _lastAutoBackupUsedFallback,
+                    onPickDirectory: _pickAutoBackupDirectory,
+                    onCopyPath: _copyAutoBackupPathToClipboard,
+                    onRunNow: () async {
+                      final ok =
+                          await BackupManager.instance.runAutoBackupIfDue(
+                        interval: const Duration(days: 1),
+                        encrypted: false,
+                        passphrase: null,
+                        retention: 7,
+                        dirPath: _autoBackupDir,
+                        force: true, // New: run immediately
+                      );
+                      await _loadAutoBackupDir();
+                      if (!mounted) return;
+                      final successText = ok
+                          ? (_lastAutoBackupFilePath != null &&
+                                  _lastAutoBackupFilePath!.isNotEmpty
+                              ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
+                              : l10n.snackbarAutoBackupSuccess)
+                          : (_lastAutoBackupError != null &&
+                                  _lastAutoBackupError!.isNotEmpty
+                              ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
+                              : l10n.snackbarAutoBackupFailed);
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        SnackBar(
+                          content: Text(successText),
+                          backgroundColor: ok
+                              ? (_lastAutoBackupUsedFallback
+                                  ? Colors.orange
+                                  : null)
+                              : Theme.of(this.context).colorScheme.error,
+                        ),
                       );
                     },
-                  );
-                } catch (e) {
-                  if (e is OperationCanceledException) {
-                    wasCanceled = true;
-                  }
-                  ok = false;
-                }
-
-                if (!wasCanceled) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        ok
-                            ? l10n.snackbarEncryptedBackupShared
-                            : l10n.exportFailed,
-                      ),
-                    ),
-                  );
-                }
-              },
-            ),
-            const SizedBox(height: DesignConstants.spacingL),
-            DataAutoBackupCard(
-              autoBackupDir: _autoBackupDir,
-              lastAutoBackupFilePath: _lastAutoBackupFilePath,
-              lastAutoBackupDirUsed: _lastAutoBackupDirUsed,
-              lastAutoBackupUsedFallback: _lastAutoBackupUsedFallback,
-              onPickDirectory: _pickAutoBackupDirectory,
-              onCopyPath: _copyAutoBackupPathToClipboard,
-              onRunNow: () async {
-                final ok = await BackupManager.instance.runAutoBackupIfDue(
-                  interval: const Duration(days: 1),
-                  encrypted: false,
-                  passphrase: null,
-                  retention: 7,
-                  dirPath: _autoBackupDir,
-                  force: true, // New: run immediately
-                );
-                await _loadAutoBackupDir();
-                if (!mounted) return;
-                final successText = ok
-                    ? (_lastAutoBackupFilePath != null &&
-                            _lastAutoBackupFilePath!.isNotEmpty
-                        ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
-                        : l10n.snackbarAutoBackupSuccess)
-                    : (_lastAutoBackupError != null &&
-                            _lastAutoBackupError!.isNotEmpty
-                        ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
-                        : l10n.snackbarAutoBackupFailed);
-                ScaffoldMessenger.of(this.context).showSnackBar(
-                  SnackBar(
-                    content: Text(successText),
-                    backgroundColor: ok
-                        ? (_lastAutoBackupUsedFallback ? Colors.orange : null)
-                        : Theme.of(this.context).colorScheme.error,
                   ),
-                );
-              },
+                ],
+              ),
             ),
             const SizedBox(height: DesignConstants.spacingL),
             LocalDataDeletionCard(
@@ -480,10 +491,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
               isMigrationRunning: _isMigrationRunning,
               onImportPressed: _performWorkoutImport,
             ),
-            const SizedBox(height: DesignConstants.spacingL),
-            ExerciseMappingCard(
-              onMapPressed: _openExerciseMapping,
-            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            ExerciseMappingCard(onMapPressed: _openExerciseMapping),
           ],
         ),
       ),
@@ -560,7 +569,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-            builder: (_) => const AppInitializerScreen(skipOffDatabase: true)),
+          builder: (_) => const AppInitializerScreen(skipOffDatabase: true),
+        ),
         (route) => false,
       );
     } catch (_) {
@@ -575,9 +585,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     }
   }
 
-  Future<bool> _showLocalDataDeletionConfirmation(
-    AppLocalizations l10n,
-  ) async {
+  Future<bool> _showLocalDataDeletionConfirmation(AppLocalizations l10n) async {
     final controller = TextEditingController();
     final result = await showGlassBottomMenu<bool>(
       context: context,
@@ -659,7 +667,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingS),
+                horizontal: DesignConstants.spacingS,
+              ),
               child: Text(
                 l10n.autoBackupRequestAccessSubtitle,
                 textAlign: TextAlign.center,

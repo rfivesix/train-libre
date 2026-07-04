@@ -27,8 +27,9 @@ class LocalDataDeletionCard extends StatelessWidget {
           children: [
             Text(
               l10n.localDataDeletionCardTitle,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Text(

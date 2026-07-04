@@ -1,5 +1,3 @@
-// lib/screens/about_screen.dart
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -7,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/app_link_row.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../util/design_constants.dart';
@@ -22,9 +21,7 @@ class AboutScreen extends StatelessWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(
-        title: l10n.about_train_libre,
-      ),
+      appBar: GlobalAppBar(title: l10n.about_train_libre),
       body: Stack(
         children: [
           FutureBuilder<PackageInfo>(
@@ -75,35 +72,33 @@ class AboutScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: DesignConstants.spacingXXL),
-                  AppSectionHeader(
-                    title: l10n.about_section,
-                  ),
-                  _buildInfoTile(
-                    context,
-                    icon: LucideIcons.library,
-                    title: l10n.used_libraries,
-                    onTap: () => _openUsedPackages(context),
-                  ),
-                  _buildInfoTile(
-                    context,
-                    icon: LucideIcons.scale,
-                    title: l10n.licensing_info,
-                    onTap: () => _launchURL(
-                        'https://github.com/rfivesix/train-libre/blob/main/LICENSE'),
-                  ),
-                  _buildInfoTile(
-                    context,
-                    icon: LucideIcons.globe,
-                    title: l10n.project_website,
-                    onTap: () =>
-                        _launchURL('https://rfivesix.github.io/train-libre/'),
-                  ),
-                  _buildInfoTile(
-                    context,
-                    icon: LucideIcons.code,
-                    title: l10n.github_repository,
-                    onTap: () =>
-                        _launchURL('https://github.com/rfivesix/train-libre'),
+                  AppSectionHeader(title: l10n.about_section),
+
+                  Column(
+                    children: [
+                      AppLinkRow(
+                        title: l10n.used_libraries,
+                        onTap: () => _openUsedPackages(context),
+                      ),
+                      AppLinkRow(
+                        title: l10n.licensing_info,
+                        onTap: () => _launchURL(
+                          'https://github.com/rfivesix/train-libre/blob/main/LICENSE',
+                        ),
+                      ),
+                      AppLinkRow(
+                        title: l10n.project_website,
+                        onTap: () => _launchURL(
+                          'https://rfivesix.github.io/train-libre/',
+                        ),
+                      ),
+                      AppLinkRow(
+                        title: l10n.github_repository,
+                        onTap: () => _launchURL(
+                          'https://github.com/rfivesix/train-libre',
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -115,37 +110,9 @@ class AboutScreen extends StatelessWidget {
   }
 
   void _openUsedPackages(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const _UsedPackagesScreen(),
-      ),
-    );
-  }
-
-  Widget _buildInfoTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return SummaryCard(
-      margin: const EdgeInsets.only(bottom: DesignConstants.spacingM),
-      padding: EdgeInsets.zero,
-      onTap: onTap,
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: Theme.of(context).colorScheme.primary,
-          size: 28,
-        ),
-        title: Text(title,
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(fontWeight: FontWeight.bold)),
-        trailing: const Icon(LucideIcons.chevron_right),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const _UsedPackagesScreen()));
   }
 
   void _launchURL(String url) async {
@@ -189,8 +156,9 @@ class _UsedPackagesScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final package = packages[index];
                   return SummaryCard(
-                    margin:
-                        const EdgeInsets.only(bottom: DesignConstants.spacingM),
+                    margin: const EdgeInsets.only(
+                      bottom: DesignConstants.spacingM,
+                    ),
                     padding: EdgeInsets.zero,
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -200,10 +168,9 @@ class _UsedPackagesScreen extends StatelessWidget {
                     child: ListTile(
                       title: Text(
                         package.name,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       subtitle: Text(
                         '${package.entries.length} ${title.toLowerCase()}',
@@ -230,10 +197,8 @@ class _UsedPackagesScreen extends StatelessWidget {
 
     final bundles = licensesByPackage.entries
         .map(
-          (entry) => _PackageLicenseBundle(
-            name: entry.key,
-            entries: entry.value,
-          ),
+          (entry) =>
+              _PackageLicenseBundle(name: entry.key, entries: entry.value),
         )
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
@@ -296,10 +261,7 @@ class _PackageLicenseScreen extends StatelessWidget {
 }
 
 class _PackageLicenseBundle {
-  const _PackageLicenseBundle({
-    required this.name,
-    required this.entries,
-  });
+  const _PackageLicenseBundle({required this.name, required this.entries});
 
   final String name;
   final List<LicenseEntry> entries;

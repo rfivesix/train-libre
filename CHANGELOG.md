@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-alpha.2] - 2026-06-29
 
 ### Changed
+- **Refactored Settings & About Screens to Flat Layout:** Replaced heavy `SummaryCard` container panels and nested list tiles with clean, flat `AppLinkRow` and `AppInfoRow` components in the About Screen, AI Settings Screen, and Data Management Screen (including CSV Export, Data Backup, Auto Backup, Exercise Mapping, and Workout Import card views) to improve UI elegance and hierarchy.
+- **Created Common AppInfoRow Widget:** Added a new reusable `AppInfoRow` component to standardize formatting of non-interactive status or description fields.
 - **Removed Repetitive Icons from Summary Cards:** Removed the redundant leading icons/emojis (calendars, dumbbells, stars/archives) from the summary list cards in Workout History (workout-verlauf), Exercise Catalog (Übungskatalog), and Food Catalogs (Allgemeiner Food-Katalog / Explorer / Lebensmittel hinzufügen via `FoodItemSearchTile`) to clean up the UI and avoid repetitive graphics.
 - **Glass Bottom Menu Visual Polish:** 
   - Adjusted background to match the exact dark gray of the summary cards by defining `DesignConstants.summaryCardDarkMode` (`Color(0xFF2A2A2A)`) and using it consistently across both components and the custom date/time pickers (`_GlassPickerSheet` with `0.95` opacity in dark mode) to clearly separate the menu sheet from the background content.

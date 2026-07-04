@@ -57,8 +57,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
 
   Future<void> _loadSettings() async {
     final provider = await AiService.instance.getSelectedProvider();
-    final model =
-        await AiService.instance.resolveAndPersistSelectedModel(provider);
+    final model = await AiService.instance.resolveAndPersistSelectedModel(
+      provider,
+    );
     final key = await AiService.instance.getApiKey(provider);
     final models = await AiService.instance.getModelOptions(provider);
     final aiMatchLang = await AiMatchingLanguageService.readChoice();
@@ -97,8 +98,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     final selectedModel =
         await AiService.instance.resolveAndPersistSelectedModel(provider);
     final models = await AiService.instance.getModelOptions(provider);
-    final resolvedModel =
-        _resolveModelSelection(selectedModel, models, provider);
+    final resolvedModel = _resolveModelSelection(
+      selectedModel,
+      models,
+      provider,
+    );
     await AiService.instance.setSelectedModel(provider, resolvedModel);
     final key = await AiService.instance.getApiKey(provider);
     final customBaseUrl = await AiService.instance.getCustomBaseUrl();
@@ -137,10 +141,12 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
         _selectedProvider == AiProvider.ollama) {
       final baseUrl = _baseUrlController.text.trim();
       final customModel = _customModelController.text.trim();
-      await AiService.instance
-          .setCustomBaseUrl(baseUrl.isNotEmpty ? baseUrl : null);
-      await AiService.instance
-          .setCustomModel(customModel.isNotEmpty ? customModel : null);
+      await AiService.instance.setCustomBaseUrl(
+        baseUrl.isNotEmpty ? baseUrl : null,
+      );
+      await AiService.instance.setCustomModel(
+        customModel.isNotEmpty ? customModel : null,
+      );
     }
 
     // Don't save the masked placeholder
@@ -182,8 +188,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     if (!mounted) return;
     if (_selectedProvider == AiProvider.ollama ||
         _selectedProvider == AiProvider.custom) {
-      final selectedModel =
-          await AiService.instance.getSelectedModel(_selectedProvider);
+      final selectedModel = await AiService.instance.getSelectedModel(
+        _selectedProvider,
+      );
       if (!mounted) return;
       setState(() {
         _selectedModel = selectedModel;
@@ -192,10 +199,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     }
     setState(() => _isLoadingModels = true);
     final models = await AiService.instance.getModelOptions(_selectedProvider);
-    final selectedModel =
-        await AiService.instance.resolveAndPersistSelectedModel(
-      _selectedProvider,
-    );
+    final selectedModel = await AiService.instance
+        .resolveAndPersistSelectedModel(_selectedProvider);
     final resolvedModel = _resolveModelSelection(
       selectedModel,
       models,
@@ -286,41 +291,24 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 top: DesignConstants.cardPadding.top + topPadding,
               ),
               children: [
-                AppSectionHeader(title: l10n.aiSettingsInstructionTitle),
-                SummaryCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.aiSettingsInstructionBody,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          l10n.aiSettingsSetupGuideTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          l10n.aiSettingsSetupGuideBody,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 16),
-                        OutlinedButton.icon(
-                          onPressed: () => launchUrl(
-                            Uri.parse(
-                                'https://ai.google.dev/gemini-api/docs/api-key'),
-                            mode: LaunchMode.externalApplication,
-                          ),
-                          icon: const Icon(LucideIcons.external_link),
-                          label: Text(l10n.aiSettingsGetApiKeyButton),
-                        ),
-                      ],
-                    ),
+                AppInfoRow(
+                  title: l10n.aiSettingsInstructionTitle,
+                  subtitle: l10n.aiSettingsInstructionBody,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                AppLinkRow(
+                  title: l10n.aiSettingsSetupGuideTitle,
+                  subtitle: l10n.aiSettingsSetupGuideBody,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  onTap: () => launchUrl(
+                    Uri.parse('https://ai.google.dev/gemini-api/docs/api-key'),
+                    mode: LaunchMode.externalApplication,
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
@@ -377,7 +365,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                               _selectedProvider != AiProvider.custom) ...[
                             _isLoadingModels
                                 ? const Center(
-                                    child: CircularProgressIndicator())
+                                    child: CircularProgressIndicator(),
+                                  )
                                 : PlatformAdaptiveDropdownFormField<String>(
                                     initialValue: _selectedModel,
                                     decoration: InputDecoration(
@@ -493,8 +482,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -527,8 +517,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 onChanged: (value) async {
                                   final seconds = value.round();
                                   setState(() => _timeoutSeconds = seconds);
-                                  await AiService.instance
-                                      .setAiTimeoutSeconds(seconds);
+                                  await AiService.instance.setAiTimeoutSeconds(
+                                    seconds,
+                                  );
                                 },
                               ),
                             ],
@@ -561,7 +552,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                       ),
                                       onPressed: () {
                                         setState(
-                                            () => _obscureKey = !_obscureKey);
+                                          () => _obscureKey = !_obscureKey,
+                                        );
                                       },
                                     ),
                                     if (_hasKey)
@@ -585,9 +577,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                   onPressed: _saveApiKey,
                                   icon: const Icon(LucideIcons.save),
                                   label: Text(
-                                      _selectedProvider == AiProvider.ollama
-                                          ? 'Save Settings'
-                                          : l10n.aiSaveKey),
+                                    _selectedProvider == AiProvider.ollama
+                                        ? 'Save Settings'
+                                        : l10n.aiSaveKey,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -622,27 +615,12 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 const SizedBox(height: DesignConstants.spacingXL),
 
                 // --- Privacy Disclosure ---
-                AppSectionHeader(title: l10n.aiPrivacySection),
-                SummaryCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          LucideIcons.shield,
-                          color: theme.colorScheme.primary,
-                          size: 28,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            l10n.aiPrivacyDisclosure,
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        ),
-                      ],
-                    ),
+                AppInfoRow(
+                  title: l10n.aiPrivacySection,
+                  subtitle: l10n.aiPrivacyDisclosure,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 16,
                   ),
                 ),
               ],
