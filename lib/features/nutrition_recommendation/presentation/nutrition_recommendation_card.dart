@@ -264,6 +264,13 @@ class _GeneratedRecommendationContent extends StatelessWidget {
             ),
           ),
         const SizedBox(height: DesignConstants.spacingM),
+        Text(
+          l10n.adaptiveRecommendationMaintenanceLabel,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
         _MaintenanceHero(
           value: recommendation.estimatedMaintenanceCalories,
           rangeLine: rangeLine,
@@ -427,12 +434,15 @@ class _MaintenanceHero extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      /*
                       Text(
                         l10n.adaptiveRecommendationMaintenanceLabel,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
+                      */
                       const SizedBox(height: 2),
                       Text(
                         l10n.adaptiveRecommendationMaintenanceSourceLabel,
@@ -598,8 +608,8 @@ class _MacroTargetGrid extends StatelessWidget {
       children: [
         Text(
           l10n.adaptiveRecommendationMacroTargetsLabel,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w800,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
         ),
         LayoutBuilder(
@@ -706,8 +716,8 @@ class _RecommendationContextPanel extends StatelessWidget {
       children: [
         Text(
           l10n.adaptiveRecommendationDataQualityLabel,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w800,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
