@@ -323,21 +323,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    IconData sourceIcon;
-    switch (item.source) {
-      case FoodItemSource.base:
-        sourceIcon = LucideIcons.star;
-        break;
-      case FoodItemSource.off:
-      case FoodItemSource.user:
-        sourceIcon = LucideIcons.archive;
-        break;
-    }
-
     return SummaryCard(
       // FIX: Now uses SummaryCard.
       child: ListTile(
-        leading: Icon(sourceIcon, color: colorScheme.primary),
         title: Text(
           item.name.isNotEmpty ? item.name : l10n.unknown,
           style: const TextStyle(fontWeight: FontWeight.bold),

@@ -172,12 +172,6 @@ class _GeneralFoodSelectionScreenState
 
     return SummaryCard(
       child: ListTile(
-        leading: Icon(
-          item.source == FoodItemSource.base
-              ? LucideIcons.star
-              : LucideIcons.archive,
-          color: colorScheme.primary,
-        ),
         title: Text(
           item.getLocalizedName(context).isNotEmpty
               ? item.getLocalizedName(context)

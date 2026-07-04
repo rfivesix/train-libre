@@ -142,7 +142,6 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                 },
                 child: SummaryCard(
                   child: ListTile(
-                    leading: const Icon(LucideIcons.calendar_days, size: 40),
                     title: Text(
                       log.routineName ?? l10n.freeWorkoutTitle,
                       maxLines: 2,

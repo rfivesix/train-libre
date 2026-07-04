@@ -292,7 +292,6 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                               final exercise = _foundExercises[index];
                               return SummaryCard(
                                 child: ListTile(
-                                  leading: const Icon(LucideIcons.dumbbell),
                                   title: Row(
                                     children: [
                                       Expanded(

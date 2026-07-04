@@ -31,20 +31,8 @@ class FoodItemSearchTile extends StatelessWidget {
       context: context,
     );
 
-    IconData sourceIcon;
-    switch (item.source) {
-      case FoodItemSource.base:
-        sourceIcon = LucideIcons.star;
-        break;
-      case FoodItemSource.off:
-      case FoodItemSource.user:
-        sourceIcon = LucideIcons.archive;
-        break;
-    }
-
     return SummaryCard(
       child: ListTile(
-        leading: Icon(sourceIcon, color: colorScheme.primary),
         title: Row(
           children: [
             Expanded(

@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [1.0.0-alpha.2] - 2026-06-29
 
+### Changed
+- **Removed Repetitive Icons from Summary Cards:** Removed the redundant leading icons/emojis (calendars, dumbbells, stars/archives) from the summary list cards in Workout History (workout-verlauf), Exercise Catalog (Übungskatalog), and Food Catalogs (Allgemeiner Food-Katalog / Explorer / Lebensmittel hinzufügen via `FoodItemSearchTile`) to clean up the UI and avoid repetitive graphics.
+
 ## [1.0.0-alpha.1] - 2026-06-29
 
 ### Changed
