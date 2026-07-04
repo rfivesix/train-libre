@@ -4,6 +4,9 @@ import '../../../../services/ai_meal_validation.dart';
 import '../../../../util/ai_validation_localization.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
+import 'package:provider/provider.dart';
+import '../../../../services/theme_service.dart';
+import '../../../../services/base_food_language_service.dart';
 import '../../domain/models/food_item.dart';
 import 'meal_review_macros_bar.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -90,7 +93,16 @@ class MealReviewComparisonCard extends StatelessWidget {
                         const SizedBox(height: DesignConstants.spacingXS),
                         if (hasMatch)
                           Text(
-                            '${matchedFood!.getLocalizedName(context)} • ${matchedFood!.calories} kcal/100g',
+                            '${() {
+                              final themeService = Provider.of<ThemeService>(context);
+                              final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                                choice: themeService.baseFoodLanguage,
+                                context: context,
+                              );
+                              return matchedFood!.source == FoodItemSource.base
+                                  ? matchedFood!.getLocalizedName(context, languageCode: baseFoodLang)
+                                  : matchedFood!.getLocalizedName(context);
+                            }()} • ${matchedFood!.calories} kcal/100g',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.primary,
                             ),

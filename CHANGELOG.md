@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Adjusted background to match the exact dark gray of the summary cards by defining `DesignConstants.summaryCardDarkMode` (`Color(0xFF2A2A2A)`) and using it consistently across both components and the custom date/time pickers (`_GlassPickerSheet` with `0.95` opacity in dark mode) to clearly separate the menu sheet from the background content.
   - Added a clean top and side border (`1.5` width) that adapts to light/dark themes to define the sheet boundary.
   - Changed the drag handle color to adaptively use `onSurface` with `0.3` opacity, improving visibility in both light and dark modes.
+- **Localized Food Titles in Dialogs & Lists:** Updated the food quantity bottom sheets (`_showQuantityMenu` in both `diary_screen.dart` and `main_screen.dart`), the ingredient logs in `ConfirmLogMealBottomSheet`, the ingredient card/edit list in `MealScreen`, and the AI validation review widgets (`AiMealReviewScreen` / `MealReviewComparisonCard`) to dynamically fetch and display the user's localized base food names (based on the language chosen in the settings) instead of showing the raw database/German names. Also resolved the root localization issue in the main diary list (`FoodEntryTile` / `getProductsByArchiveIds`) by dynamically enriching archived food entries with their name translations from the primary database products table.
 
 ## [1.0.0-alpha.1] - 2026-06-29
 

@@ -22,6 +22,9 @@ import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
+import 'package:provider/provider.dart';
+import '../../../services/theme_service.dart';
+import '../../../services/base_food_language_service.dart';
 
 /// Review screen for AI-suggested food items.
 ///
@@ -232,7 +235,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       setState(() {
         _items[index].matchedFood = selectedItem;
         _items[index].suggestion.matchedBarcode = selectedItem.barcode;
-        _items[index].suggestion.name = selectedItem.getLocalizedName(context);
+        _items[index].suggestion.name = (() {
+          final themeService = Provider.of<ThemeService>(context, listen: false);
+          final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+            choice: themeService.baseFoodLanguage,
+            context: context,
+          );
+          return selectedItem.source == FoodItemSource.base
+              ? selectedItem.getLocalizedName(context, languageCode: baseFoodLang)
+              : selectedItem.getLocalizedName(context);
+        })();
       });
       _validateCurrentItems();
     }
@@ -247,7 +259,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         _items.add(
           _ReviewItem(
             suggestion: AiSuggestedItem(
-              name: selectedItem.getLocalizedName(context),
+              name: (() {
+                final themeService = Provider.of<ThemeService>(context, listen: false);
+                final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                  choice: themeService.baseFoodLanguage,
+                  context: context,
+                );
+                return selectedItem.source == FoodItemSource.base
+                    ? selectedItem.getLocalizedName(context, languageCode: baseFoodLang)
+                    : selectedItem.getLocalizedName(context);
+              })(),
               estimatedGrams: 100,
               confidence: 1.0,
               matchedBarcode: selectedItem.barcode,

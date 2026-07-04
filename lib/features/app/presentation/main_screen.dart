@@ -30,6 +30,7 @@ import '../../../services/profile_service.dart';
 import '../../steps/data/steps_aggregation_repository.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
+import '../../../services/base_food_language_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
@@ -724,7 +725,16 @@ class _MainScreenState extends State<MainScreen>
 
     return showGlassBottomMenu(
       context: context,
-      title: item.name,
+      title: () {
+        final themeService = Provider.of<ThemeService>(context, listen: false);
+        final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+          choice: themeService.baseFoodLanguage,
+          context: context,
+        );
+        return item.source == FoodItemSource.base
+            ? item.getLocalizedName(context, languageCode: baseFoodLang)
+            : item.getLocalizedName(context);
+      }(),
       contentBuilder: (ctx, close) {
         return Column(
           mainAxisSize: MainAxisSize.min,

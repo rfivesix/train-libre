@@ -7,6 +7,9 @@ import '../../../../util/date_util.dart';
 import '../../domain/models/food_item.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../widgets/common/common.dart';
+import 'package:provider/provider.dart';
+import '../../../../services/theme_service.dart';
+import '../../../../services/base_food_language_service.dart';
 
 class ConfirmLogMealBottomSheet extends StatefulWidget {
   final String mealName;
@@ -191,8 +194,18 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
               final it = widget.rawItems[i];
               final bc = it['barcode'] as String;
               final fi = widget.products[bc];
-              final displayName =
-                  (fi?.name.isNotEmpty ?? false) ? fi!.name : bc;
+              final displayName = fi != null
+                  ? (() {
+                      final themeService = Provider.of<ThemeService>(context);
+                      final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                        choice: themeService.baseFoodLanguage,
+                        context: context,
+                      );
+                      return fi.source == FoodItemSource.base
+                          ? fi.getLocalizedName(context, languageCode: baseFoodLang)
+                          : fi.getLocalizedName(context);
+                    })()
+                  : bc;
               final unit = (fi?.isLiquid == true)
                   ? l10n.unit_milliliters
                   : l10n.unit_grams;

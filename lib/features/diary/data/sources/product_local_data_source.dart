@@ -302,9 +302,31 @@ class ProductLocalDataSource {
           ..where((tbl) => tbl.localId.isIn(archiveLocalIds)))
         .get();
 
-    final result = {
-      for (final row in rows) row.localId: _mapArchiveRowToFoodItem(row)
-    };
+    final barcodes = rows.map((r) => r.barcode).where((b) => b.isNotEmpty).toSet().toList();
+    final products = barcodes.isEmpty
+        ? <db.Product>[]
+        : await (dbInstance.select(dbInstance.products)
+              ..where((tbl) => tbl.barcode.isIn(barcodes)))
+            .get();
+
+    final productMap = {for (final p in products) p.barcode: p};
+
+    final result = <int, FoodItem>{};
+    for (final row in rows) {
+      var item = _mapArchiveRowToFoodItem(row);
+      final prod = productMap[item.barcode];
+      if (prod != null) {
+        item = item.copyWithNames(
+          nameDe: prod.nameDe ?? item.nameDe,
+          nameEn: prod.nameEn ?? item.nameEn,
+          nameFr: prod.nameFr ?? item.nameFr,
+          nameIt: prod.nameIt ?? item.nameIt,
+          nameJa: prod.nameJa ?? item.nameJa,
+        );
+      }
+      result[row.localId] = item;
+    }
+
     PerfDebugTimer.logDuration(
       area: 'db',
       label: 'getProductsByArchiveIds',

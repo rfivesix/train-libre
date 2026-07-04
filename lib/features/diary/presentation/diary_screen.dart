@@ -29,6 +29,7 @@ import '../../supplements/presentation/widgets/supplement_summary_widget.dart';
 import '../../../widgets/common/macro_badge_row.dart';
 import 'diary_view_model.dart';
 import '../../../services/theme_service.dart';
+import '../../../services/base_food_language_service.dart';
 import '../../workout/presentation/workout_history_screen.dart';
 import '../../workout/presentation/widgets/todays_workout_summary_card.dart';
 import 'widgets/weight_chart_card.dart';
@@ -541,7 +542,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
     return showGlassBottomMenu(
       context: context,
-      title: item.name,
+      title: () {
+        final themeService = Provider.of<ThemeService>(context, listen: false);
+        final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+          choice: themeService.baseFoodLanguage,
+          context: context,
+        );
+        return item.source == FoodItemSource.base
+            ? item.getLocalizedName(context, languageCode: baseFoodLang)
+            : item.getLocalizedName(context);
+      }(),
       contentBuilder: (ctx, close) {
         return Column(
           mainAxisSize: MainAxisSize.min,

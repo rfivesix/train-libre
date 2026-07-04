@@ -6,6 +6,7 @@ import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
+import '../../../services/base_food_language_service.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../../supplements/domain/models/supplement.dart';
@@ -540,8 +541,18 @@ class _MealScreenState extends State<MealScreen> {
                           final it = _items[i];
                           final bc = it['barcode'] as String;
                           final fi = products[bc];
-                          final displayName =
-                              (fi?.name.isNotEmpty ?? false) ? fi!.name : bc;
+                          final displayName = fi != null
+                              ? (() {
+                                  final themeService = Provider.of<ThemeService>(context);
+                                  final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                                    choice: themeService.baseFoodLanguage,
+                                    context: context,
+                                  );
+                                  return fi.source == FoodItemSource.base
+                                      ? fi.getLocalizedName(context, languageCode: baseFoodLang)
+                                      : fi.getLocalizedName(context);
+                                })()
+                              : bc;
                           final unit = (fi?.isLiquid == true)
                               ? l10n.unit_milliliters
                               : l10n.unit_grams;
@@ -713,7 +724,17 @@ class _IngredientCard extends StatelessWidget {
     final themeService = Provider.of<ThemeService>(context);
 
     Widget buildCard(FoodItem? fi) {
-      final name = (fi?.name.isNotEmpty ?? false) ? fi!.name : bc;
+      final name = fi != null
+          ? (() {
+              final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                choice: themeService.baseFoodLanguage,
+                context: context,
+              );
+              return fi.source == FoodItemSource.base
+                  ? fi.getLocalizedName(context, languageCode: baseFoodLang)
+                  : fi.getLocalizedName(context);
+            })()
+          : bc;
       final unit =
           (fi?.isLiquid == true) ? l10n.unit_milliliters : l10n.unit_grams;
 
