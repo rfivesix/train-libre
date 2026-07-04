@@ -632,6 +632,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                           ?.copyWith(
                                                         fontWeight:
                                                             FontWeight.bold,
+                                                        color: colorScheme.primary,
                                                       ),
                                                     ),
                                                   ),
@@ -819,13 +820,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                     ],
                                                   ),
                                                 ),
-                                                AnimatedSize(
-                                                  duration: const Duration(milliseconds: 250),
-                                                  curve: Curves.easeInOut,
-                                                  alignment: Alignment.topCenter,
-                                                  child: _isDragging
-                                                      ? const SizedBox(width: double.infinity, height: 0)
-                                                      : Column(
+                                                _isDragging
+                                                    ? const SizedBox.shrink()
+                                                    : AnimatedSize(
+                                                        duration: const Duration(milliseconds: 250),
+                                                        curve: Curves.easeInOut,
+                                                        alignment: Alignment.topCenter,
+                                                        child: Column(
                                                           crossAxisAlignment:
                                                               CrossAxisAlignment.start,
                                                           children: [
@@ -1044,7 +1045,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                             ),
                                                           ],
                                                         ),
-                                                ),
+                                                      ),
                                               ],
                                             ),
                                           ),

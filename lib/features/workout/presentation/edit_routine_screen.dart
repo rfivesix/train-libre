@@ -2,6 +2,7 @@
 // FINAL: Cardio Clean-Up (1 Set, Cleaner Layout, Empty Defaults)
 
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../sharing/share_service.dart';
@@ -43,6 +44,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   String _originalName = '';
   bool _isLoading = false;
   bool _isDragging = false;
+  PointerDownEvent? _lastPointerDownEvent;
 
   final Map<int, TextEditingController> _repsControllers = {};
   final Map<int, TextEditingController> _weightControllers = {};
@@ -757,30 +759,53 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       final bool isCardio =
                                           _isCardio(routineExercise);
 
-                                      return ReorderableDelayedDragStartListener(
+                                      return RepaintBoundary(
                                         key: ValueKey(routineExercise.id),
-                                        index: index,
-                                        child: EditRoutineExerciseCard(
-                                          routineExercise: routineExercise,
-                                          index: index,
-                                          isCardio: isCardio,
-                                          isDragging: _isDragging,
-                                          repsControllers: _repsControllers,
-                                          weightControllers: _weightControllers,
-                                          rirControllers: _rirControllers,
-                                          onEditNotes: () => _editExerciseNotes(
-                                              context, routineExercise),
-                                          onEditPauseTime: () =>
-                                              _editPauseTime(routineExercise),
-                                          onDeleteExercise: () =>
-                                              _deleteSingleExercise(
-                                                  routineExercise),
-                                          onAddSet: () =>
-                                              _addSet(routineExercise),
-                                          onShowSetTypePicker: _showSetTypePicker,
-                                          onRemoveSet: (template, listIndex) =>
-                                              _removeSet(routineExercise,
-                                                  template.id!, listIndex),
+                                        child: Listener(
+                                          onPointerDown: (event) {
+                                            _lastPointerDownEvent = event;
+                                          },
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.translucent,
+                                            onLongPressStart: (details) {
+                                              setState(() {
+                                                _isDragging = true;
+                                              });
+                                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                if (_lastPointerDownEvent != null && mounted) {
+                                                  final listState = SliverReorderableList.maybeOf(context);
+                                                  listState?.startItemDragReorder(
+                                                    index: index,
+                                                    event: _lastPointerDownEvent!,
+                                                    recognizer: ImmediateMultiDragGestureRecognizer(debugOwner: listState)
+                                                      ..gestureSettings = MediaQuery.maybeGestureSettingsOf(context),
+                                                  );
+                                                }
+                                              });
+                                            },
+                                            child: EditRoutineExerciseCard(
+                                              routineExercise: routineExercise,
+                                              index: index,
+                                              isCardio: isCardio,
+                                              isDragging: _isDragging,
+                                              repsControllers: _repsControllers,
+                                              weightControllers: _weightControllers,
+                                              rirControllers: _rirControllers,
+                                              onEditNotes: () => _editExerciseNotes(
+                                                  context, routineExercise),
+                                              onEditPauseTime: () =>
+                                                  _editPauseTime(routineExercise),
+                                              onDeleteExercise: () =>
+                                                  _deleteSingleExercise(
+                                                      routineExercise),
+                                              onAddSet: () =>
+                                                  _addSet(routineExercise),
+                                              onShowSetTypePicker: _showSetTypePicker,
+                                              onRemoveSet: (template, listIndex) =>
+                                                  _removeSet(routineExercise,
+                                                      template.id!, listIndex),
+                                            ),
+                                          ),
                                         ),
                                       );
                                     },

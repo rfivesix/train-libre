@@ -112,15 +112,13 @@ class WorkoutExerciseLogCard extends StatelessWidget {
               ],
             ),
           ),
-          AnimatedSize(
-            duration: isDragging
-                ? Duration.zero
-                : const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: isDragging
-                ? const SizedBox(width: double.infinity, height: 0)
-                : Column(
+          isDragging
+              ? const SizedBox.shrink()
+              : AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topCenter,
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (exerciseNote != null && exerciseNote!.isNotEmpty)
@@ -245,7 +243,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                       ),
                     ],
                   ),
-          ),
+                ),
         ],
       ),
     );

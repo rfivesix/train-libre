@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
@@ -60,6 +61,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   Map<String, String> _exerciseNotes = {};
   bool _isEditMode = false;
   bool _isDragging = false;
+  PointerDownEvent? _lastPointerDownEvent;
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _notesController;
 
@@ -935,10 +937,31 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 final List<SetLog> sets = entry.value;
                                 final isCardio = _isCardio(exerciseName);
 
-                                return ReorderableDelayedDragStartListener(
+                                return RepaintBoundary(
                                   key: ValueKey(exerciseName),
-                                  index: index,
-                                  child: WorkoutExerciseLogCard(
+                                  child: Listener(
+                                    onPointerDown: (event) {
+                                      _lastPointerDownEvent = event;
+                                    },
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.translucent,
+                                      onLongPressStart: (details) {
+                                        setState(() {
+                                          _isDragging = true;
+                                        });
+                                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                                          if (_lastPointerDownEvent != null && mounted) {
+                                            final listState = SliverReorderableList.maybeOf(context);
+                                            listState?.startItemDragReorder(
+                                              index: index,
+                                              event: _lastPointerDownEvent!,
+                                              recognizer: ImmediateMultiDragGestureRecognizer(debugOwner: listState)
+                                                ..gestureSettings = MediaQuery.maybeGestureSettingsOf(context),
+                                            );
+                                          }
+                                        });
+                                      },
+                                      child: WorkoutExerciseLogCard(
                                     exerciseName: exerciseName,
                                     exercise: exercise,
                                     sets: sets,
@@ -1000,7 +1023,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                         _showSetTypePicker(setId),
                                     index: index,
                                   ),
-                                );
+                                ),
+                              ),
+                            );
                               },
                             ),
                           ],
