@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Exercise Detail Empty State:** The "Not enough data" placeholder in the Exercise Detail Screen no longer uses the old `SummaryCard` container. It now renders in the same open, edge-to-edge style as when data is present.
 - **Exercise Detail Y-Axis Clipping Fixed:** Added `clipBehavior: Clip.none` to the `SingleChildScrollView` in `ExerciseDetailScreen` so the chart's `OverflowBox` can reach the screen edges without being clipped by the scroll view.
 - **Body & Nutrition Bottom Axis Edge Labels Fixed:** In edge-to-edge mode the chart domain is now padded by ±1 day (`minX: -1`, `maxX: maxX + 1`) so the first and last date labels are no longer centered at the very edge of the canvas, preventing them from being half-clipped and showing as lone digits ("4" / "0").
+- **Localized Chart Range Filters:** Localized the chart range selector buttons (`30d`, `90d`, `180d`, `All`) across all supported languages (English, German, French, Italian, Japanese).
+- **Tooltip Rendering Order:** Adjusted Stack Z-ordering in the body & nutrition trend chart so the tooltip overlay renders on top of the Y-axis labels.
 
 ## [0.9.37] - 2026-06-29
 

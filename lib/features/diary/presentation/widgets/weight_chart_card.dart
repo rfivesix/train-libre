@@ -89,10 +89,10 @@ class _WeightChartCardState extends State<WeightChartCard> {
                 Wrap(
                   spacing: 8.0,
                   children: [
-                    '30D', // TODO: localize
-                    '90D',
-                    'All',
-                  ].map((key) => _buildFilterButton(key, key)).toList(),
+                    _buildFilterButton(l10n.filter30DaysShort, '30D'),
+                    _buildFilterButton(l10n.filter90DaysShort, '90D'),
+                    _buildFilterButton(l10n.filterMax, 'All'),
+                  ],
                 ),
               ],
             ),

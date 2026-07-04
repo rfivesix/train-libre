@@ -446,8 +446,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             child: Text(
               l10n.exerciseAnalyticsNotEnoughData,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ),
         ],
@@ -542,9 +542,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         Wrap(
           spacing: 8.0,
           children: [
-            _buildFilterButton('30D', '30D'),
-            _buildFilterButton('90D', '90D'),
-            _buildFilterButton('All', 'All'),
+            _buildFilterButton(l10n.filter30DaysShort, '30D'),
+            _buildFilterButton(l10n.filter90DaysShort, '90D'),
+            _buildFilterButton(l10n.filterMax, 'All'),
           ],
         ),
       ],

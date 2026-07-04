@@ -612,6 +612,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get filter30Days => '30 jours';
 
   @override
+  String get filter30DaysShort => '30j';
+
+  @override
+  String get filter90DaysShort => '90j';
+
+  @override
+  String get filter180DaysShort => '180j';
+
+  @override
+  String get filterMax => 'MAX';
+
+  @override
   String get filterAll => 'Tous';
 
   @override

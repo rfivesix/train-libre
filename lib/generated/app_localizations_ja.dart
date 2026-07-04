@@ -598,6 +598,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get filter30Days => '30日';
 
   @override
+  String get filter30DaysShort => '30日';
+
+  @override
+  String get filter90DaysShort => '90日';
+
+  @override
+  String get filter180DaysShort => '180日';
+
+  @override
+  String get filterMax => '最大';
+
+  @override
   String get filterAll => '全て';
 
   @override

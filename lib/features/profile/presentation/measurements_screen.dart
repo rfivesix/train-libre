@@ -252,9 +252,26 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: _chartDateRangeKeys
-                    .map((key) => _buildFilterButton(key, key))
-                    .toList(),
+                children: _chartDateRangeKeys.map((key) {
+                  String label;
+                  switch (key) {
+                    case '30D':
+                      label = l10n.filter30DaysShort;
+                      break;
+                    case '90D':
+                      label = l10n.filter90DaysShort;
+                      break;
+                    case '180D':
+                      label = l10n.filter180DaysShort;
+                      break;
+                    case 'All':
+                      label = l10n.filterMax;
+                      break;
+                    default:
+                      label = key;
+                  }
+                  return _buildFilterButton(label, key);
+                }).toList(),
               ),
             ],
           ),

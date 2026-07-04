@@ -391,17 +391,6 @@ class _BodyNutritionNormalizedTrendChartState
           child: Stack(
             children: [
               chartWidget,
-              if (_activeTooltipSpots != null &&
-                  _activeTooltipSpots!.isNotEmpty)
-                _buildTooltipOverlay(
-                  context: context,
-                  series: series,
-                  touchedSpots: _activeTooltipSpots!,
-                  chartWidth: MediaQuery.of(context).size.width,
-                  totalHeight: totalHeight,
-                  plotHeight: totalHeight - 42.0,
-                  maxX: maxX,
-                ),
               // Left Y-axis labels drawn on top
               for (final tick in leftTicks)
                 Positioned(
@@ -416,6 +405,17 @@ class _BodyNutritionNormalizedTrendChartState
                   right: rightInset,
                   child:
                       _axisTitle(context, tick, calorieScale, alignRight: true),
+                ),
+              if (_activeTooltipSpots != null &&
+                  _activeTooltipSpots!.isNotEmpty)
+                _buildTooltipOverlay(
+                  context: context,
+                  series: series,
+                  touchedSpots: _activeTooltipSpots!,
+                  chartWidth: MediaQuery.of(context).size.width,
+                  totalHeight: totalHeight,
+                  plotHeight: totalHeight - 42.0,
+                  maxX: maxX,
                 ),
             ],
           ),
@@ -537,7 +537,6 @@ class _BodyNutritionNormalizedTrendChartState
     );
   }
 
-  // TODO: On layer base the order should be like this: background -> Chart data -> axis-description and shadow -> tooltip
   Widget _buildTooltipOverlay({
     required BuildContext context,
     required List<_ChartSeries> series,

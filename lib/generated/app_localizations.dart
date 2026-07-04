@@ -1214,6 +1214,30 @@ abstract class AppLocalizations {
   /// **'30 Days'**
   String get filter30Days;
 
+  /// No description provided for @filter30DaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'30D'**
+  String get filter30DaysShort;
+
+  /// No description provided for @filter90DaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'90D'**
+  String get filter90DaysShort;
+
+  /// No description provided for @filter180DaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'180D'**
+  String get filter180DaysShort;
+
+  /// No description provided for @filterMax.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX'**
+  String get filterMax;
+
   /// No description provided for @filterAll.
   ///
   /// In en, this message translates to:
