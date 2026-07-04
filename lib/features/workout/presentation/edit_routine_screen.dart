@@ -42,6 +42,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   int? _routineId;
   String _originalName = '';
   bool _isLoading = false;
+  bool _isDragging = false;
 
   final Map<int, TextEditingController> _repsControllers = {};
   final Map<int, TextEditingController> _weightControllers = {};
@@ -714,12 +715,40 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     ),
                                     proxyDecorator: (Widget child, int index,
                                         Animation<double> anim) {
+                                      final routineExercise =
+                                          _routineExercises[index];
+                                      final bool isCardio =
+                                          _isCardio(routineExercise);
                                       return Material(
-                                        elevation: 4.0,
-                                        color: Theme.of(context)
-                                            .scaffoldBackgroundColor,
-                                        child: child,
+                                        elevation: 8.0,
+                                        color: Colors.transparent,
+                                        child: EditRoutineExerciseCard(
+                                          routineExercise: routineExercise,
+                                          index: index,
+                                          isCardio: isCardio,
+                                          isDragging: true,
+                                          isDraggedItem: true,
+                                          repsControllers: _repsControllers,
+                                          weightControllers: _weightControllers,
+                                          rirControllers: _rirControllers,
+                                          onEditNotes: () {},
+                                          onEditPauseTime: () {},
+                                          onDeleteExercise: () {},
+                                          onAddSet: () {},
+                                          onShowSetTypePicker: (_) {},
+                                          onRemoveSet: (_, __) {},
+                                        ),
                                       );
+                                    },
+                                    onReorderStart: (index) {
+                                      setState(() {
+                                        _isDragging = true;
+                                      });
+                                    },
+                                    onReorderEnd: (index) {
+                                      setState(() {
+                                        _isDragging = false;
+                                      });
                                     },
                                     onReorderItem: _onReorderItem,
                                     itemBuilder: (context, index) {
@@ -728,27 +757,31 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       final bool isCardio =
                                           _isCardio(routineExercise);
 
-                                      return EditRoutineExerciseCard(
+                                      return ReorderableDelayedDragStartListener(
                                         key: ValueKey(routineExercise.id),
-                                        routineExercise: routineExercise,
                                         index: index,
-                                        isCardio: isCardio,
-                                        repsControllers: _repsControllers,
-                                        weightControllers: _weightControllers,
-                                        rirControllers: _rirControllers,
-                                        onEditNotes: () => _editExerciseNotes(
-                                            context, routineExercise),
-                                        onEditPauseTime: () =>
-                                            _editPauseTime(routineExercise),
-                                        onDeleteExercise: () =>
-                                            _deleteSingleExercise(
-                                                routineExercise),
-                                        onAddSet: () =>
-                                            _addSet(routineExercise),
-                                        onShowSetTypePicker: _showSetTypePicker,
-                                        onRemoveSet: (template, listIndex) =>
-                                            _removeSet(routineExercise,
-                                                template.id!, listIndex),
+                                        child: EditRoutineExerciseCard(
+                                          routineExercise: routineExercise,
+                                          index: index,
+                                          isCardio: isCardio,
+                                          isDragging: _isDragging,
+                                          repsControllers: _repsControllers,
+                                          weightControllers: _weightControllers,
+                                          rirControllers: _rirControllers,
+                                          onEditNotes: () => _editExerciseNotes(
+                                              context, routineExercise),
+                                          onEditPauseTime: () =>
+                                              _editPauseTime(routineExercise),
+                                          onDeleteExercise: () =>
+                                              _deleteSingleExercise(
+                                                  routineExercise),
+                                          onAddSet: () =>
+                                              _addSet(routineExercise),
+                                          onShowSetTypePicker: _showSetTypePicker,
+                                          onRemoveSet: (template, listIndex) =>
+                                              _removeSet(routineExercise,
+                                                  template.id!, listIndex),
+                                        ),
                                       );
                                     },
                                   ),

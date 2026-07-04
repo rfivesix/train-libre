@@ -27,6 +27,8 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final VoidCallback onAddSet;
   final Function(SetTemplate) onShowSetTypePicker;
   final Function(SetTemplate, int listIndex) onRemoveSet;
+  final bool isDragging;
+  final bool isDraggedItem;
 
   const EditRoutineExerciseCard({
     super.key,
@@ -42,6 +44,8 @@ class EditRoutineExerciseCard extends StatelessWidget {
     required this.onAddSet,
     required this.onShowSetTypePicker,
     required this.onRemoveSet,
+    this.isDragging = false,
+    this.isDraggedItem = false,
   });
 
   @override
@@ -75,14 +79,12 @@ class EditRoutineExerciseCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: isDraggedItem ? colorScheme.primary : null,
                   ),
                 ),
               ),
             ),
-            leading: ReorderableDragStartListener(
-              index: index,
-              child: const Icon(LucideIcons.grip_vertical),
-            ),
+            leading: null,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -125,96 +127,110 @@ class EditRoutineExerciseCard extends StatelessWidget {
               ],
             ),
           ),
-          if (routineExercise.notes != null &&
-              routineExercise.notes!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
-                bottom: 12.0,
-              ),
-              child: InkWell(
-                onTap: onEditNotes,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withValues(
-                      alpha: 0.5,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.1,
-                      ),
-                    ),
-                  ),
-                  child: Row(
+          AnimatedSize(
+            duration: isDragging
+                ? Duration.zero
+                : const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            alignment: Alignment.topCenter,
+            child: isDragging
+                ? const SizedBox(width: double.infinity, height: 0)
+                : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        LucideIcons.file_text,
-                        size: 16,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          routineExercise.notes!,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                      if (routineExercise.notes != null &&
+                          routineExercise.notes!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 16.0,
+                            right: 16.0,
+                            bottom: 12.0,
                           ),
+                          child: InkWell(
+                            onTap: onEditNotes,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest.withValues(
+                                  alpha: 0.5,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: colorScheme.onSurfaceVariant.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    LucideIcons.file_text,
+                                    size: 16,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      routineExercise.notes!,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildHeaderRow(context, routineExercise, l10n),
+                            ...routineExercise.setTemplates.asMap().entries.map((entry) {
+                              final setIndex = entry.key;
+                              final setTemplate = entry.value;
+
+                              int workingSetIndex = 0;
+                              for (int i = 0; i <= setIndex; i++) {
+                                if (routineExercise.setTemplates[i].setType != 'warmup') {
+                                  workingSetIndex++;
+                                }
+                              }
+
+                              return RoutineSetRowWidget(
+                                key: ValueKey(setTemplate.id),
+                                setIndex: workingSetIndex,
+                                rowIndex: setIndex,
+                                routineExercise: routineExercise,
+                                template: setTemplate,
+                                listIndex: setIndex,
+                                isCardio: isCardio,
+                                repsController: repsControllers[setTemplate.id!]!,
+                                weightController: weightControllers[setTemplate.id!]!,
+                                rirController: rirControllers[setTemplate.id!]!,
+                                onShowSetTypePicker: () => onShowSetTypePicker(setTemplate),
+                                onRemoveSet: () => onRemoveSet(setTemplate, setIndex),
+                              );
+                            }),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: TextButton.icon(
+                                onPressed: onAddSet,
+                                icon: const Icon(LucideIcons.plus),
+                                label: Text(l10n.addSetButton),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeaderRow(context, routineExercise, l10n),
-                ...routineExercise.setTemplates.asMap().entries.map((entry) {
-                  final setIndex = entry.key;
-                  final setTemplate = entry.value;
-
-                  int workingSetIndex = 0;
-                  for (int i = 0; i <= setIndex; i++) {
-                    if (routineExercise.setTemplates[i].setType != 'warmup') {
-                      workingSetIndex++;
-                    }
-                  }
-
-                  return RoutineSetRowWidget(
-                    key: ValueKey(setTemplate.id),
-                    setIndex: workingSetIndex,
-                    rowIndex: setIndex,
-                    routineExercise: routineExercise,
-                    template: setTemplate,
-                    listIndex: setIndex,
-                    isCardio: isCardio,
-                    repsController: repsControllers[setTemplate.id!]!,
-                    weightController: weightControllers[setTemplate.id!]!,
-                    rirController: rirControllers[setTemplate.id!]!,
-                    onShowSetTypePicker: () => onShowSetTypePicker(setTemplate),
-                    onRemoveSet: () => onRemoveSet(setTemplate, setIndex),
-                  );
-                }),
-                const SizedBox(height: DesignConstants.spacingS),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: TextButton.icon(
-                    onPressed: onAddSet,
-                    icon: const Icon(LucideIcons.plus),
-                    label: Text(l10n.addSetButton),
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
