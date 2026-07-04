@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 - **Removed Repetitive Icons from Summary Cards:** Removed the redundant leading icons/emojis (calendars, dumbbells, stars/archives) from the summary list cards in Workout History (workout-verlauf), Exercise Catalog (Übungskatalog), and Food Catalogs (Allgemeiner Food-Katalog / Explorer / Lebensmittel hinzufügen via `FoodItemSearchTile`) to clean up the UI and avoid repetitive graphics.
+- **Glass Bottom Menu Visual Polish:** 
+  - Adjusted background to match the exact dark gray of the summary cards by defining `DesignConstants.summaryCardDarkMode` (`Color(0xFF2A2A2A)`) and using it consistently across both components and the custom date/time pickers (`_GlassPickerSheet` with `0.95` opacity in dark mode) to clearly separate the menu sheet from the background content.
+  - Added a clean top and side border (`1.5` width) that adapts to light/dark themes to define the sheet boundary.
+  - Changed the drag handle color to adaptively use `onSurface` with `0.3` opacity, improving visibility in both light and dark modes.
 
 ## [1.0.0-alpha.1] - 2026-06-29
 

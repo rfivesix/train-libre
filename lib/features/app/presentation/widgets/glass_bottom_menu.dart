@@ -100,7 +100,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     final bottomInset = media.viewPadding.bottom;
 
     final Color neutralTint = isDark
-        ? theme.colorScheme.surface.withValues(alpha: 0.70)
+        ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
         : theme.colorScheme.surface.withValues(alpha: 0.82);
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
@@ -118,7 +118,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               width: 44,
               height: 5,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.75),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(100),
               ),
             ),
@@ -224,6 +224,26 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: neutralTint,
                         borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                        border: Border(
+                          top: BorderSide(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.15)
+                                : theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                            width: 1.5,
+                          ),
+                          left: BorderSide(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.15)
+                                : theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                            width: 1.5,
+                          ),
+                          right: BorderSide(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.15)
+                                : theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                            width: 1.5,
+                          ),
+                        ),
                       ),
                     ),
                   ),

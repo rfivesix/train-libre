@@ -84,6 +84,9 @@ class DesignConstants {
     top: 4.0,
   );
 
+  // === COLORS ===
+  static const Color summaryCardDarkMode = Color(0xFF2A2A2A);
+
   // === GLASSMORPHISM ===
   /// Unified shadow for glassmorphic elements.
   static List<BoxShadow> get glassShadow => [

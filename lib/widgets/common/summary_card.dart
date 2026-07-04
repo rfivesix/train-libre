@@ -51,7 +51,7 @@ class SummaryCard extends StatelessWidget {
             padding: padding,
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF2A2A2A)
+                  ? DesignConstants.summaryCardDarkMode
                   : cs.surface.withValues(alpha: 0.95),
               borderRadius: radius,
               border: Border.all(
