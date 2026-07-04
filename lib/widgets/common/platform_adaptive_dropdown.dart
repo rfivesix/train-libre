@@ -46,24 +46,28 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
       saturation: 1.20,
     );
 
-    return GlassMenu(
-      menuWidth: 200,
+    return AdaptiveLiquidGlassLayer(
       settings: menuSettings,
-      triggerBuilder: (context, toggle) => GestureDetector(
-        onTap: toggle,
-        behavior: HitTestBehavior.opaque,
-        child: icon,
+      quality: GlassQuality.premium,
+      child: GlassMenu(
+        menuWidth: 200,
+        settings: menuSettings,
+        triggerBuilder: (context, toggle) => GestureDetector(
+          onTap: toggle,
+          behavior: HitTestBehavior.opaque,
+          child: icon,
+        ),
+        items: items.map((item) {
+          return GlassMenuItem(
+            title: item.label,
+            icon: item.icon != null ? Icon(item.icon, size: 20) : null,
+            isDestructive: item.isDestructive,
+            onTap: () {
+              onSelected(item.value);
+            },
+          );
+        }).toList(),
       ),
-      items: items.map((item) {
-        return GlassMenuItem(
-          title: item.label,
-          icon: item.icon != null ? Icon(item.icon, size: 20) : null,
-          isDestructive: item.isDestructive,
-          onTap: () {
-            onSelected(item.value);
-          },
-        );
-      }).toList(),
     );
   }
 }
@@ -139,59 +143,63 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           builder: (context, constraints) {
             final menuWidth =
                 constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
-            return GlassMenu(
-              menuWidth: menuWidth,
+            return AdaptiveLiquidGlassLayer(
               settings: menuSettings,
-              triggerBuilder: (context, toggle) {
-                return GestureDetector(
-                  onTap: onChanged == null ? null : toggle,
-                  behavior: HitTestBehavior.opaque,
-                  child: InputDecorator(
-                    decoration: effectiveDecoration,
-                    isEmpty: selectedText.isEmpty,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            selectedText,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+              quality: GlassQuality.premium,
+              child: GlassMenu(
+                menuWidth: menuWidth,
+                settings: menuSettings,
+                triggerBuilder: (context, toggle) {
+                  return GestureDetector(
+                    onTap: onChanged == null ? null : toggle,
+                    behavior: HitTestBehavior.opaque,
+                    child: InputDecorator(
+                      decoration: effectiveDecoration,
+                      isEmpty: selectedText.isEmpty,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              selectedText,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
-                      ],
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-              items: items.map((item) {
-                final isSelected = item.value == state.value;
-                return GlassMenuItem(
-                  title: _getItemText(item.child),
-                  isSelected: isSelected,
-                  trailing: isSelected
-                      ? Icon(
-                          LucideIcons.check,
-                          size: 18,
-                          color: isDark ? Colors.white : Colors.black87,
-                        )
-                      : null,
-                  onTap: () {
-                    state.didChange(item.value);
-                    onChanged?.call(item.value);
-                  },
-                );
-              }).toList(),
+                  );
+                },
+                items: items.map((item) {
+                  final isSelected = item.value == state.value;
+                  return GlassMenuItem(
+                    title: _getItemText(item.child),
+                    isSelected: isSelected,
+                    trailing: isSelected
+                        ? Icon(
+                            LucideIcons.check,
+                            size: 18,
+                            color: isDark ? Colors.white : Colors.black87,
+                          )
+                        : null,
+                    onTap: () {
+                      state.didChange(item.value);
+                      onChanged?.call(item.value);
+                    },
+                  );
+                }).toList(),
+              ),
             );
           },
         );

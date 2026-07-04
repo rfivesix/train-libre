@@ -1252,7 +1252,7 @@ class _MainScreenState extends State<MainScreen>
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: GlassBottomBar(
+                                    child: GlassTabBar.bottom(
                                       selectedIndex: _currentIndex,
                                       onTabSelected: _onNavigationTapped,
                                       barHeight: 74,
@@ -1263,7 +1263,7 @@ class _MainScreenState extends State<MainScreen>
                                       horizontalPadding: 0.0,
                                       verticalPadding: 0.0,
                                       quality: GlassQuality.premium,
-                                      indicatorExpansion: 14,
+                                      indicatorExpansion: const EdgeInsets.symmetric(horizontal: 14),
                                       selectedIconColor:
                                           theme.colorScheme.primary,
                                       unselectedIconColor:
@@ -1275,7 +1275,7 @@ class _MainScreenState extends State<MainScreen>
                                           DesignConstants.liquidGlassSettings(
                                               isDark),
                                       tabs: [
-                                        GlassBottomBarTab(
+                                        GlassTab(
                                           label: l10n.diary,
                                           icon: Icon(
                                             LucideIcons.notebook,
@@ -1284,7 +1284,7 @@ class _MainScreenState extends State<MainScreen>
                                           activeIcon:
                                               const Icon(LucideIcons.notebook),
                                         ),
-                                        GlassBottomBarTab(
+                                        GlassTab(
                                           label: l10n.workout,
                                           icon: Icon(
                                             LucideIcons.dumbbell,
@@ -1293,7 +1293,7 @@ class _MainScreenState extends State<MainScreen>
                                           activeIcon:
                                               const Icon(LucideIcons.dumbbell),
                                         ),
-                                        GlassBottomBarTab(
+                                        GlassTab(
                                           label: l10n.statistics,
                                           icon: Icon(
                                             LucideIcons.chart_no_axes_column,
@@ -1302,7 +1302,7 @@ class _MainScreenState extends State<MainScreen>
                                           activeIcon: const Icon(
                                               LucideIcons.chart_no_axes_column),
                                         ),
-                                        GlassBottomBarTab(
+                                        GlassTab(
                                           label: l10n.nutrition,
                                           icon: Icon(
                                             LucideIcons.utensils,

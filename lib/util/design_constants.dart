@@ -111,6 +111,7 @@ class DesignConstants {
         glassColor: glassColor(isDark),
         lightIntensity: isDark ? 0.55 : 0.80,
         saturation: 1.20,
+        ambientRim: 0.2,
       );
 }
 
