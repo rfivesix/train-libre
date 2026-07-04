@@ -9,6 +9,7 @@ import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../core/infrastructure/export_manager.dart';
 import '../../../core/infrastructure/import_manager.dart';
 import '../../../generated/app_localizations.dart';
+import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/app_initializer_screen.dart';
 import '../../exercise_catalog/presentation/exercise_mapping_screen.dart';
 import '../../../services/local_app_data_reset_service.dart';
@@ -39,8 +40,8 @@ class DataManagementScreen extends StatefulWidget {
     super.key,
     LocalAppDataResetter? localDataResetter,
     VoidCallback? onResetComplete,
-  }) : _localDataResetter = localDataResetter,
-       _onResetComplete = onResetComplete;
+  })  : _localDataResetter = localDataResetter,
+        _onResetComplete = onResetComplete;
 
   final LocalAppDataResetter? _localDataResetter;
   final VoidCallback? _onResetComplete;
@@ -131,8 +132,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     if (!mounted) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final wgerInitialized = await BasisDataManager.instance
-        .isExerciseCatalogInitialized();
+    final wgerInitialized =
+        await BasisDataManager.instance.isExerciseCatalogInitialized();
     if (!mounted) return;
 
     if (!wgerInitialized) {
@@ -276,8 +277,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     setState(() => _isMigrationRunning = false);
 
     if (count > 0) {
-      final unknown = await WorkoutLocalDataSource.instance
-          .findUnknownExerciseNames();
+      final unknown =
+          await WorkoutLocalDataSource.instance.findUnknownExerciseNames();
       if (mounted && unknown.isNotEmpty) {
         await Navigator.of(context).push(
           MaterialPageRoute(
@@ -387,13 +388,13 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                           operation: (token, updateProgress) async {
                             await BackupManager.instance
                                 .exportFullBackupEncrypted(pw, token, (
-                                  tableName,
-                                  progress,
-                                ) {
-                                  final statusText = l10n
-                                      .progressExportingTable(tableName);
-                                  updateProgress(statusText, progress);
-                                });
+                              tableName,
+                              progress,
+                            ) {
+                              final statusText =
+                                  l10n.progressExportingTable(tableName);
+                              updateProgress(statusText, progress);
+                            });
                           },
                         );
                       } catch (e) {
@@ -425,33 +426,33 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     onPickDirectory: _pickAutoBackupDirectory,
                     onCopyPath: _copyAutoBackupPathToClipboard,
                     onRunNow: () async {
-                      final ok = await BackupManager.instance
-                          .runAutoBackupIfDue(
-                            interval: const Duration(days: 1),
-                            encrypted: false,
-                            passphrase: null,
-                            retention: 7,
-                            dirPath: _autoBackupDir,
-                            force: true, // New: run immediately
-                          );
+                      final ok =
+                          await BackupManager.instance.runAutoBackupIfDue(
+                        interval: const Duration(days: 1),
+                        encrypted: false,
+                        passphrase: null,
+                        retention: 7,
+                        dirPath: _autoBackupDir,
+                        force: true, // New: run immediately
+                      );
                       await _loadAutoBackupDir();
                       if (!mounted) return;
                       final successText = ok
                           ? (_lastAutoBackupFilePath != null &&
-                                    _lastAutoBackupFilePath!.isNotEmpty
-                                ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
-                                : l10n.snackbarAutoBackupSuccess)
+                                  _lastAutoBackupFilePath!.isNotEmpty
+                              ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
+                              : l10n.snackbarAutoBackupSuccess)
                           : (_lastAutoBackupError != null &&
-                                    _lastAutoBackupError!.isNotEmpty
-                                ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
-                                : l10n.snackbarAutoBackupFailed);
+                                  _lastAutoBackupError!.isNotEmpty
+                              ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
+                              : l10n.snackbarAutoBackupFailed);
                       ScaffoldMessenger.of(this.context).showSnackBar(
                         SnackBar(
                           content: Text(successText),
                           backgroundColor: ok
                               ? (_lastAutoBackupUsedFallback
-                                    ? Colors.orange
-                                    : null)
+                                  ? Colors.orange
+                                  : null)
                               : Theme.of(this.context).colorScheme.error,
                         ),
                       );
@@ -490,7 +491,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
               isMigrationRunning: _isMigrationRunning,
               onImportPressed: _performWorkoutImport,
             ),
-            const SizedBox(height: DesignConstants.spacingL),
+            const SizedBox(height: DesignConstants.spacingS),
             ExerciseMappingCard(onMapPressed: _openExerciseMapping),
           ],
         ),
@@ -499,8 +500,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
   }
 
   Future<void> _openExerciseMapping() async {
-    final unknown = await WorkoutLocalDataSource.instance
-        .findUnknownExerciseNames();
+    final unknown =
+        await WorkoutLocalDataSource.instance.findUnknownExerciseNames();
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     if (unknown.isEmpty) {

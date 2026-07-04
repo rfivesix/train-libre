@@ -12,8 +12,6 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/app_info_row.dart';
-import '../../../widgets/common/app_link_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
@@ -97,8 +95,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     if (provider == null) return;
     setState(() => _isLoading = true);
     await AiService.instance.setSelectedProvider(provider);
-    final selectedModel = await AiService.instance
-        .resolveAndPersistSelectedModel(provider);
+    final selectedModel =
+        await AiService.instance.resolveAndPersistSelectedModel(provider);
     final models = await AiService.instance.getModelOptions(provider);
     final resolvedModel = _resolveModelSelection(
       selectedModel,
@@ -237,9 +235,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     AiProvider provider,
   ) {
     if (models.isEmpty) {
-      final defaultModel = AiService.instance
-          .getProviderMetadata(provider)
-          .defaultModel;
+      final defaultModel =
+          AiService.instance.getProviderMetadata(provider).defaultModel;
       return [
         AiModelOption(id: defaultModel, label: defaultModel, isFallback: true),
       ];
@@ -377,9 +374,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                       border: const OutlineInputBorder(),
                                       contentPadding:
                                           const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 8,
-                                          ),
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
                                     ),
                                     items: _modelOptions
                                         .map(
@@ -494,18 +491,18 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                   children: [
                                     Text(
                                       l10n.settingsRequestTimeout,
-                                      style: theme.textTheme.labelLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      style:
+                                          theme.textTheme.labelLarge?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
                                       l10n.settingsSeconds(_timeoutSeconds),
-                                      style: theme.textTheme.labelMedium
-                                          ?.copyWith(
-                                            color: theme.colorScheme.primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      style:
+                                          theme.textTheme.labelMedium?.copyWith(
+                                        color: theme.colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -589,8 +586,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: OutlinedButton.icon(
-                                  onPressed:
-                                      ((_hasKey ||
+                                  onPressed: ((_hasKey ||
                                               _selectedProvider ==
                                                   AiProvider.ollama) &&
                                           !_isTesting)

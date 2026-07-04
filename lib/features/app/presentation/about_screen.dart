@@ -53,7 +53,9 @@ class AboutScreen extends StatelessWidget {
                           const SizedBox(height: DesignConstants.spacingL),
                           Text(
                             l10n.appTitle,
-                            style: Theme.of(context).textTheme.headlineMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
@@ -71,37 +73,32 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: DesignConstants.spacingXXL),
                   AppSectionHeader(title: l10n.about_section),
-                  SummaryCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        AppLinkRow(
-                          title: l10n.used_libraries,
-                          onTap: () => _openUsedPackages(context),
+
+                  Column(
+                    children: [
+                      AppLinkRow(
+                        title: l10n.used_libraries,
+                        onTap: () => _openUsedPackages(context),
+                      ),
+                      AppLinkRow(
+                        title: l10n.licensing_info,
+                        onTap: () => _launchURL(
+                          'https://github.com/rfivesix/train-libre/blob/main/LICENSE',
                         ),
-                        const Divider(height: 1),
-                        AppLinkRow(
-                          title: l10n.licensing_info,
-                          onTap: () => _launchURL(
-                            'https://github.com/rfivesix/train-libre/blob/main/LICENSE',
-                          ),
+                      ),
+                      AppLinkRow(
+                        title: l10n.project_website,
+                        onTap: () => _launchURL(
+                          'https://rfivesix.github.io/train-libre/',
                         ),
-                        const Divider(height: 1),
-                        AppLinkRow(
-                          title: l10n.project_website,
-                          onTap: () => _launchURL(
-                            'https://rfivesix.github.io/train-libre/',
-                          ),
+                      ),
+                      AppLinkRow(
+                        title: l10n.github_repository,
+                        onTap: () => _launchURL(
+                          'https://github.com/rfivesix/train-libre',
                         ),
-                        const Divider(height: 1),
-                        AppLinkRow(
-                          title: l10n.github_repository,
-                          onTap: () => _launchURL(
-                            'https://github.com/rfivesix/train-libre',
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -172,8 +169,8 @@ class _UsedPackagesScreen extends StatelessWidget {
                       title: Text(
                         package.name,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       subtitle: Text(
                         '${package.entries.length} ${title.toLowerCase()}',
@@ -198,14 +195,13 @@ class _UsedPackagesScreen extends StatelessWidget {
       }
     }
 
-    final bundles =
-        licensesByPackage.entries
-            .map(
-              (entry) =>
-                  _PackageLicenseBundle(name: entry.key, entries: entry.value),
-            )
-            .toList()
-          ..sort((a, b) => a.name.compareTo(b.name));
+    final bundles = licensesByPackage.entries
+        .map(
+          (entry) =>
+              _PackageLicenseBundle(name: entry.key, entries: entry.value),
+        )
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
     return bundles;
   }
 }
