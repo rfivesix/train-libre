@@ -29,30 +29,63 @@
 
 <br />
 
-<p align="center">
-  <a href="https://star-history.com/#rfivesix/train-libre&dark">
-    <img src="https://api.star-history.com/svg?repos=rfivesix/train-libre&theme=dark" alt="Star History Chart" width="100%" max-width="600px">
-  </a>
-</p>
-
-
 Train Libre is an open-source, offline-first fitness app for logging workouts, calories, macros, bodyweight, and recovery — without ads, mandatory accounts, or analytics SDKs.
 
 Designed for people who want serious tracking without social feeds, gamification, or subscription pressure, Train Libre prioritizes **privacy**, **local data ownership**, and **transparent analytics**.
+
+### Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_diary.png" alt="Diary Log" width="100%"><br>
+        <sub><b>Diary</b></sub>
+      </td>
+      <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png" alt="Workout Tracking" width="100%"><br>
+        <sub><b>Workout</b></sub>
+      </td>
+      <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_nutrition.png" alt="Nutrition Tracking" width="100%"><br>
+        <sub><b>Nutrition</b></sub>
+      </td>
+      <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png" alt="AI Meal Capture" width="100%"><br>
+        <sub><b>AI Meal Capture</b></sub>
+      </td>
+    </tr>
+    <tr>
+      <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_recovery.png" alt="Recovery Trends" width="100%"><br>
+        <sub><b>Recovery</b></sub>
+      </td>
+      <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_measurements.png" alt="Body Measurements" width="100%"><br>
+        <sub><b>Measurements</b></sub>
+      </td>
+      <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_data.png" alt="Data Insights" width="100%"><br>
+        <sub><b>Data Insights</b></sub>
+      </td>
+      <td width="24%"></td>
+    </tr>
+  </table>
+</div>
 
 ## Download & Install
 
 <table align="center">
   <tr>
     <td align="center" valign="middle" width="250">
-      <a href="https://testflight.apple.com/join/x1UaM6TQ">
+      <a href="https://apps.apple.com/us/app/train-libre/id6767055511">
         <img
           src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-          alt="Download on the App Store"
+          alt="Get it on App Store"
           width="100%"
         />
       </a>
-      <br><sub><b>iOS Public TestFlight Beta</b></sub>
+      <br><sub><b>App Store Release</b></sub>
     </td>
     <td width="30"></td>
     <td align="center" valign="middle" width="250">
@@ -123,6 +156,13 @@ For the full interlinked documentation map, see the main [Documentation Entry Po
 
 The long-term vision, future modules, and planned features are maintained in the [ROADMAP.md](ROADMAP.md) file.
 
+## Star history
+<p align="center">
+  <a href="https://star-history.com/#rfivesix/train-libre&dark">
+    <img src="https://api.star-history.com/svg?repos=rfivesix/train-libre&theme=dark" alt="Star History Chart" width="100%" max-width="600px">
+  </a>
+</p>
+
 ## Credits
 
 - **[Open Food Facts](https://openfoodfacts.org/)** for food database coverage.
@@ -131,4 +171,3 @@ The long-term vision, future modules, and planned features are maintained in the
 ## License
 
 [GPL-3.0](LICENSE)
-
