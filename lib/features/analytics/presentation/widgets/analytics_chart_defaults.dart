@@ -36,12 +36,15 @@ class AnalyticsChartDefaults {
     double barWidth = 2.5,
     bool showDots = false,
     bool isStrokeCapRound = false,
+    bool isCurved = true,
+    double curveSmoothness = 0.05,
     FlDotData? dotData,
     BarAreaData? belowBarData,
   }) {
     return LineChartBarData(
       spots: spots,
-      isCurved: false,
+      isCurved: isCurved,
+      curveSmoothness: curveSmoothness,
       barWidth: barWidth,
       isStrokeCapRound: isStrokeCapRound,
       color: color,

@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Body & Nutrition Bottom Axis Edge Labels Fixed:** In edge-to-edge mode the chart domain is now padded by ±1 day (`minX: -1`, `maxX: maxX + 1`) so the first and last date labels are no longer centered at the very edge of the canvas, preventing them from being half-clipped and showing as lone digits ("4" / "0").
 - **Localized Chart Range Filters:** Localized the chart range selector buttons (`30d`, `90d`, `180d`, `All`) across all supported languages (English, German, French, Italian, Japanese).
 - **Tooltip Rendering Order:** Adjusted Stack Z-ordering in the body & nutrition trend chart so the tooltip overlay renders on top of the Y-axis labels.
+- **Enhanced Chart Lines Styling:** Increased line thickness (bar width) on all main line charts and added a subtle, minimal curvature (`curveSmoothness: 0.15`) for smoother edges.
 
 ## [0.9.37] - 2026-06-29
 

@@ -306,7 +306,7 @@ class _BodyNutritionNormalizedTrendChartState
               spots: seriesConfig.points
                   .map((point) => point.spot)
                   .toList(growable: false),
-              barWidth: compact ? 2.6 : 3.2,
+              barWidth: compact ? 3.2 : 4.0,
               isStrokeCapRound: true,
               color: seriesConfig.color,
               belowBarData: seriesConfig.label == l10n.analyticsWeightTrendLabel
