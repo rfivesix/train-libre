@@ -41,22 +41,18 @@ class CsvExportCard extends StatelessWidget {
           Text(l10n.csvExportDescription, style: theme.textTheme.bodyMedium),
           const SizedBox(height: DesignConstants.spacingS),
           _buildExportTile(
-            icon: LucideIcons.table,
             title: l10n.excelExportButton,
             onTap: isCsvExportRunning ? null : onExcelExportPressed,
           ),
           _buildExportTile(
-            icon: LucideIcons.utensils,
             title: l10n.nutritionDiary,
             onTap: isCsvExportRunning ? null : onNutritionExportPressed,
           ),
           _buildExportTile(
-            icon: LucideIcons.scale,
             title: l10n.drawerMeasurements,
             onTap: isCsvExportRunning ? null : onMeasurementsExportPressed,
           ),
           _buildExportTile(
-            icon: LucideIcons.dumbbell,
             title: l10n.workoutHistoryTitle,
             onTap: isCsvExportRunning ? null : onWorkoutsExportPressed,
           ),
@@ -71,7 +67,6 @@ class CsvExportCard extends StatelessWidget {
   }
 
   Widget _buildExportTile({
-    required IconData icon,
     required String title,
     required VoidCallback? onTap,
   }) {

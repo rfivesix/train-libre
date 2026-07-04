@@ -13,6 +13,7 @@ import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/app_info_row.dart';
+import '../../../widgets/common/app_link_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
@@ -293,42 +294,24 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 top: DesignConstants.cardPadding.top + topPadding,
               ),
               children: [
-                AppSectionHeader(title: l10n.aiSettingsInstructionTitle),
-                SummaryCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.aiSettingsInstructionBody,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          l10n.aiSettingsSetupGuideTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          l10n.aiSettingsSetupGuideBody,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 16),
-                        OutlinedButton.icon(
-                          onPressed: () => launchUrl(
-                            Uri.parse(
-                              'https://ai.google.dev/gemini-api/docs/api-key',
-                            ),
-                            mode: LaunchMode.externalApplication,
-                          ),
-                          icon: const Icon(LucideIcons.external_link),
-                          label: Text(l10n.aiSettingsGetApiKeyButton),
-                        ),
-                      ],
-                    ),
+                AppInfoRow(
+                  title: l10n.aiSettingsInstructionTitle,
+                  subtitle: l10n.aiSettingsInstructionBody,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                AppLinkRow(
+                  title: l10n.aiSettingsSetupGuideTitle,
+                  subtitle: l10n.aiSettingsSetupGuideBody,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  onTap: () => launchUrl(
+                    Uri.parse('https://ai.google.dev/gemini-api/docs/api-key'),
+                    mode: LaunchMode.externalApplication,
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
@@ -636,9 +619,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 const SizedBox(height: DesignConstants.spacingXL),
 
                 // --- Privacy Disclosure ---
-                AppSectionHeader(title: l10n.aiPrivacySection),
                 AppInfoRow(
-                  title: l10n.aiPrivacyDisclosure,
+                  title: l10n.aiPrivacySection,
+                  subtitle: l10n.aiPrivacyDisclosure,
                   padding: const EdgeInsets.symmetric(
                     vertical: 4,
                     horizontal: 16,
