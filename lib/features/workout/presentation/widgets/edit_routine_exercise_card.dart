@@ -29,6 +29,9 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final Function(SetTemplate, int listIndex) onRemoveSet;
   final bool isDragging;
   final bool isDraggedItem;
+  final Function(PointerDownEvent)? onPointerDown;
+  final Function(PointerUpEvent)? onPointerUp;
+  final Function(PointerCancelEvent)? onPointerCancel;
 
   const EditRoutineExerciseCard({
     super.key,
@@ -46,6 +49,9 @@ class EditRoutineExerciseCard extends StatelessWidget {
     required this.onRemoveSet,
     this.isDragging = false,
     this.isDraggedItem = false,
+    this.onPointerDown,
+    this.onPointerUp,
+    this.onPointerCancel,
   });
 
   @override
@@ -63,23 +69,31 @@ class EditRoutineExerciseCard extends StatelessWidget {
               horizontal: 16.0,
               vertical: 8.0,
             ),
-            title: InkWell(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => ExerciseDetailScreen(
-                    exercise: routineExercise.exercise,
+            title: Listener(
+              onPointerDown: onPointerDown,
+              onPointerUp: onPointerUp,
+              onPointerCancel: onPointerCancel,
+              child: ReorderableDelayedDragStartListener(
+                index: index,
+                child: InkWell(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ExerciseDetailScreen(
+                        exercise: routineExercise.exercise,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Text(
-                  routineExercise.exercise.getLocalizedName(context),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isDraggedItem ? colorScheme.primary : null,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Text(
+                      routineExercise.exercise.getLocalizedName(context),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isDraggedItem ? colorScheme.primary : null,
+                      ),
+                    ),
                   ),
                 ),
               ),

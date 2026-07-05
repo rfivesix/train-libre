@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
@@ -61,7 +60,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   Map<String, String> _exerciseNotes = {};
   bool _isEditMode = false;
   bool _isDragging = false;
-  PointerDownEvent? _lastPointerDownEvent;
+  Timer? _collapseTimer;
+  final ScrollController _scrollController = ScrollController();
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _notesController;
 
@@ -158,6 +158,46 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   bool _isCardio(String exerciseName) {
     final ex = _exerciseDetails[exerciseName];
     return ex?.categoryName.toLowerCase() == 'cardio';
+  }
+
+  double _calculateScrollAdjustment(int draggedIndex, List<MapEntry<String, List<SetLog>>> entries) {
+    double adjustment = 0;
+    for (int i = 0; i < draggedIndex; i++) {
+      final entry = entries[i];
+      final sets = entry.value;
+      double detailsHeight = 0;
+      final note = _exerciseNotes[entry.key];
+      if (note != null && note.isNotEmpty) {
+        detailsHeight += 80.0;
+      }
+      detailsHeight += 40.0; // Header row
+      detailsHeight += sets.length * 48.0; // Set rows
+      detailsHeight += 48.0; // Add set button
+      detailsHeight += 16.0; // Margin/padding/gaps
+      adjustment += detailsHeight;
+    }
+    return adjustment;
+  }
+
+  double _calculateScrollPosition(int targetIndex, List<MapEntry<String, List<SetLog>>> entries) {
+    double position = 0;
+    position += 320.0; // Account for SummaryCard and header list items
+    for (int i = 0; i < targetIndex; i++) {
+      final entry = entries[i];
+      final sets = entry.value;
+      double cardHeight = 0;
+      cardHeight += 70.0; // ListTile height estimation
+      final note = _exerciseNotes[entry.key];
+      if (note != null && note.isNotEmpty) {
+        cardHeight += 80.0; // Notes container
+      }
+      cardHeight += 40.0; // Header row
+      cardHeight += sets.length * 48.0; // Set rows
+      cardHeight += 48.0; // Add set button
+      cardHeight += 16.0; // Padding/gaps/margins
+      position += cardHeight;
+    }
+    return position;
   }
 
   Future<void> _loadDetails({bool preserveEditState = false}) async {
@@ -709,7 +749,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     ),
                     Expanded(
                       child: ListView(
-                        padding: EdgeInsets.zero,
+                        controller: _scrollController,
+                        padding: EdgeInsets.only(
+                          bottom: _isDragging ? 800.0 : 0.0,
+                        ),
                         children: [
                           // Header Info
                           Padding(
@@ -869,6 +912,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             })
                           else ...[
                             ReorderableListView.builder(
+                              buildDefaultDragHandles: false,
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               padding: EdgeInsets.zero,
@@ -880,6 +924,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               onReorderEnd: (index) {
                                 setState(() {
                                   _isDragging = false;
+                                });
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  if (_scrollController.hasClients) {
+                                    final entries = _groupedSets.entries.toList();
+                                    final targetOffset = _calculateScrollPosition(index, entries);
+                                    _scrollController.jumpTo(targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent));
+                                  }
                                 });
                               },
                               proxyDecorator: (Widget child, int index,
@@ -939,35 +990,47 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
                                 return RepaintBoundary(
                                   key: ValueKey(exerciseName),
-                                  child: Listener(
-                                    onPointerDown: (event) {
-                                      _lastPointerDownEvent = event;
-                                    },
-                                    child: GestureDetector(
-                                      behavior: HitTestBehavior.translucent,
-                                      onLongPressStart: (details) {
-                                        setState(() {
-                                          _isDragging = true;
-                                        });
-                                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                                          if (_lastPointerDownEvent != null && mounted) {
-                                            final listState = SliverReorderableList.maybeOf(context);
-                                            listState?.startItemDragReorder(
-                                              index: index,
-                                              event: _lastPointerDownEvent!,
-                                              recognizer: ImmediateMultiDragGestureRecognizer(debugOwner: listState)
-                                                ..gestureSettings = MediaQuery.maybeGestureSettingsOf(context),
-                                            );
-                                          }
-                                        });
-                                      },
-                                      child: WorkoutExerciseLogCard(
+                                  child: WorkoutExerciseLogCard(
                                     exerciseName: exerciseName,
                                     exercise: exercise,
                                     sets: sets,
                                     isEditMode: true,
                                     isCardio: isCardio,
                                     isDragging: _isDragging,
+                                    onPointerDown: (event) {
+                                      _collapseTimer?.cancel();
+                                      _collapseTimer = Timer(const Duration(milliseconds: 300), () {
+                                        if (mounted) {
+                                          setState(() {
+                                            _isDragging = true;
+                                          });
+                                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                                            if (_scrollController.hasClients) {
+                                              final currentOffset = _scrollController.offset;
+                                              final entries = _groupedSets.entries.toList();
+                                              final adjustment = _calculateScrollAdjustment(index, entries);
+                                              _scrollController.jumpTo((currentOffset - adjustment).clamp(0.0, _scrollController.position.maxScrollExtent));
+                                            }
+                                          });
+                                        }
+                                      });
+                                    },
+                                    onPointerUp: (event) {
+                                      _collapseTimer?.cancel();
+                                      if (_isDragging) {
+                                        setState(() {
+                                          _isDragging = false;
+                                        });
+                                      }
+                                    },
+                                    onPointerCancel: (event) {
+                                      _collapseTimer?.cancel();
+                                      if (_isDragging) {
+                                        setState(() {
+                                          _isDragging = false;
+                                        });
+                                      }
+                                    },
                                     weightControllers: _weightControllers,
                                     repsControllers: _repsControllers,
                                     rirControllers: _rirControllers,
@@ -1023,9 +1086,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                         _showSetTypePicker(setId),
                                     index: index,
                                   ),
-                                ),
-                              ),
-                            );
+                                );
                               },
                             ),
                           ],

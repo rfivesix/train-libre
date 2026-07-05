@@ -2,7 +2,7 @@
 // FINAL: Cardio Clean-Up (1 Set, Cleaner Layout, Empty Defaults)
 
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
+import 'dart:async';
 import 'package:flutter/rendering.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../sharing/share_service.dart';
@@ -44,7 +44,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   String _originalName = '';
   bool _isLoading = false;
   bool _isDragging = false;
-  PointerDownEvent? _lastPointerDownEvent;
+  Timer? _collapseTimer;
+  final ScrollController _scrollController = ScrollController();
+  final OverlayPortalController _fabOverlayController = OverlayPortalController();
 
   final Map<int, TextEditingController> _repsControllers = {};
   final Map<int, TextEditingController> _weightControllers = {};
@@ -161,6 +163,11 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _fabOverlayController.show();
+      }
+    });
     if (widget.routine != null) {
       _isNewRoutine = false;
       _routineId = widget.routine!.id;
@@ -174,6 +181,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   @override
   void dispose() {
+    _collapseTimer?.cancel();
+    _scrollController.dispose();
     _nameController.dispose();
     for (var c in _repsControllers.values) {
       c.dispose();
@@ -189,6 +198,41 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   bool _isCardio(RoutineExercise re) {
     return re.exercise.categoryName.toLowerCase() == 'cardio';
+  }
+
+  double _calculateScrollAdjustment(int draggedIndex, List<RoutineExercise> exercises) {
+    double adjustment = 0;
+    for (int i = 0; i < draggedIndex; i++) {
+      final re = exercises[i];
+      double detailsHeight = 0;
+      if (re.notes != null && re.notes!.isNotEmpty) {
+        detailsHeight += 80.0;
+      }
+      detailsHeight += 40.0; // Header row
+      detailsHeight += re.setTemplates.length * 48.0; // Set rows
+      detailsHeight += 48.0; // Add set button
+      detailsHeight += 16.0; // Margin/padding/gaps
+      adjustment += detailsHeight;
+    }
+    return adjustment;
+  }
+
+  double _calculateScrollPosition(int targetIndex, List<RoutineExercise> exercises) {
+    double position = 0;
+    for (int i = 0; i < targetIndex; i++) {
+      final re = exercises[i];
+      double cardHeight = 0;
+      cardHeight += 70.0; // ListTile height estimation
+      if (re.notes != null && re.notes!.isNotEmpty) {
+        cardHeight += 80.0; // Notes container
+      }
+      cardHeight += 40.0; // Header row
+      cardHeight += re.setTemplates.length * 48.0; // Set rows
+      cardHeight += 48.0; // Add set button
+      cardHeight += 16.0; // Padding/gaps/margins
+      position += cardHeight;
+    }
+    return position;
   }
 
   Future<void> _loadExercisesForRoutine() async {
@@ -707,13 +751,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     ),
                                   )
                                 : ReorderableListView.builder(
+                                    scrollController: _scrollController,
+                                    buildDefaultDragHandles: false,
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
                                     itemCount: _routineExercises.length,
                                     padding: EdgeInsets.only(
-                                      bottom: DesignConstants
-                                              .bottomContentSpacer +
-                                          MediaQuery.paddingOf(context).bottom,
+                                      bottom: DesignConstants.bottomContentSpacer +
+                                          MediaQuery.paddingOf(context).bottom +
+                                          (_isDragging ? 800.0 : 0.0),
                                     ),
                                     proxyDecorator: (Widget child, int index,
                                         Animation<double> anim) {
@@ -746,10 +792,22 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       setState(() {
                                         _isDragging = true;
                                       });
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        if (_fabOverlayController.isShowing) {
+                                          _fabOverlayController.hide();
+                                          _fabOverlayController.show();
+                                        }
+                                      });
                                     },
                                     onReorderEnd: (index) {
                                       setState(() {
                                         _isDragging = false;
+                                      });
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        if (_scrollController.hasClients) {
+                                          final targetOffset = _calculateScrollPosition(index, _routineExercises);
+                                          _scrollController.jumpTo(targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent));
+                                        }
                                       });
                                     },
                                     onReorderItem: _onReorderItem,
@@ -761,51 +819,60 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
                                       return RepaintBoundary(
                                         key: ValueKey(routineExercise.id),
-                                        child: Listener(
+                                        child: EditRoutineExerciseCard(
+                                          routineExercise: routineExercise,
+                                          index: index,
+                                          isCardio: isCardio,
+                                          isDragging: _isDragging,
                                           onPointerDown: (event) {
-                                            _lastPointerDownEvent = event;
+                                            _collapseTimer?.cancel();
+                                            _collapseTimer = Timer(const Duration(milliseconds: 300), () {
+                                              if (mounted) {
+                                                setState(() {
+                                                  _isDragging = true;
+                                                });
+                                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                  if (_scrollController.hasClients) {
+                                                    final currentOffset = _scrollController.offset;
+                                                    final adjustment = _calculateScrollAdjustment(index, _routineExercises);
+                                                    _scrollController.jumpTo((currentOffset - adjustment).clamp(0.0, _scrollController.position.maxScrollExtent));
+                                                  }
+                                                });
+                                              }
+                                            });
                                           },
-                                          child: GestureDetector(
-                                            behavior: HitTestBehavior.translucent,
-                                            onLongPressStart: (details) {
+                                          onPointerUp: (event) {
+                                            _collapseTimer?.cancel();
+                                            if (_isDragging) {
                                               setState(() {
-                                                _isDragging = true;
+                                                _isDragging = false;
                                               });
-                                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                                if (_lastPointerDownEvent != null && mounted) {
-                                                  final listState = SliverReorderableList.maybeOf(context);
-                                                  listState?.startItemDragReorder(
-                                                    index: index,
-                                                    event: _lastPointerDownEvent!,
-                                                    recognizer: ImmediateMultiDragGestureRecognizer(debugOwner: listState)
-                                                      ..gestureSettings = MediaQuery.maybeGestureSettingsOf(context),
-                                                  );
-                                                }
+                                            }
+                                          },
+                                          onPointerCancel: (event) {
+                                            _collapseTimer?.cancel();
+                                            if (_isDragging) {
+                                              setState(() {
+                                                _isDragging = false;
                                               });
-                                            },
-                                            child: EditRoutineExerciseCard(
-                                              routineExercise: routineExercise,
-                                              index: index,
-                                              isCardio: isCardio,
-                                              isDragging: _isDragging,
-                                              repsControllers: _repsControllers,
-                                              weightControllers: _weightControllers,
-                                              rirControllers: _rirControllers,
-                                              onEditNotes: () => _editExerciseNotes(
-                                                  context, routineExercise),
-                                              onEditPauseTime: () =>
-                                                  _editPauseTime(routineExercise),
-                                              onDeleteExercise: () =>
-                                                  _deleteSingleExercise(
-                                                      routineExercise),
-                                              onAddSet: () =>
-                                                  _addSet(routineExercise),
-                                              onShowSetTypePicker: _showSetTypePicker,
-                                              onRemoveSet: (template, listIndex) =>
-                                                  _removeSet(routineExercise,
-                                                      template.id!, listIndex),
-                                            ),
-                                          ),
+                                            }
+                                          },
+                                          repsControllers: _repsControllers,
+                                          weightControllers: _weightControllers,
+                                          rirControllers: _rirControllers,
+                                          onEditNotes: () => _editExerciseNotes(
+                                              context, routineExercise),
+                                          onEditPauseTime: () =>
+                                              _editPauseTime(routineExercise),
+                                          onDeleteExercise: () =>
+                                              _deleteSingleExercise(
+                                                  routineExercise),
+                                          onAddSet: () =>
+                                              _addSet(routineExercise),
+                                          onShowSetTypePicker: _showSetTypePicker,
+                                          onRemoveSet: (template, listIndex) =>
+                                              _removeSet(routineExercise,
+                                                  template.id!, listIndex),
                                         ),
                                       );
                                     },
@@ -813,6 +880,20 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                       ),
                     ],
                   ),
+                ),
+
+                OverlayPortal(
+                  controller: _fabOverlayController,
+                  overlayChildBuilder: (context) {
+                    return Positioned(
+                      bottom: 24.0 + MediaQuery.paddingOf(context).bottom,
+                      right: 16.0,
+                      child: RepaintBoundary(
+                        child: _EditRoutineFab(onPressed: _addExercises),
+                      ),
+                    );
+                  },
+                  child: const SizedBox.shrink(),
                 ),
 
                 // Layer 2 (Top): Wger attribution — pinned just below the FAB

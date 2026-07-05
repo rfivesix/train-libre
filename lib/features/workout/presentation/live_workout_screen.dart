@@ -60,6 +60,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   bool _isDragging = false;
   Timer? _collapseTimer;
   final ScrollController _scrollController = ScrollController();
+  final OverlayPortalController _fabOverlayController = OverlayPortalController();
 
   void _handleBack() {
     setState(() {
@@ -81,6 +82,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _fabOverlayController.show();
+      }
+    });
 
     _prAnimationController = AnimationController(
       vsync: this,
@@ -157,6 +163,24 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       adjustment += detailsHeight;
     }
     return adjustment;
+  }
+
+  double _calculateScrollPosition(int targetIndex, List<RoutineExercise> exercises) {
+    double position = 0;
+    for (int i = 0; i < targetIndex; i++) {
+      final re = exercises[i];
+      double cardHeight = 0;
+      cardHeight += 70.0; // ListTile height estimation
+      if (re.notes != null && re.notes!.isNotEmpty) {
+        cardHeight += 80.0; // Notes container
+      }
+      cardHeight += 40.0; // Header row
+      cardHeight += re.setTemplates.length * 48.0; // Set rows
+      cardHeight += 48.0; // Add set button
+      cardHeight += 16.0; // Padding/gaps/margins
+      position += cardHeight;
+    }
+    return position;
   }
 
   Future<void> _finishWorkout() async {
@@ -609,10 +633,22 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       setState(() {
                                         _isDragging = true;
                                       });
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        if (_fabOverlayController.isShowing) {
+                                          _fabOverlayController.hide();
+                                          _fabOverlayController.show();
+                                        }
+                                      });
                                     },
                                     onReorderEnd: (index) {
                                       setState(() {
                                         _isDragging = false;
+                                      });
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        if (_scrollController.hasClients) {
+                                          final targetOffset = _calculateScrollPosition(index, exercises);
+                                          _scrollController.jumpTo(targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent));
+                                        }
                                       });
                                     },
                                     proxyDecorator: (Widget child, int index,
@@ -1165,14 +1201,25 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       ),
                     ),
 
-                    Positioned(
-                      bottom: showRestBar
-                          ? 134.0
-                          : (24.0 + MediaQuery.paddingOf(context).bottom),
-                      right: 16.0,
-                      child: RepaintBoundary(
-                        child: _LiveWorkoutFab(onPressed: _addExercise),
-                      ),
+                    OverlayPortal(
+                      controller: _fabOverlayController,
+                      overlayChildBuilder: (context) {
+                        return Consumer<LiveWorkoutViewModel>(
+                          builder: (context, vm, child) {
+                            final showRestBar = vm.remainingRestSeconds > 0 || vm.showRestDone;
+                            return Positioned(
+                              bottom: showRestBar
+                                  ? 134.0
+                                  : (24.0 + MediaQuery.paddingOf(context).bottom),
+                              right: 16.0,
+                              child: RepaintBoundary(
+                                child: _LiveWorkoutFab(onPressed: _addExercise),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: const SizedBox.shrink(),
                     ),
 
                     // --- Top Celebration Banner ---

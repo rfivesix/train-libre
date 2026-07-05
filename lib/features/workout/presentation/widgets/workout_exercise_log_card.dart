@@ -29,6 +29,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final int index;
   final bool isDragging;
   final bool isDraggedItem;
+  final Function(PointerDownEvent)? onPointerDown;
+  final Function(PointerUpEvent)? onPointerUp;
+  final Function(PointerCancelEvent)? onPointerCancel;
 
   const WorkoutExerciseLogCard({
     super.key,
@@ -49,6 +52,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required this.index,
     this.isDragging = false,
     this.isDraggedItem = false,
+    this.onPointerDown,
+    this.onPointerUp,
+    this.onPointerCancel,
   });
 
   @override
@@ -67,28 +73,59 @@ class WorkoutExerciseLogCard extends StatelessWidget {
               vertical: 8.0,
             ),
             leading: null,
-            title: InkWell(
-              onTap: () {
-                if (exercise != null) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ExerciseDetailScreen(exercise: exercise!),
+            title: isEditMode
+                ? Listener(
+                    onPointerDown: onPointerDown,
+                    onPointerUp: onPointerUp,
+                    onPointerCancel: onPointerCancel,
+                    child: ReorderableDelayedDragStartListener(
+                      index: index,
+                      child: InkWell(
+                        onTap: () {
+                          if (exercise != null) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ExerciseDetailScreen(exercise: exercise!),
+                              ),
+                            );
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            exercise?.getLocalizedName(context) ?? exerciseName,
+                            style: textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isDraggedItem ? Theme.of(context).colorScheme.primary : null,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  );
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Text(
-                  exercise?.getLocalizedName(context) ?? exerciseName,
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isDraggedItem ? Theme.of(context).colorScheme.primary : null,
+                  )
+                : InkWell(
+                    onTap: () {
+                      if (exercise != null) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ExerciseDetailScreen(exercise: exercise!),
+                          ),
+                        );
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Text(
+                        exercise?.getLocalizedName(context) ?? exerciseName,
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isDraggedItem ? Theme.of(context).colorScheme.primary : null,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
