@@ -2641,19 +2641,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String aiValidationDeltaSummary(
-    int kcalDelta,
-    int proteinDelta,
-    int carbsDelta,
-    int fatDelta,
-  ) {
+      int kcalDelta, int proteinDelta, int carbsDelta, int fatDelta) {
     return 'Differenz: $kcalDelta kcal · ${proteinDelta}g Protein · ${carbsDelta}g Kohlenhydrate · ${fatDelta}g Fett';
   }
 
   @override
   String aiValidationPartialSaveItemsMessage(
-    int unmatchedCount,
-    int matchedCount,
-  ) {
+      int unmatchedCount, int matchedCount) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
@@ -2667,9 +2661,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String aiValidationPartialSaveIngredientsMessage(
-    int unmatchedCount,
-    int matchedCount,
-  ) {
+      int unmatchedCount, int matchedCount) {
     String _temp0 = intl.Intl.pluralLogic(
       unmatchedCount,
       locale: localeName,
@@ -4335,10 +4327,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String adaptiveRecommendationDataBasisLine(
-    int windowDays,
-    int weightLogs,
-    int intakeDays,
-  ) {
+      int windowDays, int weightLogs, int intakeDays) {
     return 'Datengrundlage: $windowDays Tage, $weightLogs Gewichtseinträge, $intakeDays Intake-Tage';
   }
 
@@ -5146,11 +5135,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String tdeeRecalculationNotificationBody(
-    int calories,
-    int protein,
-    int carbs,
-    int fat,
-  ) {
+      int calories, int protein, int carbs, int fat) {
     return 'Neue Zielwerte: $calories kcal | ${protein}g Protein | ${carbs}g Kohlenhydrate | ${fat}g Fett';
   }
 

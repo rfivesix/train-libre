@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.0.0-alpha.2] - 2026-06-29
+## [1.0.0-alpha.3] - 2026-07-06
+
+## [1.0.0-alpha.2] - 2026-07-05
 
 ### Changed
 - **Restricted Drag-and-Drop Touch Areas and Stabilized Viewport Scrolling:** Restricted the drag-and-drop sort gesture trigger strictly to the exercise title on the Live Workout Screen, Edit Routine Screen, and Workout Log Detail (History) Screen by wrapping only the title with `Listener` and `ReorderableDelayedDragStartListener`. Enabled viewport scroll stabilization via custom scroll controllers, scroll height pre-collapse calculations, dynamic bottom padding to prevent clamping, and post-frame scroll position matching upon drag drop. Configured `OverlayPortal` layout positioning for the Glass FABs to ensure they render above the drag-proxy decorator layer.
@@ -19,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Localized Food Titles in Dialogs & Lists:** Updated the food quantity bottom sheets (`_showQuantityMenu` in both `diary_screen.dart` and `main_screen.dart`), the ingredient logs in `ConfirmLogMealBottomSheet`, the ingredient card/edit list in `MealScreen`, and the AI validation review widgets (`AiMealReviewScreen` / `MealReviewComparisonCard`) to dynamically fetch and display the user's localized base food names (based on the language chosen in the settings) instead of showing the raw database/German names. Also resolved the root localization issue in the main diary list (`FoodEntryTile` / `getProductsByArchiveIds`) by dynamically enriching archived food entries with their name translations from the primary database products table.
 - **Nutrition Recommendation Card Alignment:** Synced the "Data quality" heading with the same section-header treatment used by "Recommended targets" and matched the effective energy density card height, spacing, and text treatment to the target tiles.
 
-## [1.0.0-alpha.1] - 2026-06-29
+## [1.0.0-alpha.1] - 2026-07-03
 
 ### Changed
 - **Edge-to-Edge Chart Layout:** Refactored `MeasurementChartWidget`, `BodyNutritionNormalizedTrendChart`, and the Body & Nutrition correlation chart to render without a card container, extending the chart canvas from the left to the right screen edge — matching the Trade Republic–style full-bleed chart aesthetic.
