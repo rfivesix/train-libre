@@ -225,7 +225,7 @@ class SleepSyncService implements SleepSettingsService {
     _autoImportInFlight = true;
     try {
       await _setLastAutoImportAttemptAt(DateTime.now().toUtc());
-      return importRecent(lookbackDays: lookbackDays);
+      return await importRecent(lookbackDays: lookbackDays);
     } finally {
       _autoImportInFlight = false;
     }
