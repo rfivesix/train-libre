@@ -58,6 +58,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     with TickerProviderStateMixin {
   bool _canPop = false;
   bool _isDragging = false;
+  Timer? _collapseTimer;
+  final ScrollController _scrollController = ScrollController();
 
   void _handleBack() {
     setState(() {
@@ -128,6 +130,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
   @override
   void dispose() {
+    _collapseTimer?.cancel();
+    _scrollController.dispose();
     _prEventsSubscription?.cancel();
     _prAnimationController.dispose();
     super.dispose();
@@ -136,6 +140,23 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   // --- Cardio check helper ---
   bool _isCardio(RoutineExercise re) {
     return re.exercise.categoryName.toLowerCase() == 'cardio';
+  }
+
+  double _calculateScrollAdjustment(int draggedIndex, List<RoutineExercise> exercises) {
+    double adjustment = 0;
+    for (int i = 0; i < draggedIndex; i++) {
+      final re = exercises[i];
+      double detailsHeight = 0;
+      if (re.notes != null && re.notes!.isNotEmpty) {
+        detailsHeight += 80.0;
+      }
+      detailsHeight += 40.0; // Header row
+      detailsHeight += re.setTemplates.length * 48.0; // Set rows
+      detailsHeight += 48.0; // Add set button
+      detailsHeight += 16.0; // Margin/padding/gaps
+      adjustment += detailsHeight;
+    }
+    return adjustment;
   }
 
   Future<void> _finishWorkout() async {
@@ -571,15 +592,18 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           Expanded(
                             child: exercises.isEmpty
                                 ? _buildEmptyState(l10n)
-                                : ReorderableListView.builder(
-                                    scrollCacheExtent:
-                                        const ScrollCacheExtent.pixels(1500.0),
+                                  : ReorderableListView.builder(
+                                      scrollController: _scrollController,
+                                      buildDefaultDragHandles: false,
+                                      scrollCacheExtent:
+                                          const ScrollCacheExtent.pixels(1500.0),
                                     padding: EdgeInsets.only(
                                       bottom: (showRestBar
                                               ? 180.0
                                               : DesignConstants
                                                   .bottomContentSpacer) +
-                                          MediaQuery.paddingOf(context).bottom,
+                                          MediaQuery.paddingOf(context).bottom +
+                                          (_isDragging ? 800.0 : 0.0),
                                     ),
                                     onReorderStart: (index) {
                                       setState(() {
@@ -699,15 +723,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                           .pauseTimes[routineExercise.id!];
                                       final hasPause =
                                           pauseVal != null && pauseVal > 0;
-                                      return RepaintBoundary(
-                                        key: ValueKey(routineExercise.id),
-                                        child: ReorderableDelayedDragStartListener(
-                                          index: index,
-                                          child: WorkoutCard(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
+                                       return RepaintBoundary(
+                                         key: ValueKey(routineExercise.id),
+                                         child: WorkoutCard(
+                                           child: Column(
+                                             crossAxisAlignment:
+                                                 CrossAxisAlignment.start,
+                                             children: [
                                                 ListTile(
                                                   contentPadding:
                                                       const EdgeInsets.symmetric(
@@ -715,40 +737,78 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                     vertical: 8.0,
                                                   ),
                                                   leading: null,
-                                                  title: InkWell(
-                                                    onTap: () =>
-                                                        Navigator.of(context)
-                                                            .push(
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            ExerciseDetailScreen(
-                                                          exercise:
-                                                              routineExercise
-                                                                  .exercise,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                        vertical: 4.0,
-                                                      ),
-                                                      child: Text(
-                                                        routineExercise.exercise
-                                                            .getLocalizedName(
-                                                                context),
-                                                        maxLines: 2,
-                                                        overflow:
-                                                            TextOverflow.ellipsis,
-                                                        style: textTheme
-                                                            .titleLarge
-                                                            ?.copyWith(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
+                                                   title: Listener(
+                                                     onPointerDown: (event) {
+                                                       _collapseTimer?.cancel();
+                                                       _collapseTimer = Timer(const Duration(milliseconds: 300), () {
+                                                         if (mounted) {
+                                                           setState(() {
+                                                             _isDragging = true;
+                                                           });
+                                                           WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                             if (_scrollController.hasClients) {
+                                                               final currentOffset = _scrollController.offset;
+                                                               final adjustment = _calculateScrollAdjustment(index, exercises);
+                                                               _scrollController.jumpTo((currentOffset - adjustment).clamp(0.0, _scrollController.position.maxScrollExtent));
+                                                             }
+                                                           });
+                                                         }
+                                                       });
+                                                     },
+                                                     onPointerUp: (event) {
+                                                       _collapseTimer?.cancel();
+                                                       if (_isDragging) {
+                                                         setState(() {
+                                                           _isDragging = false;
+                                                         });
+                                                       }
+                                                     },
+                                                     onPointerCancel: (event) {
+                                                       _collapseTimer?.cancel();
+                                                       if (_isDragging) {
+                                                         setState(() {
+                                                           _isDragging = false;
+                                                         });
+                                                       }
+                                                     },
+                                                     child: ReorderableDelayedDragStartListener(
+                                                       index: index,
+                                                       child: InkWell(
+                                                         onTap: () =>
+                                                             Navigator.of(context)
+                                                                 .push(
+                                                           MaterialPageRoute(
+                                                             builder: (context) =>
+                                                                 ExerciseDetailScreen(
+                                                               exercise:
+                                                                   routineExercise
+                                                                       .exercise,
+                                                             ),
+                                                           ),
+                                                         ),
+                                                         child: Padding(
+                                                           padding: const EdgeInsets
+                                                               .symmetric(
+                                                             vertical: 4.0,
+                                                           ),
+                                                           child: Text(
+                                                             routineExercise.exercise
+                                                                 .getLocalizedName(
+                                                                     context),
+                                                             maxLines: 2,
+                                                             overflow:
+                                                                 TextOverflow.ellipsis,
+                                                             style: textTheme
+                                                                 .titleLarge
+                                                                 ?.copyWith(
+                                                               fontWeight:
+                                                                   FontWeight.bold,
+                                                             ),
+                                                           ),
+                                                         ),
+                                                       ),
+                                                     ),
+                                                   ),
                                                   trailing: Row(
                                                     mainAxisSize:
                                                         MainAxisSize.min,
@@ -1046,11 +1106,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                           ],
                                                         ),
                                                       ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      );
+                                               ],
+                                             ),
+                                           ),
+                                         );
                                     },
                                   ),
                           ),
