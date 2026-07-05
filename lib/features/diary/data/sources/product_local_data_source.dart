@@ -17,6 +17,10 @@ import '../../domain/use_cases/evaluate_food_source_use_case.dart';
 class ProductLocalDataSource {
   final db.AppDatabase _dbInstance;
 
+  Map<String, int>? _cachedBarcodeCounts;
+  Map<String, int>? _cachedProductIdCounts;
+  DateTime? _lastCacheTime;
+
   ProductLocalDataSource(this._dbInstance);
 
   static ProductLocalDataSource get instance =>
@@ -475,6 +479,38 @@ class ProductLocalDataSource {
   }
 
   /// Performs a global search across user-created, base, and Open Food Facts products.
+  Future<void> _updateRecencyCounts(db.AppDatabase dbInstance) async {
+    final now = DateTime.now();
+    if (_lastCacheTime != null &&
+        now.difference(_lastCacheTime!) < const Duration(minutes: 5) &&
+        _cachedBarcodeCounts != null &&
+        _cachedProductIdCounts != null) {
+      return;
+    }
+
+    final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+    final recentLogs = await (dbInstance.select(dbInstance.nutritionLogs)
+          ..where((tbl) => tbl.consumedAt.isBiggerOrEqualValue(thirtyDaysAgo)))
+        .get();
+
+    final newBarcodeCounts = <String, int>{};
+    final newProductIdCounts = <String, int>{};
+    for (final log in recentLogs) {
+      if (log.legacyBarcode != null && log.legacyBarcode!.isNotEmpty) {
+        newBarcodeCounts[log.legacyBarcode!] =
+            (newBarcodeCounts[log.legacyBarcode!] ?? 0) + 1;
+      }
+      if (log.productId != null && log.productId!.isNotEmpty) {
+        newProductIdCounts[log.productId!] =
+            (newProductIdCounts[log.productId!] ?? 0) + 1;
+      }
+    }
+
+    _cachedBarcodeCounts = newBarcodeCounts;
+    _cachedProductIdCounts = newProductIdCounts;
+    _lastCacheTime = now;
+  }
+
   Future<List<FoodItem>> searchProducts(String keyword) async {
     final tokens = _tokenizeAndClean(keyword);
     if (tokens.isEmpty) return [];
@@ -483,23 +519,9 @@ class ProductLocalDataSource {
     const int limit = 50;
 
     // 1. Fetch nutrition logs from the last 30 days first to compute recency score in Dart
-    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-    final recentLogs = await (dbInstance.select(dbInstance.nutritionLogs)
-          ..where((tbl) => tbl.consumedAt.isBiggerOrEqualValue(thirtyDaysAgo)))
-        .get();
-
-    final barcodeCounts = <String, int>{};
-    final productIdCounts = <String, int>{};
-    for (final log in recentLogs) {
-      if (log.legacyBarcode != null && log.legacyBarcode!.isNotEmpty) {
-        barcodeCounts[log.legacyBarcode!] =
-            (barcodeCounts[log.legacyBarcode!] ?? 0) + 1;
-      }
-      if (log.productId != null && log.productId!.isNotEmpty) {
-        productIdCounts[log.productId!] =
-            (productIdCounts[log.productId!] ?? 0) + 1;
-      }
-    }
+    await _updateRecencyCounts(dbInstance);
+    final barcodeCounts = _cachedBarcodeCounts!;
+    final productIdCounts = _cachedProductIdCounts!;
 
     final variables = <Variable>[];
     final caseClauses = <String>[];

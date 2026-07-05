@@ -1,0 +1,3 @@
+## 2026-07-05 - In-Memory Caching for Frequent Drift Lookups
+**Learning:** `searchProducts` in `ProductLocalDataSource` calculated recency scores (to order the food items by recent usage) by fetching up to 30 days of `nutrition_logs` and iterating them in Dart. Because `searchProducts` is called on every debounced keystroke during food search, it created a massive DB/CPU overhead.
+**Action:** Implemented a 5-minute TTL cache in the data source class specifically for the barcode/product ID frequencies. This prevents expensive DB lookups per keystroke without significantly compromising UX, as recency updates only need to be eventual.
