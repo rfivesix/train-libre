@@ -2443,6 +2443,7 @@
   "wgerPlaceholderText": "Le catalogue d'exercices nécessite le téléchargement du catalogue de base de données local.",
   "onboardingRegionTitle": "Sélectionner la région",
   "onboardingRegionExplanation": "Sélectionnez le pays où vous achetez vos courses. Cela garantit que nous téléchargeons la base de données Open Food Facts correcte pour vos produits locaux.",
-  "onboardingRegionSettingsHint": "Vous pouvez modifier cela à tout moment plus tard dans Paramètres → Nutrition → Région de la base de données."
+  "onboardingRegionSettingsHint": "Vous pouvez modifier cela à tout moment plus tard dans Paramètres → Nutrition → Région de la base de données.",
+  "clearSearch": "Effacer la recherche"
 }
 

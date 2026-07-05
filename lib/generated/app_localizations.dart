@@ -66,7 +66,7 @@ import 'app_localizations_ja.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -89,11 +89,11 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
@@ -101,7 +101,7 @@ abstract class AppLocalizations {
     Locale('en'),
     Locale('fr'),
     Locale('it'),
-    Locale('ja')
+    Locale('ja'),
   ];
 
   /// No description provided for @selectDateTitle.
@@ -4777,21 +4777,29 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delta: {kcalDelta} kcal · {proteinDelta}g Protein · {carbsDelta}g Carbs · {fatDelta}g Fat'**
   String aiValidationDeltaSummary(
-      int kcalDelta, int proteinDelta, int carbsDelta, int fatDelta);
+    int kcalDelta,
+    int proteinDelta,
+    int carbsDelta,
+    int fatDelta,
+  );
 
   /// No description provided for @aiValidationPartialSaveItemsMessage.
   ///
   /// In en, this message translates to:
   /// **'{unmatchedCount, plural, =1{1 item does not have a local database match and will not be saved.} other{{unmatchedCount} items do not have a local database match and will not be saved.}} Save the {matchedCount} matched item(s) only?'**
   String aiValidationPartialSaveItemsMessage(
-      int unmatchedCount, int matchedCount);
+    int unmatchedCount,
+    int matchedCount,
+  );
 
   /// No description provided for @aiValidationPartialSaveIngredientsMessage.
   ///
   /// In en, this message translates to:
   /// **'{unmatchedCount, plural, =1{1 ingredient does not have a local database match and will not be saved.} other{{unmatchedCount} ingredients do not have a local database match and will not be saved.}} Save the {matchedCount} matched ingredient(s) only?'**
   String aiValidationPartialSaveIngredientsMessage(
-      int unmatchedCount, int matchedCount);
+    int unmatchedCount,
+    int matchedCount,
+  );
 
   /// No description provided for @aiValidationEmptyItemName.
   ///
@@ -7582,7 +7590,10 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data basis: {windowDays} days, {weightLogs} weight logs, {intakeDays} intake days'**
   String adaptiveRecommendationDataBasisLine(
-      int windowDays, int weightLogs, int intakeDays);
+    int windowDays,
+    int weightLogs,
+    int intakeDays,
+  );
 
   /// No description provided for @adaptiveRecommendationActiveCaloriesLine.
   ///
@@ -8981,7 +8992,11 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New daily targets: {calories} kcal | {protein}g Protein | {carbs}g Carbs | {fat}g Fat'**
   String tdeeRecalculationNotificationBody(
-      int calories, int protein, int carbs, int fat);
+    int calories,
+    int protein,
+    int carbs,
+    int fat,
+  );
 
   /// No description provided for @recommendationBannerText.
   ///
@@ -9630,6 +9645,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can change this at any time later in Settings → Nutrition → Database Region.'**
   String get onboardingRegionSettingsHint;
+
+  /// No description provided for @clearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearch;
 }
 
 class _AppLocalizationsDelegate
@@ -9665,8 +9686,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }
