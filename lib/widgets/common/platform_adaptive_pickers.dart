@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
+import 'glass_border_painter.dart';
 
 /// Helper to get the localized date picker title.
 String _getSelectDateTitle(BuildContext context) {
@@ -341,31 +342,23 @@ class _GlassPickerSheet extends StatelessWidget {
                     ),
                     child: Stack(
                       children: [
-                        Positioned.fill(
+                         Positioned.fill(
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               color: neutralTint,
                               borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
-                              border: Border(
-                                top: BorderSide(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.15)
-                                      : theme.colorScheme.onSurface.withValues(alpha: 0.08),
-                                  width: 1.5,
-                                ),
-                                left: BorderSide(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.15)
-                                      : theme.colorScheme.onSurface.withValues(alpha: 0.08),
-                                  width: 1.5,
-                                ),
-                                right: BorderSide(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.15)
-                                      : theme.colorScheme.onSurface.withValues(alpha: 0.08),
-                                  width: 1.5,
-                                ),
-                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: GlassBorderPainter(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.15)
+                                  : theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                              radius: r,
+                              strokeWidth: 1.5,
+                              bottomPadding: bottomInset,
                             ),
                           ),
                         ),

@@ -4,6 +4,7 @@ import '../../../../services/haptic_feedback_service.dart';
 import '../../../../util/design_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/glass_border_painter.dart';
 
 /// Represents an action item within a [showGlassBottomMenu].
 class GlassMenuAction {
@@ -224,26 +225,18 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: neutralTint,
                         borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
-                        border: Border(
-                          top: BorderSide(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.15)
-                                : theme.colorScheme.onSurface.withValues(alpha: 0.08),
-                            width: 1.5,
-                          ),
-                          left: BorderSide(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.15)
-                                : theme.colorScheme.onSurface.withValues(alpha: 0.08),
-                            width: 1.5,
-                          ),
-                          right: BorderSide(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.15)
-                                : theme.colorScheme.onSurface.withValues(alpha: 0.08),
-                            width: 1.5,
-                          ),
-                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: GlassBorderPainter(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.15)
+                            : theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                        radius: r,
+                        strokeWidth: 1.5,
+                        bottomPadding: bottomInset,
                       ),
                     ),
                   ),
