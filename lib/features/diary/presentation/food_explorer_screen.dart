@@ -42,8 +42,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   bool _isOffDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized =
-        await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized = await BasisDataManager.instance
+        .isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -57,8 +57,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
     _tabController = TabController(length: 2, vsync: this);
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await BasisDataManager.instance
-          .promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+        context,
+      );
       await _checkDbStatus();
     });
     _loadFavorites();
@@ -110,9 +111,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (context) => const CreateFoodScreen()))
         .then((_) {
-      _searchController.clear();
-      _runFilter('');
-    });
+          _searchController.clear();
+          _runFilter('');
+        });
   }
 
   Future<void> _loadFavorites() async {
@@ -167,8 +168,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                   dividerColor: Colors.transparent,
                   // FIX: Dynamic color based on theme mode.
                   labelColor: isLightMode ? Colors.black : Colors.white,
-                  unselectedLabelColor:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
+                  unselectedLabelColor: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant,
                   labelStyle: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
@@ -215,8 +217,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
         body: l10n.offPlaceholderText,
         icon: LucideIcons.database,
         onDownloadPressed: () async {
-          await BasisDataManager.instance
-              .promptOffDatabaseDownloadIfFirstTime(context);
+          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+            context,
+          );
           await _checkDbStatus();
         },
       );
@@ -243,6 +246,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                   ),
                   suffixIcon: value.text.isNotEmpty
                       ? IconButton(
+                          tooltip: l10n.clearSearch,
                           icon: Icon(
                             LucideIcons.x,
                             color: colorScheme.onSurfaceVariant,
@@ -262,19 +266,18 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
             child: _isLoadingSearch
                 ? const Center(child: CircularProgressIndicator())
                 : _foundFoodItems.isNotEmpty
-                    ? ListView.builder(
-                        scrollCacheExtent:
-                            const ScrollCacheExtent.pixels(1500.0),
-                        itemCount: _foundFoodItems.length,
-                        itemBuilder: (context, index) =>
-                            _buildFoodListItem(_foundFoodItems[index]),
-                      )
-                    : Center(
-                        child: Text(
-                          _searchInitialText,
-                          style: textTheme.titleMedium,
-                        ),
-                      ),
+                ? ListView.builder(
+                    scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
+                    itemCount: _foundFoodItems.length,
+                    itemBuilder: (context, index) =>
+                        _buildFoodListItem(_foundFoodItems[index]),
+                  )
+                : Center(
+                    child: Text(
+                      _searchInitialText,
+                      style: textTheme.titleMedium,
+                    ),
+                  ),
           ),
           if (_foundFoodItems.any((item) => item.source == FoodItemSource.off))
             const OffAttributionWidget(),
@@ -293,11 +296,10 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           l10n.favoritesEmptyState,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
-              ),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
         ),
       );
     }
@@ -361,13 +363,13 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
         ),
         onTap: () => Navigator.of(context)
             .push(
-          MaterialPageRoute(
-            builder: (context) => FoodDetailScreen(foodItem: item),
-          ),
-        )
+              MaterialPageRoute(
+                builder: (context) => FoodDetailScreen(foodItem: item),
+              ),
+            )
             .then((_) {
-          _loadFavorites();
-        }),
+              _loadFavorites();
+            }),
       ),
     );
   }

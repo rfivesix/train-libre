@@ -2570,6 +2570,7 @@
   "wgerPlaceholderText": "Exercise catalog features require the local database catalog.",
   "onboardingRegionTitle": "Select Region",
   "onboardingRegionExplanation": "Select the country where you buy your groceries. This ensures we download the correct Open Food Facts database for your local products.",
-  "onboardingRegionSettingsHint": "You can change this at any time later in Settings → Nutrition → Database Region."
+  "onboardingRegionSettingsHint": "You can change this at any time later in Settings → Nutrition → Database Region.",
+  "clearSearch": "Clear search"
 }
 
