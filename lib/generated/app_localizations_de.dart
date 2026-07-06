@@ -1341,7 +1341,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get feedbackReportScreenTitle => 'Feedback-Bericht';
 
   @override
-  String get feedbackReportPrivacyTitle => 'Datenschutz zuerst';
+  String get feedbackReportPrivacyTitle => 'Privacy First';
 
   @override
   String get feedbackReportPrivacyBody =>

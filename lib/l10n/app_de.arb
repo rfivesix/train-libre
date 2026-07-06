@@ -524,7 +524,7 @@
   "feedbackReportSettingsEntrySubtitle": "Erstelle einen lokalen Diagnosebericht und wähle anschließend, wie du ihn teilen möchtest.",
   "about_and_legal_capslock": "ÜBER & RECHTLICHES",
   "feedbackReportScreenTitle": "Feedback-Bericht",
-  "feedbackReportPrivacyTitle": "Datenschutz zuerst",
+  "feedbackReportPrivacyTitle": "Privacy First",
   "feedbackReportPrivacyBody": "Dieser Bericht wird lokal auf deinem Gerät erzeugt. Es wird nichts automatisch gesendet. Nur die Informationen aus der Vorschau werden übernommen, wenn du kopierst, speicherst, teilst oder per E-Mail versendest. Beim E-Mail-Versand wird ein Entwurf an feedback@schotte.me geöffnet, den du vor dem Senden prüfen, bearbeiten oder abbrechen kannst.",
   "feedbackReportOptionalNoteTitle": "Optionale Notiz",
   "feedbackReportOptionalNoteLabel": "Deine Notiz (optional)",

@@ -275,16 +275,9 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           top: DesignConstants.cardPadding.top + topPadding,
         ),
         children: [
-          AppSectionHeader(title: l10n.feedbackReportScreenTitle),
-          SummaryCard(
-            child: ListTile(
-              leading: const Icon(LucideIcons.shield_alert),
-              title: Text(
-                l10n.feedbackReportPrivacyTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(l10n.feedbackReportPrivacyBody),
-            ),
+          AppInfoRow(
+            title: l10n.feedbackReportPrivacyTitle,
+            subtitle: l10n.feedbackReportPrivacyBody,
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(title: l10n.feedbackReportOptionalNoteTitle),
