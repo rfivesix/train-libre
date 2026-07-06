@@ -3527,13 +3527,13 @@ abstract class AppLocalizations {
   /// No description provided for @myMeals.
   ///
   /// In en, this message translates to:
-  /// **'My Meals'**
+  /// **'My Recipes'**
   String get myMeals;
 
   /// No description provided for @myMealsCL.
   ///
   /// In en, this message translates to:
-  /// **'MY MEALS'**
+  /// **'MY RECIPES'**
   String get myMealsCL;
 
   /// No description provided for @nutritionSectionTodayInFocus.
@@ -3545,7 +3545,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionSectionMyMeals.
   ///
   /// In en, this message translates to:
-  /// **'My meals'**
+  /// **'My recipes'**
   String get nutritionSectionMyMeals;
 
   /// No description provided for @nutritionSectionToolsAndLibrary.
@@ -3635,7 +3635,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabMeals.
   ///
   /// In en, this message translates to:
-  /// **'Meals'**
+  /// **'Recipes'**
   String get tabMeals;
 
   /// No description provided for @emptyCategory.
@@ -3659,61 +3659,61 @@ abstract class AppLocalizations {
   /// No description provided for @mealsComingSoonTitle.
   ///
   /// In en, this message translates to:
-  /// **'Meals (coming soon)'**
+  /// **'Recipes (coming soon)'**
   String get mealsComingSoonTitle;
 
   /// No description provided for @mealsComingSoonBody.
   ///
   /// In en, this message translates to:
-  /// **'Soon you will be able to create your own meals from multiple foods.'**
+  /// **'Soon you will be able to create your own recipes from multiple foods.'**
   String get mealsComingSoonBody;
 
   /// No description provided for @mealsEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No meal templates saved'**
+  /// **'No recipe templates saved'**
   String get mealsEmptyTitle;
 
   /// No description provided for @mealsEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Create meals to quickly log multiple foods at once.'**
+  /// **'Create recipes to quickly log multiple foods at once.'**
   String get mealsEmptyBody;
 
   /// No description provided for @mealsEmptyBodyWithShortcut.
   ///
   /// In en, this message translates to:
-  /// **'In the diary, use the “Save as meal” option below your Breakfast or Dinner to save common food combinations as a quick template.'**
+  /// **'In the diary, use the “Save as recipe” option below your Breakfast or Dinner to save common food combinations as a quick template.'**
   String get mealsEmptyBodyWithShortcut;
 
   /// No description provided for @mealsCreateManually.
   ///
   /// In en, this message translates to:
-  /// **'Create meal manually'**
+  /// **'Create recipe manually'**
   String get mealsCreateManually;
 
   /// No description provided for @saveMealTemplateShortcut.
   ///
   /// In en, this message translates to:
-  /// **'Save as meal'**
+  /// **'Save as recipe'**
   String get saveMealTemplateShortcut;
 
   /// No description provided for @mealsCreate.
   ///
   /// In en, this message translates to:
-  /// **'Create meal'**
+  /// **'Create recipe'**
   String get mealsCreate;
 
   /// No description provided for @mealsEdit.
   ///
   /// In en, this message translates to:
-  /// **'Edit meal'**
+  /// **'Edit recipe'**
   String get mealsEdit;
 
   /// No description provided for @mealsDelete.
   ///
   /// In en, this message translates to:
-  /// **'Delete meal'**
+  /// **'Delete recipe'**
   String get mealsDelete;
 
   /// No description provided for @mealsAddToDiary.
@@ -3725,7 +3725,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealNameLabel.
   ///
   /// In en, this message translates to:
-  /// **'Meal name'**
+  /// **'Recipe name'**
   String get mealNameLabel;
 
   /// No description provided for @mealNotesLabel.
@@ -3755,31 +3755,31 @@ abstract class AppLocalizations {
   /// No description provided for @mealDeleteConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete meal'**
+  /// **'Delete recipe'**
   String get mealDeleteConfirmTitle;
 
   /// No description provided for @mealDeleteConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete the meal \'{name}\'? All its ingredients will also be removed.'**
+  /// **'Are you sure you want to delete the recipe \'{name}\'? All its ingredients will also be removed.'**
   String mealDeleteConfirmBody(Object name);
 
   /// No description provided for @mealAddedToDiary.
   ///
   /// In en, this message translates to:
-  /// **'Meal \'{name}\' has been added to your diary.'**
+  /// **'Recipe \'{name}\' has been added to your diary.'**
   String mealAddedToDiary(Object name);
 
   /// No description provided for @mealSaved.
   ///
   /// In en, this message translates to:
-  /// **'Meal saved.'**
+  /// **'Recipe saved.'**
   String get mealSaved;
 
   /// No description provided for @mealDeleted.
   ///
   /// In en, this message translates to:
-  /// **'Meal deleted.'**
+  /// **'Recipe deleted.'**
   String get mealDeleted;
 
   /// No description provided for @confirm.
@@ -3797,7 +3797,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealTypeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Meal'**
+  /// **'Recipe'**
   String get mealTypeLabel;
 
   /// No description provided for @amountLabel.
@@ -3809,7 +3809,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealAddedToDiarySuccess.
   ///
   /// In en, this message translates to:
-  /// **'Meal added to diary'**
+  /// **'Recipe added to diary'**
   String get mealAddedToDiarySuccess;
 
   /// No description provided for @error.

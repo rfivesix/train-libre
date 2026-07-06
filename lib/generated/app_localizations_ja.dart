@@ -1907,16 +1907,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nutritionExplorerTitle => '栄養探検家';
 
   @override
-  String get myMeals => '私の食事';
+  String get myMeals => 'マイレシピ';
 
   @override
-  String get myMealsCL => '私の食事';
+  String get myMealsCL => 'マイレシピ';
 
   @override
   String get nutritionSectionTodayInFocus => '今日の焦点';
 
   @override
-  String get nutritionSectionMyMeals => '私の食事';
+  String get nutritionSectionMyMeals => 'マイレシピ';
 
   @override
   String get nutritionSectionToolsAndLibrary => 'ツールとライブラリ';
@@ -1962,7 +1962,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tabCatalogSearch => 'カタログ';
 
   @override
-  String get tabMeals => '食事';
+  String get tabMeals => 'レシピ';
 
   @override
   String get emptyCategory => 'エントリはありません';
@@ -1974,41 +1974,41 @@ class AppLocalizationsJa extends AppLocalizations {
   String get searchSectionOther => 'その他の結果';
 
   @override
-  String get mealsComingSoonTitle => 'お食事（近日公開予定）';
+  String get mealsComingSoonTitle => 'レシピ（近日公開予定）';
 
   @override
-  String get mealsComingSoonBody => 'すぐに、複数の食品から独自の食事を作成できるようになります。';
+  String get mealsComingSoonBody => 'すぐに、複数の食品から独自のレシピを作成できるようになります。';
 
   @override
-  String get mealsEmptyTitle => '食事テンプレートが保存されていません';
+  String get mealsEmptyTitle => 'レシピテンプレートが保存されていません';
 
   @override
-  String get mealsEmptyBody => '食事を作成して、複数の食品を一度にすばやく記録します。';
+  String get mealsEmptyBody => 'レシピを作成して、複数の食品を一度にすばやく記録します。';
 
   @override
   String get mealsEmptyBodyWithShortcut =>
-      '日記で、朝食または夕食の下にある「食事として保存」オプションを使用して、一般的な食事の組み合わせを簡単なテンプレートとして保存します。';
+      '日記で、朝食または夕食の下にある「レシピとして保存」オプションを使用して、一般的な食事の組み合わせを簡単なテンプレートとして保存します。';
 
   @override
-  String get mealsCreateManually => '食事を手動で作成する';
+  String get mealsCreateManually => 'レシピを手動で作成する';
 
   @override
-  String get saveMealTemplateShortcut => '食事として保存';
+  String get saveMealTemplateShortcut => 'レシピとして保存';
 
   @override
-  String get mealsCreate => '食事を作る';
+  String get mealsCreate => 'レシピを作る';
 
   @override
-  String get mealsEdit => '食事を編集する';
+  String get mealsEdit => 'レシピを編集する';
 
   @override
-  String get mealsDelete => '食事を削除する';
+  String get mealsDelete => 'レシピを削除する';
 
   @override
   String get mealsAddToDiary => '食べ物を追加する';
 
   @override
-  String get mealNameLabel => '食事名';
+  String get mealNameLabel => 'レシピ名';
 
   @override
   String get mealNotesLabel => '注意事項';
@@ -2023,23 +2023,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealIngredientAmountLabel => '額';
 
   @override
-  String get mealDeleteConfirmTitle => '食事を削除する';
+  String get mealDeleteConfirmTitle => 'レシピを削除する';
 
   @override
   String mealDeleteConfirmBody(Object name) {
-    return '食事「$name」を削除してもよろしいですか?その成分もすべて除去されます。';
+    return 'レシピ「$name」を削除してもよろしいですか?その成分もすべて除去されます。';
   }
 
   @override
   String mealAddedToDiary(Object name) {
-    return '食事「$name」が日記に追加されました。';
+    return 'レシピ「$name」が日記に追加されました。';
   }
 
   @override
-  String get mealSaved => '食事は節約されました。';
+  String get mealSaved => 'レシピを保存しました。';
 
   @override
-  String get mealDeleted => '食事を削除しました。';
+  String get mealDeleted => 'レシピを削除しました。';
 
   @override
   String get confirm => '確認する';
@@ -2048,13 +2048,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get addMealToDiaryTitle => '日記に追加';
 
   @override
-  String get mealTypeLabel => '食事';
+  String get mealTypeLabel => 'レシピ';
 
   @override
   String get amountLabel => '額';
 
   @override
-  String get mealAddedToDiarySuccess => '日記に食事を追加しました';
+  String get mealAddedToDiarySuccess => '日記にレシピを追加しました';
 
   @override
   String get error => 'エラー';

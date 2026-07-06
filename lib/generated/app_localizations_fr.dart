@@ -1972,16 +1972,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nutritionExplorerTitle => 'Explorateur de nutrition';
 
   @override
-  String get myMeals => 'Mes repas';
+  String get myMeals => 'Mes recettes';
 
   @override
-  String get myMealsCL => 'MES REPAS';
+  String get myMealsCL => 'MES RECETTES';
 
   @override
-  String get nutritionSectionTodayInFocus => 'Aujourd\'hui en bref';
+  String get nutritionSectionTodayInFocus => 'Aujourd’hui à l’honneur';
 
   @override
-  String get nutritionSectionMyMeals => 'Mes repas';
+  String get nutritionSectionMyMeals => 'Mes recettes';
 
   @override
   String get nutritionSectionToolsAndLibrary => 'Outils et bibliothèque';
@@ -2027,7 +2027,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabCatalogSearch => 'Catalogue';
 
   @override
-  String get tabMeals => 'Repas';
+  String get tabMeals => 'Recettes';
 
   @override
   String get emptyCategory => 'Aucune entrée';
@@ -2039,43 +2039,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get searchSectionOther => 'Autres résultats';
 
   @override
-  String get mealsComingSoonTitle => 'Repas (à venir)';
+  String get mealsComingSoonTitle => 'Recettes (à venir)';
 
   @override
   String get mealsComingSoonBody =>
-      'Bientôt, vous pourrez créer vos propres repas à partir de plusieurs aliments.';
+      'Bientôt, vous pourrez créer vos propres recettes à partir de plusieurs aliments.';
 
   @override
-  String get mealsEmptyTitle => 'Aucun modèle de repas enregistré';
+  String get mealsEmptyTitle => 'Aucun modèle de recette enregistré';
 
   @override
   String get mealsEmptyBody =>
-      'Créez des repas pour enregistrer rapidement plusieurs aliments à la fois.';
+      'Créez des recettes pour enregistrer rapidement plusieurs aliments à la fois.';
 
   @override
   String get mealsEmptyBodyWithShortcut =>
-      'Dans le journal, utilisez l\'option « Enregistrer comme repas » sous votre petit-déjeuner ou votre dîner pour enregistrer les combinaisons alimentaires courantes comme modèle rapide.';
+      'Dans le journal, utilisez l\'option « Enregistrer comme recette » sous votre petit-déjeuner ou votre dîner pour enregistrer les combinaisons alimentaires courantes comme modèle rapide.';
 
   @override
-  String get mealsCreateManually => 'Créer un repas manuellement';
+  String get mealsCreateManually => 'Créer une recette manuellement';
 
   @override
-  String get saveMealTemplateShortcut => 'Enregistrer comme repas';
+  String get saveMealTemplateShortcut => 'Enregistrer comme recette';
 
   @override
-  String get mealsCreate => 'Créer un repas';
+  String get mealsCreate => 'Créer une recette';
 
   @override
-  String get mealsEdit => 'Modifier le repas';
+  String get mealsEdit => 'Modifier la recette';
 
   @override
-  String get mealsDelete => 'Supprimer le repas';
+  String get mealsDelete => 'Supprimer la recette';
 
   @override
   String get mealsAddToDiary => 'Ajouter de la nourriture';
 
   @override
-  String get mealNameLabel => 'Nom du repas';
+  String get mealNameLabel => 'Nom de la recette';
 
   @override
   String get mealNotesLabel => 'Remarques';
@@ -2090,23 +2090,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mealIngredientAmountLabel => 'Montant';
 
   @override
-  String get mealDeleteConfirmTitle => 'Supprimer le repas';
+  String get mealDeleteConfirmTitle => 'Supprimer la recette';
 
   @override
   String mealDeleteConfirmBody(Object name) {
-    return 'Êtes-vous sûr de vouloir supprimer le repas « $name » ? Tous ses ingrédients seront également supprimés.';
+    return 'Êtes-vous sûr de vouloir supprimer la recette « $name » ? Tous ses ingrédients seront également supprimés.';
   }
 
   @override
   String mealAddedToDiary(Object name) {
-    return 'Le repas \'$name\' a été ajouté à votre agenda.';
+    return 'La recette \'$name\' a été ajoutée à votre agenda.';
   }
 
   @override
-  String get mealSaved => 'Repas sauvé.';
+  String get mealSaved => 'Recette sauvée.';
 
   @override
-  String get mealDeleted => 'Repas supprimé.';
+  String get mealDeleted => 'Recette supprimée.';
 
   @override
   String get confirm => 'Confirmer';
@@ -2115,13 +2115,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addMealToDiaryTitle => 'Ajouter au journal';
 
   @override
-  String get mealTypeLabel => 'Repas';
+  String get mealTypeLabel => 'Recette';
 
   @override
   String get amountLabel => 'Montant';
 
   @override
-  String get mealAddedToDiarySuccess => 'Repas ajouté au journal';
+  String get mealAddedToDiarySuccess => 'Recette ajoutée au journal';
 
   @override
   String get error => 'Erreur';

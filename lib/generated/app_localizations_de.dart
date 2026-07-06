@@ -1952,16 +1952,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nutritionExplorerTitle => 'Lebensmittel Explorer';
 
   @override
-  String get myMeals => 'Meine Mahlzeiten';
+  String get myMeals => 'Meine Rezepte';
 
   @override
-  String get myMealsCL => 'MEINE MAHLZEITEN';
+  String get myMealsCL => 'MEINE REZEPTE';
 
   @override
   String get nutritionSectionTodayInFocus => 'Heute im Blick';
 
   @override
-  String get nutritionSectionMyMeals => 'Meine Mahlzeiten';
+  String get nutritionSectionMyMeals => 'Meine Rezepte';
 
   @override
   String get nutritionSectionToolsAndLibrary => 'Tools und Bibliothek';
@@ -2007,7 +2007,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tabCatalogSearch => 'Katalog';
 
   @override
-  String get tabMeals => 'Mahlzeiten';
+  String get tabMeals => 'Rezepte';
 
   @override
   String get emptyCategory => 'Keine Einträge';
@@ -2019,43 +2019,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String get searchSectionOther => 'Weitere Treffer';
 
   @override
-  String get mealsComingSoonTitle => 'Mahlzeiten (in Vorbereitung)';
+  String get mealsComingSoonTitle => 'Rezepte (in Vorbereitung)';
 
   @override
   String get mealsComingSoonBody =>
-      'Bald kannst du eigene Mahlzeiten aus mehreren Lebensmitteln zusammenstellen.';
+      'Bald kannst du eigene Rezepte aus mehreren Lebensmitteln zusammenstellen.';
 
   @override
-  String get mealsEmptyTitle => 'Keine Mahlzeiten gespeichert';
+  String get mealsEmptyTitle => 'Keine Rezepte gespeichert';
 
   @override
   String get mealsEmptyBody =>
-      'Lege Mahlzeiten an, um mehrere Lebensmittel mit einem Klick einzutragen.';
+      'Lege Rezepte an, um mehrere Lebensmittel mit einem Klick einzutragen.';
 
   @override
   String get mealsEmptyBodyWithShortcut =>
-      'Nutze im Tagebuch die Option „Als Mahlzeit sichern“ unter deinem Frühstück oder Abendessen, um häufige Lebensmittel-Kombinationen als schnelle Vorlage zu speichern.';
+      'Nutze im Tagebuch die Option „Als Rezept sichern“ unter deinem Frühstück oder Abendessen, um häufige Lebensmittel-Kombinationen als schnelle Vorlage zu speichern.';
 
   @override
-  String get mealsCreateManually => 'Mahlzeit manuell erstellen';
+  String get mealsCreateManually => 'Rezept manuell erstellen';
 
   @override
-  String get saveMealTemplateShortcut => 'Als Mahlzeit sichern';
+  String get saveMealTemplateShortcut => 'Als Rezept sichern';
 
   @override
-  String get mealsCreate => 'Mahlzeit erstellen';
+  String get mealsCreate => 'Rezept erstellen';
 
   @override
-  String get mealsEdit => 'Mahlzeit bearbeiten';
+  String get mealsEdit => 'Rezept bearbeiten';
 
   @override
-  String get mealsDelete => 'Mahlzeit löschen';
+  String get mealsDelete => 'Rezept löschen';
 
   @override
   String get mealsAddToDiary => 'Lebensmittel hinzufügen';
 
   @override
-  String get mealNameLabel => 'Name der Mahlzeit';
+  String get mealNameLabel => 'Name des Rezepts';
 
   @override
   String get mealNotesLabel => 'Notizen';
@@ -2070,23 +2070,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mealIngredientAmountLabel => 'Menge';
 
   @override
-  String get mealDeleteConfirmTitle => 'Mahlzeit löschen';
+  String get mealDeleteConfirmTitle => 'Rezept löschen';
 
   @override
   String mealDeleteConfirmBody(Object name) {
-    return 'Möchtest du die Mahlzeit \'$name\' wirklich löschen? Alle Zutaten werden ebenfalls entfernt.';
+    return 'Möchtest du das Rezept \'$name\' wirklich löschen? Alle Zutaten werden ebenfalls entfernt.';
   }
 
   @override
   String mealAddedToDiary(Object name) {
-    return 'Mahlzeit \'$name\' wurde ins Tagebuch übernommen.';
+    return 'Rezept \'$name\' wurde ins Tagebuch übernommen.';
   }
 
   @override
-  String get mealSaved => 'Mahlzeit gespeichert.';
+  String get mealSaved => 'Rezept gespeichert.';
 
   @override
-  String get mealDeleted => 'Mahlzeit gelöscht.';
+  String get mealDeleted => 'Rezept gelöscht.';
 
   @override
   String get confirm => 'bestätigen';
@@ -2095,13 +2095,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get addMealToDiaryTitle => 'Zum Tagebuch hinzufügen';
 
   @override
-  String get mealTypeLabel => 'Mahlzeit';
+  String get mealTypeLabel => 'Rezept';
 
   @override
   String get amountLabel => 'Menge';
 
   @override
-  String get mealAddedToDiarySuccess => 'Mahlzeit zum Tagebuch hinzugefügt';
+  String get mealAddedToDiarySuccess => 'Rezept zum Tagebuch hinzugefügt';
 
   @override
   String get error => 'Fehler';

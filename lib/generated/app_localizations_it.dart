@@ -1963,16 +1963,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nutritionExplorerTitle => 'Esploratore della nutrizione';
 
   @override
-  String get myMeals => 'I miei pasti';
+  String get myMeals => 'Le mie ricette';
 
   @override
-  String get myMealsCL => 'I MIEI PASTI';
+  String get myMealsCL => 'LE MIE RICETTE';
 
   @override
-  String get nutritionSectionTodayInFocus => 'Oggi al centro dell\'attenzione';
+  String get nutritionSectionTodayInFocus => 'Oggi in primo piano';
 
   @override
-  String get nutritionSectionMyMeals => 'I miei pasti';
+  String get nutritionSectionMyMeals => 'Le mie ricette';
 
   @override
   String get nutritionSectionToolsAndLibrary => 'Strumenti e libreria';
@@ -2018,7 +2018,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tabCatalogSearch => 'Catalogare';
 
   @override
-  String get tabMeals => 'Pasti';
+  String get tabMeals => 'Ricette';
 
   @override
   String get emptyCategory => 'Nessuna voce';
@@ -2030,43 +2030,43 @@ class AppLocalizationsIt extends AppLocalizations {
   String get searchSectionOther => 'Altri risultati';
 
   @override
-  String get mealsComingSoonTitle => 'Pasti (disponibili a breve)';
+  String get mealsComingSoonTitle => 'Ricette (disponibili a breve)';
 
   @override
   String get mealsComingSoonBody =>
-      'Presto sarai in grado di creare i tuoi pasti da più cibi.';
+      'Presto sarai in grado di creare le tue ricette da più cibi.';
 
   @override
-  String get mealsEmptyTitle => 'Nessun modello di pasto salvato';
+  String get mealsEmptyTitle => 'Nessun modello di ricetta salvato';
 
   @override
   String get mealsEmptyBody =>
-      'Crea pasti per registrare rapidamente più alimenti contemporaneamente.';
+      'Crea ricette per registrare rapidamente più alimenti contemporaneamente.';
 
   @override
   String get mealsEmptyBodyWithShortcut =>
-      'Nel diario, utilizza l\'opzione \"Salva come pasto\" sotto la colazione o la cena per salvare le combinazioni alimentari comuni come modello rapido.';
+      'Nel diario, utilizza l\'opzione \"Salva come ricetta\" sotto la colazione o la cena per salvare le combinazioni alimentari comuni come modello rapido.';
 
   @override
-  String get mealsCreateManually => 'Crea pasto manualmente';
+  String get mealsCreateManually => 'Crea ricetta manualmente';
 
   @override
-  String get saveMealTemplateShortcut => 'Salva come pasto';
+  String get saveMealTemplateShortcut => 'Salva come ricetta';
 
   @override
-  String get mealsCreate => 'Crea pasto';
+  String get mealsCreate => 'Crea ricetta';
 
   @override
-  String get mealsEdit => 'Modifica pasto';
+  String get mealsEdit => 'Modifica ricetta';
 
   @override
-  String get mealsDelete => 'Elimina pasto';
+  String get mealsDelete => 'Elimina ricetta';
 
   @override
   String get mealsAddToDiary => 'Aggiungi cibo';
 
   @override
-  String get mealNameLabel => 'Nome del pasto';
+  String get mealNameLabel => 'Nome della ricetta';
 
   @override
   String get mealNotesLabel => 'Note';
@@ -2081,23 +2081,23 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mealIngredientAmountLabel => 'Quantità';
 
   @override
-  String get mealDeleteConfirmTitle => 'Elimina pasto';
+  String get mealDeleteConfirmTitle => 'Elimina ricetta';
 
   @override
   String mealDeleteConfirmBody(Object name) {
-    return 'Sei sicuro di voler eliminare il pasto \'$name\'? Verranno rimossi anche tutti i suoi ingredienti.';
+    return 'Sei sicuro di voler eliminare la ricetta \'$name\'? Verranno rimossi anche tutti i suoi ingredienti.';
   }
 
   @override
   String mealAddedToDiary(Object name) {
-    return 'Il pasto \'$name\' è stato aggiunto al tuo diario.';
+    return 'La ricetta \'$name\' è stata aggiunta al tuo diario.';
   }
 
   @override
-  String get mealSaved => 'Pasto salvato.';
+  String get mealSaved => 'Ricetta salvata.';
 
   @override
-  String get mealDeleted => 'Pasto eliminato.';
+  String get mealDeleted => 'Ricetta eliminata.';
 
   @override
   String get confirm => 'Confermare';
@@ -2106,13 +2106,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get addMealToDiaryTitle => 'Aggiungi al diario';
 
   @override
-  String get mealTypeLabel => 'Pasto';
+  String get mealTypeLabel => 'Ricetta';
 
   @override
   String get amountLabel => 'Quantità';
 
   @override
-  String get mealAddedToDiarySuccess => 'Pasto aggiunto al diario';
+  String get mealAddedToDiarySuccess => 'Ricetta aggiunta al diario';
 
   @override
   String get error => 'Errore';

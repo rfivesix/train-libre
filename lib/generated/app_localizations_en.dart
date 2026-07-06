@@ -1942,16 +1942,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionExplorerTitle => 'Nutrition Explorer';
 
   @override
-  String get myMeals => 'My Meals';
+  String get myMeals => 'My Recipes';
 
   @override
-  String get myMealsCL => 'MY MEALS';
+  String get myMealsCL => 'MY RECIPES';
 
   @override
   String get nutritionSectionTodayInFocus => 'Today in focus';
 
   @override
-  String get nutritionSectionMyMeals => 'My meals';
+  String get nutritionSectionMyMeals => 'My recipes';
 
   @override
   String get nutritionSectionToolsAndLibrary => 'Tools & library';
@@ -1997,7 +1997,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabCatalogSearch => 'Catalog';
 
   @override
-  String get tabMeals => 'Meals';
+  String get tabMeals => 'Recipes';
 
   @override
   String get emptyCategory => 'No entries';
@@ -2009,43 +2009,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchSectionOther => 'Other results';
 
   @override
-  String get mealsComingSoonTitle => 'Meals (coming soon)';
+  String get mealsComingSoonTitle => 'Recipes (coming soon)';
 
   @override
   String get mealsComingSoonBody =>
-      'Soon you will be able to create your own meals from multiple foods.';
+      'Soon you will be able to create your own recipes from multiple foods.';
 
   @override
-  String get mealsEmptyTitle => 'No meal templates saved';
+  String get mealsEmptyTitle => 'No recipe templates saved';
 
   @override
   String get mealsEmptyBody =>
-      'Create meals to quickly log multiple foods at once.';
+      'Create recipes to quickly log multiple foods at once.';
 
   @override
   String get mealsEmptyBodyWithShortcut =>
-      'In the diary, use the “Save as meal” option below your Breakfast or Dinner to save common food combinations as a quick template.';
+      'In the diary, use the “Save as recipe” option below your Breakfast or Dinner to save common food combinations as a quick template.';
 
   @override
-  String get mealsCreateManually => 'Create meal manually';
+  String get mealsCreateManually => 'Create recipe manually';
 
   @override
-  String get saveMealTemplateShortcut => 'Save as meal';
+  String get saveMealTemplateShortcut => 'Save as recipe';
 
   @override
-  String get mealsCreate => 'Create meal';
+  String get mealsCreate => 'Create recipe';
 
   @override
-  String get mealsEdit => 'Edit meal';
+  String get mealsEdit => 'Edit recipe';
 
   @override
-  String get mealsDelete => 'Delete meal';
+  String get mealsDelete => 'Delete recipe';
 
   @override
   String get mealsAddToDiary => 'Add food';
 
   @override
-  String get mealNameLabel => 'Meal name';
+  String get mealNameLabel => 'Recipe name';
 
   @override
   String get mealNotesLabel => 'Notes';
@@ -2060,23 +2060,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealIngredientAmountLabel => 'Amount';
 
   @override
-  String get mealDeleteConfirmTitle => 'Delete meal';
+  String get mealDeleteConfirmTitle => 'Delete recipe';
 
   @override
   String mealDeleteConfirmBody(Object name) {
-    return 'Are you sure you want to delete the meal \'$name\'? All its ingredients will also be removed.';
+    return 'Are you sure you want to delete the recipe \'$name\'? All its ingredients will also be removed.';
   }
 
   @override
   String mealAddedToDiary(Object name) {
-    return 'Meal \'$name\' has been added to your diary.';
+    return 'Recipe \'$name\' has been added to your diary.';
   }
 
   @override
-  String get mealSaved => 'Meal saved.';
+  String get mealSaved => 'Recipe saved.';
 
   @override
-  String get mealDeleted => 'Meal deleted.';
+  String get mealDeleted => 'Recipe deleted.';
 
   @override
   String get confirm => 'Confirm';
@@ -2085,13 +2085,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMealToDiaryTitle => 'Add to diary';
 
   @override
-  String get mealTypeLabel => 'Meal';
+  String get mealTypeLabel => 'Recipe';
 
   @override
   String get amountLabel => 'Amount';
 
   @override
-  String get mealAddedToDiarySuccess => 'Meal added to diary';
+  String get mealAddedToDiarySuccess => 'Recipe added to diary';
 
   @override
   String get error => 'Error';
