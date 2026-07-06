@@ -345,7 +345,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                       color: Colors.amber,
                                     ),
                                     title: Text(
-                                      entry.key,
+                                      _exerciseDetails[entry.key]
+                                              ?.getLocalizedName(context) ??
+                                          entry.key,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -373,7 +375,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               return SummaryCard(
                                 child: ListTile(
                                   title: Text(
-                                    entry.key,
+                                    _exerciseDetails[entry.key]
+                                            ?.getLocalizedName(context) ??
+                                        entry.key,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),

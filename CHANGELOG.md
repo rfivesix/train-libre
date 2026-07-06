@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.3] - 2026-07-06
 
+### Changed
+- **Localized Exercise Names across Summary and Sharing Flows:** Localized exercise names on the workout summary screen (including records/trophies and the exercise overview lists) using resolved exercise data lookups. Integrated translation resolution in `WorkoutShareFormatter` (text sharing and share cards) so shared workouts display exercise names in the user's current locale (German, English, etc.) rather than defaulting to raw English database names.
+
 ## [1.0.0-alpha.2] - 2026-07-05
 
 ### Changed

@@ -161,7 +161,12 @@ class ShareService {
   }) async {
     final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!);
     final locale = Localizations.localeOf(context).toString();
-    final text = WorkoutShareFormatter(labels, locale: locale).format(workout);
+    final details = await _loadExerciseDetails(workout);
+    final text = WorkoutShareFormatter(
+      labels,
+      locale: locale,
+      exerciseDetails: details,
+    ).format(workout);
     await _shareText(text, subject: workout.routineName ?? labels.appName);
   }
 
@@ -184,11 +189,13 @@ class ShareService {
     final labels = ShareLabels.fromL10n(l10n);
     final locale = Localizations.localeOf(context).toString();
     try {
+      final details = await _loadExerciseDetails(workout);
       final muscleSummaries = layout == WorkoutShareCardLayout.muscleFocus
           ? await _loadMuscleSummaries(
               workout: workout,
               labels: labels,
               locale: locale,
+              exerciseDetails: details,
             )
           : const <MuscleVolumeSummary>[];
       if (!context.mounted) return;
@@ -199,6 +206,7 @@ class ShareService {
         locale: locale,
         layout: layout,
         muscleSummaries: muscleSummaries,
+        exerciseDetails: details,
       );
       await _shareImage(file, subject: workout.routineName ?? labels.appName);
     } catch (_) {
@@ -262,11 +270,7 @@ class ShareService {
     );
   }
 
-  Future<List<MuscleVolumeSummary>> _loadMuscleSummaries({
-    required WorkoutLog workout,
-    required ShareLabels labels,
-    required String locale,
-  }) async {
+  Future<Map<String, Exercise>> _loadExerciseDetails(WorkoutLog workout) async {
     final details = <String, Exercise>{};
     for (final set in workout.sets) {
       if (details.containsKey(set.exerciseName)) continue;
@@ -276,10 +280,20 @@ class ShareService {
         details[set.exerciseName] = exercise;
       }
     }
+    return details;
+  }
+
+  Future<List<MuscleVolumeSummary>> _loadMuscleSummaries({
+    required WorkoutLog workout,
+    required ShareLabels labels,
+    required String locale,
+    required Map<String, Exercise> exerciseDetails,
+  }) async {
     return WorkoutShareFormatter(
       labels,
       locale: locale,
-    ).muscleVolumeSummaries(workout, details);
+      exerciseDetails: exerciseDetails,
+    ).muscleVolumeSummaries(workout, exerciseDetails);
   }
 
   ui.Rect _sharePositionOrigin() {
