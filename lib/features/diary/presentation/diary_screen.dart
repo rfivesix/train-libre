@@ -18,7 +18,7 @@ import '../domain/models/tracked_food_item.dart';
 import '../../supplements/domain/models/tracked_supplement.dart';
 import 'add_food_screen.dart';
 import 'add_food_navigation_result.dart';
-import '../../supplements/presentation/supplement_track_screen.dart';
+import '../../supplements/presentation/supplement_hub_screen.dart';
 import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
@@ -730,8 +730,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 trackedSupplements: data.trackedSupplements,
                                 onTap: () => Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => SupplementTrackScreen(
-                                        initialDate: data.selectedDate),
+                                    builder: (context) => const SupplementHubScreen(),
                                   ),
                                 ),
                               );

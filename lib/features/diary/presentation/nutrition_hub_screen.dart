@@ -5,7 +5,7 @@ import '../../../generated/app_localizations.dart';
 import 'add_food_screen.dart';
 import 'meal_screen.dart';
 import '../../profile/presentation/goals_screen.dart';
-import '../../supplements/presentation/supplement_track_screen.dart';
+import '../../supplements/presentation/supplement_hub_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/common.dart';
@@ -211,7 +211,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const SupplementTrackScreen(),
+                        builder: (_) => const SupplementHubScreen(),
                       ),
                     );
                   },
