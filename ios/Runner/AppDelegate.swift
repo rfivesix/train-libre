@@ -578,15 +578,8 @@ import UIKit
   }
 
   private func currentSleepPermissionSnapshot() -> [String: Any] {
-    guard
-      let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis),
-      let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate)
-    else {
-      return ["sleepGranted": false, "heartRateGranted": false]
-    }
-    let sleepGranted = healthStore.authorizationStatus(for: sleepType) == .sharingAuthorized
-    let heartRateGranted = healthStore.authorizationStatus(for: heartRateType) == .sharingAuthorized
-    return ["sleepGranted": sleepGranted, "heartRateGranted": heartRateGranted]
+    let available = HKHealthStore.isHealthDataAvailable()
+    return ["sleepGranted": available, "heartRateGranted": available]
   }
 
   private func readSleepAndHeartRate(call: FlutterMethodCall, result: @escaping FlutterResult) {

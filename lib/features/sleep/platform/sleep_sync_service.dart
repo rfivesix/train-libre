@@ -36,13 +36,13 @@ class SleepSyncResult {
 
 abstract class SleepImportService {
   Future<SleepSyncResult> importRecent({
-    int lookbackDays = 30,
+    int lookbackDays = 90,
     bool forceFullSync = false,
     CancellationToken? token,
     void Function(int index, int total)? onProgress,
   });
   Future<SleepSyncResult?> importRecentIfDue({
-    int lookbackDays = 30,
+    int lookbackDays = 90,
     Duration minInterval = const Duration(hours: 6),
     bool force = false,
   });
@@ -144,7 +144,7 @@ class SleepSyncService implements SleepSettingsService {
 
   @override
   Future<SleepSyncResult> importRecent({
-    int lookbackDays = 30,
+    int lookbackDays = 90,
     bool forceFullSync = false,
     CancellationToken? token,
     void Function(int index, int total)? onProgress,
@@ -209,7 +209,7 @@ class SleepSyncService implements SleepSettingsService {
 
   @override
   Future<SleepSyncResult?> importRecentIfDue({
-    int lookbackDays = 30,
+    int lookbackDays = 90,
     Duration minInterval = const Duration(hours: 6),
     bool force = false,
   }) async {
