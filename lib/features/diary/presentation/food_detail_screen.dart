@@ -142,8 +142,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         'name_de': _deCtrl.text.trim(),
         'name_en': _enCtrl.text.trim().isEmpty ? null : _enCtrl.text.trim(),
         'name': _deCtrl.text.trim(),
-        'category_key':
-            _catCtrl.text.trim().isEmpty ? null : _catCtrl.text.trim(),
+        'category_key': _catCtrl.text.trim().isEmpty
+            ? null
+            : _catCtrl.text.trim(),
         // Nutrients
         'calories_100g': int.tryParse(_calCtrl.text.trim()),
         'protein_100g': double.tryParse(_proCtrl.text.trim()),
@@ -275,7 +276,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingS, vertical: 3),
+        horizontal: DesignConstants.spacingS,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
@@ -302,7 +305,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingS),
+                horizontal: DesignConstants.spacingS,
+              ),
               child: Text(
                 l10n.copySystemFoodBody,
                 textAlign: TextAlign.center,
@@ -411,17 +415,15 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => CreateFoodScreen(
-            foodItemToEdit: duplicated,
-          ),
+          builder: (context) => CreateFoodScreen(foodItemToEdit: duplicated),
         ),
       );
     } catch (e) {
       debugPrint("Error duplicating food: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("${l10n.error}: $e")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("${l10n.error}: $e")));
       }
     } finally {
       if (mounted) {
@@ -441,7 +443,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingS),
+                horizontal: DesignConstants.spacingS,
+              ),
               child: Text(
                 l10n.deleteFoodConfirmBody,
                 textAlign: TextAlign.center,
@@ -484,19 +487,21 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     if (confirm == true) {
       setState(() => _isLoading = true);
       try {
-        await ProductLocalDataSource.instance
-            .deleteProduct(_displayItem.id ?? '', _displayItem.barcode);
+        await ProductLocalDataSource.instance.deleteProduct(
+          _displayItem.id ?? '',
+          _displayItem.barcode,
+        );
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.foodItemDeleted)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.foodItemDeleted)));
           Navigator.of(context).pop(true);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${l10n.error}: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
         }
       } finally {
         if (mounted) {
@@ -537,12 +542,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   final themeService = Provider.of<ThemeService>(context);
                   final baseFoodLang =
                       BaseFoodLanguageService.resolveLanguageCode(
-                    choice: themeService.baseFoodLanguage,
-                    context: context,
-                  );
+                        choice: themeService.baseFoodLanguage,
+                        context: context,
+                      );
                   return _displayItem.source == FoodItemSource.base
-                      ? _displayItem.getLocalizedName(context,
-                          languageCode: baseFoodLang)
+                      ? _displayItem.getLocalizedName(
+                          context,
+                          languageCode: baseFoodLang,
+                        )
                       : _displayItem.getLocalizedName(context);
                 }(),
                 style: Theme.of(
@@ -560,6 +567,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         actions: [
           if (_displayItem.isCustom) ...[
             IconButton(
+              tooltip: l10n.edit,
               icon: const Icon(LucideIcons.pencil),
               onPressed: () async {
                 final result = await Navigator.of(context).push<FoodItem>(
@@ -576,19 +584,20 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               },
             ),
             IconButton(
+              tooltip: l10n.delete,
               icon: const Icon(LucideIcons.trash_2),
               onPressed: _deleteFoodItem,
             ),
           ] else ...[
             IconButton(
+              tooltip: l10n.edit,
               icon: const Icon(LucideIcons.pencil),
               onPressed: () => _showSystemEditMenu(context),
             ),
           ],
           IconButton(
-            icon: Icon(
-              _isFavorite ? LucideIcons.heart : LucideIcons.heart,
-              color: _isFavorite
+            tooltip: l10n.tabFavorites,
+              LucideIcons.heart,
                   ? Theme.of(context).colorScheme.error
                   : colorScheme.onSurfaceVariant,
             ),
@@ -611,10 +620,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (_displayItem.brand.isNotEmpty)
-                  Text(
-                    _displayItem.brand,
-                    style: textTheme.bodySmall,
-                  ),
+                  Text(_displayItem.brand, style: textTheme.bodySmall),
                 // Dietary Badges
                 if (_displayItem.ingredientsAnalysisTags != null &&
                     _displayItem.ingredientsAnalysisTags!.isNotEmpty) ...[
@@ -622,13 +628,16 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   Wrap(
                     spacing: 8,
                     children: [
-                      if (_displayItem.ingredientsAnalysisTags!
-                          .contains('en:vegan'))
+                      if (_displayItem.ingredientsAnalysisTags!.contains(
+                        'en:vegan',
+                      ))
                         _GlassBadge(label: l10n.vegan),
-                      if (_displayItem.ingredientsAnalysisTags!
-                              .contains('en:vegetarian') &&
-                          !_displayItem.ingredientsAnalysisTags!
-                              .contains('en:vegan'))
+                      if (_displayItem.ingredientsAnalysisTags!.contains(
+                            'en:vegetarian',
+                          ) &&
+                          !_displayItem.ingredientsAnalysisTags!.contains(
+                            'en:vegan',
+                          ))
                         _GlassBadge(label: l10n.vegetarian),
                     ],
                   ),
@@ -727,15 +736,17 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     _displayItem.ingredientsText!.isNotEmpty) ...[
                   const SizedBox(height: DesignConstants.spacingM),
                   Theme(
-                    data: Theme.of(context)
-                        .copyWith(dividerColor: Colors.transparent),
+                    data: Theme.of(
+                      context,
+                    ).copyWith(dividerColor: Colors.transparent),
                     child: SummaryCard(
                       child: ExpansionTile(
                         title: Text(l10n.ingredients),
                         children: [
                           Padding(
-                            padding:
-                                const EdgeInsets.all(DesignConstants.spacingL),
+                            padding: const EdgeInsets.all(
+                              DesignConstants.spacingL,
+                            ),
                             child: Text(
                               _displayItem.ingredientsText!,
                               style: textTheme.bodyMedium,
@@ -815,11 +826,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                 if (!_displayItem.barcode.startsWith('user_created_'))
                   Padding(
                     padding: const EdgeInsets.only(
-                        top: DesignConstants.spacingXL,
-                        bottom: DesignConstants.spacingS),
-                    child: OffAttributionWidget(
-                      textStyle: textTheme.bodySmall,
+                      top: DesignConstants.spacingXL,
+                      bottom: DesignConstants.spacingS,
                     ),
+                    child: OffAttributionWidget(textStyle: textTheme.bodySmall),
                   ),
               ],
             ),
@@ -827,9 +837,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           if (_isLoading)
             Container(
               color: Colors.black.withValues(alpha: 0.2),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
@@ -840,39 +848,36 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     return ListTile(
       dense: true,
       title: Text(label),
-      trailing: Text(
-        value,
-        style: Theme.of(context).textTheme.labelLarge,
-      ),
+      trailing: Text(value, style: Theme.of(context).textTheme.labelLarge),
     );
   }
 
   // ---------- DEV: small helper inputs ----------
 
   Widget _row(String label, TextEditingController c) => TextField(
-        controller: c,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          isDense: true,
-        ),
-      );
+    controller: c,
+    decoration: InputDecoration(
+      labelText: label,
+      border: const OutlineInputBorder(),
+      isDense: true,
+    ),
+  );
 
   Widget _num(String label, TextEditingController c) => SizedBox(
-        width: 160,
-        child: TextField(
-          controller: c,
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-            signed: false,
-          ),
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-            isDense: true,
-          ),
-        ),
-      );
+    width: 160,
+    child: TextField(
+      controller: c,
+      keyboardType: const TextInputType.numberWithOptions(
+        decimal: true,
+        signed: false,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        isDense: true,
+      ),
+    ),
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1031,8 +1036,9 @@ class _GlassBadge extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingS,
-          vertical: DesignConstants.spacingXS),
+        horizontal: DesignConstants.spacingS,
+        vertical: DesignConstants.spacingXS,
+      ),
       decoration: BoxDecoration(
         // Im Dark Mode helles Glas, im Light Mode dunkles Glas
         color: isDarkMode
