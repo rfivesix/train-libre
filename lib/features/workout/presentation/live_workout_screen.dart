@@ -616,8 +616,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           Expanded(
                             child: exercises.isEmpty
                                 ? _buildEmptyState(l10n)
-                                  : ReorderableListView.builder(
-                                      scrollController: _scrollController,
+                                : Overlay(
+                                    initialEntries: [
+                                      OverlayEntry(
+                                        builder: (context) => ReorderableListView.builder(
+                                          scrollController: _scrollController,
                                       buildDefaultDragHandles: false,
                                       scrollCacheExtent:
                                           const ScrollCacheExtent.pixels(1500.0),
@@ -659,7 +662,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       final hasPause =
                                           pauseVal != null && pauseVal > 0;
                                       return Material(
-                                        elevation: 8.0,
+                                        elevation: 0.0,
                                         color: Colors.transparent,
                                         child: WorkoutCard(
                                           child: Column(
@@ -1148,6 +1151,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                          );
                                     },
                                   ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

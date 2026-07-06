@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-alpha.3] - 2026-07-06
 
 ### Changed
+- **Removed Exercise Drag Shadows and Stabilized Drag Layer z-Ordering:** Removed the drop shadow underneath the active highlighted exercise card during drag-and-drop actions on the Live Workout Screen by setting the drag proxy Material's elevation to `0.0`. Wrapped the reorderable exercise list in a local `Overlay` to ensure that dragging exercise cards remain visually underneath the sticky Floating Action Button (FAB) layer while still drawing over other non-draggable exercises.
+- **Removed Redundant Set Completion Checkmarks from Workout History:** Removed the green checkmark icon from set rows in the Workout Log Detail Screen (History View) since all sets in a completed workout log are completed by definition.
 - **Localized Exercise Names across Summary and Sharing Flows:** Localized exercise names on the workout summary screen (including records/trophies and the exercise overview lists) using resolved exercise data lookups. Integrated translation resolution in `WorkoutShareFormatter` (text sharing and share cards) so shared workouts display exercise names in the user's current locale (German, English, etc.) rather than defaulting to raw English database names.
 
 ## [1.0.0-alpha.2] - 2026-07-05

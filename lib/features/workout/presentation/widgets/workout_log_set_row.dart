@@ -210,7 +210,7 @@ class WorkoutLogSetRow extends StatelessWidget {
                     ),
                     onPressed: onDelete,
                   )
-                : const Icon(LucideIcons.circle_check, color: Colors.green),
+                : const SizedBox.shrink(),
           ),
         ),
       ],
