@@ -316,19 +316,12 @@ class _MealsScreenState extends State<MealsScreen> {
                 )
               : RefreshIndicator(
                   onRefresh: _reloadMeals,
-                  child: GridView.builder(
+                  child: ListView.builder(
                     padding: EdgeInsets.fromLTRB(
                       DesignConstants.screenPaddingHorizontal,
                       12.0 + topPadding,
                       DesignConstants.screenPaddingHorizontal,
                       96.0,
-                    ),
-                    gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 400,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      mainAxisExtent: 135,
                     ),
                     itemCount: _meals.length,
                     itemBuilder: (context, i) {
