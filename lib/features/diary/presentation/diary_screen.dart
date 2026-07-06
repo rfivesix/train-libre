@@ -1232,13 +1232,21 @@ class _MealCardState extends State<_MealCard> {
                   firstChild: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (items.isNotEmpty) const Divider(height: 16),
-                      ...items.map(
-                        (item) => FoodEntryTile(
-                          trackedItem: item,
-                          onEdit: widget.onEditFood,
-                          onDelete: widget.onDeleteFood,
-                        ),
+                      if (items.isNotEmpty)
+                        const SizedBox(height: DesignConstants.spacingS),
+                      ...items.asMap().entries.expand(
+                        (entry) {
+                          final index = entry.key;
+                          final item = entry.value;
+                          return [
+                            if (index > 0) const Divider(height: 1),
+                            FoodEntryTile(
+                              trackedItem: item,
+                              onEdit: widget.onEditFood,
+                              onDelete: widget.onDeleteFood,
+                            ),
+                          ];
+                        },
                       ),
                       if (solidItems.isNotEmpty) ...[
                         const SizedBox(height: DesignConstants.spacingXS),

@@ -4,7 +4,6 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../services/base_food_language_service.dart';
 import '../../../../widgets/common/swipe_action_background.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/models/tracked_food_item.dart';
 import '../../domain/models/food_item.dart';
@@ -59,43 +58,42 @@ class FoodEntryTile extends StatelessWidget {
           onDelete(trackedItem.entry.id!);
         }
       },
-      child: SummaryCard(
-        child: ListTile(
-          title: Text(
-            trackedItem.item.source == FoodItemSource.base
-                ? trackedItem.item.getLocalizedName(
-                    context,
-                    languageCode: baseFoodLang,
-                  )
-                : trackedItem.item.getLocalizedName(context),
-            style: theme.textTheme.titleMedium,
-          ),
-          subtitle: Text(
-            '${trackedItem.entry.quantityInGrams}${l10n.unit_grams}',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodySmall?.color,
-            ),
-          ),
-          trailing: Text(
-            '${trackedItem.calculatedCalories} ${l10n.unit_kcal}',
-            style: theme.textTheme.labelLarge,
-          ),
-          onTap: () {
-            Navigator.of(context)
-                .push(
-              MaterialPageRoute(
-                builder: (context) =>
-                    FoodDetailScreen(trackedItem: trackedItem),
-              ),
-            )
-                .then((_) {
-              if (!context.mounted) return;
-              context
-                  .read<DiaryViewModel>()
-                  .loadDataForDate(context.read<DiaryViewModel>().selectedDate);
-            });
-          },
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(
+          trackedItem.item.source == FoodItemSource.base
+              ? trackedItem.item.getLocalizedName(
+                  context,
+                  languageCode: baseFoodLang,
+                )
+              : trackedItem.item.getLocalizedName(context),
+          style: theme.textTheme.titleMedium,
         ),
+        subtitle: Text(
+          '${trackedItem.entry.quantityInGrams}${l10n.unit_grams}',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.textTheme.bodySmall?.color,
+          ),
+        ),
+        trailing: Text(
+          '${trackedItem.calculatedCalories} ${l10n.unit_kcal}',
+          style: theme.textTheme.labelLarge,
+        ),
+        onTap: () {
+          Navigator.of(context)
+              .push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  FoodDetailScreen(trackedItem: trackedItem),
+            ),
+          )
+              .then((_) {
+            if (!context.mounted) return;
+            context
+                .read<DiaryViewModel>()
+                .loadDataForDate(context.read<DiaryViewModel>().selectedDate);
+          });
+        },
       ),
     );
   }
