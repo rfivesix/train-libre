@@ -157,11 +157,18 @@ For the full interlinked documentation map, see the main [Documentation Entry Po
 The long-term vision, future modules, and planned features are maintained in the [ROADMAP.md](ROADMAP.md) file.
 
 ## Star history
-<p align="center">
-  <a href="https://star-history.com/#rfivesix/train-libre&dark">
-    <img src="https://api.star-history.com/svg?repos=rfivesix/train-libre&theme=dark" alt="Star History Chart" width="100%" max-width="600px">
-  </a>
-</p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&style=landscape1&theme=dark" />
+  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&style=landscape1" />
+  <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=rfivesix/train-libre&style=landscape1" />
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&type=date&theme=dark&legend=top-left" />
+  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&type=date&legend=top-left" />
+  <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=rfivesix/train-libre&type=date&legend=top-left" />
+</picture>
+
 
 ## Credits
 
