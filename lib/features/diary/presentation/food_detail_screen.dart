@@ -597,7 +597,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ],
           IconButton(
             tooltip: l10n.tabFavorites,
+            icon: Icon(
               LucideIcons.heart,
+              color: _isFavorite
                   ? Theme.of(context).colorScheme.error
                   : colorScheme.onSurfaceVariant,
             ),
