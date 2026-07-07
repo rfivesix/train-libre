@@ -4,6 +4,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
+import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../domain/bayesian_tdee_estimator.dart';
 import '../domain/confidence_models.dart';
@@ -626,8 +627,7 @@ class _MacroTargetGrid extends StatelessWidget {
               childAspectRatio: crossAxisCount == 2 ? 2.45 : 2.65,
               children: [
                 for (final item in items)
-                  _RecommendationValueCard(
-                      label: item.label, value: item.value),
+                  ValueSummaryCard(label: item.label, value: item.value),
               ],
             );
           },
@@ -642,57 +642,6 @@ class _MacroTarget {
   final String value;
 
   const _MacroTarget({required this.label, required this.value});
-}
-
-class _RecommendationValueCard extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _RecommendationValueCard({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingM,
-        vertical: DesignConstants.spacingS,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              maxLines: 1,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                height: 1,
-              ),
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingXS),
-          Text(
-            label.toUpperCase(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _RecommendationContextPanel extends StatelessWidget {
@@ -740,7 +689,7 @@ class _RecommendationContextPanel extends StatelessWidget {
               return SizedBox(
                 width: double.infinity,
                 height: tileHeight,
-                child: _RecommendationValueCard(
+                child: ValueSummaryCard(
                   label: l10n.adaptiveRecommendationEnergyDensityLabel,
                   value: l10n.adaptiveRecommendationEnergyDensityValue(
                     effectiveEnergyDensity!.round(),

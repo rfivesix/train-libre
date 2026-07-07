@@ -1,0 +1,55 @@
+import 'package:flutter/material.dart';
+import '../../util/design_constants.dart';
+import 'summary_card.dart';
+
+class ValueSummaryCard extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const ValueSummaryCard({
+    super.key,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SummaryCard(
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingM,
+        vertical: DesignConstants.spacingS,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingXS),
+          Text(
+            label.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

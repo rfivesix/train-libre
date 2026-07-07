@@ -9,6 +9,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
 
@@ -202,122 +203,54 @@ class _BodyNutritionCorrelationScreenState
       data.relationship,
     );
 
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sectionBodyNutrition,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _kpiPill(l10n.metricsCurrentWeight, currentWeight),
-                _kpiPill(l10n.metricsWeightChange, weightChange),
-                _kpiPill(l10n.metricsAvgCalories, avgCalories),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _trendChipRow(l10n, data),
-            const SizedBox(height: 10),
-            Text(
-              relationship,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(
-              '${l10n.analyticsEffectiveRangeLabel}: ${_effectiveRangeDisclosure()}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-            Text(
-              '$confidenceLabel • ${l10n.analyticsBasedOnDataCoverage(data.weightDays, data.loggedCalorieDays)}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _trendChipRow(
-      AppLocalizations l10n, BodyNutritionAnalyticsResult data) {
-    final weightLabel =
-        StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
-            l10n, data.weightTrend.direction);
-    final calorieLabel =
-        StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
-            l10n, data.calorieTrend.direction);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _trendChip(l10n.analyticsWeightTrendLabel, weightLabel),
-        _trendChip(l10n.analyticsCaloriesTrendLabel, calorieLabel),
+        AppSectionHeader(
+          title: l10n.sectionBodyNutrition,
+        ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = constraints.maxWidth < 430 ? 2 : 4;
+            return GridView.count(
+              padding: EdgeInsets.zero,
+              crossAxisCount: crossAxisCount,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: DesignConstants.spacingS,
+              mainAxisSpacing: DesignConstants.spacingS,
+              childAspectRatio: crossAxisCount == 2 ? 2.45 : 2.65,
+              children: [
+                ValueSummaryCard(
+                    label: l10n.metricsCurrentWeight, value: currentWeight),
+                ValueSummaryCard(
+                    label: l10n.metricsWeightChange, value: weightChange),
+                ValueSummaryCard(
+                    label: l10n.metricsAvgCalories, value: avgCalories),
+                ValueSummaryCard(
+                  label: l10n.analyticsWeightTrendLabel,
+                  value: StatisticsPresentationFormatter
+                      .bodyNutritionTrendDirectionLabel(
+                          l10n, data.weightTrend.direction),
+                ),
+                ValueSummaryCard(
+                  label: l10n.analyticsCaloriesTrendLabel,
+                  value: StatisticsPresentationFormatter
+                      .bodyNutritionTrendDirectionLabel(
+                          l10n, data.calorieTrend.direction),
+                ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        AppInfoRow(
+          padding: EdgeInsets.zero,
+          title: relationship,
+          subtitle:
+              '${l10n.analyticsEffectiveRangeLabel}: ${_effectiveRangeDisclosure()}\n$confidenceLabel • ${l10n.analyticsBasedOnDataCoverage(data.weightDays, data.loggedCalorieDays)}',
+        ),
       ],
-    );
-  }
-
-  Widget _trendChip(String title, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 10, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _kpiPill(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 10, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
     );
   }
 
