@@ -118,7 +118,7 @@ void main() {
     expect(find.text('100'), findsOneWidget);
 
     // Type a new weight
-    await tester.enterText(find.byType(TextField).first, '105');
+    await tester.enterText(find.byType(TextField).at(1), '105');
     await tester.pumpAndSettle();
 
     // Push new sets via DB (simulating a background sync or other device edit)
@@ -135,6 +135,11 @@ void main() {
     // Save to exit edit mode
     await tester.tap(find.text('Save').last);
     await tester.pumpAndSettle();
+
+    final updatedSetInDb = await (database.select(database.setLogs)
+          ..where((tbl) => tbl.localId.equals(setRow.localId)))
+        .getSingle();
+    expect(updatedSetInDb.weight, 105.0);
 
     await tester.pumpWidget(Container());
     await tester.pumpAndSettle();

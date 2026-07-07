@@ -443,6 +443,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       final List<SetLog> setsToUpdate = [];
       final List<SetLog> setsToInsert = [];
 
+      int currentOrder = 0;
+
       for (final setLog in currentSets) {
         // Distinguish again what the controller values mean.
         final isCardio = _isCardio(setLog.exerciseName);
@@ -469,6 +471,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
             durationSeconds: val2.round(),
             rir: rir,
             clearRir: rir == null,
+            logOrder: currentOrder++,
             // Set weight/reps to 0/null for cardio to avoid bad data?
             weightKg: 0,
             reps: 0,
@@ -480,6 +483,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
             reps: val2.toInt(),
             rir: rir,
             clearRir: rir == null,
+            logOrder: currentOrder++,
             // Cardio Felder nullen
             distanceKm: null,
             durationSeconds: null,
@@ -493,26 +497,29 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         }
       }
 
-      await dbHelper.updateWorkoutLogDetails(
-        widget.logId,
-        _editedStartTime!,
-        _notesController.text,
-      );
-      if (idsToDelete.isNotEmpty) await dbHelper.deleteSetLogs(idsToDelete);
-      if (setsToUpdate.isNotEmpty) await dbHelper.updateSetLogs(setsToUpdate);
-      for (final set in setsToInsert) {
-        await dbHelper.insertSetLog(
-          set.copyWith(id: null, workoutLogId: widget.logId),
+      final dbInstance = await dbHelper.database;
+      await dbInstance.transaction(() async {
+        await dbHelper.updateWorkoutLogDetails(
+          widget.logId,
+          _editedStartTime!,
+          _notesController.text,
         );
-      }
-      for (final exerciseName in _exerciseNotes.keys) {
-        final note = _exerciseNotes[exerciseName];
-        await dbHelper.saveWorkoutExerciseNote(
-          workoutLogId: widget.logId,
-          exerciseName: exerciseName,
-          notes: note != null && note.isNotEmpty ? note : null,
-        );
-      }
+        if (idsToDelete.isNotEmpty) await dbHelper.deleteSetLogs(idsToDelete);
+        if (setsToUpdate.isNotEmpty) await dbHelper.updateSetLogs(setsToUpdate);
+        for (final set in setsToInsert) {
+          await dbHelper.insertSetLog(
+            set.copyWith(id: null, workoutLogId: widget.logId),
+          );
+        }
+        for (final exerciseName in _exerciseNotes.keys) {
+          final note = _exerciseNotes[exerciseName];
+          await dbHelper.saveWorkoutExerciseNote(
+            workoutLogId: widget.logId,
+            exerciseName: exerciseName,
+            notes: note != null && note.isNotEmpty ? note : null,
+          );
+        }
+      });
 
       if (mounted) {
         HapticFeedbackService.instance.confirmationFeedback();
@@ -1072,7 +1079,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                     },
                                     onAddSet: () {
                                       final newSet = SetLog(
-                                        id: DateTime.now().millisecondsSinceEpoch,
+                                        id: -DateTime.now().millisecondsSinceEpoch,
                                         workoutLogId: _log!.id!,
                                         exerciseName: exerciseName,
                                         setType: 'normal',
@@ -1131,7 +1138,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                           selectedExercise;
 
                                       final newSet = SetLog(
-                                        id: DateTime.now()
+                                        id: -DateTime.now()
                                             .millisecondsSinceEpoch,
                                         workoutLogId: _log!.id!,
                                         exerciseName: selectedExercise

@@ -129,7 +129,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       rir: drift.Value(setLog.rir), // Direct int now, perfect.
     );
 
-    if (setLog.id != null) {
+    if (setLog.id != null && setLog.id! > 0) {
       // Update
       await (dbInstance.update(
         dbInstance.setLogs,
@@ -178,26 +178,23 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
   Future<void> updateSetLogs(List<SetLog> updatedSets) async {
     if (updatedSets.isEmpty) return;
     final dbInstance = await database;
-    await dbInstance.batch((batch) {
-      for (final s in updatedSets) {
-        if (s.id != null) {
-          batch.update(
-            dbInstance.setLogs,
-            db.SetLogsCompanion(
+    for (final s in updatedSets) {
+      if (s.id != null) {
+        await (dbInstance.update(dbInstance.setLogs)
+              ..where((tbl) => tbl.localId.equals(s.id!)))
+            .write(db.SetLogsCompanion(
               weight: drift.Value(s.weightKg),
               reps: drift.Value(s.reps),
               isCompleted: drift.Value(s.isCompleted ?? false),
               notes: drift.Value(s.notes),
               rir: drift.Value(s.rir),
               setType: drift.Value(s.setType),
-              // FIX: logOrder must also be updated so reordering is saved.
               logOrder: drift.Value(s.logOrder ?? 0),
-            ),
-            where: (tbl) => tbl.localId.equals(s.id!),
-          );
-        }
+              distance: drift.Value(s.distanceKm),
+              durationSeconds: drift.Value(s.durationSeconds),
+            ));
       }
-    });
+    }
   }
 
   Future<SetLog?> getLastPerformance(String exerciseName) async {
