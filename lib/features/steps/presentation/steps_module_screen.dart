@@ -10,6 +10,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
 
 import '../data/steps_aggregation_repository.dart';
 import '../domain/steps_models.dart';
@@ -232,51 +233,53 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: DesignConstants.cardPaddingInternal,
+              child: SeamlessLoadingOverlay(
+                isLoading: _isLoading,
+                isEmpty: _dayData == null && _weekData == null && _monthData == null,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.cardPaddingInternal,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _TrendCanvas(
+                        key: ValueKey(_scope),
+                        scope: _scope,
+                        dayData: _dayData,
+                        weekData: _weekData,
+                        monthData: _monthData,
+                        dailyGoal: _targetSteps,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _TrendCanvas(
-                            key: ValueKey(_scope),
-                            scope: _scope,
-                            dayData: _dayData,
-                            weekData: _weekData,
-                            monthData: _monthData,
-                            dailyGoal: _targetSteps,
+                      if (showSummaryCard) ...[
+                        const SizedBox(height: DesignConstants.spacingS),
+                        _buildScopeSummaryCard(context),
+                      ],
+                      if (!showSummaryCard)
+                        const SizedBox(height: DesignConstants.spacingS),
+                      if (_lastUpdatedAtUtc != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.spacingS,
+                            vertical: DesignConstants.spacingXS,
                           ),
-                          if (showSummaryCard) ...[
-                            const SizedBox(height: DesignConstants.spacingS),
-                            _buildScopeSummaryCard(context),
-                          ],
-                          if (!showSummaryCard)
-                            const SizedBox(height: DesignConstants.spacingS),
-                          if (_lastUpdatedAtUtc != null)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: DesignConstants.spacingS,
-                                vertical: DesignConstants.spacingXS,
-                              ),
-                              child: Text(
-                                _lastUpdatedLabel(context, _lastUpdatedAtUtc!),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.outline,
-                                    ),
-                              ),
-                            ),
-                          const BottomContentSpacer(),
-                        ],
-                      ),
-                    ),
+                          child: Text(
+                            _lastUpdatedLabel(context, _lastUpdatedAtUtc!),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outline,
+                                ),
+                          ),
+                        ),
+                      const BottomContentSpacer(),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),

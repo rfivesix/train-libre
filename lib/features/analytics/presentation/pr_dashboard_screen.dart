@@ -5,6 +5,7 @@ import '../../statistics/presentation/statistics_formatter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
@@ -92,9 +93,11 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.prDashboardTitle),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: _recentPrs.isEmpty && _allTimePrs.isEmpty && _notableImprovements.isEmpty,
+        extendBodyBehindAppBar: true,
+        child: SingleChildScrollView(
               padding: DesignConstants.screenPadding.copyWith(
                 top: DesignConstants.screenPadding.top + topPadding,
                 bottom: DesignConstants.bottomContentSpacer,
@@ -254,6 +257,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 

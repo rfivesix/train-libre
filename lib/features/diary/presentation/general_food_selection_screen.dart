@@ -1,6 +1,8 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 
 import 'dart:async';
+
+import '../../../widgets/common/seamless_loading_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import '../data/sources/product_local_data_source.dart';
@@ -459,17 +461,16 @@ class _GeneralFoodSelectionScreenState
                                       );
                                     },
                                   ))
-                            : (_isLoading
-                                ? const Center(
-                                    child: CircularProgressIndicator())
-                                : _results.isEmpty
-                                    ? Center(
-                                        child: Text(
-                                          _searchInitialText,
-                                          style: textTheme.titleMedium,
-                                        ),
-                                      )
-                                    : () {
+                            : SeamlessLoadingOverlay(
+                                isLoading: _isLoading,
+                                isEmpty: _results.isEmpty,
+                                fallback: Center(
+                                  child: Text(
+                                    _searchInitialText,
+                                    style: textTheme.titleMedium,
+                                  ),
+                                ),
+                                child: () {
                                         final baseHits = _results
                                             .where((it) =>
                                                 it.source ==

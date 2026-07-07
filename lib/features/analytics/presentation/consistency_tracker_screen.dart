@@ -10,6 +10,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import 'widgets/analytics_chart_defaults.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
@@ -141,9 +142,11 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.consistencyTrackerTitle),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: _weeklyMetrics.isEmpty,
+        extendBodyBehindAppBar: true,
+        child: SingleChildScrollView(
               padding: DesignConstants.screenPadding.copyWith(
                 top: DesignConstants.screenPadding.top + topPadding,
                 bottom: DesignConstants.bottomContentSpacer,
@@ -566,6 +569,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 

@@ -11,6 +11,7 @@ import '../../../util/supplement_l10n.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -202,28 +203,31 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.supplementTrackerTitle),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView(
-                padding: DesignConstants.cardPadding.copyWith(
-                  top: DesignConstants.cardPadding.top + topPadding,
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: _supplements.isEmpty,
+        extendBodyBehindAppBar: true,
+        child: RefreshIndicator(
+                onRefresh: _load,
+                child: ListView(
+                  padding: DesignConstants.cardPadding.copyWith(
+                    top: DesignConstants.cardPadding.top + topPadding,
+                  ),
+                  children: [
+                    if (_supplements.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: Text(
+                          l10n.emptySupplements,
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    else
+                      ..._supplements.map((s) => _tile(s, l10n)),
+                  ],
                 ),
-                children: [
-                  if (_supplements.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text(
-                        l10n.emptySupplements,
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                  else
-                    ..._supplements.map((s) => _tile(s, l10n)),
-                ],
               ),
-            ),
+      ),
       floatingActionButton: GlassFab(
         label: l10n.createSupplementTitle,
         onPressed: () async {

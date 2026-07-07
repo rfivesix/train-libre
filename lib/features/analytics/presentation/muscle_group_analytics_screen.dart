@@ -13,6 +13,8 @@ import '../../../util/design_constants.dart';
 import 'widgets/analytics_chart_defaults.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
+import '../../../widgets/common/common.dart';
 import '../../workout/presentation/widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
@@ -110,9 +112,11 @@ class _MuscleGroupAnalyticsScreenState
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.muscleAnalyticsTitle),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: _analytics.isEmpty,
+        extendBodyBehindAppBar: true,
+        child: SingleChildScrollView(
               padding: DesignConstants.screenPadding.copyWith(
                 top: DesignConstants.screenPadding.top + topPadding,
                 bottom: DesignConstants.bottomContentSpacer,
@@ -235,6 +239,7 @@ class _MuscleGroupAnalyticsScreenState
                 ],
               ),
             ),
+      ),
     );
   }
 

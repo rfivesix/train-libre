@@ -15,6 +15,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_section_header.dart';
 import 'widgets/analytics_chart_defaults.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
@@ -680,9 +681,11 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: !_recovery.hasData,
+        extendBodyBehindAppBar: true,
+        child: SingleChildScrollView(
               controller: _scrollController,
               padding: DesignConstants.screenPadding.copyWith(
                 top: DesignConstants.screenPadding.top + topPadding,
@@ -877,6 +880,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 }

@@ -11,6 +11,8 @@ import '../../../theme/color_constants.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
+import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -284,9 +286,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.aiSettingsTitle),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: false, // always show content
+        extendBodyBehindAppBar: true,
+        child: ListView(
               padding: DesignConstants.cardPadding.copyWith(
                 top: DesignConstants.cardPadding.top + topPadding,
               ),
@@ -623,8 +627,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                     horizontal: 16,
                   ),
                 ),
+                const BottomContentSpacer(),
               ],
             ),
+      ),
     );
   }
 }

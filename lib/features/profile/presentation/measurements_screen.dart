@@ -12,6 +12,7 @@ import '../../../widgets/common/common.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
 import 'widgets/measurement_chart_widget.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../util/l10n_ext.dart';
@@ -153,11 +154,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.measurementsScreenTitle),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _sessions.isEmpty
-              ? _buildEmptyState(l10n, context)
-              : ListView(
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: _sessions.isEmpty,
+        extendBodyBehindAppBar: true,
+        fallback: _buildEmptyState(l10n, context),
+        child: ListView(
                   padding: DesignConstants.cardPadding.copyWith(
                     top: DesignConstants.cardPadding.top + topPadding,
                   ),
@@ -178,6 +180,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                     const BottomContentSpacer(),
                   ],
                 ),
+      ),
       floatingActionButton: GlassFab(
         label: l10n.addMeasurement,
         onPressed: _navigateToCreateMeasurement,

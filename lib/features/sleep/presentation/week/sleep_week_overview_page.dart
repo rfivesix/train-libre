@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
 import '../../data/repository/sleep_query_repository.dart';
@@ -54,9 +55,10 @@ class _SleepWeekOverviewPageState extends State<SleepWeekOverviewPage> {
       anchorDate: _anchorDay,
       onScopeChanged: _onScopeChanged,
       onShiftPeriod: _shiftPeriod,
-      child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
+      child: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: _aggregation == null,
+        child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 WeekSummaryCard(aggregation: _aggregation!),
@@ -77,6 +79,7 @@ class _SleepWeekOverviewPageState extends State<SleepWeekOverviewPage> {
                 ],
               ],
             ),
+      ),
     );
   }
 

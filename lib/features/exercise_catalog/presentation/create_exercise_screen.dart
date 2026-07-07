@@ -1,5 +1,6 @@
 // lib/features/exercise_catalog/presentation/create_exercise_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../domain/models/exercise.dart';
@@ -7,6 +8,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
 
 /// A screen for creating custom exercises.
 class CreateExerciseScreen extends StatefulWidget {
@@ -27,6 +29,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
 
   String? _selectedCategory;
   bool get _isReadOnly => widget.exerciseToEdit?.source == 'wger';
+  bool get _isValid => _nameController.text.trim().isNotEmpty && _selectedCategory != null;
 
   // Fallback lists if the DB is empty
   final List<String> _defaultCategories = [
@@ -40,11 +43,6 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
     'Cardio',
   ];
 
-  /// Canonical muscle list that is always available in the chip selector,
-  /// regardless of what the exercise DB contains. Muscles such as Adductors
-  /// and Forearms do not exist as wger muscle IDs, so they would never appear
-  /// via a pure DB query. This list is always merged with (and supplements)
-  /// the DB-sourced muscle groups.
   final List<String> _defaultMuscles = [
     'Abs',
     'Adductors',
@@ -76,6 +74,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   void initState() {
     super.initState();
     _loadData();
+    _nameController.addListener(() => setState(() {}));
   }
 
   @override
@@ -91,10 +90,6 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
       final categories = await _repository.getAllCategories();
       final dbMuscles = await _repository.getAllMuscleGroups();
 
-      // Always merge DB muscles with the canonical default list.
-      // Muscles such as Adductors and Forearms are not exported by wger,
-      // so a pure DB query would never surface them — but they must always
-      // be available for custom exercise creation.
       final mergedMuscles = <String>{
         ..._defaultMuscles,
         ...dbMuscles,
@@ -184,114 +179,121 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   Widget build(BuildContext context) {
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
-    final titleText = widget.exerciseToEdit != null
-        ? l10n.editExercise
-        : l10n.create_exercise_screen_title;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-        title: titleText,
+        title: widget.exerciseToEdit != null
+            ? l10n.editExercise
+            : l10n.create_exercise_screen_title,
         actions: [
-          if (!_isReadOnly)
-            TextButton(
-              onPressed: _saving ? null : _saveExercise,
-              child: _saving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(
-                      l10n.save,
-                      style: TextStyle(
-                        color: _saving
-                            ? Theme.of(context).disabledColor
-                            : Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+          if (_saving)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(LucideIcons.check),
+              onPressed: _isValid ? _saveExercise : null,
+              color: _isValid
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.38),
             ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: DesignConstants.cardPadding.copyWith(
-                top: DesignConstants.cardPadding.top + topPadding,
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      enabled: !_isReadOnly,
-                      decoration: InputDecoration(
-                        labelText: l10n.exercise_name_label,
-                        filled: true,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return l10n.validatorPleaseEnterName;
-                        }
-                        return null;
-                      },
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingL),
-                    PlatformAdaptiveDropdownFormField<String>(
-                      initialValue: _selectedCategory,
-                      items: _allCategories.map((cat) {
-                        return DropdownMenuItem(value: cat, child: Text(cat));
-                      }).toList(),
-                      onChanged: _isReadOnly
-                          ? null
-                          : (val) {
-                              setState(() => _selectedCategory = val);
-                            },
-                      decoration: InputDecoration(
-                        labelText: l10n.category_label,
-                        hintText: l10n.categoryHint,
-                        filled: true,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return l10n.validatorPleaseEnterCategory;
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: DesignConstants.spacingL),
-                    TextFormField(
-                      controller: _descriptionController,
-                      enabled: !_isReadOnly,
-                      decoration: InputDecoration(
-                        labelText: l10n.description_optional_label,
-                        filled: true,
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingXL),
-                    AppSectionHeader(title: l10n.primary_muscles_label),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    _buildMuscleSelector(
-                      availableMuscles: _allMuscleGroups,
-                      selectedMuscles: _selectedPrimaryMuscles,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingXL),
-                    AppSectionHeader(title: l10n.secondary_muscles_label),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    _buildMuscleSelector(
-                      availableMuscles: _allMuscleGroups,
-                      selectedMuscles: _selectedSecondaryMuscles,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingXXL),
-                  ],
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: false, 
+        extendBodyBehindAppBar: true,
+        child: SingleChildScrollView(
+          padding: DesignConstants.cardPadding.copyWith(
+            top: DesignConstants.cardPadding.top + topPadding,
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  enabled: !_isReadOnly,
+                  decoration: InputDecoration(
+                    labelText: l10n.exercise_name_label,
+                    filled: true,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return l10n.validatorPleaseEnterName;
+                    }
+                    return null;
+                  },
+                  textInputAction: TextInputAction.next,
                 ),
-              ),
+                const SizedBox(height: DesignConstants.spacingL),
+                PlatformAdaptiveDropdownFormField<String>(
+                  initialValue: _selectedCategory,
+                  items: _allCategories.map((cat) {
+                    return DropdownMenuItem(value: cat, child: Text(cat));
+                  }).toList(),
+                  onChanged: _isReadOnly
+                      ? null
+                      : (val) {
+                          setState(() {
+                            _selectedCategory = val;
+                          });
+                        },
+                  decoration: InputDecoration(
+                    labelText: l10n.category_label,
+                    hintText: l10n.categoryHint,
+                    filled: true,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return l10n.validatorPleaseEnterCategory;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: DesignConstants.spacingL),
+                TextFormField(
+                  controller: _descriptionController,
+                  enabled: !_isReadOnly,
+                  decoration: InputDecoration(
+                    labelText: l10n.description_optional_label,
+                    filled: true,
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: DesignConstants.spacingXL),
+                AppSectionHeader(title: l10n.primary_muscles_label),
+                const SizedBox(height: DesignConstants.spacingS),
+                _buildMuscleSelector(
+                  availableMuscles: _allMuscleGroups,
+                  selectedMuscles: _selectedPrimaryMuscles,
+                ),
+                const SizedBox(height: DesignConstants.spacingXL),
+                AppSectionHeader(title: l10n.secondary_muscles_label),
+                const SizedBox(height: DesignConstants.spacingS),
+                _buildMuscleSelector(
+                  availableMuscles: _allMuscleGroups,
+                  selectedMuscles: _selectedSecondaryMuscles,
+                ),
+                const SizedBox(height: DesignConstants.spacingXXL),
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 
