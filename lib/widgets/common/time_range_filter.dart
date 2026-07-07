@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'platform_adaptive_pickers.dart';
 
-
-/// A reusable global filter for selecting timeframes, supporting navigation and custom dates.
+/// A reusable global filter for selecting timeframes.
+/// The active timeframe chip dynamically expands to include the date navigation directly inside.
 class TimeRangeFilter extends StatelessWidget {
   const TimeRangeFilter({
     super.key,
@@ -26,41 +27,114 @@ class TimeRangeFilter extends StatelessWidget {
   final VoidCallback? onTapDateDisplay;
   final bool nextEnabled;
 
-  
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (displayDate != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(LucideIcons.chevron_left),
-                  onPressed: onPrevious,
-                  color: onPrevious != null ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
-                ),
-                Expanded(
+
+    return SizedBox(
+      width: double.infinity,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.cardPaddingInternal,
+        ),
+        child: Row(
+          children: List.generate(ranges.length, (index) {
+            final range = ranges[index];
+            final isSelected = selectedIndex == index;
+            
+            if (isSelected) {
+              return Padding(
+                padding: const EdgeInsets.only(right: DesignConstants.spacingS),
+                child: Container(
+                  height: 32, // Strictly match default ChoiceChip height
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary, // App primary color
+                    borderRadius: BorderRadius.circular(100), // Perfect circular pill edges
+                  ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch, // Ensure inkwells fill the 32px height
                     children: [
+                      // Left Side: Block label
                       InkWell(
-                        onTap: onTapDateDisplay,
-                        borderRadius: BorderRadius.circular(4),
+                        onTap: () async {
+                          if (ranges.isEmpty || selectedIndex == null) return;
+                          final newIndex = await showAdaptiveBlockTypePicker(
+                            context: context,
+                            ranges: ranges,
+                            initialIndex: selectedIndex!,
+                          );
+                          if (newIndex != null) {
+                            onSelected(newIndex);
+                          }
+                        },
+                        borderRadius: const BorderRadius.horizontal(left: Radius.circular(100)),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          child: Text(
-                            displayDate!,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w600,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Center(
+                            child: Text(
+                              range,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      
+                      // Center Divider
+                      Center(
+                        child: Container(
+                          width: 1,
+                          height: 16,
+                          color: theme.colorScheme.onPrimary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      
+                      // Navigation
+                      InkWell(
+                        onTap: onPrevious,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Center(
+                            child: Icon(
+                              LucideIcons.chevron_left, 
+                              size: 16,
+                              color: onPrevious != null ? theme.colorScheme.onPrimary : theme.disabledColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      
+                      if (displayDate != null)
+                        InkWell(
+                          onTap: onTapDateDisplay,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Center(
+                              child: Text(
+                                displayDate!,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                      InkWell(
+                        onTap: nextEnabled ? onNext : null,
+                        borderRadius: const BorderRadius.horizontal(right: Radius.circular(100)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Center(
+                            child: Icon(
+                              LucideIcons.chevron_right, 
+                              size: 16,
+                              color: nextEnabled && onNext != null ? theme.colorScheme.onPrimary : theme.disabledColor,
                             ),
                           ),
                         ),
@@ -68,45 +142,22 @@ class TimeRangeFilter extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(LucideIcons.chevron_right),
-                  onPressed: nextEnabled ? onNext : null,
-                  color: nextEnabled && onNext != null ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
-                ),
-              ],
-            ),
-          ),
-        if (displayDate != null)
-          const SizedBox(height: DesignConstants.spacingXS),
-        SizedBox(
-          width: double.infinity,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal,
-            ),
-            child: Row(
-              children: List.generate(ranges.length, (index) {
-                final range = ranges[index];
-                final isSelected = selectedIndex == index;
-                return Padding(
-                  padding: const EdgeInsets.only(right: DesignConstants.spacingS),
-                  child: ChoiceChip(
-                    label: Text(range),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) {
-                        onSelected(index);
-                      }
-                    },
-                  ),
-                );
-              }),
-            ),
-          ),
+              );
+            }
+            
+            // Inactive standard ChoiceChip
+            return Padding(
+              padding: const EdgeInsets.only(right: DesignConstants.spacingS),
+              child: ChoiceChip(
+                label: Text(range),
+                selected: false,
+                onSelected: (_) => onSelected(index),
+                padding: EdgeInsets.zero,
+              ),
+            );
+          }),
         ),
-      ],
+      ),
     );
   }
 }
