@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/health/steps_sync_service.dart';
 import '../../domain/steps_models.dart';
-import 'steps_insight_pill.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 
 class StepsMonthChart extends StatelessWidget {
   const StepsMonthChart({
@@ -71,17 +71,20 @@ class StepsMonthChart extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        Row(
           children: [
-            StepsInsightPill(
-              label: l10n.stepsModuleAvgPerDay,
-              value: numberFormat.format(avg),
+            Expanded(
+              child: ValueSummaryCard(
+                value: numberFormat.format(avg),
+                label: l10n.stepsModuleAvgPerDay,
+              ),
             ),
-            StepsInsightPill(
-              label: l10n.stepsModuleGoalDays,
-              value: '$goalDays/${buckets.length}',
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(
+              child: ValueSummaryCard(
+                value: '$goalDays/${buckets.length}',
+                label: l10n.stepsModuleGoalDays,
+              ),
             ),
           ],
         ),
@@ -108,6 +111,7 @@ class StepsMonthChart extends StatelessWidget {
         GridView.builder(
           itemCount: leadingEmpty + daysInMonth,
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 7,

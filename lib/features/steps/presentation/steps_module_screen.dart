@@ -10,7 +10,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
+
 import '../data/steps_aggregation_repository.dart';
 import '../domain/steps_models.dart';
 import 'statistics_steps_card.dart';
@@ -409,33 +409,28 @@ class _TrendCanvas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          child: switch (scope) {
-            StepsScope.day => StepsDayChart(
-                key: const ValueKey('day-canvas'),
-                date: dayData?.date,
-                buckets: dayData?.hourlyBuckets ?? const [],
-                dailyGoal: dailyGoal,
-              ),
-            StepsScope.week => StepsWeekChart(
-                key: const ValueKey('week-canvas'),
-                weekStart: weekData?.weekStart,
-                buckets: weekData?.dailyTotals ?? const [],
-                dailyGoal: dailyGoal,
-              ),
-            StepsScope.month => StepsMonthChart(
-                key: const ValueKey('month-canvas'),
-                monthStart: monthData?.monthStart,
-                buckets: monthData?.dailyTotals ?? const [],
-                dailyGoal: dailyGoal,
-              ),
-          },
-        ),
-      ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: switch (scope) {
+        StepsScope.day => StepsDayChart(
+            key: const ValueKey('day-canvas'),
+            date: dayData?.date,
+            buckets: dayData?.hourlyBuckets ?? const [],
+            dailyGoal: dailyGoal,
+          ),
+        StepsScope.week => StepsWeekChart(
+            key: const ValueKey('week-canvas'),
+            weekStart: weekData?.weekStart,
+            buckets: weekData?.dailyTotals ?? const [],
+            dailyGoal: dailyGoal,
+          ),
+        StepsScope.month => StepsMonthChart(
+            key: const ValueKey('month-canvas'),
+            monthStart: monthData?.monthStart,
+            buckets: monthData?.dailyTotals ?? const [],
+            dailyGoal: dailyGoal,
+          ),
+      },
     );
   }
 }

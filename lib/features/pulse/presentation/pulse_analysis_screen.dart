@@ -5,7 +5,7 @@ import '../../../generated/app_localizations.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../../../util/design_constants.dart';
 import '../../profile/presentation/widgets/measurement_chart_widget.dart';
-import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/value_summary_card.dart';
 import '../../sleep/presentation/widgets/sleep_period_scope_layout.dart';
 import '../data/pulse_repository.dart';
 import '../domain/pulse_models.dart';
@@ -261,69 +261,66 @@ class _KpiCard extends StatelessWidget {
 
   final PulseAnalysisSummary summary;
 
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i += 2) {
+      final left = items[i];
+      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
+            ],
+          ),
+        ),
+      );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
+  }
+
   @override
   Widget build(BuildContext context) {
     final copy = _PulseCopy(context);
     final l10n = AppLocalizations.of(context)!;
+    
     final range = summary.minBpm == null || summary.maxBpm == null
         ? '--'
-        : '${summary.minBpm!.round()}-${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}';
+        : '${summary.minBpm!.round()}-${summary.maxBpm!.round()}';
     final average = summary.averageBpm == null
         ? '--'
-        : '${summary.averageBpm!.round()} ${l10n.sleepBpmUnit}';
+        : '${summary.averageBpm!.round()}';
     final resting = summary.restingBpm == null
         ? '--'
-        : '${summary.restingBpm!.round()} ${l10n.sleepBpmUnit}';
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _MetricTile(label: copy.rangeLabel, value: range),
-            _MetricTile(label: copy.averageLabel, value: average),
-            _MetricTile(label: copy.restingLabel, value: resting),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MetricTile extends StatelessWidget {
-  const _MetricTile({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
+        : '${summary.restingBpm!.round()}';
+        
+    return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: 10, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
+        horizontal: DesignConstants.screenPaddingHorizontal,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
-      ),
+      child: _buildTwoColumnGrid([
+        ValueSummaryCard(
+          label: copy.rangeLabel,
+          value: range,
+          subtitle: summary.minBpm == null ? l10n.noData : l10n.sleepBpmUnit,
+        ),
+        ValueSummaryCard(
+          label: copy.averageLabel,
+          value: average,
+          subtitle: summary.averageBpm == null ? l10n.noData : l10n.sleepBpmUnit,
+        ),
+        ValueSummaryCard(
+          label: copy.restingLabel,
+          value: resting,
+          subtitle: summary.restingBpm == null ? l10n.noData : l10n.sleepBpmUnit,
+        ),
+      ]),
     );
   }
 }

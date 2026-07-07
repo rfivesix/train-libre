@@ -341,84 +341,67 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   Widget _buildPRSummarySection(AppLocalizations l10n) {
     final theme = Theme.of(context);
+    final items = _prMap.entries.map((entry) {
+      final bracket = entry.key;
+      final prSet = entry.value;
+
+      String value;
+      String subtitle;
+      Color? valueColor;
+
+      if (prSet != null) {
+        if (bracket == 'Est. 1RM') {
+          value = '${context.read<UnitService>().convertDisplayValue(prSet.weightKg! * (36 / (37 - prSet.reps!)), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+        } else {
+          value = '${context.read<UnitService>().convertDisplayValue(prSet.weightKg ?? 0.0, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+        }
+        subtitle = l10n.repsCount(prSet.reps!);
+        valueColor = theme.colorScheme.primary;
+      } else {
+        value = '-';
+        subtitle = l10n.noData;
+        valueColor = theme.colorScheme.onSurfaceVariant;
+      }
+
+      return ValueSummaryCard(
+        label: bracket,
+        value: value,
+        subtitle: subtitle,
+        valueColor: valueColor,
+      );
+    }).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppSectionHeader(title: l10n.exerciseAnalyticsPrsLabel),
-        Wrap(
-          spacing: 8.0,
-          runSpacing: 8.0,
-          children: _prMap.entries.map((entry) {
-            final bracket = entry.key;
-            final prSet = entry.value;
-
-            return Container(
-              width: (MediaQuery.of(context).size.width - 40) / 2,
-              padding: const EdgeInsets.all(DesignConstants.spacingM),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.5,
-                ),
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusS),
-                border: Border.all(
-                  color: prSet != null
-                      ? theme.colorScheme.primary.withValues(alpha: 0.3)
-                      : Colors.transparent,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    bracket,
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingXS),
-                  if (prSet != null) ...[
-                    if (bracket == 'Est. 1RM')
-                      Text(
-                        '${context.read<UnitService>().convertDisplayValue(prSet.weightKg! * (36 / (37 - prSet.reps!)), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    else
-                      Text(
-                        '${context.read<UnitService>().convertDisplayValue(prSet.weightKg ?? 0.0, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    Text(
-                      l10n.repsCount(prSet.reps!),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ] else ...[
-                    Text(
-                      '-',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      l10n.noData,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          }).toList(),
-        ),
+        _buildTwoColumnGrid(items),
       ],
     );
+  }
+
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i += 2) {
+      final left = items[i];
+      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
+            ],
+          ),
+        ),
+      );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
   }
 
   Widget _buildConsolidatedChart(AppLocalizations l10n) {

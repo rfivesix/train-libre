@@ -12,12 +12,16 @@ class ValueSummaryCard extends StatelessWidget {
   /// Optional third line rendered below the label in a smaller style.
   final String? subtitle;
 
+  /// Optional callback when the card is tapped.
+  final VoidCallback? onTap;
+
   const ValueSummaryCard({
     super.key,
     required this.label,
     required this.value,
     this.valueColor,
     this.subtitle,
+    this.onTap,
   });
 
   @override
@@ -26,6 +30,7 @@ class ValueSummaryCard extends StatelessWidget {
 
     return SummaryCard(
       margin: EdgeInsets.zero,
+      onTap: onTap,
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.spacingM,
         vertical: DesignConstants.spacingS,
