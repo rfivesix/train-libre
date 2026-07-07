@@ -11,7 +11,7 @@ import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
+
 import '../../../widgets/common/common.dart';
 import 'widgets/wger_attribution_widget.dart';
 import '../../../services/unit_service.dart';
@@ -281,17 +281,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               ),
             if ((_currentExercise.imagePath ?? '').isNotEmpty)
               const SizedBox(height: DesignConstants.spacingXL),
-            AppSectionHeader(title: l10n.descriptionLabel),
-            SummaryCard(
-              child: Padding(
-                padding: DesignConstants.cardPadding,
-                child: Text(
+            AppInfoRow(
+              title: l10n.descriptionLabel,
+              subtitle:
                   _currentExercise.getLocalizedDescription(context).isNotEmpty
                       ? _currentExercise.getLocalizedDescription(context)
                       : l10n.noDescriptionAvailable,
-                  style: textTheme.bodyMedium,
-                ),
-              ),
+              padding: EdgeInsets.zero,
             ),
             const SizedBox(height: DesignConstants.spacingXL),
             AppSectionHeader(title: l10n.involvedMuscles),
@@ -626,8 +622,7 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
 
     if (!hasMuscles) {
       return Padding(
-        padding: const EdgeInsets.symmetric(
-            vertical: DesignConstants.spacingS),
+        padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
         child: Text(
           l10n.noMusclesSpecified,
           style: theme.textTheme.bodyMedium?.copyWith(
