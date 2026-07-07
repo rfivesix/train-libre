@@ -67,7 +67,7 @@ class PulseAnalysisSummary {
       restingBpm != null;
 
   bool get canRenderChart =>
-      chartSamples.length >= 3 &&
+      chartSamples.isNotEmpty &&
       quality != PulseDataQuality.noData &&
       quality != PulseDataQuality.insufficient;
 }

@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Redesigned Sleep Quality Header:** Refactored `SleepScoreCard` in the daily view to use `AppSectionHeader` and `AppInfoRow` styling, enlarging the score ring to 80x80 with bolder typography for prominence.
 - **Fixed Sleep Module Styling & Spacing:** Enforced strict padding alignment between headers and chart limits. Aligned grid cell heights perfectly using `GridView` with fixed `childAspectRatio`, and ensured equal spacing (`8px`) between progress bars in the score breakdown card to match the grid below.
 - **Adjusted Sleep Score Chip Text Colors:** Changed the daily score text color inside the weekly and monthly timeline chips to adaptively use the primary text color (`onSurface`), improving readability against dynamic background pill colors.
+- **Refactored Pulse History for Week & Month Views:** The Pulse Analysis Screen now automatically aggregates intra-day heart rate samples by local day for weekly and monthly timeframes. The chart dynamically downsamples to plot only the estimated **Resting Heart Rate** per day (represented as a cleaner, easier-to-read trend line) instead of the extremely dense, noisy full intraday pulse history.
+- **Dynamic Pulse Chart Titling:** The title above the pulse chart now dynamically changes from "Pulsverlauf" (Pulse History) on the daily view to "Ruhepuls" (Resting Heart Rate) on the weekly and monthly views to accurately reflect the aggregated data points being plotted.
 
 ## [1.0.0-alpha.4] - 2026-07-07
 

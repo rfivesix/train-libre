@@ -188,7 +188,7 @@ class _PulseAnalysisContent extends StatelessWidget {
                 horizontal: DesignConstants.screenPaddingHorizontal,
               ),
               child: Text(
-                copy.chartTitle,
+                scope == SleepPeriodScope.day ? copy.chartTitle : copy.restingLabel,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -205,7 +205,7 @@ class _PulseAnalysisContent extends StatelessWidget {
                 selectedDateLabelBuilder: (value) =>
                     scope == SleepPeriodScope.day
                         ? timeFormatter.format(value)
-                        : DateFormat.MMMd(locale).add_Hm().format(value),
+                        : DateFormat.MMMd(locale).format(value),
                 axisLabelBuilder: (value, _) => scope == SleepPeriodScope.day
                     ? timeFormatter.format(value)
                     : DateFormat.MMMd(locale).format(value),
