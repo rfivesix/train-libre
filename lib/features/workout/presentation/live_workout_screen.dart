@@ -60,8 +60,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   bool _isDragging = false;
   Timer? _collapseTimer;
   final ScrollController _scrollController = ScrollController();
-  final OverlayPortalController _fabOverlayController = OverlayPortalController();
-
   void _handleBack() {
     setState(() {
       _canPop = true;
@@ -82,12 +80,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _fabOverlayController.show();
-      }
-    });
-
     _prAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -619,7 +611,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                 : Overlay(
                                     initialEntries: [
                                       OverlayEntry(
-                                        builder: (context) => ReorderableListView.builder(
+                                        builder: (context) => Consumer<LiveWorkoutViewModel>(
+                                          builder: (context, vm, child) {
+                                            final exercises = vm.exercises;
+                                            return ReorderableListView.builder(
                                           scrollController: _scrollController,
                                       buildDefaultDragHandles: false,
                                       scrollCacheExtent:
@@ -636,13 +631,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       setState(() {
                                         _isDragging = true;
                                       });
-                                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                                        if (_fabOverlayController.isShowing) {
-                                          _fabOverlayController.hide();
-                                          _fabOverlayController.show();
-                                        }
-                                      });
-                                    },
+                                      },
                                     onReorderEnd: (index) {
                                       setState(() {
                                         _isDragging = false;
@@ -1150,11 +1139,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                            ),
                                          );
                                     },
-                                  ),
-                                ),
-                              ],
+                                  );
+                                },
+                              ),
                             ),
-                          ),
+                          ],
+                        ),
+                      ),
                         ],
                       ),
                     ),
@@ -1207,26 +1198,20 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       ),
                     ),
 
-                    OverlayPortal(
-                      controller: _fabOverlayController,
-                      overlayChildBuilder: (context) {
-                        return Consumer<LiveWorkoutViewModel>(
-                          builder: (context, vm, child) {
-                            final showRestBar = vm.remainingRestSeconds > 0 || vm.showRestDone;
-                            return Positioned(
-                              bottom: showRestBar
-                                  ? 134.0
-                                  : (24.0 + MediaQuery.paddingOf(context).bottom),
-                              right: 16.0,
-                              child: RepaintBoundary(
-                                child: _LiveWorkoutFab(onPressed: _addExercise),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      child: const SizedBox.shrink(),
-                    ),
+                     Consumer<LiveWorkoutViewModel>(
+                       builder: (context, vm, child) {
+                         final showRestBar = vm.remainingRestSeconds > 0 || vm.showRestDone;
+                         return Positioned(
+                           bottom: showRestBar
+                               ? 134.0
+                               : (24.0 + MediaQuery.paddingOf(context).bottom),
+                           right: 16.0,
+                           child: RepaintBoundary(
+                             child: _LiveWorkoutFab(onPressed: _addExercise),
+                           ),
+                         );
+                       },
+                     ),
 
                     // --- Top Celebration Banner ---
                     Positioned(

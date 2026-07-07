@@ -426,102 +426,115 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
   Future<void> _saveChanges() async {
     FocusScope.of(context).unfocus();
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) return;
 
-    final l10n = AppLocalizations.of(context)!;
-    final dbHelper = WorkoutLocalDataSource.instance;
-    final unitService = context.read<UnitService>();
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      final dbHelper = WorkoutLocalDataSource.instance;
+      final unitService = context.read<UnitService>();
 
-    final initialSetIds = _log!.sets.map((s) => s.id!).toSet();
-    final currentSets = _groupedSets.values.expand((sets) => sets).toList();
+      final initialSetIds = _log!.sets.map((s) => s.id!).toSet();
+      final currentSets = _groupedSets.values.expand((sets) => sets).toList();
 
-    final idsToDelete = initialSetIds
-        .difference(currentSets.map((s) => s.id!).toSet())
-        .toList();
+      final idsToDelete = initialSetIds
+          .difference(currentSets.map((s) => s.id!).toSet())
+          .toList();
 
-    final List<SetLog> setsToUpdate = [];
-    final List<SetLog> setsToInsert = [];
+      final List<SetLog> setsToUpdate = [];
+      final List<SetLog> setsToInsert = [];
 
-    for (final setLog in currentSets) {
-      // Distinguish again what the controller values mean.
-      final isCardio = _isCardio(setLog.exerciseName);
+      for (final setLog in currentSets) {
+        // Distinguish again what the controller values mean.
+        final isCardio = _isCardio(setLog.exerciseName);
 
-      final val1Input = double.tryParse(
-            _weightControllers[setLog.id!]?.text.replaceAll(',', '.') ?? '0',
-          ) ??
-          0.0;
-      final val1 = isCardio
-          ? val1Input
-          : unitService.convertToMetric(val1Input, UnitDimension.weight);
-      final repsText = _repsControllers[setLog.id!]?.text ?? '';
-      final val2 = isCardio
-          ? (parsePauseDuration(repsText) ?? 0).toDouble()
-          : (double.tryParse(repsText.replaceAll(',', '.')) ?? 0.0);
-      final rir = int.tryParse(_rirControllers[setLog.id!]?.text ?? '');
+        final val1Input = double.tryParse(
+              _weightControllers[setLog.id!]?.text.replaceAll(',', '.') ?? '0',
+            ) ??
+            0.0;
+        final val1 = isCardio
+            ? val1Input
+            : unitService.convertToMetric(val1Input, UnitDimension.weight);
+        final repsText = _repsControllers[setLog.id!]?.text ?? '';
+        final val2 = isCardio
+            ? (parsePauseDuration(repsText) ?? 0).toDouble()
+            : (double.tryParse(repsText.replaceAll(',', '.')) ?? 0.0);
+        final rir = int.tryParse(_rirControllers[setLog.id!]?.text ?? '');
 
-      SetLog updatedSet;
+        SetLog updatedSet;
 
-      if (isCardio) {
-        // Val1 = Distance, Val2 = Seconds
-        updatedSet = setLog.copyWith(
-          distanceKm: val1,
-          durationSeconds: val2.round(),
-          rir: rir,
-          clearRir: rir == null,
-          // Set weight/reps to 0/null for cardio to avoid bad data?
-          weightKg: 0,
-          reps: 0,
+        if (isCardio) {
+          // Val1 = Distance, Val2 = Seconds
+          updatedSet = setLog.copyWith(
+            distanceKm: val1,
+            durationSeconds: val2.round(),
+            rir: rir,
+            clearRir: rir == null,
+            // Set weight/reps to 0/null for cardio to avoid bad data?
+            weightKg: 0,
+            reps: 0,
+          );
+        } else {
+          // Val1 = Weight, Val2 = Reps (int)
+          updatedSet = setLog.copyWith(
+            weightKg: val1,
+            reps: val2.toInt(),
+            rir: rir,
+            clearRir: rir == null,
+            // Cardio Felder nullen
+            distanceKm: null,
+            durationSeconds: null,
+          );
+        }
+
+        if (initialSetIds.contains(setLog.id)) {
+          setsToUpdate.add(updatedSet);
+        } else {
+          setsToInsert.add(updatedSet);
+        }
+      }
+
+      await dbHelper.updateWorkoutLogDetails(
+        widget.logId,
+        _editedStartTime!,
+        _notesController.text,
+      );
+      if (idsToDelete.isNotEmpty) await dbHelper.deleteSetLogs(idsToDelete);
+      if (setsToUpdate.isNotEmpty) await dbHelper.updateSetLogs(setsToUpdate);
+      for (final set in setsToInsert) {
+        await dbHelper.insertSetLog(
+          set.copyWith(id: null, workoutLogId: widget.logId),
         );
-      } else {
-        // Val1 = Weight, Val2 = Reps (int)
-        updatedSet = setLog.copyWith(
-          weightKg: val1,
-          reps: val2.toInt(),
-          rir: rir,
-          clearRir: rir == null,
-          // Cardio Felder nullen
-          distanceKm: null,
-          durationSeconds: null,
+      }
+      for (final exerciseName in _exerciseNotes.keys) {
+        final note = _exerciseNotes[exerciseName];
+        await dbHelper.saveWorkoutExerciseNote(
+          workoutLogId: widget.logId,
+          exerciseName: exerciseName,
+          notes: note != null && note.isNotEmpty ? note : null,
         );
       }
 
-      if (initialSetIds.contains(setLog.id)) {
-        setsToUpdate.add(updatedSet);
-      } else {
-        setsToInsert.add(updatedSet);
+      if (mounted) {
+        HapticFeedbackService.instance.confirmationFeedback();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.snackbarRoutineSaved)));
+      }
+
+      setState(() => _isEditMode = false);
+      _loadDetails();
+    } catch (e, stackTrace) {
+      debugPrint("Error saving changes: $e");
+      debugPrint(stackTrace.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error saving changes: $e"),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     }
-
-    await dbHelper.updateWorkoutLogDetails(
-      widget.logId,
-      _editedStartTime!,
-      _notesController.text,
-    );
-    if (idsToDelete.isNotEmpty) await dbHelper.deleteSetLogs(idsToDelete);
-    if (setsToUpdate.isNotEmpty) await dbHelper.updateSetLogs(setsToUpdate);
-    for (final set in setsToInsert) {
-      await dbHelper.insertSetLog(
-        set.copyWith(id: null, workoutLogId: widget.logId),
-      );
-    }
-    for (final exerciseName in _exerciseNotes.keys) {
-      final note = _exerciseNotes[exerciseName];
-      await dbHelper.saveWorkoutExerciseNote(
-        workoutLogId: widget.logId,
-        exerciseName: exerciseName,
-        notes: note != null && note.isNotEmpty ? note : null,
-      );
-    }
-
-    if (mounted) {
-      HapticFeedbackService.instance.confirmationFeedback();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.snackbarRoutineSaved)));
-    }
-
-    setState(() => _isEditMode = false);
-    _loadDetails();
   }
 
   void _showSaveAsRoutineDialog() async {
@@ -944,7 +957,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 final isCardio = _isCardio(exerciseName);
 
                                 return Material(
-                                  elevation: 8.0,
+                                  elevation: 0.0,
                                   color: Colors.transparent,
                                   child: WorkoutExerciseLogCard(
                                     exerciseName: exerciseName,
@@ -968,6 +981,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 );
                               },
                               onReorderItem: (int oldIndex, int newIndex) {
+                                if (newIndex > oldIndex) {
+                                  newIndex -= 1;
+                                }
                                 setState(() {
                                   final entries = _groupedSets.entries.toList();
                                   final item = entries.removeAt(oldIndex);

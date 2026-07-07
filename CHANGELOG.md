@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-alpha.4] - 2026-07-07
+
+### Changed
+- **Fixed Reordering newIndex Offset across Workout Screens:** Adjusted the `newIndex` offset by decrementing it by 1 when `newIndex > oldIndex` in the drag-and-drop sort callback on `edit_routine_screen.dart` and `workout_log_detail_screen.dart`. This ensures that reordered exercises are saved at the exact drop position rather than shifting index or reverting.
+- **Fixed Live Workout Screen Reorder Live Updates:** Wrapped the reorderable list of the Live Workout Screen inside a `Consumer<LiveWorkoutViewModel>` within the local `OverlayEntry`. This guarantees that changes to the exercise order in the view model are immediately reflected on-screen without requiring users to exit and resume the workout.
+- **Removed Drag Shadows across all Workout Screens:** Set the drag proxy `Material`'s elevation to `0.0` in both `edit_routine_screen.dart` and `workout_log_detail_screen.dart`, completely removing the default drop shadows during reordering to match the design style of the Live Workout Screen.
+- **Fixed Live Workout FAB Disappearing:** Refactored the Floating Action Button (FAB) on the Live Workout Screen to render as a direct `Positioned` widget inside the parent Scaffold's `Stack` rather than using `OverlayPortal`. This avoids issues where the FAB disappears due to local overlays or layout rebuilds.
+- **Fixed Workout History Save Action:** Allowed saving changes in the Workout Log Detail Screen (History View) when the header `Form` key returns a null state (e.g. if the form scrolls off-screen or during focus/unfocus rebuilds). Wrapped the database transaction block in a robust try-catch handler with error notification popups.
+
 ## [1.0.0-alpha.3] - 2026-07-06
 
 ### Changed

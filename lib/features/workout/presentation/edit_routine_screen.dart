@@ -638,6 +638,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   }
 
   void _onReorderItem(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
     setState(() {
       final RoutineExercise item = _routineExercises.removeAt(oldIndex);
       _routineExercises.insert(newIndex, item);
@@ -768,7 +771,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       final bool isCardio =
                                           _isCardio(routineExercise);
                                       return Material(
-                                        elevation: 8.0,
+                                        elevation: 0.0,
                                         color: Colors.transparent,
                                         child: EditRoutineExerciseCard(
                                           routineExercise: routineExercise,
