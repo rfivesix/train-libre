@@ -245,11 +245,16 @@ class _PulseAnalysisContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        Text(
-          copy.methodNote,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.screenPaddingHorizontal,
+          ),
+          child: Text(
+            copy.methodNote,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+          ),
         ),
       ],
     );
