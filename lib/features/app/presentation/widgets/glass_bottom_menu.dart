@@ -43,6 +43,7 @@ Future<T?> showGlassBottomMenu<T>({
   Widget Function(BuildContext, VoidCallback)? contentBuilder,
   bool isDismissible = true,
   bool enableDrag = true,
+  bool applySafeAreaBottom = true,
 }) {
   assert(
     (actions != null && contentBuilder == null) ||
@@ -74,6 +75,7 @@ Future<T?> showGlassBottomMenu<T>({
           title: title,
           actions: actions ?? const <GlassMenuAction>[],
           contentBuilder: contentBuilder,
+          applySafeAreaBottom: applySafeAreaBottom,
         ),
       );
     },
@@ -85,11 +87,13 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     this.title,
     this.contentBuilder,
     this.actions = const <GlassMenuAction>[],
+    this.applySafeAreaBottom = true,
   });
 
   final String? title;
   final Widget Function(BuildContext, VoidCallback)? contentBuilder;
   final List<GlassMenuAction> actions;
+  final bool applySafeAreaBottom;
 
   @override
   Widget build(BuildContext context) {
@@ -109,80 +113,79 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     const EdgeInsets outerMargin = EdgeInsets.zero;
 
     Widget contentColumn() {
-      return Padding(
-        padding: EdgeInsets.only(bottom: bottomInset),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: DesignConstants.spacingS),
-            Container(
-              width: 44,
-              height: 5,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(100),
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: DesignConstants.spacingS),
+          Container(
+            width: 44,
+            height: 5,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(100),
+            ),
+          ),
+          if (title != null) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingL),
+              child: Text(
+                title!,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-            if (title != null) ...[
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingL),
-                child: Text(
-                  title!,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-            if (contentBuilder != null) ...[
-              const SizedBox(height: DesignConstants.spacingS),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingM),
-                child: contentBuilder!(
-                  context,
-                  () => Navigator.of(context).maybePop(),
-                ),
-              ),
-            ] else if (actions.isNotEmpty) ...[
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 420),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(actions.length, (i) {
-                        final a = actions[i];
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                              bottom: DesignConstants.spacingS),
-                          child: _GlassTile(
-                            icon: a.icon,
-                            customIcon: a.customIcon, // <--- Pass new value
-                            title: a.label,
-                            subtitle: a.subtitle,
-                            onTap: () {
-                              HapticFeedbackService.instance
-                                  .selectionFeedback();
-                              Navigator.of(context).maybePop();
-                              WidgetsBinding.instance.addPostFrameCallback(
-                                (_) => a.onTap(),
-                              );
-                            },
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ],
-        ),
+          if (contentBuilder != null) ...[
+            const SizedBox(height: DesignConstants.spacingS),
+            Padding(
+              padding: EdgeInsets.only(
+                  left: DesignConstants.spacingM,
+                  right: DesignConstants.spacingM,
+                  bottom: applySafeAreaBottom ? bottomInset : 0),
+              child: contentBuilder!(
+                context,
+                () => Navigator.of(context).maybePop(),
+              ),
+            ),
+          ] else if (actions.isNotEmpty) ...[
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 420),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(8, 12, 8, 8 + bottomInset),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(actions.length, (i) {
+                      final a = actions[i];
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: DesignConstants.spacingS),
+                        child: _GlassTile(
+                          icon: a.icon,
+                          customIcon: a.customIcon, // <--- Pass new value
+                          title: a.label,
+                          subtitle: a.subtitle,
+                          onTap: () {
+                            HapticFeedbackService.instance
+                                .selectionFeedback();
+                            Navigator.of(context).maybePop();
+                            WidgetsBinding.instance.addPostFrameCallback(
+                              (_) => a.onTap(),
+                            );
+                          },
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
       );
     }
 

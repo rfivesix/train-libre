@@ -317,7 +317,9 @@ class _MainScreenState extends State<MainScreen>
         await showGlassBottomMenu<({WorkoutLog log, Routine? routine})>(
       context: context,
       title: l10n.startWorkout,
+      applySafeAreaBottom: false,
       contentBuilder: (ctx, close) {
+        final bottomInset = MediaQuery.of(ctx).viewPadding.bottom;
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         Widget glassCard({required Widget child, EdgeInsets? padding}) {
           return Material(
@@ -367,7 +369,7 @@ class _MainScreenState extends State<MainScreen>
         final routinesList = ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 420),
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+            padding: EdgeInsets.fromLTRB(4, 0, 4, 4 + bottomInset),
             shrinkWrap: true,
             itemCount: routines.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -467,6 +469,8 @@ class _MainScreenState extends State<MainScreen>
             if (routines.isNotEmpty) ...[
               const SizedBox(height: DesignConstants.spacingM),
               routinesList,
+            ] else ...[
+              SizedBox(height: bottomInset),
             ],
           ],
         );
