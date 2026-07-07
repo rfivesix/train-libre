@@ -32,6 +32,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final Function(PointerDownEvent)? onPointerDown;
   final Function(PointerUpEvent)? onPointerUp;
   final Function(PointerCancelEvent)? onPointerCancel;
+  final Function(PointerMoveEvent)? onPointerMove;
 
   const WorkoutExerciseLogCard({
     super.key,
@@ -55,6 +56,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     this.onPointerDown,
     this.onPointerUp,
     this.onPointerCancel,
+    this.onPointerMove,
   });
 
   @override
@@ -78,6 +80,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                     onPointerDown: onPointerDown,
                     onPointerUp: onPointerUp,
                     onPointerCancel: onPointerCancel,
+                    onPointerMove: onPointerMove,
                     child: ReorderableDelayedDragStartListener(
                       index: index,
                       child: InkWell(

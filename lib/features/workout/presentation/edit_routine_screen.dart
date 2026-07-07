@@ -789,9 +789,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       );
                                     },
                                     onReorderStart: (index) {
-                                      setState(() {
-                                        _isDragging = true;
-                                      });
+                                      // _isDragging is already set by the 300ms onPointerDown timer.
+                                      // Do not set it here to avoid bypassing the delay.
                                       WidgetsBinding.instance.addPostFrameCallback((_) {
                                         if (_fabOverlayController.isShowing) {
                                           _fabOverlayController.hide();
@@ -847,6 +846,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                               setState(() {
                                                 _isDragging = false;
                                               });
+                                            }
+                                          },
+                                          onPointerMove: (event) {
+                                            // Cancel timer if finger moves – user is scrolling, not drag-holding.
+                                            if (event.delta.dy.abs() > 4.0 || event.delta.dx.abs() > 4.0) {
+                                              _collapseTimer?.cancel();
                                             }
                                           },
                                           onPointerCancel: (event) {
