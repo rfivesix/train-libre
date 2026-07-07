@@ -428,7 +428,8 @@ Future<DateTime?> showAdaptiveTimeframePicker({
     
     // Increment to next block
     switch (activeBlock) {
-      case TimeframeBlock.week: current = current.add(const Duration(days: 7)); break;
+      case TimeframeBlock.day: current = DateTime(current.year, current.month, current.day + 1); break;
+      case TimeframeBlock.week: current = DateTime(current.year, current.month, current.day + 7); break;
       case TimeframeBlock.month: current = DateTime(current.year, current.month + 1, 15); break;
       case TimeframeBlock.threeMonths: current = DateTime(current.year, current.month + 3, 15); break;
       case TimeframeBlock.sixMonths: current = DateTime(current.year, current.month + 6, 15); break;
@@ -458,16 +459,18 @@ Future<DateTime?> showAdaptiveTimeframePicker({
 
   int selectedIndex = initialIndex;
 
+  final locale = Localizations.localeOf(context).toString();
   String formatOption(DateTime date) {
     final b = activeBlock.getBounds(date, earliestAvailableDay);
     switch (activeBlock) {
-      case TimeframeBlock.week: return "${DateFormat('dd. MMM').format(b.start)} - ${DateFormat('dd. MMM yyyy').format(b.end)}";
-      case TimeframeBlock.month: return DateFormat('MMMM yyyy').format(b.start);
+      case TimeframeBlock.day: return DateFormat('dd. MMM yyyy', locale).format(b.start);
+      case TimeframeBlock.week: return "${DateFormat('dd. MMM', locale).format(b.start)} - ${DateFormat('dd. MMM yyyy', locale).format(b.end)}";
+      case TimeframeBlock.month: return DateFormat('MMMM yyyy', locale).format(b.start);
       case TimeframeBlock.threeMonths:
-        return "${DateFormat('MMM').format(b.start)} - ${DateFormat('MMM yyyy').format(b.end)}";
+        return "${DateFormat('MMM', locale).format(b.start)} - ${DateFormat('MMM yyyy', locale).format(b.end)}";
       case TimeframeBlock.sixMonths:
-        return "${DateFormat('MMM').format(b.start)} - ${DateFormat('MMM yyyy').format(b.end)}";
-      case TimeframeBlock.year: return DateFormat('yyyy').format(b.start);
+        return "${DateFormat('MMM', locale).format(b.start)} - ${DateFormat('MMM yyyy', locale).format(b.end)}";
+      case TimeframeBlock.year: return DateFormat('yyyy', locale).format(b.start);
       default: return "";
     }
   }

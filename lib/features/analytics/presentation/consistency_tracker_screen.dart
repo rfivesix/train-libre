@@ -4,7 +4,6 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../statistics/domain/analytics_state.dart';
 import '../../statistics/domain/consistency_domain_service.dart';
 import '../../statistics/domain/consistency_payload_models.dart';
-import '../../statistics/domain/statistics_range_policy.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
@@ -15,6 +14,9 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
+import '../../../util/timeframe_label_formatter.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../statistics/domain/timeframe_block.dart';
 
 enum _ConsistencyMetric { volume, duration, frequency }
 
@@ -27,8 +29,23 @@ class ConsistencyTrackerScreen extends StatefulWidget {
 }
 
 class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
-  int _weeklyWindowWeeks = 24;
-  final _rangePolicy = StatisticsRangePolicyService.instance;
+  TimeframeBlock _activeBlock = TimeframeBlock.month;
+  DateTime _anchorDate = DateTime.now();
+
+  final List<TimeframeBlock> _validBlocks = const [
+    TimeframeBlock.month,
+    TimeframeBlock.threeMonths,
+    TimeframeBlock.sixMonths,
+    TimeframeBlock.year,
+  ];
+
+  List<String> _timeRanges(AppLocalizations l10n) => [
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter6MonthsShort,
+        l10n.filter1YearShort,
+      ];
+
   bool _isLoading = true;
   TrainingStatsPayload _trainingStats = const TrainingStatsPayload(
     totalWorkouts: 0,
@@ -50,16 +67,16 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final calendarRange = _rangePolicy.resolve(
-      metricId: StatisticsMetricId.consistencyCalendar,
-    );
+    final bounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+    final daysBack = DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
+    final weeksBack = (daysBack / 7).ceil().clamp(1, 1000);
 
     final stats = WorkoutLocalDataSource.instance.getTrainingStats();
     final weekly = WorkoutLocalDataSource.instance.getWeeklyConsistencyMetrics(
-      weeksBack: _weeklyWindowWeeks,
+      weeksBack: weeksBack,
     );
     final dayCounts = WorkoutLocalDataSource.instance.getWorkoutDayCounts(
-      daysBack: calendarRange.effectiveDays ?? 120,
+      daysBack: daysBack,
     );
 
     final results = await Future.wait([stats, weekly, dayCounts]);
@@ -154,16 +171,43 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _windowChip(4, l10n.filter30Days),
-                        _windowChip(12, l10n.filter3Months),
-                        _windowChip(24, l10n.filter6Months),
-                        _windowChip(520, l10n.filterAll),
-                      ],
-                    ),
+                  TimeRangeFilter(
+                    ranges: _timeRanges(l10n),
+                    selectedIndex: _validBlocks.indexOf(_activeBlock),
+                    onSelected: (index) {
+                      setState(() {
+                        _activeBlock = _validBlocks[index];
+                      });
+                      _loadData();
+                    },
+                    onPrevious: () {
+                      setState(() {
+                        _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                      });
+                      _loadData();
+                    },
+                    onNext: () {
+                      setState(() {
+                        _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                      });
+                      _loadData();
+                    },
+                    displayDate: TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
+                    onTapDateDisplay: () async {
+                      final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                        context: context,
+                        activeBlock: _activeBlock,
+                        initialAnchor: _anchorDate,
+                        earliestAvailableDay: DateTime(2020),
+                      );
+                      if (selected != null) {
+                        setState(() {
+                          _anchorDate = selected;
+                        });
+                        _loadData();
+                      }
+                    },
+                    nextEnabled: _anchorDate.isBefore(DateTime.now()),
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                   AppSectionHeader(title: l10n.analyticsKpisHeader),
@@ -286,7 +330,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        '$_weeklyWindowWeeks ${l10n.weeksLabel}',
+                        TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -439,7 +483,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'X: ${l10n.analyticsViewWeek.toLowerCase()} · $_weeklyWindowWeeks ${l10n.weeksLabel}',
+                    'X: ${l10n.analyticsViewWeek.toLowerCase()} · ${TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n)}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
@@ -618,22 +662,6 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     return (minAlpha + (ratio * (maxAlpha - minAlpha))).clamp(
       minAlpha,
       maxAlpha,
-    );
-  }
-
-  Widget _windowChip(int weeks, String label) {
-    final selected = _weeklyWindowWeeks == weeks;
-    return Padding(
-      padding: const EdgeInsets.only(right: DesignConstants.spacingS),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (value) {
-          if (!value || selected) return;
-          setState(() => _weeklyWindowWeeks = weeks);
-          _loadData();
-        },
-      ),
     );
   }
 }

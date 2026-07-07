@@ -11,13 +11,15 @@ import '../../statistics/presentation/statistics_formatter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import 'widgets/analytics_chart_defaults.dart';
-import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/common.dart';
 import '../../workout/presentation/widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
+import '../../../util/timeframe_label_formatter.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../statistics/domain/timeframe_block.dart';
 
 class MuscleGroupAnalyticsScreen extends StatefulWidget {
   const MuscleGroupAnalyticsScreen({super.key});
@@ -32,11 +34,26 @@ class _MuscleGroupAnalyticsScreenState
   static const _maxMuscleBars = 8;
   final _rangePolicy = StatisticsRangePolicyService.instance;
   bool _isLoading = true;
-  int _periodIndex = 1; // 30 days
+  
+  TimeframeBlock _activeBlock = TimeframeBlock.month;
+  DateTime _anchorDate = DateTime.now();
+
+  final List<TimeframeBlock> _validBlocks = const [
+    TimeframeBlock.week,
+    TimeframeBlock.month,
+    TimeframeBlock.threeMonths,
+    TimeframeBlock.sixMonths,
+  ];
+
+  List<String> _timeRanges(AppLocalizations l10n) => [
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter6MonthsShort,
+      ];
+
   int _selectedWeekIndex = -1;
   Map<String, dynamic> _analytics = const {};
-
-  final List<int> _periodOptions = const [7, 30, 90, 180];
 
   @override
   void initState() {
@@ -46,7 +63,10 @@ class _MuscleGroupAnalyticsScreenState
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final daysBack = _periodOptions[_periodIndex];
+    
+    final bounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+    final daysBack = DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
+
     final weeksBack = _rangePolicy.resolveWeeksBack(
       metricId: StatisticsMetricId.muscleAnalytics,
       effectiveDays: daysBack,
@@ -125,28 +145,43 @@ class _MuscleGroupAnalyticsScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _sectionLabel(l10n.analyticsPeriodLabel),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: List.generate(_periodOptions.length, (index) {
-                      final days = _periodOptions[index];
-                      final label = days == 7
-                          ? l10n.filter7Days
-                          : days == 30
-                              ? l10n.filter30Days
-                              : days == 90
-                                  ? l10n.filter3Months
-                                  : l10n.filter6Months;
-                      return ChoiceChip(
-                        label: Text(label),
-                        selected: _periodIndex == index,
-                        onSelected: (selected) {
-                          if (!selected) return;
-                          setState(() => _periodIndex = index);
-                          _loadData();
-                        },
+                  TimeRangeFilter(
+                    ranges: _timeRanges(l10n),
+                    selectedIndex: _validBlocks.indexOf(_activeBlock),
+                    onSelected: (index) {
+                      setState(() {
+                        _activeBlock = _validBlocks[index];
+                      });
+                      _loadData();
+                    },
+                    onPrevious: _activeBlock == TimeframeBlock.maxBlock ? null : () {
+                      setState(() {
+                        _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                      });
+                      _loadData();
+                    },
+                    onNext: _activeBlock == TimeframeBlock.maxBlock ? null : () {
+                      setState(() {
+                        _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                      });
+                      _loadData();
+                    },
+                    displayDate: TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
+                    onTapDateDisplay: () async {
+                      final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                        context: context,
+                        activeBlock: _activeBlock,
+                        initialAnchor: _anchorDate,
+                        earliestAvailableDay: DateTime(2020),
                       );
-                    }),
+                      if (selected != null) {
+                        setState(() {
+                          _anchorDate = selected;
+                        });
+                        _loadData();
+                      }
+                    },
+                    nextEnabled: _activeBlock != TimeframeBlock.maxBlock && _anchorDate.isBefore(DateTime.now()),
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                   _sectionLabel(l10n.analyticsRecentDistributionHeatmap),

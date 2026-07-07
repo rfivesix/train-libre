@@ -12,6 +12,8 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
+import '../../../util/timeframe_label_formatter.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
 
 class BodyNutritionCorrelationScreen extends StatefulWidget {
   final int initialRangeIndex;
@@ -27,7 +29,18 @@ class _BodyNutritionCorrelationScreenState
     extends State<BodyNutritionCorrelationScreen> {
   final _rangePolicy = StatisticsRangePolicyService.instance;
   bool _isLoading = true;
-  late int _rangeIndex;
+  
+  TimeframeBlock _activeBlock = TimeframeBlock.month;
+  DateTime _anchorDate = DateTime.now();
+
+  final List<TimeframeBlock> _validBlocks = const [
+    TimeframeBlock.week,
+    TimeframeBlock.month,
+    TimeframeBlock.threeMonths,
+    TimeframeBlock.sixMonths,
+    TimeframeBlock.maxBlock,
+  ];
+
   BodyNutritionAnalyticsResult? _analytics;
   bool _loadFailed = false;
   int _loadEpoch = 0;
@@ -35,7 +48,8 @@ class _BodyNutritionCorrelationScreenState
   @override
   void initState() {
     super.initState();
-    _rangeIndex = widget.initialRangeIndex.clamp(0, 4);
+    final index = widget.initialRangeIndex.clamp(0, 4);
+    _activeBlock = _validBlocks[index];
     _load();
   }
 
@@ -44,8 +58,8 @@ class _BodyNutritionCorrelationScreenState
     setState(() => _isLoading = true);
     try {
       final analytics = await BodyNutritionAnalyticsUtils.build(
-        selectedBlockType: TimeframeBlock.values[_rangeIndex],
-        anchorDate: DateTime.now(),
+        selectedBlockType: _activeBlock,
+        anchorDate: _anchorDate,
       );
       if (!mounted || loadEpoch != _loadEpoch) return;
       setState(() {
@@ -64,11 +78,11 @@ class _BodyNutritionCorrelationScreenState
   }
 
   List<String> _ranges(AppLocalizations l10n) => [
-        l10n.filter7Days,
-        l10n.filter30Days,
-        l10n.filter3Months,
-        l10n.filter6Months,
-        l10n.filterAll,
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter6MonthsShort,
+        l10n.filterMax,
       ];
 
   @override
@@ -93,7 +107,44 @@ class _BodyNutritionCorrelationScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildRangeChips(l10n),
+                          TimeRangeFilter(
+                            ranges: _ranges(l10n),
+                            selectedIndex: _validBlocks.indexOf(_activeBlock),
+                            onSelected: (index) {
+                              setState(() {
+                                _activeBlock = _validBlocks[index];
+                              });
+                              _load();
+                            },
+                            onPrevious: _activeBlock == TimeframeBlock.maxBlock ? null : () {
+                              setState(() {
+                                _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                              });
+                              _load();
+                            },
+                            onNext: _activeBlock == TimeframeBlock.maxBlock ? null : () {
+                              setState(() {
+                                _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                              });
+                              _load();
+                            },
+                            displayDate: TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
+                            onTapDateDisplay: () async {
+                              final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                                context: context,
+                                activeBlock: _activeBlock,
+                                initialAnchor: _anchorDate,
+                                earliestAvailableDay: DateTime(2020),
+                              );
+                              if (selected != null) {
+                                setState(() {
+                                  _anchorDate = selected;
+                                });
+                                _load();
+                              }
+                            },
+                            nextEnabled: _activeBlock != TimeframeBlock.maxBlock && _anchorDate.isBefore(DateTime.now()),
+                          ),
                           const SizedBox(height: DesignConstants.spacingM),
                           Padding(
                             padding: const EdgeInsets.symmetric(
@@ -166,32 +217,7 @@ class _BodyNutritionCorrelationScreenState
     );
   }
 
-  Widget _buildRangeChips(AppLocalizations l10n) {
-    final labels = _ranges(l10n);
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.screenPaddingHorizontal,
-      ),
-      clipBehavior: Clip.none,
-      child: Row(
-        children: List.generate(labels.length, (index) {
-          return Padding(
-            padding: const EdgeInsets.only(right: DesignConstants.spacingS),
-            child: ChoiceChip(
-              label: Text(labels[index]),
-              selected: _rangeIndex == index,
-              onSelected: (selected) {
-                if (!selected) return;
-                setState(() => _rangeIndex = index);
-                _load();
-              },
-            ),
-          );
-        }),
-      ),
-    );
-  }
+  // Removed _buildRangeChips
 
   Widget _buildSummaryCard(
     AppLocalizations l10n,
@@ -387,17 +413,18 @@ class _BodyNutritionCorrelationScreenState
   String _effectiveRangeDisclosure() {
     final resolved = _rangePolicy.resolve(
       metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedBlockType: TimeframeBlock.values[_rangeIndex], now: DateTime.now(),
+      selectedBlockType: _activeBlock, 
+      now: _anchorDate,
       earliestAvailableDay: _analytics?.range.start,
     );
     final days = resolved.effectiveDays;
     final l10n = AppLocalizations.of(context)!;
     if (days == null || days <= 0) {
-      return _ranges(l10n)[_rangeIndex];
+      return TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
     }
-    if (TimeframeBlock.values[_rangeIndex] == TimeframeBlock.maxBlock) {
+    if (_activeBlock == TimeframeBlock.maxBlock) {
       return '$days ${l10n.analyticsDayUnitLabel}';
     }
-    return _ranges(l10n)[_rangeIndex];
+    return TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
   }
 }

@@ -55,6 +55,12 @@ class _SleepWeekOverviewPageState extends State<SleepWeekOverviewPage> {
       anchorDate: _anchorDay,
       onScopeChanged: _onScopeChanged,
       onShiftPeriod: _shiftPeriod,
+      onAnchorChanged: (date) {
+        setState(() {
+          _anchorDay = date;
+        });
+        _loadWeek();
+      },
       child: SeamlessLoadingOverlay(
         isLoading: _isLoading,
         isEmpty: _aggregation == null,

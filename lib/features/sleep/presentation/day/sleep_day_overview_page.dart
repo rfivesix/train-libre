@@ -109,6 +109,12 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
         anchorDate: _anchorDay,
         onScopeChanged: _onScopeChanged,
         onShiftPeriod: _shiftPeriod,
+        onAnchorChanged: (date) {
+          setState(() {
+            _anchorDay = date;
+          });
+          _loadScopeData();
+        },
         child: _buildScopeContent(context),
       ),
     );

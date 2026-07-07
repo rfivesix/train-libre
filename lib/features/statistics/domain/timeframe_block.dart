@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum TimeframeBlock {
+  day,
   week,
   month,
   threeMonths,
@@ -23,6 +24,10 @@ extension TimeframeBlockExtension on TimeframeBlock {
     DateTime end;
     
     switch (this) {
+      case TimeframeBlock.day:
+        start = anchor;
+        end = anchor;
+        break;
       case TimeframeBlock.week:
         // Assume week starts on Monday
         final weekday = anchor.weekday;
@@ -57,5 +62,37 @@ extension TimeframeBlockExtension on TimeframeBlock {
       start: DateTime(start.year, start.month, start.day),
       end: DateTime(end.year, end.month, end.day, 23, 59, 59),
     );
+  }
+
+  DateTime shift(DateTime anchor, int sign) {
+    if (this == TimeframeBlock.maxBlock) return anchor;
+    DateTime nextAnchor;
+    switch (this) {
+      case TimeframeBlock.day:
+        nextAnchor = anchor.add(Duration(days: sign));
+        break;
+      case TimeframeBlock.week:
+        nextAnchor = anchor.add(Duration(days: 7 * sign));
+        break;
+      case TimeframeBlock.month:
+        nextAnchor = DateTime(anchor.year, anchor.month + sign, 15);
+        break;
+      case TimeframeBlock.threeMonths:
+        nextAnchor = DateTime(anchor.year, anchor.month + 3 * sign, 15);
+        break;
+      case TimeframeBlock.sixMonths:
+        nextAnchor = DateTime(anchor.year, anchor.month + 6 * sign, 15);
+        break;
+      case TimeframeBlock.year:
+        nextAnchor = DateTime(anchor.year + sign, 6, 15);
+        break;
+      default:
+        nextAnchor = anchor;
+    }
+    DateTime shiftedStart = getBounds(nextAnchor, DateTime(2020)).start;
+    if (shiftedStart.isAfter(DateTime.now())) {
+      shiftedStart = DateTime.now();
+    }
+    return shiftedStart;
   }
 }

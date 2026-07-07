@@ -222,6 +222,9 @@ class StatisticsHubViewModel extends ChangeNotifier {
     final int sign = backwards ? -1 : 1;
     DateTime nextAnchor;
     switch (_activeBlockType) {
+      case TimeframeBlock.day:
+        nextAnchor = _anchorDate.add(Duration(days: sign));
+        break;
       case TimeframeBlock.week:
         nextAnchor = _anchorDate.add(Duration(days: 7 * sign));
         break;

@@ -6,9 +6,23 @@ import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/common.dart';
 import '../../../../widgets/common/global_app_bar.dart';
 import '../../../../widgets/common/algorithm_info_sheet.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../statistics/domain/timeframe_block.dart';
 
 enum SleepPeriodScope { day, week, month }
+
+extension SleepPeriodScopeTimeframe on SleepPeriodScope {
+  TimeframeBlock get block {
+    switch (this) {
+      case SleepPeriodScope.day:
+        return TimeframeBlock.day;
+      case SleepPeriodScope.week:
+        return TimeframeBlock.week;
+      case SleepPeriodScope.month:
+        return TimeframeBlock.month;
+    }
+  }
+}
 
 class SleepPeriodScopeLayout extends StatelessWidget {
   const SleepPeriodScopeLayout({
@@ -18,6 +32,7 @@ class SleepPeriodScopeLayout extends StatelessWidget {
     required this.anchorDate,
     required this.onScopeChanged,
     required this.onShiftPeriod,
+    required this.onAnchorChanged,
     required this.child,
   });
 
@@ -26,6 +41,7 @@ class SleepPeriodScopeLayout extends StatelessWidget {
   final DateTime anchorDate;
   final ValueChanged<SleepPeriodScope> onScopeChanged;
   final ValueChanged<int> onShiftPeriod;
+  final ValueChanged<DateTime> onAnchorChanged;
   final Widget child;
 
   @override
@@ -67,36 +83,21 @@ class SleepPeriodScopeLayout extends StatelessWidget {
             selectedIndex: selectedScope.index,
             onSelected: (index) =>
                 onScopeChanged(SleepPeriodScope.values[index]),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal,
-              vertical: DesignConstants.spacingS,
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  key: const Key('sleep-period-prev'),
-                  onPressed: () => onShiftPeriod(-1),
-                  icon: const Icon(LucideIcons.chevron_left),
-                ),
-                Expanded(
-                  child: Text(
-                    _periodLabel(localeCode),
-                    key: const Key('sleep-period-label'),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ),
-                IconButton(
-                  key: const Key('sleep-period-next'),
-                  onPressed: () => onShiftPeriod(1),
-                  icon: const Icon(LucideIcons.chevron_right),
-                ),
-              ],
-            ),
+            onPrevious: () => onShiftPeriod(-1),
+            onNext: () => onShiftPeriod(1),
+            displayDate: _periodLabel(localeCode),
+            onTapDateDisplay: () async {
+              final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                context: context,
+                activeBlock: selectedScope.block,
+                initialAnchor: anchorDate,
+                earliestAvailableDay: DateTime(2020),
+              );
+              if (selected != null) {
+                onAnchorChanged(selected);
+              }
+            },
+            nextEnabled: selectedScope.block.getBounds(anchorDate, DateTime(2020)).end.isBefore(DateTime.now()),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           child,

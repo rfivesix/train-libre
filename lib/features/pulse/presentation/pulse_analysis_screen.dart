@@ -102,6 +102,12 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
       anchorDate: _anchorDate,
       onScopeChanged: _onScopeChanged,
       onShiftPeriod: _shiftPeriod,
+      onAnchorChanged: (date) {
+        setState(() {
+          _anchorDate = date;
+        });
+        _loadAnalysis();
+      },
       child: _summary == null
           ? const SizedBox(
               height: 240,

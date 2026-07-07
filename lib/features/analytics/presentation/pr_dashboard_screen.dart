@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
-import '../../statistics/domain/statistics_range_policy.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import '../../statistics/presentation/statistics_formatter.dart';
 import '../../../generated/app_localizations.dart';
@@ -11,6 +10,8 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
+import '../../../util/timeframe_label_formatter.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
 
 class PRDashboardScreen extends StatefulWidget {
   const PRDashboardScreen({super.key});
@@ -20,9 +21,26 @@ class PRDashboardScreen extends StatefulWidget {
 }
 
 class _PRDashboardScreenState extends State<PRDashboardScreen> {
-  final _rangePolicy = StatisticsRangePolicyService.instance;
   bool _isLoading = true;
-  int _selectedWindowDays = 30;
+  
+  TimeframeBlock _activeBlock = TimeframeBlock.month;
+  DateTime _anchorDate = DateTime.now();
+
+  final List<TimeframeBlock> _validBlocks = const [
+    TimeframeBlock.week,
+    TimeframeBlock.month,
+    TimeframeBlock.threeMonths,
+    TimeframeBlock.year,
+    TimeframeBlock.maxBlock,
+  ];
+
+  List<String> _timeRanges(AppLocalizations l10n) => [
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter1YearShort,
+        l10n.filterMax,
+      ];
 
   List<Map<String, dynamic>> _recentPrs = [];
   List<Map<String, dynamic>> _allTimePrs = [];
@@ -44,21 +62,12 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     );
     final repRange =
         WorkoutLocalDataSource.instance.getAllTimePRsByRepBracket();
+    final bounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+    final daysBack = DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
+
     final improvements =
         WorkoutLocalDataSource.instance.getNotablePrImprovements(
-      daysWindow: _rangePolicy
-              .resolve(
-                metricId: StatisticsMetricId.prNotableImprovements,
-                selectedBlockType: _selectedWindowDays == 7
-                    ? TimeframeBlock.week
-                    : _selectedWindowDays == 30
-                        ? TimeframeBlock.month
-                        : _selectedWindowDays == 90
-                            ? TimeframeBlock.threeMonths
-                            : TimeframeBlock.maxBlock,
-              )
-              .effectiveDays ??
-          _selectedWindowDays,
+      daysWindow: daysBack,
       limit: 6,
     );
 
@@ -113,13 +122,43 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppSectionHeader(title: l10n.analyticsNotableImprovements),
-                  Row(
-                    children: [
-                      _windowChip(7, l10n.filter7Days),
-                      _windowChip(30, l10n.filter30Days),
-                      _windowChip(90, l10n.filter3Months),
-                      _windowChip(3650, l10n.filterAll),
-                    ],
+                  TimeRangeFilter(
+                    ranges: _timeRanges(l10n),
+                    selectedIndex: _validBlocks.indexOf(_activeBlock),
+                    onSelected: (index) {
+                      setState(() {
+                        _activeBlock = _validBlocks[index];
+                      });
+                      _loadData();
+                    },
+                    onPrevious: _activeBlock == TimeframeBlock.maxBlock ? null : () {
+                      setState(() {
+                        _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                      });
+                      _loadData();
+                    },
+                    onNext: _activeBlock == TimeframeBlock.maxBlock ? null : () {
+                      setState(() {
+                        _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                      });
+                      _loadData();
+                    },
+                    displayDate: TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
+                    onTapDateDisplay: () async {
+                      final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                        context: context,
+                        activeBlock: _activeBlock,
+                        initialAnchor: _anchorDate,
+                        earliestAvailableDay: DateTime(2020),
+                      );
+                      if (selected != null) {
+                        setState(() {
+                          _anchorDate = selected;
+                        });
+                        _loadData();
+                      }
+                    },
+                    nextEnabled: _activeBlock != TimeframeBlock.maxBlock && _anchorDate.isBefore(DateTime.now()),
                   ),
                   const SizedBox(height: DesignConstants.spacingS),
                   SummaryCard(
@@ -330,19 +369,5 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     );
   }
 
-  Widget _windowChip(int days, String label) {
-    final selected = _selectedWindowDays == days;
-    return Padding(
-      padding: const EdgeInsets.only(right: DesignConstants.spacingS),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (value) {
-          if (!value || selected) return;
-          setState(() => _selectedWindowDays = days);
-          _loadData();
-        },
-      ),
-    );
-  }
+  // Removed _windowChip
 }

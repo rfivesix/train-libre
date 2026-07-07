@@ -11,13 +11,16 @@ import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
+import '../../../widgets/common/time_range_filter.dart';
+import '../../../util/timeframe_label_formatter.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../statistics/domain/timeframe_block.dart';
 
 import '../data/steps_aggregation_repository.dart';
 import '../domain/steps_models.dart';
 import 'statistics_steps_card.dart';
 import 'widgets/steps_day_chart.dart';
 import 'widgets/steps_month_chart.dart';
-import 'widgets/steps_period_navigator.dart';
 import 'widgets/steps_week_chart.dart';
 
 class StepsModuleScreen extends StatefulWidget {
@@ -42,8 +45,30 @@ class StepsModuleScreen extends StatefulWidget {
 
 class _StepsModuleScreenState extends State<StepsModuleScreen> {
   late final StepsAggregationRepository _repository;
-  StepsScope _scope = StepsScope.day;
+  
+  TimeframeBlock _activeBlock = TimeframeBlock.day;
   DateTime _anchorDate = DateTime.now();
+
+  final List<TimeframeBlock> _validBlocks = const [
+    TimeframeBlock.day,
+    TimeframeBlock.week,
+    TimeframeBlock.month,
+  ];
+
+  List<String> _timeRanges(AppLocalizations l10n) => [
+        l10n.stepsModuleDay,
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+      ];
+
+  StepsScope get _scope {
+    switch (_activeBlock) {
+      case TimeframeBlock.day: return StepsScope.day;
+      case TimeframeBlock.week: return StepsScope.week;
+      case TimeframeBlock.month: return StepsScope.month;
+      default: return StepsScope.day;
+    }
+  }
   bool _isLoading = true;
   DayStepsAggregation? _dayData;
   WeekStepsAggregation? _weekData;
@@ -57,7 +82,13 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
   void initState() {
     super.initState();
     _repository = widget.repository ?? HealthStepsAggregationRepository();
-    _scope = widget.initialScope;
+    
+    switch (widget.initialScope) {
+      case StepsScope.day: _activeBlock = TimeframeBlock.day; break;
+      case StepsScope.week: _activeBlock = TimeframeBlock.week; break;
+      case StepsScope.month: _activeBlock = TimeframeBlock.month; break;
+    }
+    
     final seed = widget.initialDate ?? DateTime.now();
     _anchorDate = DateTime(seed.year, seed.month, seed.day);
     _loadScopeData();
@@ -127,81 +158,7 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
     return StepsSyncService.providerFilterToRaw(providerFilter);
   }
 
-  void _onScopeChanged(StepsScope nextScope) {
-    if (_scope == nextScope) return;
-    setState(() => _scope = nextScope);
-    _loadScopeData();
-  }
-
-  void _shiftPeriod(int direction) {
-    setState(() {
-      switch (_scope) {
-        case StepsScope.day:
-          _anchorDate = DateTime(
-            _anchorDate.year,
-            _anchorDate.month,
-            _anchorDate.day + direction,
-          );
-          break;
-        case StepsScope.week:
-          _anchorDate = _anchorDate.add(Duration(days: 7 * direction));
-          break;
-        case StepsScope.month:
-          _anchorDate = DateTime(
-            _anchorDate.year,
-            _anchorDate.month + direction,
-            1,
-          );
-          break;
-      }
-    });
-    _loadScopeData();
-  }
-
-  bool _canShiftForward() {
-    final now = DateTime.now();
-    switch (_scope) {
-      case StepsScope.day:
-        final selected = DateTime(
-          _anchorDate.year,
-          _anchorDate.month,
-          _anchorDate.day,
-        );
-        final today = DateTime(now.year, now.month, now.day);
-        return selected.isBefore(today);
-      case StepsScope.week:
-        final selectedStart = _startOfWeek(_anchorDate);
-        final currentStart = _startOfWeek(now);
-        return selectedStart.isBefore(currentStart);
-      case StepsScope.month:
-        final selected = DateTime(_anchorDate.year, _anchorDate.month, 1);
-        final current = DateTime(now.year, now.month, 1);
-        return selected.isBefore(current);
-    }
-  }
-
-  DateTime _startOfWeek(DateTime date) {
-    final day = DateTime(date.year, date.month, date.day);
-    return day.subtract(Duration(days: day.weekday - DateTime.monday));
-  }
-
-  String _periodLabel(BuildContext context) {
-    final localeCode = Localizations.localeOf(
-      context,
-    ).languageCode.toLowerCase();
-    switch (_scope) {
-      case StepsScope.day:
-        return DateFormat.yMMMd(localeCode).format(_anchorDate);
-      case StepsScope.week:
-        final start = _startOfWeek(_anchorDate);
-        final end = start.add(const Duration(days: 6));
-        return '${DateFormat.MMMd(localeCode).format(start)} – ${DateFormat.MMMd(localeCode).format(end)}';
-      case StepsScope.month:
-        return DateFormat.yMMMM(
-          localeCode,
-        ).format(DateTime(_anchorDate.year, _anchorDate.month, 1));
-    }
-  }
+  // Removed _onScopeChanged, _shiftPeriod, _canShiftForward, _startOfWeek, _periodLabel
 
   @override
   Widget build(BuildContext context) {
@@ -219,17 +176,43 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ScopeSwitcher(scope: _scope, onChanged: _onScopeChanged),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.cardPaddingInternal,
-              ),
-              child: StepsPeriodNavigator(
-                periodLabel: _periodLabel(context),
-                onPrevious: () => _shiftPeriod(-1),
-                onNext: () => _shiftPeriod(1),
-                canForward: _canShiftForward(),
-              ),
+            TimeRangeFilter(
+              ranges: _timeRanges(AppLocalizations.of(context)!),
+              selectedIndex: _validBlocks.indexOf(_activeBlock),
+              onSelected: (index) {
+                setState(() {
+                  _activeBlock = _validBlocks[index];
+                });
+                _loadScopeData();
+              },
+              onPrevious: () {
+                setState(() {
+                  _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                });
+                _loadScopeData();
+              },
+              onNext: () {
+                setState(() {
+                  _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                });
+                _loadScopeData();
+              },
+              displayDate: TimeframeLabelFormatter.format(_activeBlock, _anchorDate, AppLocalizations.of(context)!),
+              onTapDateDisplay: () async {
+                final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                  context: context,
+                  activeBlock: _activeBlock,
+                  initialAnchor: _anchorDate,
+                  earliestAvailableDay: DateTime(2020),
+                );
+                if (selected != null) {
+                  setState(() {
+                    _anchorDate = selected;
+                  });
+                  _loadScopeData();
+                }
+              },
+              nextEnabled: _activeBlock.getBounds(_anchorDate, DateTime(2020)).end.isBefore(DateTime.now()),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Expanded(
@@ -367,30 +350,6 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
       default:
         return l10n.statisticsProviderLocal;
     }
-  }
-}
-
-class _ScopeSwitcher extends StatelessWidget {
-  const _ScopeSwitcher({required this.scope, required this.onChanged});
-
-  final StepsScope scope;
-  final ValueChanged<StepsScope> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Semantics(
-      label: l10n.stepsModuleScopeSwitcherSemantics,
-      child: TimeRangeFilter(
-        ranges: [
-          l10n.stepsModuleDay,
-          l10n.stepsModuleWeek,
-          l10n.stepsModuleMonth,
-        ],
-        selectedIndex: scope.index,
-        onSelected: (index) => onChanged(StepsScope.values[index]),
-      ),
-    );
   }
 }
 
