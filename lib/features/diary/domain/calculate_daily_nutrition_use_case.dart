@@ -54,8 +54,9 @@ class CalculateDailyNutritionUseCase {
     );
 
     // Workout Summary
-    final completedLogs =
-        workoutLogs.where((log) => log.endTime != null).toList();
+    final completedLogs = workoutLogs
+        .where((log) => log.endTime != null)
+        .toList();
     Map<String, dynamic>? workoutSummary;
     if (completedLogs.isNotEmpty) {
       Duration totalDuration = Duration.zero;
@@ -78,32 +79,39 @@ class CalculateDailyNutritionUseCase {
 
     // Removed foodProducts list conversion, maps are passed as parameters
 
+    // Pre-filter fluid foods to avoid redundant map lookups in the nested loop
+    final fluidFoodEntries = foodEntries.where((food) {
+      final foodItem = food.archiveLocalId != null
+          ? foodProductsByArchiveLocalId[food.archiveLocalId!]
+          : foodProductsByBarcode[food.barcode];
+      return foodItem != null &&
+          (foodItem.isFluid || (foodItem.isLiquid ?? false));
+    }).toList();
+
     // Fluids
-    summary.water =
-        fluidEntries.fold<int>(0, (sum, entry) => sum + entry.quantityInMl);
+    summary.water = fluidEntries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.quantityInMl,
+    );
     for (final entry in fluidEntries) {
-      final isLinked = entry.linkedFoodEntryId != null;
-      final isDuplicateOfFood = foodEntries.any((food) {
-        final foodItem = food.archiveLocalId != null
-            ? foodProductsByArchiveLocalId[food.archiveLocalId!]
-            : foodProductsByBarcode[food.barcode];
-        final isFluidFood = foodItem != null &&
-            (foodItem.isFluid || (foodItem.isLiquid ?? false));
-        if (!isFluidFood) return false;
+      // Short-circuit: skip evaluating duplicate logic if entry is already explicitly linked
+      if (entry.linkedFoodEntryId != null) {
+        continue;
+      }
 
-        // Match by linked ID
-        if (entry.linkedFoodEntryId == food.id) return true;
-
+      final isDuplicateOfFood = fluidFoodEntries.any((food) {
         // Defensive match: same day/time and similar quantity
-        final timeDiff =
-            entry.timestamp.difference(food.timestamp).inSeconds.abs();
+        final timeDiff = entry.timestamp
+            .difference(food.timestamp)
+            .inSeconds
+            .abs();
         if (timeDiff < 2 && entry.quantityInMl == food.quantityInGrams) {
           return true;
         }
         return false;
       });
 
-      if (isLinked || isDuplicateOfFood) {
+      if (isDuplicateOfFood) {
         continue;
       }
 
@@ -127,14 +135,12 @@ class CalculateDailyNutritionUseCase {
           ? foodProductsByArchiveLocalId[entry.archiveLocalId!]
           : foodProductsByBarcode[entry.barcode];
       if (foodItem != null) {
-        summary.calories +=
-            (foodItem.calories / 100 * entry.quantityInGrams).round();
-        summary.protein +=
-            (foodItem.protein / 100 * entry.quantityInGrams).round();
-        summary.carbs += (foodItem.carbs / 100 * entry.quantityInGrams).round();
-        summary.fat += (foodItem.fat / 100 * entry.quantityInGrams).round();
-        summary.sugar +=
-            (foodItem.sugar ?? 0) * (entry.quantityInGrams / 100.0);
+        final ratio = entry.quantityInGrams / 100.0;
+        summary.calories += (foodItem.calories * ratio).round();
+        summary.protein += (foodItem.protein * ratio).round();
+        summary.carbs += (foodItem.carbs * ratio).round();
+        summary.fat += (foodItem.fat * ratio).round();
+        summary.sugar += (foodItem.sugar ?? 0) * ratio;
 
         final trackedItem = TrackedFoodItem(entry: entry, item: foodItem);
         groupedEntries[entry.mealType]?.add(trackedItem);
