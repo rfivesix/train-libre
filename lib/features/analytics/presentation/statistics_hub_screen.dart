@@ -127,6 +127,15 @@ class _StatisticsHubScreenView extends StatelessWidget {
         l10n.filterMax,
       ];
 
+  static const _hubBlocks = [
+    TimeframeBlock.week,
+    TimeframeBlock.month,
+    TimeframeBlock.threeMonths,
+    TimeframeBlock.sixMonths,
+    TimeframeBlock.year,
+    TimeframeBlock.maxBlock,
+  ];
+
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<StatisticsHubViewModel>();
@@ -148,9 +157,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 TimeRangeFilter(
                   ranges: _timeRanges(l10n),
-                  selectedIndex: viewModel.activeBlockType.index,
+                  selectedIndex: _hubBlocks.indexOf(viewModel.activeBlockType),
                   onSelected: (index) {
-                    viewModel.activeBlockType = TimeframeBlock.values[index];
+                    viewModel.activeBlockType = _hubBlocks[index];
                   },
                   onPrevious: viewModel.activeBlockType == TimeframeBlock.maxBlock ? null : () => viewModel.shiftTimeframe(true),
                   onNext: viewModel.activeBlockType == TimeframeBlock.maxBlock ? null : () => viewModel.shiftTimeframe(false),

@@ -17,12 +17,16 @@ class SummaryCard extends StatelessWidget {
   /// Optional tap handler for the card.
   final VoidCallback? onTap;
 
+  /// Whether to disable the drop shadow.
+  final bool disableShadow;
+
   const SummaryCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(DesignConstants.spacingM),
     this.margin = const EdgeInsets.symmetric(vertical: 6.0),
     this.onTap,
+    this.disableShadow = false,
   });
 
   @override
@@ -37,13 +41,15 @@ class SummaryCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: radius,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 9,
-              offset: const Offset(0, 3),
-              color: cs.shadow.withValues(alpha: isDark ? 0.2 : 0.08),
-            ),
-          ],
+          boxShadow: disableShadow
+              ? null
+              : [
+                  BoxShadow(
+                    blurRadius: 9,
+                    offset: const Offset(0, 3),
+                    color: cs.shadow.withValues(alpha: isDark ? 0.2 : 0.08),
+                  ),
+                ],
         ),
         child: ClipRRect(
           borderRadius: radius,

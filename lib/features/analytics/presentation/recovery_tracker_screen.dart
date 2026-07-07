@@ -712,18 +712,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                           ),
                         ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    hasData
-                        ? l10n.recoveryHubCountsSummary(
-                            recovering,
-                            ready,
-                            fresh,
-                          )
-                        : l10n.recoveryHubNoDataSummary,
-                  ),
                   if (hasData && tracked > 0) ...[
-                    const SizedBox(height: DesignConstants.spacingM),
+                    const SizedBox(height: DesignConstants.spacingL),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(999),
                       child: SizedBox(

@@ -4,6 +4,7 @@ import '../../../../util/design_constants.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../statistics/domain/recovery_payload_models.dart';
+import '../../../statistics/domain/recovery_domain_service.dart';
 import '../../../statistics/presentation/statistics_formatter.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
@@ -59,10 +60,6 @@ class RecoverySectionCard extends StatelessWidget {
       overallState,
     );
 
-    final recoveryStatusSummary = hasData
-        ? l10n.recoveryHubCountsSummary(recovering, ready, fresh)
-        : l10n.recoveryHubNoDataSummary;
-
     final iconColor = StatisticsPresentationFormatter.recoveryOverallColor(
       context,
       overallState,
@@ -90,22 +87,42 @@ class RecoverySectionCard extends StatelessWidget {
                       color: iconColor,
                     ),
               ),
-              const SizedBox(height: DesignConstants.spacingXS),
-              Text(
-                recoveryStatusSummary,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+              const SizedBox(height: DesignConstants.spacingL),
+              if (hasData)
+                Row(
+                  children: [
+                    _buildReadinessPill(
+                      context,
+                      l10n,
+                      state: RecoveryDomainService.stateRecovering,
+                      count: recovering,
+                      total: recovering + ready + fresh,
                     ),
-              ),
-              if (hasData) ...[
-                const SizedBox(height: DesignConstants.spacingS),
-                _buildRecoveryDistributionBar(
-                  context,
-                  recovering: recovering,
-                  ready: ready,
-                  fresh: fresh,
+                    const SizedBox(width: DesignConstants.spacingS),
+                    _buildReadinessPill(
+                      context,
+                      l10n,
+                      state: RecoveryDomainService.stateReady,
+                      count: ready,
+                      total: recovering + ready + fresh,
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    _buildReadinessPill(
+                      context,
+                      l10n,
+                      state: RecoveryDomainService.stateFresh,
+                      count: fresh,
+                      total: recovering + ready + fresh,
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  l10n.recoveryHubNoDataSummary,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                 ),
-              ],
             ],
           ),
         ),
@@ -113,35 +130,78 @@ class RecoverySectionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRecoveryDistributionBar(
-    BuildContext context, {
-    required int recovering,
-    required int ready,
-    required int fresh,
+  Widget _buildReadinessPill(
+    BuildContext context,
+    AppLocalizations l10n, {
+    required String state,
+    required int count,
+    required int total,
   }) {
-    final total = recovering + ready + fresh;
-    if (total <= 0) return const SizedBox.shrink();
-    final colorScheme = Theme.of(context).colorScheme;
-    final segments = <MapEntry<int, Color>>[
-      MapEntry(recovering, colorScheme.error),
-      MapEntry(ready, colorScheme.primary),
-      MapEntry(fresh, colorScheme.tertiary),
-    ].where((segment) => segment.key > 0).toList(growable: false);
+    final color = StatisticsPresentationFormatter.recoveryStateColor(context, state);
+    final percent = total > 0 ? (count / total * 100).round() : 0;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
+    
+    final surfaceBase = isDark
+        ? DesignConstants.summaryCardDarkMode
+        : theme.colorScheme.surface.withValues(alpha: 0.95);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: SizedBox(
-        height: 8,
-        child: Row(
-          children: [
-            for (final segment in segments)
-              Expanded(
-                flex: segment.key,
-                child: ColoredBox(color: segment.value),
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
+              vertical: DesignConstants.spacingM,
+            ),
+            decoration: BoxDecoration(
+              color: surfaceBase,
+              borderRadius: radius,
+              border: Border.all(
+                color: color.withValues(alpha: isDark ? 0.35 : 0.25),
+                width: 1,
               ),
-            if (segments.isEmpty)
-              Expanded(child: ColoredBox(color: colorScheme.outline)),
-          ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$count',
+                  maxLines: 1,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingXS),
+                Text(
+                  StatisticsPresentationFormatter.recoveryStateLabel(l10n, state).toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: color.withValues(alpha: 0.85),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$percent%',
+                  maxLines: 1,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface
+                        .withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

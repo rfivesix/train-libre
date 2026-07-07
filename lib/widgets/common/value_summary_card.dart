@@ -15,6 +15,9 @@ class ValueSummaryCard extends StatelessWidget {
   /// Optional callback when the card is tapped.
   final VoidCallback? onTap;
 
+  /// Whether to disable the drop shadow.
+  final bool disableShadow;
+
   const ValueSummaryCard({
     super.key,
     required this.label,
@@ -22,6 +25,7 @@ class ValueSummaryCard extends StatelessWidget {
     this.valueColor,
     this.subtitle,
     this.onTap,
+    this.disableShadow = false,
   });
 
   @override
@@ -31,6 +35,7 @@ class ValueSummaryCard extends StatelessWidget {
     return SummaryCard(
       margin: EdgeInsets.zero,
       onTap: onTap,
+      disableShadow: disableShadow,
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.spacingM,
         vertical: DesignConstants.spacingS,

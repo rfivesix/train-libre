@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../../statistics/domain/body_nutrition_analytics_models.dart';
 import '../../../statistics/presentation/statistics_formatter.dart';
 import '../../../statistics/presentation/widgets/body_nutrition_normalized_trend_chart.dart';
@@ -88,54 +89,46 @@ class BodyMetricsSectionCard extends StatelessWidget {
                 label: title,
                 chipText: rangeLabel,
               ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildBodyTrendPill(
-                      context, l10n.metricsCurrentWeight, weightValue),
-                  _buildBodyTrendPill(
-                    context,
-                    l10n.metricsWeightChange,
-                    weightChangeValue,
-                  ),
-                  _buildBodyTrendPill(
-                    context,
-                    l10n.metricsAvgCalories,
-                    caloriesValue,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildBodyTrendPill(
-                    context,
-                    l10n.analyticsWeightTrendLabel,
-                    body == null
-                        ? l10n.analyticsTrendUnclear
-                        : StatisticsPresentationFormatter
-                            .bodyNutritionTrendDirectionLabel(
-                            l10n,
-                            body.weightTrend.direction,
-                          ),
-                  ),
-                  _buildBodyTrendPill(
-                    context,
-                    l10n.analyticsCaloriesTrendLabel,
-                    body == null
-                        ? l10n.analyticsTrendUnclear
-                        : StatisticsPresentationFormatter
-                            .bodyNutritionTrendDirectionLabel(
-                            l10n,
-                            body.calorieTrend.direction,
-                          ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: DesignConstants.spacingL),
+              _buildTwoColumnGrid([
+                ValueSummaryCard(
+                  label: l10n.metricsCurrentWeight,
+                  value: weightValue,
+                  disableShadow: true,
+                ),
+                ValueSummaryCard(
+                  label: l10n.metricsWeightChange,
+                  value: weightChangeValue,
+                  disableShadow: true,
+                ),
+                ValueSummaryCard(
+                  label: l10n.metricsAvgCalories,
+                  value: caloriesValue,
+                  disableShadow: true,
+                ),
+                ValueSummaryCard(
+                  label: l10n.analyticsWeightTrendLabel,
+                  value: body == null
+                      ? l10n.analyticsTrendUnclear
+                      : StatisticsPresentationFormatter
+                          .bodyNutritionTrendDirectionLabel(
+                          l10n,
+                          body.weightTrend.direction,
+                        ),
+                  disableShadow: true,
+                ),
+                ValueSummaryCard(
+                  label: l10n.analyticsCaloriesTrendLabel,
+                  value: body == null
+                      ? l10n.analyticsTrendUnclear
+                      : StatisticsPresentationFormatter
+                          .bodyNutritionTrendDirectionLabel(
+                          l10n,
+                          body.calorieTrend.direction,
+                        ),
+                  disableShadow: true,
+                ),
+              ]),
               const SizedBox(height: 10),
               Text(
                 relationship,
@@ -185,30 +178,28 @@ class BodyMetricsSectionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBodyTrendPill(BuildContext context, String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 10, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i += 2) {
+      final left = items[i];
+      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
+            ],
           ),
-        ],
-      ),
-    );
+        ),
+      );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
   }
 
   Widget _legendDot(

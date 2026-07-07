@@ -82,9 +82,7 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                 context,
                 label: title,
                 trailingIcon: true,
-                chipText: topMuscle == null
-                    ? null
-                    : '${(topMuscleShare * 100).toStringAsFixed(0)}%',
+                chipText: rangeLabel,
               ),
               const SizedBox(height: DesignConstants.spacingXS),
               Text(
@@ -115,9 +113,12 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                   ),
                 ),
               ],
-              if (rangeLabel != null && rangeLabel!.isNotEmpty) ...[
+              if (topMuscle != null) ...[
                 const SizedBox(height: 6),
-                AnalyticsCardBase.buildMicroCaption(context, rangeLabel!),
+                AnalyticsCardBase.buildMicroCaption(
+                  context,
+                  '${(topMuscleShare * 100).toStringAsFixed(0)}%',
+                ),
               ]
             ],
           ),
