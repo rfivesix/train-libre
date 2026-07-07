@@ -165,37 +165,82 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   }) {
     final color = _stateColor(context, state);
     final percent = total > 0 ? (count / total * 100).round() : 0;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
+    // Blend: card surface + color tint as a single background
+    final surfaceBase = isDark
+        ? DesignConstants.summaryCardDarkMode
+        : theme.colorScheme.surface.withValues(alpha: 0.95);
+
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: DesignConstants.spacingS,
-            vertical: DesignConstants.spacingS),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _stateLabel(l10n, state),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '$count · $percent%',
-              style: Theme.of(context).textTheme.bodySmall,
+          borderRadius: radius,
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 9,
+              offset: const Offset(0, 3),
+              color: theme.colorScheme.shadow
+                  .withValues(alpha: isDark ? 0.2 : 0.08),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
+              vertical: DesignConstants.spacingM,
+            ),
+            decoration: BoxDecoration(
+              color: surfaceBase,
+              borderRadius: radius,
+              border: Border.all(
+                color: color.withValues(alpha: isDark ? 0.35 : 0.25),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$count',
+                  maxLines: 1,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingXS),
+                Text(
+                  _stateLabel(l10n, state).toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: color.withValues(alpha: 0.85),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$percent%',
+                  maxLines: 1,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface
+                        .withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
+
 
   Widget _buildContextChip(BuildContext context, String text) {
     return Container(
@@ -446,6 +491,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
       child: SummaryCard(
+        padding: EdgeInsets.zero,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -650,120 +696,110 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                     padding: const EdgeInsets.only(
                         left: DesignConstants.spacingXS, bottom: 6),
                   ),
-                  SummaryCard(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _overallLabel(l10n, _recovery.overallState),
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: _overallStateColor(
+                  Text(
+                    _overallLabel(l10n, _recovery.overallState),
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: _overallStateColor(
+                            context,
+                            _recovery.overallState,
+                          ),
+                        ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    hasData
+                        ? l10n.recoveryHubCountsSummary(
+                            recovering,
+                            ready,
+                            fresh,
+                          )
+                        : l10n.recoveryHubNoDataSummary,
+                  ),
+                  if (hasData && tracked > 0) ...[
+                    const SizedBox(height: DesignConstants.spacingM),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: SizedBox(
+                        height: 8,
+                        child: Row(
+                          children: [
+                            if (recovering > 0)
+                              Expanded(
+                                flex: recovering,
+                                child: ColoredBox(
+                                  color: _stateColor(
                                     context,
-                                    _recovery.overallState,
+                                    RecoveryDomainService
+                                        .stateRecovering,
                                   ),
                                 ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            hasData
-                                ? l10n.recoveryHubCountsSummary(
-                                    recovering,
-                                    ready,
-                                    fresh,
-                                  )
-                                : l10n.recoveryHubNoDataSummary,
-                          ),
-                          if (hasData && tracked > 0) ...[
-                            const SizedBox(height: DesignConstants.spacingM),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(999),
-                              child: SizedBox(
-                                height: 8,
-                                child: Row(
-                                  children: [
-                                    if (recovering > 0)
-                                      Expanded(
-                                        flex: recovering,
-                                        child: ColoredBox(
-                                          color: _stateColor(
-                                            context,
-                                            RecoveryDomainService
-                                                .stateRecovering,
-                                          ),
-                                        ),
-                                      ),
-                                    if (ready > 0)
-                                      Expanded(
-                                        flex: ready,
-                                        child: ColoredBox(
-                                          color: _stateColor(
-                                            context,
-                                            RecoveryDomainService.stateReady,
-                                          ),
-                                        ),
-                                      ),
-                                    if (fresh > 0)
-                                      Expanded(
-                                        flex: fresh,
-                                        child: ColoredBox(
-                                          color: _stateColor(
-                                            context,
-                                            RecoveryDomainService.stateFresh,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
+                              ),
+                            if (ready > 0)
+                              Expanded(
+                                flex: ready,
+                                child: ColoredBox(
+                                  color: _stateColor(
+                                    context,
+                                    RecoveryDomainService.stateReady,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                _buildReadinessPill(
-                                  context,
-                                  l10n,
-                                  state: RecoveryDomainService.stateRecovering,
-                                  count: recovering,
-                                  total: tracked,
+                            if (fresh > 0)
+                              Expanded(
+                                flex: fresh,
+                                child: ColoredBox(
+                                  color: _stateColor(
+                                    context,
+                                    RecoveryDomainService.stateFresh,
+                                  ),
                                 ),
-                                const SizedBox(width: DesignConstants.spacingS),
-                                _buildReadinessPill(
-                                  context,
-                                  l10n,
-                                  state: RecoveryDomainService.stateReady,
-                                  count: ready,
-                                  total: tracked,
-                                ),
-                                const SizedBox(width: DesignConstants.spacingS),
-                                _buildReadinessPill(
-                                  context,
-                                  l10n,
-                                  state: RecoveryDomainService.stateFresh,
-                                  count: fresh,
-                                  total: tracked,
-                                ),
-                              ],
-                            ),
+                              ),
                           ],
-                          const SizedBox(height: DesignConstants.spacingS),
-                          Text(
-                            l10n.recoveryHeuristicDisclaimer,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _buildReadinessPill(
+                          context,
+                          l10n,
+                          state: RecoveryDomainService.stateRecovering,
+                          count: recovering,
+                          total: tracked,
+                        ),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        _buildReadinessPill(
+                          context,
+                          l10n,
+                          state: RecoveryDomainService.stateReady,
+                          count: ready,
+                          total: tracked,
+                        ),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        _buildReadinessPill(
+                          context,
+                          l10n,
+                          state: RecoveryDomainService.stateFresh,
+                          count: fresh,
+                          total: tracked,
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Text(
+                    l10n.recoveryHeuristicDisclaimer,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                   AppSectionHeader(
@@ -798,11 +834,10 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   ),
                   const SizedBox(height: DesignConstants.spacingS),
                   if (!hasData)
-                    SummaryCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(14.0),
-                        child: Text(l10n.recoveryNoDataBody),
-                      ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top: DesignConstants.spacingS),
+                      child: Text(l10n.recoveryNoDataBody),
                     )
                   else ...[
                     _buildZoneCard(

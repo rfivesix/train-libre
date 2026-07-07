@@ -6,10 +6,18 @@ class ValueSummaryCard extends StatelessWidget {
   final String label;
   final String value;
 
+  /// Optional colour override for the value text.
+  final Color? valueColor;
+
+  /// Optional third line rendered below the label in a smaller style.
+  final String? subtitle;
+
   const ValueSummaryCard({
     super.key,
     required this.label,
     required this.value,
+    this.valueColor,
+    this.subtitle,
   });
 
   @override
@@ -35,6 +43,7 @@ class ValueSummaryCard extends StatelessWidget {
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w900,
                 height: 1,
+                color: valueColor,
               ),
             ),
           ),
@@ -48,6 +57,17 @@ class ValueSummaryCard extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+              ),
+            ),
+          ],
         ],
       ),
     );

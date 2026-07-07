@@ -5,8 +5,8 @@ import '../../statistics/presentation/statistics_formatter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
 
@@ -19,7 +19,6 @@ class PRDashboardScreen extends StatefulWidget {
 
 class _PRDashboardScreenState extends State<PRDashboardScreen> {
   final _rangePolicy = StatisticsRangePolicyService.instance;
-  static const int _twoColumnGridCount = 2;
   bool _isLoading = true;
   int _selectedWindowDays = 30;
 
@@ -211,164 +210,72 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                   ),
                   const SizedBox(height: DesignConstants.spacingL),
                   AppSectionHeader(title: l10n.allTimeRecordsLabel),
-                  SummaryCard(
-                    child: _allTimePrs.isEmpty
-                        ? Padding(
-                            padding:
-                                const EdgeInsets.all(DesignConstants.spacingM),
-                            child: Text(l10n.noWorkoutDataLabel),
-                          )
-                        : LayoutBuilder(
-                            builder: (context, constraints) {
-                              final tileWidth = _calculateTileWidth(
-                                constraints.maxWidth,
-                              );
-                              return Wrap(
-                                spacing: DesignConstants.spacingS,
-                                runSpacing: DesignConstants.spacingS,
-                                children: _allTimePrs.asMap().entries.map((
-                                  entry,
-                                ) {
-                                  return Container(
-                                    width: tileWidth,
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .surfaceContainerHighest
-                                          .withValues(alpha: 0.35),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '#${entry.key + 1}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w700,
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                              ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          _perfLabel(entry.value),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                        ),
-                                        Text(
-                                          entry.value['exerciseName'] as String,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall,
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              );
-                            },
-                          ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                  AppSectionHeader(title: l10n.prsByRepRangeLabel),
-                  SummaryCard(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final tileWidth = _calculateTileWidth(
-                          constraints.maxWidth,
-                        );
-                        return Wrap(
-                          spacing: DesignConstants.spacingS,
-                          runSpacing: DesignConstants.spacingS,
-                          children: _prsByRepRange.entries.map((entry) {
-                            final data = entry.value;
-                            final hasData = data != null;
-                            return Container(
-                              width: tileWidth,
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest
-                                    .withValues(alpha: 0.35),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    entry.key.replaceAll(
-                                      'RM',
-                                      l10n.analyticsRepRangeSuffix,
-                                    ),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelMedium
-                                        ?.copyWith(fontWeight: FontWeight.w700),
-                                  ),
-                                  const SizedBox(
-                                      height: DesignConstants.spacingXS),
-                                  if (hasData) ...[
-                                    Text(
-                                      l10n.analyticsPerfWithReps(
-                                        StatisticsPresentationFormatter
-                                            .formatWeight(
-                                          (data['weight'] as num).toDouble(),
-                                        ),
-                                        (data['reps'] as num).toInt(),
-                                      ),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    Text(
-                                      data['exerciseName'] as String,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                    ),
-                                  ] else
-                                    Text(
-                                      l10n.analyticsNoRecordYet,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                    ),
-                                ],
-                              ),
+                  _allTimePrs.isEmpty
+                      ? Text(
+                          l10n.noWorkoutDataLabel,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        )
+                      : _buildTwoColumnGrid(
+                          _allTimePrs.asMap().entries.map((entry) {
+                            return ValueSummaryCard(
+                              label: '#${entry.key + 1}',
+                              value: _perfLabel(entry.value),
+                              subtitle:
+                                  entry.value['exerciseName'] as String,
                             );
                           }).toList(),
-                        );
-                      },
-                    ),
+                        ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                  AppSectionHeader(title: l10n.prsByRepRangeLabel),
+                  _buildTwoColumnGrid(
+                    _prsByRepRange.entries.map((entry) {
+                      final data = entry.value;
+                      final hasData = data != null;
+                      return ValueSummaryCard(
+                        label: entry.key.replaceAll(
+                          'RM',
+                          l10n.analyticsRepRangeSuffix,
+                        ),
+                        value: hasData
+                            ? l10n.analyticsPerfWithReps(
+                                StatisticsPresentationFormatter.formatWeight(
+                                  (data['weight'] as num).toDouble(),
+                                ),
+                                (data['reps'] as num).toInt(),
+                              )
+                            : '–',
+                        subtitle: hasData
+                            ? data['exerciseName'] as String
+                            : l10n.analyticsNoRecordYet,
+                      );
+                    }).toList(),
                   ),
+
                 ],
               ),
             ),
     );
   }
 
-  double _calculateTileWidth(double availableWidth) {
-    return (availableWidth - DesignConstants.spacingS) / _twoColumnGridCount;
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i += 2) {
+      final left = items[i];
+      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
+            ],
+          ),
+        ),
+      );
+    }
+    return Column(children: rows);
   }
 
   Widget _buildRankedRow({

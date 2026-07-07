@@ -14,7 +14,6 @@ import 'widgets/analytics_chart_defaults.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../workout/presentation/widgets/muscle_color_helper.dart';
-import '../../../widgets/common/summary_card.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
 
@@ -216,31 +215,22 @@ class _MuscleGroupAnalyticsScreenState
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                   _sectionLabel(l10n.analyticsGuidanceTitle),
-                  SummaryCard(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            dataQualityOk
-                                ? l10n.analyticsGuidanceDirectionalDisclaimer
-                                : l10n.analyticsGuidanceSoftenedDisclaimer,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
-                          const SizedBox(height: DesignConstants.spacingS),
-                          Text(
-                            _guidanceLabel(dataQualityOk, undertrained),
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
+                  const SizedBox(height: DesignConstants.spacingXS),
+                  Text(
+                    dataQualityOk
+                        ? l10n.analyticsGuidanceDirectionalDisclaimer
+                        : l10n.analyticsGuidanceSoftenedDisclaimer,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Text(
+                    _guidanceLabel(dataQualityOk, undertrained),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
               ),
@@ -335,16 +325,14 @@ class _MuscleGroupAnalyticsScreenState
   Widget _buildWeeklySetsCard(Map<String, dynamic>? selectedWeek) {
     final l10n = AppLocalizations.of(context)!;
     if (selectedWeek == null) {
-      return SummaryCard(
-        child: SizedBox(
+      return SizedBox(
+        height: 180,
+        child: AnalyticsChartDefaults.stateView(
+          context: context,
+          l10n: l10n,
+          status: AnalyticsStatus.empty,
+          emptyLabel: l10n.noWorkoutDataLabel,
           height: 180,
-          child: AnalyticsChartDefaults.stateView(
-            context: context,
-            l10n: l10n,
-            status: AnalyticsStatus.empty,
-            emptyLabel: l10n.noWorkoutDataLabel,
-            height: 180,
-          ),
         ),
       );
     }
@@ -442,16 +430,14 @@ class _MuscleGroupAnalyticsScreenState
   }) {
     final l10n = AppLocalizations.of(context)!;
     if (items.isEmpty) {
-      return SummaryCard(
-        child: SizedBox(
+      return SizedBox(
+        height: chartHeight,
+        child: AnalyticsChartDefaults.stateView(
+          context: context,
+          l10n: l10n,
+          status: AnalyticsStatus.empty,
+          emptyLabel: emptyLabel,
           height: chartHeight,
-          child: AnalyticsChartDefaults.stateView(
-            context: context,
-            l10n: l10n,
-            status: AnalyticsStatus.empty,
-            emptyLabel: emptyLabel,
-            height: chartHeight,
-          ),
         ),
       );
     }
@@ -480,169 +466,155 @@ class _MuscleGroupAnalyticsScreenState
       }
     }
 
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            if (emphasize)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  margin:
-                      const EdgeInsets.only(bottom: DesignConstants.spacingS),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingS,
-                    vertical: DesignConstants.spacingXS,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer.withValues(alpha: 0.45),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    l10n.analyticsEquivalentSetsExplainer,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
-              ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: AnalyticsChartDefaults.axisTitleLabel(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (emphasize)
+          Container(
+            margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingS,
+              vertical: DesignConstants.spacingXS,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(
                 context,
-                'Y: $yAxisLabel',
-              ),
+              ).colorScheme.primaryContainer.withValues(alpha: 0.45),
+              borderRadius: BorderRadius.circular(6),
             ),
-            const SizedBox(height: DesignConstants.spacingXS),
-            SizedBox(
-              height: chartHeight,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  gridData: AnalyticsChartDefaults.compactGrid,
-                  borderData: AnalyticsChartDefaults.noBorder,
-                  maxY: computedMaxY,
-                  barTouchData: BarTouchData(
-                    touchTooltipData: BarTouchTooltipData(
-                      tooltipBorderRadius: BorderRadius.circular(16),
-                      tooltipMargin: 12,
-                      tooltipPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      getTooltipColor: (_) {
-                        final isDark =
-                            Theme.of(context).brightness == Brightness.dark;
-                        return isDark
-                            ? const Color(0xFF2A2A2A)
-                            : Theme.of(context)
-                                .colorScheme
-                                .surface
-                                .withValues(alpha: 0.95);
-                      },
-                      tooltipBorder: BorderSide(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.08),
-                      ),
-                      getTooltipItem: (group, _, rod, __) {
-                        final index = group.x.toInt();
-                        final label = labels[index];
-                        final value = values[index];
-                        return BarTooltipItem(
-                          '$label\n${_formatCompact(value)} $unit',
-                          Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                    fontWeight: FontWeight.w600,
-                                  ) ??
-                              TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        );
-                      },
-                    ),
-                  ),
-                  titlesData: AnalyticsChartDefaults.standardTitles(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        interval: tickInterval,
-                        getTitlesWidget: (value, meta) =>
-                            AnalyticsChartDefaults.tickLabel(
-                          context,
-                          _formatCompact(value),
-                        ),
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 48,
-                        getTitlesWidget: (value, meta) {
-                          final index = value.toInt();
-                          if (index < 0 || index >= labels.length) {
-                            return const SizedBox.shrink();
-                          }
-                          final label = labels[index];
-                          final compact = label.length > 8
-                              ? '${label.substring(0, 8)}...'
-                              : label;
-                          return SideTitleWidget(
-                            meta: meta,
-                            space: 4,
-                            angle: -45 * 3.141592653589793 / 180,
-                            child: AnalyticsChartDefaults.tickLabel(
-                              context,
-                              compact,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  barGroups: values
-                      .asMap()
-                      .entries
-                      .map(
-                        (entry) => BarChartGroupData(
-                          x: entry.key,
-                          barRods: [
-                            BarChartRodData(
-                              toY: entry.value,
-                              width: emphasize ? 16 : 14,
-                              borderRadius: BorderRadius.circular(4),
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
+            child: Text(
+              l10n.analyticsEquivalentSetsExplainer,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: AnalyticsChartDefaults.axisTitleLabel(
-                context,
-                'X: ${l10n.analyticsViewByMuscle}',
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              footer,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-          ],
+          ),
+        AnalyticsChartDefaults.axisTitleLabel(
+          context,
+          'Y: $yAxisLabel',
         ),
-      ),
+        const SizedBox(height: DesignConstants.spacingS),
+        SizedBox(
+          height: chartHeight,
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              gridData: AnalyticsChartDefaults.themeAwareCompactGrid(context),
+              borderData: AnalyticsChartDefaults.noBorder,
+              maxY: computedMaxY,
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  tooltipBorderRadius: BorderRadius.circular(16),
+                  tooltipMargin: 12,
+                  tooltipPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  getTooltipColor: (_) {
+                    final isDark =
+                        Theme.of(context).brightness == Brightness.dark;
+                    return isDark
+                        ? const Color(0xFF2A2A2A)
+                        : Theme.of(context)
+                            .colorScheme
+                            .surface
+                            .withValues(alpha: 0.95);
+                  },
+                  tooltipBorder: BorderSide(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.08),
+                  ),
+                  getTooltipItem: (group, _, rod, __) {
+                    final index = group.x.toInt();
+                    final label = labels[index];
+                    final value = values[index];
+                    return BarTooltipItem(
+                      '$label\n${_formatCompact(value)} $unit',
+                      Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color:
+                                    Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.w600,
+                              ) ??
+                          TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    );
+                  },
+                ),
+              ),
+              titlesData: AnalyticsChartDefaults.standardTitles(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    interval: tickInterval,
+                    getTitlesWidget: (value, meta) =>
+                        AnalyticsChartDefaults.tickLabel(
+                      context,
+                      _formatCompact(value),
+                    ),
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 48,
+                    getTitlesWidget: (value, meta) {
+                      final index = value.toInt();
+                      if (index < 0 || index >= labels.length) {
+                        return const SizedBox.shrink();
+                      }
+                      final label = labels[index];
+                      final compact = label.length > 8
+                          ? '${label.substring(0, 8)}...'
+                          : label;
+                      return SideTitleWidget(
+                        meta: meta,
+                        space: 4,
+                        angle: -45 * 3.141592653589793 / 180,
+                        child: AnalyticsChartDefaults.tickLabel(
+                          context,
+                          compact,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              barGroups: values
+                  .asMap()
+                  .entries
+                  .map(
+                    (entry) => BarChartGroupData(
+                      x: entry.key,
+                      barRods: [
+                        BarChartRodData(
+                          toY: entry.value,
+                          width: emphasize ? 16 : 14,
+                          borderRadius: BorderRadius.circular(4),
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        AnalyticsChartDefaults.axisTitleLabel(
+          context,
+          'X: ${l10n.analyticsViewByMuscle}',
+        ),
+        const SizedBox(height: 6),
+        Text(
+          footer,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+        ),
+      ],
     );
   }
 

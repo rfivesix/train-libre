@@ -8,6 +8,23 @@ class AnalyticsChartDefaults {
     show: true,
     drawVerticalLine: false,
   );
+
+  /// Returns a theme-aware compact grid whose horizontal lines use the
+  /// scaffold's outline colour at low opacity, so they look clean against
+  /// the bare scaffold background in both dark and light modes.
+  static FlGridData themeAwareCompactGrid(BuildContext context) {
+    final lineColor =
+        Theme.of(context).colorScheme.outline.withValues(alpha: 0.15);
+    return FlGridData(
+      show: true,
+      drawVerticalLine: false,
+      getDrawingHorizontalLine: (_) => FlLine(
+        color: lineColor,
+        strokeWidth: 1,
+      ),
+    );
+  }
+
   static const FlGridData noGrid = FlGridData(show: false);
   static final FlBorderData noBorder = FlBorderData(show: false);
 
