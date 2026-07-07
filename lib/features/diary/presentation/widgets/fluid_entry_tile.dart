@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/swipe_action_background.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/models/fluid_entry.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -56,8 +55,8 @@ class FluidEntryTile extends StatelessWidget {
           onDelete(entry.id!);
         }
       },
-      child: SummaryCard(
-        child: ListTile(
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
           title: Text(entry.name, style: theme.textTheme.titleMedium),
           subtitle: Text(
             '${entry.quantityInMl}${l10n.unit_milliliters} • ${l10n.sugar}: $totalSugar${l10n.unit_grams} • ${l10n.supplement_caffeine}: $totalCaffeine${l10n.unit_milligrams}',
@@ -69,8 +68,7 @@ class FluidEntryTile extends StatelessWidget {
             '${entry.kcal ?? 0} ${l10n.unit_kcal}',
             style: theme.textTheme.labelLarge,
           ),
-          onTap: () => onEdit(entry),
-        ),
+        onTap: () => onEdit(entry),
       ),
     );
   }

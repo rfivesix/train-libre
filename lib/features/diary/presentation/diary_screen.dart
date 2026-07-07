@@ -1392,14 +1392,23 @@ class _FluidsCardState extends State<_FluidsCard> {
                       : CrossFadeState.showSecond,
                   duration: DesignConstants.expandCollapseDuration,
                   firstChild: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (fluids.isNotEmpty) const Divider(height: 16),
-                      ...fluids.map(
-                        (entry) => FluidEntryTile(
-                          entry: entry,
-                          onEdit: widget.onEditFluid,
-                          onDelete: widget.onDeleteFluid,
-                        ),
+                      if (fluids.isNotEmpty)
+                        const SizedBox(height: DesignConstants.spacingS),
+                      ...fluids.asMap().entries.expand(
+                        (entry) {
+                          final index = entry.key;
+                          final fluid = entry.value;
+                          return [
+                            if (index > 0) const Divider(height: 1),
+                            FluidEntryTile(
+                              entry: fluid,
+                              onEdit: widget.onEditFluid,
+                              onDelete: widget.onDeleteFluid,
+                            ),
+                          ];
+                        },
                       ),
                     ],
                   ),
