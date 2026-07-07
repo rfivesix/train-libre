@@ -333,54 +333,23 @@ class _BodyNutritionCorrelationScreenState
     AppLocalizations l10n,
     BodyNutritionAnalyticsResult data,
   ) {
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.analyticsObservedPatternLabel,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: DesignConstants.spacingXS),
-            Text(
-              StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
-                l10n,
-                data.relationship,
-              ),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
-                l10n,
-                data.confidence,
-              ),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              _confidenceHint(l10n, data.confidence),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              l10n.analyticsCorrelationDisclaimer,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-          ],
-        ),
-      ),
+    final relationship =
+        StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
+      l10n,
+      data.relationship,
+    );
+    final confidence =
+        StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
+      l10n,
+      data.confidence,
+    );
+    final hint = _confidenceHint(l10n, data.confidence);
+    final disclaimer = l10n.analyticsCorrelationDisclaimer;
+
+    return AppInfoRow(
+      padding: EdgeInsets.zero,
+      title: relationship,
+      subtitle: '$confidence\n$hint\n\n$disclaimer',
     );
   }
 

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-alpha.5] - 2026-07-07
+
+### Changed
+- **Refactored Body & Nutrition Correlation Interpretation:** Replaced the heavy `SummaryCard` for the interpretation section on the Body & Nutrition Correlation Screen with a flat, minimal `AppInfoRow` widget, matching the cleaner design of the section.
+
 ## [1.0.0-alpha.4] - 2026-07-07
 
 ### Added
