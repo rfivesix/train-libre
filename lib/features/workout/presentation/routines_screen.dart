@@ -151,8 +151,12 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     );
 
     if (confirmed) {
-      await WorkoutLocalDataSource.instance.deleteRoutine(routine.id!);
+      _performDeleteRoutine(routine);
     }
+  }
+
+  void _performDeleteRoutine(Routine routine) async {
+    await WorkoutLocalDataSource.instance.deleteRoutine(routine.id!);
   }
 
   @override
@@ -221,12 +225,15 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 ),
 
                 confirmDismiss: (direction) async {
-                  return await showDeleteConfirmation(context);
+                  return await showDeleteConfirmation(
+                    context,
+                    content: l10n.deleteRoutineConfirmContent(routine.name),
+                  );
                 },
 
                 onDismissed: (direction) {
                   if (direction == DismissDirection.endToStart) {
-                    _deleteRoutine(context, routine); // actually delete
+                    _performDeleteRoutine(routine);
                   }
                 },
 

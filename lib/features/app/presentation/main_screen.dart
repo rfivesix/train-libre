@@ -1428,11 +1428,13 @@ class _MainScreenState extends State<MainScreen>
       padding: const EdgeInsets.only(
         right: DesignConstants.screenPaddingHorizontal,
       ),
-      child: Semantics(
-        label: AppLocalizations.of(context)!.profile,
-        button: true,
-        child: InkWell(
-          customBorder: const CircleBorder(),
+      child: Tooltip(
+        message: AppLocalizations.of(context)!.profile,
+        child: Semantics(
+          label: AppLocalizations.of(context)!.profile,
+          button: true,
+          child: InkWell(
+            customBorder: const CircleBorder(),
           onTap: () async {
             await Navigator.of(
               context,
@@ -1458,8 +1460,9 @@ class _MainScreenState extends State<MainScreen>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _AppTourStep {
