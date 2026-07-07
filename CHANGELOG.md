@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-alpha.5] - 2026-07-07
 
 ### Changed
+- **Decontainerized Chart Widgets (Anti-Slop Phase):** Removed `SummaryCard` wrappers from all charts and graphs across analytics screens (Consistency Tracker, Recovery Tracker, PR Dashboard, Muscle Group Analytics, Statistics Hub, etc.), allowing them to sit directly on the scaffold background for a cleaner, high-density look.
+- **Refactored Analytics KPIs to Grid Layout:** Replaced heavy `SummaryCard` and custom containers with a standardized `ValueSummaryCard` inside a precise 2-column grid format across the Consistency Tracker, Recovery Tracker, and PR Dashboard. Fixed alignment, spacing, and clipping issues using a robust `Column > Row` layout structure.
+- **Fixed Recovery Tracker State Pill UI:** Corrected an issue where the background color tint for the "In Recovery", "Ready", and "Fresh" state pills only filled the inner padding. The widget now uses a solid `ValueSummaryCard` with a colored translucent border for a unified, clean aesthetic.
+- **Restored Timeframe Selectors in Consistency Tracker:** Re-added the dynamic 30 days, 3 months, 6 months, and All Time choice chips above the Consistency Tracker KPI grid. Connected the chips securely to the repository fetch logic, bypassing the fixed 12-week global policy so the chart data reloads correctly on tap.
+- **Updated Consistency Default Timeframe:** Changed the default window view for the Consistency Tracker chart to 6 months for better immediate historical context.
 - **Decontainerized BodyHighlighter Widgets:** Removed the heavy `SummaryCard` wrappers from the `BodyHighlighter` widget across the app (Exercise Detail, Workout Log Detail, Workout Summary, Muscle Group Analytics, and Recovery Tracker screens) to embrace a flatter, edge-to-edge "Anti-Slop" design aesthetic.
 - **Standardized DualBodyHighlighter:** Introduced a shared `DualBodyHighlighter` widget to ensure front/back silhouette diagrams have the exact same size and structure across `ExerciseDetailScreen`, `WorkoutLogDetailScreen`, `WorkoutSummaryScreen`, and Analytics screens.
 - **Flattened Muscle Legends:** Removed the redundant "Vorne" / "Hinten" text labels, and flattened the primary/secondary muscle legends from background colored chips to clean typography in `ExerciseDetailScreen`.

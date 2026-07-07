@@ -274,6 +274,9 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
           ),
         ),
       );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
     }
     return Column(children: rows);
   }

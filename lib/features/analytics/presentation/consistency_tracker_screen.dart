@@ -26,7 +26,7 @@ class ConsistencyTrackerScreen extends StatefulWidget {
 }
 
 class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
-  static const int _weeklyWindowWeeks = 12;
+  int _weeklyWindowWeeks = 24;
   final _rangePolicy = StatisticsRangePolicyService.instance;
   bool _isLoading = true;
   TrainingStatsPayload _trainingStats = const TrainingStatsPayload(
@@ -49,16 +49,13 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final weeklyRange = _rangePolicy.resolve(
-      metricId: StatisticsMetricId.consistencyWeeklyMetrics,
-    );
     final calendarRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.consistencyCalendar,
     );
 
     final stats = WorkoutLocalDataSource.instance.getTrainingStats();
     final weekly = WorkoutLocalDataSource.instance.getWeeklyConsistencyMetrics(
-      weeksBack: weeklyRange.effectiveWeeks ?? _weeklyWindowWeeks,
+      weeksBack: _weeklyWindowWeeks,
     );
     final dayCounts = WorkoutLocalDataSource.instance.getWorkoutDayCounts(
       daysBack: calendarRange.effectiveDays ?? 120,
@@ -154,6 +151,18 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _windowChip(4, l10n.filter30Days),
+                        _windowChip(12, l10n.filter3Months),
+                        _windowChip(24, l10n.filter6Months),
+                        _windowChip(520, l10n.filterAll),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
                   AppSectionHeader(title: l10n.analyticsKpisHeader),
                   Column(
                     children: [
@@ -179,6 +188,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: DesignConstants.spacingS),
                       IntrinsicHeight(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -203,6 +213,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: DesignConstants.spacingS),
                       IntrinsicHeight(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -603,6 +614,22 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     return (minAlpha + (ratio * (maxAlpha - minAlpha))).clamp(
       minAlpha,
       maxAlpha,
+    );
+  }
+
+  Widget _windowChip(int weeks, String label) {
+    final selected = _weeklyWindowWeeks == weeks;
+    return Padding(
+      padding: const EdgeInsets.only(right: DesignConstants.spacingS),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (value) {
+          if (!value || selected) return;
+          setState(() => _weeklyWindowWeeks = weeks);
+          _loadData();
+        },
+      ),
     );
   }
 }
