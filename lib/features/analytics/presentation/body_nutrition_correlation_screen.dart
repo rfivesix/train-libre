@@ -6,7 +6,6 @@ import '../../statistics/presentation/statistics_formatter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/body_nutrition_analytics_utils.dart';
 import '../../../util/design_constants.dart';
-import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';

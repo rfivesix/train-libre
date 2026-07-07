@@ -19,7 +19,9 @@ import '../../../services/unit_service.dart';
 import '../../../services/profile_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/muscle_color_helper.dart';
@@ -539,47 +541,20 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       muscleCounts.map((k, v) => MapEntry(k, v.toDouble())),
     );
 
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingM),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.analyticsRecentDistributionHeatmap,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: DesignConstants.spacingM),
-            SizedBox(
-              height: 180,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: BodyHighlighter(
-                      gender:
-                          context.watch<ProfileService>().gender.toBodyGender(),
-                      side: BodySide.front,
-                      highlightedParts:
-                          BodySlugMapper.forSide(highlights, BodySide.front),
-                    ),
-                  ),
-                  Expanded(
-                    child: BodyHighlighter(
-                      gender:
-                          context.watch<ProfileService>().gender.toBodyGender(),
-                      side: BodySide.back,
-                      highlightedParts:
-                          BodySlugMapper.forSide(highlights, BodySide.back),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppSectionHeader(
+          title: l10n.analyticsRecentDistributionHeatmap,
+          padding: EdgeInsets.zero,
         ),
-      ),
+        const SizedBox(height: DesignConstants.spacingM),
+        DualBodyHighlighter(
+          gender: context.watch<ProfileService>().gender.toBodyGender(),
+          frontHighlights: BodySlugMapper.forSide(highlights, BodySide.front),
+          backHighlights: BodySlugMapper.forSide(highlights, BodySide.back),
+        ),
+      ],
     );
   }
 

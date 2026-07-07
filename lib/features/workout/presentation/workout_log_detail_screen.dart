@@ -21,6 +21,7 @@ import '../../pulse/application/pulse_tracking_service.dart';
 import '../../../services/unit_service.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
@@ -833,17 +834,6 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                   ),
                                                 )
                                               : const SizedBox.shrink()),
-                                      if (_exerciseDetails.isNotEmpty) ...[
-                                        const Divider(height: 24),
-                                        Text(
-                                          l10n.analyticsRecentDistributionHeatmap,
-                                          style: textTheme.titleMedium,
-                                        ),
-                                        const SizedBox(
-                                          height: DesignConstants.spacingS,
-                                        ),
-                                        _buildMuscleHeatmap(l10n),
-                                      ],
                                       if (!_isEditMode) ...[
                                         const SizedBox(
                                             height: DesignConstants.spacingM),
@@ -873,6 +863,26 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               ),
                             ),
                           ),
+                          if (_exerciseDetails.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DesignConstants.screenPaddingHorizontal,
+                                vertical: DesignConstants.spacingM,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AppSectionHeader(
+                                    title: l10n.analyticsRecentDistributionHeatmap,
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  const SizedBox(
+                                    height: DesignConstants.spacingM,
+                                  ),
+                                  _buildMuscleHeatmap(l10n),
+                                ],
+                              ),
+                            ),
                           if (_heartRateSummary != null &&
                               (_pulseTrackingEnabled ||
                                   _heartRateSummary!.hasData))
@@ -1209,28 +1219,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
     if (highlights.isEmpty) return const SizedBox.shrink();
 
-    return SizedBox(
-      height: 180,
-      child: Row(
-        children: [
-          Expanded(
-            child: BodyHighlighter(
-              gender: context.watch<ProfileService>().gender.toBodyGender(),
-              side: BodySide.front,
-              highlightedParts:
-                  BodySlugMapper.forSide(highlights, BodySide.front),
-            ),
-          ),
-          Expanded(
-            child: BodyHighlighter(
-              gender: context.watch<ProfileService>().gender.toBodyGender(),
-              side: BodySide.back,
-              highlightedParts:
-                  BodySlugMapper.forSide(highlights, BodySide.back),
-            ),
-          ),
-        ],
-      ),
+    return DualBodyHighlighter(
+      gender: context.watch<ProfileService>().gender.toBodyGender(),
+      frontHighlights: BodySlugMapper.forSide(highlights, BodySide.front),
+      backHighlights: BodySlugMapper.forSide(highlights, BodySide.back),
     );
   }
 

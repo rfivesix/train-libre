@@ -18,6 +18,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
+import '../../../widgets/common/dual_body_highlighter.dart';
 
 class RecoveryTrackerScreen extends StatefulWidget {
   const RecoveryTrackerScreen({super.key});
@@ -265,7 +266,6 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   Widget _buildBodyView(
     BuildContext context,
     List<RecoveryMusclePayload> muscles,
-    BodySide side,
   ) {
     final List<BodyPartHighlightData> highlights = [];
 
@@ -284,12 +284,11 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
       }
     }
 
-    final filteredHighlights = BodySlugMapper.forSide(highlights, side);
-
-    return BodyHighlighter(
+    return DualBodyHighlighter(
       gender: context.watch<ProfileService>().gender.toBodyGender(),
-      side: side,
-      highlightedParts: filteredHighlights,
+      frontHighlights: BodySlugMapper.forSide(highlights, BodySide.front),
+      backHighlights: BodySlugMapper.forSide(highlights, BodySide.back),
+      height: 320,
       onBodyPartTap: (slug, data) {
         if (data.payload is String) {
           _scrollToMuscle(data.payload as String);
@@ -772,12 +771,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                     padding: const EdgeInsets.only(
                         left: DesignConstants.spacingXS, bottom: 6),
                   ),
-                  SummaryCard(
-                    child: Padding(
-                      padding: const EdgeInsets.all(DesignConstants.spacingM),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                           if (!hasData)
                             AnalyticsChartDefaults.stateView(
                               context: context,
@@ -787,31 +783,12 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                             )
                           else
                             RepaintBoundary(
-                              child: SizedBox(
-                                height: 320,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildBodyView(
-                                        context,
-                                        visibleMuscles,
-                                        BodySide.front,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: _buildBodyView(
-                                        context,
-                                        visibleMuscles,
-                                        BodySide.back,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              child: _buildBodyView(
+                                context,
+                                visibleMuscles,
                               ),
                             ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                   AppSectionHeader(

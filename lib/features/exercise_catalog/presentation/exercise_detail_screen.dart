@@ -9,13 +9,14 @@ import '../../workout/domain/models/set_log.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../../../util/design_constants.dart';
-import '../../../widgets/common/common.dart';
-import '../../../widgets/common/summary_card.dart';
-import 'widgets/wger_attribution_widget.dart';
+import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/common.dart';
+import 'widgets/wger_attribution_widget.dart';
+import '../../../services/unit_service.dart';
 import '../../profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:provider/provider.dart';
-import '../../../services/unit_service.dart';
 import '../../../services/profile_service.dart';
 import 'create_exercise_screen.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -624,14 +625,13 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
         exercise.secondaryMuscles.isNotEmpty;
 
     if (!hasMuscles) {
-      return SummaryCard(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Text(
-            l10n.noMusclesSpecified,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.outline,
-            ),
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+            vertical: DesignConstants.spacingS),
+        child: Text(
+          l10n.noMusclesSpecified,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.outline,
           ),
         ),
       );
@@ -646,94 +646,36 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
         BodySlugMapper.forSide(allHighlights, BodySide.front);
     final backHighlights = BodySlugMapper.forSide(allHighlights, BodySide.back);
 
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Body diagrams ──────────────────────────────────────────────
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        l10n.frontLabel,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingXS),
-                      SizedBox(
-                        height: 200,
-                        child: BodyHighlighter(
-                          gender: context
-                              .watch<ProfileService>()
-                              .gender
-                              .toBodyGender(),
-                          highlightedParts: frontHighlights,
-                          side: BodySide.front,
-                          outlineWidth: 0.8,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: DesignConstants.spacingS),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        l10n.backLabel,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingXS),
-                      SizedBox(
-                        height: 200,
-                        child: BodyHighlighter(
-                          gender: context
-                              .watch<ProfileService>()
-                              .gender
-                              .toBodyGender(),
-                          highlightedParts: backHighlights,
-                          side: BodySide.back,
-                          outlineWidth: 0.8,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            // ── Legend ─────────────────────────────────────────────────────
-            const SizedBox(height: DesignConstants.spacingM),
-            const Divider(height: 1),
-            const SizedBox(height: 10),
-            _MuscleChipRow(
-              label: l10n.primaryLabel,
-              muscles: exercise.primaryMuscles,
-              color: theme.colorScheme.primary,
-            ),
-            if (exercise.secondaryMuscles.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              _MuscleChipRow(
-                label: l10n.secondaryLabel,
-                muscles: exercise.secondaryMuscles,
-                color: theme.colorScheme.primary.withValues(alpha: 0.45),
-              ),
-            ],
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Body diagrams ──────────────────────────────────────────────
+        DualBodyHighlighter(
+          gender: context.watch<ProfileService>().gender.toBodyGender(),
+          frontHighlights: frontHighlights,
+          backHighlights: backHighlights,
         ),
-      ),
+        // ── Legend ─────────────────────────────────────────────────────
+        const SizedBox(height: DesignConstants.spacingL),
+        _MuscleChipRow(
+          label: l10n.primaryLabel,
+          muscles: exercise.primaryMuscles,
+          color: theme.colorScheme.primary,
+        ),
+        if (exercise.secondaryMuscles.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          _MuscleChipRow(
+            label: l10n.secondaryLabel,
+            muscles: exercise.secondaryMuscles,
+            color: theme.colorScheme.primary.withValues(alpha: 0.45),
+          ),
+        ],
+      ],
     );
   }
 }
 
-/// A labelled row of compact muscle-name chips used as a text legend.
+/// A labelled row of muscle names used as a text legend.
 class _MuscleChipRow extends StatelessWidget {
   final String label;
   final List<String> muscles;
@@ -748,53 +690,38 @@ class _MuscleChipRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 68,
-          child: Padding(
-            padding: const EdgeInsets.only(top: DesignConstants.spacingXS),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 85,
             child: Text(
               label,
-              style: theme.textTheme.labelSmall?.copyWith(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.outline,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
-        ),
-        Expanded(
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: muscles
-                .map(
-                  (m) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.spacingS,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: color.withValues(alpha: 0.35),
-                      ),
-                    ),
-                    child: Text(
-                      m,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: color.withValues(alpha: 0.9),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+          Expanded(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: muscles.map((m) {
+                return Text(
+                  m,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
                   ),
-                )
-                .toList(growable: false),
+                );
+              }).toList(),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-alpha.5] - 2026-07-07
 
 ### Changed
+- **Decontainerized BodyHighlighter Widgets:** Removed the heavy `SummaryCard` wrappers from the `BodyHighlighter` widget across the app (Exercise Detail, Workout Log Detail, Workout Summary, Muscle Group Analytics, and Recovery Tracker screens) to embrace a flatter, edge-to-edge "Anti-Slop" design aesthetic.
+- **Standardized DualBodyHighlighter:** Introduced a shared `DualBodyHighlighter` widget to ensure front/back silhouette diagrams have the exact same size and structure across `ExerciseDetailScreen`, `WorkoutLogDetailScreen`, `WorkoutSummaryScreen`, and Analytics screens.
+- **Flattened Muscle Legends:** Removed the redundant "Vorne" / "Hinten" text labels, and flattened the primary/secondary muscle legends from background colored chips to clean typography in `ExerciseDetailScreen`.
 - **Refactored Body & Nutrition Correlation Interpretation:** Replaced the heavy `SummaryCard` for the interpretation section on the Body & Nutrition Correlation Screen with a flat, minimal `AppInfoRow` widget, matching the cleaner design of the section.
 
 ## [1.0.0-alpha.4] - 2026-07-07

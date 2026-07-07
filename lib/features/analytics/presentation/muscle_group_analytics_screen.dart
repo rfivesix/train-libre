@@ -16,6 +16,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../workout/presentation/widgets/muscle_color_helper.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
+import '../../../widgets/common/dual_body_highlighter.dart';
 
 class MuscleGroupAnalyticsScreen extends StatefulWidget {
   const MuscleGroupAnalyticsScreen({super.key});
@@ -146,12 +147,9 @@ class _MuscleGroupAnalyticsScreenState
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                   _sectionLabel(l10n.analyticsRecentDistributionHeatmap),
-                  SummaryCard(
-                    child: Padding(
-                      padding: const EdgeInsets.all(DesignConstants.spacingM),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                           if (workload.isEmpty)
                             AnalyticsChartDefaults.stateView(
                               context: context,
@@ -161,28 +159,10 @@ class _MuscleGroupAnalyticsScreenState
                             )
                           else ...[
                             RepaintBoundary(
-                              child: SizedBox(
-                                height: 320,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildBodyHeatmap(
-                                        context,
-                                        highlights,
-                                        muscles,
-                                        BodySide.front,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: _buildBodyHeatmap(
-                                        context,
-                                        highlights,
-                                        muscles,
-                                        BodySide.back,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              child: _buildBodyHeatmap(
+                                context,
+                                highlights,
+                                muscles,
                               ),
                             ),
                           ],
@@ -196,9 +176,7 @@ class _MuscleGroupAnalyticsScreenState
                                   color: Theme.of(context).colorScheme.outline,
                                 ),
                           ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                   _sectionLabel(
@@ -274,14 +252,12 @@ class _MuscleGroupAnalyticsScreenState
     BuildContext context,
     List<BodyPartHighlightData> highlights,
     List<Map<String, dynamic>> muscles,
-    BodySide side,
   ) {
-    final filteredHighlights = BodySlugMapper.forSide(highlights, side);
-
-    return BodyHighlighter(
+    return DualBodyHighlighter(
       gender: context.watch<ProfileService>().gender.toBodyGender(),
-      side: side,
-      highlightedParts: filteredHighlights,
+      frontHighlights: BodySlugMapper.forSide(highlights, BodySide.front),
+      backHighlights: BodySlugMapper.forSide(highlights, BodySide.back),
+      height: 320,
       onBodyPartTap: (slug, data) {
         final matched = muscles.firstWhere(
           (m) => BodySlugMapper.fromRawName(m['muscleGroup'] as String? ?? '')
