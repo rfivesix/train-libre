@@ -164,11 +164,12 @@ class _BodyNutritionNormalizedTrendChartState
     final xLabelPositions = _xLabelPositions(spanDays);
 
     final chartData = LineChartData(
-      clipData: const FlClipData.none(),
+      clipData: const FlClipData.all(),
       minX: 0,
       maxX: maxX,
       minY: -0.06,
       maxY: 1.06,
+      baselineY: -0.06,
       gridData: compact
           ? AnalyticsChartDefaults.noGrid
           : FlGridData(

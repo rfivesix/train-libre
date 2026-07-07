@@ -77,43 +77,57 @@ class _BodyNutritionCorrelationScreenState
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.bodyNutritionCorrelationTitle),
-      body: _isLoading
+      body: _isLoading && _analytics == null
           ? const Center(child: CircularProgressIndicator())
           : _analytics == null
               ? _buildUnavailableState(l10n)
-              : SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    top: DesignConstants.screenPadding.top + topPadding,
-                    bottom: DesignConstants.bottomContentSpacer,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildRangeChips(l10n),
-                      const SizedBox(height: DesignConstants.spacingM),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesignConstants.screenPaddingHorizontal,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSummaryCard(l10n, _analytics!),
-                            const SizedBox(height: DesignConstants.spacingM),
-                            AppSectionHeader(
-                              title: l10n.analyticsBodyNutritionTrendContext,
+              : Stack(
+                  children: [
+                    SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        top: DesignConstants.screenPadding.top + topPadding,
+                        bottom: DesignConstants.bottomContentSpacer,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildRangeChips(l10n),
+                          const SizedBox(height: DesignConstants.spacingM),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: DesignConstants.screenPaddingHorizontal,
                             ),
-                            _buildTrendComparisonCard(l10n, _analytics!),
-                            const SizedBox(height: DesignConstants.spacingM),
-                            AppSectionHeader(
-                              title: l10n.analyticsInterpretationTitle,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSummaryCard(l10n, _analytics!),
+                                const SizedBox(height: DesignConstants.spacingM),
+                                AppSectionHeader(
+                                  title: l10n.analyticsBodyNutritionTrendContext,
+                                ),
+                                _buildTrendComparisonCard(l10n, _analytics!),
+                                const SizedBox(height: DesignConstants.spacingM),
+                                AppSectionHeader(
+                                  title: l10n.analyticsInterpretationTitle,
+                                ),
+                                _buildInterpretationCard(l10n, _analytics!),
+                              ],
                             ),
-                            _buildInterpretationCard(l10n, _analytics!),
-                          ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_isLoading)
+                      Positioned(
+                        top: topPadding + DesignConstants.spacingM,
+                        right: DesignConstants.spacingM,
+                        child: const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
     );
   }

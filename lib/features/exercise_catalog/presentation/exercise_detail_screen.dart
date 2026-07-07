@@ -295,8 +295,14 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               child: _ExerciseMuscleBodyView(exercise: _currentExercise),
             ),
             const SizedBox(height: DesignConstants.spacingXL),
-            if (_isLoading)
-              const Center(child: CircularProgressIndicator())
+            if (_isLoading && _timeSeriesData.isEmpty && _prMap.values.every((v) => v == null))
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                      vertical: DesignConstants.spacingXXL),
+                  child: CircularProgressIndicator(),
+                ),
+              )
             else if (_timeSeriesData.isEmpty &&
                 _prMap.values.every((v) => v == null))
               Center(
@@ -311,14 +317,32 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   ),
                 ),
               )
-            else ...[
-              AppSectionHeader(title: l10n.workoutHistoryButton),
-              RepaintBoundary(
-                child: _buildConsolidatedChart(l10n),
+            else 
+              Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppSectionHeader(title: l10n.workoutHistoryButton),
+                      RepaintBoundary(
+                        child: _buildConsolidatedChart(l10n),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingXL),
+                      _buildPRSummarySection(l10n),
+                    ],
+                  ),
+                  if (_isLoading)
+                    const Positioned(
+                      top: DesignConstants.spacingM,
+                      right: DesignConstants.spacingM,
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                ],
               ),
-              const SizedBox(height: DesignConstants.spacingXL),
-              _buildPRSummarySection(l10n),
-            ],
             const SizedBox(height: DesignConstants.spacingXL),
             Center(
               child: Padding(

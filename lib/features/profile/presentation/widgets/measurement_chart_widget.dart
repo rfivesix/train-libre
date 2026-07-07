@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -238,7 +239,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    if (_isLoadingChart) {
+    if (_isLoadingChart && _dataPoints.isEmpty) {
       return const SizedBox(
         height: 250,
         child: Center(child: CircularProgressIndicator()),
@@ -308,6 +309,17 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
           (widget.usesExternalData ? null : _dataPoints.first.value),
     );
 
+    double minVal = _dataPoints.map((p) => _displayValue(p.value)).reduce(math.min);
+    double maxVal = _dataPoints.map((p) => _displayValue(p.value)).reduce(math.max);
+    if (referenceLineValue != null) {
+      minVal = math.min(minVal, referenceLineValue);
+      maxVal = math.max(maxVal, referenceLineValue);
+    }
+    final double yRange = maxVal - minVal;
+    final double yPadding = yRange > 0 ? yRange * 0.2 : (minVal == 0 ? 1.0 : minVal * 0.2).abs();
+    final double yMin = minVal - yPadding;
+    final double yMax = maxVal + yPadding;
+
     final chartWidget = SizedBox(
       height: 250,
       child: Column(
@@ -346,7 +358,10 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
               LineChartData(
                 minX: 0,
                 maxX: lastX == 0 ? 1 : lastX,
-                clipData: const FlClipData.none(),
+                minY: yMin,
+                maxY: yMax,
+                baselineY: yMin,
+                clipData: const FlClipData.all(),
                 lineTouchData: LineTouchData(
                   handleBuiltInTouches: true,
                   touchTooltipData: LineTouchTooltipData(

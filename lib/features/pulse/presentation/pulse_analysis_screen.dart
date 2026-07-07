@@ -102,14 +102,28 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
       anchorDate: _anchorDate,
       onScopeChanged: _onScopeChanged,
       onShiftPeriod: _shiftPeriod,
-      child: _isLoading
+      child: _summary == null
           ? const SizedBox(
               height: 240,
               child: Center(child: CircularProgressIndicator()),
             )
-          : _PulseAnalysisContent(
-              summary: _summary!,
-              scope: _scope,
+          : Stack(
+              children: [
+                _PulseAnalysisContent(
+                  summary: _summary!,
+                  scope: _scope,
+                ),
+                if (_isLoading)
+                  const Positioned(
+                    top: DesignConstants.spacingM,
+                    right: DesignConstants.screenPaddingHorizontal,
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+              ],
             ),
     );
   }
