@@ -988,9 +988,6 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 );
                               },
                               onReorderItem: (int oldIndex, int newIndex) {
-                                if (newIndex > oldIndex) {
-                                  newIndex -= 1;
-                                }
                                 setState(() {
                                   final entries = _groupedSets.entries.toList();
                                   final item = entries.removeAt(oldIndex);

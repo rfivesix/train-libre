@@ -638,9 +638,6 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   }
 
   void _onReorderItem(int oldIndex, int newIndex) {
-    if (newIndex > oldIndex) {
-      newIndex -= 1;
-    }
     setState(() {
       final RoutineExercise item = _routineExercises.removeAt(oldIndex);
       _routineExercises.insert(newIndex, item);
