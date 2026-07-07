@@ -495,7 +495,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                       ),
                     ),
                     belowBarData: BarAreaData(
-                      show: !widget.edgeToEdge,
+                      show: true,
                       gradient: LinearGradient(
                         colors: [
                           Theme.of(
