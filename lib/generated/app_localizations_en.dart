@@ -3297,7 +3297,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Equivalent hard sets use primary x1.0 and secondary x0.3 weighting. Frequency counts only days reaching >= 1.0 equivalent sets.';
 
   @override
-  String get analyticsWeeklySetsByMuscle => 'Weekly Sets by Muscle';
+  String get analyticsWeeklySetsByMuscle => 'Ø Weekly Sets by Muscle';
 
   @override
   String get analyticsFrequencyByMuscle => 'Frequency by Muscle';
@@ -3326,7 +3326,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String analyticsWeekTotalEquivalentSets(String value) {
-    return 'Week total: $value equivalent sets';
+    return 'Ø $value equivalent sets per week';
   }
 
   @override

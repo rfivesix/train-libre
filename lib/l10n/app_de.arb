@@ -1438,7 +1438,7 @@
   },
   "analyticsPeriodLabel": "Zeitraum",
   "analyticsEquivalentSetsExplainer": "Äquivalente Arbeitssätze nutzen Primär x1.0 und Sekundär x0.3. Frequenz zählt nur Tage mit >= 1.0 äquivalenten Sätzen.",
-  "analyticsWeeklySetsByMuscle": "Wöchentliche Sätze je Muskel",
+  "analyticsWeeklySetsByMuscle": "Ø Wöchentliche Sätze je Muskel",
   "analyticsFrequencyByMuscle": "Frequenz je Muskel",
   "analyticsRecentDistributionHeatmap": "Aktuelle Verteilungs-Heatmap",
   "analyticsRadarOverviewTitle": "Radar-Überblick",
@@ -1446,7 +1446,7 @@
   "analyticsGuidanceTitle": "Hinweise",
   "analyticsGuidanceDirectionalDisclaimer": "Dies ist ein richtungsweisender Hinweis auf Basis deiner letzten Satzverteilung, keine absolute Diagnose.",
   "analyticsGuidanceSoftenedDisclaimer": "Hinweise werden bewusst abgeschwächt, bis genug Daten vorliegen.",
-  "analyticsWeekTotalEquivalentSets": "Wochensumme: {value} äquivalente Sätze",
+  "analyticsWeekTotalEquivalentSets": "Ø {value} äquivalente Sätze pro Woche",
   "@analyticsWeekTotalEquivalentSets": {
     "placeholders": {
       "value": {

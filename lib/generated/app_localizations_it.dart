@@ -3341,7 +3341,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'I set hard equivalenti utilizzano la ponderazione primaria x1.0 e secondaria x0.3. La frequenza conta solo i giorni che raggiungono >= 1,0 set equivalenti.';
 
   @override
-  String get analyticsWeeklySetsByMuscle => 'Set settimanali di Muscle';
+  String get analyticsWeeklySetsByMuscle => 'Ø Serie settimanali per muscolo';
 
   @override
   String get analyticsFrequencyByMuscle => 'Frequenza per muscolo';
@@ -3370,7 +3370,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String analyticsWeekTotalEquivalentSets(String value) {
-    return 'Totale settimana: $value set equivalenti';
+    return 'Ø $value serie equivalenti a settimana';
   }
 
   @override

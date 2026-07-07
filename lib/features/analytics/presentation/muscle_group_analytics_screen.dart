@@ -52,7 +52,7 @@ class _MuscleGroupAnalyticsScreenState
         l10n.filter6MonthsShort,
       ];
 
-  int _selectedWeekIndex = -1;
+
   Map<String, dynamic> _analytics = const {};
 
   @override
@@ -78,11 +78,9 @@ class _MuscleGroupAnalyticsScreenState
     );
 
     if (!mounted) return;
-    final weekly = (data['weekly'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>();
+
     setState(() {
       _analytics = data;
-      _selectedWeekIndex = weekly.isEmpty ? -1 : weekly.length - 1;
       _isLoading = false;
     });
   }
@@ -103,8 +101,7 @@ class _MuscleGroupAnalyticsScreenState
           ),
         )
         .toList(growable: false);
-    final weekly = (_analytics['weekly'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>();
+
     final undertrained =
         (_analytics['undertrained'] as List<dynamic>? ?? const [])
             .cast<String>();
@@ -121,10 +118,8 @@ class _MuscleGroupAnalyticsScreenState
     final highlights =
         MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
 
-    final selectedWeek =
-        (_selectedWeekIndex >= 0 && _selectedWeekIndex < weekly.length)
-            ? weekly[_selectedWeekIndex]
-            : null;
+    final double totalWeeks =
+        ((_analytics['daysBack'] as int?) ?? 7) / 7.0;
 
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
@@ -221,31 +216,8 @@ class _MuscleGroupAnalyticsScreenState
                     l10n.analyticsWeeklySetsByMuscle,
                     isPrimary: true,
                   ),
-                  if (weekly.isNotEmpty) ...[
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(weekly.length, (index) {
-                          final row = weekly[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(
-                                right: DesignConstants.spacingS),
-                            child: ChoiceChip(
-                              label: Text(row['weekLabel'] as String),
-                              selected: _selectedWeekIndex == index,
-                              onSelected: (selected) {
-                                if (!selected) return;
-                                setState(() => _selectedWeekIndex = index);
-                              },
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                  ],
                   RepaintBoundary(
-                    child: _buildWeeklySetsCard(selectedWeek),
+                    child: _buildWeeklySetsCard(muscles, totalWeeks),
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                   _sectionLabel(l10n.analyticsFrequencyByMuscle),
@@ -362,9 +334,9 @@ class _MuscleGroupAnalyticsScreenState
     );
   }
 
-  Widget _buildWeeklySetsCard(Map<String, dynamic>? selectedWeek) {
+  Widget _buildWeeklySetsCard(List<Map<String, dynamic>> muscles, double totalWeeks) {
     final l10n = AppLocalizations.of(context)!;
-    if (selectedWeek == null) {
+    if (muscles.isEmpty) {
       return SizedBox(
         height: 180,
         child: AnalyticsChartDefaults.stateView(
@@ -377,13 +349,12 @@ class _MuscleGroupAnalyticsScreenState
       );
     }
 
-    final rawMuscles =
-        (selectedWeek['muscles'] as Map<String, dynamic>?) ?? const {};
-    final items = rawMuscles.entries
+    final items = muscles
         .map(
-          (entry) => {
-            'muscleGroup': entry.key,
-            'value': (entry.value as num).toDouble(),
+          (m) => {
+            'muscleGroup': m['muscleGroup'] as String,
+            // Use total equivalent sets for the selected period instead of average per week
+            'value': (m['equivalentSets'] as num).toDouble(),
           },
         )
         .where(
@@ -407,6 +378,12 @@ class _MuscleGroupAnalyticsScreenState
         )
         .toList();
 
+    final totalEquivalentSets = muscles.fold<double>(
+      0.0,
+      (sum, m) => sum + (m['equivalentSets'] as num).toDouble(),
+    );
+    final totalPerWeek = totalEquivalentSets / totalWeeks;
+
     return _buildMuscleBarChart(
       items: items.take(_maxMuscleBars).toList(),
       labels: labels,
@@ -415,7 +392,7 @@ class _MuscleGroupAnalyticsScreenState
       yAxisLabel:
           '${l10n.analyticsWeeklySetsByMuscle} (${l10n.analyticsUnitSets})',
       footer: l10n.analyticsWeekTotalEquivalentSets(
-        (selectedWeek['totalEquivalentSets'] as num).toStringAsFixed(1),
+        totalPerWeek.toStringAsFixed(1),
       ),
       chartHeight: 260,
       emphasize: true,

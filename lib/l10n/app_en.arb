@@ -1437,7 +1437,7 @@
   },
   "analyticsPeriodLabel": "Period",
   "analyticsEquivalentSetsExplainer": "Equivalent hard sets use primary x1.0 and secondary x0.3 weighting. Frequency counts only days reaching >= 1.0 equivalent sets.",
-  "analyticsWeeklySetsByMuscle": "Weekly Sets by Muscle",
+  "analyticsWeeklySetsByMuscle": "Ø Weekly Sets by Muscle",
   "analyticsFrequencyByMuscle": "Frequency by Muscle",
   "analyticsRecentDistributionHeatmap": "Recent Distribution Heatmap",
   "analyticsRadarOverviewTitle": "Radar Overview",
@@ -1445,7 +1445,7 @@
   "analyticsGuidanceTitle": "Guidance",
   "analyticsGuidanceDirectionalDisclaimer": "This is directional guidance based on your recent set distribution, not an absolute diagnosis.",
   "analyticsGuidanceSoftenedDisclaimer": "Insights are intentionally softened until enough data is available.",
-  "analyticsWeekTotalEquivalentSets": "Week total: {value} equivalent sets",
+  "analyticsWeekTotalEquivalentSets": "Ø {value} equivalent sets per week",
   "@analyticsWeekTotalEquivalentSets": {
     "placeholders": {
       "value": {

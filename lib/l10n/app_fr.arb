@@ -1438,7 +1438,7 @@
   },
   "analyticsPeriodLabel": "Période",
   "analyticsEquivalentSetsExplainer": "Les ensembles durs équivalents utilisent une pondération primaire x1,0 et secondaire x0,3. La fréquence ne compte que les jours atteignant >= 1,0 ensembles équivalents.",
-  "analyticsWeeklySetsByMuscle": "Séries hebdomadaires par muscle",
+  "analyticsWeeklySetsByMuscle": "Ø Séries hebdomadaires par muscle",
   "analyticsFrequencyByMuscle": "Fréquence par muscle",
   "analyticsRecentDistributionHeatmap": "Carte thermique de distribution récente",
   "analyticsRadarOverviewTitle": "Aperçu des radars",
@@ -1446,7 +1446,7 @@
   "analyticsGuidanceTitle": "Conseils",
   "analyticsGuidanceDirectionalDisclaimer": "Il s'agit d'un guidage directionnel basé sur votre distribution d'ensemble récente, et non d'un diagnostic absolu.",
   "analyticsGuidanceSoftenedDisclaimer": "Les informations sont intentionnellement adoucies jusqu'à ce que suffisamment de données soient disponibles.",
-  "analyticsWeekTotalEquivalentSets": "Total de la semaine : {value} ensembles équivalents",
+  "analyticsWeekTotalEquivalentSets": "Ø {value} séries équivalentes par semaine",
   "@analyticsWeekTotalEquivalentSets": {
     "placeholders": {
       "value": {

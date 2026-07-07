@@ -3321,7 +3321,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Äquivalente Arbeitssätze nutzen Primär x1.0 und Sekundär x0.3. Frequenz zählt nur Tage mit >= 1.0 äquivalenten Sätzen.';
 
   @override
-  String get analyticsWeeklySetsByMuscle => 'Wöchentliche Sätze je Muskel';
+  String get analyticsWeeklySetsByMuscle => 'Ø Wöchentliche Sätze je Muskel';
 
   @override
   String get analyticsFrequencyByMuscle => 'Frequenz je Muskel';
@@ -3350,7 +3350,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String analyticsWeekTotalEquivalentSets(String value) {
-    return 'Wochensumme: $value äquivalente Sätze';
+    return 'Ø $value äquivalente Sätze pro Woche';
   }
 
   @override

@@ -1438,7 +1438,7 @@
   },
   "analyticsPeriodLabel": "Periodo",
   "analyticsEquivalentSetsExplainer": "I set hard equivalenti utilizzano la ponderazione primaria x1.0 e secondaria x0.3. La frequenza conta solo i giorni che raggiungono >= 1,0 set equivalenti.",
-  "analyticsWeeklySetsByMuscle": "Set settimanali di Muscle",
+  "analyticsWeeklySetsByMuscle": "Ø Serie settimanali per muscolo",
   "analyticsFrequencyByMuscle": "Frequenza per muscolo",
   "analyticsRecentDistributionHeatmap": "Mappa termica della distribuzione recente",
   "analyticsRadarOverviewTitle": "Panoramica del radar",
@@ -1446,7 +1446,7 @@
   "analyticsGuidanceTitle": "Guida",
   "analyticsGuidanceDirectionalDisclaimer": "Questa è una guida direzionale basata sulla recente distribuzione del set, non una diagnosi assoluta.",
   "analyticsGuidanceSoftenedDisclaimer": "Gli approfondimenti vengono intenzionalmente attenuati finché non sono disponibili dati sufficienti.",
-  "analyticsWeekTotalEquivalentSets": "Totale settimana: {value} set equivalenti",
+  "analyticsWeekTotalEquivalentSets": "Ø {value} serie equivalenti a settimana",
   "@analyticsWeekTotalEquivalentSets": {
     "placeholders": {
       "value": {

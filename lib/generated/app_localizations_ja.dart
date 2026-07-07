@@ -3208,7 +3208,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '同等のハード セットでは、プライマリ x1.0 とセカンダリ x0.3 の重み付けが使用されます。頻度は、同等のセットが 1.0 以上に達した日のみをカウントします。';
 
   @override
-  String get analyticsWeeklySetsByMuscle => '筋肉別ウィークリーセット';
+  String get analyticsWeeklySetsByMuscle => 'Ø 筋肉別週次セット';
 
   @override
   String get analyticsFrequencyByMuscle => '筋肉別の頻度';
@@ -3235,7 +3235,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String analyticsWeekTotalEquivalentSets(String value) {
-    return '週合計: $value 個の同等セット';
+    return 'Ø 1週当たり $value 相当セット';
   }
 
   @override

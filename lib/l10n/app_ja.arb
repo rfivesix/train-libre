@@ -1438,7 +1438,7 @@
   },
   "analyticsPeriodLabel": "期間",
   "analyticsEquivalentSetsExplainer": "同等のハード セットでは、プライマリ x1.0 とセカンダリ x0.3 の重み付けが使用されます。頻度は、同等のセットが 1.0 以上に達した日のみをカウントします。",
-  "analyticsWeeklySetsByMuscle": "筋肉別ウィークリーセット",
+  "analyticsWeeklySetsByMuscle": "Ø 筋肉別週次セット",
   "analyticsFrequencyByMuscle": "筋肉別の頻度",
   "analyticsRecentDistributionHeatmap": "最近の配布ヒートマップ",
   "analyticsRadarOverviewTitle": "レーダーの概要",
@@ -1446,7 +1446,7 @@
   "analyticsGuidanceTitle": "ガイダンス",
   "analyticsGuidanceDirectionalDisclaimer": "これは、最新のセット分布に基づいた方向性のガイダンスであり、絶対的な診断ではありません。",
   "analyticsGuidanceSoftenedDisclaimer": "十分なデータが利用可能になるまで、洞察は意図的に緩和されます。",
-  "analyticsWeekTotalEquivalentSets": "週合計: {value} 個の同等セット",
+  "analyticsWeekTotalEquivalentSets": "Ø 1週当たり {value} 相当セット",
   "@analyticsWeekTotalEquivalentSets": {
     "placeholders": {
       "value": {

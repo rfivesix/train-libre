@@ -3351,7 +3351,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les ensembles durs équivalents utilisent une pondération primaire x1,0 et secondaire x0,3. La fréquence ne compte que les jours atteignant >= 1,0 ensembles équivalents.';
 
   @override
-  String get analyticsWeeklySetsByMuscle => 'Séries hebdomadaires par muscle';
+  String get analyticsWeeklySetsByMuscle => 'Ø Séries hebdomadaires par muscle';
 
   @override
   String get analyticsFrequencyByMuscle => 'Fréquence par muscle';
@@ -3380,7 +3380,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String analyticsWeekTotalEquivalentSets(String value) {
-    return 'Total de la semaine : $value ensembles équivalents';
+    return 'Ø $value séries équivalentes par semaine';
   }
 
   @override

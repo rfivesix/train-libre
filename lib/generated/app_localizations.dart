@@ -5912,7 +5912,7 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsWeeklySetsByMuscle.
   ///
   /// In en, this message translates to:
-  /// **'Weekly Sets by Muscle'**
+  /// **'Ø Weekly Sets by Muscle'**
   String get analyticsWeeklySetsByMuscle;
 
   /// No description provided for @analyticsFrequencyByMuscle.
@@ -5960,7 +5960,7 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsWeekTotalEquivalentSets.
   ///
   /// In en, this message translates to:
-  /// **'Week total: {value} equivalent sets'**
+  /// **'Ø {value} equivalent sets per week'**
   String analyticsWeekTotalEquivalentSets(String value);
 
   /// No description provided for @analyticsFrequencyRuleFooter.
