@@ -66,6 +66,7 @@ dependencies:
       ref: main
   liquid_glass_widgets: ^0.21.1
   flutter_lucide: ^1.11.0
+  in_app_review: ^2.0.12
 dev_dependencies:
   flutter_test:
     sdk: flutter

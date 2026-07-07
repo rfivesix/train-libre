@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.4] - 2026-07-07
 
+### Added
+- **iOS App Store Rating Prompt:** Implemented a native App Store rating prompt for iOS users using the `in_app_review` package. The prompt seamlessly appears in the background after 7 days of app usage without interrupting the user's workflow.
+
 ### Changed
 - **Fixed Reordering to the Bottom across Workout Screens:** Removed the unnecessary `newIndex -= 1` adjustment during drag-and-drop sorting across the Live Workout, Edit Routine, and Workout Log Detail screens. The custom reorder list implementation already passes the exact drop index, so the manual offset reduction was causing items to incorrectly drop one slot early (second to last) when dragged downwards.
 - **Fixed Live Workout Screen Reorder Live Updates:** Wrapped the reorderable list of the Live Workout Screen inside a `Consumer<LiveWorkoutViewModel>` within the local `OverlayEntry`. This guarantees that changes to the exercise order in the view model are immediately reflected on-screen without requiring users to exit and resume the workout.

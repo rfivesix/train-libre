@@ -44,6 +44,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../navigation/app_route_observer.dart';
 import '../../../services/app_tour_service.dart';
 import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
+import '../../../services/app_review_service.dart';
 
 /// The root scaffold containing the main navigation structure.
 ///
@@ -103,6 +104,7 @@ class _MainScreenState extends State<MainScreen>
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePendingAppTourEntry();
+      AppReviewService.instance.checkAndRequestReview();
     });
   }
 
