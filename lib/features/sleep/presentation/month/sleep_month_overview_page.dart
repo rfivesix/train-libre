@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../data/repository/sleep_query_repository.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
 import '../../domain/sleep_enums.dart';
@@ -139,31 +139,42 @@ class MonthSummaryCard extends StatelessWidget {
     final mean = aggregation.meanScore == null
         ? '--'
         : aggregation.meanScore!.toStringAsFixed(0);
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sleepMonthSummaryTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(l10n.sleepMeanScoreLabel(mean)),
-            Text(
-              l10n.sleepWeekdayAvgDurationLabel(
-                formatDuration(aggregation.weekdayAverageDuration),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ValueSummaryCard(
+                  value: mean,
+                  label: l10n.sleepMeanScoreLabel(''),
+                ),
               ),
-            ),
-            Text(
-              l10n.sleepWeekendAvgDurationLabel(
-                formatDuration(aggregation.weekendAverageDuration),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: ValueSummaryCard(
+                  value: formatDuration(aggregation.weekdayAverageDuration),
+                  label: l10n.sleepWeekdayAvgDurationLabel(''),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Row(
+            children: [
+              Expanded(
+                child: ValueSummaryCard(
+                  value: formatDuration(aggregation.weekendAverageDuration),
+                  label: l10n.sleepWeekendAvgDurationLabel(''),
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingS),
+              const Spacer(),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -192,61 +203,59 @@ class MonthCalendarGrid extends StatelessWidget {
     if (remainder != 0) {
       padded.addAll(List<SleepDayAggregate?>.filled(7 - remainder, null));
     }
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sleepMonthDailyScoreStatesTitle,
-              style: Theme.of(context).textTheme.titleMedium,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.sleepMonthDailyScoreStatesTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          GridView.builder(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: padded.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 6,
+              crossAxisSpacing: 6,
+              childAspectRatio: 1,
             ),
-            const SizedBox(height: DesignConstants.spacingS),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: padded.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                mainAxisSpacing: 6,
-                crossAxisSpacing: 6,
-                childAspectRatio: 1,
-              ),
-              itemBuilder: (context, index) {
-                final day = padded[index];
-                if (day == null) {
-                  return const SizedBox.shrink();
-                }
-                return InkWell(
-                  onTap: () => onTapDay(day.date),
-                  borderRadius: BorderRadius.circular(
-                    DesignConstants.borderRadiusS,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _chipColor(context, day.sleepQuality),
-                      borderRadius: BorderRadius.circular(
-                        DesignConstants.borderRadiusS,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${day.date.day}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                          ),
+            itemBuilder: (context, index) {
+              final day = padded[index];
+              if (day == null) {
+                return const SizedBox.shrink();
+              }
+              return InkWell(
+                onTap: () => onTapDay(day.date),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusS,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _chipColor(context, day.sleepQuality),
+                    borderRadius: BorderRadius.circular(
+                      DesignConstants.borderRadiusS,
                     ),
                   ),
-                );
-              },
-            ),
-          ],
-        ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${day.date.day}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface,
+                        ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

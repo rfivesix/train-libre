@@ -16,6 +16,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Standardized DualBodyHighlighter:** Introduced a shared `DualBodyHighlighter` widget to ensure front/back silhouette diagrams have the exact same size and structure across `ExerciseDetailScreen`, `WorkoutLogDetailScreen`, `WorkoutSummaryScreen`, and Analytics screens.
 - **Flattened Muscle Legends:** Removed the redundant "Vorne" / "Hinten" text labels, and flattened the primary/secondary muscle legends from background colored chips to clean typography in `ExerciseDetailScreen`.
 - **Refactored Body & Nutrition Correlation Interpretation:** Replaced the heavy `SummaryCard` for the interpretation section on the Body & Nutrition Correlation Screen with a flat, minimal `AppInfoRow` widget, matching the cleaner design of the section.
+- **Decontainerized Sleep Module Charts:** Removed `SummaryCard` wrappers from `SleepTimelineCard`, `WeekWindowCard`, `SleepScoreBreakdownCard`, and `SleepScoreCard` to adopt the flat, edge-to-edge "Anti-Slop" design. Increased the height of the sleep timeline chart by 25% for better visibility.
+- **Refactored Sleep Module KPIs to Grid Layout:** Standardized textual summaries across Week and Month views into the `ValueSummaryCard` grid layout.
+- **Redesigned Sleep Quality Header:** Refactored `SleepScoreCard` in the daily view to use `AppSectionHeader` and `AppInfoRow` styling, enlarging the score ring to 80x80 with bolder typography for prominence.
+- **Fixed Sleep Module Styling & Spacing:** Enforced strict padding alignment between headers and chart limits. Aligned grid cell heights perfectly using `GridView` with fixed `childAspectRatio`, and ensured equal spacing (`8px`) between progress bars in the score breakdown card to match the grid below.
+- **Adjusted Sleep Score Chip Text Colors:** Changed the daily score text color inside the weekly and monthly timeline chips to adaptively use the primary text color (`onSurface`), improving readability against dynamic background pill colors.
 
 ## [1.0.0-alpha.4] - 2026-07-07
 

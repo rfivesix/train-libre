@@ -13,27 +13,20 @@ class SleepMetricTileGrid extends StatelessWidget {
   final SleepDayOverviewData overview;
 
   Widget _buildTwoColumnGrid(List<Widget> items) {
-    final rows = <Widget>[];
-    for (var i = 0; i < items.length; i += 2) {
-      final left = items[i];
-      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
-      rows.add(
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: left),
-              const SizedBox(width: DesignConstants.spacingS),
-              Expanded(child: right),
-            ],
-          ),
-        ),
-      );
-      if (i + 2 < items.length) {
-        rows.add(const SizedBox(height: DesignConstants.spacingS));
-      }
-    }
-    return Column(children: rows);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GridView.count(
+          padding: EdgeInsets.zero,
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: DesignConstants.spacingS,
+          mainAxisSpacing: DesignConstants.spacingS,
+          childAspectRatio: 2.45,
+          children: items,
+        );
+      },
+    );
   }
 
   @override

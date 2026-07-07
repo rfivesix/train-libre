@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
 import '../../data/repository/sleep_query_repository.dart';
 import '../../domain/sleep_enums.dart';
@@ -147,31 +147,42 @@ class WeekSummaryCard extends StatelessWidget {
     final mean = aggregation.meanScore == null
         ? '--'
         : aggregation.meanScore!.toStringAsFixed(0);
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sleepWeekSummaryTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(l10n.sleepMeanScoreLabel(mean)),
-            Text(
-              l10n.sleepWeekdayAvgDurationLabel(
-                formatDuration(aggregation.weekdayAverageDuration),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ValueSummaryCard(
+                  value: mean,
+                  label: l10n.sleepMeanScoreLabel(''),
+                ),
               ),
-            ),
-            Text(
-              l10n.sleepWeekendAvgDurationLabel(
-                formatDuration(aggregation.weekendAverageDuration),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: ValueSummaryCard(
+                  value: formatDuration(aggregation.weekdayAverageDuration),
+                  label: l10n.sleepWeekdayAvgDurationLabel(''),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Row(
+            children: [
+              Expanded(
+                child: ValueSummaryCard(
+                  value: formatDuration(aggregation.weekendAverageDuration),
+                  label: l10n.sleepWeekendAvgDurationLabel(''),
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingS),
+              const Spacer(),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -205,63 +216,60 @@ class WeekScoreStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sleepDailyScoreTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Row(
-              children: aggregation.days.map((day) {
-                final score = day.score;
-                return Expanded(
-                  child: InkWell(
-                    onTap: () => onTapDay(day.date),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: _chipColor(context, day.sleepQuality),
-                              borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusS,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              score == null ? '--' : score.round().toString(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                                  ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.sleepDailyScoreTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Row(
+            children: aggregation.days.map((day) {
+              final score = day.score;
+              return Expanded(
+                child: InkWell(
+                  onTap: () => onTapDay(day.date),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: _chipColor(context, day.sleepQuality),
+                            borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusS,
                             ),
                           ),
-                          const SizedBox(height: DesignConstants.spacingXS),
-                          Text(
-                            '${day.date.day}',
-                            style: Theme.of(context).textTheme.labelSmall,
+                          alignment: Alignment.center,
+                          child: Text(
+                            score == null ? '--' : score.round().toString(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                ),
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: DesignConstants.spacingXS),
+                        Text(
+                          '${day.date.day}',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
                     ),
                   ),
-                );
-              }).toList(growable: false),
-            ),
-          ],
-        ),
+                ),
+              );
+            }).toList(growable: false),
+          ),
+        ],
       ),
     );
   }

@@ -40,7 +40,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
           unit: '',
           color: const Color(0xFF10B981), // Emerald/Green accent
         ),
-        const SizedBox(height: DesignConstants.spacingM),
+        const SizedBox(height: DesignConstants.spacingS),
         GlassProgressBar(
           label: l10n.sleepMetricContinuityLabel,
           value: scoringResult.continuityScore ?? 0.0,
@@ -48,7 +48,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
           unit: '',
           color: Colors.blue, // Blue accent
         ),
-        const SizedBox(height: DesignConstants.spacingM),
+        const SizedBox(height: DesignConstants.spacingS),
         GlassProgressBar(
           label: l10n.sleepMetricDepthLabel,
           value: scoringResult.architectureScore ?? 0.0,
@@ -56,7 +56,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
           unit: '',
           color: Colors.indigo, // Indigo accent
         ),
-        const SizedBox(height: DesignConstants.spacingM),
+        const SizedBox(height: DesignConstants.spacingS),
         GlassProgressBar(
           label: l10n.sleepMetricTimingLabel,
           value: scoringResult.timingScore ?? 0.0,
@@ -64,7 +64,7 @@ class SleepScoreBreakdownCard extends StatelessWidget {
           unit: '',
           color: Colors.amber, // Amber/Yellow accent
         ),
-        const SizedBox(height: DesignConstants.spacingM),
+        const SizedBox(height: DesignConstants.spacingS),
         GlassProgressBar(
           label: l10n.sleepMetricRegularityLabel,
           value: scoringResult.regularityScore ?? 0.0,

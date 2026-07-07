@@ -5,7 +5,6 @@ import '../../../../data/database_helper.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../settings/presentation/settings_screen.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../data/repository/sleep_query_repository.dart';
 import '../../data/sleep_day_repository.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
@@ -326,10 +325,16 @@ class _SleepDayOverviewContent extends StatelessWidget {
         SleepScoreCard(overview: overview),
         const SizedBox(height: _sleepOverviewSectionSpacing),
         if (overview.scoringResult != null) ...[
-          SleepScoreBreakdownCard(scoringResult: overview.scoringResult!),
-          const SizedBox(height: _sleepOverviewSectionSpacing),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+            child: SleepScoreBreakdownCard(scoringResult: overview.scoringResult!),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
         ],
-        SleepMetricTileGrid(overview: overview),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+          child: SleepMetricTileGrid(overview: overview),
+        ),
       ],
     );
   }
@@ -363,9 +368,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
     final countBadgeText =
         isDark ? const Color(0xFF34D399) : const Color(0xFF065F46);
 
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      padding: EdgeInsets.zero,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -551,13 +555,11 @@ class _SleepEmptyStateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             Text(l10n.sleepEmptyDayNoData),
             const SizedBox(height: DesignConstants.spacingS),
             Text(l10n.sleepEmptyDayConnectMessage),
@@ -592,7 +594,6 @@ class _SleepEmptyStateCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

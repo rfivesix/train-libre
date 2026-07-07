@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../generated/app_localizations.dart';
-import '../../../../widgets/common/summary_card.dart';
+import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/algorithm_info_sheet.dart';
+import '../../../../widgets/common/app_info_row.dart';
+import '../../../../widgets/common/app_section_header.dart';
 import '../../domain/sleep_domain.dart';
 import '../../data/sleep_day_repository.dart';
 
@@ -33,65 +35,71 @@ class SleepScoreCard extends StatelessWidget {
     final completenessText = completeness == null
         ? l10n.sleepScoreCompletenessLabel('--')
         : l10n.sleepScoreCompletenessLabel('${(completeness * 100).round()}%');
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 64,
-              height: 64,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    value: score == null
-                        ? 0
-                        : (score.clamp(0.0, 100.0) / 100.0).toDouble(),
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    color: _qualityColor(quality),
-                  ),
-                  Text(scoreText),
-                ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              AppSectionHeader(
+                title: l10n.sleepScoreCardTitle,
+                padding: EdgeInsets.zero,
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(l10n.sleepScoreCardTitle),
-                      AlgorithmInfoButton(
-                        title: l10n.infoSleepTitle,
-                        explanation: l10n.infoSleepExplanation,
-                        keyPoints: l10n.infoSleepKeyPoints.split('\n'),
-                        technicalTitle: l10n.infoSleepTechnicalTitle,
-                        technicalExplanation:
-                            l10n.infoSleepTechnicalExplanation,
-                        markdownAssetPath:
-                            'documentation/features/sleep_scoring_engine.md',
-                        citationUrl:
-                            'https://rfivesix.github.io/train-libre/sleep-score/#evidence',
+              AlgorithmInfoButton(
+                title: l10n.infoSleepTitle,
+                explanation: l10n.infoSleepExplanation,
+                keyPoints: l10n.infoSleepKeyPoints.split('\n'),
+                technicalTitle: l10n.infoSleepTechnicalTitle,
+                technicalExplanation: l10n.infoSleepTechnicalExplanation,
+                markdownAssetPath: 'documentation/features/sleep_scoring_engine.md',
+                citationUrl: 'https://rfivesix.github.io/train-libre/sleep-score/#evidence',
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Row(
+            children: [
+              Expanded(
+                child: AppInfoRow(
+                  title: _qualityLabel(l10n, quality),
+                  subtitle: '$subtitle\n$completenessText',
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: CircularProgressIndicator(
+                        value: score == null
+                            ? 0
+                            : (score.clamp(0.0, 100.0) / 100.0).toDouble(),
+                        backgroundColor:
+                            Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: _qualityColor(quality),
+                        strokeWidth: 6.0,
                       ),
-                    ],
-                  ),
-                  Text(
-                    _qualityLabel(l10n, quality),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  Text(subtitle),
-                  Text(completenessText),
-                ],
+                    ),
+                    Text(
+                      scoreText,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }

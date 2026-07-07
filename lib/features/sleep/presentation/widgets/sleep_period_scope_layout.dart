@@ -99,12 +99,7 @@ class SleepPeriodScopeLayout extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingS),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal,
-            ),
-            child: child,
-          ),
+          child,
         ],
       ),
     );

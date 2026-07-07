@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/global_app_bar.dart';
-import '../../../../widgets/common/summary_card.dart';
 import 'sleep_data_unavailable_card.dart';
 
 class SleepDetailPageShell extends StatelessWidget {
@@ -37,37 +36,35 @@ class SleepDetailPageShell extends StatelessWidget {
               16,
         ),
         children: [
-          SummaryCard(
-            child: Padding(
-              padding: const EdgeInsets.all(DesignConstants.spacingL),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(value, style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                        ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(value, style: Theme.of(context).textTheme.headlineSmall),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: DesignConstants.spacingS),
-                      Text(statusLabel),
-                    ],
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: DesignConstants.spacingS),
-                    Text(
-                      subtitle!,
-                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    Text(statusLabel),
                   ],
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Text(
+                    subtitle!,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
           const SizedBox(height: DesignConstants.spacingM),
