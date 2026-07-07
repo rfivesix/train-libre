@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
+import '../../features/statistics/domain/timeframe_block.dart';
+import 'package:intl/intl.dart';
 import 'glass_border_painter.dart';
 
 /// Helper to get the localized date picker title.
@@ -394,3 +396,169 @@ class _GlassPickerSheet extends StatelessWidget {
     );
   }
 }
+
+
+Future<DateTime?> showAdaptiveTimeframePicker({
+  required BuildContext context,
+  required TimeframeBlock activeBlock,
+  required DateTime initialAnchor,
+  required DateTime earliestAvailableDay,
+}) async {
+  if (activeBlock == TimeframeBlock.maxBlock) return null;
+
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final l10n = AppLocalizations.of(context);
+  final theme = Theme.of(context);
+
+  final Color barrierColor = isDark
+      ? Colors.black.withValues(alpha: 0.5)
+      : Colors.black.withValues(alpha: 0.3);
+
+  final now = DateTime.now();
+
+  // Generate the list of allowed anchor dates from earliestAvailableDay to now
+  final List<DateTime> options = [];
+  DateTime current = activeBlock.getBounds(earliestAvailableDay, earliestAvailableDay).start;
+
+  while (current.isBefore(now) || current.isAtSameMomentAs(now) || current.year == now.year && current.month == now.month) {
+    if (activeBlock.getBounds(current, earliestAvailableDay).start.isAfter(now)) {
+      break;
+    }
+    options.add(current);
+    
+    // Increment to next block
+    switch (activeBlock) {
+      case TimeframeBlock.week: current = current.add(const Duration(days: 7)); break;
+      case TimeframeBlock.month: current = DateTime(current.year, current.month + 1, 15); break;
+      case TimeframeBlock.threeMonths: current = DateTime(current.year, current.month + 3, 15); break;
+      case TimeframeBlock.sixMonths: current = DateTime(current.year, current.month + 6, 15); break;
+      case TimeframeBlock.year: current = DateTime(current.year + 1, 6, 15); break;
+      case TimeframeBlock.maxBlock: break;
+    }
+    // Snap current back to bounds start for safety in iteration
+    if (activeBlock != TimeframeBlock.maxBlock) {
+       current = activeBlock.getBounds(current, earliestAvailableDay).start;
+    } else {
+       break;
+    }
+  }
+
+  // Fallback if empty
+  if (options.isEmpty) {
+    options.add(now);
+  }
+
+  // Find initial index
+  int initialIndex = options.indexWhere((d) {
+    final b1 = activeBlock.getBounds(d, earliestAvailableDay);
+    final b2 = activeBlock.getBounds(initialAnchor, earliestAvailableDay);
+    return b1.start.year == b2.start.year && b1.start.month == b2.start.month && b1.start.day == b2.start.day;
+  });
+  if (initialIndex < 0) initialIndex = options.length - 1;
+
+  int selectedIndex = initialIndex;
+
+  String formatOption(DateTime date) {
+    final b = activeBlock.getBounds(date, earliestAvailableDay);
+    switch (activeBlock) {
+      case TimeframeBlock.week: return "${DateFormat('dd. MMM').format(b.start)} - ${DateFormat('dd. MMM yyyy').format(b.end)}";
+      case TimeframeBlock.month: return DateFormat('MMMM yyyy').format(b.start);
+      case TimeframeBlock.threeMonths:
+        return "${DateFormat('MMM').format(b.start)} - ${DateFormat('MMM yyyy').format(b.end)}";
+      case TimeframeBlock.sixMonths:
+        return "${DateFormat('MMM').format(b.start)} - ${DateFormat('MMM yyyy').format(b.end)}";
+      case TimeframeBlock.year: return DateFormat('yyyy').format(b.start);
+      default: return "";
+    }
+  }
+
+  final selected = await showModalBottomSheet<DateTime>(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    enableDrag: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: barrierColor,
+    builder: (ctx) {
+      final kb = MediaQuery.of(ctx).viewInsets.bottom;
+      return AnimatedPadding(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        padding: EdgeInsets.only(bottom: kb),
+        child: _GlassPickerSheet(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    vertical: DesignConstants.spacingL),
+                child: Center(
+                  child: Text(
+                    _getSelectDateTitle(ctx),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 200,
+                child: CupertinoTheme(
+                  data: CupertinoThemeData(
+                    brightness: isDark ? Brightness.dark : Brightness.light,
+                    textTheme: CupertinoTextThemeData(
+                      pickerTextStyle: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontSize: 22,
+                      ),
+                    ),
+                  ),
+                  child: CupertinoPicker(
+                    scrollController: FixedExtentScrollController(initialItem: initialIndex),
+                    itemExtent: 40,
+                    onSelectedItemChanged: (int index) {
+                      selectedIndex = index;
+                    },
+                    children: options.map((date) => Center(child: Text(formatOption(date)))).toList(),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingXS,
+                  bottom: DesignConstants.spacingM,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text(l10n?.cancel ?? 'Cancel'),
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingM),
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Theme.of(ctx).colorScheme.primary,
+                          foregroundColor: Theme.of(ctx).colorScheme.onPrimary,
+                        ),
+                        onPressed: () => Navigator.pop(ctx, options[selectedIndex]),
+                        child: Text(l10n?.snackbarButtonOK ?? 'OK'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+
+  return selected;
+}
+

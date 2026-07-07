@@ -617,6 +617,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get filter180DaysShort => '180T';
 
   @override
+  String get filter7DaysShort => '7T';
+
+  @override
+  String get filter1MonthShort => '1M';
+
+  @override
+  String get filter3MonthsShort => '3M';
+
+  @override
+  String get filter6MonthsShort => '6M';
+
+  @override
+  String get filter1YearShort => '1J';
+
+  @override
   String get filterMax => 'MAX';
 
   @override

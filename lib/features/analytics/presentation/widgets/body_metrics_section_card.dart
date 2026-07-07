@@ -13,14 +13,14 @@ import 'analytics_card_base.dart';
 
 class BodyMetricsSectionCard extends StatelessWidget {
   final SectionLoadState<BodyNutritionAnalyticsResult> state;
-  final String rangeLabel;
+  final String? rangeLabel;
   final VoidCallback onRetry;
   final VoidCallback onTap;
 
   const BodyMetricsSectionCard({
     super.key,
     required this.state,
-    required this.rangeLabel,
+    this.rangeLabel,
     required this.onRetry,
     required this.onTap,
   });

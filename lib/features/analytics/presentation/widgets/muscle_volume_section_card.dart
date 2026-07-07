@@ -9,14 +9,14 @@ import 'analytics_card_base.dart';
 
 class MuscleVolumeSectionCard extends StatelessWidget {
   final SectionLoadState<VolumeMusclesSectionData> state;
-  final String rangeLabel;
+  final String? rangeLabel;
   final VoidCallback onRetry;
   final VoidCallback onTap;
 
   const MuscleVolumeSectionCard({
     super.key,
     required this.state,
-    required this.rangeLabel,
+    this.rangeLabel,
     required this.onRetry,
     required this.onTap,
   });
@@ -115,8 +115,10 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 6),
-              AnalyticsCardBase.buildMicroCaption(context, rangeLabel),
+              if (rangeLabel != null && rangeLabel!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                AnalyticsCardBase.buildMicroCaption(context, rangeLabel!),
+              ]
             ],
           ),
         ),

@@ -6,6 +6,7 @@ import '../domain/hub_payload_models.dart';
 import '../domain/recovery_domain_service.dart';
 import '../domain/recovery_payload_models.dart';
 import '../domain/statistics_range_policy.dart';
+import '../domain/timeframe_block.dart';
 
 class StatisticsHubDataAdapter {
   final WorkoutLocalDataSource _workoutDatabaseHelper;
@@ -19,36 +20,39 @@ class StatisticsHubDataAdapter {
         _rangePolicy = rangePolicy;
 
   Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> fetch({
-    required int selectedTimeRangeIndex,
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
   }) async {
     final adapterStopwatch = Stopwatch()..start();
-    final selectedDays = _rangePolicy.selectedDaysFromIndex(
-      selectedTimeRangeIndex,
-    );
     final weeklyVolumeRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubWeeklyVolume,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
     final workoutsPerWeekRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubWorkoutsPerWeek,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
     final consistencyRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubConsistencyMetrics,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
     final recoveryRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubRecoveryReadiness,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
     final muscleRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubMuscleAnalytics,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
     final improvementRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubNotablePrImprovements,
-      selectedRangeIndex: selectedTimeRangeIndex,
-      selectedDays: selectedDays,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
 
     try {
@@ -82,10 +86,9 @@ class StatisticsHubDataAdapter {
         area: 'statistics',
         label: 'muscleAnalytics',
         action: () => _workoutDatabaseHelper.getMuscleGroupAnalytics(
-          daysBack: selectedDays,
+          daysBack: improvementRange.effectiveDays ?? 30,
           weeksBack: muscleRange.effectiveWeeks ?? 8,
         ),
-        fields: {'range': '${selectedDays}d'},
       );
       final trainingStats = PerfDebugTimer.time(
         area: 'statistics',
@@ -104,7 +107,7 @@ class StatisticsHubDataAdapter {
         area: 'statistics',
         label: 'notablePrImprovements',
         action: () => _workoutDatabaseHelper.getNotablePrImprovements(
-          daysWindow: improvementRange.effectiveDays ?? selectedDays,
+          daysWindow: improvementRange.effectiveDays ?? 30,
           limit: 3,
         ),
       );
@@ -112,9 +115,9 @@ class StatisticsHubDataAdapter {
         area: 'statistics',
         label: 'bodyNutrition',
         action: () => BodyNutritionAnalyticsUtils.build(
-          rangeIndex: selectedTimeRangeIndex,
+          selectedBlockType: selectedBlockType,
+          anchorDate: anchorDate,
         ),
-        fields: {'range': '${selectedDays}d'},
       );
 
       final results = await Future.wait<dynamic>([
@@ -154,17 +157,18 @@ class StatisticsHubDataAdapter {
         label: 'adapterFetch',
         metric: 'total',
         elapsed: adapterStopwatch.elapsed,
-        fields: {'range': '${selectedDays}d'},
       );
     }
   }
 
   Future<RecoveryAnalyticsPayload> fetchRecovery({
-    required int selectedTimeRangeIndex,
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
   }) async {
     final recoveryRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubRecoveryReadiness,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
     final recoveryAnalytics = await PerfDebugTimer.time(
       area: 'statistics',
@@ -184,15 +188,18 @@ class StatisticsHubDataAdapter {
         List<WeeklyConsistencyMetricPayload> weeklyConsistencyMetrics,
         TrainingStatsPayload trainingStats,
       })> fetchConsistency({
-    required int selectedTimeRangeIndex,
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
   }) async {
     final workoutsPerWeekRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubWorkoutsPerWeek,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
     final consistencyRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubConsistencyMetrics,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
 
     final results = await Future.wait<dynamic>([
@@ -233,15 +240,13 @@ class StatisticsHubDataAdapter {
         List<Map<String, dynamic>> recentPrs,
         List<Map<String, dynamic>> notableImprovements,
       })> fetchPerformanceRecords({
-    required int selectedTimeRangeIndex,
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
   }) async {
-    final selectedDays = _rangePolicy.selectedDaysFromIndex(
-      selectedTimeRangeIndex,
-    );
     final improvementRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubNotablePrImprovements,
-      selectedRangeIndex: selectedTimeRangeIndex,
-      selectedDays: selectedDays,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
 
     final results = await Future.wait<dynamic>([
@@ -254,7 +259,7 @@ class StatisticsHubDataAdapter {
         area: 'statistics',
         label: 'notablePrImprovements',
         action: () => _workoutDatabaseHelper.getNotablePrImprovements(
-          daysWindow: improvementRange.effectiveDays ?? selectedDays,
+          daysWindow: improvementRange.effectiveDays ?? 30,
           limit: 3,
         ),
       ),
@@ -271,18 +276,18 @@ class StatisticsHubDataAdapter {
         List<Map<String, dynamic>> weeklyVolume,
         Map<String, dynamic> muscleAnalytics,
       })> fetchVolumeMuscles({
-    required int selectedTimeRangeIndex,
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
   }) async {
-    final selectedDays = _rangePolicy.selectedDaysFromIndex(
-      selectedTimeRangeIndex,
-    );
     final weeklyVolumeRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubWeeklyVolume,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
     final muscleRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubMuscleAnalytics,
-      selectedRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType,
+      now: anchorDate,
     );
 
     final results = await Future.wait<dynamic>([
@@ -297,10 +302,9 @@ class StatisticsHubDataAdapter {
         area: 'statistics',
         label: 'muscleAnalytics',
         action: () => _workoutDatabaseHelper.getMuscleGroupAnalytics(
-          daysBack: selectedDays,
+          daysBack: muscleRange.effectiveDays ?? 30,
           weeksBack: muscleRange.effectiveWeeks ?? 8,
         ),
-        fields: {'range': '${selectedDays}d'},
       ),
     ]);
 
@@ -311,18 +315,16 @@ class StatisticsHubDataAdapter {
   }
 
   Future<BodyNutritionAnalyticsResult> fetchBodyNutrition({
-    required int selectedTimeRangeIndex,
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
   }) {
-    final selectedDays = _rangePolicy.selectedDaysFromIndex(
-      selectedTimeRangeIndex,
-    );
     return PerfDebugTimer.time(
       area: 'statistics',
       label: 'bodyNutrition',
       action: () => BodyNutritionAnalyticsUtils.build(
-        rangeIndex: selectedTimeRangeIndex,
+        selectedBlockType: selectedBlockType,
+        anchorDate: anchorDate,
       ),
-      fields: {'range': '${selectedDays}d'},
     );
   }
 }

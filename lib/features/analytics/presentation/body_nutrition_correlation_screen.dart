@@ -1,3 +1,4 @@
+import '../../statistics/domain/timeframe_block.dart';
 import 'package:flutter/material.dart';
 
 import '../../statistics/presentation/widgets/body_nutrition_normalized_trend_chart.dart';
@@ -43,7 +44,8 @@ class _BodyNutritionCorrelationScreenState
     setState(() => _isLoading = true);
     try {
       final analytics = await BodyNutritionAnalyticsUtils.build(
-        rangeIndex: _rangeIndex,
+        selectedBlockType: TimeframeBlock.values[_rangeIndex],
+        anchorDate: DateTime.now(),
       );
       if (!mounted || loadEpoch != _loadEpoch) return;
       setState(() {
@@ -385,7 +387,7 @@ class _BodyNutritionCorrelationScreenState
   String _effectiveRangeDisclosure() {
     final resolved = _rangePolicy.resolve(
       metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedRangeIndex: _rangeIndex,
+      selectedBlockType: TimeframeBlock.values[_rangeIndex], now: DateTime.now(),
       earliestAvailableDay: _analytics?.range.start,
     );
     final days = resolved.effectiveDays;
@@ -393,7 +395,7 @@ class _BodyNutritionCorrelationScreenState
     if (days == null || days <= 0) {
       return _ranges(l10n)[_rangeIndex];
     }
-    if (_rangePolicy.isAllTimeRangeIndex(_rangeIndex)) {
+    if (TimeframeBlock.values[_rangeIndex] == TimeframeBlock.maxBlock) {
       return '$days ${l10n.analyticsDayUnitLabel}';
     }
     return _ranges(l10n)[_rangeIndex];

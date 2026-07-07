@@ -10,14 +10,14 @@ import 'analytics_card_base.dart';
 
 class SleepSectionCard extends StatelessWidget {
   final SectionLoadState<SleepHubSummary> state;
-  final String rangeLabel;
+  final String? rangeLabel;
   final VoidCallback onRetry;
   final VoidCallback onTap;
 
   const SleepSectionCard({
     super.key,
     required this.state,
-    required this.rangeLabel,
+    this.rangeLabel,
     required this.onRetry,
     required this.onTap,
   });
@@ -77,7 +77,8 @@ class SleepSectionCard extends StatelessWidget {
               Row(
                 children: [
                   const Spacer(),
-                  AnalyticsCardBase.buildRangeChip(context, rangeLabel),
+                  if (rangeLabel != null && rangeLabel!.isNotEmpty)
+                    AnalyticsCardBase.buildRangeChip(context, rangeLabel!),
                   const SizedBox(width: DesignConstants.spacingS),
                   AnalyticsCardBase.buildDrillDownHint(context),
                 ],

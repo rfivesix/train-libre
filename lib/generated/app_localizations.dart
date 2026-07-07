@@ -1232,6 +1232,36 @@ abstract class AppLocalizations {
   /// **'180D'**
   String get filter180DaysShort;
 
+  /// No description provided for @filter7DaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'7D'**
+  String get filter7DaysShort;
+
+  /// No description provided for @filter1MonthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'1M'**
+  String get filter1MonthShort;
+
+  /// No description provided for @filter3MonthsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'3M'**
+  String get filter3MonthsShort;
+
+  /// No description provided for @filter6MonthsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'6M'**
+  String get filter6MonthsShort;
+
+  /// No description provided for @filter1YearShort.
+  ///
+  /// In en, this message translates to:
+  /// **'1Y'**
+  String get filter1YearShort;
+
   /// No description provided for @filterMax.
   ///
   /// In en, this message translates to:

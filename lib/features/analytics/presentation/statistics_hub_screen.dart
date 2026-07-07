@@ -1,3 +1,4 @@
+import '../../statistics/domain/timeframe_block.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -5,20 +6,21 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../statistics/data/statistics_hub_data_adapter.dart';
 import '../../statistics/domain/body_nutrition_analytics_models.dart';
 import '../../statistics/domain/hub_payload_models.dart';
-import '../../statistics/domain/statistics_range_policy.dart';
 import '../../pulse/data/pulse_repository.dart';
 import '../../sleep/data/sleep_hub_summary_repository.dart';
 import '../../sleep/presentation/sleep_navigation.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
 import '../../steps/data/steps_aggregation_repository.dart';
-import '../../steps/domain/steps_models.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
+
 import '../../../widgets/common/summary_card.dart';
 import '../../steps/presentation/steps_module_screen.dart';
 import 'body_nutrition_correlation_screen.dart';
@@ -64,7 +66,7 @@ class StatisticsHubScreen extends StatelessWidget {
   final SleepHubSummaryRepository? _sleepSummaryRepository;
   final PulseAnalysisRepository? _pulseRepository;
   final Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> Function(
-    int selectedTimeRangeIndex,
+    TimeframeBlock selectedBlockType, DateTime anchorDate,
   )? fetchHubAnalytics;
   final Future<SleepSyncResult?> Function({
     int lookbackDays,
@@ -116,17 +118,13 @@ class StatisticsHubScreen extends StatelessWidget {
 class _StatisticsHubScreenView extends StatelessWidget {
   const _StatisticsHubScreenView();
 
-  static const int _days7 = 7;
-  static const int _days30 = 30;
-  static const int _days90 = 90;
-  static const int _days180 = 180;
-
   List<String> _timeRanges(AppLocalizations l10n) => [
-        l10n.filter7Days,
-        l10n.filter30Days,
-        l10n.filter3Months,
-        l10n.filter6Months,
-        l10n.filterAll,
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter6MonthsShort,
+        l10n.filter1YearShort,
+        l10n.filterMax,
       ];
 
   @override
@@ -150,10 +148,25 @@ class _StatisticsHubScreenView extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 TimeRangeFilter(
                   ranges: _timeRanges(l10n),
-                  selectedIndex: viewModel.selectedTimeRangeIndex,
+                  selectedIndex: viewModel.activeBlockType.index,
                   onSelected: (index) {
-                    viewModel.selectedTimeRangeIndex = index;
+                    viewModel.activeBlockType = TimeframeBlock.values[index];
                   },
+                  onPrevious: viewModel.activeBlockType == TimeframeBlock.maxBlock ? null : () => viewModel.shiftTimeframe(true),
+                  onNext: viewModel.activeBlockType == TimeframeBlock.maxBlock ? null : () => viewModel.shiftTimeframe(false),
+                  displayDate: _unifiedRangeLabel(viewModel, l10n),
+                  onTapDateDisplay: () async {
+                    final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                      context: context,
+                      activeBlock: viewModel.activeBlockType,
+                      initialAnchor: viewModel.anchorDate,
+                      earliestAvailableDay: DateTime(2020),
+                    );
+                    if (selected != null) {
+                      viewModel.anchorDate = selected;
+                    }
+                  },
+                  nextEnabled: viewModel.activeBlockType != TimeframeBlock.maxBlock && viewModel.anchorDate.isBefore(DateTime.now()),
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
                 Padding(
@@ -243,10 +256,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     final range = viewModel.stepsRange;
     final hasData =
         (range?.dailyTotals.any((bucket) => bucket.steps > 0) ?? false);
-    final selectedDays = viewModel.rangePolicy.selectedDaysFromIndex(
-      viewModel.selectedTimeRangeIndex,
-    );
-    final subtitleRange = _rangeSubtitle(viewModel, l10n, selectedDays, range);
+    final subtitleRange = _unifiedRangeLabel(viewModel, l10n);
     final stepsTitle = l10n.steps;
     final noDataText = !viewModel.stepsTrackingEnabled
         ? l10n.statisticsEnableStepTrackingHint
@@ -288,7 +298,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     }
 
     // In 7-day mode we show today's steps; in longer ranges we show total steps.
-    final bool isSevenDays = viewModel.selectedTimeRangeIndex == 0;
+    final bool isSevenDays = viewModel.activeBlockType.index == 0;
 
     int currentSteps = 0;
     String stepsSubtitle = l10n.today;
@@ -324,32 +334,32 @@ class _StatisticsHubScreenView extends StatelessWidget {
     );
   }
 
-  String _rangeSubtitle(
+  String? _unifiedRangeLabel(
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
-    int selectedDays,
-    RangeStepsAggregation? range,
   ) {
-    if (range == null) {
-      return '$selectedDays ${l10n.analyticsDayUnitLabel}';
+    if (viewModel.activeBlockType == TimeframeBlock.maxBlock) {
+      return l10n.filterMax;
     }
-    if (viewModel.rangePolicy
-        .isAllTimeRangeIndex(viewModel.selectedTimeRangeIndex)) {
-      return '${DateFormat.yMMMd().format(range.start)} – ${DateFormat.yMMMd().format(range.end)}';
+    final range = viewModel.activeBlockType.getBounds(
+      viewModel.anchorDate,
+      DateTime(2020),
+    );
+    final locale = l10n.localeName;
+    switch (viewModel.activeBlockType) {
+      case TimeframeBlock.week:
+        return "${DateFormat('dd. MMM', locale).format(range.start)} - ${DateFormat('dd. MMM yyyy', locale).format(range.end)}";
+      case TimeframeBlock.month:
+        return DateFormat('MMMM yyyy', locale).format(range.start);
+      case TimeframeBlock.threeMonths:
+        return "${DateFormat('MMM', locale).format(range.start)} - ${DateFormat('MMM yyyy', locale).format(range.end)}";
+      case TimeframeBlock.sixMonths:
+        return "${DateFormat('MMM', locale).format(range.start)} - ${DateFormat('MMM yyyy', locale).format(range.end)}";
+      case TimeframeBlock.year:
+        return DateFormat('yyyy', locale).format(range.start);
+      default:
+        return null;
     }
-    if (selectedDays == _days7) {
-      return l10n.statisticsLast7Days;
-    }
-    if (selectedDays == _days30) {
-      return l10n.statisticsLast30Days;
-    }
-    if (selectedDays == _days90) {
-      return l10n.statisticsLast3Months;
-    }
-    if (selectedDays == _days180) {
-      return l10n.statisticsLast6Months;
-    }
-    return '${DateFormat.yMMMd().format(range.start)} – ${DateFormat.yMMMd().format(range.end)}';
   }
 
   Widget _buildRecoverySection(
@@ -359,6 +369,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
   ) {
     return RecoverySectionCard(
       state: viewModel.recoveryState,
+      chipText: null, // As requested, no pill for Recovery
       onRetry: () => viewModel.loadHubAnalytics(),
       onTap: () {
         Navigator.of(context).push(
@@ -375,7 +386,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
   ) {
     return SleepSectionCard(
       state: viewModel.sleepState,
-      rangeLabel: _timeRanges(l10n)[viewModel.selectedTimeRangeIndex],
+      rangeLabel: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
       onTap: () => SleepNavigation.openDay(context),
     );
@@ -386,14 +397,10 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final selectedDays = viewModel.rangePolicy.selectedDaysFromIndex(
-      viewModel.selectedTimeRangeIndex,
-    );
-    final rangeLabel =
-        _rangeSubtitle(viewModel, l10n, selectedDays, viewModel.stepsRange);
+    final rangeLabel = _unifiedRangeLabel(viewModel, l10n);
     return PulseSectionCard(
       state: viewModel.pulseState,
-      fallbackRangeLabel: rangeLabel,
+      fallbackRangeLabel: rangeLabel ?? '',
       onRetry: () => viewModel.loadHubAnalytics(),
       onTap: () {
         Navigator.of(context).push(
@@ -410,6 +417,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
   ) {
     return ConsistencySectionCard(
       state: viewModel.consistencyState,
+      chipText: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
       onTap: () {
         Navigator.of(context).push(
@@ -426,7 +434,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
   ) {
     return PerformanceSectionCard(
       state: viewModel.performanceState,
-      chipText: _effectivePerformanceRangeLabel(viewModel, l10n),
+      chipText: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
       onTap: () {
         Navigator.of(context).push(
@@ -443,7 +451,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
   ) {
     return MuscleVolumeSectionCard(
       state: viewModel.volumeMusclesState,
-      rangeLabel: _timeRanges(l10n)[viewModel.selectedTimeRangeIndex],
+      rangeLabel: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
       onTap: () {
         Navigator.of(context).push(
@@ -460,13 +468,13 @@ class _StatisticsHubScreenView extends StatelessWidget {
   ) {
     return BodyMetricsSectionCard(
       state: viewModel.bodyNutritionState,
-      rangeLabel: _effectiveBodyRangeLabel(viewModel, l10n),
+      rangeLabel: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => BodyNutritionCorrelationScreen(
-              initialRangeIndex: viewModel.selectedTimeRangeIndex,
+              initialRangeIndex: viewModel.activeBlockType.index,
             ),
           ),
         );
@@ -517,49 +525,5 @@ class _StatisticsHubScreenView extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _effectiveBodyRangeLabel(
-    StatisticsHubViewModel viewModel,
-    AppLocalizations l10n,
-  ) {
-    final resolved = viewModel.rangePolicy.resolve(
-      metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedRangeIndex: viewModel.selectedTimeRangeIndex,
-      earliestAvailableDay: viewModel.bodyNutrition?.range.start,
-    );
-    final days = resolved.effectiveDays;
-    if (days == null || days <= 0) {
-      return _timeRanges(l10n)[viewModel.selectedTimeRangeIndex];
-    }
-    if (viewModel.rangePolicy
-        .isAllTimeRangeIndex(viewModel.selectedTimeRangeIndex)) {
-      return _dayCountLabel(l10n, days);
-    }
-    return _timeRanges(l10n)[viewModel.selectedTimeRangeIndex];
-  }
-
-  String _effectivePerformanceRangeLabel(
-    StatisticsHubViewModel viewModel,
-    AppLocalizations l10n,
-  ) {
-    final resolved = viewModel.rangePolicy.resolve(
-      metricId: StatisticsMetricId.hubNotablePrImprovements,
-      selectedRangeIndex: viewModel.selectedTimeRangeIndex,
-    );
-    final days = resolved.effectiveDays;
-    if (days == null) {
-      return _timeRanges(l10n)[viewModel.selectedTimeRangeIndex];
-    }
-    if (days ==
-        viewModel.rangePolicy
-            .selectedDaysFromIndex(viewModel.selectedTimeRangeIndex)) {
-      return _timeRanges(l10n)[viewModel.selectedTimeRangeIndex];
-    }
-    return _dayCountLabel(l10n, days);
-  }
-
-  String _dayCountLabel(AppLocalizations l10n, int days) {
-    return '$days ${l10n.analyticsDayUnitLabel}';
   }
 }

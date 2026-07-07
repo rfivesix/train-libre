@@ -8,14 +8,14 @@ import 'analytics_card_base.dart';
 
 class PerformanceSectionCard extends StatelessWidget {
   final SectionLoadState<PerformanceRecordsSectionData> state;
-  final String chipText;
+  final String? chipText;
   final VoidCallback onRetry;
   final VoidCallback onTap;
 
   const PerformanceSectionCard({
     super.key,
     required this.state,
-    required this.chipText,
+    this.chipText,
     required this.onRetry,
     required this.onTap,
   });

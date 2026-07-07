@@ -12,12 +12,14 @@ class RecoverySectionCard extends StatelessWidget {
   final SectionLoadState<RecoveryAnalyticsPayload> state;
   final VoidCallback onRetry;
   final VoidCallback onTap;
+  final String? chipText;
 
   const RecoverySectionCard({
     super.key,
     required this.state,
     required this.onRetry,
     required this.onTap,
+    this.chipText,
   });
 
   @override
@@ -79,7 +81,7 @@ class RecoverySectionCard extends StatelessWidget {
               AnalyticsCardBase.buildHeaderWithChevron(
                 context,
                 label: title,
-                chipText: hasData ? l10n.currentlyTracking : null,
+                chipText: chipText ?? (hasData ? l10n.currentlyTracking : null),
               ),
               Text(
                 recoveryHeadline,

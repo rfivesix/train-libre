@@ -8,6 +8,7 @@ import '../../statistics/domain/consistency_payload_models.dart';
 import '../../statistics/domain/recovery_payload_models.dart';
 import '../../statistics/domain/hub_payload_models.dart';
 import '../../statistics/domain/statistics_range_policy.dart';
+import '../../statistics/domain/timeframe_block.dart';
 import '../../pulse/application/pulse_tracking_service.dart';
 import '../../pulse/data/pulse_repository.dart';
 import '../../pulse/domain/pulse_models.dart';
@@ -130,11 +131,11 @@ class VolumeMusclesSectionData {
 }
 
 class HubRangeContext {
-  final int selectedDays;
+  final TimeframeBlock selectedBlockType;
   final int daysBack;
 
   const HubRangeContext({
-    required this.selectedDays,
+    required this.selectedBlockType,
     required this.daysBack,
   });
 }
@@ -182,7 +183,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
   StatisticsRangePolicyService get rangePolicy => _rangePolicy;
 
   final Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> Function(
-    int selectedTimeRangeIndex,
+    TimeframeBlock selectedBlockType, DateTime anchorDate,
   )? _fetchHubAnalyticsOverride;
   final Future<SleepSyncResult?> Function({
     int lookbackDays,
@@ -193,15 +194,62 @@ class StatisticsHubViewModel extends ChangeNotifier {
   final Future<int> Function()? _targetStepsLoaderOverride;
   final Future<String> Function()? _stepsProviderNameLoaderOverride;
 
-  int _selectedTimeRangeIndex = 1;
-  int get selectedTimeRangeIndex => _selectedTimeRangeIndex;
+  TimeframeBlock _activeBlockType = TimeframeBlock.month;
+  TimeframeBlock get activeBlockType => _activeBlockType;
 
-  set selectedTimeRangeIndex(int index) {
-    if (_selectedTimeRangeIndex != index) {
-      _selectedTimeRangeIndex = index;
+  DateTime _anchorDate = DateTime.now();
+  DateTime get anchorDate => _anchorDate;
+  set anchorDate(DateTime date) {
+    if (_anchorDate != date) {
+      _anchorDate = date;
       notifyListeners();
       loadHubAnalytics();
     }
+  }
+
+  set activeBlockType(TimeframeBlock block) {
+    if (_activeBlockType != block) {
+      _activeBlockType = block;
+    
+      notifyListeners();
+      loadHubAnalytics();
+    }
+  }
+
+  void shiftTimeframe(bool backwards) {
+    if (_activeBlockType == TimeframeBlock.maxBlock) return;
+    
+    final int sign = backwards ? -1 : 1;
+    DateTime nextAnchor;
+    switch (_activeBlockType) {
+      case TimeframeBlock.week:
+        nextAnchor = _anchorDate.add(Duration(days: 7 * sign));
+        break;
+      case TimeframeBlock.month:
+        nextAnchor = DateTime(_anchorDate.year, _anchorDate.month + sign, 15);
+        break;
+      case TimeframeBlock.threeMonths:
+        nextAnchor = DateTime(_anchorDate.year, _anchorDate.month + 3 * sign, 15);
+        break;
+      case TimeframeBlock.sixMonths:
+        nextAnchor = DateTime(_anchorDate.year, _anchorDate.month + 6 * sign, 15);
+        break;
+      case TimeframeBlock.year:
+        nextAnchor = DateTime(_anchorDate.year + sign, 6, 15);
+        break;
+      case TimeframeBlock.maxBlock:
+        nextAnchor = _anchorDate;
+        break;
+    }
+    
+    _anchorDate = _activeBlockType.getBounds(nextAnchor, DateTime(2020)).start;
+    
+    if (_anchorDate.isAfter(DateTime.now())) {
+       _anchorDate = DateTime.now();
+    }
+    
+    notifyListeners();
+    loadHubAnalytics();
   }
 
   SectionLoadState<StepsSectionData> _stepsState =
@@ -286,7 +334,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     StepsSyncService? stepsSyncService,
     SleepSyncService? sleepSyncService,
     Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> Function(
-      int selectedTimeRangeIndex,
+      TimeframeBlock selectedBlockType, DateTime anchorDate,
     )? fetchHubAnalytics,
     Future<SleepSyncResult?> Function({
       int lookbackDays,
@@ -404,9 +452,9 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
   Future<void> loadHubAnalytics() async {
     final loadGeneration = ++_hubAnalyticsLoadGeneration;
-    final selectedRangeIndex = _selectedTimeRangeIndex;
+    final selectedBlockType = _activeBlockType;
     final rangeContextFuture = _resolveHubRangeContext(
-      selectedRangeIndex: selectedRangeIndex,
+      selectedBlockType: selectedBlockType,
     );
 
     _stepsState = _stepsState.loading(loadGeneration);
@@ -424,21 +472,15 @@ class StatisticsHubViewModel extends ChangeNotifier {
     unawaited(_loadPulseSection(loadGeneration, rangeContextFuture));
 
     if (_fetchHubAnalyticsOverride != null) {
-      unawaited(_loadLegacyAggregateSections(
-        loadGeneration,
-        selectedRangeIndex,
-      ));
+      unawaited(_loadLegacyAggregateSections(loadGeneration));
       return;
     }
 
-    unawaited(_loadRecoverySection(loadGeneration, selectedRangeIndex));
-    unawaited(_loadConsistencySection(loadGeneration, selectedRangeIndex));
-    unawaited(_loadPerformanceRecordsSection(
-      loadGeneration,
-      selectedRangeIndex,
-    ));
-    unawaited(_loadVolumeMusclesSection(loadGeneration, selectedRangeIndex));
-    unawaited(_loadBodyNutritionSection(loadGeneration, selectedRangeIndex));
+    unawaited(_loadRecoverySection(loadGeneration));
+    unawaited(_loadConsistencySection(loadGeneration));
+    unawaited(_loadPerformanceRecordsSection(loadGeneration));
+    unawaited(_loadVolumeMusclesSection(loadGeneration));
+    unawaited(_loadBodyNutritionSection(loadGeneration));
   }
 
   bool _isCurrentStepsLoad(int generation) =>
@@ -466,11 +508,8 @@ class StatisticsHubViewModel extends ChangeNotifier {
       _bodyNutritionState.generation == generation;
 
   Future<HubRangeContext> _resolveHubRangeContext({
-    required int selectedRangeIndex,
+    required TimeframeBlock selectedBlockType,
   }) async {
-    final selectedDays = _rangePolicy.selectedDaysFromIndex(
-      selectedRangeIndex,
-    );
     final earliest = await PerfDebugTimer.time(
       area: 'statistics',
       label: 'stepsEarliest',
@@ -478,13 +517,13 @@ class StatisticsHubViewModel extends ChangeNotifier {
     );
     final resolvedRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedRangeIndex: selectedRangeIndex,
-      selectedDays: selectedDays,
+      selectedBlockType: selectedBlockType,
+      now: _anchorDate,
       earliestAvailableDay: earliest,
     );
     return HubRangeContext(
-      selectedDays: selectedDays,
-      daysBack: resolvedRange.effectiveDays ?? selectedDays,
+      selectedBlockType: selectedBlockType,
+      daysBack: resolvedRange.effectiveDays ?? 30,
     );
   }
 
@@ -643,13 +682,12 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
   Future<void> _loadLegacyAggregateSections(
     int generation,
-    int selectedRangeIndex,
   ) async {
     final stopwatch = Stopwatch()..start();
-    final selectedDays = _rangePolicy.selectedDaysFromIndex(selectedRangeIndex);
     try {
       final tuple = await _fetchHubAnalytics(
-        selectedTimeRangeIndex: selectedRangeIndex,
+        selectedBlockType: _activeBlockType,
+        anchorDate: _anchorDate,
       );
       if (!_isCurrentRecoveryLoad(generation)) return;
       final hub = tuple.$1;
@@ -704,19 +742,19 @@ class StatisticsHubViewModel extends ChangeNotifier {
         area: 'statistics',
         label: 'section.legacyAggregate',
         elapsed: stopwatch.elapsed,
-        fields: {'range': '${selectedDays}d'},
+        fields: {'range': 'block'},
       );
     }
   }
 
   Future<void> _loadRecoverySection(
     int generation,
-    int selectedRangeIndex,
   ) async {
     final stopwatch = Stopwatch()..start();
     try {
       final data = await _hubDataAdapter.fetchRecovery(
-        selectedTimeRangeIndex: selectedRangeIndex,
+        selectedBlockType: _activeBlockType,
+        anchorDate: _anchorDate,
       );
       if (!_isCurrentRecoveryLoad(generation)) return;
       _recoveryState = _recoveryState.success(
@@ -742,12 +780,12 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
   Future<void> _loadConsistencySection(
     int generation,
-    int selectedRangeIndex,
   ) async {
     final stopwatch = Stopwatch()..start();
     try {
       final data = await _hubDataAdapter.fetchConsistency(
-        selectedTimeRangeIndex: selectedRangeIndex,
+        selectedBlockType: _activeBlockType,
+        anchorDate: _anchorDate,
       );
       if (!_isCurrentConsistencyLoad(generation)) return;
       _consistencyState = _consistencyState.success(
@@ -778,13 +816,12 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
   Future<void> _loadPerformanceRecordsSection(
     int generation,
-    int selectedRangeIndex,
   ) async {
     final stopwatch = Stopwatch()..start();
-    final selectedDays = _rangePolicy.selectedDaysFromIndex(selectedRangeIndex);
     try {
       final data = await _hubDataAdapter.fetchPerformanceRecords(
-        selectedTimeRangeIndex: selectedRangeIndex,
+        selectedBlockType: _activeBlockType,
+        anchorDate: _anchorDate,
       );
       if (!_isCurrentPerformanceLoad(generation)) return;
       _performanceState = _performanceState.success(
@@ -811,20 +848,19 @@ class StatisticsHubViewModel extends ChangeNotifier {
         area: 'statistics',
         label: 'section.performanceRecords',
         elapsed: stopwatch.elapsed,
-        fields: {'range': '${selectedDays}d'},
+        fields: {'range': 'block'},
       );
     }
   }
 
   Future<void> _loadVolumeMusclesSection(
     int generation,
-    int selectedRangeIndex,
   ) async {
     final stopwatch = Stopwatch()..start();
-    final selectedDays = _rangePolicy.selectedDaysFromIndex(selectedRangeIndex);
     try {
       final data = await _hubDataAdapter.fetchVolumeMuscles(
-        selectedTimeRangeIndex: selectedRangeIndex,
+        selectedBlockType: _activeBlockType,
+        anchorDate: _anchorDate,
       );
       if (!_isCurrentVolumeMusclesLoad(generation)) return;
       _volumeMusclesState = _volumeMusclesState.success(
@@ -851,23 +887,20 @@ class StatisticsHubViewModel extends ChangeNotifier {
         area: 'statistics',
         label: 'section.volumeMuscles',
         elapsed: stopwatch.elapsed,
-        fields: {'range': '${selectedDays}d'},
+        fields: {'range': 'block'},
       );
     }
   }
 
   Future<void> _loadBodyNutritionSection(
     int generation,
-    int selectedRangeIndex,
   ) async {
     final stopwatch = Stopwatch()..start();
-    final selectedDays = _rangePolicy.selectedDaysFromIndex(selectedRangeIndex);
-    final rangeLabel = _rangePolicy.isAllTimeRangeIndex(selectedRangeIndex)
-        ? 'All'
-        : '${selectedDays}d';
+    final rangeLabel = _activeBlockType == TimeframeBlock.maxBlock ? 'All' : 'block';
     try {
       final data = await _hubDataAdapter.fetchBodyNutrition(
-        selectedTimeRangeIndex: selectedRangeIndex,
+        selectedBlockType: _activeBlockType,
+        anchorDate: _anchorDate,
       );
       if (!_isCurrentBodyNutritionLoad(generation)) return;
       _bodyNutritionState = _bodyNutritionState.success(data, generation);
@@ -917,13 +950,13 @@ class StatisticsHubViewModel extends ChangeNotifier {
   }
 
   Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)>
-      _fetchHubAnalytics({required int selectedTimeRangeIndex}) {
+      _fetchHubAnalytics({required TimeframeBlock selectedBlockType, required DateTime anchorDate}) {
     final override = _fetchHubAnalyticsOverride;
     if (override != null) {
-      return override(selectedTimeRangeIndex);
+      return override(selectedBlockType, anchorDate);
     }
     return _hubDataAdapter.fetch(
-      selectedTimeRangeIndex: selectedTimeRangeIndex,
+      selectedBlockType: selectedBlockType, anchorDate: anchorDate,
     );
   }
 

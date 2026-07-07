@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../statistics/domain/statistics_range_policy.dart';
+import '../../statistics/domain/timeframe_block.dart';
 import '../../statistics/presentation/statistics_formatter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
@@ -48,7 +49,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
       daysWindow: _rangePolicy
               .resolve(
                 metricId: StatisticsMetricId.prNotableImprovements,
-                selectedDays: _selectedWindowDays,
+                selectedBlockType: _selectedWindowDays == 7
+                    ? TimeframeBlock.week
+                    : _selectedWindowDays == 30
+                        ? TimeframeBlock.month
+                        : _selectedWindowDays == 90
+                            ? TimeframeBlock.threeMonths
+                            : TimeframeBlock.maxBlock,
               )
               .effectiveDays ??
           _selectedWindowDays,

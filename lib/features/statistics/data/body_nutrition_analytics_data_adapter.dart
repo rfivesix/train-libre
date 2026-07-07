@@ -8,6 +8,7 @@ import '../../diary/domain/models/fluid_entry.dart';
 import '../../diary/domain/models/food_item.dart';
 import '../../../util/perf_debug_timer.dart';
 import '../domain/statistics_range_policy.dart';
+import '../domain/timeframe_block.dart';
 
 class BodyNutritionAnalyticsRawData {
   final DateTimeRange range;
@@ -57,21 +58,21 @@ class BodyNutritionAnalyticsDataAdapter {
   }
 
   Future<BodyNutritionAnalyticsRawData> fetch({
-    required int rangeIndex,
-    DateTime? now,
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
   }) async {
     return PerfDebugTimer.time(
       area: 'statistics',
       label: 'bodyNutritionFetchRaw',
       action: () async {
-        final normalizedNow = normalizeDay(now ?? DateTime.now());
+        final normalizedNow = normalizeDay(anchorDate);
         final earliest = await PerfDebugTimer.time(
           area: 'statistics',
           label: 'bodyNutritionEarliest',
           action: _earliestRelevantDate,
         );
         final range = await _resolveRange(
-          rangeIndex: rangeIndex,
+          selectedBlockType: selectedBlockType,
           now: normalizedNow,
           earliestRelevantDate: earliest,
         );
@@ -108,13 +109,13 @@ class BodyNutritionAnalyticsDataAdapter {
   }
 
   Future<DateTimeRange> _resolveRange({
-    required int rangeIndex,
+    required TimeframeBlock selectedBlockType,
     required DateTime now,
     required DateTime? earliestRelevantDate,
   }) async {
     final resolved = _rangePolicy.resolve(
       metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedRangeIndex: rangeIndex,
+      selectedBlockType: selectedBlockType,
       now: now,
       earliestAvailableDay: earliestRelevantDate,
     );

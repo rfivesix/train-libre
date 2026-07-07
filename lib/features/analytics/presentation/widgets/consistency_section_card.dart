@@ -10,6 +10,7 @@ class ConsistencySectionCard extends StatelessWidget {
   final SectionLoadState<ConsistencySectionData> state;
   final VoidCallback onRetry;
   final VoidCallback onTap;
+  final String? chipText;
 
   static const int _fixedConsistencyWeeks = 6;
   static const int _miniSignalPoints = 8;
@@ -19,6 +20,7 @@ class ConsistencySectionCard extends StatelessWidget {
     required this.state,
     required this.onRetry,
     required this.onTap,
+    this.chipText,
   });
 
   @override
@@ -73,7 +75,7 @@ class ConsistencySectionCard extends StatelessWidget {
               AnalyticsCardBase.buildHeaderWithChevron(
                 context,
                 label: title,
-                chipText: _fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks),
+                chipText: chipText ?? _fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks),
               ),
               const SizedBox(height: DesignConstants.spacingXS),
               Text(
