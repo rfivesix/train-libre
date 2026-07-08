@@ -102,7 +102,8 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
       anchorDate: _anchorDate,
       onScopeChanged: _onScopeChanged,
       onShiftPeriod: _shiftPeriod,
-      onAnchorChanged: (date) {
+      onAnchorChanged: (selection) {
+        final date = selection.anchorDate;
         setState(() {
           _anchorDate = date;
         });

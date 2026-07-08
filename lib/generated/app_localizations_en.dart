@@ -5504,4 +5504,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearSearch => 'Clear search';
+
+  @override
+  String rollingDaysLabel(int days) {
+    return 'Last $days days (rolling)';
+  }
 }

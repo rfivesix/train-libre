@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+
 import '../../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
@@ -33,6 +34,7 @@ class _SleepWeekOverviewPageState extends State<SleepWeekOverviewPage> {
   late final SleepQueryRepository _repository;
   WeekSleepAggregation? _aggregation;
   bool _isLoading = true;
+  bool _isRolling = false;
 
   @override
   void initState() {
@@ -53,11 +55,14 @@ class _SleepWeekOverviewPageState extends State<SleepWeekOverviewPage> {
       appBarTitle: l10n.sleepSectionTitle,
       selectedScope: SleepPeriodScope.week,
       anchorDate: _anchorDay,
+      isRolling: _isRolling,
       onScopeChanged: _onScopeChanged,
       onShiftPeriod: _shiftPeriod,
-      onAnchorChanged: (date) {
+      onAnchorChanged: (selection) {
+        final date = selection.anchorDate;
         setState(() {
           _anchorDay = date;
+          _isRolling = false;
         });
         _loadWeek();
       },

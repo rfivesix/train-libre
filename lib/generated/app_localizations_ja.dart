@@ -5332,4 +5332,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get clearSearch => '検索をクリア';
+
+  @override
+  String rollingDaysLabel(int days) {
+    return '過去 $days 日間（ローリング）';
+  }
 }

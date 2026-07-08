@@ -5550,4 +5550,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get clearSearch => 'Suche leeren';
+
+  @override
+  String rollingDaysLabel(int days) {
+    return 'Letzte $days Tage (rollierend)';
+  }
 }

@@ -27,4 +27,25 @@ class TimeframeLabelFormatter {
         return "";
     }
   }
+
+  static String formatRolling(TimeframeBlock block, AppLocalizations l10n) {
+    if (block == TimeframeBlock.day || block == TimeframeBlock.maxBlock) {
+      return format(block, DateTime.now(), l10n);
+    }
+    
+    final range = block.getRollingBounds();
+    final locale = l10n.localeName;
+    
+    switch (block) {
+      case TimeframeBlock.week:
+      case TimeframeBlock.month:
+      case TimeframeBlock.threeMonths:
+      case TimeframeBlock.sixMonths:
+        return "${DateFormat('dd. MMM', locale).format(range.start)} - ${DateFormat('dd. MMM yyyy', locale).format(range.end)}";
+      case TimeframeBlock.year:
+        return "${DateFormat('dd. MMM yyyy', locale).format(range.start)} - ${DateFormat('dd. MMM yyyy', locale).format(range.end)}";
+      default:
+        return "";
+    }
+  }
 }

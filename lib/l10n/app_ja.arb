@@ -2449,6 +2449,13 @@
   "onboardingRegionTitle": "地域の選択",
   "onboardingRegionExplanation": "食料品を購入する国を選択してください。これにより、地域の製品に適した正しいOpen Food Factsデータベースがダウンロードされます。",
   "onboardingRegionSettingsHint": "これは後でいつでも「設定 → 栄養 → データベース地域」で変更できます。",
-  "clearSearch": "検索をクリア"
+  "clearSearch": "検索をクリア",
+  "rollingDaysLabel": "過去 {days} 日間（ローリング）",
+  "@rollingDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }
-

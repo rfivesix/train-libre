@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../util/timeframe_label_formatter.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -30,6 +31,7 @@ class SleepPeriodScopeLayout extends StatelessWidget {
     required this.appBarTitle,
     required this.selectedScope,
     required this.anchorDate,
+    this.isRolling = false,
     required this.onScopeChanged,
     required this.onShiftPeriod,
     required this.onAnchorChanged,
@@ -39,9 +41,10 @@ class SleepPeriodScopeLayout extends StatelessWidget {
   final String appBarTitle;
   final SleepPeriodScope selectedScope;
   final DateTime anchorDate;
+  final bool isRolling;
   final ValueChanged<SleepPeriodScope> onScopeChanged;
   final ValueChanged<int> onShiftPeriod;
-  final ValueChanged<DateTime> onAnchorChanged;
+  final ValueChanged<adaptive_pickers.TimeframeSelection> onAnchorChanged;
   final Widget child;
 
   @override
@@ -85,19 +88,20 @@ class SleepPeriodScopeLayout extends StatelessWidget {
                 onScopeChanged(SleepPeriodScope.values[index]),
             onPrevious: () => onShiftPeriod(-1),
             onNext: () => onShiftPeriod(1),
-            displayDate: _periodLabel(localeCode),
+            displayDate: isRolling ? TimeframeLabelFormatter.formatRolling(selectedScope.block, l10n) : _periodLabel(localeCode),
             onTapDateDisplay: () async {
               final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
                 context: context,
                 activeBlock: selectedScope.block,
                 initialAnchor: anchorDate,
                 earliestAvailableDay: DateTime(2020),
+                supportRolling: false,
               );
               if (selected != null) {
                 onAnchorChanged(selected);
               }
             },
-            nextEnabled: selectedScope.block.getBounds(anchorDate, DateTime(2020)).end.isBefore(DateTime.now()),
+            nextEnabled: isRolling ? false : selectedScope.block.getBounds(anchorDate, DateTime(2020)).end.isBefore(DateTime.now()),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           child,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../statistics/domain/timeframe_block.dart';
 import '../../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../data/repository/sleep_query_repository.dart';
@@ -32,6 +33,7 @@ class _SleepMonthOverviewPageState extends State<SleepMonthOverviewPage> {
   late final SleepQueryRepository _repository;
   MonthSleepAggregation? _aggregation;
   bool _isLoading = true;
+  bool _isRolling = false;
 
   @override
   void initState() {
@@ -52,11 +54,14 @@ class _SleepMonthOverviewPageState extends State<SleepMonthOverviewPage> {
       appBarTitle: l10n.sleepSectionTitle,
       selectedScope: SleepPeriodScope.month,
       anchorDate: _anchorDay,
+      isRolling: _isRolling,
       onScopeChanged: _onScopeChanged,
       onShiftPeriod: _shiftPeriod,
-      onAnchorChanged: (date) {
+      onAnchorChanged: (selection) {
+        final date = selection.anchorDate;
         setState(() {
           _anchorDay = date;
+          _isRolling = false;
         });
         _loadMonth();
       },
@@ -124,7 +129,23 @@ class _SleepMonthOverviewPageState extends State<SleepMonthOverviewPage> {
 
   void _shiftPeriod(int direction) {
     setState(() {
-      _anchorDay = DateTime(_anchorDay.year, _anchorDay.month + direction, 1);
+      if (direction < 0) {
+        if (_isRolling) {
+          _isRolling = false;
+          _anchorDay = DateTime.now();
+        } else {
+          _anchorDay = DateTime(_anchorDay.year, _anchorDay.month - 1, 1);
+        }
+      } else {
+        if (_isRolling) return;
+        final currentBounds = SleepPeriodScope.month.block.getBounds(DateTime.now(), DateTime(2020));
+        final myBounds = SleepPeriodScope.month.block.getBounds(_anchorDay, DateTime(2020));
+        if (myBounds.start.isAtSameMomentAs(currentBounds.start) || myBounds.start.isAfter(currentBounds.start)) {
+          _isRolling = true;
+        } else {
+          _anchorDay = DateTime(_anchorDay.year, _anchorDay.month + 1, 1);
+        }
+      }
     });
     _loadMonth();
   }

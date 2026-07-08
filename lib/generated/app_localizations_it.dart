@@ -5590,4 +5590,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get clearSearch => 'Cancella ricerca';
+
+  @override
+  String rollingDaysLabel(int days) {
+    return 'Ultimi $days giorni (mobile)';
+  }
 }

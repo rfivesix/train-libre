@@ -48,6 +48,7 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
   
   TimeframeBlock _activeBlock = TimeframeBlock.day;
   DateTime _anchorDate = DateTime.now();
+  bool _isRolling = false;
 
   final List<TimeframeBlock> _validBlocks = const [
     TimeframeBlock.day,
@@ -182,17 +183,24 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
               onSelected: (index) {
                 setState(() {
                   _activeBlock = _validBlocks[index];
+                  _isRolling = false;
                 });
                 _loadScopeData();
               },
               onPrevious: () {
                 setState(() {
-                  _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                  if (_isRolling) {
+                    _isRolling = false;
+                    _anchorDate = DateTime.now(); // anchor at now gives the current static block
+                  } else {
+                    _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                  }
                 });
                 _loadScopeData();
               },
               onNext: () {
                 setState(() {
+                  _isRolling = false;
                   _anchorDate = _activeBlock.shift(_anchorDate, 1);
                 });
                 _loadScopeData();
@@ -204,10 +212,13 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
                   activeBlock: _activeBlock,
                   initialAnchor: _anchorDate,
                   earliestAvailableDay: DateTime(2020),
+                  initialIsRolling: false,
+                  supportRolling: false,
                 );
                 if (selected != null) {
                   setState(() {
-                    _anchorDate = selected;
+                    _anchorDate = selected.anchorDate;
+                    _isRolling = selected.isRolling;
                   });
                   _loadScopeData();
                 }

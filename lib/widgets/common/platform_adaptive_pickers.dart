@@ -398,11 +398,20 @@ class _GlassPickerSheet extends StatelessWidget {
 }
 
 
-Future<DateTime?> showAdaptiveTimeframePicker({
+class TimeframeSelection {
+  final DateTime anchorDate;
+  final bool isRolling;
+
+  TimeframeSelection(this.anchorDate, {this.isRolling = false});
+}
+
+Future<TimeframeSelection?> showAdaptiveTimeframePicker({
   required BuildContext context,
   required TimeframeBlock activeBlock,
   required DateTime initialAnchor,
   required DateTime earliestAvailableDay,
+  bool initialIsRolling = false,
+  bool supportRolling = true,
 }) async {
   if (activeBlock == TimeframeBlock.maxBlock) return null;
 
@@ -449,18 +458,38 @@ Future<DateTime?> showAdaptiveTimeframePicker({
     options.add(now);
   }
 
+  // Insert rolling option
+  final DateTime rollingFlag = DateTime(9999);
+  if (supportRolling && activeBlock != TimeframeBlock.day && activeBlock != TimeframeBlock.maxBlock) {
+    // Insert before the last element (which is the current calendar block)
+    if (options.isNotEmpty) {
+      options.insert(options.length - 1, rollingFlag);
+    } else {
+      options.add(rollingFlag);
+    }
+  }
+
   // Find initial index
-  int initialIndex = options.indexWhere((d) {
-    final b1 = activeBlock.getBounds(d, earliestAvailableDay);
-    final b2 = activeBlock.getBounds(initialAnchor, earliestAvailableDay);
-    return b1.start.year == b2.start.year && b1.start.month == b2.start.month && b1.start.day == b2.start.day;
-  });
-  if (initialIndex < 0) initialIndex = options.length - 1;
+  int initialIndex;
+  if (initialIsRolling && options.contains(rollingFlag)) {
+    initialIndex = options.indexOf(rollingFlag);
+  } else {
+    initialIndex = options.indexWhere((d) {
+      if (d == rollingFlag) return false;
+      final b1 = activeBlock.getBounds(d, earliestAvailableDay);
+      final b2 = activeBlock.getBounds(initialAnchor, earliestAvailableDay);
+      return b1.start.year == b2.start.year && b1.start.month == b2.start.month && b1.start.day == b2.start.day;
+    });
+    if (initialIndex < 0) initialIndex = options.length - 1;
+  }
 
   int selectedIndex = initialIndex;
 
   final locale = Localizations.localeOf(context).toString();
   String formatOption(DateTime date) {
+    if (date == rollingFlag) {
+      return l10n?.rollingDaysLabel(activeBlock.rollingDurationDays) ?? "Letzte ${activeBlock.rollingDurationDays} Tage (rollierend)";
+    }
     final b = activeBlock.getBounds(date, earliestAvailableDay);
     switch (activeBlock) {
       case TimeframeBlock.day: return DateFormat('dd. MMM yyyy', locale).format(b.start);
@@ -475,7 +504,7 @@ Future<DateTime?> showAdaptiveTimeframePicker({
     }
   }
 
-  final selected = await showModalBottomSheet<DateTime>(
+  final selected = await showModalBottomSheet<TimeframeSelection>(
     context: context,
     isScrollControlled: true,
     useRootNavigator: true,
@@ -548,7 +577,12 @@ Future<DateTime?> showAdaptiveTimeframePicker({
                           backgroundColor: Theme.of(ctx).colorScheme.primary,
                           foregroundColor: Theme.of(ctx).colorScheme.onPrimary,
                         ),
-                        onPressed: () => Navigator.pop(ctx, options[selectedIndex]),
+                        onPressed: () {
+                          final selectedDate = options[selectedIndex];
+                          final isRolling = selectedDate.year == 9999;
+                          final anchor = isRolling ? DateTime.now() : selectedDate;
+                          Navigator.pop(ctx, TimeframeSelection(anchor, isRolling: isRolling));
+                        },
                         child: Text(l10n?.snackbarButtonOK ?? 'OK'),
                       ),
                     ),

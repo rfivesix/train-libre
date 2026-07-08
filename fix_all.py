@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
-import '../../util/design_constants.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
+import re
 
-/// A reusable global filter for selecting timeframes.
-/// The active timeframe chip dynamically expands to include the date navigation directly inside.
-class TimeRangeFilter extends StatefulWidget {
+# 1. Update TimeRangeFilter to be a StatefulWidget with auto-scrolling
+file_tr = "lib/widgets/common/time_range_filter.dart"
+with open(file_tr, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Replace TimeRangeFilter declaration and build method
+new_tr_code = """class TimeRangeFilter extends StatefulWidget {
   const TimeRangeFilter({
     super.key,
     required this.ranges,
@@ -59,27 +61,16 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
   }
 
   void _scrollToSelected() {
-    final scrolled = PageStorage.of(context).readState(context, identifier: 'scrolled_to_selected') as bool? ?? false;
-    if (scrolled) return;
-
     if (widget.selectedIndex == null || widget.selectedIndex! >= _keys.length) return;
     final key = _keys[widget.selectedIndex!];
-    final chipContext = key.currentContext;
-    if (chipContext != null && _scrollController.hasClients) {
-      final renderBox = chipContext.findRenderObject() as RenderBox?;
-      final scrollRenderObject = _scrollController.position.context.storageContext.findRenderObject();
-      if (renderBox != null && scrollRenderObject != null) {
-        final position = renderBox.localToGlobal(Offset.zero, ancestor: scrollRenderObject);
-        final currentScroll = _scrollController.offset;
-        final targetOffset = currentScroll + position.dx - DesignConstants.cardPaddingInternal;
-        
-        _scrollController.animateTo(
-          targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
-        );
-        PageStorage.of(context).writeState(context, true, identifier: 'scrolled_to_selected');
-      }
+    final context = key.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
@@ -215,4 +206,14 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
       ),
     );
   }
-}
+}"""
+
+# Find class TimeRangeFilter ... and replace until the end of file
+start_idx = content.find("class TimeRangeFilter")
+if start_idx != -1:
+    content = content[:start_idx] + new_tr_code
+
+with open(file_tr, 'w', encoding='utf-8') as f:
+    f.write(content)
+print("Updated TimeRangeFilter")
+

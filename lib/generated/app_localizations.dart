@@ -9666,6 +9666,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear search'**
   String get clearSearch;
+
+  /// No description provided for @rollingDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {days} days (rolling)'**
+  String rollingDaysLabel(int days);
 }
 
 class _AppLocalizationsDelegate

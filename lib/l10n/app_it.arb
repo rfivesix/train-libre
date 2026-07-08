@@ -2449,6 +2449,13 @@
   "onboardingRegionTitle": "Seleziona regione",
   "onboardingRegionExplanation": "Seleziona il paese in cui acquisti la spesa. Ciò garantisce il download del database Open Food Facts corretto per i tuoi prodotti locali.",
   "onboardingRegionSettingsHint": "Puoi modificarlo in qualsiasi momento in Impostazioni → Nutrizione → Regione del database.",
-  "clearSearch": "Cancella ricerca"
+  "clearSearch": "Cancella ricerca",
+  "rollingDaysLabel": "Ultimi {days} giorni (mobile)",
+  "@rollingDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }
-

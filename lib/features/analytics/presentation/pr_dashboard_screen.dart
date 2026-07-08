@@ -21,6 +21,7 @@ class PRDashboardScreen extends StatefulWidget {
 }
 
 class _PRDashboardScreenState extends State<PRDashboardScreen> {
+  bool _isRolling = true;
   bool _isLoading = true;
   
   TimeframeBlock _activeBlock = TimeframeBlock.month;
@@ -128,39 +129,66 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                     onSelected: (index) {
                       setState(() {
                         _activeBlock = _validBlocks[index];
+                        _isRolling = false;
                       });
                       _loadData();
                     },
                     onPrevious: _activeBlock == TimeframeBlock.maxBlock ? null : () {
                       setState(() {
-                        _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                        final currentBounds = _activeBlock.getBounds(DateTime.now(), DateTime(2020));
+                        final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+                        final isOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(currentBounds.start);
+                        
+                        if (isOngoing) {
+                          _isRolling = true;
+                        } else if (_isRolling) {
+                          _isRolling = false;
+                          _anchorDate = _activeBlock.shift(DateTime.now(), -1);
+                        } else {
+                          _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                        }
                       });
                       _loadData();
                     },
                     onNext: _activeBlock == TimeframeBlock.maxBlock ? null : () {
                       setState(() {
-                        _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                        if (_isRolling) {
+                          _isRolling = false;
+                          _anchorDate = DateTime.now();
+                        } else {
+                          final previousAnchor = _activeBlock.shift(DateTime.now(), -1);
+                          final previousBounds = _activeBlock.getBounds(previousAnchor, DateTime(2020));
+                          final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+                          final isPreviousToOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(previousBounds.start);
+                          
+                          if (isPreviousToOngoing) {
+                            _isRolling = true;
+                          } else {
+                            _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                          }
+                        }
                       });
                       _loadData();
                     },
-                    displayDate: TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
+                    displayDate: _isRolling ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n) : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
                     onTapDateDisplay: () async {
                       final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
                         context: context,
                         activeBlock: _activeBlock,
                         initialAnchor: _anchorDate,
                         earliestAvailableDay: DateTime(2020),
+                        initialIsRolling: _isRolling,
                       );
                       if (selected != null) {
                         setState(() {
-                          _anchorDate = selected;
+                          _anchorDate = selected.anchorDate;
+                          _isRolling = selected.isRolling;
                         });
                         _loadData();
                       }
                     },
-                    nextEnabled: _activeBlock != TimeframeBlock.maxBlock && _anchorDate.isBefore(DateTime.now()),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
+                    nextEnabled: _activeBlock == TimeframeBlock.maxBlock ? false : (_isRolling ? true : !_activeBlock.getBounds(_anchorDate, DateTime(2020)).start.isAtSameMomentAs(_activeBlock.getBounds(DateTime.now(), DateTime(2020)).start)),
+                  ),const SizedBox(height: DesignConstants.spacingS),
                   SummaryCard(
                     child: _notableImprovements.isEmpty
                         ? Padding(

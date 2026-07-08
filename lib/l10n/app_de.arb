@@ -2449,6 +2449,13 @@
   "onboardingRegionTitle": "Region auswählen",
   "onboardingRegionExplanation": "Wähle das Land aus, in dem du deine Lebensmittel kaufst. Dies stellt sicher, dass wir die richtige Open Food Facts-Datenbank für deine lokalen Produkte herunterladen.",
   "onboardingRegionSettingsHint": "Du kannst dies später jederzeit unter Einstellungen → Ernährung → Datenbank-Region ändern.",
-  "clearSearch": "Suche leeren"
+  "clearSearch": "Suche leeren",
+  "rollingDaysLabel": "Letzte {days} Tage (rollierend)",
+  "@rollingDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }
-

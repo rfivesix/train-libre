@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart';
 
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../statistics/data/statistics_hub_data_adapter.dart';
@@ -195,6 +196,22 @@ class StatisticsHubViewModel extends ChangeNotifier {
   final Future<String> Function()? _stepsProviderNameLoaderOverride;
 
   TimeframeBlock _activeBlockType = TimeframeBlock.month;
+  bool _isRolling = true;
+  bool get isRolling => _isRolling;
+  set isRolling(bool value) {
+    if (_isRolling != value) {
+      _isRolling = value;
+      notifyListeners();
+      loadHubAnalytics();
+    }
+  }
+
+  void setTimeframeSelection(TimeframeSelection selection) {
+    _anchorDate = selection.anchorDate;
+    _isRolling = selection.isRolling;
+    notifyListeners();
+    loadHubAnalytics();
+  }
   TimeframeBlock get activeBlockType => _activeBlockType;
 
   DateTime _anchorDate = DateTime.now();
@@ -210,7 +227,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
   set activeBlockType(TimeframeBlock block) {
     if (_activeBlockType != block) {
       _activeBlockType = block;
-    
+      _isRolling = false;
       notifyListeners();
       loadHubAnalytics();
     }
@@ -219,36 +236,35 @@ class StatisticsHubViewModel extends ChangeNotifier {
   void shiftTimeframe(bool backwards) {
     if (_activeBlockType == TimeframeBlock.maxBlock) return;
     
-    final int sign = backwards ? -1 : 1;
-    DateTime nextAnchor;
-    switch (_activeBlockType) {
-      case TimeframeBlock.day:
-        nextAnchor = _anchorDate.add(Duration(days: sign));
-        break;
-      case TimeframeBlock.week:
-        nextAnchor = _anchorDate.add(Duration(days: 7 * sign));
-        break;
-      case TimeframeBlock.month:
-        nextAnchor = DateTime(_anchorDate.year, _anchorDate.month + sign, 15);
-        break;
-      case TimeframeBlock.threeMonths:
-        nextAnchor = DateTime(_anchorDate.year, _anchorDate.month + 3 * sign, 15);
-        break;
-      case TimeframeBlock.sixMonths:
-        nextAnchor = DateTime(_anchorDate.year, _anchorDate.month + 6 * sign, 15);
-        break;
-      case TimeframeBlock.year:
-        nextAnchor = DateTime(_anchorDate.year + sign, 6, 15);
-        break;
-      case TimeframeBlock.maxBlock:
-        nextAnchor = _anchorDate;
-        break;
-    }
-    
-    _anchorDate = _activeBlockType.getBounds(nextAnchor, DateTime(2020)).start;
-    
-    if (_anchorDate.isAfter(DateTime.now())) {
-       _anchorDate = DateTime.now();
+    final now = DateTime.now();
+    final currentBounds = _activeBlockType.getBounds(now, DateTime(2020));
+    final myBounds = _activeBlockType.getBounds(_anchorDate, DateTime(2020));
+    final isOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(currentBounds.start);
+
+    if (backwards) {
+      if (isOngoing && _activeBlockType != TimeframeBlock.day) {
+        _isRolling = true;
+      } else if (_isRolling) {
+        _isRolling = false;
+        _anchorDate = _activeBlockType.shift(now, -1);
+      } else {
+        _anchorDate = _activeBlockType.shift(_anchorDate, -1);
+      }
+    } else {
+      if (_isRolling) {
+        _isRolling = false;
+        _anchorDate = now;
+      } else {
+        final previousAnchor = _activeBlockType.shift(now, -1);
+        final previousBounds = _activeBlockType.getBounds(previousAnchor, DateTime(2020));
+        final isPreviousToOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(previousBounds.start);
+        
+        if (isPreviousToOngoing && _activeBlockType != TimeframeBlock.day) {
+          _isRolling = true;
+        } else {
+          _anchorDate = _activeBlockType.shift(_anchorDate, 1);
+        }
+      }
     }
     
     notifyListeners();

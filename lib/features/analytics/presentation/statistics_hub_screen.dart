@@ -3,7 +3,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../widgets/common/platform_adaptive_pickers.dart'
@@ -33,6 +32,7 @@ import '../../steps/presentation/statistics_steps_card.dart';
 import '../../pulse/presentation/pulse_analysis_screen.dart';
 import '../../../services/health/steps_sync_service.dart';
 import 'statistics_hub_view_model.dart';
+import '../../../util/timeframe_label_formatter.dart';
 
 // Standalone widget imports
 import 'widgets/analytics_card_base.dart';
@@ -169,13 +169,15 @@ class _StatisticsHubScreenView extends StatelessWidget {
                       context: context,
                       activeBlock: viewModel.activeBlockType,
                       initialAnchor: viewModel.anchorDate,
+                      initialIsRolling: viewModel.isRolling,
                       earliestAvailableDay: DateTime(2020),
                     );
                     if (selected != null) {
-                      viewModel.anchorDate = selected;
+                      viewModel.setTimeframeSelection(selected);
                     }
                   },
-                  nextEnabled: viewModel.activeBlockType != TimeframeBlock.maxBlock && viewModel.anchorDate.isBefore(DateTime.now()),
+                  nextEnabled: viewModel.activeBlockType != TimeframeBlock.maxBlock && 
+                      (viewModel.isRolling || !viewModel.activeBlockType.getBounds(viewModel.anchorDate, DateTime(2020)).start.isAtSameMomentAs(viewModel.activeBlockType.getBounds(DateTime.now(), DateTime(2020)).start)),
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
                 Padding(
@@ -350,25 +352,14 @@ class _StatisticsHubScreenView extends StatelessWidget {
     if (viewModel.activeBlockType == TimeframeBlock.maxBlock) {
       return l10n.filterMax;
     }
-    final range = viewModel.activeBlockType.getBounds(
-      viewModel.anchorDate,
-      DateTime(2020),
-    );
-    final locale = l10n.localeName;
-    switch (viewModel.activeBlockType) {
-      case TimeframeBlock.week:
-        return "${DateFormat('dd. MMM', locale).format(range.start)} - ${DateFormat('dd. MMM yyyy', locale).format(range.end)}";
-      case TimeframeBlock.month:
-        return DateFormat('MMMM yyyy', locale).format(range.start);
-      case TimeframeBlock.threeMonths:
-        return "${DateFormat('MMM', locale).format(range.start)} - ${DateFormat('MMM yyyy', locale).format(range.end)}";
-      case TimeframeBlock.sixMonths:
-        return "${DateFormat('MMM', locale).format(range.start)} - ${DateFormat('MMM yyyy', locale).format(range.end)}";
-      case TimeframeBlock.year:
-        return DateFormat('yyyy', locale).format(range.start);
-      default:
-        return null;
+    if (viewModel.isRolling) {
+      return TimeframeLabelFormatter.formatRolling(viewModel.activeBlockType, l10n);
     }
+    return TimeframeLabelFormatter.format(
+      viewModel.activeBlockType,
+      viewModel.anchorDate,
+      l10n,
+    );
   }
 
   Widget _buildRecoverySection(

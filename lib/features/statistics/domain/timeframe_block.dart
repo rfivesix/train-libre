@@ -95,4 +95,42 @@ extension TimeframeBlockExtension on TimeframeBlock {
     }
     return shiftedStart;
   }
+
+  int get rollingDurationDays {
+    switch (this) {
+      case TimeframeBlock.week:
+        return 7;
+      case TimeframeBlock.month:
+        return 30;
+      case TimeframeBlock.threeMonths:
+        return 90;
+      case TimeframeBlock.sixMonths:
+        return 180;
+      case TimeframeBlock.year:
+        return 365;
+      default:
+        return 0; // day and maxBlock do not support rolling in the same way
+    }
+  }
+
+  DateTimeRange getRollingBounds() {
+    final now = DateTime.now();
+    if (this == TimeframeBlock.maxBlock) {
+      return DateTimeRange(
+        start: DateTime(2020),
+        end: now,
+      );
+    }
+    if (this == TimeframeBlock.day) {
+      return getBounds(now, DateTime(2020));
+    }
+    
+    final duration = Duration(days: rollingDurationDays);
+    final start = now.subtract(duration);
+    
+    return DateTimeRange(
+      start: DateTime(start.year, start.month, start.day),
+      end: now,
+    );
+  }
 }
