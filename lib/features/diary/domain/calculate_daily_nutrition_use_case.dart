@@ -77,8 +77,6 @@ class CalculateDailyNutritionUseCase {
       };
     }
 
-    // Removed foodProducts list conversion, maps are passed as parameters
-
     // Pre-filter fluid foods to avoid redundant map lookups in the nested loop
     final fluidFoodEntries = foodEntries.where((food) {
       final foodItem = food.archiveLocalId != null
@@ -87,6 +85,18 @@ class CalculateDailyNutritionUseCase {
       return foodItem != null &&
           (foodItem.isFluid || (foodItem.isLiquid ?? false));
     }).toList();
+
+    // Cache properties for O(1) quantity matching and faster time diff calculations
+    final Map<int, List<int>> fluidFoodSignatures = {};
+    for (final food in fluidFoodEntries) {
+      final qty = food.quantityInGrams;
+      final ms = food.timestamp.millisecondsSinceEpoch;
+      if (fluidFoodSignatures.containsKey(qty)) {
+        fluidFoodSignatures[qty]!.add(ms);
+      } else {
+        fluidFoodSignatures[qty] = [ms];
+      }
+    }
 
     // Fluids
     summary.water = fluidEntries.fold<int>(
@@ -99,17 +109,18 @@ class CalculateDailyNutritionUseCase {
         continue;
       }
 
-      final isDuplicateOfFood = fluidFoodEntries.any((food) {
-        // Defensive match: same day/time and similar quantity
-        final timeDiff = entry.timestamp
-            .difference(food.timestamp)
-            .inSeconds
-            .abs();
-        if (timeDiff < 2 && entry.quantityInMl == food.quantityInGrams) {
-          return true;
+      bool isDuplicateOfFood = false;
+      final matchingMsList = fluidFoodSignatures[entry.quantityInMl];
+      if (matchingMsList != null) {
+        final entryMs = entry.timestamp.millisecondsSinceEpoch;
+        for (final ms in matchingMsList) {
+          // Defensive match: same day/time and similar quantity (< 2 seconds)
+          if ((entryMs - ms).abs() < 2000) {
+            isDuplicateOfFood = true;
+            break;
+          }
         }
-        return false;
-      });
+      }
 
       if (isDuplicateOfFood) {
         continue;
@@ -191,8 +202,15 @@ class CalculateDailyNutritionUseCase {
         );
       }
     }
+
+    // Optimize supplement lookup by extracting tracked IDs to a Set
+    final Set<int> trackedSuppIds = {
+      for (final ts in trackedSupps)
+        if (ts.supplement.id != null) ts.supplement.id!
+    };
+
     for (final id in todaysDoses.keys) {
-      if (!trackedSupps.any((ts) => ts.supplement.id == id)) {
+      if (!trackedSuppIds.contains(id)) {
         if (byId.containsKey(id)) {
           trackedSupps.add(
             TrackedSupplement(
