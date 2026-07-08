@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Fixed Statistics Hub Timeframe Picker & Label Formatting:** Integrated `TimeframeLabelFormatter` inside `_unifiedRangeLabel` on the Statistics Hub so that the rolling timeframe displays correctly as `"dd. MMM - dd. MMM yyyy"` rather than repeating the static month name. Also passed `initialIsRolling` to `showAdaptiveTimeframePicker` so the picker preserves rolling selection states.
 - **Enabled Rolling Month as Default Timeframe:** Changed the default view of all analytics screens (Statistics Hub, PR Dashboard, Muscle Group Analytics, Body/Nutrition Correlation, and Consistency Tracker) to start with the rolling month timeframe ("Last 30 days" / "Letzte 30 Tage") rather than the static calendar month ("July").
 
+## [1.0.0-alpha.5] - 2026-07-07
 
 ### Changed
 - **High-Resolution Timeframe Support:** Added `TimeframeBlock.day` to explicitly support granular day-by-day navigation for the Steps, Sleep, and Pulse modules.
