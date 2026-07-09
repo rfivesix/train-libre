@@ -198,6 +198,7 @@ class RoutineSetRowWidget extends StatelessWidget {
               child: SizedBox(
                 width: 48,
                 child: IconButton(
+                  tooltip: l10n.delete,
                   icon: const Icon(
                     LucideIcons.trash_2,
                     color: Colors.redAccent,

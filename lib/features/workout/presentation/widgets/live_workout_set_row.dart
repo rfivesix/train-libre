@@ -534,6 +534,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
               SizedBox(
                 width: 48,
                 child: IconButton(
+                  tooltip: l10n.doneButtonLabel,
                   icon: Icon(
                     isCompleted ? LucideIcons.circle_check : LucideIcons.circle,
                     color: isCompleted ? Colors.green : Colors.grey,
