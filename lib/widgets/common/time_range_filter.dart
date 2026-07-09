@@ -45,9 +45,13 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
   @override
   void didUpdateWidget(TimeRangeFilter oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedIndex != widget.selectedIndex || oldWidget.ranges.length != widget.ranges.length) {
-      _updateKeys();
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelected());
+    if (oldWidget.selectedIndex != widget.selectedIndex || 
+        oldWidget.displayDate != widget.displayDate ||
+        oldWidget.ranges.length != widget.ranges.length) {
+      if (oldWidget.ranges.length != widget.ranges.length) {
+        _updateKeys();
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelected(force: true));
     }
   }
 
@@ -58,9 +62,11 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
     }
   }
 
-  void _scrollToSelected() {
-    final scrolled = PageStorage.of(context).readState(context, identifier: 'scrolled_to_selected') as bool? ?? false;
-    if (scrolled) return;
+  void _scrollToSelected({bool force = false}) {
+    if (!force) {
+      final scrolled = PageStorage.of(context).readState(context, identifier: 'scrolled_to_selected') as bool? ?? false;
+      if (scrolled) return;
+    }
 
     if (widget.selectedIndex == null || widget.selectedIndex! >= _keys.length) return;
     final key = _keys[widget.selectedIndex!];
