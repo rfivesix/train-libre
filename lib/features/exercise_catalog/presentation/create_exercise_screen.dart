@@ -9,6 +9,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
+import '../domain/body_slug_mapper.dart';
 
 /// A screen for creating custom exercises.
 class CreateExerciseScreen extends StatefulWidget {
@@ -307,7 +308,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
       children: availableMuscles.map((muscle) {
         final isSelected = selectedMuscles.contains(muscle);
         return FilterChip(
-          label: Text(muscle),
+          label: Text(BodySlugMapper.localize(context, muscle)),
           selected: isSelected,
           onSelected: _isReadOnly
               ? null
