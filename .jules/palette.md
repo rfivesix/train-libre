@@ -1,3 +1,3 @@
-## 2024-05-15 - Missing ARIA Tooltips in Flutter IconButtons
-**Learning:** In Flutter, `IconButton` widgets used for closing sheets (like `LucideIcons.x`), search clearing, or barcode scanning are often implemented without a semantic `tooltip` property, which acts as the ARIA label for screen readers. Users rely on this for accessibility since the icon has no visual text label.
-**Action:** Always add a `tooltip` property with localized strings (e.g. `l10n.clearSearch`, `MaterialLocalizations.of(context).closeButtonTooltip`) to icon-only buttons to ensure they are accessible via screen readers.
+## 2026-07-06 - Add Tooltips for Accessibility
+**Learning:** Adding tooltips to icon-only buttons improves accessibility for screen readers and provides helpful context for users. However, in localized applications, you must verify the existence of the translation key (e.g. `l10n.doneButtonLabel`) in the corresponding `.arb` files before adding it, otherwise it causes a compilation failure. Widespread auto-formatting to add a single tooltip line should be avoided to prevent massive PR noise.
+**Action:** Always ensure that icon-only `IconButton` widgets have a `tooltip` property set using the appropriate localization keys, and make targeted edits to maintain a clean diff.
