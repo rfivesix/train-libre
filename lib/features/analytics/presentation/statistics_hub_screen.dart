@@ -178,6 +178,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   },
                   nextEnabled: viewModel.activeBlockType != TimeframeBlock.maxBlock && 
                       (viewModel.isRolling || !viewModel.activeBlockType.getBounds(viewModel.anchorDate, DateTime(2020)).start.isAtSameMomentAs(viewModel.activeBlockType.getBounds(DateTime.now(), DateTime(2020)).start)),
+                  showDateNavigation: viewModel.activeBlockType != TimeframeBlock.maxBlock,
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
                 Padding(

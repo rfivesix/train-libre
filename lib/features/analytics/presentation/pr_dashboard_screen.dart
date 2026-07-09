@@ -188,6 +188,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                       }
                     },
                     nextEnabled: _activeBlock == TimeframeBlock.maxBlock ? false : (_isRolling ? true : !_activeBlock.getBounds(_anchorDate, DateTime(2020)).start.isAtSameMomentAs(_activeBlock.getBounds(DateTime.now(), DateTime(2020)).start)),
+                    showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
                   ),const SizedBox(height: DesignConstants.spacingS),
                   SummaryCard(
                     child: _notableImprovements.isEmpty

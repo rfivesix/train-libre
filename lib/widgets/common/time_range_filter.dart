@@ -15,6 +15,7 @@ class TimeRangeFilter extends StatefulWidget {
     this.displayDate,
     this.onTapDateDisplay,
     this.nextEnabled = true,
+    this.showDateNavigation = true,
   });
 
   final List<String> ranges;
@@ -25,6 +26,7 @@ class TimeRangeFilter extends StatefulWidget {
   final String? displayDate;
   final VoidCallback? onTapDateDisplay;
   final bool nextEnabled;
+  final bool showDateNavigation;
 
   @override
   State<TimeRangeFilter> createState() => _TimeRangeFilterState();
@@ -135,60 +137,62 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                       ),
                       
                       // Center Divider
-                      Center(
-                        child: Container(
-                          width: 1,
-                          height: 16,
-                          color: theme.colorScheme.onPrimary.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      
-                      // Navigation
-                      InkWell(
-                        onTap: widget.onPrevious,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Center(
-                            child: Icon(
-                              LucideIcons.chevron_left, 
-                              size: 16,
-                              color: widget.onPrevious != null ? theme.colorScheme.onPrimary : theme.disabledColor,
-                            ),
+                      if (widget.showDateNavigation) ...[
+                        Center(
+                          child: Container(
+                            width: 1,
+                            height: 16,
+                            color: theme.colorScheme.onPrimary.withValues(alpha: 0.3),
                           ),
                         ),
-                      ),
-                      
-                      if (widget.displayDate != null)
+                        
+                        // Navigation
                         InkWell(
-                          onTap: widget.onTapDateDisplay,
+                          onTap: widget.onPrevious,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Center(
-                              child: Text(
-                                widget.displayDate!,
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.onPrimary,
-                                ),
+                              child: Icon(
+                                LucideIcons.chevron_left, 
+                                size: 16,
+                                color: widget.onPrevious != null ? theme.colorScheme.onPrimary : theme.disabledColor,
                               ),
                             ),
                           ),
                         ),
                         
-                      InkWell(
-                        onTap: widget.nextEnabled ? widget.onNext : null,
-                        borderRadius: const BorderRadius.horizontal(right: Radius.circular(100)),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Center(
-                            child: Icon(
-                              LucideIcons.chevron_right, 
-                              size: 16,
-                              color: widget.nextEnabled && widget.onNext != null ? theme.colorScheme.onPrimary : theme.disabledColor,
+                        if (widget.displayDate != null)
+                          InkWell(
+                            onTap: widget.onTapDateDisplay,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Center(
+                                child: Text(
+                                  widget.displayDate!,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.onPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          
+                        InkWell(
+                          onTap: widget.nextEnabled ? widget.onNext : null,
+                          borderRadius: const BorderRadius.horizontal(right: Radius.circular(100)),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Center(
+                              child: Icon(
+                                LucideIcons.chevron_right, 
+                                size: 16,
+                                color: widget.nextEnabled && widget.onNext != null ? theme.colorScheme.onPrimary : theme.disabledColor,
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
