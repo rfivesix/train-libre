@@ -54,26 +54,29 @@ class CalculateDailyNutritionUseCase {
     );
 
     // Workout Summary
-    final completedLogs = workoutLogs
-        .where((log) => log.endTime != null)
-        .toList();
     Map<String, dynamic>? workoutSummary;
-    if (completedLogs.isNotEmpty) {
-      Duration totalDuration = Duration.zero;
-      double totalVolume = 0.0;
-      int totalSets = 0;
-      for (final log in completedLogs) {
+    Duration totalDuration = Duration.zero;
+    double totalVolume = 0.0;
+    int totalSets = 0;
+    int completedCount = 0;
+
+    for (final log in workoutLogs) {
+      if (log.endTime != null) {
+        completedCount++;
         totalDuration += log.endTime!.difference(log.startTime);
         totalSets += log.sets.length;
         for (final set in log.sets) {
           totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
         }
       }
+    }
+
+    if (completedCount > 0) {
       workoutSummary = {
         'duration': totalDuration,
         'volume': totalVolume,
         'sets': totalSets,
-        'count': completedLogs.length,
+        'count': completedCount,
       };
     }
 
@@ -173,22 +176,20 @@ class CalculateDailyNutritionUseCase {
     }
 
     Supplement? caffeineSupplement;
-    try {
-      caffeineSupplement = allSupplements.firstWhere(
-        (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
-      );
-    } catch (e) {
-      caffeineSupplement = null;
+    final Map<int, Supplement> byId = {};
+    for (final s in allSupplements) {
+      if (s.id != null) {
+        byId[s.id!] = s;
+      }
+      if (caffeineSupplement == null &&
+          (s.code == 'caffeine' || s.name.toLowerCase() == 'caffeine')) {
+        caffeineSupplement = s;
+      }
     }
 
     if (caffeineSupplement != null && caffeineSupplement.id != null) {
       summary.caffeine = todaysDoses[caffeineSupplement.id] ?? 0.0;
     }
-
-    final Map<int, Supplement> byId = {
-      for (final s in allSupplements)
-        if (s.id != null) s.id!: s,
-    };
 
     final List<TrackedSupplement> trackedSupps = [];
     for (final s in supplementsForDate) {
@@ -206,7 +207,7 @@ class CalculateDailyNutritionUseCase {
     // Optimize supplement lookup by extracting tracked IDs to a Set
     final Set<int> trackedSuppIds = {
       for (final ts in trackedSupps)
-        if (ts.supplement.id != null) ts.supplement.id!
+        if (ts.supplement.id != null) ts.supplement.id!,
     };
 
     for (final id in todaysDoses.keys) {

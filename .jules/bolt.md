@@ -1,3 +1,6 @@
 ## 2024-11-20 - Fast Reactive UseCases
 **Learning:** `CalculateDailyNutritionUseCase` is executed extremely frequently (e.g. debounced at 16ms in `DiaryViewModel`) on the main thread whenever any diary data changes. Nested loops inside this use case (like iterating over all food entries for every single fluid entry) caused significant performance degradation.
 **Action:** Always aim for O(N) complexity in synchronous use cases that are executed reactively in ViewModels. Pre-filter arrays, avoid redundant map lookups, and pull mathematically constant expressions (like `entry.quantityInGrams / 100.0`) out of repeated loops.
+## 2026-07-09 - Eliminate Iteration Overheads in CalculateDailyNutritionUseCase
+**Learning:** In highly reactive synchronous loops, using methods like `.where().toList()` followed by another `for` loop, and relying on `try-catch` blocks for control flow like handling `firstWhere` exceptions creates noticeable performance overhead.
+**Action:** When filtering or finding elements in frequently executed loops, use a single `for` loop instead of intermediate methods that allocate lists. For search-like queries, avoid `try-catch` and use a manual loop or null-aware loops instead.
