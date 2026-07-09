@@ -596,7 +596,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
     final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
 
     final bool hasPR = isCompleted &&
-        (log.isMaxWeightPR || log.isMaxVolumePR || log.isMaxEst1RMPR);
+        (log.isMaxWeightPR || log.isMaxVolumePR || log.isMaxEst1RMPR || log.isMaxDistancePR || log.isMaxDurationPR || log.isFastestPacePR);
 
     final rowWithSubInfo = Column(
       children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
@@ -51,28 +52,23 @@ class WorkoutHeartRateSection extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               if (summary.hasSummaryMetrics)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildHeartRateMetricTile(
-                      context: context,
-                      label: l10n.workoutHeartRateAverageLabel,
-                      value:
-                          '${summary.averageBpm!.round()} ${l10n.sleepBpmUnit}',
-                    ),
-                    _buildHeartRateMetricTile(
-                      context: context,
-                      label: l10n.workoutHeartRateMaxLabel,
-                      value: '${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}',
-                    ),
-                    _buildHeartRateMetricTile(
-                      context: context,
-                      label: l10n.workoutHeartRateMinLabel,
-                      value: '${summary.minBpm!.round()} ${l10n.sleepBpmUnit}',
-                    ),
-                  ],
-                )
+                _buildTwoColumnGrid([
+                  ValueSummaryCard(
+                    label: l10n.workoutHeartRateAverageLabel,
+                    value: '${summary.averageBpm!.round()}',
+                    subtitle: l10n.sleepBpmUnit,
+                  ),
+                  ValueSummaryCard(
+                    label: l10n.workoutHeartRateMaxLabel,
+                    value: '${summary.maxBpm!.round()}',
+                    subtitle: l10n.sleepBpmUnit,
+                  ),
+                  ValueSummaryCard(
+                    label: l10n.workoutHeartRateMinLabel,
+                    value: '${summary.minBpm!.round()}',
+                    subtitle: l10n.sleepBpmUnit,
+                  ),
+                ])
               else
                 Text(
                   _heartRateNoDataMessage(l10n, summary.noDataReason),
@@ -123,34 +119,29 @@ class WorkoutHeartRateSection extends StatelessWidget {
     );
   }
 
-  Widget _buildHeartRateMetricTile({
-    required BuildContext context,
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 10, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
+
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    List<Widget> rows = [];
+    for (int i = 0; i < items.length; i += 2) {
+      Widget left = items[i];
+      Widget right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
+            ],
           ),
-        ],
-      ),
-    );
+        ),
+      );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
   }
 
   String _heartRateQualityLabel(

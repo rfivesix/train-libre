@@ -35,13 +35,28 @@ class DetectPersonalRecordUseCase {
       currentEst1rm = currentWeight * (36 / (37 - currentReps));
     }
 
+    final currentDistance = currentSet.distanceKm ?? 0.0;
+    final currentDuration = currentSet.durationSeconds ?? 0;
+    double currentPace = double.infinity;
+    if (currentDistance > 0 && currentDuration > 0) {
+      currentPace = currentDuration / currentDistance;
+    }
+
     bool isMaxWeightPR = false;
     bool isMaxVolumePR = false;
     bool isMaxEst1RMPR = false;
+    
+    bool isMaxDistancePR = false;
+    bool isMaxDurationPR = false;
+    bool isFastestPacePR = false;
 
     double? weightDiff;
     double? volumeDiff;
     double? est1rmDiff;
+    
+    double? distanceDiff;
+    int? durationDiff;
+    double? paceDiff;
 
     if (currentWeight > 0) {
       final oldMaxWeight = historicalBests['maxWeight'] ?? 0.0;
@@ -63,6 +78,29 @@ class DetectPersonalRecordUseCase {
         isMaxEst1RMPR = true;
         est1rmDiff = oldMaxEst1rm > 0 ? currentEst1rm - oldMaxEst1rm : null;
         historicalBests['maxEst1rm'] = currentEst1rm;
+      }
+    }
+
+    if (currentDistance > 0 || currentDuration > 0) {
+      final oldMaxDistance = historicalBests['maxDistance'] ?? 0.0;
+      if (currentDistance > oldMaxDistance) {
+        isMaxDistancePR = true;
+        distanceDiff = oldMaxDistance > 0 ? currentDistance - oldMaxDistance : null;
+        historicalBests['maxDistance'] = currentDistance;
+      }
+
+      final oldMaxDuration = historicalBests['maxDuration']?.toInt() ?? 0;
+      if (currentDuration > oldMaxDuration) {
+        isMaxDurationPR = true;
+        durationDiff = oldMaxDuration > 0 ? currentDuration - oldMaxDuration : null;
+        historicalBests['maxDuration'] = currentDuration.toDouble();
+      }
+
+      final oldFastestPace = historicalBests['fastestPace'] ?? 0.0;
+      if (currentPace != double.infinity && (oldFastestPace == 0.0 || currentPace < oldFastestPace)) {
+        isFastestPacePR = true;
+        paceDiff = oldFastestPace > 0 ? oldFastestPace - currentPace : null;
+        historicalBests['fastestPace'] = currentPace;
       }
     }
 
@@ -97,6 +135,37 @@ class DetectPersonalRecordUseCase {
       }
     }
 
+    if (isMaxDistancePR || isMaxDurationPR || isFastestPacePR) {
+      if (isMaxDistancePR) {
+        alerts.add(PRAlert(
+          exerciseName: currentSet.exerciseName,
+          recordType: "Best Distance",
+          achievementValue: "${currentDistance.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '')} km",
+          diff: distanceDiff,
+        ));
+      }
+      if (isMaxDurationPR) {
+        final m = currentDuration ~/ 60;
+        final s = currentDuration % 60;
+        alerts.add(PRAlert(
+          exerciseName: currentSet.exerciseName,
+          recordType: "Longest Duration",
+          achievementValue: "${m}m ${s}s",
+          diff: durationDiff?.toDouble(),
+        ));
+      }
+      if (isFastestPacePR) {
+        final pm = currentPace.toInt() ~/ 60;
+        final ps = currentPace.toInt() % 60;
+        alerts.add(PRAlert(
+          exerciseName: currentSet.exerciseName,
+          recordType: "Fastest Pace",
+          achievementValue: "${pm}m ${ps}s / km",
+          diff: paceDiff,
+        ));
+      }
+    }
+
     final updatedLog = currentSet.copyWith(
       isMaxWeightPR: isMaxWeightPR,
       isMaxVolumePR: isMaxVolumePR,
@@ -104,6 +173,12 @@ class DetectPersonalRecordUseCase {
       weightPRDiff: weightDiff,
       volumePRDiff: volumeDiff,
       est1rmPRDiff: est1rmDiff,
+      isMaxDistancePR: isMaxDistancePR,
+      isMaxDurationPR: isMaxDurationPR,
+      isFastestPacePR: isFastestPacePR,
+      distancePRDiff: distanceDiff,
+      durationPRDiff: durationDiff,
+      pacePRDiff: paceDiff,
     );
 
     return PRDetectionResult(updatedLog, alerts);

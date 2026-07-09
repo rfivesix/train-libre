@@ -74,7 +74,7 @@ class WorkoutLogSetRow extends StatelessWidget {
     final currentSetE1rm = _calculateBrzyckiE1rm(setLog);
     final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
     final bool hasPR =
-        setLog.isMaxWeightPR || setLog.isMaxVolumePR || setLog.isMaxEst1RMPR;
+        setLog.isMaxWeightPR || setLog.isMaxVolumePR || setLog.isMaxEst1RMPR || setLog.isMaxDistancePR || setLog.isMaxDurationPR || setLog.isFastestPacePR;
 
     final rowContent = Row(
       children: [

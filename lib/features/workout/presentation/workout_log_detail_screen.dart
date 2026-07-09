@@ -2,6 +2,9 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'widgets/exercise_record_data.dart';
+import '../../../../services/unit_service.dart';
+import '../../../widgets/common/algorithm_info_sheet.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
@@ -18,7 +21,6 @@ import '../../../services/health/workout_heart_rate_models.dart';
 import '../../../services/health/workout_heart_rate_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../pulse/application/pulse_tracking_service.dart';
-import '../../../services/unit_service.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
@@ -58,6 +60,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   WorkoutHeartRateSummary? _heartRateSummary;
   Map<String, List<SetLog>> _groupedSets = {};
   Map<String, Exercise> _exerciseDetails = {};
+  final Map<String, List<ExerciseRecordData>> _newRecordsPerExercise = {};
   Map<String, String> _exerciseNotes = {};
   bool _isEditMode = false;
   bool _isDragging = false;
@@ -161,7 +164,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     return ex?.categoryName.toLowerCase() == 'cardio';
   }
 
-  double _calculateScrollAdjustment(int draggedIndex, List<MapEntry<String, List<SetLog>>> entries) {
+  double _calculateScrollAdjustment(
+      int draggedIndex, List<MapEntry<String, List<SetLog>>> entries) {
     double adjustment = 0;
     for (int i = 0; i < draggedIndex; i++) {
       final entry = entries[i];
@@ -180,7 +184,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     return adjustment;
   }
 
-  double _calculateScrollPosition(int targetIndex, List<MapEntry<String, List<SetLog>>> entries) {
+  double _calculateScrollPosition(
+      int targetIndex, List<MapEntry<String, List<SetLog>>> entries) {
     double position = 0;
     position += 320.0; // Account for SummaryCard and header list items
     for (int i = 0; i < targetIndex; i++) {
@@ -318,6 +323,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     List<SetLog> sets, {
     DateTime? beforeTimestamp,
   }) async {
+    _newRecordsPerExercise.clear();
     final db = WorkoutLocalDataSource.instance;
     final Map<String, Map<String, double>> historicalBests = {};
 
@@ -349,28 +355,141 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       double? volumeDiff;
       double? est1rmDiff;
 
-      if (currentWeight > 0 &&
-          setLog.isCompleted == true &&
-          setLog.setType != 'warmup') {
-        final oldMaxWeight = bests['maxWeight'] ?? 0.0;
-        if (currentWeight > oldMaxWeight) {
-          isMaxWeightPR = true;
-          weightDiff = oldMaxWeight > 0 ? currentWeight - oldMaxWeight : null;
-          bests['maxWeight'] = currentWeight;
+      bool isMaxDistancePR = false;
+      bool isMaxDurationPR = false;
+      bool isFastestPacePR = false;
+      double? distanceDiff;
+      int? durationDiff;
+      double? paceDiff;
+
+      final currentDistance = setLog.distanceKm ?? 0.0;
+      final currentDuration = setLog.durationSeconds ?? 0;
+      double currentPace = double.infinity;
+      if (currentDistance > 0 && currentDuration > 0) {
+        currentPace = currentDuration / currentDistance;
+      }
+
+      if (setLog.isCompleted == true && setLog.setType != 'warmup') {
+        if (currentWeight > 0) {
+          final oldMaxWeight = bests['maxWeight'] ?? 0.0;
+          if (currentWeight > oldMaxWeight) {
+            isMaxWeightPR = true;
+            weightDiff = oldMaxWeight > 0 ? currentWeight - oldMaxWeight : null;
+            bests['maxWeight'] = currentWeight;
+          }
+
+          final oldMaxVolume = bests['maxVolume'] ?? 0.0;
+          if (currentVolume > oldMaxVolume) {
+            isMaxVolumePR = true;
+            volumeDiff = oldMaxVolume > 0 ? currentVolume - oldMaxVolume : null;
+            bests['maxVolume'] = currentVolume;
+          }
+
+          final oldMaxEst1rm = bests['maxEst1rm'] ?? 0.0;
+          if (currentEst1rm > oldMaxEst1rm) {
+            isMaxEst1RMPR = true;
+            est1rmDiff = oldMaxEst1rm > 0 ? currentEst1rm - oldMaxEst1rm : null;
+            bests['maxEst1rm'] = currentEst1rm;
+          }
         }
 
-        final oldMaxVolume = bests['maxVolume'] ?? 0.0;
-        if (currentVolume > oldMaxVolume) {
-          isMaxVolumePR = true;
-          volumeDiff = oldMaxVolume > 0 ? currentVolume - oldMaxVolume : null;
-          bests['maxVolume'] = currentVolume;
+        if (currentDistance > 0 || currentDuration > 0) {
+          final oldMaxDistance = bests['maxDistance'] ?? 0.0;
+          if (currentDistance > oldMaxDistance) {
+            isMaxDistancePR = true;
+            distanceDiff =
+                oldMaxDistance > 0 ? currentDistance - oldMaxDistance : null;
+            bests['maxDistance'] = currentDistance;
+          }
+
+          final oldMaxDuration = bests['maxDuration']?.toInt() ?? 0;
+          if (currentDuration > oldMaxDuration) {
+            isMaxDurationPR = true;
+            durationDiff =
+                oldMaxDuration > 0 ? currentDuration - oldMaxDuration : null;
+            bests['maxDuration'] = currentDuration.toDouble();
+          }
+
+          final oldFastestPace = bests['fastestPace'] ?? 0.0;
+          if (currentPace != double.infinity &&
+              (oldFastestPace == 0.0 || currentPace < oldFastestPace)) {
+            isFastestPacePR = true;
+            paceDiff = oldFastestPace > 0 ? oldFastestPace - currentPace : null;
+            bests['fastestPace'] = currentPace;
+          }
         }
 
-        final oldMaxEst1rm = bests['maxEst1rm'] ?? 0.0;
-        if (currentEst1rm > oldMaxEst1rm) {
-          isMaxEst1RMPR = true;
-          est1rmDiff = oldMaxEst1rm > 0 ? currentEst1rm - oldMaxEst1rm : null;
-          bests['maxEst1rm'] = currentEst1rm;
+        // Add to _newRecordsPerExercise
+        if (isMaxWeightPR ||
+            isMaxVolumePR ||
+            isMaxEst1RMPR ||
+            isMaxDistancePR ||
+            isMaxDurationPR ||
+            isFastestPacePR) {
+          _newRecordsPerExercise.putIfAbsent(exName, () => []);
+
+          if (isMaxWeightPR) {
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.weight(
+              label: 'Best Max Weight',
+              valueKg: currentWeight,
+              diffKg: weightDiff,
+            ));
+          }
+          if (isMaxVolumePR) {
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.weight(
+              label: 'Best Volume Set',
+              valueKg: currentVolume,
+              diffKg: volumeDiff,
+              fractionDigits: 0,
+            ));
+          }
+          if (isMaxEst1RMPR) {
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.weight(
+              label: 'Best 1-Rep Max',
+              valueKg: currentEst1rm,
+              diffKg: est1rmDiff,
+            ));
+          }
+          if (isMaxDistancePR) {
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.cardio(
+              label: 'Best Distance',
+              value:
+                  '${currentDistance.toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km',
+              diff: distanceDiff != null
+                  ? '+${distanceDiff.toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km'
+                  : null,
+            ));
+          }
+          if (isMaxDurationPR) {
+            final m = currentDuration ~/ 60;
+            final s = currentDuration % 60;
+            String? diffStr;
+            if (durationDiff != null) {
+              final dm = durationDiff ~/ 60;
+              final ds = durationDiff % 60;
+              diffStr = '+${dm > 0 ? '${dm}m ' : ''}${ds}s';
+            }
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.cardio(
+              label: 'Longest Duration',
+              value: '${m}m ${s}s',
+              diff: diffStr,
+            ));
+          }
+          if (isFastestPacePR) {
+            final pm = currentPace.toInt() ~/ 60;
+            final ps = currentPace.toInt() % 60;
+            String? diffStr;
+            if (paceDiff != null) {
+              final dm = paceDiff.toInt() ~/ 60;
+              final ds = paceDiff.toInt() % 60;
+              diffStr = '-${dm > 0 ? '${dm}m ' : ''}${ds}s';
+            }
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.cardio(
+              label: 'Fastest Pace',
+              value: '${pm}m ${ps}s / km',
+              diff: diffStr,
+            ));
+          }
         }
       }
 
@@ -381,6 +500,12 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         weightPRDiff: weightDiff,
         volumePRDiff: volumeDiff,
         est1rmPRDiff: est1rmDiff,
+        isMaxDistancePR: isMaxDistancePR,
+        isMaxDurationPR: isMaxDurationPR,
+        isFastestPacePR: isFastestPacePR,
+        distancePRDiff: distanceDiff,
+        durationPRDiff: durationDiff,
+        pacePRDiff: paceDiff,
       );
     }
   }
@@ -427,7 +552,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
   Future<void> _saveChanges() async {
     FocusScope.of(context).unfocus();
-    if (_formKey.currentState != null && !_formKey.currentState!.validate()) return;
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
+      return;
+    }
 
     try {
       final l10n = AppLocalizations.of(context)!;
@@ -866,14 +993,16 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                           if (_exerciseDetails.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: DesignConstants.screenPaddingHorizontal,
+                                horizontal:
+                                    DesignConstants.screenPaddingHorizontal,
                                 vertical: DesignConstants.spacingM,
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   AppSectionHeader(
-                                    title: l10n.analyticsRecentDistributionHeatmap,
+                                    title:
+                                        l10n.analyticsRecentDistributionHeatmap,
                                     padding: EdgeInsets.zero,
                                   ),
                                   const SizedBox(
@@ -895,6 +1024,82 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 pulseTrackingEnabled: _pulseTrackingEnabled,
                               ),
                             ),
+
+                          // NEW RECORDS SECTION
+                          if (_newRecordsPerExercise.isNotEmpty) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal:
+                                    DesignConstants.screenPaddingHorizontal,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    l10n.workoutSummaryNewRecordsTitle,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Colors.amber[800],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  AlgorithmInfoButton(
+                                    title:
+                                        "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                                    explanation:
+                                        "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                                    keyPoints: const [
+                                      "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
+                                      "Estimates are sports-science heuristics designed for healthy individuals.",
+                                      "Provides a safe way to track strength progression without testing true failure.",
+                                    ],
+                                    technicalTitle: "Epley Equation Details",
+                                    technicalExplanation:
+                                        "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                                    citationUrl:
+                                        "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal:
+                                    DesignConstants.screenPaddingHorizontal,
+                              ),
+                              child: Column(
+                                children:
+                                    _newRecordsPerExercise.entries.map((entry) {
+                                  return SummaryCard(
+                                    child: ListTile(
+                                      leading: const Icon(
+                                        LucideIcons.trophy,
+                                        color: Colors.amber,
+                                      ),
+                                      title: Text(
+                                        _exerciseDetails[entry.key]
+                                                ?.getLocalizedName(context) ??
+                                            entry.key,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      subtitle: Text(
+                                        entry.value
+                                            .map((record) => record.format(
+                                                context.read<UnitService>()))
+                                            .join(', '),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
+                          ],
 
                           // Sets
                           if (!_isEditMode)
@@ -954,11 +1159,18 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 setState(() {
                                   _isDragging = false;
                                 });
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
                                   if (_scrollController.hasClients) {
-                                    final entries = _groupedSets.entries.toList();
-                                    final targetOffset = _calculateScrollPosition(index, entries);
-                                    _scrollController.jumpTo(targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent));
+                                    final entries =
+                                        _groupedSets.entries.toList();
+                                    final targetOffset =
+                                        _calculateScrollPosition(
+                                            index, entries);
+                                    _scrollController.jumpTo(targetOffset.clamp(
+                                        0.0,
+                                        _scrollController
+                                            .position.maxScrollExtent));
                                   }
                                 });
                               },
@@ -1028,17 +1240,30 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                     isDragging: _isDragging,
                                     onPointerDown: (event) {
                                       _collapseTimer?.cancel();
-                                      _collapseTimer = Timer(const Duration(milliseconds: 300), () {
+                                      _collapseTimer = Timer(
+                                          const Duration(milliseconds: 300),
+                                          () {
                                         if (mounted) {
                                           setState(() {
                                             _isDragging = true;
                                           });
-                                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
                                             if (_scrollController.hasClients) {
-                                              final currentOffset = _scrollController.offset;
-                                              final entries = _groupedSets.entries.toList();
-                                              final adjustment = _calculateScrollAdjustment(index, entries);
-                                              _scrollController.jumpTo((currentOffset - adjustment).clamp(0.0, _scrollController.position.maxScrollExtent));
+                                              final currentOffset =
+                                                  _scrollController.offset;
+                                              final entries =
+                                                  _groupedSets.entries.toList();
+                                              final adjustment =
+                                                  _calculateScrollAdjustment(
+                                                      index, entries);
+                                              _scrollController.jumpTo(
+                                                  (currentOffset - adjustment)
+                                                      .clamp(
+                                                          0.0,
+                                                          _scrollController
+                                                              .position
+                                                              .maxScrollExtent));
                                             }
                                           });
                                         }
@@ -1054,7 +1279,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                     },
                                     onPointerMove: (event) {
                                       // Cancel timer if finger moves – user is scrolling, not drag-holding.
-                                      if (event.delta.dy.abs() > 4.0 || event.delta.dx.abs() > 4.0) {
+                                      if (event.delta.dy.abs() > 4.0 ||
+                                          event.delta.dx.abs() > 4.0) {
                                         _collapseTimer?.cancel();
                                       }
                                     },
@@ -1091,7 +1317,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                     },
                                     onAddSet: () {
                                       final newSet = SetLog(
-                                        id: -DateTime.now().millisecondsSinceEpoch,
+                                        id: -DateTime.now()
+                                            .millisecondsSinceEpoch,
                                         workoutLogId: _log!.id!,
                                         exerciseName: exerciseName,
                                         setType: 'normal',
@@ -1113,8 +1340,12 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                         _weightControllers
                                             .remove(setId)
                                             ?.dispose();
-                                        _repsControllers.remove(setId)?.dispose();
-                                        _rirControllers.remove(setId)?.dispose();
+                                        _repsControllers
+                                            .remove(setId)
+                                            ?.dispose();
+                                        _rirControllers
+                                            .remove(setId)
+                                            ?.dispose();
                                       });
                                     },
                                     onSetTypeTap: (setId) =>

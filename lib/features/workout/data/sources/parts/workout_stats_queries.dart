@@ -256,6 +256,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     String? exerciseUuid,
     int? excludeWorkoutLogId,
     DateTime? beforeTimestamp,
+    bool isCardio = false,
   }) async {
     final dbInstance = await database;
 
@@ -289,8 +290,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         exerciseMatch &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
+            (isCardio 
+              ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) | dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
+              : (dbInstance.setLogs.weight.isBiggerThanValue(0.0) & dbInstance.setLogs.reps.isBiggerThanValue(0))) &
             dbInstance.workoutLogs.status.equals('completed'),
       );
 

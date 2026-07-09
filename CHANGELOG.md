@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.7] - 2026-07-09
 
+### Added
+- **Cardio PR Logic & Badges:** Integrated cardio-specific personal records (Max Distance, Max Duration, Fastest Pace) into the `LiveWorkoutScreen`, `WorkoutSummaryScreen`, and `WorkoutLogDetailScreen`. Cardio sets now properly display PR badges upon completion.
+- **Heart Rate Summary Grid:** Implemented a new three-column grid layout for Min, Avg, and Max Heart Rate inside the `WorkoutLogDetailScreen`, matching the visual style of the pulse analysis screens.
+- **Muscle Name Localization:** Fully localized all anatomical muscle names across the app using arb files to support 5 languages.
+
 ### Fixed
 - **Cardio Analytics Isolation:** Strictly isolated Cardio exercises from bodybuilding and hypertrophy metrics. Cardio data points are now filtered out of weekly set volumes, tonnage charts, consistency trackers, and muscle readiness states to prevent analytics pollution.
 - **Cardio UI Data Artifacts:** Fixed a bug on the `ExerciseDetailScreen` where cardio PRs and time-series history displayed as "0" due to queries incorrectly falling back to strength constraints. Passed `isCardio` explicitly down the repository stack to retrieve duration, distance, and pace properly.

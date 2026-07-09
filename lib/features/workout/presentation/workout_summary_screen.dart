@@ -1,6 +1,7 @@
 // lib/screens/workout_summary_screen.dart
 
 import 'package:flutter/material.dart';
+import 'widgets/exercise_record_data.dart';
 import 'package:provider/provider.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
@@ -54,7 +55,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   Map<String, _ExerciseSummaryData> _summaryPerExercise = {};
 
   /// Stores new records achieved in this session per exercise.
-  Map<String, List<_ExerciseRecordData>> _newRecordsPerExercise = {};
+  Map<String, List<ExerciseRecordData>> _newRecordsPerExercise = {};
 
   Map<String, Exercise> _exerciseDetails = {};
 
@@ -81,7 +82,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         endTime: data.endTime,
       );
       final Map<String, _ExerciseSummaryData> summaryMap = {};
-      final Map<String, List<_ExerciseRecordData>> newRecordsMap = {};
+      final Map<String, List<ExerciseRecordData>> newRecordsMap = {};
       final Map<String, Exercise> detailsMap = {};
 
       final groupedSets = <String, List<SetLog>>{};
@@ -104,18 +105,99 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         if (isCardio) {
           double totalDist = 0;
           int totalSeconds = 0;
+          
+          double sessionMaxDist = 0;
+          int sessionMaxDur = 0;
+          double sessionFastestPace = double.infinity;
+
           for (var s in sets) {
             final dist = s.distanceKm ?? 0.0;
             final dur = s.durationSeconds ?? 0;
 
             totalDist += dist;
             totalSeconds += dur;
+            
+            if (s.isCompleted == true) {
+               if (dist > sessionMaxDist) sessionMaxDist = dist;
+               if (dur > sessionMaxDur) sessionMaxDur = dur;
+               if (dist > 0 && dur > 0) {
+                 final pace = dur / dist;
+                 if (pace < sessionFastestPace) sessionFastestPace = pace;
+               }
+            }
           }
           final int minutes = (totalSeconds / 60).round();
           summaryMap[name] = _ExerciseSummaryData.cardio(
             distanceKm: totalDist,
             minutes: minutes,
           );
+          
+          // Calculate PRs for cardio exercises
+          final historicalBests = await db.getExerciseBests(
+            name,
+            excludeWorkoutLogId: widget.logId,
+            isCardio: true,
+          );
+          
+          List<ExerciseRecordData> records = [];
+          if (sessionMaxDist > (historicalBests['maxDistance'] ?? 0)) {
+            final double old = historicalBests['maxDistance'] ?? 0;
+            records.add(
+              ExerciseRecordData.cardio(
+                label: 'Best Distance', // Or localized label later
+                value: '${sessionMaxDist.toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km',
+                diff: old > 0 ? '+${(sessionMaxDist - old).toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km' : null,
+              ),
+            );
+          }
+          if (sessionMaxDur > (historicalBests['maxDuration']?.toInt() ?? 0)) {
+            final int old = historicalBests['maxDuration']?.toInt() ?? 0;
+            final m = sessionMaxDur ~/ 60;
+            final s = sessionMaxDur % 60;
+            
+            String? diffStr;
+            if (old > 0) {
+               final diff = sessionMaxDur - old;
+               final dm = diff ~/ 60;
+               final ds = diff % 60;
+               diffStr = '+${dm > 0 ? '${dm}m ' : ''}${ds}s';
+            }
+            
+            records.add(
+              ExerciseRecordData.cardio(
+                label: 'Longest Duration',
+                value: '${m}m ${s}s',
+                diff: diffStr,
+              ),
+            );
+          }
+          if (sessionFastestPace != double.infinity) {
+             final oldFastest = historicalBests['fastestPace'] ?? 0.0;
+             if (oldFastest == 0.0 || sessionFastestPace < oldFastest) {
+                final pm = sessionFastestPace.toInt() ~/ 60;
+                final ps = sessionFastestPace.toInt() % 60;
+                
+                String? diffStr;
+                if (oldFastest > 0) {
+                   final diff = oldFastest - sessionFastestPace;
+                   final dm = diff.toInt() ~/ 60;
+                   final ds = diff.toInt() % 60;
+                   diffStr = '-${dm > 0 ? '${dm}m ' : ''}${ds}s';
+                }
+                
+                records.add(
+                  ExerciseRecordData.cardio(
+                    label: 'Fastest Pace',
+                    value: '${pm}m ${ps}s / km',
+                    diff: diffStr,
+                  ),
+                );
+             }
+          }
+          
+          if (records.isNotEmpty) {
+            newRecordsMap[name] = records;
+          }
         } else {
           double totalVol = 0;
           double sessionMaxWeight = 0;
@@ -146,11 +228,11 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
             excludeWorkoutLogId: widget.logId,
           );
 
-          List<_ExerciseRecordData> records = [];
+          List<ExerciseRecordData> records = [];
           if (sessionMaxWeight > (historicalBests['maxWeight'] ?? 0)) {
             final double old = historicalBests['maxWeight'] ?? 0;
             records.add(
-              _ExerciseRecordData.weight(
+              ExerciseRecordData.weight(
                 label: l10n.exerciseMetricMaxWeight,
                 valueKg: sessionMaxWeight,
                 diffKg: old > 0 ? sessionMaxWeight - old : null,
@@ -160,7 +242,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           if (sessionMaxVolume > (historicalBests['maxVolume'] ?? 0)) {
             final double old = historicalBests['maxVolume'] ?? 0;
             records.add(
-              _ExerciseRecordData.weight(
+              ExerciseRecordData.weight(
                 label: l10n.exerciseMetricVolume,
                 valueKg: sessionMaxVolume,
                 diffKg: old > 0 ? sessionMaxVolume - old : null,
@@ -171,7 +253,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           if (sessionMaxEst1rm > (historicalBests['maxEst1rm'] ?? 0)) {
             final double old = historicalBests['maxEst1rm'] ?? 0;
             records.add(
-              _ExerciseRecordData.weight(
+              ExerciseRecordData.weight(
                 label: l10n.exerciseMetricEst1RM,
                 valueKg: sessionMaxEst1rm,
                 diffKg: old > 0 ? sessionMaxEst1rm - old : null,
@@ -857,27 +939,3 @@ class _ExerciseSummaryData {
   }
 }
 
-class _ExerciseRecordData {
-  final String label;
-  final double valueKg;
-  final double? diffKg;
-  final int fractionDigits;
-
-  const _ExerciseRecordData.weight({
-    required this.label,
-    required this.valueKg,
-    this.diffKg,
-    this.fractionDigits = 1,
-  });
-
-  String format(UnitService unitService) {
-    final value = unitService.convertDisplayValue(
-      valueKg,
-      UnitDimension.weight,
-    );
-    final diffText = diffKg == null
-        ? ''
-        : ' (+${unitService.convertDisplayValue(diffKg!, UnitDimension.weight).toStringAsFixed(fractionDigits).replaceAll('.0', '')})';
-    return '$label (${value.toStringAsFixed(fractionDigits).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}$diffText)';
-  }
-}
