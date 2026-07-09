@@ -23,6 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Fixed Timeframe Picker Scroll Jump:** Removed an internal scroll lock (`PageStorage`) in the `TimeRangeFilter` that previously prevented the active timeframe pill from properly re-aligning when scrolling up and down through the Statistics Hub, ensuring perfect edge alignment upon view reconstruction.
 - **Cleaned up "MAX" Timeframe Pill Design:** Removed the redundant `< MAX >` date navigation sub-elements from the `TimeRangeFilter` when the "MAX" block is selected, resulting in a cleaner, solid primary-colored pill across all analytics screens.
 - **Fixed Rolling Data Ranges:** Fixed an issue where "Last 30 Days" and "Last 7 Days" timeframes queried the database for the *entire* calendar month or week (e.g., July 1-31) instead of computing a true 30-day or 7-day rolling window from today. The `isRolling` context is now properly passed from the view models down to `StatisticsRangePolicyService.resolve()`.
+- **Live Workout Default Pause Time:** Changed the default pause/rest time for newly added exercises and restored workout sessions from 90 seconds to 0 seconds (no pause).
+- **Adaptive Pickers Haptics:** Implemented haptic feedback for the iOS-style Cupertino time, date, and timeframe pickers (`CupertinoDatePicker`, `CupertinoTimerPicker`, `CupertinoPicker`) when scrolling through options, automatically respecting the user's global haptic settings.
 
 ## [1.0.0-alpha.6] - 2026-07-08
 

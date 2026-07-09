@@ -226,7 +226,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           );
 
       final syntheticReId = DateTime.now().millisecondsSinceEpoch + i;
-      final pauseSec = block.first.restTimeSeconds ?? 90;
+      final pauseSec = block.first.restTimeSeconds ?? 0;
 
       final List<SetTemplate> templates = [];
       for (int j = 0; j < block.length; j++) {
@@ -569,9 +569,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         id: tempReId,
         exercise: exercise,
         setTemplates: templates,
-        pauseSeconds: 90);
+        pauseSeconds: 0);
     _exercises = [..._exercises, re];
-    pauseTimes[tempReId] = 90;
+    pauseTimes[tempReId] = 0;
 
     for (var t in templates) {
       final newSetLog = SetLog(
@@ -580,7 +580,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         setType: 'normal',
         weightKg: null,
         reps: null,
-        restTimeSeconds: 90,
+        restTimeSeconds: 0,
         isCompleted: false,
         logOrder: _setLogs.length,
       );

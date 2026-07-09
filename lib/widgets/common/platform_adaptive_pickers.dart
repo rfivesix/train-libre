@@ -8,6 +8,7 @@ import '../../util/design_constants.dart';
 import '../../features/statistics/domain/timeframe_block.dart';
 import 'package:intl/intl.dart';
 import 'glass_border_painter.dart';
+import '../../services/haptic_feedback_service.dart';
 
 /// Helper to get the localized date picker title.
 String _getSelectDateTitle(BuildContext context) {
@@ -120,6 +121,7 @@ Future<DateTime?> _showGlassDatePicker({
                     use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
                         Localizations.localeOf(ctx).languageCode == 'de',
                     onDateTimeChanged: (DateTime newDate) {
+                      HapticFeedbackService.instance.selectionFeedback();
                       tempDate = newDate;
                     },
                   ),
@@ -234,6 +236,7 @@ Future<TimeOfDay?> _showGlassTimePicker({
                     use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
                         Localizations.localeOf(ctx).languageCode == 'de',
                     onDateTimeChanged: (DateTime newDateTime) {
+                      HapticFeedbackService.instance.selectionFeedback();
                       tempDateTime = newDateTime;
                     },
                   ),
@@ -549,6 +552,7 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                     scrollController: FixedExtentScrollController(initialItem: initialIndex),
                     itemExtent: 40,
                     onSelectedItemChanged: (int index) {
+                      HapticFeedbackService.instance.selectionFeedback();
                       selectedIndex = index;
                     },
                     children: options.map((date) => Center(child: Text(formatOption(date)))).toList(),
@@ -659,6 +663,7 @@ Future<int?> showAdaptiveBlockTypePicker({
                     scrollController: FixedExtentScrollController(initialItem: initialIndex),
                     itemExtent: 40,
                     onSelectedItemChanged: (int index) {
+                      HapticFeedbackService.instance.selectionFeedback();
                       selectedIndex = index;
                     },
                     children: ranges.map((r) => Center(child: Text(r))).toList(),
@@ -768,6 +773,7 @@ Future<Duration?> showAdaptiveDurationPicker({
                     mode: CupertinoTimerPickerMode.hms,
                     initialTimerDuration: initialDuration,
                     onTimerDurationChanged: (Duration newDuration) {
+                      HapticFeedbackService.instance.selectionFeedback();
                       selectedDuration = newDuration;
                     },
                   ),
