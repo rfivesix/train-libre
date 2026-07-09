@@ -22,37 +22,44 @@ class StatisticsHubDataAdapter {
   Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> fetch({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
+    bool isRolling = false,
   }) async {
     final adapterStopwatch = Stopwatch()..start();
     final weeklyVolumeRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubWeeklyVolume,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
     final workoutsPerWeekRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubWorkoutsPerWeek,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
     final consistencyRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubConsistencyMetrics,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
     final recoveryRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubRecoveryReadiness,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
     final muscleRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubMuscleAnalytics,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
     final improvementRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubNotablePrImprovements,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
 
     try {
@@ -117,6 +124,7 @@ class StatisticsHubDataAdapter {
         action: () => BodyNutritionAnalyticsUtils.build(
           selectedBlockType: selectedBlockType,
           anchorDate: anchorDate,
+          isRolling: isRolling,
         ),
       );
 
@@ -164,11 +172,13 @@ class StatisticsHubDataAdapter {
   Future<RecoveryAnalyticsPayload> fetchRecovery({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
+    bool isRolling = false,
   }) async {
     final recoveryRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubRecoveryReadiness,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
     final recoveryAnalytics = await PerfDebugTimer.time(
       area: 'statistics',
@@ -190,16 +200,19 @@ class StatisticsHubDataAdapter {
       })> fetchConsistency({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
+    bool isRolling = false,
   }) async {
     final workoutsPerWeekRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubWorkoutsPerWeek,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
     final consistencyRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubConsistencyMetrics,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
 
     final results = await Future.wait<dynamic>([
@@ -242,11 +255,13 @@ class StatisticsHubDataAdapter {
       })> fetchPerformanceRecords({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
+    bool isRolling = false,
   }) async {
     final improvementRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubNotablePrImprovements,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
 
     final results = await Future.wait<dynamic>([
@@ -278,16 +293,19 @@ class StatisticsHubDataAdapter {
       })> fetchVolumeMuscles({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
+    bool isRolling = false,
   }) async {
     final weeklyVolumeRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubWeeklyVolume,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
     final muscleRange = _rangePolicy.resolve(
       metricId: StatisticsMetricId.hubMuscleAnalytics,
       selectedBlockType: selectedBlockType,
       now: anchorDate,
+      isRolling: isRolling,
     );
 
     final results = await Future.wait<dynamic>([
@@ -317,6 +335,7 @@ class StatisticsHubDataAdapter {
   Future<BodyNutritionAnalyticsResult> fetchBodyNutrition({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
+    bool isRolling = false,
   }) {
     return PerfDebugTimer.time(
       area: 'statistics',
@@ -324,6 +343,7 @@ class StatisticsHubDataAdapter {
       action: () => BodyNutritionAnalyticsUtils.build(
         selectedBlockType: selectedBlockType,
         anchorDate: anchorDate,
+        isRolling: isRolling,
       ),
     );
   }

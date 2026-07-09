@@ -61,6 +61,7 @@ class _BodyNutritionCorrelationScreenState
       final analytics = await BodyNutritionAnalyticsUtils.build(
         selectedBlockType: _activeBlock,
         anchorDate: _anchorDate,
+        isRolling: _isRolling,
       );
       if (!mounted || loadEpoch != _loadEpoch) return;
       setState(() {
@@ -449,11 +450,15 @@ class _BodyNutritionCorrelationScreenState
     final days = resolved.effectiveDays;
     final l10n = AppLocalizations.of(context)!;
     if (days == null || days <= 0) {
-      return TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
+      return _isRolling
+          ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
+          : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
     }
     if (_activeBlock == TimeframeBlock.maxBlock) {
       return '$days ${l10n.analyticsDayUnitLabel}';
     }
-    return TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
+    return _isRolling
+        ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
+        : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
   }
 }

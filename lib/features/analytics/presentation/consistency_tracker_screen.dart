@@ -68,7 +68,9 @@ TimeframeBlock _activeBlock = TimeframeBlock.month;
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final bounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+    final bounds = _isRolling
+        ? _activeBlock.getRollingBounds()
+        : _activeBlock.getBounds(_anchorDate, DateTime(2020));
     final daysBack = DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
     final weeksBack = (daysBack / 7).ceil().clamp(1, 1000);
 
@@ -358,7 +360,9 @@ TimeframeBlock _activeBlock = TimeframeBlock.month;
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
+                        _isRolling
+                            ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
+                            : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -511,7 +515,7 @@ TimeframeBlock _activeBlock = TimeframeBlock.month;
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'X: ${l10n.analyticsViewWeek.toLowerCase()} · ${TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n)}',
+                    'X: ${l10n.analyticsViewWeek.toLowerCase()} · ${_isRolling ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n) : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n)}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: DesignConstants.spacingM),

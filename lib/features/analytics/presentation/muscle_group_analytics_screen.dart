@@ -65,7 +65,9 @@ class _MuscleGroupAnalyticsScreenState
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     
-    final bounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+    final bounds = _isRolling
+        ? _activeBlock.getRollingBounds()
+        : _activeBlock.getBounds(_anchorDate, DateTime(2020));
     final daysBack = DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
 
     final weeksBack = _rangePolicy.resolveWeeksBack(

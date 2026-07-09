@@ -60,6 +60,7 @@ class BodyNutritionAnalyticsDataAdapter {
   Future<BodyNutritionAnalyticsRawData> fetch({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
+    bool isRolling = false,
   }) async {
     return PerfDebugTimer.time(
       area: 'statistics',
@@ -75,6 +76,7 @@ class BodyNutritionAnalyticsDataAdapter {
           selectedBlockType: selectedBlockType,
           now: normalizedNow,
           earliestRelevantDate: earliest,
+          isRolling: isRolling,
         );
 
         final results = await Future.wait([
@@ -112,12 +114,14 @@ class BodyNutritionAnalyticsDataAdapter {
     required TimeframeBlock selectedBlockType,
     required DateTime now,
     required DateTime? earliestRelevantDate,
+    required bool isRolling,
   }) async {
     final resolved = _rangePolicy.resolve(
       metricId: StatisticsMetricId.bodyNutritionTrend,
       selectedBlockType: selectedBlockType,
       now: now,
       earliestAvailableDay: earliestRelevantDate,
+      isRolling: isRolling,
     );
     return resolved.dateRange ?? DateTimeRange(start: now, end: endOfDay(now));
   }

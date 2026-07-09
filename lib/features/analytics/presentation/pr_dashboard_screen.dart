@@ -63,7 +63,9 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     );
     final repRange =
         WorkoutLocalDataSource.instance.getAllTimePRsByRepBracket();
-    final bounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+    final bounds = _isRolling
+        ? _activeBlock.getRollingBounds()
+        : _activeBlock.getBounds(_anchorDate, DateTime(2020));
     final daysBack = DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
 
     final improvements =

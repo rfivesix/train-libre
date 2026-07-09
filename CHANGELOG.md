@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Default Timeframes for Health Trackers & Hub:** Updated the default timeframes for the health trackers (Steps, Sleep, Pulse) to start on "Today" (Daily scope) instead of the previous default. Adjusted the Statistics Hub default timeframe to "Last 7 days" (Rolling Week) for a more immediate overview of recent data.
 - **Fixed Timeframe Picker Scroll Jump:** Removed an internal scroll lock (`PageStorage`) in the `TimeRangeFilter` that previously prevented the active timeframe pill from properly re-aligning when scrolling up and down through the Statistics Hub, ensuring perfect edge alignment upon view reconstruction.
 - **Cleaned up "MAX" Timeframe Pill Design:** Removed the redundant `< MAX >` date navigation sub-elements from the `TimeRangeFilter` when the "MAX" block is selected, resulting in a cleaner, solid primary-colored pill across all analytics screens.
+- **Fixed Rolling Data Ranges:** Fixed an issue where "Last 30 Days" and "Last 7 Days" timeframes queried the database for the *entire* calendar month or week (e.g., July 1-31) instead of computing a true 30-day or 7-day rolling window from today. The `isRolling` context is now properly passed from the view models down to `StatisticsRangePolicyService.resolve()`.
 
 ## [1.0.0-alpha.6] - 2026-07-08
 

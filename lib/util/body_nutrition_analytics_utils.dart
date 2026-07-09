@@ -21,6 +21,7 @@ class BodyNutritionAnalyticsUtils {
   static Future<BodyNutritionAnalyticsResult> build({
     required TimeframeBlock selectedBlockType,
     required DateTime anchorDate,
+    bool isRolling = false,
   }) async {
     return PerfDebugTimer.time(
       area: 'statistics',
@@ -30,7 +31,7 @@ class BodyNutritionAnalyticsUtils {
           databaseHelper: DatabaseHelper.instance,
           productDatabaseHelper: ProductLocalDataSource.instance,
         );
-        final raw = await adapter.fetch(selectedBlockType: selectedBlockType, anchorDate: anchorDate);
+        final raw = await adapter.fetch(selectedBlockType: selectedBlockType, anchorDate: anchorDate, isRolling: isRolling);
         return BodyNutritionAnalyticsEngine.build(
           range: raw.range,
           weightPoints: raw.weightPoints,

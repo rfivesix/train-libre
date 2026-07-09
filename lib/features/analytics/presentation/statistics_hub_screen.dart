@@ -66,7 +66,7 @@ class StatisticsHubScreen extends StatelessWidget {
   final SleepHubSummaryRepository? _sleepSummaryRepository;
   final PulseAnalysisRepository? _pulseRepository;
   final Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> Function(
-    TimeframeBlock selectedBlockType, DateTime anchorDate,
+    TimeframeBlock selectedBlockType, DateTime anchorDate, bool isRolling,
   )? fetchHubAnalytics;
   final Future<SleepSyncResult?> Function({
     int lookbackDays,

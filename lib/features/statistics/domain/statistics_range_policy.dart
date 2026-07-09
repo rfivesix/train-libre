@@ -140,6 +140,7 @@ class StatisticsRangePolicyService {
     DateTime? now,
     DateTime? earliestAvailableDay,
     int? effectiveWeeks,
+    bool isRolling = false,
   }) {
     final policy = metadata[metricId]!;
     final anchor = _normalizeDay(now ?? DateTime.now());
@@ -152,10 +153,14 @@ class StatisticsRangePolicyService {
       case StatisticsRangeSemantics.capped:
       case StatisticsRangeSemantics.dynamicAll:
         if (selectedBlockType != null) {
-          dateRange = selectedBlockType.getBounds(
-            anchor,
-            earliestAvailableDay ?? DateTime(2020),
-          );
+          if (isRolling) {
+            dateRange = selectedBlockType.getRollingBounds();
+          } else {
+            dateRange = selectedBlockType.getBounds(
+              anchor,
+              earliestAvailableDay ?? DateTime(2020),
+            );
+          }
           days = dateRange.end.difference(dateRange.start).inDays + 1;
         } else {
           days = 30;

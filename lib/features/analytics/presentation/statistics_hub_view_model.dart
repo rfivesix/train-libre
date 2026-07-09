@@ -184,7 +184,9 @@ class StatisticsHubViewModel extends ChangeNotifier {
   StatisticsRangePolicyService get rangePolicy => _rangePolicy;
 
   final Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> Function(
-    TimeframeBlock selectedBlockType, DateTime anchorDate,
+    TimeframeBlock selectedBlockType,
+    DateTime anchorDate,
+    bool isRolling,
   )? _fetchHubAnalyticsOverride;
   final Future<SleepSyncResult?> Function({
     int lookbackDays,
@@ -353,7 +355,9 @@ class StatisticsHubViewModel extends ChangeNotifier {
     StepsSyncService? stepsSyncService,
     SleepSyncService? sleepSyncService,
     Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> Function(
-      TimeframeBlock selectedBlockType, DateTime anchorDate,
+      TimeframeBlock selectedBlockType,
+      DateTime anchorDate,
+      bool isRolling,
     )? fetchHubAnalytics,
     Future<SleepSyncResult?> Function({
       int lookbackDays,
@@ -707,6 +711,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       final tuple = await _fetchHubAnalytics(
         selectedBlockType: _activeBlockType,
         anchorDate: _anchorDate,
+        isRolling: _isRolling,
       );
       if (!_isCurrentRecoveryLoad(generation)) return;
       final hub = tuple.$1;
@@ -774,6 +779,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       final data = await _hubDataAdapter.fetchRecovery(
         selectedBlockType: _activeBlockType,
         anchorDate: _anchorDate,
+        isRolling: _isRolling,
       );
       if (!_isCurrentRecoveryLoad(generation)) return;
       _recoveryState = _recoveryState.success(
@@ -805,6 +811,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       final data = await _hubDataAdapter.fetchConsistency(
         selectedBlockType: _activeBlockType,
         anchorDate: _anchorDate,
+        isRolling: _isRolling,
       );
       if (!_isCurrentConsistencyLoad(generation)) return;
       _consistencyState = _consistencyState.success(
@@ -841,6 +848,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       final data = await _hubDataAdapter.fetchPerformanceRecords(
         selectedBlockType: _activeBlockType,
         anchorDate: _anchorDate,
+        isRolling: _isRolling,
       );
       if (!_isCurrentPerformanceLoad(generation)) return;
       _performanceState = _performanceState.success(
@@ -880,6 +888,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       final data = await _hubDataAdapter.fetchVolumeMuscles(
         selectedBlockType: _activeBlockType,
         anchorDate: _anchorDate,
+        isRolling: _isRolling,
       );
       if (!_isCurrentVolumeMusclesLoad(generation)) return;
       _volumeMusclesState = _volumeMusclesState.success(
@@ -920,6 +929,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       final data = await _hubDataAdapter.fetchBodyNutrition(
         selectedBlockType: _activeBlockType,
         anchorDate: _anchorDate,
+        isRolling: _isRolling,
       );
       if (!_isCurrentBodyNutritionLoad(generation)) return;
       _bodyNutritionState = _bodyNutritionState.success(data, generation);
@@ -969,13 +979,13 @@ class StatisticsHubViewModel extends ChangeNotifier {
   }
 
   Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)>
-      _fetchHubAnalytics({required TimeframeBlock selectedBlockType, required DateTime anchorDate}) {
+      _fetchHubAnalytics({required TimeframeBlock selectedBlockType, required DateTime anchorDate, bool isRolling = false}) {
     final override = _fetchHubAnalyticsOverride;
     if (override != null) {
-      return override(selectedBlockType, anchorDate);
+      return override(selectedBlockType, anchorDate, isRolling);
     }
     return _hubDataAdapter.fetch(
-      selectedBlockType: selectedBlockType, anchorDate: anchorDate,
+      selectedBlockType: selectedBlockType, anchorDate: anchorDate, isRolling: isRolling,
     );
   }
 
