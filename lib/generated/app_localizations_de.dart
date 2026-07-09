@@ -5003,10 +5003,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get muscleQuads => 'Quadrizeps';
 
   @override
-  String get muscleHamstrings => 'Beinbeuger';
+  String get muscleHamstrings => 'Oberschenkelrückseite';
 
   @override
-  String get muscleGlutes => 'Glutes';
+  String get muscleGlutes => 'Gesäß';
 
   @override
   String get muscleCalves => 'Waden';
@@ -5015,7 +5015,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get muscleLowerBack => 'Unterer Rücken';
 
   @override
-  String get muscleAbs => 'Bauch';
+  String get muscleAbs => 'Bauchmuskeln';
 
   @override
   String get muscleAdductors => 'Adduktoren';
@@ -5555,4 +5555,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String rollingDaysLabel(int days) {
     return 'Letzte $days Tage (rollierend)';
   }
+
+  @override
+  String get muscleTraps => 'Nacken';
+
+  @override
+  String get muscleObliques => 'Seitliche Bauchmuskeln';
 }

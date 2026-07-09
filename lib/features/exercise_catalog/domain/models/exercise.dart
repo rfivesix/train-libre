@@ -45,6 +45,9 @@ class Exercise {
   /// A list of secondary muscles targeted by this exercise.
   final List<String> secondaryMuscles;
 
+  /// Whether this exercise is categorized as Cardio.
+  bool get isCardio => categoryName.trim().toLowerCase() == 'cardio';
+
   /// Creates a new [Exercise] instance.
   const Exercise({
     this.id,

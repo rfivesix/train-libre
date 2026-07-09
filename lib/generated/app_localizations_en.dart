@@ -4956,7 +4956,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get muscleTriceps => 'Triceps';
 
   @override
-  String get muscleQuads => 'Quads';
+  String get muscleQuads => 'Quadriceps';
 
   @override
   String get muscleHamstrings => 'Hamstrings';
@@ -5509,4 +5509,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String rollingDaysLabel(int days) {
     return 'Last $days days (rolling)';
   }
+
+  @override
+  String get muscleTraps => 'Traps';
+
+  @override
+  String get muscleObliques => 'Obliques';
 }

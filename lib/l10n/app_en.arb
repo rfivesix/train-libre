@@ -2228,7 +2228,7 @@
   "muscleShoulders": "Shoulders",
   "muscleBiceps": "Biceps",
   "muscleTriceps": "Triceps",
-  "muscleQuads": "Quads",
+  "muscleQuads": "Quadriceps",
   "muscleHamstrings": "Hamstrings",
   "muscleGlutes": "Glutes",
   "muscleCalves": "Calves",
@@ -2584,5 +2584,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "muscleTraps": "Traps",
+  "muscleObliques": "Obliques"
 }

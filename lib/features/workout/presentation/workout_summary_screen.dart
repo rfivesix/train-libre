@@ -526,6 +526,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     final muscleCounts = <BodyPartSlug, int>{};
 
     for (final ex in _exerciseDetails.values) {
+      if (ex.isCardio) continue;
       final exerciseSlugs = <BodyPartSlug>{};
       for (final name in ex.primaryMuscles) {
         exerciseSlugs.addAll(BodySlugMapper.fromRawName(name));

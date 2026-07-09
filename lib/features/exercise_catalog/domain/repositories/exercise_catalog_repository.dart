@@ -22,12 +22,12 @@ abstract class IExerciseCatalogRepository {
     String exerciseName, {
     String? altName,
     String? exerciseUuid,
-  });
+  bool isCardio = false,});
   Future<List<Map<String, dynamic>>> getExerciseTimeSeriesData(
     String exerciseName, {
     String? altName,
     String? exerciseUuid,
-  });
+  bool isCardio = false,});
   Future<List<String>> getAllCategories();
   Future<List<String>> getAllMuscleGroups();
 }

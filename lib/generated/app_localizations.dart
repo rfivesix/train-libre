@@ -8757,7 +8757,7 @@ abstract class AppLocalizations {
   /// No description provided for @muscleQuads.
   ///
   /// In en, this message translates to:
-  /// **'Quads'**
+  /// **'Quadriceps'**
   String get muscleQuads;
 
   /// No description provided for @muscleHamstrings.
@@ -9672,6 +9672,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last {days} days (rolling)'**
   String rollingDaysLabel(int days);
+
+  /// No description provided for @muscleTraps.
+  ///
+  /// In en, this message translates to:
+  /// **'Traps'**
+  String get muscleTraps;
+
+  /// No description provided for @muscleObliques.
+  ///
+  /// In en, this message translates to:
+  /// **'Obliques'**
+  String get muscleObliques;
 }
 
 class _AppLocalizationsDelegate

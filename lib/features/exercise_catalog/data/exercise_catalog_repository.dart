@@ -70,11 +70,13 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
     String exerciseName, {
     String? altName,
     String? exerciseUuid,
+    bool isCardio = false,
   }) {
     return _localDataSource.getExercisePRs(
       exerciseName,
       altName: altName,
       exerciseUuid: exerciseUuid,
+      isCardio: isCardio,
     );
   }
 
@@ -83,11 +85,13 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
     String exerciseName, {
     String? altName,
     String? exerciseUuid,
+    bool isCardio = false,
   }) {
     return _localDataSource.getExerciseTimeSeriesData(
       exerciseName,
       altName: altName,
       exerciseUuid: exerciseUuid,
+      isCardio: isCardio,
     );
   }
 

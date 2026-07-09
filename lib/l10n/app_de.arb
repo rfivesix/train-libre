@@ -2231,11 +2231,11 @@
   "muscleBiceps": "Bizeps",
   "muscleTriceps": "Trizeps",
   "muscleQuads": "Quadrizeps",
-  "muscleHamstrings": "Beinbeuger",
-  "muscleGlutes": "Glutes",
+  "muscleHamstrings": "Oberschenkelrückseite",
+  "muscleGlutes": "Gesäß",
   "muscleCalves": "Waden",
   "muscleLowerBack": "Unterer Rücken",
-  "muscleAbs": "Bauch",
+  "muscleAbs": "Bauchmuskeln",
   "muscleAdductors": "Adduktoren",
   "muscleForearms": "Unterarme",
   "sleepDetailAnalysisHeader": "Detail-Analyse",
@@ -2457,5 +2457,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "muscleTraps": "Nacken",
+  "muscleObliques": "Seitliche Bauchmuskeln"
 }

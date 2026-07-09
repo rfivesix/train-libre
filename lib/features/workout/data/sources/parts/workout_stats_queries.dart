@@ -101,6 +101,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     String exerciseName, {
     String? altName,
     String? exerciseUuid,
+    bool isCardio = false,
   }) async {
     final dbInstance = await database;
 
@@ -112,7 +113,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     );
 
     // Qualifying sets for PRs:
-    // isCompleted == true, setType != 'warmup', weight > 0, reps > 0
+    // isCompleted == true, setType != 'warmup', (weight > 0 & reps > 0 OR distance > 0 OR duration > 0)
     final query = dbInstance.select(dbInstance.setLogs).join([
       drift.innerJoin(
         dbInstance.workoutLogs,
@@ -125,76 +126,123 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         exerciseMatch &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
-            dbInstance.setLogs.reps.isBiggerThanValue(0),
+            (isCardio 
+              ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) | dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
+              : (dbInstance.setLogs.weight.isBiggerThanValue(0.0) & dbInstance.setLogs.reps.isBiggerThanValue(0))),
       );
 
     final rows = await query.get();
 
-    final prMap = <String, SetLog?>{
-      'Est. 1RM': null,
-      '1 RM': null,
-      '2-3 RM': null,
-      '4-6 RM': null,
-      '7-10 RM': null,
-      '11-15 RM': null,
-    };
+    final prMap = <String, SetLog?>{};
 
-    double bestEst1rmValue = 0.0;
-    SetLog? bestEst1rmSet;
+    if (isCardio) {
+      prMap['Best Distance'] = null;
+      prMap['Longest Duration'] = null;
+      prMap['Fastest Pace'] = null;
 
-    // Helper function to determine the bracket name
-    String? getBracket(int reps) {
-      if (reps == 1) return '1 RM';
-      if (reps >= 2 && reps <= 3) return '2-3 RM';
-      if (reps >= 4 && reps <= 6) return '4-6 RM';
-      if (reps >= 7 && reps <= 10) return '7-10 RM';
-      if (reps >= 11 && reps <= 15) return '11-15 RM';
-      return null;
-    }
+      double bestDistance = 0.0;
+      int longestDuration = 0;
+      double fastestPace = double.infinity;
 
-    for (final r in rows) {
-      final setRow = r.readTable(dbInstance.setLogs);
-      final logRow = r.readTable(dbInstance.workoutLogs);
+      for (final r in rows) {
+        final setRow = r.readTable(dbInstance.setLogs);
+        final logRow = r.readTable(dbInstance.workoutLogs);
 
-      final setLog = SetLog(
-        id: setRow.localId,
-        workoutLogId: logRow.localId,
-        exerciseName: setRow.exerciseNameSnapshot ?? exerciseName,
-        setType: setRow.setType,
-        weightKg: setRow.weight,
-        reps: setRow.reps,
-        isCompleted: setRow.isCompleted,
-      );
+        final setLog = SetLog(
+          id: setRow.localId,
+          workoutLogId: logRow.localId,
+          exerciseName: setRow.exerciseNameSnapshot ?? exerciseName,
+          setType: setRow.setType,
+          distanceKm: setRow.distance,
+          durationSeconds: setRow.durationSeconds,
+          isCompleted: setRow.isCompleted,
+        );
 
-      final reps = setLog.reps ?? 0;
-      final weight = setLog.weightKg ?? 0.0;
+        final dist = setLog.distanceKm ?? 0.0;
+        final dur = setLog.durationSeconds ?? 0;
+        
+        if (dist <= 0 && dur <= 0) continue;
 
-      if (reps <= 0 || weight <= 0) continue;
+        if (dist > bestDistance) {
+          bestDistance = dist;
+          prMap['Best Distance'] = setLog;
+        }
+        if (dur > longestDuration) {
+          longestDuration = dur;
+          prMap['Longest Duration'] = setLog;
+        }
+        if (dist > 0 && dur > 0) {
+          final pace = dur / dist; // seconds per km
+          if (pace < fastestPace) {
+            fastestPace = pace;
+            prMap['Fastest Pace'] = setLog;
+          }
+        }
+      }
+    } else {
+      prMap.addAll({
+        'Est. 1RM': null,
+        '1 RM': null,
+        '2-3 RM': null,
+        '4-6 RM': null,
+        '7-10 RM': null,
+        '11-15 RM': null,
+      });
 
-      // Track absolute best Est. 1RM
-      if (reps <= 10) {
-        final est1rm = weight * (36 / (37 - reps));
-        if (est1rm > bestEst1rmValue) {
-          bestEst1rmValue = est1rm;
-          bestEst1rmSet = setLog;
+      double bestEst1rmValue = 0.0;
+      SetLog? bestEst1rmSet;
+
+      String? getBracket(int reps) {
+        if (reps == 1) return '1 RM';
+        if (reps >= 2 && reps <= 3) return '2-3 RM';
+        if (reps >= 4 && reps <= 6) return '4-6 RM';
+        if (reps >= 7 && reps <= 10) return '7-10 RM';
+        if (reps >= 11 && reps <= 15) return '11-15 RM';
+        return null;
+      }
+
+      for (final r in rows) {
+        final setRow = r.readTable(dbInstance.setLogs);
+        final logRow = r.readTable(dbInstance.workoutLogs);
+
+        final setLog = SetLog(
+          id: setRow.localId,
+          workoutLogId: logRow.localId,
+          exerciseName: setRow.exerciseNameSnapshot ?? exerciseName,
+          setType: setRow.setType,
+          weightKg: setRow.weight,
+          reps: setRow.reps,
+          isCompleted: setRow.isCompleted,
+        );
+
+        final reps = setLog.reps ?? 0;
+        final weight = setLog.weightKg ?? 0.0;
+
+        if (reps <= 0 || weight <= 0) continue;
+
+        if (reps <= 10) {
+          final est1rm = weight * (36 / (37 - reps));
+          if (est1rm > bestEst1rmValue) {
+            bestEst1rmValue = est1rm;
+            bestEst1rmSet = setLog;
+          }
+        }
+
+        final bracket = getBracket(reps);
+        if (bracket != null) {
+          final currentPr = prMap[bracket];
+          if (currentPr == null || weight > (currentPr.weightKg ?? 0.0)) {
+            prMap[bracket] = setLog;
+          } else if (weight == currentPr.weightKg &&
+              reps > (currentPr.reps ?? 0)) {
+            prMap[bracket] = setLog;
+          }
         }
       }
 
-      final bracket = getBracket(reps);
-      if (bracket != null) {
-        final currentPr = prMap[bracket];
-        if (currentPr == null || weight > (currentPr.weightKg ?? 0.0)) {
-          prMap[bracket] = setLog;
-        } else if (weight == currentPr.weightKg &&
-            reps > (currentPr.reps ?? 0)) {
-          prMap[bracket] = setLog;
-        }
+      if (bestEst1rmSet != null) {
+        prMap['Est. 1RM'] = bestEst1rmSet;
       }
-    }
-
-    if (bestEst1rmSet != null) {
-      prMap['Est. 1RM'] = bestEst1rmSet;
     }
 
     return prMap;
@@ -292,6 +340,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     String exerciseName, {
     String? altName,
     String? exerciseUuid,
+    bool isCardio = false,
   }) async {
     final dbInstance = await database;
 
@@ -339,6 +388,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
           'maxWeight': 0.0,
           'totalVolume': 0.0,
           'maxEst1rm': 0.0,
+          'maxDistance': 0.0,
+          'totalDuration': 0.0,
+          'maxPace': double.infinity,
           'setCount': 0,
         };
       }
@@ -346,6 +398,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final agg = sessionAggregates[wLogId]!;
       final weight = setRow.weight ?? 0.0;
       final reps = setRow.reps ?? 0;
+      final dist = setRow.distance ?? 0.0;
+      final dur = setRow.durationSeconds ?? 0;
 
       // Update Max Weight
       if (weight > agg['maxWeight']) {
@@ -363,12 +417,29 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         }
       }
 
+      // Cardio
+      if (dist > (agg['maxDistance'] as double)) {
+        agg['maxDistance'] = dist;
+      }
+      agg['totalDuration'] = (agg['totalDuration'] as double) + dur;
+      if (dist > 0 && dur > 0) {
+        final pace = dur / dist;
+        if (pace < (agg['maxPace'] as double)) {
+          agg['maxPace'] = pace;
+        }
+      }
+
       // Update Set Count
       agg['setCount'] += 1;
     }
 
     // Return as chronologically sorted list
     final resultList = sessionAggregates.values.toList();
+    for (var r in resultList) {
+      if (r['maxPace'] == double.infinity) {
+        r['maxPace'] = 0.0;
+      }
+    }
     resultList.sort(
       (a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime),
     );
@@ -394,11 +465,13 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         s1.reps                   AS reps
       FROM set_logs s1
       JOIN workout_logs wl ON wl.id = s1.workout_log_id
+      LEFT JOIN exercises e ON e.id = s1.exercise_id
       WHERE s1.is_completed = 1
         AND s1.set_type != 'warmup'
         AND s1.weight > 0
         AND s1.reps  > 0
         AND wl.status = 'completed'
+        AND (e.category_name IS NULL OR e.category_name COLLATE NOCASE != 'cardio')
         AND s1.weight = (
           SELECT MAX(s2.weight)
           FROM set_logs s2
@@ -443,14 +516,21 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
 
     final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
+            drift.innerJoin(
         dbInstance.workoutLogs,
         dbInstance.workoutLogs.id.equalsExp(
           dbInstance.setLogs.workoutLogId,
         ),
       ),
+      drift.leftOuterJoin(
+        dbInstance.exercises,
+        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+      ),
     ])
       ..where(
+        (dbInstance.exercises.categoryName.isNull() | 
+         dbInstance.exercises.categoryName.lower().isNotValue('cardio')) &
+
         dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
             dbInstance.setLogs.weight.isBiggerThanValue(0) &
@@ -1463,11 +1543,13 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         s1.reps                   AS reps
       FROM set_logs s1
       JOIN workout_logs wl ON wl.id = s1.workout_log_id
+      LEFT JOIN exercises e ON e.id = s1.exercise_id
       WHERE s1.is_completed = 1
         AND s1.set_type != 'warmup'
         AND s1.weight > 0
         AND s1.reps  > 0
         AND wl.status = 'completed'
+        AND (e.category_name IS NULL OR e.category_name COLLATE NOCASE != 'cardio')
         AND s1.weight = (
           SELECT MAX(s2.weight)
           FROM set_logs s2
@@ -1508,14 +1590,21 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
 
     final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
+            drift.innerJoin(
         dbInstance.workoutLogs,
         dbInstance.workoutLogs.id.equalsExp(
           dbInstance.setLogs.workoutLogId,
         ),
       ),
+      drift.leftOuterJoin(
+        dbInstance.exercises,
+        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+      ),
     ])
       ..where(
+        (dbInstance.exercises.categoryName.isNull() | 
+         dbInstance.exercises.categoryName.lower().isNotValue('cardio')) &
+
         dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
             dbInstance.setLogs.weight.isBiggerThanValue(0) &
@@ -1615,14 +1704,21 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     }
 
     final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
+            drift.innerJoin(
         dbInstance.workoutLogs,
         dbInstance.workoutLogs.id.equalsExp(
           dbInstance.setLogs.workoutLogId,
         ),
       ),
+      drift.leftOuterJoin(
+        dbInstance.exercises,
+        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+      ),
     ])
       ..where(
+        (dbInstance.exercises.categoryName.isNull() | 
+         dbInstance.exercises.categoryName.lower().isNotValue('cardio')) &
+
         dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
             dbInstance.setLogs.weight.isBiggerThanValue(0) &

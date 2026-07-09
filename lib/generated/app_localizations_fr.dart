@@ -5034,7 +5034,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get legal_document_last_updated_value => '20 mai 2026';
 
   @override
-  String get muscleChest => 'Poitrine';
+  String get muscleChest => 'Pectoraux';
 
   @override
   String get muscleBack => 'Dos';
@@ -5058,10 +5058,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get muscleGlutes => 'Fessiers';
 
   @override
-  String get muscleCalves => 'Veaux';
+  String get muscleCalves => 'Mollets';
 
   @override
-  String get muscleLowerBack => 'Lombes';
+  String get muscleLowerBack => 'Bas du dos';
 
   @override
   String get muscleAbs => 'Abdos';
@@ -5608,4 +5608,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String rollingDaysLabel(int days) {
     return 'Les $days derniers jours (glissant)';
   }
+
+  @override
+  String get muscleTraps => 'Trapèzes';
+
+  @override
+  String get muscleObliques => 'Obliques';
 }

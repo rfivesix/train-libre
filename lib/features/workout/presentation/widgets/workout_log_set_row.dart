@@ -6,6 +6,7 @@ import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
+import '../../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
 
 /// A single row representing a set within an exercise log.
 /// Supports both view mode and edit mode (via nullable text controllers).
@@ -137,6 +138,7 @@ class WorkoutLogSetRow extends StatelessWidget {
           child: isEditMode
               ? TextFormField(
                   controller: repsController,
+                  readOnly: isCardio,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   inputFormatters: isCardio ? [TimerInputFormatter()] : null,
@@ -151,6 +153,17 @@ class WorkoutLogSetRow extends StatelessWidget {
                     fillColor: Colors.transparent,
                     hintText: isCardio ? "00:00" : "-",
                   ),
+                  onTap: isCardio ? () async {
+                    final currentSeconds = parsePauseDuration(repsController?.text ?? "") ?? 0;
+                    final newDuration = await adaptive_pickers.showAdaptiveDurationPicker(
+                      context: context,
+                      initialDuration: Duration(seconds: currentSeconds),
+                    );
+                    if (newDuration != null) {
+                      final seconds = newDuration.inSeconds;
+                      repsController?.text = seconds > 0 ? formatPauseDuration(seconds) : "";
+                    }
+                  } : null,
                 )
               : Text(
                   val2Display,

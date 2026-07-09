@@ -22,7 +22,7 @@ import 'create_exercise_screen.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
-enum ExerciseMetric { maxWeight, volume, est1rm }
+enum ExerciseMetric { maxWeight, volume, est1rm, distance, duration, pace }
 
 /// A screen displaying detailed information about a specific [Exercise].
 class ExerciseDetailScreen extends StatefulWidget {
@@ -40,7 +40,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   late final IExerciseCatalogRepository _repository =
       widget.repository ?? context.read<IExerciseCatalogRepository>();
   bool _isLoading = true;
-  ExerciseMetric _selectedMetric = ExerciseMetric.maxWeight;
+  late ExerciseMetric _selectedMetric = widget.exercise.isCardio ? ExerciseMetric.distance : ExerciseMetric.maxWeight;
   String _selectedRange = '30D';
 
   late Exercise _currentExercise = widget.exercise;
@@ -95,12 +95,14 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       exercise.nameDe,
       altName: altName,
       exerciseUuid: exerciseUuid,
+      isCardio: exercise.isCardio,
     );
 
     final timeSeries = await _repository.getExerciseTimeSeriesData(
       exercise.nameDe,
       altName: altName,
       exerciseUuid: exerciseUuid,
+      isCardio: exercise.isCardio,
     );
 
     if (mounted) {
@@ -290,11 +292,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               padding: EdgeInsets.zero,
             ),
             const SizedBox(height: DesignConstants.spacingXL),
-            AppSectionHeader(title: l10n.involvedMuscles),
-            RepaintBoundary(
-              child: _ExerciseMuscleBodyView(exercise: _currentExercise),
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
+            if (!_currentExercise.isCardio) ...[
+              AppSectionHeader(title: l10n.involvedMuscles),
+              RepaintBoundary(
+                child: _ExerciseMuscleBodyView(exercise: _currentExercise),
+              ),
+              const SizedBox(height: DesignConstants.spacingXL),
+            ],
             if (_isLoading && _timeSeriesData.isEmpty && _prMap.values.every((v) => v == null))
               const Center(
                 child: Padding(
@@ -363,6 +367,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
+
+  String _formatDuration(int seconds) {
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
   Widget _buildPRSummarySection(AppLocalizations l10n) {
     final theme = Theme.of(context);
     final items = _prMap.entries.map((entry) {
@@ -374,12 +385,35 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       Color? valueColor;
 
       if (prSet != null) {
-        if (bracket == 'Est. 1RM') {
-          value = '${context.read<UnitService>().convertDisplayValue(prSet.weightKg! * (36 / (37 - prSet.reps!)), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+        if (_currentExercise.isCardio) {
+          if (bracket == 'Best Distance') {
+            value = '${prSet.distanceKm?.toStringAsFixed(2) ?? '0.0'} km';
+            subtitle = _formatDuration(prSet.durationSeconds ?? 0);
+          } else if (bracket == 'Longest Duration') {
+            value = _formatDuration(prSet.durationSeconds ?? 0);
+            subtitle = '${prSet.distanceKm?.toStringAsFixed(2) ?? '0.0'} km';
+          } else if (bracket == 'Fastest Pace') {
+            final dur = prSet.durationSeconds ?? 0;
+            final dist = prSet.distanceKm ?? 0.0;
+            if (dist > 0) {
+              final paceSec = dur / dist;
+              value = '${_formatDuration(paceSec.round())} / km';
+            } else {
+              value = '-';
+            }
+            subtitle = '';
+          } else {
+            value = '-';
+            subtitle = '-';
+          }
         } else {
-          value = '${context.read<UnitService>().convertDisplayValue(prSet.weightKg ?? 0.0, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+          if (bracket == 'Est. 1RM') {
+            value = '${context.read<UnitService>().convertDisplayValue(prSet.weightKg! * (36 / (37 - prSet.reps!)), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+          } else {
+            value = '${context.read<UnitService>().convertDisplayValue(prSet.weightKg ?? 0.0, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+          }
+          subtitle = l10n.repsCount(prSet.reps!);
         }
-        subtitle = l10n.repsCount(prSet.reps!);
         valueColor = theme.colorScheme.primary;
       } else {
         value = '-';
@@ -462,13 +496,22 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       double y;
       switch (_selectedMetric) {
         case ExerciseMetric.maxWeight:
-          y = (e['maxWeight'] as num).toDouble();
+          y = (e['maxWeight'] as num?)?.toDouble() ?? 0.0;
           break;
         case ExerciseMetric.volume:
-          y = (e['totalVolume'] as num).toDouble();
+          y = (e['totalVolume'] as num?)?.toDouble() ?? 0.0;
           break;
         case ExerciseMetric.est1rm:
-          y = (e['maxEst1rm'] as num).toDouble();
+          y = (e['maxEst1rm'] as num?)?.toDouble() ?? 0.0;
+          break;
+        case ExerciseMetric.distance:
+          y = (e['maxDistance'] as num?)?.toDouble() ?? 0.0;
+          break;
+        case ExerciseMetric.duration:
+          y = ((e['totalDuration'] as num?)?.toDouble() ?? 0.0) / 60.0;
+          break;
+        case ExerciseMetric.pace:
+          y = ((e['maxPace'] as num?)?.toDouble() ?? 0.0) / 60.0;
           break;
       }
       return ChartDataPoint(date: e['date'] as DateTime, value: y);
@@ -486,7 +529,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         const SizedBox(height: DesignConstants.spacingS),
         MeasurementChartWidget.fromData(
           dataPoints: dataPoints,
-          unit: unitService.suffixFor(UnitDimension.weight),
+          unit: _selectedMetric == ExerciseMetric.distance ? 'km' : (_selectedMetric == ExerciseMetric.duration ? 'min' : (_selectedMetric == ExerciseMetric.pace ? 'min/km' : unitService.suffixFor(UnitDimension.weight))),
           axisMode: MeasurementChartAxisMode.day,
           edgeToEdge: true,
         ),
@@ -508,7 +551,20 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 });
               }
             },
-            items: [
+            items: _currentExercise.isCardio ? [
+              DropdownMenuItem(
+                value: ExerciseMetric.distance,
+                child: Text('Distance'),
+              ),
+              DropdownMenuItem(
+                value: ExerciseMetric.duration,
+                child: Text('Duration'),
+              ),
+              DropdownMenuItem(
+                value: ExerciseMetric.pace,
+                child: Text('Pace'),
+              ),
+            ] : [
               DropdownMenuItem(
                 value: ExerciseMetric.maxWeight,
                 child: Text(l10n.exerciseMetricMaxWeight),
@@ -622,6 +678,10 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (exercise.isCardio) {
+      return const SizedBox.shrink();
+    }
+    
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final hasMuscles = exercise.primaryMuscles.isNotEmpty ||
@@ -713,7 +773,7 @@ class _MuscleChipRow extends StatelessWidget {
               runSpacing: 4,
               children: muscles.map((m) {
                 return Text(
-                  m,
+                  BodySlugMapper.localize(context, m),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,

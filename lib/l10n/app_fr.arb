@@ -2225,7 +2225,7 @@
   "aiSettingsGetApiKeyButton": "Afficher le guide de configuration",
   "legal_document_version_value": "1.2",
   "legal_document_last_updated_value": "20 mai 2026",
-  "muscleChest": "Poitrine",
+  "muscleChest": "Pectoraux",
   "muscleBack": "Dos",
   "muscleShoulders": "Épaules",
   "muscleBiceps": "Biceps",
@@ -2233,8 +2233,8 @@
   "muscleQuads": "Quadriceps",
   "muscleHamstrings": "Ischio-jambiers",
   "muscleGlutes": "Fessiers",
-  "muscleCalves": "Veaux",
-  "muscleLowerBack": "Lombes",
+  "muscleCalves": "Mollets",
+  "muscleLowerBack": "Bas du dos",
   "muscleAbs": "Abdos",
   "muscleAdductors": "Adducteurs",
   "muscleForearms": "Avant-bras",
@@ -2457,5 +2457,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "muscleTraps": "Trapèzes",
+  "muscleObliques": "Obliques"
 }

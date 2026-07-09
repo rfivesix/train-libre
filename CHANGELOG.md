@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.7] - 2026-07-09
 
+### Fixed
+- **Cardio Analytics Isolation:** Strictly isolated Cardio exercises from bodybuilding and hypertrophy metrics. Cardio data points are now filtered out of weekly set volumes, tonnage charts, consistency trackers, and muscle readiness states to prevent analytics pollution.
+- **Cardio UI Data Artifacts:** Fixed a bug on the `ExerciseDetailScreen` where cardio PRs and time-series history displayed as "0" due to queries incorrectly falling back to strength constraints. Passed `isCardio` explicitly down the repository stack to retrieve duration, distance, and pace properly.
+- **Cardio Heatmap Exclusion:** Completely removed the `DualBodyHighlighter` distribution map and primary/secondary muscle chip sections from the `ExerciseDetailScreen` when viewing a Cardio exercise.
+- **Unified Cardio Duration Input:** Standardized cardio input fields across the Live Workout, Edit Routine, and Log History screens. The `Duration` field now uniformly opens the `showAdaptiveDurationPicker` with immediate UI feedback, while the `Distance` and `Intensity` fields retain standard native keyboard text inputs.
+
+
 ### Changed
 - **Default Timeframes for Health Trackers & Hub:** Updated the default timeframes for the health trackers (Steps, Sleep, Pulse) to start on "Today" (Daily scope) instead of the previous default. Adjusted the Statistics Hub default timeframe to "Last 7 days" (Rolling Week) for a more immediate overview of recent data.
 - **Fixed Timeframe Picker Scroll Jump:** Removed an internal scroll lock (`PageStorage`) in the `TimeRangeFilter` that previously prevented the active timeframe pill from properly re-aligning when scrolling up and down through the Statistics Hub, ensuring perfect edge alignment upon view reconstruction.

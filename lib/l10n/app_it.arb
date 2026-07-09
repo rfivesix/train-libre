@@ -2225,17 +2225,17 @@
   "aiSettingsGetApiKeyButton": "Visualizza la guida all'installazione",
   "legal_document_version_value": "1.2",
   "legal_document_last_updated_value": "20 maggio 2026",
-  "muscleChest": "Petto",
-  "muscleBack": "Indietro",
+  "muscleChest": "Pettorali",
+  "muscleBack": "Schiena",
   "muscleShoulders": "Spalle",
-  "muscleBiceps": "Bicipite",
+  "muscleBiceps": "Bicipiti",
   "muscleTriceps": "Tricipiti",
-  "muscleQuads": "Quad",
-  "muscleHamstrings": "Tendini del ginocchio",
+  "muscleQuads": "Quadricipiti",
+  "muscleHamstrings": "Femorali",
   "muscleGlutes": "Glutei",
-  "muscleCalves": "Vitelli",
-  "muscleLowerBack": "Parte bassa della schiena",
-  "muscleAbs": "Ass",
+  "muscleCalves": "Polpacci",
+  "muscleLowerBack": "Bassa schiena",
+  "muscleAbs": "Addominali",
   "muscleAdductors": "Adduttori",
   "muscleForearms": "Avambracci",
   "sleepDetailAnalysisHeader": "Analisi dettagliata",
@@ -2457,5 +2457,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "muscleTraps": "Trapezi",
+  "muscleObliques": "Obliqui"
 }

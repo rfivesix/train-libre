@@ -2226,15 +2226,15 @@
   "legal_document_version_value": "1.2",
   "legal_document_last_updated_value": "2026 年 5 月 20 日",
   "muscleChest": "胸",
-  "muscleBack": "戻る",
+  "muscleBack": "背中",
   "muscleShoulders": "肩",
   "muscleBiceps": "上腕二頭筋",
   "muscleTriceps": "上腕三頭筋",
   "muscleQuads": "大腿四頭筋",
   "muscleHamstrings": "ハムストリングス",
-  "muscleGlutes": "大臀筋",
-  "muscleCalves": "子牛",
-  "muscleLowerBack": "腰部",
+  "muscleGlutes": "臀部",
+  "muscleCalves": "ふくらはぎ",
+  "muscleLowerBack": "腰",
   "muscleAbs": "腹筋",
   "muscleAdductors": "内転筋",
   "muscleForearms": "前腕",
@@ -2457,5 +2457,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "muscleTraps": "僧帽筋",
+  "muscleObliques": "腹斜筋"
 }

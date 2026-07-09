@@ -4788,7 +4788,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get muscleChest => '胸';
 
   @override
-  String get muscleBack => '戻る';
+  String get muscleBack => '背中';
 
   @override
   String get muscleShoulders => '肩';
@@ -4806,13 +4806,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get muscleHamstrings => 'ハムストリングス';
 
   @override
-  String get muscleGlutes => '大臀筋';
+  String get muscleGlutes => '臀部';
 
   @override
-  String get muscleCalves => '子牛';
+  String get muscleCalves => 'ふくらはぎ';
 
   @override
-  String get muscleLowerBack => '腰部';
+  String get muscleLowerBack => '腰';
 
   @override
   String get muscleAbs => '腹筋';
@@ -5337,4 +5337,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String rollingDaysLabel(int days) {
     return '過去 $days 日間（ローリング）';
   }
+
+  @override
+  String get muscleTraps => '僧帽筋';
+
+  @override
+  String get muscleObliques => '腹斜筋';
 }

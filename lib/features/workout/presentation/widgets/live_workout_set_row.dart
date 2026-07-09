@@ -1,3 +1,4 @@
+import '../../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -414,6 +415,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
           flex: isCardio ? 4 : 2,
           child: TextFormField(
             controller: manager.repsControllers[templateId],
+            readOnly: isCardio,
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
             inputFormatters: isCardio ? [TimerInputFormatter()] : null,
@@ -434,6 +436,21 @@ class LiveWorkoutSetRow extends StatelessWidget {
               ),
             ),
             enabled: !isCompleted,
+            onTap: (isCardio && !isCompleted) ? () async {
+              final currentSeconds = manager.setLogs[templateId]?.durationSeconds ?? 0;
+              final newDuration = await adaptive_pickers.showAdaptiveDurationPicker(
+                context: context,
+                initialDuration: Duration(seconds: currentSeconds),
+              );
+              if (newDuration != null) {
+                final seconds = newDuration.inSeconds;
+                final clearDuration = seconds == 0;
+                if (seconds != manager.setLogs[templateId]?.durationSeconds || clearDuration) {
+                  manager.repsControllers[templateId]?.text = formatPauseDuration(seconds);
+                  manager.updateSet(templateId, duration: seconds, clearDuration: clearDuration);
+                }
+              }
+            } : null,
             onChanged: (text) {
               if (isCardio) {
                 final seconds = parsePauseDuration(text);

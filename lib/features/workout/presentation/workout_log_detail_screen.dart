@@ -1205,7 +1205,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
     for (final name in _groupedSets.keys) {
       final ex = _exerciseDetails[name];
-      if (ex == null) continue;
+      if (ex == null || ex.isCardio) continue;
 
       final exerciseSlugs = <BodyPartSlug>{};
       for (final muscleName in ex.primaryMuscles) {
