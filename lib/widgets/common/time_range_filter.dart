@@ -63,11 +63,6 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
   }
 
   void _scrollToSelected({bool force = false}) {
-    if (!force) {
-      final scrolled = PageStorage.of(context).readState(context, identifier: 'scrolled_to_selected') as bool? ?? false;
-      if (scrolled) return;
-    }
-
     if (widget.selectedIndex == null || widget.selectedIndex! >= _keys.length) return;
     final key = _keys[widget.selectedIndex!];
     final chipContext = key.currentContext;
@@ -84,7 +79,6 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeInOut,
         );
-        PageStorage.of(context).writeState(context, true, identifier: 'scrolled_to_selected');
       }
     }
   }
