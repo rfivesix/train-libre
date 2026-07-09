@@ -4,10 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-alpha.7] - 2026-07-09
+
+### Changed
+- **Default Timeframes for Health Trackers & Hub:** Updated the default timeframes for the health trackers (Steps, Sleep, Pulse) to start on "Today" (Daily scope) instead of the previous default. Adjusted the Statistics Hub default timeframe to "Last 7 days" (Rolling Week) for a more immediate overview of recent data.
+
 ## [1.0.0-alpha.6] - 2026-07-08
 
 ### Changed
-- **Unified Timeframe Traversal & Default State Order:** Standardized timeframe traversal across `StatisticsHubScreen`, `PRDashboardScreen`, `MuscleGroupAnalyticsScreen`, `BodyNutritionCorrelationScreen`, and `ConsistencyTrackerScreen` to match a strict chronological order: `..., April, May, June, 08 June - 08 July (Rolling), July |`.
+- **Unified Timeframe Traversal & Default State Order:** Standardized timeframe traversal across `StatisticsHubScreen`, `PRDashboardfluttScreen`, `MuscleGroupAnalyticsScreen`, `BodyNutritionCorrelationScreen`, and `ConsistencyTrackerScreen` to match a strict chronological order: `..., April, May, June, 08 June - 08 July (Rolling), July |`.
 - **Fixed Statistics Hub Timeframe Traversal:** Upgraded the `shiftTimeframe` traversal in `StatisticsHubViewModel` to handle switching into and out of rolling states on left/right click, matching the behavior of detail screens.
 - **Fixed Statistics Hub Timeframe Picker & Label Formatting:** Integrated `TimeframeLabelFormatter` inside `_unifiedRangeLabel` on the Statistics Hub so that the rolling timeframe displays correctly as `"dd. MMM - dd. MMM yyyy"` rather than repeating the static month name. Also passed `initialIsRolling` to `showAdaptiveTimeframePicker` so the picker preserves rolling selection states.
 - **Enabled Rolling Month as Default Timeframe:** Changed the default view of all analytics screens (Statistics Hub, PR Dashboard, Muscle Group Analytics, Body/Nutrition Correlation, and Consistency Tracker) to start with the rolling month timeframe ("Last 30 days" / "Letzte 30 Tage") rather than the static calendar month ("July").

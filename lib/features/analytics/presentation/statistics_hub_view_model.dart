@@ -195,7 +195,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
   final Future<int> Function()? _targetStepsLoaderOverride;
   final Future<String> Function()? _stepsProviderNameLoaderOverride;
 
-  TimeframeBlock _activeBlockType = TimeframeBlock.month;
+  TimeframeBlock _activeBlockType = TimeframeBlock.week;
   bool _isRolling = true;
   bool get isRolling => _isRolling;
   set isRolling(bool value) {
