@@ -81,7 +81,7 @@ class DesignConstants {
   static const EdgeInsets sectionHeaderPadding = EdgeInsets.only(
     bottom: 8.0,
     left: 4.0,
-    top: 4.0,
+    top: 4.0, // Increased top padding for better visual separation
   );
 
   // === COLORS ===

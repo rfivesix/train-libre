@@ -20,11 +20,15 @@ class AppSectionHeader extends StatelessWidget {
   /// Optional padding override. Defaults to [DesignConstants.sectionHeaderPadding].
   final EdgeInsetsGeometry? padding;
 
+  /// If true, reduces the top padding to tight spacing (e.g., for the very first section in a screen).
+  final bool isFirst;
+
   const AppSectionHeader({
     super.key,
     required this.title,
     this.autoUpperCase = true,
     this.padding,
+    this.isFirst = false,
   });
 
   @override
@@ -32,13 +36,24 @@ class AppSectionHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final displayText = autoUpperCase ? title.toUpperCase() : title;
 
+    final resolvedPadding = padding ??
+        (isFirst
+            ? EdgeInsets.only(
+                top: 4.0,
+                bottom: DesignConstants.sectionHeaderPadding.bottom,
+                left: DesignConstants.sectionHeaderPadding.left,
+                right: DesignConstants.sectionHeaderPadding.right,
+              )
+            : DesignConstants.sectionHeaderPadding);
+
     return Padding(
-      padding: padding ?? DesignConstants.sectionHeaderPadding,
+      padding: resolvedPadding,
       child: Text(
         displayText,
         style: theme.textTheme.labelMedium?.copyWith(
+          fontSize: 14.0,
           color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: DesignConstants.sectionHeaderFontWeight,
+          fontWeight: FontWeight.w600,
           letterSpacing: DesignConstants.sectionHeaderLetterSpacing,
         ),
       ),

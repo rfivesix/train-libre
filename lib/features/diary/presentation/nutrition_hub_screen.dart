@@ -179,6 +179,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
               padding: finalPadding,
               children: [
                 AppSectionHeader(
+                    isFirst: true,
                     title: l10n.adaptiveRecommendationCardTitle.toUpperCase()),
                 _buildGoalsAndRecommendationCard(
                   context,
