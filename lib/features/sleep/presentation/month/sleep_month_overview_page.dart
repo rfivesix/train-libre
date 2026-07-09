@@ -68,25 +68,27 @@ class _SleepMonthOverviewPageState extends State<SleepMonthOverviewPage> {
       child: SeamlessLoadingOverlay(
         isLoading: _isLoading,
         isEmpty: _aggregation == null,
-        child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MonthSummaryCard(aggregation: _aggregation!),
-                const SizedBox(height: _sleepOverviewSectionSpacing),
-                MonthCalendarGrid(
-                  aggregation: _aggregation!,
-                  onTapDay: (day) =>
-                      SleepNavigation.openDayForDate(context, day),
-                ),
-                if (_aggregation!.days.every((day) => day.score == null)) ...[
+        child: _aggregation == null
+            ? const SizedBox.shrink()
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MonthSummaryCard(aggregation: _aggregation!),
                   const SizedBox(height: _sleepOverviewSectionSpacing),
-                  SleepDataUnavailableCard(
-                    message: l10n.sleepMonthNoScoredNights,
-                    margin: EdgeInsets.zero,
+                  MonthCalendarGrid(
+                    aggregation: _aggregation!,
+                    onTapDay: (day) =>
+                        SleepNavigation.openDayForDate(context, day),
                   ),
+                  if (_aggregation!.days.every((day) => day.score == null)) ...[
+                    const SizedBox(height: _sleepOverviewSectionSpacing),
+                    SleepDataUnavailableCard(
+                      message: l10n.sleepMonthNoScoredNights,
+                      margin: EdgeInsets.zero,
+                    ),
+                  ],
                 ],
-              ],
-            ),
+              ),
       ),
     );
   }

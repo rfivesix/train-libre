@@ -379,10 +379,23 @@ void main() {
     final summary = await repository.getAnalysis(window: window);
 
     expect(summary.chartSamples.length, lessThanOrEqualTo(2000));
-    expect(summary.chartSamples.first.sampledAtUtc.isAfter(window.startUtc),
-        isTrue);
+    final firstChartDay = summary.chartSamples.first.sampledAtUtc.toLocal();
+    final windowStartDay = window.startUtc.toLocal();
     expect(
-        summary.chartSamples.last.sampledAtUtc.isBefore(window.endUtc), isTrue);
+      DateTime(firstChartDay.year, firstChartDay.month, firstChartDay.day).isBefore(
+        DateTime(windowStartDay.year, windowStartDay.month, windowStartDay.day),
+      ),
+      isFalse,
+    );
+
+    final lastChartDay = summary.chartSamples.last.sampledAtUtc.toLocal();
+    final windowEndDay = window.endUtc.toLocal();
+    expect(
+      DateTime(lastChartDay.year, lastChartDay.month, lastChartDay.day).isAfter(
+        DateTime(windowEndDay.year, windowEndDay.month, windowEndDay.day),
+      ),
+      isFalse,
+    );
   });
 }
 

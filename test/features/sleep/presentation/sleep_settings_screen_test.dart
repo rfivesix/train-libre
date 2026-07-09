@@ -153,11 +153,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final requestAccessTile = find.widgetWithText(ListTile, 'Request access');
+    final requestAccessTile = find.widgetWithText(ListTile, 'Health connection status');
     await tester.scrollUntilVisible(
       requestAccessTile,
       300,
-      scrollable: find.byType(Scrollable),
+      scrollable: find.byType(Scrollable).first,
     );
 
     expect(find.text('Denied'), findsOneWidget);
@@ -208,7 +208,7 @@ void main() {
     await tester.scrollUntilVisible(
       importTile,
       300,
-      scrollable: find.byType(Scrollable),
+      scrollable: find.byType(Scrollable).first,
     );
 
     await tester.tap(importTile);

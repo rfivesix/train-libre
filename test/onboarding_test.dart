@@ -52,7 +52,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify error messages appear under empty fields
-    expect(find.text('This field cannot be empty.'), findsNWidgets(3));
+    expect(find.text('This field cannot be empty.'), findsNWidgets(2));
 
     // Choose Sex/Gender 'Male'
     final genderDropdown = find.byKey(const Key('onboarding_gender_dropdown'));

@@ -148,6 +148,7 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                         
                         // Navigation
                         InkWell(
+                          key: const Key('time-range-prev'),
                           onTap: widget.onPrevious,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -179,6 +180,7 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                           ),
                           
                         InkWell(
+                          key: const Key('time-range-next'),
                           onTap: widget.nextEnabled ? widget.onNext : null,
                           borderRadius: const BorderRadius.horizontal(right: Radius.circular(100)),
                           child: Padding(

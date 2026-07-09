@@ -69,27 +69,29 @@ class _SleepWeekOverviewPageState extends State<SleepWeekOverviewPage> {
       child: SeamlessLoadingOverlay(
         isLoading: _isLoading,
         isEmpty: _aggregation == null,
-        child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                WeekSummaryCard(aggregation: _aggregation!),
-                const SizedBox(height: _sleepOverviewSectionSpacing),
-                WeekWindowCard(aggregation: _aggregation!),
-                const SizedBox(height: _sleepOverviewSectionSpacing),
-                WeekScoreStrip(
-                  aggregation: _aggregation!,
-                  onTapDay: (day) =>
-                      SleepNavigation.openDayForDate(context, day),
-                ),
-                if (_aggregation!.days.every((day) => day.score == null)) ...[
+        child: _aggregation == null
+            ? const SizedBox.shrink()
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  WeekSummaryCard(aggregation: _aggregation!),
                   const SizedBox(height: _sleepOverviewSectionSpacing),
-                  SleepDataUnavailableCard(
-                    message: l10n.sleepWeekNoScoredNights,
-                    margin: EdgeInsets.zero,
+                  WeekWindowCard(aggregation: _aggregation!),
+                  const SizedBox(height: _sleepOverviewSectionSpacing),
+                  WeekScoreStrip(
+                    aggregation: _aggregation!,
+                    onTapDay: (day) =>
+                        SleepNavigation.openDayForDate(context, day),
                   ),
+                  if (_aggregation!.days.every((day) => day.score == null)) ...[
+                    const SizedBox(height: _sleepOverviewSectionSpacing),
+                    SleepDataUnavailableCard(
+                      message: l10n.sleepWeekNoScoredNights,
+                      margin: EdgeInsets.zero,
+                    ),
+                  ],
                 ],
-              ],
-            ),
+              ),
       ),
     );
   }

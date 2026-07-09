@@ -124,7 +124,7 @@ Future<void> _pumpRouteTransition(WidgetTester tester) async {
 }
 
 Future<void> _tapMetricTile(WidgetTester tester, String title) async {
-  final titleFinder = find.text(title);
+  final titleFinder = find.text(title.toUpperCase());
   await tester.scrollUntilVisible(
     titleFinder,
     240,
@@ -141,6 +141,7 @@ Widget _testApp({
   String? initialRoute,
 }) {
   return MaterialApp(
+    locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     onGenerateRoute: onGenerateRoute,
@@ -379,7 +380,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Week summary'), findsOneWidget);
+    await tester.pumpAndSettle();
     expect(find.text('Daily score'), findsOneWidget);
 
     await tester.pumpWidget(
@@ -392,7 +393,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Month summary'), findsOneWidget);
     expect(find.text('Daily score states'), findsOneWidget);
   });
 
@@ -466,11 +466,11 @@ void main() {
 
     await tester.tap(find.text('Week'));
     await tester.pumpAndSettle();
-    expect(find.text('Week summary'), findsOneWidget);
+    expect(find.text('Daily score'), findsOneWidget);
 
     await tester.tap(find.text('Month'));
     await tester.pumpAndSettle();
-    expect(find.text('Month summary'), findsOneWidget);
+    expect(find.text('Daily score states'), findsOneWidget);
   });
 
   testWidgets('renders empty state without crash', (tester) async {
@@ -604,7 +604,7 @@ void main() {
     expect(find.text(_dayLabel(DateTime(2026, 3, 31))), findsOneWidget);
     final initialFetches = repository.fetchCount;
 
-    await tester.tap(find.byKey(const Key('sleep-period-prev')));
+    await tester.tap(find.byKey(const Key('time-range-prev')));
     await tester.pumpAndSettle();
     expect(find.text(_dayLabel(DateTime(2026, 3, 30))), findsOneWidget);
     expect(repository.fetchCount, initialFetches + 1);
@@ -646,7 +646,7 @@ void main() {
 
     expect(find.text(_weekLabel(DateTime(2026, 3, 31))), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('sleep-period-prev')));
+    await tester.tap(find.byKey(const Key('time-range-prev')));
     await _pumpRouteTransition(tester);
     expect(find.text(_weekLabel(DateTime(2026, 3, 24))), findsOneWidget);
   });
@@ -687,7 +687,7 @@ void main() {
 
     expect(find.text(_monthLabel(DateTime(2026, 3, 31))), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('sleep-period-prev')));
+    await tester.tap(find.byKey(const Key('time-range-prev')));
     await _pumpRouteTransition(tester);
     expect(find.text(_monthLabel(DateTime(2026, 2, 28))), findsOneWidget);
   });

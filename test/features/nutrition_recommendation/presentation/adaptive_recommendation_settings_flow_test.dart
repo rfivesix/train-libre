@@ -24,7 +24,9 @@ void main() {
     late AdaptiveNutritionRecommendationService recommendationService;
 
     setUp(() async {
-      SharedPreferences.setMockInitialValues(<String, Object>{});
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'unit_system': 'metric',
+      });
       database = AppDatabase(NativeDatabase.memory());
       dbHelper = DatabaseHelper.forTesting(database);
       recommendationService = AdaptiveNutritionRecommendationService(
@@ -302,6 +304,8 @@ void main() {
       final onboardingDropdown =
           find.byKey(const Key('onboarding_prior_activity_dropdown'));
       expect(onboardingDropdown, findsOneWidget);
+      await tester.ensureVisible(onboardingDropdown);
+      await tester.pumpAndSettle();
       await tester.tap(onboardingDropdown);
       await tester.pumpAndSettle();
       expect(find.text(l10n.adaptivePriorActivityVeryHigh), findsOneWidget);
@@ -327,6 +331,8 @@ void main() {
       final goalsDropdown =
           find.byKey(const Key('goals_prior_activity_dropdown'));
       expect(goalsDropdown, findsOneWidget);
+      await Scrollable.ensureVisible(tester.element(goalsDropdown), alignment: 0.5);
+      await tester.pumpAndSettle();
       await tester.tap(goalsDropdown);
       await tester.pumpAndSettle();
       expect(find.text(l10n.adaptivePriorActivityVeryHigh), findsOneWidget);

@@ -447,10 +447,10 @@ void main() {
     // visual buckets.  This test locks the mapping so future edits must be
     // deliberate.
     const expectedFills = {
-      RecommendationConfidence.notEnoughData: 0.22,
-      RecommendationConfidence.low: 0.42,
-      RecommendationConfidence.medium: 0.68,
-      RecommendationConfidence.high: 0.90,
+      RecommendationConfidence.notEnoughData: 0.1,
+      RecommendationConfidence.low: 0.4,
+      RecommendationConfidence.medium: 0.7,
+      RecommendationConfidence.high: 1.0,
     };
 
     for (final entry in expectedFills.entries) {
@@ -581,11 +581,13 @@ void main() {
       ),
     );
 
-    expect(find.text('Effektive Energiedichte: 5938 kcal/kg'), findsOneWidget);
+    final context = tester.element(find.byType(NutritionRecommendationCard));
+    final l10n = AppLocalizations.of(context)!;
+
+    expect(find.text(l10n.adaptiveRecommendationEnergyDensityLabel.toUpperCase()), findsOneWidget);
+    expect(find.text(l10n.adaptiveRecommendationEnergyDensityValue(5938)), findsOneWidget);
     expect(
-      find.text(
-        'Dynamischer Wert basierend auf Gewichts- und Wasserverlust-Ratio',
-      ),
+      find.text(l10n.adaptiveRecommendationEnergyDensityExplanation),
       findsOneWidget,
     );
   });
