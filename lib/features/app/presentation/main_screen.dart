@@ -18,7 +18,7 @@ import '../../diary/presentation/add_food_navigation_result.dart';
 import '../../diary/presentation/add_food_screen.dart';
 import '../../diary/presentation/meal_editor_screen.dart';
 import '../../diary/presentation/ai_meal_capture_screen.dart';
-import '../../profile/presentation/add_measurement_screen.dart';
+import '../../profile/presentation/measurements_screen.dart';
 import '../../diary/presentation/diary_screen.dart';
 import '../../workout/presentation/edit_routine_screen.dart';
 import '../../workout/presentation/live_workout_screen.dart';
@@ -170,17 +170,7 @@ class _MainScreenState extends State<MainScreen>
         _showStartWorkoutMenu();
         break;
       case 'add_measurement':
-        // New: get date
-        final targetDate = _currentActiveDate;
-
-        final success = await Navigator.of(context).push<bool>(
-          MaterialPageRoute(
-            builder: (context) => AddMeasurementScreen(
-              initialDate: targetDate, // <--- Pass-through
-            ),
-          ),
-        );
-        if (success == true) _refreshHomeScreen();
+        _showAddMeasurementMenu();
         break;
       case 'add_food':
         _handleAddFood();
@@ -274,6 +264,23 @@ class _MainScreenState extends State<MainScreen>
         _refreshHomeScreen();
       }
     }
+  }
+
+  void _showAddMeasurementMenu() {
+    final l10n = AppLocalizations.of(context)!;
+    showGlassBottomMenu<bool?>(
+      context: context,
+      title: l10n.addMeasurement,
+      contentBuilder: (ctx, close) {
+        return MeasurementFormSheet(
+          initialDate: _currentActiveDate,
+          onSaved: () {
+            close();
+            _refreshHomeScreen();
+          },
+        );
+      },
+    );
   }
 
   Future<void> _showStartWorkoutMenu() async {
