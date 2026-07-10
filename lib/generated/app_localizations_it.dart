@@ -966,6 +966,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get titleEditRoutine => 'Modifica routine';
 
   @override
+  String get editRoutine => 'Modifica routine';
+
+  @override
   String get validatorPleaseEnterRoutineName =>
       'Inserisci un nome per la routine.';
 

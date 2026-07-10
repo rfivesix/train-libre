@@ -359,6 +359,7 @@
   "repsLabelShort": "Wdh",
   "titleNewRoutine": "Neue Routine",
   "titleEditRoutine": "Routine bearbeiten",
+  "editRoutine": "Routine bearbeiten",
   "validatorPleaseEnterRoutineName": "Bitte gib der Routine einen Namen.",
   "snackbarRoutineCreated": "Routine erstellt. Füge nun Übungen hinzu.",
   "snackbarRoutineSaved": "Routine gespeichert.",

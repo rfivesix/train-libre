@@ -22,6 +22,7 @@ class RoutineSetRowWidget extends StatelessWidget {
   final TextEditingController rirController;
   final VoidCallback onShowSetTypePicker;
   final VoidCallback onRemoveSet;
+  final bool isEditMode;
 
   const RoutineSetRowWidget({
     super.key,
@@ -36,6 +37,7 @@ class RoutineSetRowWidget extends StatelessWidget {
     required this.rirController,
     required this.onShowSetTypePicker,
     required this.onRemoveSet,
+    required this.isEditMode,
   });
 
   @override
@@ -65,7 +67,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                 child: SetTypeChip(
                   setType: template.setType,
                   setIndex: (template.setType == 'warmup') ? null : setIndex,
-                  onTap: onShowSetTypePicker,
+                  onTap: isEditMode ? onShowSetTypePicker : null,
                 ),
               ),
             ),
@@ -75,6 +77,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                 flex: 4,
                 child: TextFormField(
                   controller: weightController,
+                  readOnly: !isEditMode,
                   textAlign: TextAlign.center,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -93,7 +96,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                 flex: 4,
                 child: TextFormField(
                   controller: repsController,
-                  readOnly: isCardio,
+                  readOnly: !isEditMode || isCardio,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   inputFormatters: isCardio ? [TimerInputFormatter()] : null,
@@ -104,7 +107,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                     fillColor: Colors.transparent,
                     hintText: "00:00",
                   ),
-                  onTap: isCardio ? () async {
+                  onTap: (isCardio && isEditMode) ? () async {
                     final currentSeconds = parsePauseDuration(repsController.text) ?? 0;
                     final newDuration = await adaptive_pickers.showAdaptiveDurationPicker(
                       context: context,
@@ -122,6 +125,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                 flex: 2,
                 child: TextFormField(
                   controller: rirController,
+                  readOnly: !isEditMode,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -142,6 +146,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                 flex: 2,
                 child: TextFormField(
                   controller: weightController,
+                  readOnly: !isEditMode,
                   textAlign: TextAlign.center,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -151,9 +156,9 @@ class RoutineSetRowWidget extends StatelessWidget {
                     border: InputBorder.none,
                     isDense: true,
                     fillColor: Colors.transparent,
-                    hintText: context
+                    hintText: isEditMode ? context
                         .read<UnitService>()
-                        .suffixFor(UnitDimension.weight),
+                        .suffixFor(UnitDimension.weight) : "-",
                   ),
                 ),
               ),
@@ -162,6 +167,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                 flex: 2,
                 child: TextFormField(
                   controller: repsController,
+                  readOnly: !isEditMode,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
@@ -169,7 +175,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                     border: InputBorder.none,
                     isDense: true,
                     fillColor: Colors.transparent,
-                    hintText: l10n.set_reps_hint,
+                    hintText: isEditMode ? l10n.set_reps_hint : "-",
                   ),
                 ),
               ),
@@ -178,6 +184,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                 flex: 2,
                 child: TextFormField(
                   controller: rirController,
+                  readOnly: !isEditMode,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -197,13 +204,13 @@ class RoutineSetRowWidget extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8.0),
               child: SizedBox(
                 width: 48,
-                child: IconButton(
+                child: isEditMode ? IconButton(
                   icon: const Icon(
                     LucideIcons.trash_2,
                     color: Colors.redAccent,
                   ),
                   onPressed: onRemoveSet,
-                ),
+                ) : const SizedBox(width: 48, height: 48),
               ),
             ),
           ],

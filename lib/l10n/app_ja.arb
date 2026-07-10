@@ -359,6 +359,7 @@
   "repsLabelShort": "担当者",
   "titleNewRoutine": "新しいルーチン",
   "titleEditRoutine": "ルーチンの編集",
+  "editRoutine": "ルーチンの編集",
   "validatorPleaseEnterRoutineName": "ルーチンの名前を入力してください。",
   "snackbarRoutineCreated": "ルーチンが作成されました。次に、いくつかの演習を追加します。",
   "snackbarRoutineSaved": "ルーチンが保存されました。",

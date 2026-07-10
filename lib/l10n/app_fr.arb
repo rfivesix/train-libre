@@ -359,6 +359,7 @@
   "repsLabelShort": "représentants",
   "titleNewRoutine": "Nouvelle routine",
   "titleEditRoutine": "Modifier la routine",
+  "editRoutine": "Modifier la routine",
   "validatorPleaseEnterRoutineName": "Veuillez saisir un nom pour la routine.",
   "snackbarRoutineCreated": "Routine créée. Ajoutez maintenant quelques exercices.",
   "snackbarRoutineSaved": "Routine enregistrée.",

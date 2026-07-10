@@ -3215,3 +3215,6 @@ This is the first feature-complete, stable pre-release of Hypertrack. It establi
 - **Database-Powered Exercise Mappings:** Exercise name mappings for imports are now stored robustly in the database instead of SharedPreferences, enabling automatic application during future imports (#23).
 - **Unified UI/UX:** The application's design has been polished for a consistent user experience, especially regarding AppBars, dialogs, and buttons.
 - **Improved Exercise Creation:** The "Create Exercise" screen now features an intelligent autocomplete field for categories and a chip-based selection for muscle groups, improving data quality and usability.
+- **View Mode**: In view mode, the routine title is now only displayed in the app bar and the redundant large title below it, along with its divider, has been removed.
+- **View Mode Scroll Fix**: Fixed the initial scroll position of the exercise list in view mode so it is no longer obscured by the app bar.
+- **Edit Routine Screen**: Fixed the scroll behaviour in view mode to ensure lists scroll behind the translucent AppBar, and removed a duplicate rendering of the floating action button.

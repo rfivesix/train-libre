@@ -359,6 +359,7 @@
   "repsLabelShort": "ripetizioni",
   "titleNewRoutine": "Nuova routine",
   "titleEditRoutine": "Modifica routine",
+  "editRoutine": "Modifica routine",
   "validatorPleaseEnterRoutineName": "Inserisci un nome per la routine.",
   "snackbarRoutineCreated": "Routine creata. Ora aggiungi alcuni esercizi.",
   "snackbarRoutineSaved": "Routine salvata.",

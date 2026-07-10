@@ -1706,6 +1706,12 @@ abstract class AppLocalizations {
   /// **'Edit Routine'**
   String get titleEditRoutine;
 
+  /// No description provided for @editRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Routine'**
+  String get editRoutine;
+
   /// No description provided for @validatorPleaseEnterRoutineName.
   ///
   /// In en, this message translates to:

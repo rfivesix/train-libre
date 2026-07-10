@@ -955,6 +955,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get titleEditRoutine => 'ルーチンの編集';
 
   @override
+  String get editRoutine => 'ルーチンの編集';
+
+  @override
   String get validatorPleaseEnterRoutineName => 'ルーチンの名前を入力してください。';
 
   @override

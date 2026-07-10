@@ -40,6 +40,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   final _nameController = TextEditingController();
   List<RoutineExercise> _routineExercises = [];
   bool _isNewRoutine = true;
+  bool _isEditMode = true;
   int? _routineId;
   String _originalName = '';
   bool _isLoading = false;
@@ -170,6 +171,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     });
     if (widget.routine != null) {
       _isNewRoutine = false;
+      _isEditMode = false;
       _routineId = widget.routine!.id;
       _nameController.text = widget.routine!.name;
       _originalName = widget.routine!.name;
@@ -415,9 +417,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           content: Text(AppLocalizations.of(context)!.snackbarRoutineSaved)));
       HapticFeedbackService.instance.confirmationFeedback();
       setState(() {
+        _isEditMode = false;
         _canPop = true;
       });
-      Navigator.of(context).pop(true);
     }
     return success;
   }
@@ -690,8 +692,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                       onPressed: () => _handlePopAttempt(),
                     )
                   : null,
-              title:
-                  _isNewRoutine ? l10n.titleNewRoutine : l10n.titleEditRoutine,
+              title: _isEditMode
+                  ? (_isNewRoutine ? l10n.titleNewRoutine : l10n.titleEditRoutine)
+                  : (_nameController.text.isNotEmpty ? _nameController.text : l10n.titleEditRoutine),
               actions: [
                 if (!_isNewRoutine)
                   IconButton(
@@ -699,16 +702,23 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     icon: const Icon(LucideIcons.share),
                     onPressed: _shareCurrentRoutine,
                   ),
-                TextButton(
-                  onPressed: () => _saveRoutine(),
-                  child: Text(
-                    l10n.save,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                if (_isEditMode)
+                  TextButton(
+                    onPressed: () => _saveRoutine(),
+                    child: Text(
+                      l10n.save,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(LucideIcons.pencil),
+                    tooltip: l10n.editRoutine,
+                    onPressed: () => setState(() => _isEditMode = true),
                   ),
-                ),
               ],
             ),
             body: Stack(
@@ -717,29 +727,31 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                 RepaintBoundary(
                   child: Column(
                     children: [
-                      Padding(
-                        padding: DesignConstants.cardPadding.copyWith(
-                          top: DesignConstants.cardPadding.top + topPadding,
+                      if (_isEditMode) ...[
+                        Padding(
+                          padding: DesignConstants.cardPadding.copyWith(
+                            top: DesignConstants.cardPadding.top + topPadding,
+                          ),
+                          child: TextFormField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                                labelText: l10n.formFieldRoutineName),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return l10n.validatorPleaseEnterRoutineName;
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                        child: TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                              labelText: l10n.formFieldRoutineName),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return l10n.validatorPleaseEnterRoutineName;
-                            }
-                            return null;
-                          },
+                        const SizedBox(height: DesignConstants.spacingXS),
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          color:
+                              colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
                         ),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingXS),
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color:
-                            colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                      ),
+                      ],
                       Expanded(
                         child: _isLoading
                             ? const Center(child: CircularProgressIndicator())
@@ -757,6 +769,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         const ScrollCacheExtent.pixels(1500.0),
                                     itemCount: _routineExercises.length,
                                     padding: EdgeInsets.only(
+                                      top: _isEditMode ? 0.0 : topPadding,
                                       bottom: DesignConstants.bottomContentSpacer +
                                           MediaQuery.paddingOf(context).bottom +
                                           (_isDragging ? 800.0 : 0.0),
@@ -776,6 +789,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           isCardio: isCardio,
                                           isDragging: true,
                                           isDraggedItem: true,
+                                          isEditMode: _isEditMode,
                                           repsControllers: _repsControllers,
                                           weightControllers: _weightControllers,
                                           rirControllers: _rirControllers,
@@ -823,7 +837,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           index: index,
                                           isCardio: isCardio,
                                           isDragging: _isDragging,
-                                          onPointerDown: (event) {
+                                          isEditMode: _isEditMode,
+                                          onPointerDown: _isEditMode ? (event) {
                                             _collapseTimer?.cancel();
                                             _collapseTimer = Timer(const Duration(milliseconds: 300), () {
                                               if (mounted) {
@@ -839,29 +854,29 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                 });
                                               }
                                             });
-                                          },
-                                          onPointerUp: (event) {
+                                          } : null,
+                                          onPointerUp: _isEditMode ? (event) {
                                             _collapseTimer?.cancel();
                                             if (_isDragging) {
                                               setState(() {
                                                 _isDragging = false;
                                               });
                                             }
-                                          },
-                                          onPointerMove: (event) {
+                                          } : null,
+                                          onPointerMove: _isEditMode ? (event) {
                                             // Cancel timer if finger moves – user is scrolling, not drag-holding.
                                             if (event.delta.dy.abs() > 4.0 || event.delta.dx.abs() > 4.0) {
                                               _collapseTimer?.cancel();
                                             }
-                                          },
-                                          onPointerCancel: (event) {
+                                          } : null,
+                                          onPointerCancel: _isEditMode ? (event) {
                                             _collapseTimer?.cancel();
                                             if (_isDragging) {
                                               setState(() {
                                                 _isDragging = false;
                                               });
                                             }
-                                          },
+                                          } : null,
                                           repsControllers: _repsControllers,
                                           weightControllers: _weightControllers,
                                           rirControllers: _rirControllers,
@@ -887,19 +902,20 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                   ),
                 ),
 
-                OverlayPortal(
-                  controller: _fabOverlayController,
-                  overlayChildBuilder: (context) {
-                    return Positioned(
-                      bottom: 24.0 + MediaQuery.paddingOf(context).bottom,
-                      right: 16.0,
-                      child: RepaintBoundary(
-                        child: _EditRoutineFab(onPressed: _addExercises),
-                      ),
-                    );
-                  },
-                  child: const SizedBox.shrink(),
-                ),
+                if (_isEditMode)
+                  OverlayPortal(
+                    controller: _fabOverlayController,
+                    overlayChildBuilder: (context) {
+                      return Positioned(
+                        bottom: 24.0 + MediaQuery.paddingOf(context).bottom,
+                        right: 16.0,
+                        child: RepaintBoundary(
+                          child: _EditRoutineFab(onPressed: _addExercises),
+                        ),
+                      );
+                    },
+                    child: const SizedBox.shrink(),
+                  ),
 
                 // Layer 2 (Top): Wger attribution — pinned just below the FAB
                 Positioned(
@@ -919,14 +935,6 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                         ],
                       ),
                     ),
-                  ),
-                ),
-
-                Positioned(
-                  bottom: 24.0 + MediaQuery.paddingOf(context).bottom,
-                  right: 16.0,
-                  child: RepaintBoundary(
-                    child: _EditRoutineFab(onPressed: _addExercises),
                   ),
                 ),
 

@@ -33,6 +33,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final Function(PointerUpEvent)? onPointerUp;
   final Function(PointerCancelEvent)? onPointerCancel;
   final Function(PointerMoveEvent)? onPointerMove;
+  final bool isEditMode;
 
   const EditRoutineExerciseCard({
     super.key,
@@ -54,6 +55,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
     this.onPointerUp,
     this.onPointerCancel,
     this.onPointerMove,
+    this.isEditMode = true,
   });
 
   @override
@@ -102,47 +104,69 @@ class EditRoutineExerciseCard extends StatelessWidget {
               ),
             ),
             leading: null,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(LucideIcons.pencil),
-                  tooltip: "Notizen bearbeiten",
-                  onPressed: onEditNotes,
-                ),
-                if (routineExercise.pauseSeconds != null &&
-                    routineExercise.pauseSeconds! > 0)
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      minimumSize: const Size(48, 48),
-                      padding: EdgeInsets.zero,
-                    ),
-                    onPressed: onEditPauseTime,
-                    child: Text(
-                      _formatPauseTime(routineExercise.pauseSeconds),
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: DesignConstants.spacingL,
+            trailing: isEditMode
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(LucideIcons.pencil),
+                        tooltip: "Notizen bearbeiten",
+                        onPressed: onEditNotes,
                       ),
-                    ),
+                      if (routineExercise.pauseSeconds != null &&
+                          routineExercise.pauseSeconds! > 0)
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            padding: EdgeInsets.zero,
+                          ),
+                          onPressed: onEditPauseTime,
+                          child: Text(
+                            _formatPauseTime(routineExercise.pauseSeconds),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: DesignConstants.spacingL,
+                            ),
+                          ),
+                        )
+                      else
+                        IconButton(
+                          icon: const Icon(LucideIcons.timer),
+                          tooltip: l10n.editPauseTime,
+                          onPressed: onEditPauseTime,
+                        ),
+                      IconButton(
+                        icon: const Icon(
+                          LucideIcons.trash_2,
+                          color: Colors.redAccent,
+                        ),
+                        tooltip: l10n.removeExercise,
+                        onPressed: onDeleteExercise,
+                      ),
+                    ],
                   )
-                else
-                  IconButton(
-                    icon: const Icon(LucideIcons.timer),
-                    tooltip: l10n.editPauseTime,
-                    onPressed: onEditPauseTime,
-                  ),
-                IconButton(
-                  icon: const Icon(
-                    LucideIcons.trash_2,
-                    color: Colors.redAccent,
-                  ),
-                  tooltip: l10n.removeExercise,
-                  onPressed: onDeleteExercise,
-                ),
-              ],
-            ),
+                : (routineExercise.pauseSeconds != null &&
+                        routineExercise.pauseSeconds! > 0)
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.timer,
+                            size: 16,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatPauseTime(routineExercise.pauseSeconds),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      )
+                    : null,
           ),
           isDragging
               ? const SizedBox.shrink()
@@ -162,7 +186,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
                             bottom: 12.0,
                           ),
                           child: InkWell(
-                            onTap: onEditNotes,
+                            onTap: isEditMode ? onEditNotes : null,
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
                               width: double.infinity,
@@ -225,24 +249,27 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                 template: setTemplate,
                                 listIndex: setIndex,
                                 isCardio: isCardio,
-                                repsController: repsControllers[setTemplate.id!]!,
-                                weightController: weightControllers[setTemplate.id!]!,
-                                rirController: rirControllers[setTemplate.id!]!,
-                                onShowSetTypePicker: () => onShowSetTypePicker(setTemplate),
-                                onRemoveSet: () => onRemoveSet(setTemplate, setIndex),
-                              );
-                            }),
-                            const SizedBox(height: DesignConstants.spacingS),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: TextButton.icon(
-                                onPressed: onAddSet,
-                                icon: const Icon(LucideIcons.plus),
-                                label: Text(l10n.addSetButton),
-                              ),
-                            ),
-                          ],
-                        ),
+                                 repsController: repsControllers[setTemplate.id!]!,
+                                 weightController: weightControllers[setTemplate.id!]!,
+                                 rirController: rirControllers[setTemplate.id!]!,
+                                 onShowSetTypePicker: () => onShowSetTypePicker(setTemplate),
+                                 onRemoveSet: () => onRemoveSet(setTemplate, setIndex),
+                                 isEditMode: isEditMode,
+                               );
+                             }),
+                             if (isEditMode) ...[
+                               const SizedBox(height: DesignConstants.spacingS),
+                               Padding(
+                                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                 child: TextButton.icon(
+                                   onPressed: onAddSet,
+                                   icon: const Icon(LucideIcons.plus),
+                                   label: Text(l10n.addSetButton),
+                                 ),
+                               ),
+                             ],
+                           ],
+                         ),
                       ),
                     ],
                   ),
