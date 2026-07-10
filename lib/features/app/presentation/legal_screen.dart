@@ -8,7 +8,6 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/frosted_container.dart';
 import '../../../util/design_constants.dart';
-import 'terms_of_service_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class LegalScreen extends StatefulWidget {
@@ -52,7 +51,7 @@ class _LegalScreenState extends State<LegalScreen> {
                     const SizedBox(height: DesignConstants.spacingXL),
                     _buildPrivacyPolicy(document, l10n),
                     const SizedBox(height: DesignConstants.spacingXL),
-                    _buildTermsOfService(context, l10n),
+                    _buildTermsOfService(document, l10n),
                     const SizedBox(height: DesignConstants.spacingXXL),
                     _buildBrowserButton(l10n),
                     const SizedBox(height: DesignConstants.bottomContentSpacer),
@@ -172,54 +171,13 @@ class _LegalScreenState extends State<LegalScreen> {
     );
   }
 
-  Widget _buildTermsOfService(BuildContext context, AppLocalizations l10n) {
+  Widget _buildTermsOfService(_LegalDocument document, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppSectionHeader(title: l10n.terms_of_service),
         const SizedBox(height: DesignConstants.spacingS),
-        FrostedContainer(
-          margin: EdgeInsets.zero,
-          padding: EdgeInsets.zero,
-          radius: DesignConstants.borderRadiusL,
-          blurSigma: 18,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const TermsOfServiceScreen(),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingL,
-                vertical: DesignConstants.spacingL,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.terms_of_service,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                            height: 1.25,
-                          ),
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingM),
-                  Icon(
-                    LucideIcons.chevron_right,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: DesignConstants.iconSizeS,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        ...document.termsOfServiceSections.map(_LegalAccordion.new),
       ],
     );
   }
@@ -486,12 +444,14 @@ class _LegalDocument {
     required this.date,
     required this.legalNotice,
     required this.privacyPolicySections,
+    required this.termsOfServiceSections,
   });
 
   final String version;
   final String date;
   final String legalNotice;
   final List<_LegalSection> privacyPolicySections;
+  final List<_LegalSection> termsOfServiceSections;
 }
 
 class _LegalSection {
@@ -687,6 +647,32 @@ Nach Ausführung dieser Funktion befindet sich die App im Auslieferungszustand. 
 ''',
     ),
   ],
+  termsOfServiceSections: [
+    _LegalSection(
+      title: '1. Keine medizinische Beratung',
+      content: '''
+Alle gesundheitsbezogenen Einschätzungen, Körpergewichtsziele, Makronährstoffziele, Berechnungen des täglichen Gesamtenergiebedarfs (TDEE), Muskel-Erholungs-Scores und andere gesundheitsbezogene Annäherungen, die von Train Libre bereitgestellt werden, sind statistische Schätzungen auf der Grundlage mathematischer Modelle der Allgemeinbevölkerung (wie Mifflin-St Jeor und Katch-McArdle). Sie stellen keine medizinische, ernährungsphysiologische oder sportliche Beratung dar und dürfen keinesfalls die Konsultation einer qualifizierten Fachkraft oder eines Arztes ersetzen. Die Nutzung dieser Funktionen erfolgt ausschließlich auf eigene Gefahr.
+'''
+    ),
+    _LegalSection(
+      title: '2. Haftungsausschluss / As-Is-Gewährleistung',
+      content: '''
+Train Libre wird im Ist-Zustand („as is“) ohne jegliche ausdrückliche oder stillschweigende Gewährleistung zur Verfügung gestellt, einschließlich, aber nicht beschränkt auf die Gewährleistung der Marktgängigkeit, der Eignung für einen bestimmten Zweck und der Nichtverletzung von Rechten Dritter. Der Entwickler haftet nicht für Datenverluste, Geräteanomalien, unterbrochene Funktionalität oder direkte, indirekte, zufällige oder Folgeschäden, die aus der Nutzung der kompilierten ausführbaren Anwendung (Binary) oder des Quellcodes entstehen.
+'''
+    ),
+    _LegalSection(
+      title: '3. Datenautonomie',
+      content: '''
+Alle vom Nutzer erstellten Daten, Profilparameter, Trainingsprotokolle, Ernährungsverläufe und lokalen Datenbankeinträge (Drift/SQLite) verbleiben ausschließlich in der Sandbox Ihres lokalen Endgeräts. Der Entwickler hat keinen Fernzugriff auf diese Daten, betreibt keine Backend-Server, um sie zu sammeln, und übernimmt keine Verantwortung für die Datenwiederherstellung, Datensicherung, Migration oder Datenverluste. Sie sind allein für die Sicherung Ihres Geräts und die Verwaltung Ihrer manuellen oder automatischen Datenexporte verantwortlich.
+'''
+    ),
+    _LegalSection(
+      title: '4. Open-Source-Regelung',
+      content: '''
+Der Quellcode von Train Libre wird unter der GNU General Public License v3.0 (GPL-3.0) verbreitet, wie im Repository des Projekts veröffentlicht. Diese Nutzungsbedingungen regeln ausschließlich die Nutzung der kompilierten ausführbaren Anwendung (Binary) und schränken keine Rechte ein, die Ihnen durch die GPL-3.0 gewährt werden, einschließlich des Rechts auf Zugriff, Änderung und Weiterverbreitung des Quellcodes unter denselben Lizenzbedingungen.
+'''
+    ),
+  ],
 );
 
 const _englishLegalDocument = _LegalDocument(
@@ -849,22 +835,48 @@ The app offers functions to back up your data in order to prevent data loss in t
     _LegalSection(
       title: '7. Data Subject Rights',
       content: '''
-As a data subject, you have extensive rights under the GDPR. Since Train Libre is a local-first app, you can exercise most of these rights directly and independently within the app without depending on our cooperation.
+As a data subject, you have extensive rights under the GDPR. Because Train Libre is a local-first app, you can exercise most of these rights directly and autonomously within the app, without relying on our involvement.
 
-- Right of Access (Article 15 of the GDPR) & Data Portability (Article 20 of the GDPR): You have the right to know what data is stored in the app. You can view your entire database yourself at any time and export it in a machine-readable format (JSON file) using the integrated backup export function. You can also export reports in standard formats (such as CSV).
-- Right to Rectification (Article 16 of the GDPR): You can correct or change all profile data, workouts, nutrition logs, body weights, and settings entered manually by you at any time directly in the app's user interfaces.
-- Right to Erasure / "Right to be Forgotten" (Article 17 of the GDPR): You can manually delete individual records (e.g., a specific workout or food log) in the app.
-- Irrevocable Data Erasure (AppData Reset): The app has an integrated deletion function for all local application data. You can execute the complete data deletion function in the settings. This process irrevocably deletes:
+- Right of Access (Art. 15 GDPR) & Data Portability (Art. 20 GDPR): You have the right to know what data is stored in the app. You can view your entire database yourself at any time and export it in a machine-readable format (JSON file) using the built-in backup export feature. You can also export reports in standard formats (such as CSV).
+- Right to Rectification (Art. 16 GDPR): You can manually correct or change all profile data, workouts, nutrition logs, body weights, and settings you have entered directly in the app's user interfaces at any time.
+- Right to Erasure / "Right to be Forgotten" (Art. 17 GDPR): You can manually delete individual records (e.g., a specific workout or a food log) in the app.
+- Irrevocable Data Deletion (AppData Reset): The app features a built-in deletion function for all local application data. In the settings, you can execute the function for complete data deletion. This process irrevocably deletes:
 ◦ All SharedPreferences settings and app states.
 ◦ All recorded training logs, custom exercises, and routines.
 ◦ All nutrition logs, meal templates, and custom food items.
-◦ All entered body measurements, supplement logbooks, and daily goals.
+◦ All entered body measurements, supplement logs, and historical daily goals.
 ◦ All locally cached heart rate and sleep analysis stages.
-◦ All API keys for AI providers stored in the operating system's secure storage.
+◦ All API keys for AI providers stored in the secure operating system repository.
 
-After executing this function, the app is in its factory default state. Please note that data already exported to Apple Health or Google Health Connect cannot be deleted by this internal app function, as it is under the control of the operating system. However, you can delete this exported data at any time directly in the system's own health apps from Apple or Google.
-- Right to Lodge a Complaint with a Supervisory Authority (Article 77 of the GDPR): Without prejudice to internal app control options, you have the right to lodge a complaint with a competent data protection supervisory authority. This can be, for example, the supervisory authority of your habitual residence, your place of work, or the place of the alleged infringement (e.g., the Berlin Commissioner for Data Protection and Freedom of Information).
+After executing this function, the app is returned to its factory state. Please note that data already exported to Apple Health or Google Health Connect cannot be deleted by this internal app function, as these are under the control of the operating system. However, you can delete this exported data at any time directly in the native Health apps from Apple or Google.
+- Right to Lodge a Complaint with a Supervisory Authority (Art. 77 GDPR): Without prejudice to the app's internal control options, you have the right to lodge a complaint with a competent data protection supervisory authority. This can be, for example, the supervisory authority of your habitual residence, place of work, or the place of the controller's establishment (e.g., the Berlin Commissioner for Data Protection and Freedom of Information).
 ''',
+    ),
+  ],
+  termsOfServiceSections: [
+    _LegalSection(
+      title: '1. No Medical Advice',
+      content: '''
+All health-related estimations, bodyweight targets, macronutrient targets, Total Daily Energy Expenditure (TDEE) calculations, muscle recovery scores, and other health-related approximations provided by Train Libre are statistical estimates based on general population mathematical models (such as Mifflin-St Jeor and Katch-McArdle). They do not constitute medical, nutritional, or athletic advice and must never replace consultation with a qualified professional or physician. Use of these features is strictly at your own risk.
+'''
+    ),
+    _LegalSection(
+      title: '2. As-Is Warranty Disclaimer',
+      content: '''
+Train Libre is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. The developer is not liable for any data loss, device anomalies, interrupted functionality, or any direct, indirect, incidental, or consequential damages arising from the use of the compiled binary application or the source code.
+'''
+    ),
+    _LegalSection(
+      title: '3. Data Autonomy',
+      content: '''
+All user-generated data, profile parameters, workout logs, nutrition history, and local database records (Drift/SQLite) reside exclusively within your local device's sandbox. The developer has no remote access to this data, does not operate any backend servers to collect it, and bears no responsibility for data recovery, backup, migration, or loss. You are solely responsible for securing your device and managing your manual or automatic data exports.
+'''
+    ),
+    _LegalSection(
+      title: '4. Open Source Governing',
+      content: '''
+The source code for Train Libre is distributed under the GNU General Public License v3.0 (GPL-3.0) as published in the project's repository. These Terms of Service govern the use of the compiled binary application only and do not restrict, override, or limit any rights granted to you by the GPL-3.0, including the right to access, modify, and redistribute the source code under the same license terms.
+'''
     ),
   ],
 );

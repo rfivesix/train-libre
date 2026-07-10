@@ -9,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/legal_screen.dart';
-import '../../app/presentation/terms_of_service_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class InitialConsentScreen extends StatefulWidget {
@@ -40,7 +39,7 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
 
   void _navigateToTerms() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
+      MaterialPageRoute(builder: (_) => const LegalScreen()),
     );
   }
 
