@@ -36,7 +36,8 @@ class SleepWindowChartCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+          padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.cardPaddingInternal),
           child: Text(title, style: Theme.of(context).textTheme.titleMedium),
         ),
         const SizedBox(height: DesignConstants.spacingS),

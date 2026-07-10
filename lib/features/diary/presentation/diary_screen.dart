@@ -711,7 +711,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 trackedSupplements: data.trackedSupplements,
                                 onTap: () => Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => const SupplementHubScreen(),
+                                    builder: (context) =>
+                                        const SupplementHubScreen(),
                                   ),
                                 ),
                               );

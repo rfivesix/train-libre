@@ -66,7 +66,9 @@ class StatisticsHubScreen extends StatelessWidget {
   final SleepHubSummaryRepository? _sleepSummaryRepository;
   final PulseAnalysisRepository? _pulseRepository;
   final Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> Function(
-    TimeframeBlock selectedBlockType, DateTime anchorDate, bool isRolling,
+    TimeframeBlock selectedBlockType,
+    DateTime anchorDate,
+    bool isRolling,
   )? fetchHubAnalytics;
   final Future<SleepSyncResult?> Function({
     int lookbackDays,
@@ -161,11 +163,17 @@ class _StatisticsHubScreenView extends StatelessWidget {
                   onSelected: (index) {
                     viewModel.activeBlockType = _hubBlocks[index];
                   },
-                  onPrevious: viewModel.activeBlockType == TimeframeBlock.maxBlock ? null : () => viewModel.shiftTimeframe(true),
-                  onNext: viewModel.activeBlockType == TimeframeBlock.maxBlock ? null : () => viewModel.shiftTimeframe(false),
+                  onPrevious:
+                      viewModel.activeBlockType == TimeframeBlock.maxBlock
+                          ? null
+                          : () => viewModel.shiftTimeframe(true),
+                  onNext: viewModel.activeBlockType == TimeframeBlock.maxBlock
+                      ? null
+                      : () => viewModel.shiftTimeframe(false),
                   displayDate: _unifiedRangeLabel(viewModel, l10n),
                   onTapDateDisplay: () async {
-                    final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                    final selected =
+                        await adaptive_pickers.showAdaptiveTimeframePicker(
                       context: context,
                       activeBlock: viewModel.activeBlockType,
                       initialAnchor: viewModel.anchorDate,
@@ -176,9 +184,17 @@ class _StatisticsHubScreenView extends StatelessWidget {
                       viewModel.setTimeframeSelection(selected);
                     }
                   },
-                  nextEnabled: viewModel.activeBlockType != TimeframeBlock.maxBlock && 
-                      (viewModel.isRolling || !viewModel.activeBlockType.getBounds(viewModel.anchorDate, DateTime(2020)).start.isAtSameMomentAs(viewModel.activeBlockType.getBounds(DateTime.now(), DateTime(2020)).start)),
-                  showDateNavigation: viewModel.activeBlockType != TimeframeBlock.maxBlock,
+                  nextEnabled: viewModel.activeBlockType !=
+                          TimeframeBlock.maxBlock &&
+                      (viewModel.isRolling ||
+                          !viewModel.activeBlockType
+                              .getBounds(viewModel.anchorDate, DateTime(2020))
+                              .start
+                              .isAtSameMomentAs(viewModel.activeBlockType
+                                  .getBounds(DateTime.now(), DateTime(2020))
+                                  .start)),
+                  showDateNavigation:
+                      viewModel.activeBlockType != TimeframeBlock.maxBlock,
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
                 Padding(
@@ -354,7 +370,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
       return l10n.filterMax;
     }
     if (viewModel.isRolling) {
-      return TimeframeLabelFormatter.formatRolling(viewModel.activeBlockType, l10n);
+      return TimeframeLabelFormatter.formatRolling(
+          viewModel.activeBlockType, l10n);
     }
     return TimeframeLabelFormatter.format(
       viewModel.activeBlockType,

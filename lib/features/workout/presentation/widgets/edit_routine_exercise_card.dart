@@ -192,12 +192,14 @@ class EditRoutineExerciseCard extends StatelessWidget {
                               width: double.infinity,
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest.withValues(
+                                color: colorScheme.surfaceContainerHighest
+                                    .withValues(
                                   alpha: 0.5,
                                 ),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: colorScheme.onSurfaceVariant.withValues(
+                                  color:
+                                      colorScheme.onSurfaceVariant.withValues(
                                     alpha: 0.1,
                                   ),
                                 ),
@@ -230,13 +232,17 @@ class EditRoutineExerciseCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildHeaderRow(context, routineExercise, l10n),
-                            ...routineExercise.setTemplates.asMap().entries.map((entry) {
+                            ...routineExercise.setTemplates
+                                .asMap()
+                                .entries
+                                .map((entry) {
                               final setIndex = entry.key;
                               final setTemplate = entry.value;
 
                               int workingSetIndex = 0;
                               for (int i = 0; i <= setIndex; i++) {
-                                if (routineExercise.setTemplates[i].setType != 'warmup') {
+                                if (routineExercise.setTemplates[i].setType !=
+                                    'warmup') {
                                   workingSetIndex++;
                                 }
                               }
@@ -249,27 +255,32 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                 template: setTemplate,
                                 listIndex: setIndex,
                                 isCardio: isCardio,
-                                 repsController: repsControllers[setTemplate.id!]!,
-                                 weightController: weightControllers[setTemplate.id!]!,
-                                 rirController: rirControllers[setTemplate.id!]!,
-                                 onShowSetTypePicker: () => onShowSetTypePicker(setTemplate),
-                                 onRemoveSet: () => onRemoveSet(setTemplate, setIndex),
-                                 isEditMode: isEditMode,
-                               );
-                             }),
-                             if (isEditMode) ...[
-                               const SizedBox(height: DesignConstants.spacingS),
-                               Padding(
-                                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                 child: TextButton.icon(
-                                   onPressed: onAddSet,
-                                   icon: const Icon(LucideIcons.plus),
-                                   label: Text(l10n.addSetButton),
-                                 ),
-                               ),
-                             ],
-                           ],
-                         ),
+                                repsController:
+                                    repsControllers[setTemplate.id!]!,
+                                weightController:
+                                    weightControllers[setTemplate.id!]!,
+                                rirController: rirControllers[setTemplate.id!]!,
+                                onShowSetTypePicker: () =>
+                                    onShowSetTypePicker(setTemplate),
+                                onRemoveSet: () =>
+                                    onRemoveSet(setTemplate, setIndex),
+                                isEditMode: isEditMode,
+                              );
+                            }),
+                            if (isEditMode) ...[
+                              const SizedBox(height: DesignConstants.spacingS),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0),
+                                child: TextButton.icon(
+                                  onPressed: onAddSet,
+                                  icon: const Icon(LucideIcons.plus),
+                                  label: Text(l10n.addSetButton),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
                     ],
                   ),

@@ -11,7 +11,8 @@ import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
 import '../../../util/timeframe_label_formatter.dart';
-import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 
 class PRDashboardScreen extends StatefulWidget {
   const PRDashboardScreen({super.key});
@@ -23,7 +24,7 @@ class PRDashboardScreen extends StatefulWidget {
 class _PRDashboardScreenState extends State<PRDashboardScreen> {
   bool _isRolling = true;
   bool _isLoading = true;
-  
+
   TimeframeBlock _activeBlock = TimeframeBlock.month;
   DateTime _anchorDate = DateTime.now();
 
@@ -66,7 +67,8 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     final bounds = _isRolling
         ? _activeBlock.getRollingBounds()
         : _activeBlock.getBounds(_anchorDate, DateTime(2020));
-    final daysBack = DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
+    final daysBack =
+        DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
 
     final improvements =
         WorkoutLocalDataSource.instance.getNotablePrImprovements(
@@ -114,108 +116,137 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
       appBar: GlobalAppBar(title: l10n.prDashboardTitle),
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,
-        isEmpty: _recentPrs.isEmpty && _allTimePrs.isEmpty && _notableImprovements.isEmpty,
+        isEmpty: _recentPrs.isEmpty &&
+            _allTimePrs.isEmpty &&
+            _notableImprovements.isEmpty,
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
-              padding: DesignConstants.screenPadding.copyWith(
-                top: DesignConstants.screenPadding.top + topPadding,
-                bottom: DesignConstants.bottomContentSpacer,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppSectionHeader(title: l10n.analyticsNotableImprovements),
-                  TimeRangeFilter(
-                    ranges: _timeRanges(l10n),
-                    selectedIndex: _validBlocks.indexOf(_activeBlock),
-                    onSelected: (index) {
-                      setState(() {
-                        _activeBlock = _validBlocks[index];
-                        _isRolling = false;
-                      });
-                      _loadData();
-                    },
-                    onPrevious: _activeBlock == TimeframeBlock.maxBlock ? null : () {
-                      setState(() {
-                        final currentBounds = _activeBlock.getBounds(DateTime.now(), DateTime(2020));
-                        final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                        final isOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(currentBounds.start);
-                        
-                        if (isOngoing) {
-                          _isRolling = true;
-                        } else if (_isRolling) {
-                          _isRolling = false;
-                          _anchorDate = _activeBlock.shift(DateTime.now(), -1);
-                        } else {
-                          _anchorDate = _activeBlock.shift(_anchorDate, -1);
-                        }
-                      });
-                      _loadData();
-                    },
-                    onNext: _activeBlock == TimeframeBlock.maxBlock ? null : () {
-                      setState(() {
-                        if (_isRolling) {
-                          _isRolling = false;
-                          _anchorDate = DateTime.now();
-                        } else {
-                          final previousAnchor = _activeBlock.shift(DateTime.now(), -1);
-                          final previousBounds = _activeBlock.getBounds(previousAnchor, DateTime(2020));
-                          final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                          final isPreviousToOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(previousBounds.start);
-                          
-                          if (isPreviousToOngoing) {
-                            _isRolling = true;
-                          } else {
-                            _anchorDate = _activeBlock.shift(_anchorDate, 1);
-                          }
-                        }
-                      });
-                      _loadData();
-                    },
-                    displayDate: _isRolling ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n) : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
-                    onTapDateDisplay: () async {
-                      final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
-                        context: context,
-                        activeBlock: _activeBlock,
-                        initialAnchor: _anchorDate,
-                        earliestAvailableDay: DateTime(2020),
-                        initialIsRolling: _isRolling,
-                      );
-                      if (selected != null) {
+          padding: DesignConstants.screenPadding.copyWith(
+            top: DesignConstants.screenPadding.top + topPadding,
+            bottom: DesignConstants.bottomContentSpacer,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppSectionHeader(title: l10n.analyticsNotableImprovements),
+              TimeRangeFilter(
+                ranges: _timeRanges(l10n),
+                selectedIndex: _validBlocks.indexOf(_activeBlock),
+                onSelected: (index) {
+                  setState(() {
+                    _activeBlock = _validBlocks[index];
+                    _isRolling = false;
+                  });
+                  _loadData();
+                },
+                onPrevious: _activeBlock == TimeframeBlock.maxBlock
+                    ? null
+                    : () {
                         setState(() {
-                          _anchorDate = selected.anchorDate;
-                          _isRolling = selected.isRolling;
+                          final currentBounds = _activeBlock.getBounds(
+                              DateTime.now(), DateTime(2020));
+                          final myBounds = _activeBlock.getBounds(
+                              _anchorDate, DateTime(2020));
+                          final isOngoing = !_isRolling &&
+                              myBounds.start
+                                  .isAtSameMomentAs(currentBounds.start);
+
+                          if (isOngoing) {
+                            _isRolling = true;
+                          } else if (_isRolling) {
+                            _isRolling = false;
+                            _anchorDate =
+                                _activeBlock.shift(DateTime.now(), -1);
+                          } else {
+                            _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                          }
                         });
                         _loadData();
-                      }
-                    },
-                    nextEnabled: _activeBlock == TimeframeBlock.maxBlock ? false : (_isRolling ? true : !_activeBlock.getBounds(_anchorDate, DateTime(2020)).start.isAtSameMomentAs(_activeBlock.getBounds(DateTime.now(), DateTime(2020)).start)),
-                    showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
-                  ),const SizedBox(height: DesignConstants.spacingS),
-                  SummaryCard(
-                    child: _notableImprovements.isEmpty
-                        ? Padding(
-                            padding:
-                                const EdgeInsets.all(DesignConstants.spacingM),
-                            child: Text(l10n.analyticsNoPrTrendInWindow),
-                          )
-                        : Column(
-                            children: _notableImprovements.asMap().entries.map((
-                              entry,
-                            ) {
-                              final row = entry.value;
-                              final previous =
-                                  (row['previousBestE1rm'] as num).toDouble();
-                              final recent =
-                                  (row['recentBestE1rm'] as num).toDouble();
-                              final improvement =
-                                  (row['improvementPct'] as num).toDouble();
-                              final delta = recent - previous;
+                      },
+                onNext: _activeBlock == TimeframeBlock.maxBlock
+                    ? null
+                    : () {
+                        setState(() {
+                          if (_isRolling) {
+                            _isRolling = false;
+                            _anchorDate = DateTime.now();
+                          } else {
+                            final previousAnchor =
+                                _activeBlock.shift(DateTime.now(), -1);
+                            final previousBounds = _activeBlock.getBounds(
+                                previousAnchor, DateTime(2020));
+                            final myBounds = _activeBlock.getBounds(
+                                _anchorDate, DateTime(2020));
+                            final isPreviousToOngoing = !_isRolling &&
+                                myBounds.start
+                                    .isAtSameMomentAs(previousBounds.start);
 
-                              return ListTile(
-                                dense: true,
-                                contentPadding: EdgeInsets.zero,
-                                /*
+                            if (isPreviousToOngoing) {
+                              _isRolling = true;
+                            } else {
+                              _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                            }
+                          }
+                        });
+                        _loadData();
+                      },
+                displayDate: _isRolling
+                    ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
+                    : TimeframeLabelFormatter.format(
+                        _activeBlock, _anchorDate, l10n),
+                onTapDateDisplay: () async {
+                  final selected =
+                      await adaptive_pickers.showAdaptiveTimeframePicker(
+                    context: context,
+                    activeBlock: _activeBlock,
+                    initialAnchor: _anchorDate,
+                    earliestAvailableDay: DateTime(2020),
+                    initialIsRolling: _isRolling,
+                  );
+                  if (selected != null) {
+                    setState(() {
+                      _anchorDate = selected.anchorDate;
+                      _isRolling = selected.isRolling;
+                    });
+                    _loadData();
+                  }
+                },
+                nextEnabled: _activeBlock == TimeframeBlock.maxBlock
+                    ? false
+                    : (_isRolling
+                        ? true
+                        : !_activeBlock
+                            .getBounds(_anchorDate, DateTime(2020))
+                            .start
+                            .isAtSameMomentAs(_activeBlock
+                                .getBounds(DateTime.now(), DateTime(2020))
+                                .start)),
+                showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
+              ),
+              const SizedBox(height: DesignConstants.spacingS),
+              SummaryCard(
+                child: _notableImprovements.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(DesignConstants.spacingM),
+                        child: Text(l10n.analyticsNoPrTrendInWindow),
+                      )
+                    : Column(
+                        children: _notableImprovements.asMap().entries.map((
+                          entry,
+                        ) {
+                          final row = entry.value;
+                          final previous =
+                              (row['previousBestE1rm'] as num).toDouble();
+                          final recent =
+                              (row['recentBestE1rm'] as num).toDouble();
+                          final improvement =
+                              (row['improvementPct'] as num).toDouble();
+                          final delta = recent - previous;
+
+                          return ListTile(
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            /*
                                 leading: entry.key == _topMomentumIndex
                                     ? Icon(
                                         LucideIcons.trending_up,
@@ -225,115 +256,109 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                                       )
                                     : null,
                                 */
-                                title: Text(
-                                  row['exerciseName'] as String,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Text(
-                                  l10n.analyticsE1rmProgress(
-                                    StatisticsPresentationFormatter
-                                        .formatWeight(
-                                      previous,
-                                    ),
-                                    StatisticsPresentationFormatter
-                                        .formatWeight(
-                                      recent,
-                                    ),
-                                  ),
-                                ),
-                                trailing: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      '+${improvement.toStringAsFixed(1)}%',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelMedium
-                                          ?.copyWith(
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    Text(
-                                      'Δ ${StatisticsPresentationFormatter.formatWeight(delta)}',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.labelSmall,
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                  AppSectionHeader(title: l10n.analyticsRecentRecords),
-                  SummaryCard(
-                    child: _recentPrs.isEmpty
-                        ? Padding(
-                            padding:
-                                const EdgeInsets.all(DesignConstants.spacingM),
-                            child: Text(l10n.noWorkoutDataLabel),
-                          )
-                        : Column(
-                            children: _recentPrs.asMap().entries.map((entry) {
-                              return _buildRankedRow(
-                                rank: entry.key + 1,
-                                exerciseName:
-                                    entry.value['exerciseName'] as String,
-                                valueLabel: _perfLabel(entry.value),
-                              );
-                            }).toList(),
-                          ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                  AppSectionHeader(title: l10n.allTimeRecordsLabel),
-                  _allTimePrs.isEmpty
-                      ? Text(
-                          l10n.noWorkoutDataLabel,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        )
-                      : _buildTwoColumnGrid(
-                          _allTimePrs.asMap().entries.map((entry) {
-                            return ValueSummaryCard(
-                              label: '#${entry.key + 1}',
-                              value: _perfLabel(entry.value),
-                              subtitle:
-                                  entry.value['exerciseName'] as String,
-                            );
-                          }).toList(),
-                        ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                  AppSectionHeader(title: l10n.prsByRepRangeLabel),
-                  _buildTwoColumnGrid(
-                    _prsByRepRange.entries.map((entry) {
-                      final data = entry.value;
-                      final hasData = data != null;
-                      return ValueSummaryCard(
-                        label: entry.key.replaceAll(
-                          'RM',
-                          l10n.analyticsRepRangeSuffix,
-                        ),
-                        value: hasData
-                            ? l10n.analyticsPerfWithReps(
+                            title: Text(
+                              row['exerciseName'] as String,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              l10n.analyticsE1rmProgress(
                                 StatisticsPresentationFormatter.formatWeight(
-                                  (data['weight'] as num).toDouble(),
+                                  previous,
                                 ),
-                                (data['reps'] as num).toInt(),
-                              )
-                            : '–',
-                        subtitle: hasData
-                            ? data['exerciseName'] as String
-                            : l10n.analyticsNoRecordYet,
-                      );
-                    }).toList(),
-                  ),
-
-                ],
+                                StatisticsPresentationFormatter.formatWeight(
+                                  recent,
+                                ),
+                              ),
+                            ),
+                            trailing: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '+${improvement.toStringAsFixed(1)}%',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium
+                                      ?.copyWith(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                Text(
+                                  'Δ ${StatisticsPresentationFormatter.formatWeight(delta)}',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.labelSmall,
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
               ),
-            ),
+              const SizedBox(height: DesignConstants.spacingL),
+              AppSectionHeader(title: l10n.analyticsRecentRecords),
+              SummaryCard(
+                child: _recentPrs.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(DesignConstants.spacingM),
+                        child: Text(l10n.noWorkoutDataLabel),
+                      )
+                    : Column(
+                        children: _recentPrs.asMap().entries.map((entry) {
+                          return _buildRankedRow(
+                            rank: entry.key + 1,
+                            exerciseName: entry.value['exerciseName'] as String,
+                            valueLabel: _perfLabel(entry.value),
+                          );
+                        }).toList(),
+                      ),
+              ),
+              const SizedBox(height: DesignConstants.spacingL),
+              AppSectionHeader(title: l10n.allTimeRecordsLabel),
+              _allTimePrs.isEmpty
+                  ? Text(
+                      l10n.noWorkoutDataLabel,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    )
+                  : _buildTwoColumnGrid(
+                      _allTimePrs.asMap().entries.map((entry) {
+                        return ValueSummaryCard(
+                          label: '#${entry.key + 1}',
+                          value: _perfLabel(entry.value),
+                          subtitle: entry.value['exerciseName'] as String,
+                        );
+                      }).toList(),
+                    ),
+              const SizedBox(height: DesignConstants.spacingL),
+              AppSectionHeader(title: l10n.prsByRepRangeLabel),
+              _buildTwoColumnGrid(
+                _prsByRepRange.entries.map((entry) {
+                  final data = entry.value;
+                  final hasData = data != null;
+                  return ValueSummaryCard(
+                    label: entry.key.replaceAll(
+                      'RM',
+                      l10n.analyticsRepRangeSuffix,
+                    ),
+                    value: hasData
+                        ? l10n.analyticsPerfWithReps(
+                            StatisticsPresentationFormatter.formatWeight(
+                              (data['weight'] as num).toDouble(),
+                            ),
+                            (data['reps'] as num).toInt(),
+                          )
+                        : '–',
+                    subtitle: hasData
+                        ? data['exerciseName'] as String
+                        : l10n.analyticsNoRecordYet,
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

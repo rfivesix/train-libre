@@ -45,7 +45,8 @@ class InterruptionsDetailPage extends StatelessWidget {
           overview.interruptionsCount! <= 1 ? Colors.green : Colors.orange,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+          padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.cardPaddingInternal),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

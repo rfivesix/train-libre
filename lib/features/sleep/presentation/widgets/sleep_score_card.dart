@@ -36,7 +36,8 @@ class SleepScoreCard extends StatelessWidget {
         ? l10n.sleepScoreCompletenessLabel('--')
         : l10n.sleepScoreCompletenessLabel('${(completeness * 100).round()}%');
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.cardPaddingInternal),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,8 +54,10 @@ class SleepScoreCard extends StatelessWidget {
                 keyPoints: l10n.infoSleepKeyPoints.split('\n'),
                 technicalTitle: l10n.infoSleepTechnicalTitle,
                 technicalExplanation: l10n.infoSleepTechnicalExplanation,
-                markdownAssetPath: 'documentation/features/sleep_scoring_engine.md',
-                citationUrl: 'https://rfivesix.github.io/train-libre/sleep-score/#evidence',
+                markdownAssetPath:
+                    'documentation/features/sleep_scoring_engine.md',
+                citationUrl:
+                    'https://rfivesix.github.io/train-libre/sleep-score/#evidence',
               ),
             ],
           ),
@@ -82,17 +85,19 @@ class SleepScoreCard extends StatelessWidget {
                         value: score == null
                             ? 0
                             : (score.clamp(0.0, 100.0) / 100.0).toDouble(),
-                        backgroundColor:
-                            Theme.of(context).colorScheme.surfaceContainerHighest,
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         color: _qualityColor(quality),
                         strokeWidth: 6.0,
                       ),
                     ),
                     Text(
                       scoreText,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                   ],
                 ),

@@ -86,7 +86,6 @@ class SetLog {
   /// Temporary value: Difference to previous Pace PR (Cardio).
   final double? pacePRDiff;
 
-
   /// Creates a new [SetLog] instance.
   SetLog({
     this.id,

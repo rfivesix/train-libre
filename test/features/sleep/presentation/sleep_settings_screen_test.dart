@@ -153,7 +153,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final requestAccessTile = find.widgetWithText(ListTile, 'Health connection status');
+    final requestAccessTile =
+        find.widgetWithText(ListTile, 'Health connection status');
     await tester.scrollUntilVisible(
       requestAccessTile,
       300,

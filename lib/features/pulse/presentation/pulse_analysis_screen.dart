@@ -209,7 +209,9 @@ class _PulseAnalysisContent extends StatelessWidget {
                 horizontal: DesignConstants.screenPaddingHorizontal,
               ),
               child: Text(
-                scope == SleepPeriodScope.day ? copy.chartTitle : copy.restingLabel,
+                scope == SleepPeriodScope.day
+                    ? copy.chartTitle
+                    : copy.restingLabel,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -315,17 +317,15 @@ class _KpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final copy = _PulseCopy(context);
     final l10n = AppLocalizations.of(context)!;
-    
+
     final range = summary.minBpm == null || summary.maxBpm == null
         ? '--'
         : '${summary.minBpm!.round()}-${summary.maxBpm!.round()}';
-    final average = summary.averageBpm == null
-        ? '--'
-        : '${summary.averageBpm!.round()}';
-    final resting = summary.restingBpm == null
-        ? '--'
-        : '${summary.restingBpm!.round()}';
-        
+    final average =
+        summary.averageBpm == null ? '--' : '${summary.averageBpm!.round()}';
+    final resting =
+        summary.restingBpm == null ? '--' : '${summary.restingBpm!.round()}';
+
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.screenPaddingHorizontal,
@@ -337,11 +337,15 @@ class _KpiCard extends StatelessWidget {
         ),
         ValueSummaryCard(
           label: copy.averageLabel,
-          value: summary.averageBpm == null ? average : '$average ${l10n.sleepBpmUnit}',
+          value: summary.averageBpm == null
+              ? average
+              : '$average ${l10n.sleepBpmUnit}',
         ),
         ValueSummaryCard(
           label: copy.restingLabel,
-          value: summary.restingBpm == null ? resting : '$resting ${l10n.sleepBpmUnit}',
+          value: summary.restingBpm == null
+              ? resting
+              : '$resting ${l10n.sleepBpmUnit}',
         ),
       ]),
     );

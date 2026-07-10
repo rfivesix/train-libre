@@ -302,7 +302,8 @@ class ProductLocalDataSource {
           ..where((tbl) => tbl.localId.isIn(archiveLocalIds)))
         .get();
 
-    final barcodes = rows.map((r) => r.barcode).where((b) => b.isNotEmpty).toSet().toList();
+    final barcodes =
+        rows.map((r) => r.barcode).where((b) => b.isNotEmpty).toSet().toList();
     final products = barcodes.isEmpty
         ? <db.Product>[]
         : await (dbInstance.select(dbInstance.products)

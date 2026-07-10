@@ -47,13 +47,14 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
   @override
   void didUpdateWidget(TimeRangeFilter oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedIndex != widget.selectedIndex || 
+    if (oldWidget.selectedIndex != widget.selectedIndex ||
         oldWidget.displayDate != widget.displayDate ||
         oldWidget.ranges.length != widget.ranges.length) {
       if (oldWidget.ranges.length != widget.ranges.length) {
         _updateKeys();
       }
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelected(force: true));
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _scrollToSelected(force: true));
     }
   }
 
@@ -65,17 +66,22 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
   }
 
   void _scrollToSelected({bool force = false}) {
-    if (widget.selectedIndex == null || widget.selectedIndex! >= _keys.length) return;
+    if (widget.selectedIndex == null || widget.selectedIndex! >= _keys.length) {
+      return;
+    }
     final key = _keys[widget.selectedIndex!];
     final chipContext = key.currentContext;
     if (chipContext != null && _scrollController.hasClients) {
       final renderBox = chipContext.findRenderObject() as RenderBox?;
-      final scrollRenderObject = _scrollController.position.context.storageContext.findRenderObject();
+      final scrollRenderObject =
+          _scrollController.position.context.storageContext.findRenderObject();
       if (renderBox != null && scrollRenderObject != null) {
-        final position = renderBox.localToGlobal(Offset.zero, ancestor: scrollRenderObject);
+        final position =
+            renderBox.localToGlobal(Offset.zero, ancestor: scrollRenderObject);
         final currentScroll = _scrollController.offset;
-        final targetOffset = currentScroll + position.dx - DesignConstants.cardPaddingInternal;
-        
+        final targetOffset =
+            currentScroll + position.dx - DesignConstants.cardPaddingInternal;
+
         _scrollController.animateTo(
           targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
           duration: const Duration(milliseconds: 250),
@@ -108,7 +114,7 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
           children: List.generate(widget.ranges.length, (index) {
             final range = widget.ranges[index];
             final isSelected = widget.selectedIndex == index;
-            
+
             Widget chip;
             if (isSelected) {
               chip = Padding(
@@ -117,11 +123,13 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                   height: 32, // Strictly match default ChoiceChip height
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary, // App primary color
-                    borderRadius: BorderRadius.circular(100), // Perfect circular pill edges
+                    borderRadius: BorderRadius.circular(
+                        100), // Perfect circular pill edges
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch, // Ensure inkwells fill the 32px height
+                    crossAxisAlignment: CrossAxisAlignment
+                        .stretch, // Ensure inkwells fill the 32px height
                     children: [
                       // Left Side: Block label
                       Padding(
@@ -135,17 +143,18 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                           ),
                         ),
                       ),
-                      
+
                       // Center Divider
                       if (widget.showDateNavigation) ...[
                         Center(
                           child: Container(
                             width: 1,
                             height: 16,
-                            color: theme.colorScheme.onPrimary.withValues(alpha: 0.3),
+                            color: theme.colorScheme.onPrimary
+                                .withValues(alpha: 0.3),
                           ),
                         ),
-                        
+
                         // Navigation
                         InkWell(
                           key: const Key('time-range-prev'),
@@ -154,19 +163,22 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Center(
                               child: Icon(
-                                LucideIcons.chevron_left, 
+                                LucideIcons.chevron_left,
                                 size: 16,
-                                color: widget.onPrevious != null ? theme.colorScheme.onPrimary : theme.disabledColor,
+                                color: widget.onPrevious != null
+                                    ? theme.colorScheme.onPrimary
+                                    : theme.disabledColor,
                               ),
                             ),
                           ),
                         ),
-                        
+
                         if (widget.displayDate != null)
                           InkWell(
                             onTap: widget.onTapDateDisplay,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
                               child: Center(
                                 child: Text(
                                   widget.displayDate!,
@@ -178,18 +190,22 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                               ),
                             ),
                           ),
-                          
+
                         InkWell(
                           key: const Key('time-range-next'),
                           onTap: widget.nextEnabled ? widget.onNext : null,
-                          borderRadius: const BorderRadius.horizontal(right: Radius.circular(100)),
+                          borderRadius: const BorderRadius.horizontal(
+                              right: Radius.circular(100)),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Center(
                               child: Icon(
-                                LucideIcons.chevron_right, 
+                                LucideIcons.chevron_right,
                                 size: 16,
-                                color: widget.nextEnabled && widget.onNext != null ? theme.colorScheme.onPrimary : theme.disabledColor,
+                                color:
+                                    widget.nextEnabled && widget.onNext != null
+                                        ? theme.colorScheme.onPrimary
+                                        : theme.disabledColor,
                               ),
                             ),
                           ),

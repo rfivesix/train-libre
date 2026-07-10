@@ -197,12 +197,14 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
               final displayName = fi != null
                   ? (() {
                       final themeService = Provider.of<ThemeService>(context);
-                      final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                      final baseFoodLang =
+                          BaseFoodLanguageService.resolveLanguageCode(
                         choice: themeService.baseFoodLanguage,
                         context: context,
                       );
                       return fi.source == FoodItemSource.base
-                          ? fi.getLocalizedName(context, languageCode: baseFoodLang)
+                          ? fi.getLocalizedName(context,
+                              languageCode: baseFoodLang)
                           : fi.getLocalizedName(context);
                     })()
                   : bc;

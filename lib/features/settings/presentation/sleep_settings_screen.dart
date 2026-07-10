@@ -66,8 +66,6 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
     await _sleepPermissionController.refresh();
   }
 
-
-
   String _sleepStatusSubtitle(
     SleepPermissionStatus status,
     AppLocalizations l10n,
@@ -173,24 +171,31 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                           const SizedBox(height: 4),
                           Text(
                             permission.state == SleepPermissionState.ready
-                                ? (Platform.isIOS ? l10n.sleepDataStatusSubtitleIos : l10n.sleepDataStatusSubtitle)
-                                : (permission.state == SleepPermissionState.denied ||
-                                        permission.state == SleepPermissionState.partial
+                                ? (Platform.isIOS
+                                    ? l10n.sleepDataStatusSubtitleIos
+                                    : l10n.sleepDataStatusSubtitle)
+                                : (permission.state ==
+                                            SleepPermissionState.denied ||
+                                        permission.state ==
+                                            SleepPermissionState.partial
                                     ? l10n.sleepNoPermissionSubtitle
                                     : l10n.sleepFeatureUnavailableSubtitle),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
                           ),
                         ],
                       ),
                       trailing: Icon(
                         permission.state == SleepPermissionState.ready
                             ? LucideIcons.circle_check
-                            : (permission.state == SleepPermissionState.denied ||
-                                    permission.state == SleepPermissionState.partial
+                            : (permission.state ==
+                                        SleepPermissionState.denied ||
+                                    permission.state ==
+                                        SleepPermissionState.partial
                                 ? LucideIcons.chevron_right
                                 : _sleepStatusIcon(permission.state)),
                         color: _sleepStatusColor(context, permission.state),
@@ -198,7 +203,8 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                       onTap: (permission.state == SleepPermissionState.denied ||
                               permission.state == SleepPermissionState.partial)
                           ? () async {
-                              await _sleepPermissionController.requestAccess(context);
+                              await _sleepPermissionController
+                                  .requestAccess(context);
                               if (!mounted) return;
                               setState(() {});
                             }

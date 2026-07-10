@@ -38,11 +38,11 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
   void initState() {
     super.initState();
     _trackingService = widget._trackingService ?? PulseTrackingService();
-    _permissionController = SleepPermissionController(
-      Platform.isIOS
-          ? const HealthKitSleepPermissionsService(HealthKitSleepMethodChannelBridge())
-          : const HealthConnectSleepPermissionsService(HealthConnectSleepMethodChannelBridge())
-    );
+    _permissionController = SleepPermissionController(Platform.isIOS
+        ? const HealthKitSleepPermissionsService(
+            HealthKitSleepMethodChannelBridge())
+        : const HealthConnectSleepPermissionsService(
+            HealthConnectSleepMethodChannelBridge()));
     _load();
   }
 
@@ -148,16 +148,21 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                           const SizedBox(height: 4),
                           Text(
                             permission.state == SleepPermissionState.ready
-                                ? (Platform.isIOS ? l10n.sleepDataStatusSubtitleIos : l10n.sleepDataStatusSubtitle)
-                                : (permission.state == SleepPermissionState.denied ||
-                                        permission.state == SleepPermissionState.partial
+                                ? (Platform.isIOS
+                                    ? l10n.sleepDataStatusSubtitleIos
+                                    : l10n.sleepDataStatusSubtitle)
+                                : (permission.state ==
+                                            SleepPermissionState.denied ||
+                                        permission.state ==
+                                            SleepPermissionState.partial
                                     ? l10n.sleepNoPermissionSubtitle
                                     : l10n.sleepFeatureUnavailableSubtitle),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
                           ),
                         ],
                       ),
@@ -170,8 +175,10 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                           : Icon(
                               permission.state == SleepPermissionState.ready
                                   ? LucideIcons.circle_check
-                                  : (permission.state == SleepPermissionState.denied ||
-                                          permission.state == SleepPermissionState.partial
+                                  : (permission.state ==
+                                              SleepPermissionState.denied ||
+                                          permission.state ==
+                                              SleepPermissionState.partial
                                       ? LucideIcons.chevron_right
                                       : _statusIcon(permission.state)),
                               color: _statusColor(context, permission.state),

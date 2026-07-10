@@ -54,9 +54,8 @@ class CalculateDailyNutritionUseCase {
     );
 
     // Workout Summary
-    final completedLogs = workoutLogs
-        .where((log) => log.endTime != null)
-        .toList();
+    final completedLogs =
+        workoutLogs.where((log) => log.endTime != null).toList();
     Map<String, dynamic>? workoutSummary;
     if (completedLogs.isNotEmpty) {
       Duration totalDuration = Duration.zero;

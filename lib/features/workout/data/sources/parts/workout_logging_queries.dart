@@ -183,16 +183,16 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
         await (dbInstance.update(dbInstance.setLogs)
               ..where((tbl) => tbl.localId.equals(s.id!)))
             .write(db.SetLogsCompanion(
-              weight: drift.Value(s.weightKg),
-              reps: drift.Value(s.reps),
-              isCompleted: drift.Value(s.isCompleted ?? false),
-              notes: drift.Value(s.notes),
-              rir: drift.Value(s.rir),
-              setType: drift.Value(s.setType),
-              logOrder: drift.Value(s.logOrder ?? 0),
-              distance: drift.Value(s.distanceKm),
-              durationSeconds: drift.Value(s.durationSeconds),
-            ));
+          weight: drift.Value(s.weightKg),
+          reps: drift.Value(s.reps),
+          isCompleted: drift.Value(s.isCompleted ?? false),
+          notes: drift.Value(s.notes),
+          rir: drift.Value(s.rir),
+          setType: drift.Value(s.setType),
+          logOrder: drift.Value(s.logOrder ?? 0),
+          distance: drift.Value(s.distanceKm),
+          durationSeconds: drift.Value(s.durationSeconds),
+        ));
       }
     }
   }

@@ -1,4 +1,5 @@
-import '../../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -436,21 +437,29 @@ class LiveWorkoutSetRow extends StatelessWidget {
               ),
             ),
             enabled: !isCompleted,
-            onTap: (isCardio && !isCompleted) ? () async {
-              final currentSeconds = manager.setLogs[templateId]?.durationSeconds ?? 0;
-              final newDuration = await adaptive_pickers.showAdaptiveDurationPicker(
-                context: context,
-                initialDuration: Duration(seconds: currentSeconds),
-              );
-              if (newDuration != null) {
-                final seconds = newDuration.inSeconds;
-                final clearDuration = seconds == 0;
-                if (seconds != manager.setLogs[templateId]?.durationSeconds || clearDuration) {
-                  manager.repsControllers[templateId]?.text = formatPauseDuration(seconds);
-                  manager.updateSet(templateId, duration: seconds, clearDuration: clearDuration);
-                }
-              }
-            } : null,
+            onTap: (isCardio && !isCompleted)
+                ? () async {
+                    final currentSeconds =
+                        manager.setLogs[templateId]?.durationSeconds ?? 0;
+                    final newDuration =
+                        await adaptive_pickers.showAdaptiveDurationPicker(
+                      context: context,
+                      initialDuration: Duration(seconds: currentSeconds),
+                    );
+                    if (newDuration != null) {
+                      final seconds = newDuration.inSeconds;
+                      final clearDuration = seconds == 0;
+                      if (seconds !=
+                              manager.setLogs[templateId]?.durationSeconds ||
+                          clearDuration) {
+                        manager.repsControllers[templateId]?.text =
+                            formatPauseDuration(seconds);
+                        manager.updateSet(templateId,
+                            duration: seconds, clearDuration: clearDuration);
+                      }
+                    }
+                  }
+                : null,
             onChanged: (text) {
               if (isCardio) {
                 final seconds = parsePauseDuration(text);
@@ -596,7 +605,12 @@ class LiveWorkoutSetRow extends StatelessWidget {
     final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
 
     final bool hasPR = isCompleted &&
-        (log.isMaxWeightPR || log.isMaxVolumePR || log.isMaxEst1RMPR || log.isMaxDistancePR || log.isMaxDurationPR || log.isFastestPacePR);
+        (log.isMaxWeightPR ||
+            log.isMaxVolumePR ||
+            log.isMaxEst1RMPR ||
+            log.isMaxDistancePR ||
+            log.isMaxDurationPR ||
+            log.isFastestPacePR);
 
     final rowWithSubInfo = Column(
       children: [

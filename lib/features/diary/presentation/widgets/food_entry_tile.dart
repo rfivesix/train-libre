@@ -83,8 +83,7 @@ class FoodEntryTile extends StatelessWidget {
           Navigator.of(context)
               .push(
             MaterialPageRoute(
-              builder: (context) =>
-                  FoodDetailScreen(trackedItem: trackedItem),
+              builder: (context) => FoodDetailScreen(trackedItem: trackedItem),
             ),
           )
               .then((_) {

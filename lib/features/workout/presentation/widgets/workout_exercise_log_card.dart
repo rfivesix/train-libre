@@ -100,7 +100,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                             exercise?.getLocalizedName(context) ?? exerciseName,
                             style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isDraggedItem ? Theme.of(context).colorScheme.primary : null,
+                              color: isDraggedItem
+                                  ? Theme.of(context).colorScheme.primary
+                                  : null,
                             ),
                           ),
                         ),
@@ -124,7 +126,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                         exercise?.getLocalizedName(context) ?? exerciseName,
                         style: textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isDraggedItem ? Theme.of(context).colorScheme.primary : null,
+                          color: isDraggedItem
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
                         ),
                       ),
                     ),
@@ -169,7 +173,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                             bottom: 12.0,
                           ),
                           child: InkWell(
-                            onTap: isEditMode ? () => onEditNotes(exerciseName) : null,
+                            onTap: isEditMode
+                                ? () => onEditNotes(exerciseName)
+                                : null,
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
                               width: double.infinity,
@@ -193,15 +199,18 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                   Icon(
                                     LucideIcons.file_text,
                                     size: 16,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       exerciseNote!,
                                       style: textTheme.bodyMedium?.copyWith(
-                                        color:
-                                            Theme.of(context).colorScheme.onSurfaceVariant,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
                                       ),
                                     ),
                                   ),
@@ -221,12 +230,15 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                               Row(
                                 children: [
                                   _buildHeader(l10n.setLabel, flex: 2),
-                                  _buildHeader(l10n.cardioDistanceLabel, flex: 4),
+                                  _buildHeader(l10n.cardioDistanceLabel,
+                                      flex: 4),
                                   const SizedBox(width: 8),
                                   _buildHeader(l10n.cardioTimeLabel, flex: 4),
                                   const SizedBox(width: 8),
-                                  _buildHeader(l10n.cardioIntensityShortLabel, flex: 2),
-                                  const SizedBox(width: 48), // Space for check/delete
+                                  _buildHeader(l10n.cardioIntensityShortLabel,
+                                      flex: 2),
+                                  const SizedBox(
+                                      width: 48), // Space for check/delete
                                 ],
                               )
                             else
@@ -251,7 +263,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                               final rowIndex = setEntry.key;
                               int workingSetIndex = 0;
                               for (int i = 0; i <= rowIndex; i++) {
-                                if (sets[i].setType != 'warmup') workingSetIndex++;
+                                if (sets[i].setType != 'warmup') {
+                                  workingSetIndex++;
+                                }
                               }
 
                               return WorkoutLogSetRow(
@@ -271,7 +285,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
 
                             if (isEditMode)
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0),
                                 child: TextButton.icon(
                                   onPressed: onAddSet,
                                   icon: const Icon(LucideIcons.plus),

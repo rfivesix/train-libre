@@ -46,7 +46,8 @@ class ShareCardRenderer {
     List<MuscleVolumeSummary> muscleSummaries = const <MuscleVolumeSummary>[],
     Map<String, Exercise> exerciseDetails = const {},
   }) {
-    final formatter = WorkoutShareFormatter(labels, locale: locale, exerciseDetails: exerciseDetails);
+    final formatter = WorkoutShareFormatter(labels,
+        locale: locale, exerciseDetails: exerciseDetails);
     final stats = formatter.stats(workout);
     final child = switch (layout) {
       WorkoutShareCardLayout.summary => _WorkoutSummaryCard(

@@ -309,14 +309,17 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
           (widget.usesExternalData ? null : _dataPoints.first.value),
     );
 
-    double minVal = _dataPoints.map((p) => _displayValue(p.value)).reduce(math.min);
-    double maxVal = _dataPoints.map((p) => _displayValue(p.value)).reduce(math.max);
+    double minVal =
+        _dataPoints.map((p) => _displayValue(p.value)).reduce(math.min);
+    double maxVal =
+        _dataPoints.map((p) => _displayValue(p.value)).reduce(math.max);
     if (referenceLineValue != null) {
       minVal = math.min(minVal, referenceLineValue);
       maxVal = math.max(maxVal, referenceLineValue);
     }
     final double yRange = maxVal - minVal;
-    final double yPadding = yRange > 0 ? yRange * 0.2 : (minVal == 0 ? 1.0 : minVal * 0.2).abs();
+    final double yPadding =
+        yRange > 0 ? yRange * 0.2 : (minVal == 0 ? 1.0 : minVal * 0.2).abs();
     final double yMin = minVal - yPadding;
     final double yMax = maxVal + yPadding;
 
@@ -413,16 +416,14 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                         ];
                         final textWidget = Text(
                           value.toStringAsFixed(0),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.6),
-                                shadows: hardShadows,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
+                                    shadows: hardShadows,
+                                  ),
                           textAlign: TextAlign.right,
                         );
 
@@ -465,12 +466,13 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                           ),
                           child: Text(
                             axisLabelFor(date),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.6),
+                                    ),
                           ),
                         );
                       },

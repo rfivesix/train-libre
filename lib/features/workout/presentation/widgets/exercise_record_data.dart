@@ -5,7 +5,7 @@ class ExerciseRecordData {
   final double valueKg;
   final double? diffKg;
   final int fractionDigits;
-  
+
   final String? valueStr;
   final String? diffStr;
   final bool isCardio;
@@ -15,18 +15,25 @@ class ExerciseRecordData {
     required this.valueKg,
     this.diffKg,
     this.fractionDigits = 1,
-  }) : valueStr = null, diffStr = null, isCardio = false;
-  
+  })  : valueStr = null,
+        diffStr = null,
+        isCardio = false;
+
   const ExerciseRecordData.cardio({
     required this.label,
     required String value,
     String? diff,
-  }) : valueKg = 0, diffKg = null, fractionDigits = 1, valueStr = value, diffStr = diff, isCardio = true;
+  })  : valueKg = 0,
+        diffKg = null,
+        fractionDigits = 1,
+        valueStr = value,
+        diffStr = diff,
+        isCardio = true;
 
   String format(UnitService unitService) {
     if (isCardio) {
-       final diffText = diffStr == null ? '' : ' ($diffStr)';
-       return '$label ($valueStr$diffText)';
+      final diffText = diffStr == null ? '' : ' ($diffStr)';
+      return '$label ($valueStr$diffText)';
     }
 
     final value = unitService.convertDisplayValue(

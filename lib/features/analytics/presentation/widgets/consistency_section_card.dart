@@ -75,7 +75,8 @@ class ConsistencySectionCard extends StatelessWidget {
               AnalyticsCardBase.buildHeaderWithChevron(
                 context,
                 label: title,
-                chipText: chipText ?? _fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks),
+                chipText: chipText ??
+                    _fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks),
               ),
               const SizedBox(height: DesignConstants.spacingXS),
               Text(

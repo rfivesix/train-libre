@@ -214,6 +214,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     notifyListeners();
     loadHubAnalytics();
   }
+
   TimeframeBlock get activeBlockType => _activeBlockType;
 
   DateTime _anchorDate = DateTime.now();
@@ -237,11 +238,12 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
   void shiftTimeframe(bool backwards) {
     if (_activeBlockType == TimeframeBlock.maxBlock) return;
-    
+
     final now = DateTime.now();
     final currentBounds = _activeBlockType.getBounds(now, DateTime(2020));
     final myBounds = _activeBlockType.getBounds(_anchorDate, DateTime(2020));
-    final isOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(currentBounds.start);
+    final isOngoing =
+        !_isRolling && myBounds.start.isAtSameMomentAs(currentBounds.start);
 
     if (backwards) {
       if (isOngoing && _activeBlockType != TimeframeBlock.day) {
@@ -258,9 +260,11 @@ class StatisticsHubViewModel extends ChangeNotifier {
         _anchorDate = now;
       } else {
         final previousAnchor = _activeBlockType.shift(now, -1);
-        final previousBounds = _activeBlockType.getBounds(previousAnchor, DateTime(2020));
-        final isPreviousToOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(previousBounds.start);
-        
+        final previousBounds =
+            _activeBlockType.getBounds(previousAnchor, DateTime(2020));
+        final isPreviousToOngoing = !_isRolling &&
+            myBounds.start.isAtSameMomentAs(previousBounds.start);
+
         if (isPreviousToOngoing && _activeBlockType != TimeframeBlock.day) {
           _isRolling = true;
         } else {
@@ -268,7 +272,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
         }
       }
     }
-    
+
     notifyListeners();
     loadHubAnalytics();
   }
@@ -924,7 +928,8 @@ class StatisticsHubViewModel extends ChangeNotifier {
     int generation,
   ) async {
     final stopwatch = Stopwatch()..start();
-    final rangeLabel = _activeBlockType == TimeframeBlock.maxBlock ? 'All' : 'block';
+    final rangeLabel =
+        _activeBlockType == TimeframeBlock.maxBlock ? 'All' : 'block';
     try {
       final data = await _hubDataAdapter.fetchBodyNutrition(
         selectedBlockType: _activeBlockType,
@@ -979,13 +984,18 @@ class StatisticsHubViewModel extends ChangeNotifier {
   }
 
   Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)>
-      _fetchHubAnalytics({required TimeframeBlock selectedBlockType, required DateTime anchorDate, bool isRolling = false}) {
+      _fetchHubAnalytics(
+          {required TimeframeBlock selectedBlockType,
+          required DateTime anchorDate,
+          bool isRolling = false}) {
     final override = _fetchHubAnalyticsOverride;
     if (override != null) {
       return override(selectedBlockType, anchorDate, isRolling);
     }
     return _hubDataAdapter.fetch(
-      selectedBlockType: selectedBlockType, anchorDate: anchorDate, isRolling: isRolling,
+      selectedBlockType: selectedBlockType,
+      anchorDate: anchorDate,
+      isRolling: isRolling,
     );
   }
 

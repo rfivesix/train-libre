@@ -71,8 +71,9 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
 
   String? _rangeDisplayLabel(AppLocalizations l10n) {
     if (_activeBlock == TimeframeBlock.maxBlock) return l10n.filterMax;
-    if (_isRolling)
+    if (_isRolling) {
       return TimeframeLabelFormatter.formatRolling(_activeBlock, l10n);
+    }
     return TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
   }
 

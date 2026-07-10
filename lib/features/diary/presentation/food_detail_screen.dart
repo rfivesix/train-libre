@@ -142,9 +142,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         'name_de': _deCtrl.text.trim(),
         'name_en': _enCtrl.text.trim().isEmpty ? null : _enCtrl.text.trim(),
         'name': _deCtrl.text.trim(),
-        'category_key': _catCtrl.text.trim().isEmpty
-            ? null
-            : _catCtrl.text.trim(),
+        'category_key':
+            _catCtrl.text.trim().isEmpty ? null : _catCtrl.text.trim(),
         // Nutrients
         'calories_100g': int.tryParse(_calCtrl.text.trim()),
         'protein_100g': double.tryParse(_proCtrl.text.trim()),
@@ -542,9 +541,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   final themeService = Provider.of<ThemeService>(context);
                   final baseFoodLang =
                       BaseFoodLanguageService.resolveLanguageCode(
-                        choice: themeService.baseFoodLanguage,
-                        context: context,
-                      );
+                    choice: themeService.baseFoodLanguage,
+                    context: context,
+                  );
                   return _displayItem.source == FoodItemSource.base
                       ? _displayItem.getLocalizedName(
                           context,
@@ -857,29 +856,29 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   // ---------- DEV: small helper inputs ----------
 
   Widget _row(String label, TextEditingController c) => TextField(
-    controller: c,
-    decoration: InputDecoration(
-      labelText: label,
-      border: const OutlineInputBorder(),
-      isDense: true,
-    ),
-  );
+        controller: c,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          isDense: true,
+        ),
+      );
 
   Widget _num(String label, TextEditingController c) => SizedBox(
-    width: 160,
-    child: TextField(
-      controller: c,
-      keyboardType: const TextInputType.numberWithOptions(
-        decimal: true,
-        signed: false,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        isDense: true,
-      ),
-    ),
-  );
+        width: 160,
+        child: TextField(
+          controller: c,
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
+            signed: false,
+          ),
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+      );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

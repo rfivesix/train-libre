@@ -5,7 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AppReviewService {
   AppReviewService._privateConstructor();
-  static final AppReviewService instance = AppReviewService._privateConstructor();
+  static final AppReviewService instance =
+      AppReviewService._privateConstructor();
 
   static const String _firstLaunchDateKey = 'first_app_launch_date';
   static const String _hasRequestedReviewKey = 'has_requested_app_review';
@@ -16,12 +17,13 @@ class AppReviewService {
 
       final prefs = await SharedPreferences.getInstance();
       final hasRequested = prefs.getBool(_hasRequestedReviewKey) ?? false;
-      
+
       if (hasRequested) return;
 
       final firstLaunchString = prefs.getString(_firstLaunchDateKey);
       if (firstLaunchString == null) {
-        await prefs.setString(_firstLaunchDateKey, DateTime.now().toIso8601String());
+        await prefs.setString(
+            _firstLaunchDateKey, DateTime.now().toIso8601String());
         return;
       }
 

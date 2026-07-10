@@ -19,10 +19,10 @@ extension TimeframeBlockExtension on TimeframeBlock {
         end: DateTime(now.year, now.month, now.day, 23, 59, 59),
       );
     }
-    
+
     DateTime start;
     DateTime end;
-    
+
     switch (this) {
       case TimeframeBlock.day:
         start = anchor;
@@ -57,7 +57,7 @@ extension TimeframeBlockExtension on TimeframeBlock {
       default:
         throw Exception("Unknown block");
     }
-    
+
     return DateTimeRange(
       start: DateTime(start.year, start.month, start.day),
       end: DateTime(end.year, end.month, end.day, 23, 59, 59),
@@ -124,10 +124,10 @@ extension TimeframeBlockExtension on TimeframeBlock {
     if (this == TimeframeBlock.day) {
       return getBounds(now, DateTime(2020));
     }
-    
+
     final duration = Duration(days: rollingDurationDays);
     final start = now.subtract(duration);
-    
+
     return DateTimeRange(
       start: DateTime(start.year, start.month, start.day),
       end: now,

@@ -661,7 +661,8 @@ void main() {
           recommendation: _recommendationForDueWeek('2026-03-30'),
           maintenanceEstimate: _estimateForDueWeek('2026-03-30'),
           dueWeekKey: '2026-03-30',
-          algorithmVersion: AdaptiveNutritionRecommendationService.algorithmVersion,
+          algorithmVersion:
+              AdaptiveNutritionRecommendationService.algorithmVersion,
         ),
       );
 

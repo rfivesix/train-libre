@@ -57,17 +57,17 @@ class FluidEntryTile extends StatelessWidget {
       },
       child: ListTile(
         contentPadding: EdgeInsets.zero,
-          title: Text(entry.name, style: theme.textTheme.titleMedium),
-          subtitle: Text(
-            '${entry.quantityInMl}${l10n.unit_milliliters} • ${l10n.sugar}: $totalSugar${l10n.unit_grams} • ${l10n.supplement_caffeine}: $totalCaffeine${l10n.unit_milligrams}',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodySmall?.color,
-            ),
+        title: Text(entry.name, style: theme.textTheme.titleMedium),
+        subtitle: Text(
+          '${entry.quantityInMl}${l10n.unit_milliliters} • ${l10n.sugar}: $totalSugar${l10n.unit_grams} • ${l10n.supplement_caffeine}: $totalCaffeine${l10n.unit_milligrams}',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.textTheme.bodySmall?.color,
           ),
-          trailing: Text(
-            '${entry.kcal ?? 0} ${l10n.unit_kcal}',
-            style: theme.textTheme.labelLarge,
-          ),
+        ),
+        trailing: Text(
+          '${entry.kcal ?? 0} ${l10n.unit_kcal}',
+          style: theme.textTheme.labelLarge,
+        ),
         onTap: () => onEdit(entry),
       ),
     );

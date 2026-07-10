@@ -169,8 +169,9 @@ class StatisticsRangePolicyService {
             end: _endOfDay(anchor),
           );
         }
-        
-        if (policy.semantics == StatisticsRangeSemantics.capped && policy.capDays != null) {
+
+        if (policy.semantics == StatisticsRangeSemantics.capped &&
+            policy.capDays != null) {
           if (days > policy.capDays!) {
             days = policy.capDays;
             dateRange = DateTimeRange(

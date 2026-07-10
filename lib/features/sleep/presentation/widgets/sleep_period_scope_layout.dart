@@ -7,7 +7,8 @@ import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/common.dart';
 import '../../../../widgets/common/global_app_bar.dart';
 import '../../../../widgets/common/algorithm_info_sheet.dart';
-import '../../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../../statistics/domain/timeframe_block.dart';
 
 enum SleepPeriodScope { day, week, month }
@@ -88,9 +89,13 @@ class SleepPeriodScopeLayout extends StatelessWidget {
                 onScopeChanged(SleepPeriodScope.values[index]),
             onPrevious: () => onShiftPeriod(-1),
             onNext: () => onShiftPeriod(1),
-            displayDate: isRolling ? TimeframeLabelFormatter.formatRolling(selectedScope.block, l10n) : _periodLabel(localeCode),
+            displayDate: isRolling
+                ? TimeframeLabelFormatter.formatRolling(
+                    selectedScope.block, l10n)
+                : _periodLabel(localeCode),
             onTapDateDisplay: () async {
-              final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+              final selected =
+                  await adaptive_pickers.showAdaptiveTimeframePicker(
                 context: context,
                 activeBlock: selectedScope.block,
                 initialAnchor: anchorDate,
@@ -101,7 +106,12 @@ class SleepPeriodScopeLayout extends StatelessWidget {
                 onAnchorChanged(selected);
               }
             },
-            nextEnabled: isRolling ? false : selectedScope.block.getBounds(anchorDate, DateTime(2020)).end.isBefore(DateTime.now()),
+            nextEnabled: isRolling
+                ? false
+                : selectedScope.block
+                    .getBounds(anchorDate, DateTime(2020))
+                    .end
+                    .isBefore(DateTime.now()),
           ),
           const SizedBox(height: DesignConstants.spacingS),
           child,

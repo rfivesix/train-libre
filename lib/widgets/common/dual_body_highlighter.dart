@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
 /// A standardized dual-silhouette body highlighter (front and back).
-/// 
+///
 /// Displays the front and back body models side-by-side with equal sizing
 /// and no labels or dividers to adhere to the "Anti-Slop" design system.
 class DualBodyHighlighter extends StatelessWidget {

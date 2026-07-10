@@ -8,7 +8,8 @@ import '../../domain/models/set_template.dart';
 import 'set_type_chip.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
-import '../../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 
 class RoutineSetRowWidget extends StatelessWidget {
   final int setIndex;
@@ -107,17 +108,22 @@ class RoutineSetRowWidget extends StatelessWidget {
                     fillColor: Colors.transparent,
                     hintText: "00:00",
                   ),
-                  onTap: (isCardio && isEditMode) ? () async {
-                    final currentSeconds = parsePauseDuration(repsController.text) ?? 0;
-                    final newDuration = await adaptive_pickers.showAdaptiveDurationPicker(
-                      context: context,
-                      initialDuration: Duration(seconds: currentSeconds),
-                    );
-                    if (newDuration != null) {
-                      final seconds = newDuration.inSeconds;
-                      repsController.text = seconds > 0 ? formatPauseDuration(seconds) : "";
-                    }
-                  } : null,
+                  onTap: (isCardio && isEditMode)
+                      ? () async {
+                          final currentSeconds =
+                              parsePauseDuration(repsController.text) ?? 0;
+                          final newDuration =
+                              await adaptive_pickers.showAdaptiveDurationPicker(
+                            context: context,
+                            initialDuration: Duration(seconds: currentSeconds),
+                          );
+                          if (newDuration != null) {
+                            final seconds = newDuration.inSeconds;
+                            repsController.text =
+                                seconds > 0 ? formatPauseDuration(seconds) : "";
+                          }
+                        }
+                      : null,
                 ),
               ),
               const SizedBox(width: 8),
@@ -156,9 +162,11 @@ class RoutineSetRowWidget extends StatelessWidget {
                     border: InputBorder.none,
                     isDense: true,
                     fillColor: Colors.transparent,
-                    hintText: isEditMode ? context
-                        .read<UnitService>()
-                        .suffixFor(UnitDimension.weight) : "-",
+                    hintText: isEditMode
+                        ? context
+                            .read<UnitService>()
+                            .suffixFor(UnitDimension.weight)
+                        : "-",
                   ),
                 ),
               ),
@@ -204,13 +212,15 @@ class RoutineSetRowWidget extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8.0),
               child: SizedBox(
                 width: 48,
-                child: isEditMode ? IconButton(
-                  icon: const Icon(
-                    LucideIcons.trash_2,
-                    color: Colors.redAccent,
-                  ),
-                  onPressed: onRemoveSet,
-                ) : const SizedBox(width: 48, height: 48),
+                child: isEditMode
+                    ? IconButton(
+                        icon: const Icon(
+                          LucideIcons.trash_2,
+                          color: Colors.redAccent,
+                        ),
+                        onPressed: onRemoveSet,
+                      )
+                    : const SizedBox(width: 48, height: 48),
               ),
             ),
           ],

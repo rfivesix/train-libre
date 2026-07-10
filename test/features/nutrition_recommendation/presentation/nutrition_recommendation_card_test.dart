@@ -584,8 +584,11 @@ void main() {
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
 
-    expect(find.text(l10n.adaptiveRecommendationEnergyDensityLabel.toUpperCase()), findsOneWidget);
-    expect(find.text(l10n.adaptiveRecommendationEnergyDensityValue(5938)), findsOneWidget);
+    expect(
+        find.text(l10n.adaptiveRecommendationEnergyDensityLabel.toUpperCase()),
+        findsOneWidget);
+    expect(find.text(l10n.adaptiveRecommendationEnergyDensityValue(5938)),
+        findsOneWidget);
     expect(
       find.text(l10n.adaptiveRecommendationEnergyDensityExplanation),
       findsOneWidget,

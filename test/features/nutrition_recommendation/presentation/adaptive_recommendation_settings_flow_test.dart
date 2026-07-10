@@ -331,7 +331,8 @@ void main() {
       final goalsDropdown =
           find.byKey(const Key('goals_prior_activity_dropdown'));
       expect(goalsDropdown, findsOneWidget);
-      await Scrollable.ensureVisible(tester.element(goalsDropdown), alignment: 0.5);
+      await Scrollable.ensureVisible(tester.element(goalsDropdown),
+          alignment: 0.5);
       await tester.pumpAndSettle();
       await tester.tap(goalsDropdown);
       await tester.pumpAndSettle();

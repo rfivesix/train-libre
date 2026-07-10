@@ -170,8 +170,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                           title: a.label,
                           subtitle: a.subtitle,
                           onTap: () {
-                            HapticFeedbackService.instance
-                                .selectionFeedback();
+                            HapticFeedbackService.instance.selectionFeedback();
                             Navigator.of(context).maybePop();
                             WidgetsBinding.instance.addPostFrameCallback(
                               (_) => a.onTap(),
@@ -227,7 +226,8 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: neutralTint,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(r)),
                       ),
                     ),
                   ),
@@ -236,7 +236,8 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                       painter: GlassBorderPainter(
                         color: isDark
                             ? Colors.white.withValues(alpha: 0.15)
-                            : theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                            : theme.colorScheme.onSurface
+                                .withValues(alpha: 0.08),
                         radius: r,
                         strokeWidth: 1.5,
                         bottomPadding: bottomInset,

@@ -23,8 +23,7 @@ class SupplementHubScreen extends StatefulWidget {
   const SupplementHubScreen({super.key, this.repository});
 
   @override
-  State<SupplementHubScreen> createState() =>
-      _SupplementHubScreenState();
+  State<SupplementHubScreen> createState() => _SupplementHubScreenState();
 }
 
 class _SupplementHubScreenState extends State<SupplementHubScreen> {
@@ -81,11 +80,11 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Padding(
-                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                     child: Text(
-                       l10n.deleteSupplementConfirm,
-                       textAlign: TextAlign.center,
-                     ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      l10n.deleteSupplementConfirm,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -208,25 +207,25 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
         isEmpty: _supplements.isEmpty,
         extendBodyBehindAppBar: true,
         child: RefreshIndicator(
-                onRefresh: _load,
-                child: ListView(
-                  padding: DesignConstants.cardPadding.copyWith(
-                    top: DesignConstants.cardPadding.top + topPadding,
+          onRefresh: _load,
+          child: ListView(
+            padding: DesignConstants.cardPadding.copyWith(
+              top: DesignConstants.cardPadding.top + topPadding,
+            ),
+            children: [
+              if (_supplements.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text(
+                    l10n.emptySupplements,
+                    textAlign: TextAlign.center,
                   ),
-                  children: [
-                    if (_supplements.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        child: Text(
-                          l10n.emptySupplements,
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    else
-                      ..._supplements.map((s) => _tile(s, l10n)),
-                  ],
-                ),
-              ),
+                )
+              else
+                ..._supplements.map((s) => _tile(s, l10n)),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: GlassFab(
         label: l10n.createSupplementTitle,

@@ -30,7 +30,8 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
 
   String? _selectedCategory;
   bool get _isReadOnly => widget.exerciseToEdit?.source == 'wger';
-  bool get _isValid => _nameController.text.trim().isNotEmpty && _selectedCategory != null;
+  bool get _isValid =>
+      _nameController.text.trim().isNotEmpty && _selectedCategory != null;
 
   // Fallback lists if the DB is empty
   final List<String> _defaultCategories = [
@@ -214,7 +215,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
       ),
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,
-        isEmpty: false, 
+        isEmpty: false,
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
           padding: DesignConstants.cardPadding.copyWith(

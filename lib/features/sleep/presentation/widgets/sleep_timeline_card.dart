@@ -18,7 +18,8 @@ class SleepTimelineCard extends StatelessWidget {
     final chartSegments = _toChartSegments(overview.timelineSegments);
     if (chartSegments.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+        padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.cardPaddingInternal),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -41,7 +42,8 @@ class SleepTimelineCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+          padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.cardPaddingInternal),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

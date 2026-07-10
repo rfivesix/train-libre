@@ -105,7 +105,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         if (isCardio) {
           double totalDist = 0;
           int totalSeconds = 0;
-          
+
           double sessionMaxDist = 0;
           int sessionMaxDur = 0;
           double sessionFastestPace = double.infinity;
@@ -116,14 +116,14 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
             totalDist += dist;
             totalSeconds += dur;
-            
+
             if (s.isCompleted == true) {
-               if (dist > sessionMaxDist) sessionMaxDist = dist;
-               if (dur > sessionMaxDur) sessionMaxDur = dur;
-               if (dist > 0 && dur > 0) {
-                 final pace = dur / dist;
-                 if (pace < sessionFastestPace) sessionFastestPace = pace;
-               }
+              if (dist > sessionMaxDist) sessionMaxDist = dist;
+              if (dur > sessionMaxDur) sessionMaxDur = dur;
+              if (dist > 0 && dur > 0) {
+                final pace = dur / dist;
+                if (pace < sessionFastestPace) sessionFastestPace = pace;
+              }
             }
           }
           final int minutes = (totalSeconds / 60).round();
@@ -131,22 +131,25 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
             distanceKm: totalDist,
             minutes: minutes,
           );
-          
+
           // Calculate PRs for cardio exercises
           final historicalBests = await db.getExerciseBests(
             name,
             excludeWorkoutLogId: widget.logId,
             isCardio: true,
           );
-          
+
           List<ExerciseRecordData> records = [];
           if (sessionMaxDist > (historicalBests['maxDistance'] ?? 0)) {
             final double old = historicalBests['maxDistance'] ?? 0;
             records.add(
               ExerciseRecordData.cardio(
                 label: 'Best Distance', // Or localized label later
-                value: '${sessionMaxDist.toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km',
-                diff: old > 0 ? '+${(sessionMaxDist - old).toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km' : null,
+                value:
+                    '${sessionMaxDist.toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km',
+                diff: old > 0
+                    ? '+${(sessionMaxDist - old).toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km'
+                    : null,
               ),
             );
           }
@@ -154,15 +157,15 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
             final int old = historicalBests['maxDuration']?.toInt() ?? 0;
             final m = sessionMaxDur ~/ 60;
             final s = sessionMaxDur % 60;
-            
+
             String? diffStr;
             if (old > 0) {
-               final diff = sessionMaxDur - old;
-               final dm = diff ~/ 60;
-               final ds = diff % 60;
-               diffStr = '+${dm > 0 ? '${dm}m ' : ''}${ds}s';
+              final diff = sessionMaxDur - old;
+              final dm = diff ~/ 60;
+              final ds = diff % 60;
+              diffStr = '+${dm > 0 ? '${dm}m ' : ''}${ds}s';
             }
-            
+
             records.add(
               ExerciseRecordData.cardio(
                 label: 'Longest Duration',
@@ -172,29 +175,29 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
             );
           }
           if (sessionFastestPace != double.infinity) {
-             final oldFastest = historicalBests['fastestPace'] ?? 0.0;
-             if (oldFastest == 0.0 || sessionFastestPace < oldFastest) {
-                final pm = sessionFastestPace.toInt() ~/ 60;
-                final ps = sessionFastestPace.toInt() % 60;
-                
-                String? diffStr;
-                if (oldFastest > 0) {
-                   final diff = oldFastest - sessionFastestPace;
-                   final dm = diff.toInt() ~/ 60;
-                   final ds = diff.toInt() % 60;
-                   diffStr = '-${dm > 0 ? '${dm}m ' : ''}${ds}s';
-                }
-                
-                records.add(
-                  ExerciseRecordData.cardio(
-                    label: 'Fastest Pace',
-                    value: '${pm}m ${ps}s / km',
-                    diff: diffStr,
-                  ),
-                );
-             }
+            final oldFastest = historicalBests['fastestPace'] ?? 0.0;
+            if (oldFastest == 0.0 || sessionFastestPace < oldFastest) {
+              final pm = sessionFastestPace.toInt() ~/ 60;
+              final ps = sessionFastestPace.toInt() % 60;
+
+              String? diffStr;
+              if (oldFastest > 0) {
+                final diff = oldFastest - sessionFastestPace;
+                final dm = diff.toInt() ~/ 60;
+                final ds = diff.toInt() % 60;
+                diffStr = '-${dm > 0 ? '${dm}m ' : ''}${ds}s';
+              }
+
+              records.add(
+                ExerciseRecordData.cardio(
+                  label: 'Fastest Pace',
+                  value: '${pm}m ${ps}s / km',
+                  diff: diffStr,
+                ),
+              );
+            }
           }
-          
+
           if (records.isNotEmpty) {
             newRecordsMap[name] = records;
           }
@@ -938,4 +941,3 @@ class _ExerciseSummaryData {
     return '${volume.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)}';
   }
 }
-

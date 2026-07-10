@@ -137,12 +137,13 @@ class RecoverySectionCard extends StatelessWidget {
     required int count,
     required int total,
   }) {
-    final color = StatisticsPresentationFormatter.recoveryStateColor(context, state);
+    final color =
+        StatisticsPresentationFormatter.recoveryStateColor(context, state);
     final percent = total > 0 ? (count / total * 100).round() : 0;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
-    
+
     final surfaceBase = isDark
         ? DesignConstants.summaryCardDarkMode
         : theme.colorScheme.surface.withValues(alpha: 0.95);
@@ -182,7 +183,9 @@ class RecoverySectionCard extends StatelessWidget {
                 ),
                 const SizedBox(height: DesignConstants.spacingXS),
                 Text(
-                  StatisticsPresentationFormatter.recoveryStateLabel(l10n, state).toUpperCase(),
+                  StatisticsPresentationFormatter.recoveryStateLabel(
+                          l10n, state)
+                      .toUpperCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(
@@ -195,8 +198,7 @@ class RecoverySectionCard extends StatelessWidget {
                   '$percent%',
                   maxLines: 1,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: 0.55),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
                 ),
               ],

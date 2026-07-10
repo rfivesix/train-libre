@@ -13,7 +13,8 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/time_range_filter.dart';
 import '../../../util/timeframe_label_formatter.dart';
-import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../statistics/domain/timeframe_block.dart';
 
 import '../data/steps_aggregation_repository.dart';
@@ -45,7 +46,7 @@ class StepsModuleScreen extends StatefulWidget {
 
 class _StepsModuleScreenState extends State<StepsModuleScreen> {
   late final StepsAggregationRepository _repository;
-  
+
   TimeframeBlock _activeBlock = TimeframeBlock.day;
   DateTime _anchorDate = DateTime.now();
   bool _isRolling = false;
@@ -64,12 +65,17 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
 
   StepsScope get _scope {
     switch (_activeBlock) {
-      case TimeframeBlock.day: return StepsScope.day;
-      case TimeframeBlock.week: return StepsScope.week;
-      case TimeframeBlock.month: return StepsScope.month;
-      default: return StepsScope.day;
+      case TimeframeBlock.day:
+        return StepsScope.day;
+      case TimeframeBlock.week:
+        return StepsScope.week;
+      case TimeframeBlock.month:
+        return StepsScope.month;
+      default:
+        return StepsScope.day;
     }
   }
+
   bool _isLoading = true;
   DayStepsAggregation? _dayData;
   WeekStepsAggregation? _weekData;
@@ -83,13 +89,19 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
   void initState() {
     super.initState();
     _repository = widget.repository ?? HealthStepsAggregationRepository();
-    
+
     switch (widget.initialScope) {
-      case StepsScope.day: _activeBlock = TimeframeBlock.day; break;
-      case StepsScope.week: _activeBlock = TimeframeBlock.week; break;
-      case StepsScope.month: _activeBlock = TimeframeBlock.month; break;
+      case StepsScope.day:
+        _activeBlock = TimeframeBlock.day;
+        break;
+      case StepsScope.week:
+        _activeBlock = TimeframeBlock.week;
+        break;
+      case StepsScope.month:
+        _activeBlock = TimeframeBlock.month;
+        break;
     }
-    
+
     final seed = widget.initialDate ?? DateTime.now();
     _anchorDate = DateTime(seed.year, seed.month, seed.day);
     _loadScopeData();
@@ -191,7 +203,8 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
                 setState(() {
                   if (_isRolling) {
                     _isRolling = false;
-                    _anchorDate = DateTime.now(); // anchor at now gives the current static block
+                    _anchorDate = DateTime
+                        .now(); // anchor at now gives the current static block
                   } else {
                     _anchorDate = _activeBlock.shift(_anchorDate, -1);
                   }
@@ -205,9 +218,11 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
                 });
                 _loadScopeData();
               },
-              displayDate: TimeframeLabelFormatter.format(_activeBlock, _anchorDate, AppLocalizations.of(context)!),
+              displayDate: TimeframeLabelFormatter.format(
+                  _activeBlock, _anchorDate, AppLocalizations.of(context)!),
               onTapDateDisplay: () async {
-                final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                final selected =
+                    await adaptive_pickers.showAdaptiveTimeframePicker(
                   context: context,
                   activeBlock: _activeBlock,
                   initialAnchor: _anchorDate,
@@ -223,13 +238,17 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
                   _loadScopeData();
                 }
               },
-              nextEnabled: _activeBlock.getBounds(_anchorDate, DateTime(2020)).end.isBefore(DateTime.now()),
+              nextEnabled: _activeBlock
+                  .getBounds(_anchorDate, DateTime(2020))
+                  .end
+                  .isBefore(DateTime.now()),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Expanded(
               child: SeamlessLoadingOverlay(
                 isLoading: _isLoading,
-                isEmpty: _dayData == null && _weekData == null && _monthData == null,
+                isEmpty:
+                    _dayData == null && _weekData == null && _monthData == null,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
                     horizontal: DesignConstants.cardPaddingInternal,

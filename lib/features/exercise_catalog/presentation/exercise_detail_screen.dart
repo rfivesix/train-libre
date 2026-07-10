@@ -40,7 +40,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   late final IExerciseCatalogRepository _repository =
       widget.repository ?? context.read<IExerciseCatalogRepository>();
   bool _isLoading = true;
-  late ExerciseMetric _selectedMetric = widget.exercise.isCardio ? ExerciseMetric.distance : ExerciseMetric.maxWeight;
+  late ExerciseMetric _selectedMetric = widget.exercise.isCardio
+      ? ExerciseMetric.distance
+      : ExerciseMetric.maxWeight;
   String _selectedRange = '30D';
 
   late Exercise _currentExercise = widget.exercise;
@@ -299,7 +301,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               ),
               const SizedBox(height: DesignConstants.spacingXL),
             ],
-            if (_isLoading && _timeSeriesData.isEmpty && _prMap.values.every((v) => v == null))
+            if (_isLoading &&
+                _timeSeriesData.isEmpty &&
+                _prMap.values.every((v) => v == null))
               const Center(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
@@ -321,7 +325,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   ),
                 ),
               )
-            else 
+            else
               Stack(
                 children: [
                   Column(
@@ -367,7 +371,6 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-
   String _formatDuration(int seconds) {
     final m = seconds ~/ 60;
     final s = seconds % 60;
@@ -408,9 +411,11 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           }
         } else {
           if (bracket == 'Est. 1RM') {
-            value = '${context.read<UnitService>().convertDisplayValue(prSet.weightKg! * (36 / (37 - prSet.reps!)), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+            value =
+                '${context.read<UnitService>().convertDisplayValue(prSet.weightKg! * (36 / (37 - prSet.reps!)), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
           } else {
-            value = '${context.read<UnitService>().convertDisplayValue(prSet.weightKg ?? 0.0, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
+            value =
+                '${context.read<UnitService>().convertDisplayValue(prSet.weightKg ?? 0.0, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
           }
           subtitle = l10n.repsCount(prSet.reps!);
         }
@@ -529,7 +534,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         const SizedBox(height: DesignConstants.spacingS),
         MeasurementChartWidget.fromData(
           dataPoints: dataPoints,
-          unit: _selectedMetric == ExerciseMetric.distance ? 'km' : (_selectedMetric == ExerciseMetric.duration ? 'min' : (_selectedMetric == ExerciseMetric.pace ? 'min/km' : unitService.suffixFor(UnitDimension.weight))),
+          unit: _selectedMetric == ExerciseMetric.distance
+              ? 'km'
+              : (_selectedMetric == ExerciseMetric.duration
+                  ? 'min'
+                  : (_selectedMetric == ExerciseMetric.pace
+                      ? 'min/km'
+                      : unitService.suffixFor(UnitDimension.weight))),
           axisMode: MeasurementChartAxisMode.day,
           edgeToEdge: true,
         ),
@@ -551,33 +562,35 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 });
               }
             },
-            items: _currentExercise.isCardio ? [
-              DropdownMenuItem(
-                value: ExerciseMetric.distance,
-                child: Text('Distance'),
-              ),
-              DropdownMenuItem(
-                value: ExerciseMetric.duration,
-                child: Text('Duration'),
-              ),
-              DropdownMenuItem(
-                value: ExerciseMetric.pace,
-                child: Text('Pace'),
-              ),
-            ] : [
-              DropdownMenuItem(
-                value: ExerciseMetric.maxWeight,
-                child: Text(l10n.exerciseMetricMaxWeight),
-              ),
-              DropdownMenuItem(
-                value: ExerciseMetric.volume,
-                child: Text(l10n.exerciseMetricVolume),
-              ),
-              DropdownMenuItem(
-                value: ExerciseMetric.est1rm,
-                child: Text(l10n.exerciseMetricEst1RM),
-              ),
-            ],
+            items: _currentExercise.isCardio
+                ? [
+                    DropdownMenuItem(
+                      value: ExerciseMetric.distance,
+                      child: Text('Distance'),
+                    ),
+                    DropdownMenuItem(
+                      value: ExerciseMetric.duration,
+                      child: Text('Duration'),
+                    ),
+                    DropdownMenuItem(
+                      value: ExerciseMetric.pace,
+                      child: Text('Pace'),
+                    ),
+                  ]
+                : [
+                    DropdownMenuItem(
+                      value: ExerciseMetric.maxWeight,
+                      child: Text(l10n.exerciseMetricMaxWeight),
+                    ),
+                    DropdownMenuItem(
+                      value: ExerciseMetric.volume,
+                      child: Text(l10n.exerciseMetricVolume),
+                    ),
+                    DropdownMenuItem(
+                      value: ExerciseMetric.est1rm,
+                      child: Text(l10n.exerciseMetricEst1RM),
+                    ),
+                  ],
           ),
         ),
         if (_selectedMetric == ExerciseMetric.est1rm) ...[
@@ -681,7 +694,7 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
     if (exercise.isCardio) {
       return const SizedBox.shrink();
     }
-    
+
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final hasMuscles = exercise.primaryMuscles.isNotEmpty ||

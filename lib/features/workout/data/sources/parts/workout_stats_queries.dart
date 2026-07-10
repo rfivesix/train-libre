@@ -126,9 +126,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         exerciseMatch &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            (isCardio 
-              ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) | dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
-              : (dbInstance.setLogs.weight.isBiggerThanValue(0.0) & dbInstance.setLogs.reps.isBiggerThanValue(0))),
+            (isCardio
+                ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) |
+                    dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
+                : (dbInstance.setLogs.weight.isBiggerThanValue(0.0) &
+                    dbInstance.setLogs.reps.isBiggerThanValue(0))),
       );
 
     final rows = await query.get();
@@ -160,7 +162,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
         final dist = setLog.distanceKm ?? 0.0;
         final dur = setLog.durationSeconds ?? 0;
-        
+
         if (dist <= 0 && dur <= 0) continue;
 
         if (dist > bestDistance) {
@@ -290,9 +292,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         exerciseMatch &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            (isCardio 
-              ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) | dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
-              : (dbInstance.setLogs.weight.isBiggerThanValue(0.0) & dbInstance.setLogs.reps.isBiggerThanValue(0))) &
+            (isCardio
+                ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) |
+                    dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
+                : (dbInstance.setLogs.weight.isBiggerThanValue(0.0) &
+                    dbInstance.setLogs.reps.isBiggerThanValue(0))) &
             dbInstance.workoutLogs.status.equals('completed'),
       );
 
@@ -518,7 +522,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
 
     final query = dbInstance.select(dbInstance.setLogs).join([
-            drift.innerJoin(
+      drift.innerJoin(
         dbInstance.workoutLogs,
         dbInstance.workoutLogs.id.equalsExp(
           dbInstance.setLogs.workoutLogId,
@@ -530,10 +534,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       ),
     ])
       ..where(
-        (dbInstance.exercises.categoryName.isNull() | 
-         dbInstance.exercises.categoryName.lower().isNotValue('cardio')) &
-
-        dbInstance.setLogs.isCompleted.equals(true) &
+        (dbInstance.exercises.categoryName.isNull() |
+                dbInstance.exercises.categoryName
+                    .lower()
+                    .isNotValue('cardio')) &
+            dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
             dbInstance.setLogs.weight.isBiggerThanValue(0) &
             dbInstance.setLogs.reps.isBiggerThanValue(0) &
@@ -1592,7 +1597,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
 
     final query = dbInstance.select(dbInstance.setLogs).join([
-            drift.innerJoin(
+      drift.innerJoin(
         dbInstance.workoutLogs,
         dbInstance.workoutLogs.id.equalsExp(
           dbInstance.setLogs.workoutLogId,
@@ -1604,10 +1609,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       ),
     ])
       ..where(
-        (dbInstance.exercises.categoryName.isNull() | 
-         dbInstance.exercises.categoryName.lower().isNotValue('cardio')) &
-
-        dbInstance.setLogs.isCompleted.equals(true) &
+        (dbInstance.exercises.categoryName.isNull() |
+                dbInstance.exercises.categoryName
+                    .lower()
+                    .isNotValue('cardio')) &
+            dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
             dbInstance.setLogs.weight.isBiggerThanValue(0) &
             dbInstance.setLogs.reps.isBiggerThanValue(0) &
@@ -1706,7 +1712,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     }
 
     final query = dbInstance.select(dbInstance.setLogs).join([
-            drift.innerJoin(
+      drift.innerJoin(
         dbInstance.workoutLogs,
         dbInstance.workoutLogs.id.equalsExp(
           dbInstance.setLogs.workoutLogId,
@@ -1718,10 +1724,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       ),
     ])
       ..where(
-        (dbInstance.exercises.categoryName.isNull() | 
-         dbInstance.exercises.categoryName.lower().isNotValue('cardio')) &
-
-        dbInstance.setLogs.isCompleted.equals(true) &
+        (dbInstance.exercises.categoryName.isNull() |
+                dbInstance.exercises.categoryName
+                    .lower()
+                    .isNotValue('cardio')) &
+            dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
             dbInstance.setLogs.weight.isBiggerThanValue(0) &
             dbInstance.setLogs.reps.isBiggerThanValue(0) &

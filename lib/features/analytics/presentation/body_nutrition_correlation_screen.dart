@@ -13,7 +13,8 @@ import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
 import '../../../util/timeframe_label_formatter.dart';
-import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 
 class BodyNutritionCorrelationScreen extends StatefulWidget {
   final int initialRangeIndex;
@@ -30,7 +31,7 @@ class _BodyNutritionCorrelationScreenState
   bool _isRolling = true;
   final _rangePolicy = StatisticsRangePolicyService.instance;
   bool _isLoading = true;
-  
+
   TimeframeBlock _activeBlock = TimeframeBlock.month;
   DateTime _anchorDate = DateTime.now();
 
@@ -113,52 +114,76 @@ class _BodyNutritionCorrelationScreenState
                             ranges: _ranges(l10n),
                             selectedIndex: _validBlocks.indexOf(_activeBlock),
                             onSelected: (index) {
-                      setState(() {
-                        _activeBlock = _validBlocks[index];
-                        _isRolling = false;
-                      });
-                              _load();
-                            },
-                            onPrevious: _activeBlock == TimeframeBlock.maxBlock ? null : () {
                               setState(() {
-                                final currentBounds = _activeBlock.getBounds(DateTime.now(), DateTime(2020));
-                                final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                                final isOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(currentBounds.start);
-                                
-                                if (isOngoing) {
-                                  _isRolling = true;
-                                } else if (_isRolling) {
-                                  _isRolling = false;
-                                  _anchorDate = _activeBlock.shift(DateTime.now(), -1);
-                                } else {
-                                  _anchorDate = _activeBlock.shift(_anchorDate, -1);
-                                }
+                                _activeBlock = _validBlocks[index];
+                                _isRolling = false;
                               });
                               _load();
                             },
-                            onNext: _activeBlock == TimeframeBlock.maxBlock ? null : () {
-                              setState(() {
-                                if (_isRolling) {
-                                  _isRolling = false;
-                                  _anchorDate = DateTime.now();
-                                } else {
-                                  final previousAnchor = _activeBlock.shift(DateTime.now(), -1);
-                                  final previousBounds = _activeBlock.getBounds(previousAnchor, DateTime(2020));
-                                  final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                                  final isPreviousToOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(previousBounds.start);
-                                  
-                                  if (isPreviousToOngoing) {
-                                    _isRolling = true;
-                                  } else {
-                                    _anchorDate = _activeBlock.shift(_anchorDate, 1);
-                                  }
-                                }
-                              });
-                              _load();
-                            },
-                            displayDate: _isRolling ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n) : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
+                            onPrevious: _activeBlock == TimeframeBlock.maxBlock
+                                ? null
+                                : () {
+                                    setState(() {
+                                      final currentBounds =
+                                          _activeBlock.getBounds(
+                                              DateTime.now(), DateTime(2020));
+                                      final myBounds = _activeBlock.getBounds(
+                                          _anchorDate, DateTime(2020));
+                                      final isOngoing = !_isRolling &&
+                                          myBounds.start.isAtSameMomentAs(
+                                              currentBounds.start);
+
+                                      if (isOngoing) {
+                                        _isRolling = true;
+                                      } else if (_isRolling) {
+                                        _isRolling = false;
+                                        _anchorDate = _activeBlock.shift(
+                                            DateTime.now(), -1);
+                                      } else {
+                                        _anchorDate =
+                                            _activeBlock.shift(_anchorDate, -1);
+                                      }
+                                    });
+                                    _load();
+                                  },
+                            onNext: _activeBlock == TimeframeBlock.maxBlock
+                                ? null
+                                : () {
+                                    setState(() {
+                                      if (_isRolling) {
+                                        _isRolling = false;
+                                        _anchorDate = DateTime.now();
+                                      } else {
+                                        final previousAnchor = _activeBlock
+                                            .shift(DateTime.now(), -1);
+                                        final previousBounds =
+                                            _activeBlock.getBounds(
+                                                previousAnchor, DateTime(2020));
+                                        final myBounds = _activeBlock.getBounds(
+                                            _anchorDate, DateTime(2020));
+                                        final isPreviousToOngoing =
+                                            !_isRolling &&
+                                                myBounds.start.isAtSameMomentAs(
+                                                    previousBounds.start);
+
+                                        if (isPreviousToOngoing) {
+                                          _isRolling = true;
+                                        } else {
+                                          _anchorDate = _activeBlock.shift(
+                                              _anchorDate, 1);
+                                        }
+                                      }
+                                    });
+                                    _load();
+                                  },
+                            displayDate: _isRolling
+                                ? TimeframeLabelFormatter.formatRolling(
+                                    _activeBlock, l10n)
+                                : TimeframeLabelFormatter.format(
+                                    _activeBlock, _anchorDate, l10n),
                             onTapDateDisplay: () async {
-                              final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
+                              final selected = await adaptive_pickers
+                                  .showAdaptiveTimeframePicker(
                                 context: context,
                                 activeBlock: _activeBlock,
                                 initialAnchor: _anchorDate,
@@ -173,23 +198,39 @@ class _BodyNutritionCorrelationScreenState
                                 _load();
                               }
                             },
-                            nextEnabled: _activeBlock == TimeframeBlock.maxBlock ? false : (_isRolling ? true : !_activeBlock.getBounds(_anchorDate, DateTime(2020)).start.isAtSameMomentAs(_activeBlock.getBounds(DateTime.now(), DateTime(2020)).start)),
-                            showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
-                          ),const SizedBox(height: DesignConstants.spacingM),
+                            nextEnabled: _activeBlock == TimeframeBlock.maxBlock
+                                ? false
+                                : (_isRolling
+                                    ? true
+                                    : !_activeBlock
+                                        .getBounds(_anchorDate, DateTime(2020))
+                                        .start
+                                        .isAtSameMomentAs(_activeBlock
+                                            .getBounds(
+                                                DateTime.now(), DateTime(2020))
+                                            .start)),
+                            showDateNavigation:
+                                _activeBlock != TimeframeBlock.maxBlock,
+                          ),
+                          const SizedBox(height: DesignConstants.spacingM),
                           Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: DesignConstants.screenPaddingHorizontal,
+                              horizontal:
+                                  DesignConstants.screenPaddingHorizontal,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildSummaryCard(l10n, _analytics!),
-                                const SizedBox(height: DesignConstants.spacingM),
+                                const SizedBox(
+                                    height: DesignConstants.spacingM),
                                 AppSectionHeader(
-                                  title: l10n.analyticsBodyNutritionTrendContext,
+                                  title:
+                                      l10n.analyticsBodyNutritionTrendContext,
                                 ),
                                 _buildTrendComparisonCard(l10n, _analytics!),
-                                const SizedBox(height: DesignConstants.spacingM),
+                                const SizedBox(
+                                    height: DesignConstants.spacingM),
                                 AppSectionHeader(
                                   title: l10n.analyticsInterpretationTitle,
                                 ),
@@ -308,11 +349,16 @@ class _BodyNutritionCorrelationScreenState
             for (var i = 0; i < gridItems.length; i += crossAxisCount) {
               final rowChildren = <Widget>[];
               for (var j = 0; j < crossAxisCount; j++) {
-                if (j > 0) rowChildren.add(const SizedBox(width: DesignConstants.spacingS));
+                if (j > 0) {
+                  rowChildren
+                      .add(const SizedBox(width: DesignConstants.spacingS));
+                }
                 final itemIndex = i + j;
                 rowChildren.add(
                   Expanded(
-                    child: itemIndex < gridItems.length ? gridItems[itemIndex] : const SizedBox(),
+                    child: itemIndex < gridItems.length
+                        ? gridItems[itemIndex]
+                        : const SizedBox(),
                   ),
                 );
               }
@@ -463,7 +509,7 @@ class _BodyNutritionCorrelationScreenState
   String _effectiveRangeDisclosure() {
     final resolved = _rangePolicy.resolve(
       metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedBlockType: _activeBlock, 
+      selectedBlockType: _activeBlock,
       now: _anchorDate,
       earliestAvailableDay: _analytics?.range.start,
     );

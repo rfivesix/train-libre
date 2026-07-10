@@ -7,7 +7,8 @@ import 'share_labels.dart';
 import 'share_set_type.dart';
 
 class WorkoutShareFormatter {
-  const WorkoutShareFormatter(this.labels, {this.locale, this.exerciseDetails = const {}});
+  const WorkoutShareFormatter(this.labels,
+      {this.locale, this.exerciseDetails = const {}});
 
   final ShareLabels labels;
   final String? locale;

@@ -119,7 +119,6 @@ class WorkoutHeartRateSection extends StatelessWidget {
     );
   }
 
-
   Widget _buildTwoColumnGrid(List<Widget> items) {
     List<Widget> rows = [];
     for (int i = 0; i < items.length; i += 2) {

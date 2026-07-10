@@ -28,10 +28,10 @@ class SeamlessLoadingOverlay extends StatelessWidget {
     }
 
     if (isLoading) {
-      final topPadding = extendBodyBehindAppBar 
-          ? MediaQuery.of(context).padding.top + kToolbarHeight 
+      final topPadding = extendBodyBehindAppBar
+          ? MediaQuery.of(context).padding.top + kToolbarHeight
           : 0.0;
-          
+
       return Stack(
         children: [
           child,

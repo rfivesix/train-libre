@@ -37,7 +37,8 @@ class SleepDetailPageShell extends StatelessWidget {
         ),
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.cardPaddingInternal),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

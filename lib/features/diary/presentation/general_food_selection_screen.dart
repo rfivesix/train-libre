@@ -471,60 +471,53 @@ class _GeneralFoodSelectionScreenState
                                   ),
                                 ),
                                 child: () {
-                                        final baseHits = _results
-                                            .where((it) =>
-                                                it.source ==
-                                                FoodItemSource.base)
-                                            .toList();
-                                        final offHits = _results
-                                            .where((it) =>
-                                                it.source == FoodItemSource.off)
-                                            .toList();
-                                        final customHits = _results
-                                            .where((it) =>
-                                                it.source ==
-                                                FoodItemSource.user)
-                                            .toList();
+                                  final baseHits = _results
+                                      .where((it) =>
+                                          it.source == FoodItemSource.base)
+                                      .toList();
+                                  final offHits = _results
+                                      .where((it) =>
+                                          it.source == FoodItemSource.off)
+                                      .toList();
+                                  final customHits = _results
+                                      .where((it) =>
+                                          it.source == FoodItemSource.user)
+                                      .toList();
 
-                                        final listItems = <dynamic>[];
-                                        if (customHits.isNotEmpty) {
-                                          listItems.add(l10n.customFoodsTitle);
-                                          listItems.addAll(customHits);
-                                        }
-                                        if (baseHits.isNotEmpty) {
-                                          listItems.add(l10n.searchSectionBase);
-                                          listItems.addAll(baseHits);
-                                        }
-                                        if (offHits.isNotEmpty) {
-                                          listItems
-                                              .add(l10n.searchSectionOther);
-                                          listItems.addAll(offHits);
-                                          listItems.add(
-                                              const OffAttributionWidget());
-                                        }
+                                  final listItems = <dynamic>[];
+                                  if (customHits.isNotEmpty) {
+                                    listItems.add(l10n.customFoodsTitle);
+                                    listItems.addAll(customHits);
+                                  }
+                                  if (baseHits.isNotEmpty) {
+                                    listItems.add(l10n.searchSectionBase);
+                                    listItems.addAll(baseHits);
+                                  }
+                                  if (offHits.isNotEmpty) {
+                                    listItems.add(l10n.searchSectionOther);
+                                    listItems.addAll(offHits);
+                                    listItems.add(const OffAttributionWidget());
+                                  }
 
-                                        return ListView.builder(
-                                          scrollCacheExtent:
-                                              const ScrollCacheExtent.pixels(
-                                                  1500.0),
-                                          padding: const EdgeInsets.only(
-                                              bottom: 56.0),
-                                          itemCount: listItems.length,
-                                          itemBuilder: (context, index) {
-                                            final item = listItems[index];
-                                            if (item is String) {
-                                              return AppSectionHeader(
-                                                  title: item);
-                                            } else if (item is FoodItem) {
-                                              return _buildFoodListItem(
-                                                  item, l10n);
-                                            } else if (item is Widget) {
-                                              return item;
-                                            }
-                                            return const SizedBox.shrink();
-                                          },
-                                        );
-                                      }());
+                                  return ListView.builder(
+                                    scrollCacheExtent:
+                                        const ScrollCacheExtent.pixels(1500.0),
+                                    padding:
+                                        const EdgeInsets.only(bottom: 56.0),
+                                    itemCount: listItems.length,
+                                    itemBuilder: (context, index) {
+                                      final item = listItems[index];
+                                      if (item is String) {
+                                        return AppSectionHeader(title: item);
+                                      } else if (item is FoodItem) {
+                                        return _buildFoodListItem(item, l10n);
+                                      } else if (item is Widget) {
+                                        return item;
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                  );
+                                }());
                       },
                     ),
                   ),

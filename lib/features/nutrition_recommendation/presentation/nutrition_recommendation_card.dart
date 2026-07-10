@@ -625,11 +625,16 @@ class _MacroTargetGrid extends StatelessWidget {
             for (var i = 0; i < gridItems.length; i += crossAxisCount) {
               final rowChildren = <Widget>[];
               for (var j = 0; j < crossAxisCount; j++) {
-                if (j > 0) rowChildren.add(const SizedBox(width: DesignConstants.spacingS));
+                if (j > 0) {
+                  rowChildren
+                      .add(const SizedBox(width: DesignConstants.spacingS));
+                }
                 final itemIndex = i + j;
                 rowChildren.add(
                   Expanded(
-                    child: itemIndex < gridItems.length ? gridItems[itemIndex] : const SizedBox(),
+                    child: itemIndex < gridItems.length
+                        ? gridItems[itemIndex]
+                        : const SizedBox(),
                   ),
                 );
               }

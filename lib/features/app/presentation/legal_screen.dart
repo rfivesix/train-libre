@@ -648,30 +648,19 @@ Nach Ausführung dieser Funktion befindet sich die App im Auslieferungszustand. 
     ),
   ],
   termsOfServiceSections: [
-    _LegalSection(
-      title: '1. Keine medizinische Beratung',
-      content: '''
+    _LegalSection(title: '1. Keine medizinische Beratung', content: '''
 Alle gesundheitsbezogenen Einschätzungen, Körpergewichtsziele, Makronährstoffziele, Berechnungen des täglichen Gesamtenergiebedarfs (TDEE), Muskel-Erholungs-Scores und andere gesundheitsbezogene Annäherungen, die von Train Libre bereitgestellt werden, sind statistische Schätzungen auf der Grundlage mathematischer Modelle der Allgemeinbevölkerung (wie Mifflin-St Jeor und Katch-McArdle). Sie stellen keine medizinische, ernährungsphysiologische oder sportliche Beratung dar und dürfen keinesfalls die Konsultation einer qualifizierten Fachkraft oder eines Arztes ersetzen. Die Nutzung dieser Funktionen erfolgt ausschließlich auf eigene Gefahr.
-'''
-    ),
+'''),
     _LegalSection(
-      title: '2. Haftungsausschluss / As-Is-Gewährleistung',
-      content: '''
+        title: '2. Haftungsausschluss / As-Is-Gewährleistung', content: '''
 Train Libre wird im Ist-Zustand („as is“) ohne jegliche ausdrückliche oder stillschweigende Gewährleistung zur Verfügung gestellt, einschließlich, aber nicht beschränkt auf die Gewährleistung der Marktgängigkeit, der Eignung für einen bestimmten Zweck und der Nichtverletzung von Rechten Dritter. Der Entwickler haftet nicht für Datenverluste, Geräteanomalien, unterbrochene Funktionalität oder direkte, indirekte, zufällige oder Folgeschäden, die aus der Nutzung der kompilierten ausführbaren Anwendung (Binary) oder des Quellcodes entstehen.
-'''
-    ),
-    _LegalSection(
-      title: '3. Datenautonomie',
-      content: '''
+'''),
+    _LegalSection(title: '3. Datenautonomie', content: '''
 Alle vom Nutzer erstellten Daten, Profilparameter, Trainingsprotokolle, Ernährungsverläufe und lokalen Datenbankeinträge (Drift/SQLite) verbleiben ausschließlich in der Sandbox Ihres lokalen Endgeräts. Der Entwickler hat keinen Fernzugriff auf diese Daten, betreibt keine Backend-Server, um sie zu sammeln, und übernimmt keine Verantwortung für die Datenwiederherstellung, Datensicherung, Migration oder Datenverluste. Sie sind allein für die Sicherung Ihres Geräts und die Verwaltung Ihrer manuellen oder automatischen Datenexporte verantwortlich.
-'''
-    ),
-    _LegalSection(
-      title: '4. Open-Source-Regelung',
-      content: '''
+'''),
+    _LegalSection(title: '4. Open-Source-Regelung', content: '''
 Der Quellcode von Train Libre wird unter der GNU General Public License v3.0 (GPL-3.0) verbreitet, wie im Repository des Projekts veröffentlicht. Diese Nutzungsbedingungen regeln ausschließlich die Nutzung der kompilierten ausführbaren Anwendung (Binary) und schränken keine Rechte ein, die Ihnen durch die GPL-3.0 gewährt werden, einschließlich des Rechts auf Zugriff, Änderung und Weiterverbreitung des Quellcodes unter denselben Lizenzbedingungen.
-'''
-    ),
+'''),
   ],
 );
 
@@ -854,29 +843,17 @@ After executing this function, the app is returned to its factory state. Please 
     ),
   ],
   termsOfServiceSections: [
-    _LegalSection(
-      title: '1. No Medical Advice',
-      content: '''
+    _LegalSection(title: '1. No Medical Advice', content: '''
 All health-related estimations, bodyweight targets, macronutrient targets, Total Daily Energy Expenditure (TDEE) calculations, muscle recovery scores, and other health-related approximations provided by Train Libre are statistical estimates based on general population mathematical models (such as Mifflin-St Jeor and Katch-McArdle). They do not constitute medical, nutritional, or athletic advice and must never replace consultation with a qualified professional or physician. Use of these features is strictly at your own risk.
-'''
-    ),
-    _LegalSection(
-      title: '2. As-Is Warranty Disclaimer',
-      content: '''
+'''),
+    _LegalSection(title: '2. As-Is Warranty Disclaimer', content: '''
 Train Libre is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. The developer is not liable for any data loss, device anomalies, interrupted functionality, or any direct, indirect, incidental, or consequential damages arising from the use of the compiled binary application or the source code.
-'''
-    ),
-    _LegalSection(
-      title: '3. Data Autonomy',
-      content: '''
+'''),
+    _LegalSection(title: '3. Data Autonomy', content: '''
 All user-generated data, profile parameters, workout logs, nutrition history, and local database records (Drift/SQLite) reside exclusively within your local device's sandbox. The developer has no remote access to this data, does not operate any backend servers to collect it, and bears no responsibility for data recovery, backup, migration, or loss. You are solely responsible for securing your device and managing your manual or automatic data exports.
-'''
-    ),
-    _LegalSection(
-      title: '4. Open Source Governing',
-      content: '''
+'''),
+    _LegalSection(title: '4. Open Source Governing', content: '''
 The source code for Train Libre is distributed under the GNU General Public License v3.0 (GPL-3.0) as published in the project's repository. These Terms of Service govern the use of the compiled binary application only and do not restrict, override, or limit any rights granted to you by the GPL-3.0, including the right to access, modify, and redistribute the source code under the same license terms.
-'''
-    ),
+'''),
   ],
 );

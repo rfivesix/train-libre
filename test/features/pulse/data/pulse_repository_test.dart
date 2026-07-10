@@ -382,7 +382,8 @@ void main() {
     final firstChartDay = summary.chartSamples.first.sampledAtUtc.toLocal();
     final windowStartDay = window.startUtc.toLocal();
     expect(
-      DateTime(firstChartDay.year, firstChartDay.month, firstChartDay.day).isBefore(
+      DateTime(firstChartDay.year, firstChartDay.month, firstChartDay.day)
+          .isBefore(
         DateTime(windowStartDay.year, windowStartDay.month, windowStartDay.day),
       ),
       isFalse,

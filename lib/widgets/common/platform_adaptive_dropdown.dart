@@ -167,7 +167,8 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
                                   .textTheme
                                   .titleMedium
                                   ?.copyWith(
-                                    color: isDark ? Colors.white : Colors.black87,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
                                   ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

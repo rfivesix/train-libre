@@ -3,14 +3,15 @@ import '../features/statistics/domain/timeframe_block.dart';
 import '../generated/app_localizations.dart';
 
 class TimeframeLabelFormatter {
-  static String format(TimeframeBlock block, DateTime anchorDate, AppLocalizations l10n) {
+  static String format(
+      TimeframeBlock block, DateTime anchorDate, AppLocalizations l10n) {
     if (block == TimeframeBlock.maxBlock) {
       return l10n.filterMax;
     }
-    
+
     final range = block.getBounds(anchorDate, DateTime(2020));
     final locale = l10n.localeName;
-    
+
     switch (block) {
       case TimeframeBlock.day:
         return DateFormat.yMMMd(locale).format(range.start);
@@ -32,10 +33,10 @@ class TimeframeLabelFormatter {
     if (block == TimeframeBlock.day || block == TimeframeBlock.maxBlock) {
       return format(block, DateTime.now(), l10n);
     }
-    
+
     final range = block.getRollingBounds();
     final locale = l10n.localeName;
-    
+
     switch (block) {
       case TimeframeBlock.week:
       case TimeframeBlock.month:

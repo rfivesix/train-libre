@@ -94,13 +94,16 @@ class MealReviewComparisonCard extends StatelessWidget {
                         if (hasMatch)
                           Text(
                             '${() {
-                              final themeService = Provider.of<ThemeService>(context);
-                              final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                              final themeService =
+                                  Provider.of<ThemeService>(context);
+                              final baseFoodLang =
+                                  BaseFoodLanguageService.resolveLanguageCode(
                                 choice: themeService.baseFoodLanguage,
                                 context: context,
                               );
                               return matchedFood!.source == FoodItemSource.base
-                                  ? matchedFood!.getLocalizedName(context, languageCode: baseFoodLang)
+                                  ? matchedFood!.getLocalizedName(context,
+                                      languageCode: baseFoodLang)
                                   : matchedFood!.getLocalizedName(context);
                             }()} • ${matchedFood!.calories} kcal/100g',
                             style: theme.textTheme.bodySmall?.copyWith(

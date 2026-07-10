@@ -543,13 +543,16 @@ class _MealScreenState extends State<MealScreen> {
                           final fi = products[bc];
                           final displayName = fi != null
                               ? (() {
-                                  final themeService = Provider.of<ThemeService>(context);
-                                  final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                                  final themeService =
+                                      Provider.of<ThemeService>(context);
+                                  final baseFoodLang = BaseFoodLanguageService
+                                      .resolveLanguageCode(
                                     choice: themeService.baseFoodLanguage,
                                     context: context,
                                   );
                                   return fi.source == FoodItemSource.base
-                                      ? fi.getLocalizedName(context, languageCode: baseFoodLang)
+                                      ? fi.getLocalizedName(context,
+                                          languageCode: baseFoodLang)
                                       : fi.getLocalizedName(context);
                                 })()
                               : bc;

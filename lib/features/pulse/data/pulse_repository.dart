@@ -379,21 +379,22 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     if (window.duration.inHours > 24) {
       final points = <PulseSamplePoint>[];
       final bucketsByDay = <DateTime, List<PulseAggregateBucket>>{};
-      
+
       for (final bucket in buckets) {
         final localDate = bucket.bucketStartUtc.toLocal();
         final dayKey = DateTime(localDate.year, localDate.month, localDate.day);
         bucketsByDay.putIfAbsent(dayKey, () => []).add(bucket);
       }
-      
+
       final sortedDays = bucketsByDay.keys.toList()..sort();
       for (final dayKey in sortedDays) {
         final dayBuckets = bucketsByDay[dayKey]!;
         final restingBpm = _restingFromAggregateBuckets(dayBuckets);
-        
+
         points.add(
           PulseSamplePoint(
-            sampledAtUtc: DateTime(dayKey.year, dayKey.month, dayKey.day, 12).toUtc(),
+            sampledAtUtc:
+                DateTime(dayKey.year, dayKey.month, dayKey.day, 12).toUtc(),
             bpm: restingBpm,
           ),
         );

@@ -45,7 +45,7 @@ class DetectPersonalRecordUseCase {
     bool isMaxWeightPR = false;
     bool isMaxVolumePR = false;
     bool isMaxEst1RMPR = false;
-    
+
     bool isMaxDistancePR = false;
     bool isMaxDurationPR = false;
     bool isFastestPacePR = false;
@@ -53,7 +53,7 @@ class DetectPersonalRecordUseCase {
     double? weightDiff;
     double? volumeDiff;
     double? est1rmDiff;
-    
+
     double? distanceDiff;
     int? durationDiff;
     double? paceDiff;
@@ -85,19 +85,22 @@ class DetectPersonalRecordUseCase {
       final oldMaxDistance = historicalBests['maxDistance'] ?? 0.0;
       if (currentDistance > oldMaxDistance) {
         isMaxDistancePR = true;
-        distanceDiff = oldMaxDistance > 0 ? currentDistance - oldMaxDistance : null;
+        distanceDiff =
+            oldMaxDistance > 0 ? currentDistance - oldMaxDistance : null;
         historicalBests['maxDistance'] = currentDistance;
       }
 
       final oldMaxDuration = historicalBests['maxDuration']?.toInt() ?? 0;
       if (currentDuration > oldMaxDuration) {
         isMaxDurationPR = true;
-        durationDiff = oldMaxDuration > 0 ? currentDuration - oldMaxDuration : null;
+        durationDiff =
+            oldMaxDuration > 0 ? currentDuration - oldMaxDuration : null;
         historicalBests['maxDuration'] = currentDuration.toDouble();
       }
 
       final oldFastestPace = historicalBests['fastestPace'] ?? 0.0;
-      if (currentPace != double.infinity && (oldFastestPace == 0.0 || currentPace < oldFastestPace)) {
+      if (currentPace != double.infinity &&
+          (oldFastestPace == 0.0 || currentPace < oldFastestPace)) {
         isFastestPacePR = true;
         paceDiff = oldFastestPace > 0 ? oldFastestPace - currentPace : null;
         historicalBests['fastestPace'] = currentPace;
@@ -140,7 +143,8 @@ class DetectPersonalRecordUseCase {
         alerts.add(PRAlert(
           exerciseName: currentSet.exerciseName,
           recordType: "Best Distance",
-          achievementValue: "${currentDistance.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '')} km",
+          achievementValue:
+              "${currentDistance.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '')} km",
           diff: distanceDiff,
         ));
       }

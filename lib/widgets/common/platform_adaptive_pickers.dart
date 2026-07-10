@@ -379,7 +379,8 @@ class _GlassPickerSheet extends StatelessWidget {
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(r)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.18),
@@ -406,11 +407,12 @@ class _GlassPickerSheet extends StatelessWidget {
                     ),
                     child: Stack(
                       children: [
-                         Positioned.fill(
+                        Positioned.fill(
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               color: neutralTint,
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                              borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(r)),
                             ),
                           ),
                         ),
@@ -419,7 +421,8 @@ class _GlassPickerSheet extends StatelessWidget {
                             painter: GlassBorderPainter(
                               color: isDark
                                   ? Colors.white.withValues(alpha: 0.15)
-                                  : theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                                  : theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.08),
                               radius: r,
                               strokeWidth: 1.5,
                               bottomPadding: bottomInset,
@@ -437,7 +440,8 @@ class _GlassPickerSheet extends StatelessWidget {
                                   width: 44,
                                   height: 5,
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.3),
                                     borderRadius: BorderRadius.circular(100),
                                   ),
                                 ),
@@ -458,7 +462,6 @@ class _GlassPickerSheet extends StatelessWidget {
     );
   }
 }
-
 
 class TimeframeSelection {
   final DateTime anchorDate;
@@ -489,29 +492,48 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
 
   // Generate the list of allowed anchor dates from earliestAvailableDay to now
   final List<DateTime> options = [];
-  DateTime current = activeBlock.getBounds(earliestAvailableDay, earliestAvailableDay).start;
+  DateTime current =
+      activeBlock.getBounds(earliestAvailableDay, earliestAvailableDay).start;
 
-  while (current.isBefore(now) || current.isAtSameMomentAs(now) || current.year == now.year && current.month == now.month) {
-    if (activeBlock.getBounds(current, earliestAvailableDay).start.isAfter(now)) {
+  while (current.isBefore(now) ||
+      current.isAtSameMomentAs(now) ||
+      current.year == now.year && current.month == now.month) {
+    if (activeBlock
+        .getBounds(current, earliestAvailableDay)
+        .start
+        .isAfter(now)) {
       break;
     }
     options.add(current);
-    
+
     // Increment to next block
     switch (activeBlock) {
-      case TimeframeBlock.day: current = DateTime(current.year, current.month, current.day + 1); break;
-      case TimeframeBlock.week: current = DateTime(current.year, current.month, current.day + 7); break;
-      case TimeframeBlock.month: current = DateTime(current.year, current.month + 1, 15); break;
-      case TimeframeBlock.threeMonths: current = DateTime(current.year, current.month + 3, 15); break;
-      case TimeframeBlock.sixMonths: current = DateTime(current.year, current.month + 6, 15); break;
-      case TimeframeBlock.year: current = DateTime(current.year + 1, 6, 15); break;
-      case TimeframeBlock.maxBlock: break;
+      case TimeframeBlock.day:
+        current = DateTime(current.year, current.month, current.day + 1);
+        break;
+      case TimeframeBlock.week:
+        current = DateTime(current.year, current.month, current.day + 7);
+        break;
+      case TimeframeBlock.month:
+        current = DateTime(current.year, current.month + 1, 15);
+        break;
+      case TimeframeBlock.threeMonths:
+        current = DateTime(current.year, current.month + 3, 15);
+        break;
+      case TimeframeBlock.sixMonths:
+        current = DateTime(current.year, current.month + 6, 15);
+        break;
+      case TimeframeBlock.year:
+        current = DateTime(current.year + 1, 6, 15);
+        break;
+      case TimeframeBlock.maxBlock:
+        break;
     }
     // Snap current back to bounds start for safety in iteration
     if (activeBlock != TimeframeBlock.maxBlock) {
-       current = activeBlock.getBounds(current, earliestAvailableDay).start;
+      current = activeBlock.getBounds(current, earliestAvailableDay).start;
     } else {
-       break;
+      break;
     }
   }
 
@@ -522,7 +544,9 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
 
   // Insert rolling option
   final DateTime rollingFlag = DateTime(9999);
-  if (supportRolling && activeBlock != TimeframeBlock.day && activeBlock != TimeframeBlock.maxBlock) {
+  if (supportRolling &&
+      activeBlock != TimeframeBlock.day &&
+      activeBlock != TimeframeBlock.maxBlock) {
     // Insert before the last element (which is the current calendar block)
     if (options.isNotEmpty) {
       options.insert(options.length - 1, rollingFlag);
@@ -540,7 +564,9 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
       if (d == rollingFlag) return false;
       final b1 = activeBlock.getBounds(d, earliestAvailableDay);
       final b2 = activeBlock.getBounds(initialAnchor, earliestAvailableDay);
-      return b1.start.year == b2.start.year && b1.start.month == b2.start.month && b1.start.day == b2.start.day;
+      return b1.start.year == b2.start.year &&
+          b1.start.month == b2.start.month &&
+          b1.start.day == b2.start.day;
     });
     if (initialIndex < 0) initialIndex = options.length - 1;
   }
@@ -550,19 +576,25 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
   final locale = Localizations.localeOf(context).toString();
   String formatOption(DateTime date) {
     if (date == rollingFlag) {
-      return l10n?.rollingDaysLabel(activeBlock.rollingDurationDays) ?? "Letzte ${activeBlock.rollingDurationDays} Tage (rollierend)";
+      return l10n?.rollingDaysLabel(activeBlock.rollingDurationDays) ??
+          "Letzte ${activeBlock.rollingDurationDays} Tage (rollierend)";
     }
     final b = activeBlock.getBounds(date, earliestAvailableDay);
     switch (activeBlock) {
-      case TimeframeBlock.day: return DateFormat('dd. MMM yyyy', locale).format(b.start);
-      case TimeframeBlock.week: return "${DateFormat('dd. MMM', locale).format(b.start)} - ${DateFormat('dd. MMM yyyy', locale).format(b.end)}";
-      case TimeframeBlock.month: return DateFormat('MMMM yyyy', locale).format(b.start);
+      case TimeframeBlock.day:
+        return DateFormat('dd. MMM yyyy', locale).format(b.start);
+      case TimeframeBlock.week:
+        return "${DateFormat('dd. MMM', locale).format(b.start)} - ${DateFormat('dd. MMM yyyy', locale).format(b.end)}";
+      case TimeframeBlock.month:
+        return DateFormat('MMMM yyyy', locale).format(b.start);
       case TimeframeBlock.threeMonths:
         return "${DateFormat('MMM', locale).format(b.start)} - ${DateFormat('MMM yyyy', locale).format(b.end)}";
       case TimeframeBlock.sixMonths:
         return "${DateFormat('MMM', locale).format(b.start)} - ${DateFormat('MMM yyyy', locale).format(b.end)}";
-      case TimeframeBlock.year: return DateFormat('yyyy', locale).format(b.start);
-      default: return "";
+      case TimeframeBlock.year:
+        return DateFormat('yyyy', locale).format(b.start);
+      default:
+        return "";
     }
   }
 
@@ -608,13 +640,16 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                     ),
                   ),
                   child: CupertinoPicker(
-                    scrollController: FixedExtentScrollController(initialItem: initialIndex),
+                    scrollController:
+                        FixedExtentScrollController(initialItem: initialIndex),
                     itemExtent: 40,
                     onSelectedItemChanged: (int index) {
                       HapticFeedbackService.instance.selectionFeedback();
                       selectedIndex = index;
                     },
-                    children: options.map((date) => Center(child: Text(formatOption(date)))).toList(),
+                    children: options
+                        .map((date) => Center(child: Text(formatOption(date))))
+                        .toList(),
                   ),
                 ),
               ),
@@ -643,8 +678,10 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                         onPressed: () {
                           final selectedDate = options[selectedIndex];
                           final isRolling = selectedDate.year == 9999;
-                          final anchor = isRolling ? DateTime.now() : selectedDate;
-                          Navigator.pop(ctx, TimeframeSelection(anchor, isRolling: isRolling));
+                          final anchor =
+                              isRolling ? DateTime.now() : selectedDate;
+                          Navigator.pop(ctx,
+                              TimeframeSelection(anchor, isRolling: isRolling));
                         },
                         child: Text(l10n?.snackbarButtonOK ?? 'OK'),
                       ),
@@ -719,13 +756,15 @@ Future<int?> showAdaptiveBlockTypePicker({
                     ),
                   ),
                   child: CupertinoPicker(
-                    scrollController: FixedExtentScrollController(initialItem: initialIndex),
+                    scrollController:
+                        FixedExtentScrollController(initialItem: initialIndex),
                     itemExtent: 40,
                     onSelectedItemChanged: (int index) {
                       HapticFeedbackService.instance.selectionFeedback();
                       selectedIndex = index;
                     },
-                    children: ranges.map((r) => Center(child: Text(r))).toList(),
+                    children:
+                        ranges.map((r) => Center(child: Text(r))).toList(),
                   ),
                 ),
               ),
@@ -767,7 +806,6 @@ Future<int?> showAdaptiveBlockTypePicker({
 
   return selected;
 }
-
 
 Future<Duration?> showAdaptiveDurationPicker({
   required BuildContext context,

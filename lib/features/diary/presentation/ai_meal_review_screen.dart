@@ -236,13 +236,15 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         _items[index].matchedFood = selectedItem;
         _items[index].suggestion.matchedBarcode = selectedItem.barcode;
         _items[index].suggestion.name = (() {
-          final themeService = Provider.of<ThemeService>(context, listen: false);
+          final themeService =
+              Provider.of<ThemeService>(context, listen: false);
           final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
             choice: themeService.baseFoodLanguage,
             context: context,
           );
           return selectedItem.source == FoodItemSource.base
-              ? selectedItem.getLocalizedName(context, languageCode: baseFoodLang)
+              ? selectedItem.getLocalizedName(context,
+                  languageCode: baseFoodLang)
               : selectedItem.getLocalizedName(context);
         })();
       });
@@ -260,13 +262,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           _ReviewItem(
             suggestion: AiSuggestedItem(
               name: (() {
-                final themeService = Provider.of<ThemeService>(context, listen: false);
-                final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                final themeService =
+                    Provider.of<ThemeService>(context, listen: false);
+                final baseFoodLang =
+                    BaseFoodLanguageService.resolveLanguageCode(
                   choice: themeService.baseFoodLanguage,
                   context: context,
                 );
                 return selectedItem.source == FoodItemSource.base
-                    ? selectedItem.getLocalizedName(context, languageCode: baseFoodLang)
+                    ? selectedItem.getLocalizedName(context,
+                        languageCode: baseFoodLang)
                     : selectedItem.getLocalizedName(context);
               })(),
               estimatedGrams: 100,

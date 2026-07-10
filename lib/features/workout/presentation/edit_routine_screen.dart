@@ -47,7 +47,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   bool _isDragging = false;
   Timer? _collapseTimer;
   final ScrollController _scrollController = ScrollController();
-  final OverlayPortalController _fabOverlayController = OverlayPortalController();
+  final OverlayPortalController _fabOverlayController =
+      OverlayPortalController();
 
   final Map<int, TextEditingController> _repsControllers = {};
   final Map<int, TextEditingController> _weightControllers = {};
@@ -202,7 +203,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     return re.exercise.categoryName.toLowerCase() == 'cardio';
   }
 
-  double _calculateScrollAdjustment(int draggedIndex, List<RoutineExercise> exercises) {
+  double _calculateScrollAdjustment(
+      int draggedIndex, List<RoutineExercise> exercises) {
     double adjustment = 0;
     for (int i = 0; i < draggedIndex; i++) {
       final re = exercises[i];
@@ -219,7 +221,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     return adjustment;
   }
 
-  double _calculateScrollPosition(int targetIndex, List<RoutineExercise> exercises) {
+  double _calculateScrollPosition(
+      int targetIndex, List<RoutineExercise> exercises) {
     double position = 0;
     for (int i = 0; i < targetIndex; i++) {
       final re = exercises[i];
@@ -693,8 +696,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     )
                   : null,
               title: _isEditMode
-                  ? (_isNewRoutine ? l10n.titleNewRoutine : l10n.titleEditRoutine)
-                  : (_nameController.text.isNotEmpty ? _nameController.text : l10n.titleEditRoutine),
+                  ? (_isNewRoutine
+                      ? l10n.titleNewRoutine
+                      : l10n.titleEditRoutine)
+                  : (_nameController.text.isNotEmpty
+                      ? _nameController.text
+                      : l10n.titleEditRoutine),
               actions: [
                 if (!_isNewRoutine)
                   IconButton(
@@ -748,8 +755,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                         Divider(
                           height: 1,
                           thickness: 1,
-                          color:
-                              colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                          color: colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.1),
                         ),
                       ],
                       Expanded(
@@ -770,7 +777,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     itemCount: _routineExercises.length,
                                     padding: EdgeInsets.only(
                                       top: _isEditMode ? 0.0 : topPadding,
-                                      bottom: DesignConstants.bottomContentSpacer +
+                                      bottom: DesignConstants
+                                              .bottomContentSpacer +
                                           MediaQuery.paddingOf(context).bottom +
                                           (_isDragging ? 800.0 : 0.0),
                                     ),
@@ -805,7 +813,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     onReorderStart: (index) {
                                       // _isDragging is already set by the 300ms onPointerDown timer.
                                       // Do not set it here to avoid bypassing the delay.
-                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
                                         if (_fabOverlayController.isShowing) {
                                           _fabOverlayController.hide();
                                           _fabOverlayController.show();
@@ -816,10 +825,17 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       setState(() {
                                         _isDragging = false;
                                       });
-                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
                                         if (_scrollController.hasClients) {
-                                          final targetOffset = _calculateScrollPosition(index, _routineExercises);
-                                          _scrollController.jumpTo(targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent));
+                                          final targetOffset =
+                                              _calculateScrollPosition(
+                                                  index, _routineExercises);
+                                          _scrollController.jumpTo(
+                                              targetOffset.clamp(
+                                                  0.0,
+                                                  _scrollController.position
+                                                      .maxScrollExtent));
                                         }
                                       });
                                     },
@@ -838,45 +854,74 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           isCardio: isCardio,
                                           isDragging: _isDragging,
                                           isEditMode: _isEditMode,
-                                          onPointerDown: _isEditMode ? (event) {
-                                            _collapseTimer?.cancel();
-                                            _collapseTimer = Timer(const Duration(milliseconds: 300), () {
-                                              if (mounted) {
-                                                setState(() {
-                                                  _isDragging = true;
-                                                });
-                                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                                  if (_scrollController.hasClients) {
-                                                    final currentOffset = _scrollController.offset;
-                                                    final adjustment = _calculateScrollAdjustment(index, _routineExercises);
-                                                    _scrollController.jumpTo((currentOffset - adjustment).clamp(0.0, _scrollController.position.maxScrollExtent));
+                                          onPointerDown: _isEditMode
+                                              ? (event) {
+                                                  _collapseTimer?.cancel();
+                                                  _collapseTimer = Timer(
+                                                      const Duration(
+                                                          milliseconds: 300),
+                                                      () {
+                                                    if (mounted) {
+                                                      setState(() {
+                                                        _isDragging = true;
+                                                      });
+                                                      WidgetsBinding.instance
+                                                          .addPostFrameCallback(
+                                                              (_) {
+                                                        if (_scrollController
+                                                            .hasClients) {
+                                                          final currentOffset =
+                                                              _scrollController
+                                                                  .offset;
+                                                          final adjustment =
+                                                              _calculateScrollAdjustment(
+                                                                  index,
+                                                                  _routineExercises);
+                                                          _scrollController.jumpTo(
+                                                              (currentOffset -
+                                                                      adjustment)
+                                                                  .clamp(
+                                                                      0.0,
+                                                                      _scrollController
+                                                                          .position
+                                                                          .maxScrollExtent));
+                                                        }
+                                                      });
+                                                    }
+                                                  });
+                                                }
+                                              : null,
+                                          onPointerUp: _isEditMode
+                                              ? (event) {
+                                                  _collapseTimer?.cancel();
+                                                  if (_isDragging) {
+                                                    setState(() {
+                                                      _isDragging = false;
+                                                    });
                                                   }
-                                                });
-                                              }
-                                            });
-                                          } : null,
-                                          onPointerUp: _isEditMode ? (event) {
-                                            _collapseTimer?.cancel();
-                                            if (_isDragging) {
-                                              setState(() {
-                                                _isDragging = false;
-                                              });
-                                            }
-                                          } : null,
-                                          onPointerMove: _isEditMode ? (event) {
-                                            // Cancel timer if finger moves – user is scrolling, not drag-holding.
-                                            if (event.delta.dy.abs() > 4.0 || event.delta.dx.abs() > 4.0) {
-                                              _collapseTimer?.cancel();
-                                            }
-                                          } : null,
-                                          onPointerCancel: _isEditMode ? (event) {
-                                            _collapseTimer?.cancel();
-                                            if (_isDragging) {
-                                              setState(() {
-                                                _isDragging = false;
-                                              });
-                                            }
-                                          } : null,
+                                                }
+                                              : null,
+                                          onPointerMove: _isEditMode
+                                              ? (event) {
+                                                  // Cancel timer if finger moves – user is scrolling, not drag-holding.
+                                                  if (event.delta.dy.abs() >
+                                                          4.0 ||
+                                                      event.delta.dx.abs() >
+                                                          4.0) {
+                                                    _collapseTimer?.cancel();
+                                                  }
+                                                }
+                                              : null,
+                                          onPointerCancel: _isEditMode
+                                              ? (event) {
+                                                  _collapseTimer?.cancel();
+                                                  if (_isDragging) {
+                                                    setState(() {
+                                                      _isDragging = false;
+                                                    });
+                                                  }
+                                                }
+                                              : null,
                                           repsControllers: _repsControllers,
                                           weightControllers: _weightControllers,
                                           rirControllers: _rirControllers,
@@ -889,7 +934,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                   routineExercise),
                                           onAddSet: () =>
                                               _addSet(routineExercise),
-                                          onShowSetTypePicker: _showSetTypePicker,
+                                          onShowSetTypePicker:
+                                              _showSetTypePicker,
                                           onRemoveSet: (template, listIndex) =>
                                               _removeSet(routineExercise,
                                                   template.id!, listIndex),

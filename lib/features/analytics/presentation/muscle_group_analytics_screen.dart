@@ -18,7 +18,8 @@ import '../../workout/presentation/widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../util/timeframe_label_formatter.dart';
-import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../statistics/domain/timeframe_block.dart';
 
 class MuscleGroupAnalyticsScreen extends StatefulWidget {
@@ -35,7 +36,7 @@ class _MuscleGroupAnalyticsScreenState
   static const _maxMuscleBars = 8;
   final _rangePolicy = StatisticsRangePolicyService.instance;
   bool _isLoading = true;
-  
+
   TimeframeBlock _activeBlock = TimeframeBlock.month;
   DateTime _anchorDate = DateTime.now();
 
@@ -53,7 +54,6 @@ class _MuscleGroupAnalyticsScreenState
         l10n.filter6MonthsShort,
       ];
 
-
   Map<String, dynamic> _analytics = const {};
 
   @override
@@ -64,11 +64,12 @@ class _MuscleGroupAnalyticsScreenState
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     final bounds = _isRolling
         ? _activeBlock.getRollingBounds()
         : _activeBlock.getBounds(_anchorDate, DateTime(2020));
-    final daysBack = DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
+    final daysBack =
+        DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
 
     final weeksBack = _rangePolicy.resolveWeeksBack(
       metricId: StatisticsMetricId.muscleAnalytics,
@@ -121,8 +122,7 @@ class _MuscleGroupAnalyticsScreenState
     final highlights =
         MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
 
-    final double totalWeeks =
-        ((_analytics['daysBack'] as int?) ?? 7) / 7.0;
+    final double totalWeeks = ((_analytics['daysBack'] as int?) ?? 7) / 7.0;
 
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
@@ -135,148 +135,170 @@ class _MuscleGroupAnalyticsScreenState
         isEmpty: _analytics.isEmpty,
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
-              padding: DesignConstants.screenPadding.copyWith(
-                top: DesignConstants.screenPadding.top + topPadding,
-                bottom: DesignConstants.bottomContentSpacer,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _sectionLabel(l10n.analyticsPeriodLabel),
-                  TimeRangeFilter(
-                    ranges: _timeRanges(l10n),
-                    selectedIndex: _validBlocks.indexOf(_activeBlock),
-                    onSelected: (index) {
-                      setState(() {
-                        _activeBlock = _validBlocks[index];
-                        _isRolling = false;
-                      });
-                      _loadData();
-                    },
-                    onPrevious: _activeBlock == TimeframeBlock.maxBlock ? null : () {
-                      setState(() {
-                        final currentBounds = _activeBlock.getBounds(DateTime.now(), DateTime(2020));
-                        final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                        final isOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(currentBounds.start);
-                        
-                        if (isOngoing) {
-                          _isRolling = true;
-                        } else if (_isRolling) {
-                          _isRolling = false;
-                          _anchorDate = _activeBlock.shift(DateTime.now(), -1);
-                        } else {
-                          _anchorDate = _activeBlock.shift(_anchorDate, -1);
-                        }
-                      });
-                      _loadData();
-                    },
-                    onNext: _activeBlock == TimeframeBlock.maxBlock ? null : () {
-                      setState(() {
-                        if (_isRolling) {
-                          _isRolling = false;
-                          _anchorDate = DateTime.now();
-                        } else {
-                          final previousAnchor = _activeBlock.shift(DateTime.now(), -1);
-                          final previousBounds = _activeBlock.getBounds(previousAnchor, DateTime(2020));
-                          final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
-                          final isPreviousToOngoing = !_isRolling && myBounds.start.isAtSameMomentAs(previousBounds.start);
-                          
-                          if (isPreviousToOngoing) {
-                            _isRolling = true;
-                          } else {
-                            _anchorDate = _activeBlock.shift(_anchorDate, 1);
-                          }
-                        }
-                      });
-                      _loadData();
-                    },
-                    displayDate: _isRolling ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n) : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
-                    onTapDateDisplay: () async {
-                      final selected = await adaptive_pickers.showAdaptiveTimeframePicker(
-                        context: context,
-                        activeBlock: _activeBlock,
-                        initialAnchor: _anchorDate,
-                        earliestAvailableDay: DateTime(2020),
-                        initialIsRolling: _isRolling,
-                      );
-                      if (selected != null) {
+          padding: DesignConstants.screenPadding.copyWith(
+            top: DesignConstants.screenPadding.top + topPadding,
+            bottom: DesignConstants.bottomContentSpacer,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _sectionLabel(l10n.analyticsPeriodLabel),
+              TimeRangeFilter(
+                ranges: _timeRanges(l10n),
+                selectedIndex: _validBlocks.indexOf(_activeBlock),
+                onSelected: (index) {
+                  setState(() {
+                    _activeBlock = _validBlocks[index];
+                    _isRolling = false;
+                  });
+                  _loadData();
+                },
+                onPrevious: _activeBlock == TimeframeBlock.maxBlock
+                    ? null
+                    : () {
                         setState(() {
-                          _anchorDate = selected.anchorDate;
-                          _isRolling = selected.isRolling;
+                          final currentBounds = _activeBlock.getBounds(
+                              DateTime.now(), DateTime(2020));
+                          final myBounds = _activeBlock.getBounds(
+                              _anchorDate, DateTime(2020));
+                          final isOngoing = !_isRolling &&
+                              myBounds.start
+                                  .isAtSameMomentAs(currentBounds.start);
+
+                          if (isOngoing) {
+                            _isRolling = true;
+                          } else if (_isRolling) {
+                            _isRolling = false;
+                            _anchorDate =
+                                _activeBlock.shift(DateTime.now(), -1);
+                          } else {
+                            _anchorDate = _activeBlock.shift(_anchorDate, -1);
+                          }
                         });
                         _loadData();
-                      }
-                    },
-                    nextEnabled: _activeBlock == TimeframeBlock.maxBlock ? false : (_isRolling ? true : !_activeBlock.getBounds(_anchorDate, DateTime(2020)).start.isAtSameMomentAs(_activeBlock.getBounds(DateTime.now(), DateTime(2020)).start)),
-                    showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
-                  ),const SizedBox(height: DesignConstants.spacingM),
-                  _sectionLabel(l10n.analyticsRecentDistributionHeatmap),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                          if (workload.isEmpty)
-                            AnalyticsChartDefaults.stateView(
-                              context: context,
-                              l10n: l10n,
-                              status: AnalyticsStatus.empty,
-                              emptyLabel: l10n.noWorkoutDataLabel,
-                            )
-                          else ...[
-                            RepaintBoundary(
-                              child: _buildBodyHeatmap(
-                                context,
-                                highlights,
-                                muscles,
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: DesignConstants.spacingS),
-                          Text(
-                            l10n.analyticsRadarVolumeCaption,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
-                    ],
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  _sectionLabel(
-                    l10n.analyticsWeeklySetsByMuscle,
-                    isPrimary: true,
-                  ),
-                  RepaintBoundary(
-                    child: _buildWeeklySetsCard(muscles, totalWeeks),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  _sectionLabel(l10n.analyticsFrequencyByMuscle),
-                  RepaintBoundary(
-                    child: _buildFrequencyCard(muscles),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  _sectionLabel(l10n.analyticsGuidanceTitle),
-                  const SizedBox(height: DesignConstants.spacingXS),
+                      },
+                onNext: _activeBlock == TimeframeBlock.maxBlock
+                    ? null
+                    : () {
+                        setState(() {
+                          if (_isRolling) {
+                            _isRolling = false;
+                            _anchorDate = DateTime.now();
+                          } else {
+                            final previousAnchor =
+                                _activeBlock.shift(DateTime.now(), -1);
+                            final previousBounds = _activeBlock.getBounds(
+                                previousAnchor, DateTime(2020));
+                            final myBounds = _activeBlock.getBounds(
+                                _anchorDate, DateTime(2020));
+                            final isPreviousToOngoing = !_isRolling &&
+                                myBounds.start
+                                    .isAtSameMomentAs(previousBounds.start);
+
+                            if (isPreviousToOngoing) {
+                              _isRolling = true;
+                            } else {
+                              _anchorDate = _activeBlock.shift(_anchorDate, 1);
+                            }
+                          }
+                        });
+                        _loadData();
+                      },
+                displayDate: _isRolling
+                    ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
+                    : TimeframeLabelFormatter.format(
+                        _activeBlock, _anchorDate, l10n),
+                onTapDateDisplay: () async {
+                  final selected =
+                      await adaptive_pickers.showAdaptiveTimeframePicker(
+                    context: context,
+                    activeBlock: _activeBlock,
+                    initialAnchor: _anchorDate,
+                    earliestAvailableDay: DateTime(2020),
+                    initialIsRolling: _isRolling,
+                  );
+                  if (selected != null) {
+                    setState(() {
+                      _anchorDate = selected.anchorDate;
+                      _isRolling = selected.isRolling;
+                    });
+                    _loadData();
+                  }
+                },
+                nextEnabled: _activeBlock == TimeframeBlock.maxBlock
+                    ? false
+                    : (_isRolling
+                        ? true
+                        : !_activeBlock
+                            .getBounds(_anchorDate, DateTime(2020))
+                            .start
+                            .isAtSameMomentAs(_activeBlock
+                                .getBounds(DateTime.now(), DateTime(2020))
+                                .start)),
+                showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
+              ),
+              const SizedBox(height: DesignConstants.spacingM),
+              _sectionLabel(l10n.analyticsRecentDistributionHeatmap),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (workload.isEmpty)
+                    AnalyticsChartDefaults.stateView(
+                      context: context,
+                      l10n: l10n,
+                      status: AnalyticsStatus.empty,
+                      emptyLabel: l10n.noWorkoutDataLabel,
+                    )
+                  else ...[
+                    RepaintBoundary(
+                      child: _buildBodyHeatmap(
+                        context,
+                        highlights,
+                        muscles,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: DesignConstants.spacingS),
                   Text(
-                    dataQualityOk
-                        ? l10n.analyticsGuidanceDirectionalDisclaimer
-                        : l10n.analyticsGuidanceSoftenedDisclaimer,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(
+                    l10n.analyticsRadarVolumeCaption,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),
                   ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Text(
-                    _guidanceLabel(dataQualityOk, undertrained),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: DesignConstants.spacingM),
+              _sectionLabel(
+                l10n.analyticsWeeklySetsByMuscle,
+                isPrimary: true,
+              ),
+              RepaintBoundary(
+                child: _buildWeeklySetsCard(muscles, totalWeeks),
+              ),
+              const SizedBox(height: DesignConstants.spacingM),
+              _sectionLabel(l10n.analyticsFrequencyByMuscle),
+              RepaintBoundary(
+                child: _buildFrequencyCard(muscles),
+              ),
+              const SizedBox(height: DesignConstants.spacingM),
+              _sectionLabel(l10n.analyticsGuidanceTitle),
+              const SizedBox(height: DesignConstants.spacingXS),
+              Text(
+                dataQualityOk
+                    ? l10n.analyticsGuidanceDirectionalDisclaimer
+                    : l10n.analyticsGuidanceSoftenedDisclaimer,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+              ),
+              const SizedBox(height: DesignConstants.spacingS),
+              Text(
+                _guidanceLabel(dataQualityOk, undertrained),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -365,7 +387,8 @@ class _MuscleGroupAnalyticsScreenState
     );
   }
 
-  Widget _buildWeeklySetsCard(List<Map<String, dynamic>> muscles, double totalWeeks) {
+  Widget _buildWeeklySetsCard(
+      List<Map<String, dynamic>> muscles, double totalWeeks) {
     final l10n = AppLocalizations.of(context)!;
     if (muscles.isEmpty) {
       return SizedBox(
@@ -579,8 +602,7 @@ class _MuscleGroupAnalyticsScreenState
                     return BarTooltipItem(
                       '$label\n${_formatCompact(value)} $unit',
                       Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color:
-                                    Theme.of(context).colorScheme.onSurface,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.w600,
                               ) ??
                           TextStyle(
