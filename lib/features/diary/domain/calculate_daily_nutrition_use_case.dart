@@ -173,12 +173,12 @@ class CalculateDailyNutritionUseCase {
     }
 
     Supplement? caffeineSupplement;
-    try {
-      caffeineSupplement = allSupplements.firstWhere(
-        (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
-      );
-    } catch (e) {
-      caffeineSupplement = null;
+    // Bolt: Optimized to avoid try-catch for control flow in high-frequency path
+    for (final s in allSupplements) {
+      if ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine') {
+        caffeineSupplement = s;
+        break;
+      }
     }
 
     if (caffeineSupplement != null && caffeineSupplement.id != null) {
