@@ -56,6 +56,8 @@ class DurationDetailPage extends StatelessWidget {
           value: duration.inMinutes.toDouble(),
           lowerTarget: 7 * 60,
           upperTarget: 9 * 60,
+          lowerLabel: '0h',
+          upperLabel: '12h',
         ),
         const SizedBox(height: DesignConstants.spacingM),
         Text(l10n.sleepDurationBenchmarkHint),

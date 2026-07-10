@@ -73,7 +73,7 @@ class HeartRateDetailPage extends StatelessWidget {
 
     return SleepDetailPageShell(
       title: l10n.sleepMetricHeartRateTitle,
-      value: hasAverage ? '${avg.round()} ${l10n.sleepBpmUnit}' : '--',
+      value: hasAverage ? '⌀ ${avg.round()} ${l10n.sleepBpmUnit}' : '--',
       statusLabel: statusLabel,
       subtitle: established
           ? l10n.sleepHeartRateComparedBaselineSubtitle
@@ -93,6 +93,8 @@ class HeartRateDetailPage extends StatelessWidget {
                 established && baseline != null ? baseline - 3 : avg - 2,
             upperTarget:
                 established && baseline != null ? baseline + 3 : avg + 2,
+            lowerLabel: '${35.toInt()} ${l10n.sleepBpmUnit}',
+            upperLabel: '${90.toInt()} ${l10n.sleepBpmUnit}',
           ),
           const SizedBox(height: DesignConstants.spacingM),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
@@ -140,9 +141,12 @@ class _SleepMonthOverviewPageState extends State<SleepMonthOverviewPage> {
         }
       } else {
         if (_isRolling) return;
-        final currentBounds = SleepPeriodScope.month.block.getBounds(DateTime.now(), DateTime(2020));
-        final myBounds = SleepPeriodScope.month.block.getBounds(_anchorDay, DateTime(2020));
-        if (myBounds.start.isAtSameMomentAs(currentBounds.start) || myBounds.start.isAfter(currentBounds.start)) {
+        final currentBounds = SleepPeriodScope.month.block
+            .getBounds(DateTime.now(), DateTime(2020));
+        final myBounds =
+            SleepPeriodScope.month.block.getBounds(_anchorDay, DateTime(2020));
+        if (myBounds.start.isAtSameMomentAs(currentBounds.start) ||
+            myBounds.start.isAfter(currentBounds.start)) {
           _isRolling = true;
         } else {
           _anchorDay = DateTime(_anchorDay.year, _anchorDay.month + 1, 1);
@@ -172,7 +176,8 @@ class MonthSummaryCard extends StatelessWidget {
         ? '--'
         : aggregation.meanScore!.toStringAsFixed(0);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.cardPaddingInternal),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -225,6 +230,7 @@ class MonthCalendarGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final localeCode = Localizations.localeOf(context).toString();
     final days = aggregation.days;
     final firstWeekdayOffset = aggregation.monthStart.weekday - DateTime.monday;
     final padded = <SleepDayAggregate?>[
@@ -236,7 +242,8 @@ class MonthCalendarGrid extends StatelessWidget {
       padded.addAll(List<SleepDayAggregate?>.filled(7 - remainder, null));
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.cardPaddingInternal),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -245,6 +252,24 @@ class MonthCalendarGrid extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: DesignConstants.spacingS),
+          Row(
+            children: List.generate(7, (index) {
+              final referenceDay = DateTime(2024, 1, 1).add(
+                Duration(days: index),
+              );
+              return Expanded(
+                child: Center(
+                  child: Text(
+                    DateFormat.E(localeCode).format(referenceDay),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 6),
           GridView.builder(
             shrinkWrap: true,
             padding: EdgeInsets.zero,
@@ -261,6 +286,9 @@ class MonthCalendarGrid extends StatelessWidget {
               if (day == null) {
                 return const SizedBox.shrink();
               }
+              final score = day.score;
+              final scoreText = score == null ? '--' : score.round().toString();
+              final scoreFill = _scoreFillColor(context, day.sleepQuality);
               return InkWell(
                 onTap: () => onTapDay(day.date),
                 borderRadius: BorderRadius.circular(
@@ -268,20 +296,49 @@ class MonthCalendarGrid extends StatelessWidget {
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: _chipColor(context, day.sleepQuality),
+                    color: scoreFill,
                     borderRadius: BorderRadius.circular(
                       DesignConstants.borderRadiusS,
                     ),
+                    border: Border.all(
+                      color: scoreFill.withValues(alpha: 0.7),
+                    ),
                   ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '${day.date.day}',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface,
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Text(
+                          '${day.date.day}',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: _fixedTextColor(context),
+                                  ),
                         ),
+                      ),
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                scoreText,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: _fixedTextColor(context),
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -292,13 +349,20 @@ class MonthCalendarGrid extends StatelessWidget {
     );
   }
 
-  Color _chipColor(BuildContext context, SleepQualityBucket quality) {
-    final scheme = Theme.of(context).colorScheme;
+  Color _scoreFillColor(BuildContext context, SleepQualityBucket quality) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return switch (quality) {
-      SleepQualityBucket.good => Colors.green.shade300,
-      SleepQualityBucket.average => Colors.amber.shade300,
-      SleepQualityBucket.poor => Theme.of(context).colorScheme.error,
-      SleepQualityBucket.unavailable => scheme.surfaceContainerHighest,
+      SleepQualityBucket.good => const Color(0xFF81C784),
+      SleepQualityBucket.average => const Color(0xFFFFD54F),
+      SleepQualityBucket.poor => const Color(0xFFEF5350),
+      SleepQualityBucket.unavailable =>
+        isDark ? const Color(0xFF3A3A3A) : const Color(0xFFE0E0E0),
     };
+  }
+
+  Color _fixedTextColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
   }
 }

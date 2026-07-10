@@ -51,21 +51,24 @@ class SleepMetricTileGrid extends StatelessWidget {
     return _buildTwoColumnGrid([
       ValueSummaryCard(
         label: l10n.sleepMetricDurationTitle,
-        value: '${overview.totalSleepDuration.inHours}h ${overview.totalSleepDuration.inMinutes.remainder(60)}m',
-        onTap: () => SleepNavigation.openDurationDetail(context, overview: overview),
+        value:
+            '${overview.totalSleepDuration.inHours}h ${overview.totalSleepDuration.inMinutes.remainder(60)}m',
+        onTap: () =>
+            SleepNavigation.openDurationDetail(context, overview: overview),
       ),
       ValueSummaryCard(
         label: l10n.sleepMetricHeartRateTitle,
         value: overview.sleepHrAvg == null
             ? l10n.sleepMetricUnavailable
-            : '${overview.sleepHrAvg!.round()}',
-        subtitle: overview.sleepHrAvg == null ? null : l10n.sleepBpmUnit,
-        onTap: () => SleepNavigation.openHeartRateDetail(context, overview: overview),
+            : '${overview.sleepHrAvg!.round()} ${l10n.sleepBpmUnit}',
+        onTap: () =>
+            SleepNavigation.openHeartRateDetail(context, overview: overview),
       ),
       ValueSummaryCard(
         label: l10n.sleepMetricRegularityTitle,
         value: regularitySubtitle,
-        onTap: () => SleepNavigation.openRegularityDetail(context, overview: overview),
+        onTap: () =>
+            SleepNavigation.openRegularityDetail(context, overview: overview),
       ),
       ValueSummaryCard(
         label: l10n.sleepMetricDepthTitle,
@@ -74,14 +77,16 @@ class SleepMetricTileGrid extends StatelessWidget {
             : (overview.hasStageData
                 ? l10n.sleepMetricDepthStagesAvailable
                 : l10n.sleepMetricUnavailable),
-        onTap: () => SleepNavigation.openDepthDetail(context, overview: overview),
+        onTap: () =>
+            SleepNavigation.openDepthDetail(context, overview: overview),
       ),
       ValueSummaryCard(
         label: l10n.sleepMetricInterruptionsTitle,
         value: overview.interruptionsCount == null
             ? l10n.sleepMetricUnavailable
             : '${overview.interruptionsCount}',
-        onTap: () => SleepNavigation.openInterruptionsDetail(context, overview: overview),
+        onTap: () => SleepNavigation.openInterruptionsDetail(context,
+            overview: overview),
       ),
     ]);
   }

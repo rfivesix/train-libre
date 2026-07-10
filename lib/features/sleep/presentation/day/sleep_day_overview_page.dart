@@ -110,7 +110,7 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
         onScopeChanged: _onScopeChanged,
         onShiftPeriod: _shiftPeriod,
         onAnchorChanged: (selection) {
-        final date = selection.anchorDate;
+          final date = selection.anchorDate;
           setState(() {
             _anchorDay = date;
           });
@@ -136,9 +136,10 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
           children: [
             WeekSummaryCard(aggregation: aggregation),
             const SizedBox(height: _sleepOverviewSectionSpacing),
-            WeekWindowCard(aggregation: aggregation),
-            const SizedBox(height: _sleepOverviewSectionSpacing),
-            WeekScoreStrip(aggregation: aggregation, onTapDay: _selectDay),
+            WeekWindowCard(
+              aggregation: aggregation,
+              onTapDay: _selectDay,
+            ),
             if (aggregation.days.every((day) => day.score == null)) ...[
               const SizedBox(height: _sleepOverviewSectionSpacing),
               SleepDataUnavailableCard(
@@ -333,13 +334,16 @@ class _SleepDayOverviewContent extends StatelessWidget {
         const SizedBox(height: _sleepOverviewSectionSpacing),
         if (overview.scoringResult != null) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
-            child: SleepScoreBreakdownCard(scoringResult: overview.scoringResult!),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.cardPaddingInternal),
+            child:
+                SleepScoreBreakdownCard(scoringResult: overview.scoringResult!),
           ),
           const SizedBox(height: DesignConstants.spacingS),
         ],
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+          padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.cardPaddingInternal),
           child: SleepMetricTileGrid(overview: overview),
         ),
       ],
@@ -376,7 +380,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
         isDark ? const Color(0xFF34D399) : const Color(0xFF065F46);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.cardPaddingInternal),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -563,44 +568,45 @@ class _SleepEmptyStateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.cardPaddingInternal),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.cardPaddingInternal),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            Text(l10n.sleepEmptyDayNoData),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(l10n.sleepEmptyDayConnectMessage),
-            const SizedBox(height: DesignConstants.spacingM),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: onOpenSettings,
-                  icon: const Icon(LucideIcons.settings),
-                  label: Text(l10n.sleepOpenSettingsButton),
-                ),
-                FilledButton.icon(
-                  onPressed: () async {
-                    final ok = await onImportNow();
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ok
-                              ? l10n.sleepImportFinishedRefreshing
-                              : l10n.sleepImportUnavailableSettingsHint,
-                        ),
+          Text(l10n.sleepEmptyDayNoData),
+          const SizedBox(height: DesignConstants.spacingS),
+          Text(l10n.sleepEmptyDayConnectMessage),
+          const SizedBox(height: DesignConstants.spacingM),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: onOpenSettings,
+                icon: const Icon(LucideIcons.settings),
+                label: Text(l10n.sleepOpenSettingsButton),
+              ),
+              FilledButton.icon(
+                onPressed: () async {
+                  final ok = await onImportNow();
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        ok
+                            ? l10n.sleepImportFinishedRefreshing
+                            : l10n.sleepImportUnavailableSettingsHint,
                       ),
-                    );
-                  },
-                  icon: const Icon(LucideIcons.refresh_cw),
-                  label: Text(l10n.sleepImportNowButton),
-                ),
-              ],
-            ),
-          ],
-        ),
+                    ),
+                  );
+                },
+                icon: const Icon(LucideIcons.refresh_cw),
+                label: Text(l10n.sleepImportNowButton),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
