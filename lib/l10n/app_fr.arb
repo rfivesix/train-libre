@@ -1608,6 +1608,13 @@
   "sleepRawImportsSubtitle": "Afficher les charges utiles Health Connect récentes",
   "sleepDataStatusTitle": "Statut des données",
   "sleepDataStatusSubtitle": "Autorisations accordées. Si aucune veille n'apparaît encore, exécutez une importation manuelle ci-dessous.",
+  "@sleepDataStatusSubtitle": {
+    "type": "text"
+  },
+  "sleepDataStatusSubtitleIos": "Connexion active. Si des données manquent (0 sessions importées), vérifiez manuellement les autorisations de lecture dans l'application Apple Health.",
+  "@sleepDataStatusSubtitleIos": {
+    "type": "text"
+  },
   "sleepNoPermissionTitle": "Aucune autorisation",
   "sleepNoPermissionSubtitle": "Des autorisations de sommeil et de fréquence cardiaque sont requises pour importer des données de sommeil.",
   "sleepFeatureUnavailableTitle": "Fonctionnalité indisponible",

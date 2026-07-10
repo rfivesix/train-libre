@@ -1608,6 +1608,13 @@
   "sleepRawImportsSubtitle": "Mostra i payload recenti di Health Connect",
   "sleepDataStatusTitle": "Stato dei dati",
   "sleepDataStatusSubtitle": "Autorizzazioni concesse. Se non viene ancora visualizzato lo stato di sospensione, esegui un'importazione manuale di seguito.",
+  "@sleepDataStatusSubtitle": {
+    "type": "text"
+  },
+  "sleepDataStatusSubtitleIos": "Connessione attiva. Se mancano dei dati (0 sessioni importate), verifica manualmente le autorizzazioni di lettura nell'app Apple Health.",
+  "@sleepDataStatusSubtitleIos": {
+    "type": "text"
+  },
   "sleepNoPermissionTitle": "Nessun permesso",
   "sleepNoPermissionSubtitle": "Per importare i dati del sonno sono necessarie le autorizzazioni relative al sonno e alla frequenza cardiaca.",
   "sleepFeatureUnavailableTitle": "Funzionalità non disponibile",

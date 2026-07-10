@@ -6515,11 +6515,11 @@ abstract class AppLocalizations {
   /// **'Permissions granted. If no sleep appears yet, run a manual import below.'**
   String get sleepDataStatusSubtitle;
 
-  /// No description provided for @sleepNoPermissionTitle.
+  /// No description provided for @sleepDataStatusSubtitleIos.
   ///
   /// In en, this message translates to:
-  /// **'No permission'**
-  String get sleepNoPermissionTitle;
+  /// **'Connection active. If data is missing (0 sessions imported), manually verify the read permissions in the Apple Health app.'**
+  String get sleepDataStatusSubtitleIos;
 
   /// No description provided for @sleepNoPermissionSubtitle.
   ///

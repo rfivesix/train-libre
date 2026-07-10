@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';
@@ -172,7 +173,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                           const SizedBox(height: 4),
                           Text(
                             permission.state == SleepPermissionState.ready
-                                ? l10n.sleepDataStatusSubtitle
+                                ? (Platform.isIOS ? l10n.sleepDataStatusSubtitleIos : l10n.sleepDataStatusSubtitle)
                                 : (permission.state == SleepPermissionState.denied ||
                                         permission.state == SleepPermissionState.partial
                                     ? l10n.sleepNoPermissionSubtitle

@@ -3686,14 +3686,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Berechtigungen erteilt. Wenn noch kein Schlaf angezeigt wird, unten manuell importieren.';
 
   @override
-  String get sleepNoPermissionTitle => 'Keine Berechtigung';
+  String get sleepDataStatusSubtitleIos =>
+      'Verbindung aktiv. Prüfe bei fehlenden Daten (0 Sitzungen importiert) manuell die Lese-Berechtigungen in der Apple Health App.';
 
   @override
   String get sleepNoPermissionSubtitle =>
-      'Schlaf- und Herzfrequenz-Berechtigungen sind für den Import erforderlich.';
+      'Sleep and heart-rate permissions are required to import sleep data.';
 
   @override
-  String get sleepFeatureUnavailableTitle => 'Funktion nicht verfügbar';
+  String get sleepFeatureUnavailableTitle => 'Feature unavailable';
 
   @override
   String get sleepFeatureUnavailableSubtitle =>

@@ -3714,7 +3714,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Autorisations accordées. Si aucune veille n\'apparaît encore, exécutez une importation manuelle ci-dessous.';
 
   @override
-  String get sleepNoPermissionTitle => 'Aucune autorisation';
+  String get sleepDataStatusSubtitleIos =>
+      'Connexion active. Si des données manquent (0 sessions importées), vérifiez manuellement les autorisations de lecture dans l\'application Apple Health.';
 
   @override
   String get sleepNoPermissionSubtitle =>

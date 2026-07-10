@@ -3655,7 +3655,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Permissions granted. If no sleep appears yet, run a manual import below.';
 
   @override
-  String get sleepNoPermissionTitle => 'No permission';
+  String get sleepDataStatusSubtitleIos =>
+      'Connection active. If data is missing (0 sessions imported), manually verify the read permissions in the Apple Health app.';
 
   @override
   String get sleepNoPermissionSubtitle =>

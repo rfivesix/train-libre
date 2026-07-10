@@ -1599,6 +1599,14 @@
   "sleepSettingsSectionTitle": "Schlaf",
   "sleepEnableTrackingTitle": "Schlaf-Tracking aktivieren",
   "sleepEnableTrackingSubtitle": "Schlaf- und nächtliche Herzfrequenzdaten aus Health Connect / HealthKit lesen",
+  "sleepDataStatusSubtitle": "Berechtigungen erteilt. Wenn noch kein Schlaf angezeigt wird, unten manuell importieren.",
+  "@sleepDataStatusSubtitle": {
+    "type": "text"
+  },
+  "sleepDataStatusSubtitleIos": "Verbindung aktiv. Prüfe bei fehlenden Daten (0 Sitzungen importiert) manuell die Lese-Berechtigungen in der Apple Health App.",
+  "@sleepDataStatusSubtitleIos": {
+    "type": "text"
+  },
   "sleepHealthConnectionStatusTitle": "Status der Gesundheitsverbindung",
   "sleepRequestAccessTitle": "Zugriff anfordern",
   "sleepRequestAccessSubtitle": "Schlaf-/Herzfrequenz-Berechtigungen anfordern oder erneut anfordern",
@@ -1607,10 +1615,6 @@
   "sleepRawImportsTitle": "Rohimporte anzeigen",
   "sleepRawImportsSubtitle": "Zeigt aktuelle Health-Connect-Payloads",
   "sleepDataStatusTitle": "Datenstatus",
-  "sleepDataStatusSubtitle": "Berechtigungen erteilt. Wenn noch kein Schlaf angezeigt wird, unten manuell importieren.",
-  "sleepNoPermissionTitle": "Keine Berechtigung",
-  "sleepNoPermissionSubtitle": "Schlaf- und Herzfrequenz-Berechtigungen sind für den Import erforderlich.",
-  "sleepFeatureUnavailableTitle": "Funktion nicht verfügbar",
   "sleepFeatureUnavailableSubtitle": "Der Schlafimport ist auf diesem Gerät nicht verfügbar oder Health Connect ist nicht installiert.",
   "sleepNoRawImportsFound": "Es wurden noch keine Schlaf-Rohimporte gefunden.",
   "sleepRawImportsSheetTitle": "Schlaf-Rohimporte (neueste)",

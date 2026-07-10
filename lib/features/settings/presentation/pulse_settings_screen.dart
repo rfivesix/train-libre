@@ -148,7 +148,7 @@ class _PulseSettingsScreenState extends State<PulseSettingsScreen> {
                           const SizedBox(height: 4),
                           Text(
                             permission.state == SleepPermissionState.ready
-                                ? l10n.sleepDataStatusSubtitle
+                                ? (Platform.isIOS ? l10n.sleepDataStatusSubtitleIos : l10n.sleepDataStatusSubtitle)
                                 : (permission.state == SleepPermissionState.denied ||
                                         permission.state == SleepPermissionState.partial
                                     ? l10n.sleepNoPermissionSubtitle

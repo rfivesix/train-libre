@@ -1607,7 +1607,13 @@
   "sleepRawImportsSubtitle": "Show recent Health Connect payloads",
   "sleepDataStatusTitle": "Data status",
   "sleepDataStatusSubtitle": "Permissions granted. If no sleep appears yet, run a manual import below.",
-  "sleepNoPermissionTitle": "No permission",
+  "@sleepDataStatusSubtitle": {
+    "type": "text"
+  },
+  "sleepDataStatusSubtitleIos": "Connection active. If data is missing (0 sessions imported), manually verify the read permissions in the Apple Health app.",
+  "@sleepDataStatusSubtitleIos": {
+    "type": "text"
+  },
   "sleepNoPermissionSubtitle": "Sleep and heart-rate permissions are required to import sleep data.",
   "sleepFeatureUnavailableTitle": "Feature unavailable",
   "sleepFeatureUnavailableSubtitle": "Sleep import is unavailable on this device or Health Connect is not installed.",

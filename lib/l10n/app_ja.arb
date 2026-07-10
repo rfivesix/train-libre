@@ -1608,6 +1608,13 @@
   "sleepRawImportsSubtitle": "最近のヘルスコネクト ペイロードを表示する",
   "sleepDataStatusTitle": "データステータス",
   "sleepDataStatusSubtitle": "許可が付与されました。まだスリープが表示されない場合は、以下の手動インポートを実行します。",
+  "@sleepDataStatusSubtitle": {
+    "type": "text"
+  },
+  "sleepDataStatusSubtitleIos": "接続はアクティブです。データが見つからない場合（インポートされたセッションが 0 の場合）、Apple Health アプリで手動で読み取り権限を確認してください。",
+  "@sleepDataStatusSubtitleIos": {
+    "type": "text"
+  },
   "sleepNoPermissionTitle": "許可がありません",
   "sleepNoPermissionSubtitle": "睡眠データをインポートするには、睡眠と心拍数の権限が必要です。",
   "sleepFeatureUnavailableTitle": "利用できない機能",

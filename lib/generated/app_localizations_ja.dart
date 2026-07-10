@@ -3549,7 +3549,8 @@ class AppLocalizationsJa extends AppLocalizations {
       '許可が付与されました。まだスリープが表示されない場合は、以下の手動インポートを実行します。';
 
   @override
-  String get sleepNoPermissionTitle => '許可がありません';
+  String get sleepDataStatusSubtitleIos =>
+      '接続はアクティブです。データが見つからない場合（インポートされたセッションが 0 の場合）、Apple Health アプリで手動で読み取り権限を確認してください。';
 
   @override
   String get sleepNoPermissionSubtitle => '睡眠データをインポートするには、睡眠と心拍数の権限が必要です。';

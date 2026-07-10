@@ -3705,7 +3705,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Autorizzazioni concesse. Se non viene ancora visualizzato lo stato di sospensione, esegui un\'importazione manuale di seguito.';
 
   @override
-  String get sleepNoPermissionTitle => 'Nessun permesso';
+  String get sleepDataStatusSubtitleIos =>
+      'Connessione attiva. Se mancano dei dati (0 sessioni importate), verifica manualmente le autorizzazioni di lettura nell\'app Apple Health.';
 
   @override
   String get sleepNoPermissionSubtitle =>
