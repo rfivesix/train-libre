@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Exercise Catalog:** Increased the display limit of the exercise catalog search from 50 to 100 entries.
 - **Backup Import Flow:** Modified the backup import flow in the onboarding and data management screens so that restoring a backup successfully redirects the user to the onboarding region selection and health permission screens, ensuring proper regional data downloads and API authorizations are established on the new device.
 - **Health Permissions UI:** Unified the health permission status UI across the Settings screens. The Pulse and Steps settings now correctly use the `SleepPermissionController` architecture to display a clear connection status (e.g., a red exclamation mark if permission is missing or denied), matching the reference implementation on the Sleep settings screen, and allowing users to trigger a new permission request by tapping the tile.
+
+### Changed
+- **Diary Scroll Position:** Added a persistent scroll controller to the Diary screen to maintain the scroll position when navigating between different dates.
+- **Diary Share Flow:** Streamlined the share action on the Diary screen to instantly trigger text-sharing of the daily summary, removing the intermediate selection menu.
+- **App Bar Icons:** Refined the App Bar icons for better visibility. The profile placeholder and share icons now use pure white/black colors depending on the theme. The profile placeholder also received a subtle background and border to integrate better with the background.
+- **Adaptive Share Icon:** The share icon is now adaptive, displaying the native iOS share icon on iOS devices and the standard share node icon on Android and other platforms.
 ## [1.0.0-alpha.7] - 2026-07-09
 
 ### Added

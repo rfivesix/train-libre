@@ -78,50 +78,30 @@ class _DiaryScreenContent extends StatefulWidget {
 class DiaryScreenState extends State<_DiaryScreenContent> {
   final GlobalKey _macroSummaryKey = GlobalKey();
   final ShareService _shareService = const ShareService();
+  final ScrollController _scrollController = ScrollController();
 
   DiaryViewModel get viewModel => context.read<DiaryViewModel>();
   ValueNotifier<DateTime> get selectedDateNotifier =>
       viewModel.selectedDateNotifier;
 
-  Future<void> showShareMenu() async {
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> shareAsText() async {
     final l10n = AppLocalizations.of(context)!;
-    await showGlassBottomMenu<void>(
-      context: context,
-      title: l10n.share,
-      actions: [
-        GlassMenuAction(
-          icon: LucideIcons.image,
-          label: l10n.shareAsImage,
-          onTap: () async {
-            try {
-              await _shareService.shareWidgetAsImage(_macroSummaryKey);
-            } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.shareFailed)),
-                );
-              }
-            }
-          },
-        ),
-        GlassMenuAction(
-          icon: LucideIcons.text_initial,
-          label: l10n.shareAsTextOrCopy,
-          onTap: () async {
-            try {
-              await _shareService.shareDailyLogAsText(viewModel.selectedDate,
-                  l10n: l10n);
-            } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.shareFailed)),
-                );
-              }
-            }
-          },
-        ),
-      ],
-    );
+    try {
+      await _shareService.shareDailyLogAsText(viewModel.selectedDate,
+          l10n: l10n);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.shareFailed)),
+        );
+      }
+    }
   }
 
   void setSelectedDate(DateTime date) {
@@ -663,6 +643,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
         : RefreshIndicator(
             onRefresh: () => syncHealthData(forceStepsRefresh: true),
             child: CustomScrollView(
+              controller: _scrollController,
               slivers: [
                 SliverPadding(
                   padding: finalPadding.copyWith(bottom: 0),

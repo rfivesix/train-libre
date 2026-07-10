@@ -844,10 +844,15 @@ class _MainScreenState extends State<MainScreen>
           ),
           actions: [
             IconButton(
-              icon: const Icon(LucideIcons.share_2),
+              icon: Icon(
+                Platform.isIOS ? LucideIcons.share : LucideIcons.share_2,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+              ),
               tooltip: l10n.share,
               onPressed: () {
-                _tagebuchKey.currentState?.showShareMenu();
+                _tagebuchKey.currentState?.shareAsText();
               },
             ),
             _profileAppBarButton(context),
@@ -1279,7 +1284,9 @@ class _MainScreenState extends State<MainScreen>
                                       horizontalPadding: 0.0,
                                       verticalPadding: 0.0,
                                       quality: GlassQuality.premium,
-                                      indicatorExpansion: const EdgeInsets.symmetric(horizontal: 14),
+                                      indicatorExpansion:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 14),
                                       selectedIconColor:
                                           theme.colorScheme.primary,
                                       unselectedIconColor:
@@ -1435,34 +1442,55 @@ class _MainScreenState extends State<MainScreen>
           button: true,
           child: InkWell(
             customBorder: const CircleBorder(),
-          onTap: () async {
-            await Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
-            // Refresh diary data when returning from profile/settings
-            _refreshHomeScreen();
-          },
-          child: Consumer<ProfileService>(
-            builder: (context, profileService, _) {
-              return CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors
-                    .grey, //Theme.of(context).colorScheme.onSurfaceVariant,
-                backgroundImage: (profileService.profileImagePath != null)
-                    ? FileImage(File(profileService.profileImagePath!))
-                    : null,
-                child: (profileService.profileImagePath == null)
-                    ? const Icon(LucideIcons.user,
-                        size: 20, color: Colors.black54)
-                    : null,
-              );
+            onTap: () async {
+              await Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
+              // Refresh diary data when returning from profile/settings
+              _refreshHomeScreen();
             },
+            child: Consumer<ProfileService>(
+              builder: (context, profileService, _) {
+                final hasImage = profileService.profileImagePath != null;
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                final iconColor = isDark ? Colors.white : Colors.black;
+                return Center(
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: hasImage
+                          ? Colors.transparent
+                          : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                      border: hasImage
+                          ? null
+                          : Border.all(
+                              color: iconColor,
+                              width: 2.0,
+                            ),
+                    ),
+                    child: hasImage
+                        ? CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.transparent,
+                            backgroundImage: FileImage(
+                                File(profileService.profileImagePath!)),
+                          )
+                        : Icon(
+                            LucideIcons.user,
+                            size: 20,
+                            color: iconColor,
+                          ),
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _AppTourStep {
