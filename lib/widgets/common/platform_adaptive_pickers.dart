@@ -89,15 +89,44 @@ Future<DateTime?> _showGlassDatePicker({
             children: [
               // Title at the top
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: DesignConstants.spacingL),
-                child: Center(
-                  child: Text(
-                    _getSelectDateTitle(ctx),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingL,
+                  bottom: DesignConstants.spacingS,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 60),
+                    Text(
+                      _getSelectDateTitle(ctx),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
+                    SizedBox(
+                      width: 60,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: () {
+                            HapticFeedbackService.instance.selectionFeedback();
+                            Navigator.pop(ctx, DateTime.now());
+                          },
+                          child: Text(
+                            l10n?.today ?? 'Today',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               // Date Picker Wheel
@@ -206,15 +235,45 @@ Future<TimeOfDay?> _showGlassTimePicker({
             children: [
               // Title at the top
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: DesignConstants.spacingL),
-                child: Center(
-                  child: Text(
-                    _getSelectTimeTitle(ctx),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingL,
+                  bottom: DesignConstants.spacingS,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 60),
+                    Text(
+                      _getSelectTimeTitle(ctx),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
+                    SizedBox(
+                      width: 60,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: () {
+                            HapticFeedbackService.instance.selectionFeedback();
+                            final now = DateTime.now();
+                            Navigator.pop(ctx, now);
+                          },
+                          child: Text(
+                            l10n?.nowLabel ?? 'Now',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               // Time Picker Wheel

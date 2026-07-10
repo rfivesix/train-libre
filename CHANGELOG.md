@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.8] - 2026-07-10
 
+### Added
+- **Date/Time Picker Quick Actions:** Added a "Today" ("Heute") button to the adaptive date picker and a "Now" ("Jetzt") button to the adaptive time picker for faster data entry. The duration picker remains unaffected.
+
 ### Fixed
 - **Sleep Duration Mapping:** Fixed Apple Health integration to properly map iOS 16 sleep stages (Core, Deep, REM) and `asleep_unspecified`, resolving an issue where sleep duration displayed as 0h 0min on iOS devices.
 - **Food Detail Screen:** Fixed a bug where a 0g portion size would prevent users from switching back to the per 100g view, by automatically defaulting to the 100g view when the tracked portion is 0g.

@@ -11,6 +11,7 @@
   "fat": "脂質",
   "steps": "歩数",
   "daily": "毎日",
+  "nowLabel": "Now",
   "today": "今日",
   "workoutSection": "ワークアウトセクション - まだ実装されていません",
   "addMenuTitle": "何を追加したいですか?",

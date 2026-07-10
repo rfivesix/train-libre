@@ -42,6 +42,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get daily => 'Täglich';
 
   @override
+  String get nowLabel => 'Jetzt';
+
+  @override
   String get today => 'Heute';
 
   @override
@@ -3691,10 +3694,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sleepNoPermissionSubtitle =>
-      'Sleep and heart-rate permissions are required to import sleep data.';
+      'Schlaf- und Pulsberechtigung sind notwendig um Schlafdaten zu importieren.';
 
   @override
-  String get sleepFeatureUnavailableTitle => 'Feature unavailable';
+  String get sleepFeatureUnavailableTitle => 'Funktion nicht verfügbar';
 
   @override
   String get sleepFeatureUnavailableSubtitle =>

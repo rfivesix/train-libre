@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daily => 'Daily';
 
   @override
+  String get nowLabel => 'Now';
+
+  @override
   String get today => 'Today';
 
   @override

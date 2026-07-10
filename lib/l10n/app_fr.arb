@@ -11,6 +11,7 @@
   "fat": "Lipides",
   "steps": "Pas",
   "daily": "Tous les jours",
+  "nowLabel": "Now",
   "today": "Aujourd'hui",
   "workoutSection": "Section entraînement - pas encore implémentée",
   "addMenuTitle": "Que veux-tu ajouter ?",

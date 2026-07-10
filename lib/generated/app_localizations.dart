@@ -170,6 +170,12 @@ abstract class AppLocalizations {
   /// **'Daily'**
   String get daily;
 
+  /// No description provided for @nowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get nowLabel;
+
   /// No description provided for @today.
   ///
   /// In en, this message translates to:
