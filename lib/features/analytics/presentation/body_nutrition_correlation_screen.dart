@@ -283,34 +283,54 @@ class _BodyNutritionCorrelationScreenState
         LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth < 430 ? 2 : 4;
-            return GridView.count(
-              padding: EdgeInsets.zero,
-              crossAxisCount: crossAxisCount,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: DesignConstants.spacingS,
-              mainAxisSpacing: DesignConstants.spacingS,
-              childAspectRatio: crossAxisCount == 2 ? 2.45 : 2.65,
-              children: [
-                ValueSummaryCard(
-                    label: l10n.metricsCurrentWeight, value: currentWeight),
-                ValueSummaryCard(
-                    label: l10n.metricsWeightChange, value: weightChange),
-                ValueSummaryCard(
-                    label: l10n.metricsAvgCalories, value: avgCalories),
-                ValueSummaryCard(
-                  label: l10n.analyticsWeightTrendLabel,
-                  value: StatisticsPresentationFormatter
-                      .bodyNutritionTrendDirectionLabel(
-                          l10n, data.weightTrend.direction),
+            final gridItems = [
+              ValueSummaryCard(
+                  label: l10n.metricsCurrentWeight, value: currentWeight),
+              ValueSummaryCard(
+                  label: l10n.metricsWeightChange, value: weightChange),
+              ValueSummaryCard(
+                  label: l10n.metricsAvgCalories, value: avgCalories),
+              ValueSummaryCard(
+                label: l10n.analyticsWeightTrendLabel,
+                value: StatisticsPresentationFormatter
+                    .bodyNutritionTrendDirectionLabel(
+                        l10n, data.weightTrend.direction),
+              ),
+              ValueSummaryCard(
+                label: l10n.analyticsCaloriesTrendLabel,
+                value: StatisticsPresentationFormatter
+                    .bodyNutritionTrendDirectionLabel(
+                        l10n, data.calorieTrend.direction),
+              ),
+            ];
+
+            final rows = <Widget>[];
+            for (var i = 0; i < gridItems.length; i += crossAxisCount) {
+              final rowChildren = <Widget>[];
+              for (var j = 0; j < crossAxisCount; j++) {
+                if (j > 0) rowChildren.add(const SizedBox(width: DesignConstants.spacingS));
+                final itemIndex = i + j;
+                rowChildren.add(
+                  Expanded(
+                    child: itemIndex < gridItems.length ? gridItems[itemIndex] : const SizedBox(),
+                  ),
+                );
+              }
+              rows.add(
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: rowChildren,
+                  ),
                 ),
-                ValueSummaryCard(
-                  label: l10n.analyticsCaloriesTrendLabel,
-                  value: StatisticsPresentationFormatter
-                      .bodyNutritionTrendDirectionLabel(
-                          l10n, data.calorieTrend.direction),
-                ),
-              ],
+              );
+              if (i + crossAxisCount < gridItems.length) {
+                rows.add(const SizedBox(height: DesignConstants.spacingS));
+              }
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rows,
             );
           },
         ),

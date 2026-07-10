@@ -333,18 +333,15 @@ class _KpiCard extends StatelessWidget {
       child: _buildTwoColumnGrid([
         ValueSummaryCard(
           label: copy.rangeLabel,
-          value: range,
-          subtitle: summary.minBpm == null ? l10n.noData : l10n.sleepBpmUnit,
+          value: summary.minBpm == null ? range : '$range ${l10n.sleepBpmUnit}',
         ),
         ValueSummaryCard(
           label: copy.averageLabel,
-          value: average,
-          subtitle: summary.averageBpm == null ? l10n.noData : l10n.sleepBpmUnit,
+          value: summary.averageBpm == null ? average : '$average ${l10n.sleepBpmUnit}',
         ),
         ValueSummaryCard(
           label: copy.restingLabel,
-          value: resting,
-          subtitle: summary.restingBpm == null ? l10n.noData : l10n.sleepBpmUnit,
+          value: summary.restingBpm == null ? resting : '$resting ${l10n.sleepBpmUnit}',
         ),
       ]),
     );

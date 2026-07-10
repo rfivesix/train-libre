@@ -82,25 +82,17 @@ class PulseSectionCard extends StatelessWidget {
               _buildTwoColumnGrid([
                 ValueSummaryCard(
                   label: l10n.pulseRangeLabel,
-                  value: rangeValue,
-                  subtitle:
-                      summary?.minBpm == null ? l10n.noData : l10n.sleepBpmUnit,
+                  value: summary?.minBpm == null ? rangeValue : '$rangeValue ${l10n.sleepBpmUnit}',
                   disableShadow: true,
                 ),
                 ValueSummaryCard(
                   label: l10n.pulseAverageLabel,
-                  value: averageValue,
-                  subtitle: summary?.averageBpm == null
-                      ? l10n.noData
-                      : l10n.sleepBpmUnit,
+                  value: summary?.averageBpm == null ? averageValue : '$averageValue ${l10n.sleepBpmUnit}',
                   disableShadow: true,
                 ),
                 ValueSummaryCard(
                   label: l10n.pulseRestingLabel,
-                  value: restingValue,
-                  subtitle: summary?.restingBpm == null
-                      ? l10n.noData
-                      : l10n.sleepBpmUnit,
+                  value: summary?.restingBpm == null ? restingValue : '$restingValue ${l10n.sleepBpmUnit}',
                   disableShadow: true,
                 ),
               ]),

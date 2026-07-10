@@ -616,19 +616,41 @@ class _MacroTargetGrid extends StatelessWidget {
         LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth < 430 ? 2 : 4;
-            return GridView.count(
-              padding: EdgeInsets.only(
-                  top: DesignConstants.spacingM), //EdgeInsets.zero,
-              crossAxisCount: crossAxisCount,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: DesignConstants.spacingS,
-              mainAxisSpacing: DesignConstants.spacingS,
-              childAspectRatio: crossAxisCount == 2 ? 2.45 : 2.65,
-              children: [
-                for (final item in items)
-                  ValueSummaryCard(label: item.label, value: item.value),
-              ],
+            final gridItems = [
+              for (final item in items)
+                ValueSummaryCard(label: item.label, value: item.value),
+            ];
+
+            final rows = <Widget>[];
+            for (var i = 0; i < gridItems.length; i += crossAxisCount) {
+              final rowChildren = <Widget>[];
+              for (var j = 0; j < crossAxisCount; j++) {
+                if (j > 0) rowChildren.add(const SizedBox(width: DesignConstants.spacingS));
+                final itemIndex = i + j;
+                rowChildren.add(
+                  Expanded(
+                    child: itemIndex < gridItems.length ? gridItems[itemIndex] : const SizedBox(),
+                  ),
+                );
+              }
+              rows.add(
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: rowChildren,
+                  ),
+                ),
+              );
+              if (i + crossAxisCount < gridItems.length) {
+                rows.add(const SizedBox(height: DesignConstants.spacingS));
+              }
+            }
+            return Padding(
+              padding: const EdgeInsets.only(top: DesignConstants.spacingM),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: rows,
+              ),
             );
           },
         ),
@@ -680,23 +702,14 @@ class _RecommendationContextPanel extends StatelessWidget {
         ),
         if (effectiveEnergyDensity != null) ...[
           const SizedBox(height: DesignConstants.spacingS),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final tileHeight =
-                  ((constraints.maxWidth - DesignConstants.spacingS) / 2) /
-                      2.45;
-
-              return SizedBox(
-                width: double.infinity,
-                height: tileHeight,
-                child: ValueSummaryCard(
-                  label: l10n.adaptiveRecommendationEnergyDensityLabel,
-                  value: l10n.adaptiveRecommendationEnergyDensityValue(
-                    effectiveEnergyDensity!.round(),
-                  ),
-                ),
-              );
-            },
+          SizedBox(
+            width: double.infinity,
+            child: ValueSummaryCard(
+              label: l10n.adaptiveRecommendationEnergyDensityLabel,
+              value: l10n.adaptiveRecommendationEnergyDensityValue(
+                effectiveEnergyDensity!.round(),
+              ),
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingXS),
           _DetailLine(
