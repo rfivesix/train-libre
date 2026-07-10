@@ -19,7 +19,8 @@ import '../../../util/l10n_ext.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import '../../../services/unit_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../../util/date_util.dart';
 import '../../../features/statistics/domain/timeframe_block.dart';
 import '../../../util/timeframe_label_formatter.dart';
@@ -70,7 +71,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
 
   String? _rangeDisplayLabel(AppLocalizations l10n) {
     if (_activeBlock == TimeframeBlock.maxBlock) return l10n.filterMax;
-    if (_isRolling) return TimeframeLabelFormatter.formatRolling(_activeBlock, l10n);
+    if (_isRolling)
+      return TimeframeLabelFormatter.formatRolling(_activeBlock, l10n);
     return TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
   }
 
@@ -81,8 +83,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       final now = DateTime.now();
       final currentBounds = _activeBlock.getBounds(now, DateTime(2020));
       final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
-      final isOngoing = !_isRolling &&
-          myBounds.start.isAtSameMomentAs(currentBounds.start);
+      final isOngoing =
+          !_isRolling && myBounds.start.isAtSameMomentAs(currentBounds.start);
 
       if (backwards) {
         if (isOngoing && _activeBlock != TimeframeBlock.day) {
@@ -169,7 +171,10 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
 
   Future<void> _deleteMeasurementSession(MeasurementSession session) async {
     final sessionId = session.id;
-    if (sessionId == null) { await _loadMeasurements(); return; }
+    if (sessionId == null) {
+      await _loadMeasurements();
+      return;
+    }
     try {
       await _repository.deleteMeasurementSession(sessionId);
     } finally {
@@ -244,8 +249,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                     onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
                         ? null
                         : () async {
-                            final selected =
-                                await adaptive_pickers.showAdaptiveTimeframePicker(
+                            final selected = await adaptive_pickers
+                                .showAdaptiveTimeframePicker(
                               context: context,
                               activeBlock: _activeBlock,
                               initialAnchor: _anchorDate,
@@ -281,7 +286,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
 
                   // ── Filtered sessions ──
                   ..._filteredSessions.map(
-                    (session) => _buildSessionCard(l10n, colorScheme, textTheme, session),
+                    (session) => _buildSessionCard(
+                        l10n, colorScheme, textTheme, session),
                   ),
                   if (_filteredSessions.isEmpty)
                     Padding(
@@ -389,40 +395,41 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final sortedMeasurements = session.measurements.toList()
       ..sort((a, b) => a.type.compareTo(b.type));
 
-    return Dismissible(
-      key: Key('session_${session.id}_${session.timestamp.millisecondsSinceEpoch}'),
-      direction: DismissDirection.horizontal,
-      background: const SwipeActionBackground(
-        color: Colors.blueAccent,
-        icon: LucideIcons.pencil,
-        alignment: Alignment.centerLeft,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.screenPaddingHorizontal,
       ),
-      secondaryBackground: const SwipeActionBackground(
-        color: Colors.redAccent,
-        icon: LucideIcons.trash_2,
-        alignment: Alignment.centerRight,
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          _showMeasurementBottomMenu(existingSession: session);
-          return false;
-        }
-        return await showDeleteConfirmation(context);
-      },
-      onDismissed: (direction) {
-        if (direction == DismissDirection.endToStart) {
-          setState(() {
-            _sessions.removeWhere((s) =>
-                (s.id != null && s.id == session.id) ||
-                (s.id == null && s.timestamp == session.timestamp));
-          });
-          _deleteMeasurementSession(session);
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.screenPaddingHorizontal,
+      child: Dismissible(
+        key: Key(
+            'session_${session.id}_${session.timestamp.millisecondsSinceEpoch}'),
+        direction: DismissDirection.horizontal,
+        background: const SwipeActionBackground(
+          color: Colors.blueAccent,
+          icon: LucideIcons.pencil,
+          alignment: Alignment.centerLeft,
         ),
+        secondaryBackground: const SwipeActionBackground(
+          color: Colors.redAccent,
+          icon: LucideIcons.trash_2,
+          alignment: Alignment.centerRight,
+        ),
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.startToEnd) {
+            _showMeasurementBottomMenu(existingSession: session);
+            return false;
+          }
+          return await showDeleteConfirmation(context);
+        },
+        onDismissed: (direction) {
+          if (direction == DismissDirection.endToStart) {
+            setState(() {
+              _sessions.removeWhere((s) =>
+                  (s.id != null && s.id == session.id) ||
+                  (s.id == null && s.timestamp == session.timestamp));
+            });
+            _deleteMeasurementSession(session);
+          }
+        },
         child: SummaryCard(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -439,9 +446,9 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                 ),
                 const SizedBox(height: 8),
                 ...sortedMeasurements.map((m) {
-                  final value = _displayMeasurementValue(
-                          m.type, m.value, unitService)
-                      .toStringAsFixed(1);
+                  final value =
+                      _displayMeasurementValue(m.type, m.value, unitService)
+                          .toStringAsFixed(1);
                   final unit = _getMeasurementUnit(m.type, unitService);
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
@@ -589,9 +596,10 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
   void initState() {
     super.initState();
     _repository = widget.repository ?? context.read<IProfileRepository>();
-    _selectedDateTime =
-        (widget.existingSession?.timestamp ?? widget.initialDate ?? DateTime.now())
-            .withCurrentTime;
+    _selectedDateTime = (widget.existingSession?.timestamp ??
+            widget.initialDate ??
+            DateTime.now())
+        .withCurrentTime;
     for (var key in _measurementTypes.keys) {
       _controllers[key] = TextEditingController();
     }
@@ -669,8 +677,12 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
     );
     if (picked != null) {
       setState(() {
-        _selectedDateTime = DateTime(_selectedDateTime.year,
-            _selectedDateTime.month, _selectedDateTime.day, picked.hour, picked.minute);
+        _selectedDateTime = DateTime(
+            _selectedDateTime.year,
+            _selectedDateTime.month,
+            _selectedDateTime.day,
+            picked.hour,
+            picked.minute);
       });
     }
   }
@@ -711,112 +723,78 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final textTheme = Theme.of(context).textTheme;
     final unitService = context.watch<UnitService>();
-    final colorScheme = Theme.of(context).colorScheme;
 
     final formattedDate = DateFormat('dd.MM.yyyy').format(_selectedDateTime);
     final formattedTime = DateFormat.Hm().format(_selectedDateTime);
 
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.75,
-      ),
-      child: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewPadding.bottom,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── Date & time row ──
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: _selectDate,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(LucideIcons.calendar, size: 18, color: colorScheme.primary),
-                          const SizedBox(width: 8),
-                          Text(formattedDate, style: textTheme.bodyMedium),
-                          const Spacer(),
-                          InkWell(
-                            onTap: () => setState(() => _selectedDateTime = DateTime.now()),
-                            child: Text(
-                              l10n.today,
-                              style: textTheme.labelSmall?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+      constraints: const BoxConstraints(maxHeight: 420),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                icon: const Icon(LucideIcons.calendar, size: 20),
+                label: Text(
+                  formattedDate,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                onPressed: _selectDate,
+              ),
+              TextButton.icon(
+                icon: const Icon(LucideIcons.clock, size: 20),
+                label: Text(
+                  formattedTime,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                onPressed: _selectTime,
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: DesignConstants.spacingL),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    ..._measurementTypes.keys.map((key) => Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: DesignConstants.spacingM,
+                          ),
+                          child: TextFormField(
+                            controller: _controllers[key],
+                            decoration: InputDecoration(
+                              labelText: l10n.getLocalizedMeasurementName(key),
+                              suffixText: _displayUnit(key, unitService),
                             ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            textInputAction: TextInputAction.next,
+                            validator: (value) {
+                              if (value != null &&
+                                  value.isNotEmpty &&
+                                  double.tryParse(value.replaceAll(',', '.')) ==
+                                      null) {
+                                return l10n.validatorPleaseEnterNumber;
+                              }
+                              return null;
+                            },
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
+                        )),
+                  ],
                 ),
-                const SizedBox(width: DesignConstants.spacingS),
-                InkWell(
-                  onTap: _selectTime,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(LucideIcons.clock, size: 18, color: colorScheme.primary),
-                        const SizedBox(width: 8),
-                        Text(formattedTime, style: textTheme.bodyMedium),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: DesignConstants.spacingL),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  ..._measurementTypes.keys.map((key) => Padding(
-                        padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
-                        child: TextFormField(
-                          controller: _controllers[key],
-                          decoration: InputDecoration(
-                            labelText: l10n.getLocalizedMeasurementName(key),
-                            suffixText: _displayUnit(key, unitService),
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value != null &&
-                                value.isNotEmpty &&
-                                double.tryParse(value.replaceAll(',', '.')) == null) {
-                              return l10n.validatorPleaseEnterNumber;
-                            }
-                            return null;
-                          },
-                        ),
-                      )),
-                ],
               ),
             ),
-            const SizedBox(height: DesignConstants.spacingL),
-            FilledButton(onPressed: _saveSession, child: Text(l10n.save)),
-            const SizedBox(height: DesignConstants.spacingS),
-          ],
-        ),
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+          FilledButton(onPressed: _saveSession, child: Text(l10n.save)),
+        ],
       ),
     );
   }
