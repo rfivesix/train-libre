@@ -148,7 +148,7 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         is_custom_exercise DESC,
         is_prefix_match DESC,
         COALESCE(t_de.name, t_en.name, t_any.name) ASC
-      LIMIT 50
+      LIMIT 100
     ''';
 
     final rows = await dbInstance.customSelect(

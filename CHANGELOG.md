@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-alpha.8] - 2026-07-10
+
+### Fixed
+- **Sleep Duration Mapping:** Fixed Apple Health integration to properly map iOS 16 sleep stages (Core, Deep, REM) and `asleep_unspecified`, resolving an issue where sleep duration displayed as 0h 0min on iOS devices.
+- **Food Detail Screen:** Fixed a bug where a 0g portion size would prevent users from switching back to the per 100g view, by automatically defaulting to the 100g view when the tracked portion is 0g.
+- **Exercise Catalog:** Increased the display limit of the exercise catalog search from 50 to 100 entries.
+
 ## [1.0.0-alpha.7] - 2026-07-09
 
 ### Added

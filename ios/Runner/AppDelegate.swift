@@ -699,13 +699,32 @@ import UIKit
   }
 
   private func mapHealthKitSleepValue(_ value: Int) -> String {
-    switch value {
-    case HKCategoryValueSleepAnalysis.inBed.rawValue:
-      return "in_bed"
-    case HKCategoryValueSleepAnalysis.awake.rawValue:
-      return "awake"
-    default:
-      return "asleep"
+    if #available(iOS 16.0, *) {
+      switch value {
+      case HKCategoryValueSleepAnalysis.inBed.rawValue:
+        return "in_bed"
+      case HKCategoryValueSleepAnalysis.awake.rawValue:
+        return "awake"
+      case HKCategoryValueSleepAnalysis.asleepCore.rawValue:
+        return "core"
+      case HKCategoryValueSleepAnalysis.asleepDeep.rawValue:
+        return "deep"
+      case HKCategoryValueSleepAnalysis.asleepREM.rawValue:
+        return "rem"
+      case HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue:
+        return "asleep_unspecified"
+      default:
+        return "asleep"
+      }
+    } else {
+      switch value {
+      case HKCategoryValueSleepAnalysis.inBed.rawValue:
+        return "in_bed"
+      case HKCategoryValueSleepAnalysis.awake.rawValue:
+        return "awake"
+      default:
+        return "asleep"
+      }
     }
   }
 

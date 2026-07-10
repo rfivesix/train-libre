@@ -91,11 +91,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     if (widget.trackedItem != null) {
       _displayItem = widget.trackedItem!.item;
       _trackedQuantity = widget.trackedItem!.entry.quantityInGrams;
-      _showPer100g = false;
+      _showPer100g = _trackedQuantity == 0;
     } else {
       _displayItem = widget.foodItem!;
       _trackedQuantity = _displayItem.productQuantity?.round();
-      _showPer100g = _trackedQuantity == null;
+      _showPer100g = _trackedQuantity == null || _trackedQuantity == 0;
     }
     _checkIfFavorite();
   }
