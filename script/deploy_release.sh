@@ -12,6 +12,25 @@ cleanup() {
 }
 trap cleanup EXIT
 
+patch_generated_ios_swiftpm_platforms() {
+  local packages_dir="ios/Flutter/ephemeral/Packages/.packages"
+
+  if [ ! -d "$packages_dir" ]; then
+    echo "Skipping generated SwiftPM patch: $packages_dir does not exist yet."
+    return 0
+  fi
+
+  echo "Normalizing generated SwiftPM iOS deployment targets to 14.0..."
+  find "$packages_dir" -name Package.swift -type f -print0 | while IFS= read -r -d '' package_file; do
+    sed -i '' \
+      -e 's/\.iOS("11.0")/\.iOS("14.0")/g' \
+      -e 's/\.iOS("12.0")/\.iOS("14.0")/g' \
+      -e 's/\.iOS("13.0")/\.iOS("14.0")/g' \
+      -e 's/\.iOS(\.v13)/\.iOS(\.v14)/g' \
+      "$package_file"
+  done
+}
+
 # ------------------------------------------------------------------------------
 # STEP 1: Version & Pre-Release Detection
 # ------------------------------------------------------------------------------
@@ -77,6 +96,7 @@ sed -i '' "s/version: .*/version: $VERSION_NUMBER+$NEW_BUILD_NUMBER/g" pubspec.y
 
 flutter pub get
 flutter gen-l10n
+patch_generated_ios_swiftpm_platforms
 
 echo "Updating iOS deployment target to 14.0..."
 sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 13.0/IPHONEOS_DEPLOYMENT_TARGET = 14.0/g' ios/Runner.xcodeproj/project.pbxproj
@@ -92,6 +112,7 @@ flutter build apk --release
 # project.pbxproj and regenerates Package.swift correctly before the IPA build.
 echo "Regenerating iOS Swift Package manifest with correct 14.0 deployment target..."
 flutter build ios --config-only
+patch_generated_ios_swiftpm_platforms
 
 echo "Building iOS Production Release Artifact (IPA) (Build: $NEW_BUILD_NUMBER)..."
 flutter build ipa --release
