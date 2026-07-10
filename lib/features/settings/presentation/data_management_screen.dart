@@ -11,6 +11,7 @@ import '../../../core/infrastructure/import_manager.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/app_initializer_screen.dart';
+import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../exercise_catalog/presentation/exercise_mapping_screen.dart';
 import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
@@ -194,28 +195,11 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
 
       if (success) {
         if (!mounted) return;
-        await showGlassBottomMenu<void>(
-          context: context,
-          title: l10n.snackbarImportSuccessTitle,
-          isDismissible: false,
-          enableDrag: false,
-          contentBuilder: (ctx, close) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l10n.snackbarImportSuccessContent,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l10n.snackbarButtonOK),
-                ),
-              ),
-            ],
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => const OnboardingScreen(forceImportMode: true),
           ),
+          (route) => false,
         );
       } else {
         if (!wasCanceled) {

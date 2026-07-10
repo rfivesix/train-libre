@@ -10,7 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Sleep Duration Mapping:** Fixed Apple Health integration to properly map iOS 16 sleep stages (Core, Deep, REM) and `asleep_unspecified`, resolving an issue where sleep duration displayed as 0h 0min on iOS devices.
 - **Food Detail Screen:** Fixed a bug where a 0g portion size would prevent users from switching back to the per 100g view, by automatically defaulting to the 100g view when the tracked portion is 0g.
 - **Exercise Catalog:** Increased the display limit of the exercise catalog search from 50 to 100 entries.
-
+- **Backup Import Flow:** Modified the backup import flow in the onboarding and data management screens so that restoring a backup successfully redirects the user to the onboarding region selection and health permission screens, ensuring proper regional data downloads and API authorizations are established on the new device.
+- **Health Permissions UI:** Unified the health permission status UI across the Settings screens. The Pulse and Steps settings now correctly use the `SleepPermissionController` architecture to display a clear connection status (e.g., a red exclamation mark if permission is missing or denied), matching the reference implementation on the Sleep settings screen, and allowing users to trigger a new permission request by tapping the tile.
 ## [1.0.0-alpha.7] - 2026-07-09
 
 ### Added

@@ -43,11 +43,13 @@ import '../../../widgets/common/algorithm_info_sheet.dart';
 class OnboardingScreen extends StatefulWidget {
   final AdaptiveNutritionRecommendationService? recommendationService;
   final DatabaseHelper? databaseHelper;
+  final bool forceImportMode;
 
   const OnboardingScreen({
     super.key,
     this.recommendationService,
     this.databaseHelper,
+    this.forceImportMode = false,
   });
 
   @override
@@ -61,6 +63,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   static const int _adaptiveGoalPageIndex = 4;
   static const int _pageCount = 7;
   static const int _lastPageIndex = _pageCount - 1;
+
+  bool _isImportedMode = false;
 
   String? _heightError;
   String? _dobError;
@@ -121,11 +125,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
+    _isImportedMode = widget.forceImportMode;
     _databaseHelper = widget.databaseHelper ?? DatabaseHelper.instance;
     _recommendationService = widget.recommendationService ??
         AdaptiveNutritionRecommendationService(databaseHelper: _databaseHelper);
     _loadAdaptiveGoalSettings();
     _initSelectedCountry();
+
+    if (_isImportedMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pageController.jumpToPage(_regionSelectionPageIndex);
+      });
+    }
 
     _heightController.addListener(() {
       if (_heightError != null || _heightWarning != null) {
@@ -486,17 +497,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _isRestoring = false);
 
     if (success) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('hasSeenOnboarding', true);
-      await AppTourService.instance.queuePostOnboardingOffer();
-
       if (!mounted) return;
+      setState(() {
+        _isImportedMode = true;
+      });
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.onboardingRestoreSuccess)));
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-        (route) => false,
+      _pageController.animateToPage(
+        _regionSelectionPageIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -557,98 +568,108 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               .promptOffDatabaseDownloadIfFirstTime(context);
         }
       }
-    }
-
-    if (_currentPage == _profilePageIndex) {
-      if (_nameController.text.trim().isEmpty) return;
-
-      bool hasProfileErrors = false;
-      _dobError = null;
-      _genderError = null;
-      _heightError = null;
-
-      if (_selectedDate == null) {
-        _dobError = l10n.onboardingFieldCannotBeEmpty;
-        hasProfileErrors = true;
-      }
-      if (_selectedGender == null) {
-        _genderError = l10n.onboardingFieldCannotBeEmpty;
-        hasProfileErrors = true;
-      }
-      if (_heightController.text.trim().isEmpty) {
-        _heightError = l10n.onboardingFieldCannotBeEmpty;
-        hasProfileErrors = true;
-        _heightWarning = null;
-        _lastWarnedHeightValue = null;
-      }
-
-      if (hasProfileErrors) {
-        setState(() {});
+      if (_isImportedMode) {
+        _pageController.animateToPage(
+          _lastPageIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
         return;
       }
+    }
 
-      final heightInput =
-          double.tryParse(_heightController.text.replaceAll(',', '.'));
-      if (heightInput != null) {
-        final heightCm =
-            _unitService.convertToMetric(heightInput, UnitDimension.height);
-        if (heightCm < 100 || heightCm > 250) {
-          if (_lastWarnedHeightValue != _heightController.text) {
-            setState(() {
-              _heightWarning = l10n.onboardingPhysiologicalRangeWarning;
-              _lastWarnedHeightValue = _heightController.text;
-            });
-            return;
+    if (!_isImportedMode) {
+      if (_currentPage == _profilePageIndex) {
+        if (_nameController.text.trim().isEmpty) return;
+
+        bool hasProfileErrors = false;
+        _dobError = null;
+        _genderError = null;
+        _heightError = null;
+
+        if (_selectedDate == null) {
+          _dobError = l10n.onboardingFieldCannotBeEmpty;
+          hasProfileErrors = true;
+        }
+        if (_selectedGender == null) {
+          _genderError = l10n.onboardingFieldCannotBeEmpty;
+          hasProfileErrors = true;
+        }
+        if (_heightController.text.trim().isEmpty) {
+          _heightError = l10n.onboardingFieldCannotBeEmpty;
+          hasProfileErrors = true;
+          _heightWarning = null;
+          _lastWarnedHeightValue = null;
+        }
+
+        if (hasProfileErrors) {
+          setState(() {});
+          return;
+        }
+
+        final heightInput =
+            double.tryParse(_heightController.text.replaceAll(',', '.'));
+        if (heightInput != null) {
+          final heightCm =
+              _unitService.convertToMetric(heightInput, UnitDimension.height);
+          if (heightCm < 100 || heightCm > 250) {
+            if (_lastWarnedHeightValue != _heightController.text) {
+              setState(() {
+                _heightWarning = l10n.onboardingPhysiologicalRangeWarning;
+                _lastWarnedHeightValue = _heightController.text;
+              });
+              return;
+            }
+          } else {
+            _heightWarning = null;
+            _lastWarnedHeightValue = null;
           }
         } else {
           _heightWarning = null;
           _lastWarnedHeightValue = null;
         }
-      } else {
-        _heightWarning = null;
-        _lastWarnedHeightValue = null;
-      }
-    }
-
-    if (_currentPage == _measurementsPageIndex) {
-      final weightText = _weightController.text.trim();
-      if (weightText.isEmpty) {
-        setState(() {
-          _weightError = l10n.onboardingFieldCannotBeEmpty;
-          _weightWarning = null;
-          _lastWarnedWeightValue = null;
-        });
-        return;
-      } else {
-        _weightError = null;
       }
 
-      final weightInput = double.tryParse(weightText.replaceAll(',', '.'));
-      if (weightInput != null) {
-        final weightKg =
-            _unitService.convertToMetric(weightInput, UnitDimension.weight);
-        if (weightKg < 35 || weightKg > 250) {
-          if (_lastWarnedWeightValue != _weightController.text) {
-            setState(() {
-              _weightWarning = l10n.onboardingPhysiologicalRangeWarning;
-              _lastWarnedWeightValue = _weightController.text;
-            });
-            return;
+      if (_currentPage == _measurementsPageIndex) {
+        final weightText = _weightController.text.trim();
+        if (weightText.isEmpty) {
+          setState(() {
+            _weightError = l10n.onboardingFieldCannotBeEmpty;
+            _weightWarning = null;
+            _lastWarnedWeightValue = null;
+          });
+          return;
+        } else {
+          _weightError = null;
+        }
+
+        final weightInput = double.tryParse(weightText.replaceAll(',', '.'));
+        if (weightInput != null) {
+          final weightKg =
+              _unitService.convertToMetric(weightInput, UnitDimension.weight);
+          if (weightKg < 35 || weightKg > 250) {
+            if (_lastWarnedWeightValue != _weightController.text) {
+              setState(() {
+                _weightWarning = l10n.onboardingPhysiologicalRangeWarning;
+                _lastWarnedWeightValue = _weightController.text;
+              });
+              return;
+            }
+          } else {
+            _weightWarning = null;
+            _lastWarnedWeightValue = null;
           }
         } else {
           _weightWarning = null;
           _lastWarnedWeightValue = null;
         }
-      } else {
-        _weightWarning = null;
-        _lastWarnedWeightValue = null;
       }
-    }
 
-    if (_currentPage == _adaptiveGoalPageIndex) {
-      // Ensure we have a recommendation and apply it automatically.
-      await _refreshOnboardingRecommendationPreview();
-      _applyOnboardingRecommendationToGoals();
+      if (_currentPage == _adaptiveGoalPageIndex) {
+        // Ensure we have a recommendation and apply it automatically.
+        await _refreshOnboardingRecommendationPreview();
+        _applyOnboardingRecommendationToGoals();
+      }
     }
 
     if (_currentPage < _lastPageIndex) {
@@ -658,11 +679,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      _finishOnboarding();
+      if (_isImportedMode) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('hasSeenOnboarding', true);
+        await AppTourService.instance.queuePostOnboardingOffer();
+
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+          (route) => false,
+        );
+      } else {
+        _finishOnboarding();
+      }
     }
   }
 
   void _prevPage() {
+    if (_isImportedMode && _currentPage == _lastPageIndex) {
+      _pageController.animateToPage(
+        _regionSelectionPageIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      return;
+    }
     if (_currentPage > 0) {
       _pageController.animateToPage(
         _currentPage - 1,
