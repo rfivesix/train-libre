@@ -148,6 +148,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
               quality: GlassQuality.premium,
               child: GlassMenu(
                 menuWidth: menuWidth,
+                autoAdjustToScreen: true,
                 settings: menuSettings,
                 triggerBuilder: (context, toggle) {
                   return GestureDetector(
