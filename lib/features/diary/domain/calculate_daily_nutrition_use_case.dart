@@ -172,12 +172,13 @@ class CalculateDailyNutritionUseCase {
     }
 
     Supplement? caffeineSupplement;
-    try {
-      caffeineSupplement = allSupplements.firstWhere(
-        (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
-      );
-    } catch (e) {
-      caffeineSupplement = null;
+    // ⚡ Bolt: Using a manual for-loop instead of `firstWhere` to avoid throwing and catching
+    // expensive StateError exceptions when the item is not found, as exceptions are slow in Dart.
+    for (final s in allSupplements) {
+      if ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine') {
+        caffeineSupplement = s;
+        break;
+      }
     }
 
     if (caffeineSupplement != null && caffeineSupplement.id != null) {
