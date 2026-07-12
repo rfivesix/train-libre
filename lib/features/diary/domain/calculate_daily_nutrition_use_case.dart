@@ -98,11 +98,10 @@ class CalculateDailyNutritionUseCase {
     }
 
     // Fluids
-    summary.water = fluidEntries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.quantityInMl,
-    );
+    // ⚡ Bolt: Consolidated water calculation into the existing fluid entries loop to reduce redundant O(N) passes.
     for (final entry in fluidEntries) {
+      summary.water += entry.quantityInMl;
+
       // Short-circuit: skip evaluating duplicate logic if entry is already explicitly linked
       if (entry.linkedFoodEntryId != null) {
         continue;
@@ -172,12 +171,12 @@ class CalculateDailyNutritionUseCase {
     }
 
     Supplement? caffeineSupplement;
-    try {
-      caffeineSupplement = allSupplements.firstWhere(
-        (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
-      );
-    } catch (e) {
-      caffeineSupplement = null;
+    // ⚡ Bolt: Replaced try-catch with a standard manual loop to eliminate performance overhead from StateError exceptions when the item is not found.
+    for (final s in allSupplements) {
+      if ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine') {
+        caffeineSupplement = s;
+        break;
+      }
     }
 
     if (caffeineSupplement != null && caffeineSupplement.id != null) {
