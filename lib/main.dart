@@ -77,13 +77,13 @@ void main() async {
   final workoutRepository =
       WorkoutRepository(localDataSource: workoutLocalDataSource);
 
+  final themeService = ThemeService(); // Create an instance
+  final unitService = UnitService();
+
   // Create the workout session manager before injecting it. Restoration is
   // handled by AppInitializerScreen after the first frame is visible.
   final workoutSessionManager =
-      LiveWorkoutViewModel(repository: workoutRepository);
-
-  final themeService = ThemeService(); // Create an instance
-  final unitService = UnitService();
+      LiveWorkoutViewModel(repository: workoutRepository, unitService: unitService);
 
   // Start the app with all required providers and Liquid Glass Setup.
   runApp(

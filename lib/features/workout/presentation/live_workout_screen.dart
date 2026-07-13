@@ -357,7 +357,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         children: [
           _buildHeader(l10n.setLabel, flex: 2), // Set Nr.
           _buildHeader(l10n.lastTimeLabel, flex: 3), // History/Last
-          _buildHeader(l10n.cardioDistanceLabel, flex: 4),
+          _buildHeader(
+              l10n.cardioDistanceLabel(
+                  unitService.suffixFor(UnitDimension.distance)),
+              flex: 4),
           _buildHeader(l10n.cardioTimeLabel, flex: 4),
           _buildHeader(l10n.cardioIntensityLabel, flex: 2),
           const SizedBox(

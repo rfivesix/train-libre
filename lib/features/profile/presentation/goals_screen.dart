@@ -1,3 +1,4 @@
+import '../../../services/unit_service.dart';
 // lib/features/profile/presentation/goals_screen.dart
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
@@ -129,9 +130,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
         _saltController.text = (prefs.getInt('targetSalt') ?? 6).toString();
         _selectedGoal = selectedGoal;
         _selectedTargetRateKgPerWeek = WeeklyTargetRateCatalog.coerceTargetRate(
-          goal: selectedGoal,
-          kgPerWeek: selectedTargetRate,
-        );
+      goal: selectedGoal,
+      kgPerWeek: selectedTargetRate,
+      unitService: context.read<UnitService>(),
+    );
         _selectedPriorActivityLevel = selectedPriorActivityLevel;
         _selectedExtraCardioHoursOption = selectedExtraCardioHoursOption;
 
@@ -259,7 +261,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         setState(() {
                           _selectedGoal = goal;
                           _selectedTargetRateKgPerWeek =
-                              WeeklyTargetRateCatalog.defaultForGoal(goal)
+                              WeeklyTargetRateCatalog.defaultForGoal(goal, context.read<UnitService>())
                                   .kgPerWeek;
                         });
                       },
@@ -269,13 +271,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children: WeeklyTargetRateCatalog.optionsForGoal(
-                        _selectedGoal,
+                        _selectedGoal, context.read<UnitService>()
                       ).map((option) {
                         final selected =
                             option.kgPerWeek == _selectedTargetRateKgPerWeek;
                         return ChoiceChip(
                           label: Text(
-                            _rateLabel(l10n, option.kgPerWeek),
+                            _rateLabel(context, l10n, option.kgPerWeek),
                           ),
                           selected: selected,
                           onSelected: (_) {
@@ -474,9 +476,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
     }
   }
 
-  String _rateLabel(AppLocalizations l10n, double kgPerWeek) {
+  String _rateLabel(BuildContext context, AppLocalizations l10n, double kgPerWeek) {
+    final unitService = context.read<UnitService>();
     final sign = kgPerWeek > 0 ? '+' : '';
-    return l10n.adaptiveRatePerWeek('$sign${kgPerWeek.toStringAsFixed(2)}');
+    final displayValue = unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
+    final valStr = displayValue.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '');
+    return l10n.adaptiveRatePerWeek('$sign$valStr', unitService.suffixFor(UnitDimension.weight));
   }
 
   String _priorActivityLabel(

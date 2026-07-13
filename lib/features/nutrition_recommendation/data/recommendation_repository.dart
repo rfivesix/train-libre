@@ -1,3 +1,4 @@
+import '../../../services/unit_service.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
@@ -54,9 +55,11 @@ class RecommendationRepository {
       'adaptive_nutrition_recommendation.latest_bayesian_maintenance_estimate';
 
   final SharedPreferencesLoader _prefsLoader;
+  final UnitService _unitService;
 
-  RecommendationRepository({SharedPreferencesLoader? prefsLoader})
-      : _prefsLoader = prefsLoader ?? SharedPreferences.getInstance;
+  RecommendationRepository({SharedPreferencesLoader? prefsLoader, UnitService? unitService})
+      : _prefsLoader = prefsLoader ?? SharedPreferences.getInstance,
+        _unitService = unitService ?? UnitService();
 
   Future<BodyweightGoal> getGoal() async {
     final prefs = await _prefsLoader();
@@ -72,9 +75,9 @@ class RecommendationRepository {
     final goal = await getGoal();
     final raw = prefs.getDouble(_targetRateKey);
     if (raw == null) {
-      return WeeklyTargetRateCatalog.defaultForGoal(goal).kgPerWeek;
+      return WeeklyTargetRateCatalog.defaultForGoal(goal, _unitService).kgPerWeek;
     }
-    return WeeklyTargetRateCatalog.coerceTargetRate(goal: goal, kgPerWeek: raw);
+    return WeeklyTargetRateCatalog.coerceTargetRate(goal: goal, kgPerWeek: raw, unitService: _unitService);
   }
 
   Future<void> saveGoalAndTargetRate({
@@ -85,6 +88,7 @@ class RecommendationRepository {
     final coerced = WeeklyTargetRateCatalog.coerceTargetRate(
       goal: goal,
       kgPerWeek: targetRateKgPerWeek,
+      unitService: _unitService,
     );
     await prefs.setString(_goalKey, goal.name);
     await prefs.setDouble(_targetRateKey, coerced);

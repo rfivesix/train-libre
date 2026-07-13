@@ -1,3 +1,4 @@
+import '../../../services/unit_service.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -94,7 +95,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final l10n = AppLocalizations.of(context)!;
     try {
       await _shareService.shareDailyLogAsText(viewModel.selectedDate,
-          l10n: l10n);
+          l10n: l10n, unitService: context.read<UnitService>());
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

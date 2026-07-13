@@ -1,3 +1,4 @@
+import 'package:train_libre/services/unit_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/steps/data/steps_aggregation_repository.dart';
@@ -106,7 +107,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ChangeNotifierProvider<LiveWorkoutViewModel>.value(
-        value: LiveWorkoutViewModel(repository: FakeWorkoutRepository()),
+        value: LiveWorkoutViewModel(repository: FakeWorkoutRepository(), unitService: UnitService()),
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

@@ -430,13 +430,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setLabel => 'Satz';
 
   @override
-  String get kgLabel => 'Gewicht (kg)';
+  String kgLabel(String unit) {
+    return 'Weight ($unit)';
+  }
 
   @override
   String get repsLabel => 'Wdh';
 
   @override
-  String get cardioDistanceLabel => 'Distanz (km)';
+  String cardioDistanceLabel(String unit) {
+    return 'Distance ($unit)';
+  }
 
   @override
   String get cardioTimeLabel => 'Zeit';
@@ -1015,9 +1019,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get fabAddExercise => 'Übung hinzufügen';
-
-  @override
-  String get kgLabelShort => 'kg';
 
   @override
   String get drawerExerciseCatalog => 'Übungskatalog';
@@ -3178,8 +3179,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get analyticsRecentRecords => 'Aktuelle Rekorde';
 
   @override
-  String analyticsPerfWithReps(String weight, int reps) {
-    return '$weight kg x $reps';
+  String analyticsPerfWithReps(String weight, int reps, Object unit) {
+    return '$weight $unit x $reps';
   }
 
   @override
@@ -3205,8 +3206,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'In diesem Zeitraum gibt es noch keinen klaren Rekordtrend.';
 
   @override
-  String analyticsE1rmProgress(String previous, String recent) {
-    return 'e1RM $previous -> $recent kg';
+  String analyticsE1rmProgress(String previous, String recent, Object unit) {
+    return 'e1RM $previous -> $recent $unit';
   }
 
   @override
@@ -3364,18 +3365,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Frequenz zählt nur Tage, an denen der Muskel >= 1.0 äquivalente Sätze erreicht.';
 
   @override
-  String liveWorkoutE1rmCurrentSet(String value) {
-    return 'e1RM $value kg';
+  String liveWorkoutE1rmCurrentSet(String value, Object unit) {
+    return 'e1RM $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmBestSession(String value) {
-    return 'Beste e1RM in dieser Session: $value kg';
+  String liveWorkoutE1rmBestSession(String value, Object unit) {
+    return 'Beste e1RM in dieser Session: $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmVsLastSession(String delta) {
-    return 'vs letzte Session: $delta kg';
+  String liveWorkoutE1rmVsLastSession(String delta, Object unit) {
+    return 'vs letzte Session: $delta $unit';
   }
 
   @override
@@ -3421,15 +3422,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gewicht und Kalorien im Zeitverlauf';
 
   @override
-  String get analyticsBodyNutritionTrendContextHint =>
-      'Das Diagramm skaliert beide Reihen auf denselben Platz; Tooltips zeigen die Rohwerte in kg und kcal.';
+  String analyticsBodyNutritionTrendContextHint(Object unit) {
+    return 'Das Diagramm skaliert beide Reihen auf denselben Platz; Tooltips zeigen die Rohwerte in $unit und kcal.';
+  }
 
   @override
-  String get analyticsBodyNutritionNormalizedHint =>
-      'Das Diagramm skaliert Gewicht und Kalorien auf denselben Platz; Tooltips zeigen die Rohwerte in kg und kcal.';
+  String analyticsBodyNutritionNormalizedHint(Object unit) {
+    return 'Das Diagramm skaliert Gewicht und Kalorien auf denselben Platz; Tooltips zeigen die Rohwerte in $unit und kcal.';
+  }
 
   @override
-  String get analyticsBodyNutritionTotalWeightLabel => 'Gesamtgewicht (kg)';
+  String analyticsBodyNutritionTotalWeightLabel(Object unit) {
+    return 'Gesamtgewicht ($unit)';
+  }
 
   @override
   String get analyticsBodyNutritionTotalCaloriesLabel =>
@@ -4088,8 +4093,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adaptiveGoalGain => 'Zunehmen';
 
   @override
-  String adaptiveRatePerWeek(String value) {
-    return '$value kg/Woche';
+  String adaptiveRatePerWeek(String value, Object unit) {
+    return '$value $unit/Woche';
   }
 
   @override

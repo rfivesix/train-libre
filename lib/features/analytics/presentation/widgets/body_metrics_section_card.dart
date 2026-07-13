@@ -140,7 +140,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   _legendDot(
                     context,
                     color: Theme.of(context).colorScheme.primary,
-                    label: l10n.analyticsBodyNutritionTotalWeightLabel,
+                    label: l10n.analyticsBodyNutritionTotalWeightLabel(unitService.suffixFor(UnitDimension.weight)),
                     shape: BoxShape.circle,
                   ),
                   const SizedBox(width: DesignConstants.spacingM),

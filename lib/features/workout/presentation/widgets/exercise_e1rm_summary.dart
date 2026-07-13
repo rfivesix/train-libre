@@ -81,6 +81,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
                 child: Text(
                   l10n.liveWorkoutE1rmBestSession(
                     _formatDisplayWeightValue(sessionBest, unitService),
+                    unitService.suffixFor(UnitDimension.weight),
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -91,6 +92,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
                 Text(
                   l10n.liveWorkoutE1rmVsLastSession(
                     '$deltaPrefix${_formatDisplayWeightValue(delta!.abs(), unitService)}',
+                    unitService.suffixFor(UnitDimension.weight),
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: isPositive

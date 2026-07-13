@@ -281,7 +281,10 @@ class EditRoutineExerciseCard extends StatelessWidget {
       return Row(
         children: [
           _buildHeader(l10n.setLabel, flex: 2),
-          _buildHeader(l10n.cardioDistanceLabel, flex: 4),
+          _buildHeader(
+              l10n.cardioDistanceLabel(
+                  context.read<UnitService>().suffixFor(UnitDimension.distance)),
+              flex: 4),
           const SizedBox(width: 8),
           _buildHeader(l10n.cardioTimeLabel, flex: 4),
           const SizedBox(width: 8),

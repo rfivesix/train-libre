@@ -157,9 +157,9 @@
   "addExerciseToWorkoutButton": "Aggiungi esercizio all'allenamento",
   "lastTimeLabel": "L'ultima volta",
   "setLabel": "Impostato",
-  "kgLabel": "Peso (kg)",
+  "kgLabel": "Weight ({unit})",
   "repsLabel": "Rappresentanti",
-  "cardioDistanceLabel": "Distanza (km)",
+  "cardioDistanceLabel": "Distance ({unit})",
   "cardioTimeLabel": "Tempo",
   "cardioIntensityLabel": "Intensi.",
   "cardioIntensityShortLabel": "interno",
@@ -379,7 +379,6 @@
     }
   },
   "fabAddExercise": "Aggiungi esercizio",
-  "kgLabelShort": "kg",
   "drawerExerciseCatalog": "Catalogo degli esercizi",
   "lastWorkoutTitle": "Ultimo allenamento",
   "repeatButton": "Ripetere",
@@ -1359,7 +1358,7 @@
   "analyticsTopVolume": "I più preparati",
   "analyticsLowestVolume": "Volume più basso",
   "analyticsRecentRecords": "Record recenti",
-  "analyticsPerfWithReps": "{weight} kg x {reps}",
+  "analyticsPerfWithReps": "{weight} {unit} x {reps}",
   "@analyticsPerfWithReps": {
     "placeholders": {
       "weight": {
@@ -1367,7 +1366,8 @@
       },
       "reps": {
         "type": "int"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsKgThisWeek": "kg (questa settimana)",
@@ -1377,7 +1377,7 @@
   "analyticsNoRecordYet": "Nessun record ancora",
   "analyticsNotableImprovements": "Miglioramenti notevoli",
   "analyticsNoPrTrendInWindow": "Non esiste ancora una chiara tendenza delle PR in questa finestra.",
-  "analyticsE1rmProgress": "e1RM {previous} -> {recent} kg",
+  "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
   "@analyticsE1rmProgress": {
     "placeholders": {
       "previous": {
@@ -1385,7 +1385,8 @@
       },
       "recent": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsUnitKg": "kg",
@@ -1457,28 +1458,31 @@
     }
   },
   "analyticsFrequencyRuleFooter": "La frequenza conta solo i giorni in cui il muscolo ha raggiunto >= 1,0 serie equivalenti.",
-  "liveWorkoutE1rmCurrentSet": "e1RM {value} kg",
+  "liveWorkoutE1rmCurrentSet": "e1RM {value} {unit}",
   "@liveWorkoutE1rmCurrentSet": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmBestSession": "Miglior e1RM di questa sessione: {value} kg",
+  "liveWorkoutE1rmBestSession": "Miglior e1RM di questa sessione: {value} {unit}",
   "@liveWorkoutE1rmBestSession": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmVsLastSession": "rispetto all'ultima sessione: {delta} kg",
+  "liveWorkoutE1rmVsLastSession": "rispetto all'ultima sessione: {delta} {unit}",
   "@liveWorkoutE1rmVsLastSession": {
     "placeholders": {
       "delta": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "bodyNutritionCorrelationTitle": "Tendenze corporee e nutrizionali",
@@ -1494,9 +1498,9 @@
   "analyticsLowConfidenceLabel": "Modello di fiducia inferiore",
   "analyticsObservedPatternLabel": "Modello osservato",
   "analyticsBodyNutritionTrendContext": "Peso e calorie nel tempo",
-  "analyticsBodyNutritionTrendContextHint": "Il grafico ridimensiona ciascuna serie per adattarla allo stesso spazio; i suggerimenti mostrano i valori grezzi di kg e kcal.",
-  "analyticsBodyNutritionNormalizedHint": "Il grafico ridimensiona peso e calorie per adattarli allo stesso spazio; i suggerimenti mostrano i valori grezzi di kg e kcal.",
-  "analyticsBodyNutritionTotalWeightLabel": "Peso totale (kg)",
+  "analyticsBodyNutritionTrendContextHint": "Il grafico ridimensiona ciascuna serie per adattarla allo stesso spazio; i suggerimenti mostrano i valori grezzi di {unit} e kcal.",
+  "analyticsBodyNutritionNormalizedHint": "Il grafico ridimensiona peso e calorie per adattarli allo stesso spazio; i suggerimenti mostrano i valori grezzi di {unit} e kcal.",
+  "analyticsBodyNutritionTotalWeightLabel": "Peso totale ({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "Calorie totali (kcal)",
   "analyticsWeightTrendLabel": "Peso (kg)",
   "analyticsCaloriesTrendLabel": "Calorie (kcal)",
@@ -1795,12 +1799,13 @@
   "adaptiveGoalLose": "Perdere peso",
   "adaptiveGoalMaintain": "Mantenere il peso",
   "adaptiveGoalGain": "Aumentare di peso",
-  "adaptiveRatePerWeek": "{value} kg/settimana",
+  "adaptiveRatePerWeek": "{value} {unit}/settimana",
   "@adaptiveRatePerWeek": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "adaptivePriorActivityLabel": "Attività quotidiana di base",
@@ -2468,5 +2473,34 @@
     }
   },
   "muscleTraps": "Trapezi",
-  "muscleObliques": "Obliqui"
+  "muscleObliques": "Obliqui",
+  "@kgLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@cardioDistanceLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@analyticsBodyNutritionTrendContextHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionNormalizedHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionTotalWeightLabel": {
+    "placeholders": {
+      "unit": {}
+    }
+  }
 }

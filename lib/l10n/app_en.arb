@@ -157,9 +157,9 @@
   "addExerciseToWorkoutButton": "Add Exercise to Workout",
   "lastTimeLabel": "Last Time",
   "setLabel": "Set",
-  "kgLabel": "Weight (kg)",
+  "kgLabel": "Weight ({unit})",
   "repsLabel": "Reps",
-  "cardioDistanceLabel": "Distance (km)",
+  "cardioDistanceLabel": "Distance ({unit})",
   "cardioTimeLabel": "Time",
   "cardioIntensityLabel": "Intens.",
   "cardioIntensityShortLabel": "Int.",
@@ -378,7 +378,6 @@
     }
   },
   "fabAddExercise": "Add Exercise",
-  "kgLabelShort": "kg",
   "drawerExerciseCatalog": "Exercise Catalog",
   "lastWorkoutTitle": "Last Workout",
   "repeatButton": "Repeat",
@@ -1358,7 +1357,7 @@
   "analyticsTopVolume": "Top Trained",
   "analyticsLowestVolume": "Lowest Volume",
   "analyticsRecentRecords": "Recent Records",
-  "analyticsPerfWithReps": "{weight} kg x {reps}",
+  "analyticsPerfWithReps": "{weight} {unit} x {reps}",
   "@analyticsPerfWithReps": {
     "placeholders": {
       "weight": {
@@ -1366,7 +1365,8 @@
       },
       "reps": {
         "type": "int"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsKgThisWeek": "kg (this week)",
@@ -1376,7 +1376,7 @@
   "analyticsNoRecordYet": "No record yet",
   "analyticsNotableImprovements": "Notable Improvements",
   "analyticsNoPrTrendInWindow": "There is no clear PR trend in this window yet.",
-  "analyticsE1rmProgress": "e1RM {previous} -> {recent} kg",
+  "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
   "@analyticsE1rmProgress": {
     "placeholders": {
       "previous": {
@@ -1384,7 +1384,8 @@
       },
       "recent": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsUnitKg": "kg",
@@ -1456,28 +1457,31 @@
     }
   },
   "analyticsFrequencyRuleFooter": "Frequency counts only days where the muscle reached >= 1.0 equivalent sets.",
-  "liveWorkoutE1rmCurrentSet": "e1RM {value} kg",
+  "liveWorkoutE1rmCurrentSet": "e1RM {value} {unit}",
   "@liveWorkoutE1rmCurrentSet": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmBestSession": "Best e1RM this session: {value} kg",
+  "liveWorkoutE1rmBestSession": "Best e1RM this session: {value} {unit}",
   "@liveWorkoutE1rmBestSession": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmVsLastSession": "vs last session: {delta} kg",
+  "liveWorkoutE1rmVsLastSession": "vs last session: {delta} {unit}",
   "@liveWorkoutE1rmVsLastSession": {
     "placeholders": {
       "delta": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "bodyNutritionCorrelationTitle": "Body & Nutrition Trends",
@@ -1493,9 +1497,9 @@
   "analyticsLowConfidenceLabel": "Lower-confidence pattern",
   "analyticsObservedPatternLabel": "Observed pattern",
   "analyticsBodyNutritionTrendContext": "Weight and calories over time",
-  "analyticsBodyNutritionTrendContextHint": "The chart scales each series to fit the same space; tooltips show raw kg and kcal values.",
-  "analyticsBodyNutritionNormalizedHint": "The chart scales weight and calories to fit the same space; tooltips show raw kg and kcal values.",
-  "analyticsBodyNutritionTotalWeightLabel": "Total weight (kg)",
+  "analyticsBodyNutritionTrendContextHint": "The chart scales each series to fit the same space; tooltips show raw {unit} and kcal values.",
+  "analyticsBodyNutritionNormalizedHint": "The chart scales weight and calories to fit the same space; tooltips show raw {unit} and kcal values.",
+  "analyticsBodyNutritionTotalWeightLabel": "Total weight ({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "Total calories (kcal)",
   "analyticsWeightTrendLabel": "Weight (kg)",
   "analyticsCaloriesTrendLabel": "Calories (kcal)",
@@ -1793,12 +1797,13 @@
   "adaptiveGoalLose": "Lose weight",
   "adaptiveGoalMaintain": "Maintain weight",
   "adaptiveGoalGain": "Gain weight",
-  "adaptiveRatePerWeek": "{value} kg/week",
+  "adaptiveRatePerWeek": "{value} {unit}/week",
   "@adaptiveRatePerWeek": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "adaptivePriorActivityLabel": "Baseline daily activity",
@@ -2594,5 +2599,34 @@
     }
   },
   "muscleTraps": "Traps",
-  "muscleObliques": "Obliques"
+  "muscleObliques": "Obliques",
+  "@kgLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@cardioDistanceLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@analyticsBodyNutritionTrendContextHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionNormalizedHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionTotalWeightLabel": {
+    "placeholders": {
+      "unit": {}
+    }
+  }
 }

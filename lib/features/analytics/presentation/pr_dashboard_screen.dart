@@ -101,7 +101,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
         unitService.convertDisplayValue(weight, UnitDimension.weight);
     final weightText =
         StatisticsPresentationFormatter.formatWeight(displayWeight);
-    return '$weightText ${unitService.suffixFor(UnitDimension.weight)} x $reps';
+    return '$weightText ${context.read<UnitService>().suffixFor(UnitDimension.weight)} x $reps';
   }
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
@@ -269,6 +269,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                                 StatisticsPresentationFormatter.formatWeight(
                                   recent,
                                 ),
+                                context.read<UnitService>().suffixFor(UnitDimension.weight),
                               ),
                             ),
                             trailing: Column(
@@ -348,6 +349,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                               (data['weight'] as num).toDouble(),
                             ),
                             (data['reps'] as num).toInt(),
+                            context.read<UnitService>().suffixFor(UnitDimension.weight),
                           )
                         : '–',
                     subtitle: hasData

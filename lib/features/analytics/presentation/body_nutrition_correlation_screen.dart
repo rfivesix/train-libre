@@ -297,10 +297,10 @@ class _BodyNutritionCorrelationScreenState
     final unitService = Provider.of<UnitService>(context);
     final currentWeight = data.currentWeightKg == null
         ? '-'
-        : '${unitService.convertDisplayValue(data.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.suffixFor(UnitDimension.weight)}';
+        : '${unitService.convertDisplayValue(data.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
     final weightChange = data.weightChangeKg == null
         ? '-'
-        : '${data.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(data.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} ${unitService.suffixFor(UnitDimension.weight)}';
+        : '${data.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(data.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
     final avgCalories = data.loggedCalorieDays <= 0
         ? '-'
         : '${data.avgDailyCalories.round()} ${l10n.analyticsKcalPerDay}';
@@ -399,7 +399,7 @@ class _BodyNutritionCorrelationScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.analyticsBodyNutritionNormalizedHint,
+          l10n.analyticsBodyNutritionNormalizedHint(context.read<UnitService>().suffixFor(UnitDimension.weight)),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.outline,
               ),

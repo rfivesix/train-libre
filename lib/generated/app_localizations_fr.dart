@@ -434,13 +434,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setLabel => 'Ensemble';
 
   @override
-  String get kgLabel => 'Poids (kg)';
+  String kgLabel(String unit) {
+    return 'Weight ($unit)';
+  }
 
   @override
   String get repsLabel => 'Représentants';
 
   @override
-  String get cardioDistanceLabel => 'Distance (km)';
+  String cardioDistanceLabel(String unit) {
+    return 'Distance ($unit)';
+  }
 
   @override
   String get cardioTimeLabel => 'Temps';
@@ -1019,9 +1023,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get fabAddExercise => 'Ajouter un exercice';
-
-  @override
-  String get kgLabelShort => 'kilos';
 
   @override
   String get drawerExerciseCatalog => 'Catalogue d\'exercices';
@@ -3208,8 +3209,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get analyticsRecentRecords => 'Enregistrements récents';
 
   @override
-  String analyticsPerfWithReps(String weight, int reps) {
-    return '$weight kg x $reps';
+  String analyticsPerfWithReps(String weight, int reps, Object unit) {
+    return '$weight $unit x $reps';
   }
 
   @override
@@ -3235,8 +3236,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Il n’y a pas encore de tendance claire en matière de relations publiques dans cette fenêtre.';
 
   @override
-  String analyticsE1rmProgress(String previous, String recent) {
-    return 'e1RM $previous -> $recent kg';
+  String analyticsE1rmProgress(String previous, String recent, Object unit) {
+    return 'e1RM $previous -> $recent $unit';
   }
 
   @override
@@ -3394,18 +3395,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'La fréquence ne compte que les jours où le muscle a atteint >= 1,0 séries équivalentes.';
 
   @override
-  String liveWorkoutE1rmCurrentSet(String value) {
-    return 'e1RM $value kg';
+  String liveWorkoutE1rmCurrentSet(String value, Object unit) {
+    return 'e1RM $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmBestSession(String value) {
-    return 'Meilleur e1RM cette session : $value kg';
+  String liveWorkoutE1rmBestSession(String value, Object unit) {
+    return 'Meilleur e1RM cette session : $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmVsLastSession(String delta) {
-    return 'vs dernière séance : $delta kg';
+  String liveWorkoutE1rmVsLastSession(String delta, Object unit) {
+    return 'vs dernière séance : $delta $unit';
   }
 
   @override
@@ -3449,15 +3450,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Poids et calories au fil du temps';
 
   @override
-  String get analyticsBodyNutritionTrendContextHint =>
-      'Le graphique met à l\'échelle chaque série pour s\'adapter au même espace ; les info-bulles affichent les valeurs brutes en kg et en kcal.';
+  String analyticsBodyNutritionTrendContextHint(Object unit) {
+    return 'Le graphique met à l\'échelle chaque série pour s\'adapter au même espace ; les info-bulles affichent les valeurs brutes en $unit et en kcal.';
+  }
 
   @override
-  String get analyticsBodyNutritionNormalizedHint =>
-      'Le graphique met à l\'échelle le poids et les calories pour s\'adapter au même espace ; les info-bulles affichent les valeurs brutes en kg et en kcal.';
+  String analyticsBodyNutritionNormalizedHint(Object unit) {
+    return 'Le graphique met à l\'échelle le poids et les calories pour s\'adapter au même espace ; les info-bulles affichent les valeurs brutes en $unit et en kcal.';
+  }
 
   @override
-  String get analyticsBodyNutritionTotalWeightLabel => 'Poids total (kg)';
+  String analyticsBodyNutritionTotalWeightLabel(Object unit) {
+    return 'Poids total ($unit)';
+  }
 
   @override
   String get analyticsBodyNutritionTotalCaloriesLabel =>
@@ -4125,8 +4130,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adaptiveGoalGain => 'Prendre du poids';
 
   @override
-  String adaptiveRatePerWeek(String value) {
-    return '$value kg/semaine';
+  String adaptiveRatePerWeek(String value, Object unit) {
+    return '$value $unit/semaine';
   }
 
   @override

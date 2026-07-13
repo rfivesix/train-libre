@@ -1,3 +1,5 @@
+import "../../../services/unit_service.dart";
+
 import 'models/set_log.dart';
 
 class PRDetectionResult {
@@ -25,6 +27,7 @@ class DetectPersonalRecordUseCase {
   PRDetectionResult execute({
     required SetLog currentSet,
     required Map<String, double> historicalBests,
+    required UnitService unitService,
   }) {
     final currentWeight = currentSet.weightKg ?? 0.0;
     final currentReps = currentSet.reps ?? 0;
@@ -115,7 +118,7 @@ class DetectPersonalRecordUseCase {
           exerciseName: currentSet.exerciseName,
           recordType: "Best Max Weight",
           achievementValue:
-              "${currentWeight.toStringAsFixed(1).replaceAll('.0', '')} kg",
+              "{\${unitService.convertDisplayValue(currentWeight, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}} ${unitService.suffixFor(UnitDimension.weight)}",
           diff: weightDiff,
         ));
       }
@@ -123,7 +126,7 @@ class DetectPersonalRecordUseCase {
         alerts.add(PRAlert(
           exerciseName: currentSet.exerciseName,
           recordType: "Best Volume Set",
-          achievementValue: "${currentVolume.toStringAsFixed(0)} kg",
+          achievementValue: "{\${unitService.convertDisplayValue(currentVolume, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}} ${unitService.suffixFor(UnitDimension.weight)}",
           diff: volumeDiff,
         ));
       }
@@ -132,7 +135,7 @@ class DetectPersonalRecordUseCase {
           exerciseName: currentSet.exerciseName,
           recordType: "Best 1-Rep Max",
           achievementValue:
-              "${currentEst1rm.toStringAsFixed(1).replaceAll('.0', '')} kg",
+              "{\${unitService.convertDisplayValue(currentEst1rm, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}} ${unitService.suffixFor(UnitDimension.weight)}",
           diff: est1rmDiff,
         ));
       }
@@ -144,7 +147,7 @@ class DetectPersonalRecordUseCase {
           exerciseName: currentSet.exerciseName,
           recordType: "Best Distance",
           achievementValue:
-              "${currentDistance.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '')} km",
+              "${unitService.convertDisplayValue(currentDistance, UnitDimension.distance).toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '')} ${unitService.suffixFor(UnitDimension.distance)}",
           diff: distanceDiff,
         ));
       }

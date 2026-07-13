@@ -1,3 +1,5 @@
+import '../../../services/unit_service.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -53,7 +55,7 @@ class NutritionRecommendationCard extends StatelessWidget {
           ? _EmptyRecommendationContent(
               goalLine: l10n.adaptiveRecommendationGoalLine(
                 _goalLabel(l10n, goal),
-                _rateLabel(l10n, targetRateKgPerWeek),
+                _rateLabel(context, l10n, targetRateKgPerWeek),
               ),
               nextDueLine: l10n.adaptiveRecommendationNextDueLine(
                 _formatDate(context, nextAdaptiveRecommendationDueAt),
@@ -72,7 +74,7 @@ class NutritionRecommendationCard extends StatelessWidget {
               onRecalculate: onRecalculate,
               onApply: onApply,
               goalLabel: _goalLabel(l10n, recommendation!.goal),
-              rateLabel: _rateLabel(l10n, recommendation!.targetRateKgPerWeek),
+              rateLabel: _rateLabel(context, l10n, recommendation!.targetRateKgPerWeek),
               formattedGeneratedAt: _formatDateTime(
                 context,
                 generatedAt ?? recommendation!.generatedAt,
@@ -94,9 +96,13 @@ class NutritionRecommendationCard extends StatelessWidget {
     }
   }
 
-  String _rateLabel(AppLocalizations l10n, double kgPerWeek) {
+  String _rateLabel(BuildContext context, AppLocalizations l10n, double kgPerWeek) {
+    if (kgPerWeek == 0) return '-';
+    final unitService = context.read<UnitService>();
     final sign = kgPerWeek > 0 ? '+' : '';
-    return l10n.adaptiveRatePerWeek('$sign${kgPerWeek.toStringAsFixed(2)}');
+    final displayValue = unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
+    final valStr = displayValue.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '');
+    return l10n.adaptiveRatePerWeek('$sign$valStr', unitService.suffixFor(UnitDimension.weight));
   }
 
   String _formatDate(BuildContext context, DateTime value) {

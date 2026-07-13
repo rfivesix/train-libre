@@ -905,8 +905,8 @@ abstract class AppLocalizations {
   /// No description provided for @kgLabel.
   ///
   /// In en, this message translates to:
-  /// **'Weight (kg)'**
-  String get kgLabel;
+  /// **'Weight ({unit})'**
+  String kgLabel(String unit);
 
   /// No description provided for @repsLabel.
   ///
@@ -917,8 +917,8 @@ abstract class AppLocalizations {
   /// No description provided for @cardioDistanceLabel.
   ///
   /// In en, this message translates to:
-  /// **'Distance (km)'**
-  String get cardioDistanceLabel;
+  /// **'Distance ({unit})'**
+  String cardioDistanceLabel(String unit);
 
   /// No description provided for @cardioTimeLabel.
   ///
@@ -1783,12 +1783,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Exercise'**
   String get fabAddExercise;
-
-  /// No description provided for @kgLabelShort.
-  ///
-  /// In en, this message translates to:
-  /// **'kg'**
-  String get kgLabelShort;
 
   /// No description provided for @drawerExerciseCatalog.
   ///
@@ -5660,8 +5654,8 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsPerfWithReps.
   ///
   /// In en, this message translates to:
-  /// **'{weight} kg x {reps}'**
-  String analyticsPerfWithReps(String weight, int reps);
+  /// **'{weight} {unit} x {reps}'**
+  String analyticsPerfWithReps(String weight, int reps, Object unit);
 
   /// No description provided for @analyticsKgThisWeek.
   ///
@@ -5708,8 +5702,8 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsE1rmProgress.
   ///
   /// In en, this message translates to:
-  /// **'e1RM {previous} -> {recent} kg'**
-  String analyticsE1rmProgress(String previous, String recent);
+  /// **'e1RM {previous} -> {recent} {unit}'**
+  String analyticsE1rmProgress(String previous, String recent, Object unit);
 
   /// No description provided for @analyticsUnitKg.
   ///
@@ -5984,20 +5978,20 @@ abstract class AppLocalizations {
   /// No description provided for @liveWorkoutE1rmCurrentSet.
   ///
   /// In en, this message translates to:
-  /// **'e1RM {value} kg'**
-  String liveWorkoutE1rmCurrentSet(String value);
+  /// **'e1RM {value} {unit}'**
+  String liveWorkoutE1rmCurrentSet(String value, Object unit);
 
   /// No description provided for @liveWorkoutE1rmBestSession.
   ///
   /// In en, this message translates to:
-  /// **'Best e1RM this session: {value} kg'**
-  String liveWorkoutE1rmBestSession(String value);
+  /// **'Best e1RM this session: {value} {unit}'**
+  String liveWorkoutE1rmBestSession(String value, Object unit);
 
   /// No description provided for @liveWorkoutE1rmVsLastSession.
   ///
   /// In en, this message translates to:
-  /// **'vs last session: {delta} kg'**
-  String liveWorkoutE1rmVsLastSession(String delta);
+  /// **'vs last session: {delta} {unit}'**
+  String liveWorkoutE1rmVsLastSession(String delta, Object unit);
 
   /// No description provided for @bodyNutritionCorrelationTitle.
   ///
@@ -6080,20 +6074,20 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsBodyNutritionTrendContextHint.
   ///
   /// In en, this message translates to:
-  /// **'The chart scales each series to fit the same space; tooltips show raw kg and kcal values.'**
-  String get analyticsBodyNutritionTrendContextHint;
+  /// **'The chart scales each series to fit the same space; tooltips show raw {unit} and kcal values.'**
+  String analyticsBodyNutritionTrendContextHint(Object unit);
 
   /// No description provided for @analyticsBodyNutritionNormalizedHint.
   ///
   /// In en, this message translates to:
-  /// **'The chart scales weight and calories to fit the same space; tooltips show raw kg and kcal values.'**
-  String get analyticsBodyNutritionNormalizedHint;
+  /// **'The chart scales weight and calories to fit the same space; tooltips show raw {unit} and kcal values.'**
+  String analyticsBodyNutritionNormalizedHint(Object unit);
 
   /// No description provided for @analyticsBodyNutritionTotalWeightLabel.
   ///
   /// In en, this message translates to:
-  /// **'Total weight (kg)'**
-  String get analyticsBodyNutritionTotalWeightLabel;
+  /// **'Total weight ({unit})'**
+  String analyticsBodyNutritionTotalWeightLabel(Object unit);
 
   /// No description provided for @analyticsBodyNutritionTotalCaloriesLabel.
   ///
@@ -7208,8 +7202,8 @@ abstract class AppLocalizations {
   /// No description provided for @adaptiveRatePerWeek.
   ///
   /// In en, this message translates to:
-  /// **'{value} kg/week'**
-  String adaptiveRatePerWeek(String value);
+  /// **'{value} {unit}/week'**
+  String adaptiveRatePerWeek(String value, Object unit);
 
   /// No description provided for @adaptivePriorActivityLabel.
   ///

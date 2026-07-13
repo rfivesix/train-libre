@@ -16,6 +16,7 @@ import '../../features/sleep/data/repository/sleep_query_repository.dart';
 import '../../util/date_util.dart';
 import '../../generated/app_localizations.dart';
 import '../../features/sleep/data/persistence/dao/sleep_canonical_dao.dart';
+import '../../services/unit_service.dart';
 import 'user_preferences_repository.dart';
 
 class ShareService {
@@ -57,7 +58,7 @@ class ShareService {
   /// Queries all local DAOs/repositories for the selected date, compiles the data into
   /// a clean human-and-LLM-readable Markdown string, and shares it via the native share sheet.
   Future<void> shareDailyLogAsText(DateTime date,
-      {AppLocalizations? l10n}) async {
+      {AppLocalizations? l10n, required UnitService unitService}) async {
     final dbHelper = DatabaseHelper.instance;
     final targetDate = date.dateOnly;
     final start = DateTime(targetDate.year, targetDate.month, targetDate.day);
@@ -155,7 +156,7 @@ class ShareService {
 
     final labelNotes = l10n?.notesLabel ?? '[l10n:notesLabel]';
     final labelReps = l10n?.repsLabelShort ?? '[l10n:repsLabelShort]';
-    final labelWeight = l10n?.kgLabelShort ?? '[l10n:kgLabelShort]';
+    final labelWeight = unitService.suffixFor(UnitDimension.weight);
 
     // Units
     final unitKcal = l10n?.unit_kcal ?? '[l10n:unit_kcal]';
@@ -348,11 +349,17 @@ class ShareService {
 
             String detailStr = '';
             if (set.weightKg != null && set.reps != null) {
+              final dispW = unitService.convertDisplayValue(
+                  set.weightKg!, UnitDimension.weight);
               detailStr =
-                  '${set.weightKg} $labelWeight x ${set.reps} $labelReps';
+                  '${dispW.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')} $labelWeight x ${set.reps} $labelReps';
             } else if (set.distanceKm != null && set.durationSeconds != null) {
               final durStr = _formatDurationSeconds(set.durationSeconds!);
-              detailStr = '${set.distanceKm} km in $durStr';
+              final dispD = unitService.convertDisplayValue(
+                  set.distanceKm!, UnitDimension.distance);
+              final distSuffix = unitService.suffixFor(UnitDimension.distance);
+              detailStr =
+                  '${dispD.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), '')} $distSuffix in $durStr';
             } else if (set.reps != null) {
               detailStr = '${set.reps} $labelReps';
             } else if (set.durationSeconds != null) {

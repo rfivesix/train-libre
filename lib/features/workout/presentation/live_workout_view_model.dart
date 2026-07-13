@@ -1,3 +1,5 @@
+import "../../../services/unit_service.dart";
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,8 +24,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   // ignore: unused_field
   AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
 
+  final UnitService unitService;
+
   LiveWorkoutViewModel({
     required IWorkoutRepository repository,
+    required this.unitService,
     DetectPersonalRecordUseCase? detectPRUseCase,
     LogWorkoutSetUseCase? logSetUseCase,
     bool registerLifecycleObserver = true,
@@ -39,9 +44,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   @visibleForTesting
   factory LiveWorkoutViewModel.forTesting({
     required IWorkoutRepository workoutDb,
+    UnitService? unitService,
   }) {
     return LiveWorkoutViewModel(
       repository: workoutDb,
+      unitService: unitService ?? UnitService(),
       registerLifecycleObserver: false,
     );
   }
@@ -450,6 +457,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     final prResult = _detectPRUseCase.execute(
+      unitService: unitService,
       currentSet: setLog,
       historicalBests: _exerciseBests[exName]!,
     );

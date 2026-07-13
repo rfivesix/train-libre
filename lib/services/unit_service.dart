@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum UnitSystem { metric, imperial }
 
-enum UnitDimension { weight, height, liquid }
+enum UnitDimension { weight, height, liquid, distance }
 
 /// Centralizes the user's preferred unit system and conversions.
 class UnitService extends ChangeNotifier {
@@ -61,6 +61,7 @@ class UnitService extends ChangeNotifier {
       UnitDimension.height => isMetric ? metricValue : cmToInches(metricValue),
       UnitDimension.liquid =>
         isMetric ? metricValue : mlToFluidOunces(metricValue),
+      UnitDimension.distance => isMetric ? metricValue : kmToMi(metricValue),
     };
   }
 
@@ -71,6 +72,7 @@ class UnitService extends ChangeNotifier {
         isMetric ? displayValue : inchesToCm(displayValue),
       UnitDimension.liquid =>
         isMetric ? displayValue : fluidOuncesToMl(displayValue),
+      UnitDimension.distance => isMetric ? displayValue : miToKm(displayValue),
     };
   }
 
@@ -79,6 +81,7 @@ class UnitService extends ChangeNotifier {
       UnitDimension.weight => isMetric ? 'kg' : 'lbs',
       UnitDimension.height => isMetric ? 'cm' : 'in',
       UnitDimension.liquid => isMetric ? 'ml' : 'fl oz',
+      UnitDimension.distance => isMetric ? 'km' : 'mi',
     };
   }
 
@@ -87,6 +90,7 @@ class UnitService extends ChangeNotifier {
       UnitDimension.weight => 'kg',
       UnitDimension.height => 'cm',
       UnitDimension.liquid => 'ml',
+      UnitDimension.distance => 'km',
     };
   }
 
@@ -101,4 +105,8 @@ class UnitService extends ChangeNotifier {
   static double mlToFluidOunces(double value) => value * 0.033814;
 
   static double fluidOuncesToMl(double value) => value / 0.033814;
+
+  static double kmToMi(double value) => value * 0.621371;
+
+  static double miToKm(double value) => value / 0.621371;
 }

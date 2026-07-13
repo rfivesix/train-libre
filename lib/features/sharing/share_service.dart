@@ -1,3 +1,6 @@
+import "package:provider/provider.dart";
+import "../../services/unit_service.dart";
+
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -159,13 +162,14 @@ class ShareService {
     required BuildContext context,
     required WorkoutLog workout,
   }) async {
-    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!);
+    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!, context.read<UnitService>());
     final locale = Localizations.localeOf(context).toString();
     final details = await _loadExerciseDetails(workout);
     final text = WorkoutShareFormatter(
       labels,
       locale: locale,
       exerciseDetails: details,
+      unitService: context.read<UnitService>(),
     ).format(workout);
     await _shareText(text, subject: workout.routineName ?? labels.appName);
   }
@@ -174,7 +178,7 @@ class ShareService {
     required BuildContext context,
     required Routine routine,
   }) async {
-    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!);
+    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!, context.read<UnitService>());
     final locale = Localizations.localeOf(context).toString();
     final text = RoutineShareFormatter(labels, locale: locale).format(routine);
     await _shareText(text, subject: routine.name);
@@ -186,7 +190,7 @@ class ShareService {
     WorkoutShareCardLayout layout = WorkoutShareCardLayout.summary,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    final labels = ShareLabels.fromL10n(l10n);
+    final labels = ShareLabels.fromL10n(l10n, context.read<UnitService>());
     final locale = Localizations.localeOf(context).toString();
     try {
       final details = await _loadExerciseDetails(workout);
@@ -196,6 +200,7 @@ class ShareService {
               labels: labels,
               locale: locale,
               exerciseDetails: details,
+              unitService: context.read<UnitService>(),
             )
           : const <MuscleVolumeSummary>[];
       if (!context.mounted) return;
@@ -227,7 +232,7 @@ class ShareService {
     RoutineShareCardLayout layout = RoutineShareCardLayout.summary,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    final labels = ShareLabels.fromL10n(l10n);
+    final labels = ShareLabels.fromL10n(l10n, context.read<UnitService>());
     final locale = Localizations.localeOf(context).toString();
     try {
       final file = await _renderer.renderRoutineCard(
@@ -288,11 +293,13 @@ class ShareService {
     required ShareLabels labels,
     required String locale,
     required Map<String, Exercise> exerciseDetails,
+    required UnitService unitService,
   }) async {
     return WorkoutShareFormatter(
       labels,
       locale: locale,
       exerciseDetails: exerciseDetails,
+      unitService: unitService,
     ).muscleVolumeSummaries(workout, exerciseDetails);
   }
 

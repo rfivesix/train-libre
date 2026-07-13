@@ -1,3 +1,5 @@
+import "../../services/unit_service.dart";
+
 import 'package:intl/intl.dart';
 
 import '../exercise_catalog/domain/models/exercise.dart';
@@ -8,11 +10,12 @@ import 'share_set_type.dart';
 
 class WorkoutShareFormatter {
   const WorkoutShareFormatter(this.labels,
-      {this.locale, this.exerciseDetails = const {}});
+      {this.locale, this.exerciseDetails = const {}, required this.unitService});
 
   final ShareLabels labels;
   final String? locale;
   final Map<String, Exercise> exerciseDetails;
+  final UnitService unitService;
 
   String _exerciseName(String rawName) {
     final exercise = exerciseDetails[rawName];
@@ -227,15 +230,18 @@ class WorkoutShareFormatter {
     final hasDuration = set.durationSeconds != null && set.durationSeconds! > 0;
 
     if (hasWeight && hasReps) {
-      parts.add('${_formatNumber(set.weightKg!)} ${labels.kg} x ${set.reps}');
+      final dispW = unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
+      parts.add('${_formatNumber(dispW)} ${labels.kg} x ${set.reps}');
     } else if (hasReps) {
       parts.add('${set.reps} ${labels.reps}');
     } else if (hasWeight) {
-      parts.add('${_formatNumber(set.weightKg!)} ${labels.kg}');
+      final dispW = unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
+      parts.add('${_formatNumber(dispW)} ${labels.kg}');
     }
 
     if (hasDistance) {
-      parts.add('${_formatNumber(set.distanceKm!)} ${labels.km}');
+      final dispD = unitService.convertDisplayValue(set.distanceKm!, UnitDimension.distance);
+      parts.add('${_formatNumber(dispD)} ${labels.km}');
     }
     if (hasDuration) {
       parts.add(_formatMinutes(Duration(seconds: set.durationSeconds!)));

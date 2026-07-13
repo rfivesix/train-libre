@@ -157,9 +157,9 @@
   "addExerciseToWorkoutButton": "Übung zum Workout hinzufügen",
   "lastTimeLabel": "Letztes Mal",
   "setLabel": "Satz",
-  "kgLabel": "Gewicht (kg)",
+  "kgLabel": "Weight ({unit})",
   "repsLabel": "Wdh",
-  "cardioDistanceLabel": "Distanz (km)",
+  "cardioDistanceLabel": "Distance ({unit})",
   "cardioTimeLabel": "Zeit",
   "cardioIntensityLabel": "Intens.",
   "cardioIntensityShortLabel": "Int.",
@@ -379,7 +379,6 @@
     }
   },
   "fabAddExercise": "Übung hinzufügen",
-  "kgLabelShort": "kg",
   "drawerExerciseCatalog": "Übungskatalog",
   "lastWorkoutTitle": "Letztes Workout",
   "repeatButton": "Wiederholen",
@@ -1359,7 +1358,7 @@
   "analyticsTopVolume": "Top trainiert",
   "analyticsLowestVolume": "Niedrigstes Volumen",
   "analyticsRecentRecords": "Aktuelle Rekorde",
-  "analyticsPerfWithReps": "{weight} kg x {reps}",
+  "analyticsPerfWithReps": "{weight} {unit} x {reps}",
   "@analyticsPerfWithReps": {
     "placeholders": {
       "weight": {
@@ -1367,7 +1366,8 @@
       },
       "reps": {
         "type": "int"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsKgThisWeek": "kg (diese Woche)",
@@ -1377,7 +1377,7 @@
   "analyticsNoRecordYet": "Noch kein Rekord",
   "analyticsNotableImprovements": "Bemerkenswerte Verbesserungen",
   "analyticsNoPrTrendInWindow": "In diesem Zeitraum gibt es noch keinen klaren Rekordtrend.",
-  "analyticsE1rmProgress": "e1RM {previous} -> {recent} kg",
+  "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
   "@analyticsE1rmProgress": {
     "placeholders": {
       "previous": {
@@ -1385,7 +1385,8 @@
       },
       "recent": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsUnitKg": "kg",
@@ -1457,28 +1458,31 @@
     }
   },
   "analyticsFrequencyRuleFooter": "Frequenz zählt nur Tage, an denen der Muskel >= 1.0 äquivalente Sätze erreicht.",
-  "liveWorkoutE1rmCurrentSet": "e1RM {value} kg",
+  "liveWorkoutE1rmCurrentSet": "e1RM {value} {unit}",
   "@liveWorkoutE1rmCurrentSet": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmBestSession": "Beste e1RM in dieser Session: {value} kg",
+  "liveWorkoutE1rmBestSession": "Beste e1RM in dieser Session: {value} {unit}",
   "@liveWorkoutE1rmBestSession": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmVsLastSession": "vs letzte Session: {delta} kg",
+  "liveWorkoutE1rmVsLastSession": "vs letzte Session: {delta} {unit}",
   "@liveWorkoutE1rmVsLastSession": {
     "placeholders": {
       "delta": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "bodyNutritionCorrelationTitle": "Körper & Ernährung Trends",
@@ -1494,9 +1498,9 @@
   "analyticsLowConfidenceLabel": "Muster mit niedrigerer Verlässlichkeit",
   "analyticsObservedPatternLabel": "Beobachtetes Muster",
   "analyticsBodyNutritionTrendContext": "Gewicht und Kalorien im Zeitverlauf",
-  "analyticsBodyNutritionTrendContextHint": "Das Diagramm skaliert beide Reihen auf denselben Platz; Tooltips zeigen die Rohwerte in kg und kcal.",
-  "analyticsBodyNutritionNormalizedHint": "Das Diagramm skaliert Gewicht und Kalorien auf denselben Platz; Tooltips zeigen die Rohwerte in kg und kcal.",
-  "analyticsBodyNutritionTotalWeightLabel": "Gesamtgewicht (kg)",
+  "analyticsBodyNutritionTrendContextHint": "Das Diagramm skaliert beide Reihen auf denselben Platz; Tooltips zeigen die Rohwerte in {unit} und kcal.",
+  "analyticsBodyNutritionNormalizedHint": "Das Diagramm skaliert Gewicht und Kalorien auf denselben Platz; Tooltips zeigen die Rohwerte in {unit} und kcal.",
+  "analyticsBodyNutritionTotalWeightLabel": "Gesamtgewicht ({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "Gesamtkalorien (kcal)",
   "analyticsWeightTrendLabel": "Gewicht (kg)",
   "analyticsCaloriesTrendLabel": "Kalorien (kcal)",
@@ -1794,12 +1798,13 @@
   "adaptiveGoalLose": "Abnehmen",
   "adaptiveGoalMaintain": "Gewicht halten",
   "adaptiveGoalGain": "Zunehmen",
-  "adaptiveRatePerWeek": "{value} kg/Woche",
+  "adaptiveRatePerWeek": "{value} {unit}/Woche",
   "@adaptiveRatePerWeek": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "adaptivePriorActivityLabel": "Alltagsaktivität (Basis)",
@@ -2467,5 +2472,34 @@
     }
   },
   "muscleTraps": "Nacken",
-  "muscleObliques": "Seitliche Bauchmuskeln"
+  "muscleObliques": "Seitliche Bauchmuskeln",
+  "@kgLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@cardioDistanceLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@analyticsBodyNutritionTrendContextHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionNormalizedHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionTotalWeightLabel": {
+    "placeholders": {
+      "unit": {}
+    }
+  }
 }

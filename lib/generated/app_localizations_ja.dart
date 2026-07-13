@@ -424,13 +424,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get setLabel => 'セット';
 
   @override
-  String get kgLabel => '重量(kg)';
+  String kgLabel(String unit) {
+    return 'Weight ($unit)';
+  }
 
   @override
   String get repsLabel => '担当者';
 
   @override
-  String get cardioDistanceLabel => '距離(km)';
+  String cardioDistanceLabel(String unit) {
+    return 'Distance ($unit)';
+  }
 
   @override
   String get cardioTimeLabel => '時間';
@@ -1000,9 +1004,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fabAddExercise => 'エクササイズを追加';
-
-  @override
-  String get kgLabelShort => 'kg';
 
   @override
   String get drawerExerciseCatalog => 'エクササイズカタログ';
@@ -3070,8 +3071,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsRecentRecords => '最近の記録';
 
   @override
-  String analyticsPerfWithReps(String weight, int reps) {
-    return '$weight kg x $reps';
+  String analyticsPerfWithReps(String weight, int reps, Object unit) {
+    return '$weight $unit x $reps';
   }
 
   @override
@@ -3096,8 +3097,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsNoPrTrendInWindow => 'この分野ではまだ明確な PR 傾向はありません。';
 
   @override
-  String analyticsE1rmProgress(String previous, String recent) {
-    return 'e1RM $previous -> $recent kg';
+  String analyticsE1rmProgress(String previous, String recent, Object unit) {
+    return 'e1RM $previous -> $recent $unit';
   }
 
   @override
@@ -3249,18 +3250,18 @@ class AppLocalizationsJa extends AppLocalizations {
       '頻度は、筋肉が同等のセット数 >= 1.0 に達した日のみをカウントします。';
 
   @override
-  String liveWorkoutE1rmCurrentSet(String value) {
-    return 'e1RM $value kg';
+  String liveWorkoutE1rmCurrentSet(String value, Object unit) {
+    return 'e1RM $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmBestSession(String value) {
-    return 'このセッションの最高の e1RM: $value kg';
+  String liveWorkoutE1rmBestSession(String value, Object unit) {
+    return 'このセッションの最高の e1RM: $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmVsLastSession(String delta) {
-    return '前回のセッションとの比較: $delta kg';
+  String liveWorkoutE1rmVsLastSession(String delta, Object unit) {
+    return '前回のセッションとの比較: $delta $unit';
   }
 
   @override
@@ -3303,15 +3304,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsBodyNutritionTrendContext => '経時的な体重とカロリー';
 
   @override
-  String get analyticsBodyNutritionTrendContextHint =>
-      'グラフは、同じ空間に収まるように各系列を拡大縮小します。ツールチップには生の kg と kcal の値が表示されます。';
+  String analyticsBodyNutritionTrendContextHint(Object unit) {
+    return 'グラフは、同じ空間に収まるように各系列を拡大縮小します。ツールチップには生の $unit と kcal の値が表示されます。';
+  }
 
   @override
-  String get analyticsBodyNutritionNormalizedHint =>
-      'グラフは、同じスペースに収まるように体重とカロリーをスケールします。ツールチップには生の kg と kcal の値が表示されます。';
+  String analyticsBodyNutritionNormalizedHint(Object unit) {
+    return 'グラフは、同じスペースに収まるように体重とカロリーをスケールします。ツールチップには生の $unit と kcal の値が表示されます。';
+  }
 
   @override
-  String get analyticsBodyNutritionTotalWeightLabel => '総重量(kg)';
+  String analyticsBodyNutritionTotalWeightLabel(Object unit) {
+    return '総重量($unit)';
+  }
 
   @override
   String get analyticsBodyNutritionTotalCaloriesLabel => '総カロリー（kcal）';
@@ -3923,8 +3928,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adaptiveGoalGain => '体重が増える';
 
   @override
-  String adaptiveRatePerWeek(String value) {
-    return '$value kg/週';
+  String adaptiveRatePerWeek(String value, Object unit) {
+    return '$value $unit/週';
   }
 
   @override

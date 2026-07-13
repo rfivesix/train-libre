@@ -1,3 +1,5 @@
+import '../../../../services/unit_service.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
@@ -137,7 +139,7 @@ class AdaptiveGoalSlide extends StatelessWidget {
           Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: WeeklyTargetRateCatalog.optionsForGoal(selectedGoal)
+            children: WeeklyTargetRateCatalog.optionsForGoal(selectedGoal, context.read<UnitService>())
                 .map((option) {
               final isSelected =
                   option.kgPerWeek == selectedTargetRateKgPerWeek;
@@ -146,7 +148,7 @@ class AdaptiveGoalSlide extends StatelessWidget {
                 onTap: () => onTargetRateKgPerWeekChanged(option.kgPerWeek),
                 child: ChoiceChip(
                   label: Text(
-                    _rateLabel(l10n, option.kgPerWeek),
+                    _rateLabel(context, l10n, option.kgPerWeek),
                     style: TextStyle(
                       color: isSelected
                           ? theme.colorScheme.onPrimary
@@ -189,9 +191,12 @@ class AdaptiveGoalSlide extends StatelessWidget {
     }
   }
 
-  String _rateLabel(AppLocalizations l10n, double kgPerWeek) {
+  String _rateLabel(BuildContext context, AppLocalizations l10n, double kgPerWeek) {
+    final unitService = context.read<UnitService>();
     final sign = kgPerWeek > 0 ? '+' : '';
-    return l10n.adaptiveRatePerWeek('$sign${kgPerWeek.toStringAsFixed(2)}');
+    final displayValue = unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
+    final valStr = displayValue.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '');
+    return l10n.adaptiveRatePerWeek('$sign$valStr', unitService.suffixFor(UnitDimension.weight));
   }
 
   String _priorActivityLabel(

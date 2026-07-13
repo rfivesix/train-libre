@@ -1,3 +1,5 @@
+import 'package:provider/provider.dart';
+import '../../services/unit_service.dart';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -16,7 +18,6 @@ import 'share_labels.dart';
 import 'share_set_type.dart';
 import 'workout_share_formatter.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
-import 'package:provider/provider.dart';
 import '../../services/profile_service.dart';
 import '../exercise_catalog/domain/models/exercise.dart';
 import '../exercise_catalog/domain/body_slug_mapper.dart';
@@ -47,7 +48,7 @@ class ShareCardRenderer {
     Map<String, Exercise> exerciseDetails = const {},
   }) {
     final formatter = WorkoutShareFormatter(labels,
-        locale: locale, exerciseDetails: exerciseDetails);
+        locale: locale, exerciseDetails: exerciseDetails, unitService: context.read<UnitService>());
     final stats = formatter.stats(workout);
     final child = switch (layout) {
       WorkoutShareCardLayout.summary => _WorkoutSummaryCard(

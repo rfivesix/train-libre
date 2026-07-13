@@ -87,9 +87,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   late final AdaptiveNutritionRecommendationService _recommendationService;
   late final DatabaseHelper _databaseHelper;
   BodyweightGoal _selectedGoal = BodyweightGoal.maintainWeight;
-  double _selectedTargetRateKgPerWeek = WeeklyTargetRateCatalog.defaultForGoal(
-    BodyweightGoal.maintainWeight,
-  ).kgPerWeek;
+  double _selectedTargetRateKgPerWeek = 0.0;
   NutritionRecommendation? _onboardingRecommendation;
 
   // --- CONTROLLER ---
@@ -228,6 +226,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       _selectedTargetRateKgPerWeek = WeeklyTargetRateCatalog.coerceTargetRate(
         goal: goal,
         kgPerWeek: rate,
+        unitService: context.read<UnitService>(),
       );
       _selectedPriorActivityLevel = priorActivityLevel;
       _selectedExtraCardioHoursOption = extraCardioHoursOption;
@@ -802,7 +801,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       setState(() {
                         _selectedGoal = goal;
                         _selectedTargetRateKgPerWeek =
-                            WeeklyTargetRateCatalog.defaultForGoal(goal)
+                            WeeklyTargetRateCatalog.defaultForGoal(goal, _unitService)
                                 .kgPerWeek;
                       });
                       _refreshOnboardingRecommendationPreview();

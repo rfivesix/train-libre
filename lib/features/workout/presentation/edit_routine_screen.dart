@@ -1,3 +1,5 @@
+import '../../../services/unit_service.dart';
+import 'package:provider/provider.dart';
 // lib/screens/edit_routine_screen.dart
 // FINAL: Cardio Clean-Up (1 Set, Cleaner Layout, Empty Defaults)
 
@@ -268,14 +270,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           if (isCardio && repsText == '8-12') repsText = '';
 
           _repsControllers[st.id!] = TextEditingController(text: repsText);
+          final unitService = context.read<UnitService>();
           final String weightText = (st.targetWeight == null)
               ? ''
               : (isCardio
-                  ? st.targetWeight!
+                  ? unitService.convertDisplayValue(st.targetWeight!, UnitDimension.distance)
                       .toStringAsFixed(3)
                       .replaceAll(RegExp(r'0*$'), '')
                       .replaceAll(RegExp(r'\.$'), '')
-                  : st.targetWeight!.toString());
+                  : unitService.convertDisplayValue(st.targetWeight!, UnitDimension.weight).toString());
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
             text: st.targetRir?.toString() ?? '',
@@ -324,14 +327,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           final defaultReps = isCardio ? '' : st.targetReps;
 
           _repsControllers[st.id!] = TextEditingController(text: defaultReps);
+          final unitService = context.read<UnitService>();
           final String weightText = (st.targetWeight == null)
               ? ''
               : (isCardio
-                  ? st.targetWeight!
+                  ? unitService.convertDisplayValue(st.targetWeight!, UnitDimension.distance)
                       .toStringAsFixed(3)
                       .replaceAll(RegExp(r'0*$'), '')
                       .replaceAll(RegExp(r'\.$'), '')
-                  : st.targetWeight!.toString());
+                  : unitService.convertDisplayValue(st.targetWeight!, UnitDimension.weight).toString());
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
             text: st.targetRir?.toString() ?? '',
@@ -395,9 +399,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         currentTemplates.add(
           set.copyWith(
             targetReps: _repsControllers[set.id!]?.text,
-            targetWeight: double.tryParse(
-              _weightControllers[set.id!]!.text.replaceAll(',', '.'),
-            ),
+            targetWeight: _weightControllers[set.id!]!.text.isEmpty ? null : (() {
+              final raw = double.tryParse(_weightControllers[set.id!]!.text.replaceAll(',', '.'));
+              if (raw == null) return null;
+              final unitService = context.read<UnitService>();
+              return unitService.convertToMetric(raw, re.exercise.categoryName.toLowerCase() == 'cardio' ? UnitDimension.distance : UnitDimension.weight);
+            })(),
             targetRir: int.tryParse(rirText),
             clearTargetRir: rirText.isEmpty,
           ),

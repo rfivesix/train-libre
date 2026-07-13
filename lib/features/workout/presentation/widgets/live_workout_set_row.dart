@@ -630,6 +630,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
                   Text(
                     l10n.liveWorkoutE1rmCurrentSet(
                       _formatDisplayWeightValue(currentSetE1rm, unitService),
+                      unitService.suffixFor(UnitDimension.weight),
                     ),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
