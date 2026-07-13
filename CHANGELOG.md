@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - **Icon Button Tooltips:** Added accessibility tooltips to icon-only buttons across the app (e.g., in the workout sets list) to improve screen reader support and general usability.
 
+### Fixed
+- **Database Update Prompt Snooze:** Implemented a 30-day snooze mechanism when the user declines a database update prompt to prevent aggressive reprompting across screen changes.
+
 ### Changed
 - **Dependencies Update:** Updated various Flutter and Dart packages to their latest versions to maintain platform compatibility and security.
 - **Website CTA:** Replaced the iOS TestFlight Beta link and label with the official App Store link.

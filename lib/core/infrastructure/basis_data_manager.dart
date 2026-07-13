@@ -226,6 +226,14 @@ class BasisDataManager {
     }
 
     if (!isMissingEither) {
+      final snoozeUntilIso = prefs.getString('db_update_snoozed_until');
+      if (snoozeUntilIso != null) {
+        final snoozeUntil = DateTime.tryParse(snoozeUntilIso);
+        if (snoozeUntil != null && DateTime.now().isBefore(snoozeUntil)) {
+          return;
+        }
+      }
+
       final lastPromptedWger =
           prefs.getString('last_prompted_wger_version') ?? '';
       final lastPromptedOff =
@@ -331,8 +339,17 @@ class BasisDataManager {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.of(ctx).pop(false);
+                    onPressed: () async {
+                      if (!isMissingEither) {
+                        await prefs.setString(
+                            'db_update_snoozed_until',
+                            DateTime.now()
+                                .add(const Duration(days: 30))
+                                .toIso8601String());
+                      }
+                      if (ctx.mounted) {
+                        Navigator.of(ctx).pop(false);
+                      }
                     },
                     child: Text(l10n.offDownloadCancel),
                   ),
