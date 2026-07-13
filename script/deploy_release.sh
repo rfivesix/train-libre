@@ -12,25 +12,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-patch_generated_ios_swiftpm_platforms() {
-  local packages_dir="ios/Flutter/ephemeral/Packages/.packages"
-
-  if [ ! -d "$packages_dir" ]; then
-    echo "Skipping generated SwiftPM patch: $packages_dir does not exist yet."
-    return 0
-  fi
-
-  echo "Normalizing generated SwiftPM iOS deployment targets to 14.0..."
-  find "$packages_dir" -name Package.swift -type f -print0 | while IFS= read -r -d '' package_file; do
-    sed -i '' \
-      -e 's/\.iOS("11.0")/\.iOS("14.0")/g' \
-      -e 's/\.iOS("12.0")/\.iOS("14.0")/g' \
-      -e 's/\.iOS("13.0")/\.iOS("14.0")/g' \
-      -e 's/\.iOS(\.v13)/\.iOS(\.v14)/g' \
-      "$package_file"
-  done
-}
-
 # ------------------------------------------------------------------------------
 # STEP 1: Version & Pre-Release Detection
 # ------------------------------------------------------------------------------
@@ -77,8 +58,13 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
   echo "Pushing $CURRENT_BRANCH to origin..."
   git push origin "$CURRENT_BRANCH"
 
-  echo "Opening Pull Request into main..."
-  gh pr create --base main --title "Merge release $VERSION_NUMBER into main" --body "Automated release synchronization split." || echo "Pull request creation skipped (may already exist)."
+  # PR-Erstellung nur triggern, wenn es sich um ein echtes Stable-Release handelt!
+  if [ "$IS_PRERELEASE" = "false" ]; then
+    echo "Stable version detected. Opening Pull Request into main..."
+    gh pr create --base main --title "Merge release $VERSION_NUMBER into main" --body "Automated release synchronization split." || echo "Pull request creation skipped (may already exist)."
+  else
+    echo "Pre-release version (Alpha/Beta) detected. Skipping Pull Request creation."
+  fi
 fi
 
 # ------------------------------------------------------------------------------
@@ -96,9 +82,8 @@ sed -i '' "s/version: .*/version: $VERSION_NUMBER+$NEW_BUILD_NUMBER/g" pubspec.y
 
 flutter pub get
 flutter gen-l10n
-patch_generated_ios_swiftpm_platforms
 
-echo "Updating iOS deployment target to 14.0..."
+echo "Updating iOS deployment target to 14.0 in project..."
 sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 13.0/IPHONEOS_DEPLOYMENT_TARGET = 14.0/g' ios/Runner.xcodeproj/project.pbxproj
 
 echo "Building Android Production Release Artifacts (Build: $NEW_BUILD_NUMBER)..."
@@ -106,13 +91,10 @@ flutter build appbundle --release
 flutter build apk --release --split-per-abi
 flutter build apk --release
 
-# Android builds regenerate the iOS Swift Package manifest (Package.swift) with
-# the Flutter SDK default of iOS 13.0, which conflicts with file-picker's 14.0
-# minimum. Re-running config-only reads IPHONEOS_DEPLOYMENT_TARGET = 14.0 from
-# project.pbxproj and regenerates Package.swift correctly before the IPA build.
-echo "Regenerating iOS Swift Package manifest with correct 14.0 deployment target..."
+# Die l10n und pod-Infrastruktur wird vor dem iOS-Build frisch aufgesetzt.
+# Das neue Podfile zwingt alle Targets (inkl. Swift Packages) auf iOS 14.0.
+echo "Regenerating iOS configuration with correct 14.0 deployment target..."
 flutter build ios --config-only
-patch_generated_ios_swiftpm_platforms
 
 echo "Building iOS Production Release Artifact (IPA) (Build: $NEW_BUILD_NUMBER)..."
 flutter build ipa --release
@@ -137,9 +119,9 @@ fi
 # STEP 5: Git Tagging & Local Commit
 # ------------------------------------------------------------------------------
 echo "Staging release files..."
-git add .
+git add pubspec.yaml CHANGELOG.md ios/Runner.xcodeproj/project.pbxproj
 
-if [ -n "$(git status --porcelain)" ]; then
+if [ -n "$(git status --porcelain pubspec.yaml CHANGELOG.md ios/Runner.xcodeproj/project.pbxproj)" ]; then
   echo "Committing release version changes..."
   git commit -m "chore: release v$VERSION_NUMBER"
 else
@@ -192,12 +174,6 @@ echo "Triggering Fastlane for iOS Deployment..."
 cd ios
 bundle exec fastlane upload_beta
 cd ..
-
-# ------------------------------------------------------------------------------
-# STEP 8: Clean Up Local Build Settings Changes
-# ------------------------------------------------------------------------------
-#echo "Restoring dynamic build number variables in iOS project files..."
-#git restore ios/Runner.xcodeproj/project.pbxproj ios/Runner/Info.plist
 
 echo "=============================================================================="
 echo "SUCCESS: Version v$VERSION_NUMBER deployed to GitHub (with Android Assets) & TestFlight!"
