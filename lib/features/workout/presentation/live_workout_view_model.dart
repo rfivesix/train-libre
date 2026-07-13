@@ -52,6 +52,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final Map<int, int?> pauseTimes = {};
 
   Timer? _restTimer;
+  DateTime? _targetRestEndTime;
   int _remainingRestSeconds = 0;
   Timer? _restDoneBannerTimer;
   bool _showRestDone = false;
@@ -411,13 +412,18 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     if (isCompleted == true && oldLog.isCompleted != true) {
       int? pauseTime;
+      bool isLastSet = false;
       for (var re in _exercises) {
-        if (re.setTemplates.any((t) => t.id == templateId)) {
+        final tIndex = re.setTemplates.indexWhere((t) => t.id == templateId);
+        if (tIndex != -1) {
           pauseTime = pauseTimes[re.id!];
+          if (tIndex == re.setTemplates.length - 1) {
+            isLastSet = true;
+          }
           break;
         }
       }
-      if (pauseTime != null && pauseTime > 0) {
+      if (pauseTime != null && pauseTime > 0 && !isLastSet) {
         _startRestTimer(pauseTime);
       }
     }
@@ -701,6 +707,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     LocalNotificationService.instance.cancelRestTimerNotification();
     _showRestDone = false;
     _remainingRestSeconds = seconds;
+    _targetRestEndTime = DateTime.now().add(Duration(seconds: seconds));
 
     if (!_isAppInForeground) {
       LocalNotificationService.instance
@@ -708,10 +715,16 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingRestSeconds > 0) {
-        _remainingRestSeconds--;
-        if (_remainingRestSeconds == 0) {
+      if (_targetRestEndTime != null) {
+        final remaining = _targetRestEndTime!.difference(DateTime.now()).inSeconds;
+        if (remaining > 0) {
+          if (_remainingRestSeconds != remaining) {
+            _remainingRestSeconds = remaining;
+            notifyListeners();
+          }
+        } else {
           timer.cancel();
+          _remainingRestSeconds = 0;
           _showRestDone = true;
           if (_isAppInForeground) {
             LocalNotificationService.instance.cancelRestTimerNotification();
@@ -729,8 +742,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
             _showRestDone = false;
             notifyListeners();
           });
+          notifyListeners();
         }
-        notifyListeners();
       }
     });
     notifyListeners();
@@ -747,6 +760,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   void adjustRestTime(int deltaSeconds) {
     if (_remainingRestSeconds <= 0) return;
     _remainingRestSeconds += deltaSeconds;
+    if (_targetRestEndTime != null) {
+      _targetRestEndTime = _targetRestEndTime!.add(Duration(seconds: deltaSeconds));
+    }
     if (_remainingRestSeconds <= 0) {
       _remainingRestSeconds = 0;
       _restTimer?.cancel();
@@ -796,6 +812,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> finishWorkout({String? title, String? notes}) async {
     _workoutDurationTimer?.cancel();
     _restTimer?.cancel();
+    _restDoneBannerTimer?.cancel();
+    _showRestDone = false;
+    _remainingRestSeconds = 0;
     await LocalNotificationService.instance.cancelRestTimerNotification();
 
     if (_workoutLog != null) {
