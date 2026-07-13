@@ -82,12 +82,6 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
           // ── Header row with toggle ──────────────────────────────────────
           Row(
             children: [
-              Icon(
-                LucideIcons.cloud,
-                size: 20,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: DesignConstants.spacingS),
               Expanded(
                 child: Text(
                   l10n.icloudAutoBackupTitle,
@@ -155,7 +149,9 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
                     )
                   : const Icon(LucideIcons.cloud_upload),
               label: Text(
-                _isBackingUp ? l10n.icloudBackupUploading : l10n.icloudBackupNow,
+                _isBackingUp
+                    ? l10n.icloudBackupUploading
+                    : l10n.icloudBackupNow,
               ),
               onPressed: _isBackingUp ? null : _runBackupNow,
             ),
