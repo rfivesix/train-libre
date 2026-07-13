@@ -54,46 +54,46 @@ class CalculateDailyNutritionUseCase {
     );
 
     // Workout Summary
-    final completedLogs =
-        workoutLogs.where((log) => log.endTime != null).toList();
     Map<String, dynamic>? workoutSummary;
-    if (completedLogs.isNotEmpty) {
-      Duration totalDuration = Duration.zero;
-      double totalVolume = 0.0;
-      int totalSets = 0;
-      for (final log in completedLogs) {
-        totalDuration += log.endTime!.difference(log.startTime);
-        totalSets += log.sets.length;
-        for (final set in log.sets) {
-          totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
-        }
+    Duration totalDuration = Duration.zero;
+    double totalVolume = 0.0;
+    int totalSets = 0;
+    int completedCount = 0;
+
+    for (final log in workoutLogs) {
+      if (log.endTime == null) continue;
+      completedCount++;
+      totalDuration += log.endTime!.difference(log.startTime);
+      totalSets += log.sets.length;
+      for (final set in log.sets) {
+        totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
       }
+    }
+
+    if (completedCount > 0) {
       workoutSummary = {
         'duration': totalDuration,
         'volume': totalVolume,
         'sets': totalSets,
-        'count': completedLogs.length,
+        'count': completedCount,
       };
     }
 
-    // Pre-filter fluid foods to avoid redundant map lookups in the nested loop
-    final fluidFoodEntries = foodEntries.where((food) {
+    // Cache properties for O(1) quantity matching and faster time diff calculations
+    final Map<int, List<int>> fluidFoodSignatures = {};
+    for (final food in foodEntries) {
       final foodItem = food.archiveLocalId != null
           ? foodProductsByArchiveLocalId[food.archiveLocalId!]
           : foodProductsByBarcode[food.barcode];
-      return foodItem != null &&
-          (foodItem.isFluid || (foodItem.isLiquid ?? false));
-    }).toList();
-
-    // Cache properties for O(1) quantity matching and faster time diff calculations
-    final Map<int, List<int>> fluidFoodSignatures = {};
-    for (final food in fluidFoodEntries) {
-      final qty = food.quantityInGrams;
-      final ms = food.timestamp.millisecondsSinceEpoch;
-      if (fluidFoodSignatures.containsKey(qty)) {
-        fluidFoodSignatures[qty]!.add(ms);
-      } else {
-        fluidFoodSignatures[qty] = [ms];
+      if (foodItem != null &&
+          (foodItem.isFluid || (foodItem.isLiquid ?? false))) {
+        final qty = food.quantityInGrams;
+        final ms = food.timestamp.millisecondsSinceEpoch;
+        if (fluidFoodSignatures.containsKey(qty)) {
+          fluidFoodSignatures[qty]!.add(ms);
+        } else {
+          fluidFoodSignatures[qty] = [ms];
+        }
       }
     }
 
@@ -171,25 +171,9 @@ class CalculateDailyNutritionUseCase {
       );
     }
 
-    Supplement? caffeineSupplement;
-    try {
-      caffeineSupplement = allSupplements.firstWhere(
-        (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
-      );
-    } catch (e) {
-      caffeineSupplement = null;
-    }
-
-    if (caffeineSupplement != null && caffeineSupplement.id != null) {
-      summary.caffeine = todaysDoses[caffeineSupplement.id] ?? 0.0;
-    }
-
-    final Map<int, Supplement> byId = {
-      for (final s in allSupplements)
-        if (s.id != null) s.id!: s,
-    };
-
+    final Set<int> trackedSuppIds = {};
     final List<TrackedSupplement> trackedSupps = [];
+
     for (final s in supplementsForDate) {
       final hasLog = todaysDoses.containsKey(s.id);
       if (s.isTracked || hasLog) {
@@ -199,26 +183,31 @@ class CalculateDailyNutritionUseCase {
             totalDosedToday: todaysDoses[s.id] ?? 0.0,
           ),
         );
+        if (s.id != null) {
+          trackedSuppIds.add(s.id!);
+        }
       }
     }
 
-    // Optimize supplement lookup by extracting tracked IDs to a Set
-    final Set<int> trackedSuppIds = {
-      for (final ts in trackedSupps)
-        if (ts.supplement.id != null) ts.supplement.id!
-    };
-
-    for (final id in todaysDoses.keys) {
-      if (!trackedSuppIds.contains(id)) {
-        if (byId.containsKey(id)) {
-          trackedSupps.add(
-            TrackedSupplement(
-              supplement: byId[id]!,
-              totalDosedToday: todaysDoses[id]!,
-            ),
-          );
-        }
+    Supplement? caffeineSupplement;
+    for (final s in allSupplements) {
+      if (caffeineSupplement == null &&
+          ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine')) {
+        caffeineSupplement = s;
       }
+
+      if (s.id != null &&
+          todaysDoses.containsKey(s.id) &&
+          !trackedSuppIds.contains(s.id)) {
+        trackedSupps.add(
+          TrackedSupplement(supplement: s, totalDosedToday: todaysDoses[s.id]!),
+        );
+        trackedSuppIds.add(s.id!);
+      }
+    }
+
+    if (caffeineSupplement != null && caffeineSupplement.id != null) {
+      summary.caffeine = todaysDoses[caffeineSupplement.id] ?? 0.0;
     }
 
     return DailyNutritionState(
