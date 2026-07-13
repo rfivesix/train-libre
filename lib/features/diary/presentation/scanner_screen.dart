@@ -12,6 +12,7 @@ import '../../../services/haptic_feedback_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../util/design_constants.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
@@ -279,10 +280,11 @@ class _ScannerScreenState extends State<ScannerScreen>
                     height: 2,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.redAccent,
+                        color: DesignConstants.brandRedColor,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.redAccent.withValues(alpha: 0.8),
+                            color: DesignConstants.brandRedColor
+                                .withValues(alpha: 0.8),
                             blurRadius: 6,
                             spreadRadius: 1.5,
                           ),

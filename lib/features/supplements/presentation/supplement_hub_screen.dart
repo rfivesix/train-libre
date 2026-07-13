@@ -176,7 +176,7 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
         alignment: Alignment.centerLeft,
       ),
       secondaryBackground: const SwipeActionBackground(
-        color: Colors.redAccent,
+        color: DesignConstants.brandRedColor,
         icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),

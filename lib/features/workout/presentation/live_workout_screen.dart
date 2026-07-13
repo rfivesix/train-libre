@@ -765,8 +765,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                     const Icon(
                                                                   LucideIcons
                                                                       .trash_2,
-                                                                  color: Colors
-                                                                      .redAccent,
+                                                                  color: DesignConstants.brandRedColor,
                                                                 ),
                                                                 onPressed:
                                                                     () {},
@@ -1000,8 +999,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                     const Icon(
                                                                   LucideIcons
                                                                       .trash_2,
-                                                                  color: Colors
-                                                                      .redAccent,
+                                                                  color: DesignConstants.brandRedColor,
                                                                 ),
                                                                 tooltip: l10n
                                                                     .removeExercise,

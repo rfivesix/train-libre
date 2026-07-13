@@ -95,7 +95,7 @@ class NutritionSummaryWidget extends StatelessWidget {
                     unit: 'g',
                     value: nutritionData.protein.toDouble(),
                     target: nutritionData.targetProtein.toDouble(),
-                    color: Colors.red.shade400,
+                    color: DesignConstants.brandRedColor,
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingS),

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../theme/color_constants.dart';
 import '../../../nutrition_recommendation/data/recommendation_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -179,7 +178,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
 
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
+    final bg = isDark ? DesignConstants.summaryCardDarkMode : DesignConstants.summaryCardWhiteMode;
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
 

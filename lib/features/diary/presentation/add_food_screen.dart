@@ -31,7 +31,6 @@ import 'package:provider/provider.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
-import '../../../theme/color_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
@@ -802,7 +801,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 constraints: const BoxConstraints(),
                 icon: ShaderMask(
                   blendMode: BlendMode.srcIn,
-                  shaderCallback: (bounds) => createAiGradientShader(bounds),
+                  shaderCallback: (bounds) => DesignConstants.createAiGradientShader(bounds),
                   child: const Icon(LucideIcons.sparkles, size: 24),
                 ),
                 onPressed: () async {

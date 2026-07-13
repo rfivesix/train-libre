@@ -22,6 +22,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/macro_badge_row.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../util/design_constants.dart';
 
 /// A comprehensive screen for viewing and editing a meal and its ingredients.
 ///
@@ -851,7 +852,7 @@ class _IngredientCard extends StatelessWidget {
       direction: DismissDirection.endToStart,
       background: const SizedBox.shrink(),
       secondaryBackground: const SwipeActionBackground(
-        color: Colors.redAccent,
+        color: DesignConstants.brandRedColor,
         icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),

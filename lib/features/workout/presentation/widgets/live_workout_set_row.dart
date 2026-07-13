@@ -12,6 +12,7 @@ import '../../domain/models/set_template.dart';
 import '../live_workout_view_model.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
+import '../../../../util/design_constants.dart';
 
 /// An interactive row representing a single set in an active workout session.
 ///
@@ -75,7 +76,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
       {
         'type': 'failure',
         'label': l10n.set_type_failure,
-        'symbol': buildSymbol('F', Colors.red),
+        'symbol': buildSymbol('F', DesignConstants.brandRedColor),
       },
       {
         'type': 'dropset',
@@ -117,7 +118,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
       case 'dropset':
         return Colors.blue;
       case 'failure':
-        return Colors.red;
+        return DesignConstants.brandRedColor;
       default:
         return Colors.grey;
     }
@@ -648,7 +649,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
           isCompleted ? DismissDirection.none : DismissDirection.endToStart,
       onDismissed: (_) => _removeSet(templateId),
       background: Container(
-        color: Colors.redAccent,
+        color: DesignConstants.brandRedColor,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(LucideIcons.trash_2, color: Colors.white),

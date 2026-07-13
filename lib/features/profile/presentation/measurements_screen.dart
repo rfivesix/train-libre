@@ -410,7 +410,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
           alignment: Alignment.centerLeft,
         ),
         secondaryBackground: const SwipeActionBackground(
-          color: Colors.redAccent,
+          color: DesignConstants.brandRedColor,
           icon: LucideIcons.trash_2,
           alignment: Alignment.centerRight,
         ),

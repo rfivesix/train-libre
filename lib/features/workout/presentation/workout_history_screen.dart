@@ -63,7 +63,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
             return Center(
               child: Text(
                 '${l10n.error}: ${snapshot.error}',
-                style: const TextStyle(color: Colors.redAccent),
+                style: const TextStyle(color: DesignConstants.brandRedColor),
               ),
             );
           }
@@ -126,7 +126,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
 
                 // FIXED: Only `secondaryBackground` is needed here.
                 background: const SwipeActionBackground(
-                  color: Colors.redAccent,
+                  color: DesignConstants.brandRedColor,
                   icon: LucideIcons.trash_2,
                   alignment: Alignment.centerRight,
                 ),

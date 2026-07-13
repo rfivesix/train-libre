@@ -10,6 +10,7 @@ import '../../domain/models/food_item.dart';
 import '../food_detail_screen.dart';
 import '../diary_view_model.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../util/design_constants.dart';
 
 class FoodEntryTile extends StatelessWidget {
   final TrackedFoodItem trackedItem;
@@ -41,7 +42,7 @@ class FoodEntryTile extends StatelessWidget {
         alignment: Alignment.centerLeft,
       ),
       secondaryBackground: const SwipeActionBackground(
-        color: Colors.redAccent,
+        color: DesignConstants.brandRedColor,
         icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),

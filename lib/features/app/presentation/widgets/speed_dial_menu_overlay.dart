@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../theme/color_constants.dart';
 
 class SpeedDialMenuOverlay extends StatelessWidget {
   final Animation<double> animation;
@@ -216,7 +215,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                                         blendMode:
                                                             BlendMode.srcIn,
                                                         shaderCallback: (bounds) =>
-                                                            createAiGradientShader(
+                                                            DesignConstants.createAiGradientShader(
                                                           bounds,
                                                         ),
                                                         child: Icon(

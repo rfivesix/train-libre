@@ -7,7 +7,6 @@ import '../../../generated/app_localizations.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/ai_service.dart';
 import '../../../services/theme_service.dart';
-import '../../../theme/color_constants.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
@@ -329,7 +328,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       secondary: ShaderMask(
                         blendMode: BlendMode.srcIn,
                         shaderCallback: (bounds) =>
-                            createAiGradientShader(bounds),
+                            DesignConstants.createAiGradientShader(bounds),
                         child: const Icon(LucideIcons.sparkles),
                       ),
                       title: Text(

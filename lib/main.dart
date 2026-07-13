@@ -18,7 +18,6 @@ import 'features/workout/presentation/live_workout_view_model.dart';
 import 'package:provider/provider.dart';
 import 'services/theme_service.dart';
 import 'theme/app_colors.dart';
-import 'theme/color_constants.dart';
 import 'package:intl/date_symbol_data_local.dart'; // FIX: Initialize intl formatting
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -180,11 +179,11 @@ class _MyAppState extends State<MyApp> {
 
         // Use brand accent by default; optional Android toggle enables dynamic Material colors.
         final Color lightSeed = useDynamicMaterialColors
-            ? (lightDynamic?.primary ?? brandAccentColorLightMode)
-            : brandAccentColorLightMode;
+            ? (lightDynamic?.primary ?? DesignConstants.brandAccentColorLightMode)
+            : DesignConstants.brandAccentColorLightMode;
         final Color darkSeed = useDynamicMaterialColors
-            ? (darkDynamic?.primary ?? brandAccentColor)
-            : brandAccentColor;
+            ? (darkDynamic?.primary ?? DesignConstants.brandAccentColor)
+            : DesignConstants.brandAccentColor;
 
         // --- Light scheme from seed, but without Material You UI ---
         final lightScheme = ColorScheme.fromSeed(
@@ -194,6 +193,7 @@ class _MyAppState extends State<MyApp> {
           primary: lightSeed,
           onPrimary: Colors.black,
           surface: Colors.white,
+          error: DesignConstants.brandRedColor,
         );
 
         // --- Dark scheme from seed + OLED black ---
@@ -212,6 +212,7 @@ class _MyAppState extends State<MyApp> {
           surfaceContainer: Colors.black,
           surfaceContainerHigh: Colors.black,
           surfaceContainerHighest: Colors.black,
+          error: DesignConstants.brandRedColor,
         );
 
         // --- Light theme (Material 2, but with ColorScheme from seed) ---

@@ -6,8 +6,8 @@ import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
-import '../../../../widgets/common/platform_adaptive_pickers.dart'
-    as adaptive_pickers;
+import '../../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../../util/design_constants.dart';
 
 /// A single row representing a set within an exercise log.
 /// Supports both view mode and edit mode (via nullable text controllers).
@@ -230,7 +230,7 @@ class WorkoutLogSetRow extends StatelessWidget {
                 ? IconButton(
                     icon: const Icon(
                       LucideIcons.trash_2,
-                      color: Colors.redAccent,
+                      color: DesignConstants.brandRedColor,
                     ),
                     onPressed: onDelete,
                   )
@@ -295,7 +295,7 @@ class WorkoutLogSetRow extends StatelessWidget {
       case 'dropset':
         return Colors.blue;
       case 'failure':
-        return Colors.red;
+        return DesignConstants.brandRedColor;
       default:
         return Colors.grey;
     }

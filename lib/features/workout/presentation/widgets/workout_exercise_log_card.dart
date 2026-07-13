@@ -8,6 +8,7 @@ import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import 'workout_card.dart';
 import 'workout_log_set_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../util/design_constants.dart';
 
 /// A card widget grouping all set logs for a single exercise.
 /// Displays headers, exercise notes, set lists, and drag handle for reordering.
@@ -146,7 +147,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                   IconButton(
                     icon: const Icon(
                       LucideIcons.trash_2,
-                      color: Colors.redAccent,
+                      color: DesignConstants.brandRedColor,
                     ),
                     tooltip: l10n.removeExercise,
                     onPressed: () => onDeleteExercise(exerciseName),

@@ -116,6 +116,35 @@ class DesignConstants {
         saturation: 1.20,
         ambientRim: 0.2,
       );
+
+  /// The primary brand color for Train Libre, sourced from the app icon.
+  static const Color brandAccentColor = Color(0xFFDDFF00);
+
+  /// A darkened version of the brand color for better contrast in Light Mode.
+  static const Color brandAccentColorLightMode = Color(0xFF8B9E00);
+
+  /// A rich red color used for destructive actions and errors.
+  static const Color brandRedColor = Colors.red;
+
+  /// The standard colors used for AI-related gradients and accents.
+  static const List<Color> aiGradientColors = [
+    Color(0xFFE88DCC),
+    Color(0xFFF4A77A),
+    Color(0xFFF7D06B),
+    Color(0xFF7DDEAE),
+    Color(0xFF6DC8D9),
+  ];
+
+  /// Creates a linear gradient shader for AI-themed icons and elements.
+  static Shader createAiGradientShader(Rect bounds) {
+    return const LinearGradient(
+      colors: aiGradientColors,
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ).createShader(bounds);
+  }
+
+  static const Color summaryCardWhiteMode = Color.fromARGB(255, 235, 235, 235);
 }
 
 /// A custom clipper that clips out the inner area of a shape, leaving only

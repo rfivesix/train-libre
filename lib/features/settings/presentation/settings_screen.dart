@@ -9,11 +9,10 @@ import '../../sleep/platform/permissions/sleep_permission_controller.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../services/app_tour_service.dart';
-import '../../../theme/color_constants.dart';
+import '../../../util/design_constants.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../../services/off_catalog_country_service.dart';
 import '../../../services/unit_service.dart';
-import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
@@ -791,7 +790,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (useGradientIcon) {
       iconWidget = ShaderMask(
         blendMode: BlendMode.srcIn,
-        shaderCallback: (bounds) => createAiGradientShader(bounds),
+        shaderCallback: (bounds) => DesignConstants.createAiGradientShader(bounds),
         child: Icon(icon, size: 36),
       );
     }

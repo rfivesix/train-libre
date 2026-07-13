@@ -219,7 +219,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
 
                 // Same backgrounds as in Nutrition Screen
                 background: const SwipeActionBackground(
-                  color: Colors.redAccent,
+                  color: DesignConstants.brandRedColor,
                   icon: LucideIcons.trash_2,
                   alignment: Alignment.centerRight,
                 ),
