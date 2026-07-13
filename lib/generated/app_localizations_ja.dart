@@ -3322,7 +3322,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsBodyNutritionTotalCaloriesLabel => '総カロリー（kcal）';
 
   @override
-  String get analyticsWeightTrendLabel => '重量(kg)';
+  String analyticsWeightTrendLabel(String unit) {
+    return '重量($unit)';
+  }
 
   @override
   String get analyticsCaloriesTrendLabel => 'カロリー(kcal)';

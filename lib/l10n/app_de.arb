@@ -1502,7 +1502,14 @@
   "analyticsBodyNutritionNormalizedHint": "Das Diagramm skaliert Gewicht und Kalorien auf denselben Platz; Tooltips zeigen die Rohwerte in {unit} und kcal.",
   "analyticsBodyNutritionTotalWeightLabel": "Gesamtgewicht ({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "Gesamtkalorien (kcal)",
-  "analyticsWeightTrendLabel": "Gewicht (kg)",
+  "analyticsWeightTrendLabel": "Gewicht ({unit})",
+  "@analyticsWeightTrendLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsCaloriesTrendLabel": "Kalorien (kcal)",
   "analyticsInterpretationTitle": "Interpretation",
   "analyticsBodyNutritionConfidenceHighHint": "Die Datenabdeckung in diesem Bereich ist stark genug für eine verlässlichere Muster-Einordnung.",

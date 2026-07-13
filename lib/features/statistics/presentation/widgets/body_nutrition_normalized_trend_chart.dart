@@ -146,7 +146,7 @@ class _BodyNutritionNormalizedTrendChartState
 
     final series = [
       _ChartSeries(
-        label: l10n.analyticsWeightTrendLabel,
+        label: l10n.analyticsWeightTrendLabel(context.read<UnitService>().suffixFor(UnitDimension.weight)),
         color: Theme.of(context).colorScheme.primary,
         scale: weightScale,
         points: weightPoints,
@@ -310,7 +310,7 @@ class _BodyNutritionNormalizedTrendChartState
               barWidth: compact ? 3.2 : 4.0,
               isStrokeCapRound: true,
               color: seriesConfig.color,
-              belowBarData: seriesConfig.label == l10n.analyticsWeightTrendLabel
+              belowBarData: seriesConfig.label == l10n.analyticsWeightTrendLabel(context.read<UnitService>().suffixFor(UnitDimension.weight))
                   ? BarAreaData(
                       show: true,
                       gradient: LinearGradient(

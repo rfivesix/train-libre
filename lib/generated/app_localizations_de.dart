@@ -3441,7 +3441,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gesamtkalorien (kcal)';
 
   @override
-  String get analyticsWeightTrendLabel => 'Gewicht (kg)';
+  String analyticsWeightTrendLabel(String unit) {
+    return 'Gewicht ($unit)';
+  }
 
   @override
   String get analyticsCaloriesTrendLabel => 'Kalorien (kcal)';

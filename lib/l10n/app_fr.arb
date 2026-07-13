@@ -1502,7 +1502,14 @@
   "analyticsBodyNutritionNormalizedHint": "Le graphique met à l'échelle le poids et les calories pour s'adapter au même espace ; les info-bulles affichent les valeurs brutes en {unit} et en kcal.",
   "analyticsBodyNutritionTotalWeightLabel": "Poids total ({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "Calories totales (kcal)",
-  "analyticsWeightTrendLabel": "Poids (kg)",
+  "analyticsWeightTrendLabel": "Poids ({unit})",
+  "@analyticsWeightTrendLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsCaloriesTrendLabel": "Calories (kcal)",
   "analyticsInterpretationTitle": "Interprétation",
   "analyticsBodyNutritionConfidenceHighHint": "La couverture des données dans cette plage est suffisamment forte pour une lecture de modèle plus fiable.",

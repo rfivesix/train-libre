@@ -107,7 +107,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   disableShadow: true,
                 ),
                 ValueSummaryCard(
-                  label: l10n.analyticsWeightTrendLabel,
+                  label: l10n.analyticsWeightTrendLabel(unitService.suffixFor(UnitDimension.weight)),
                   value: body == null
                       ? l10n.analyticsTrendUnclear
                       : StatisticsPresentationFormatter

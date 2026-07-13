@@ -50,21 +50,20 @@ class ValueSummaryCard extends StatelessWidget {
             child: Text(
               value,
               maxLines: 1,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                height: 1,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
                 color: valueColor,
               ),
             ),
           ),
-          const SizedBox(height: DesignConstants.spacingXS),
+          const SizedBox(height: 2),
           Text(
-            label.toUpperCase(),
+            label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
-              fontWeight: FontWeight.w800,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w500,
             ),
           ),
           if (subtitle != null) ...[

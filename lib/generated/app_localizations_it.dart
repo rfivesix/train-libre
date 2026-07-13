@@ -3460,7 +3460,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Calorie totali (kcal)';
 
   @override
-  String get analyticsWeightTrendLabel => 'Peso (kg)';
+  String analyticsWeightTrendLabel(String unit) {
+    return 'Peso ($unit)';
+  }
 
   @override
   String get analyticsCaloriesTrendLabel => 'Calorie (kcal)';

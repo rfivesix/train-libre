@@ -1502,7 +1502,14 @@
   "analyticsBodyNutritionNormalizedHint": "グラフは、同じスペースに収まるように体重とカロリーをスケールします。ツールチップには生の {unit} と kcal の値が表示されます。",
   "analyticsBodyNutritionTotalWeightLabel": "総重量({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "総カロリー（kcal）",
-  "analyticsWeightTrendLabel": "重量(kg)",
+  "analyticsWeightTrendLabel": "重量({unit})",
+  "@analyticsWeightTrendLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsCaloriesTrendLabel": "カロリー(kcal)",
   "analyticsInterpretationTitle": "解釈",
   "analyticsBodyNutritionConfidenceHighHint": "この範囲のデータ カバレッジは、より信頼性の高いパターン読み取りに十分な強度を持っています。",

@@ -1502,7 +1502,14 @@
   "analyticsBodyNutritionNormalizedHint": "Il grafico ridimensiona peso e calorie per adattarli allo stesso spazio; i suggerimenti mostrano i valori grezzi di {unit} e kcal.",
   "analyticsBodyNutritionTotalWeightLabel": "Peso totale ({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "Calorie totali (kcal)",
-  "analyticsWeightTrendLabel": "Peso (kg)",
+  "analyticsWeightTrendLabel": "Peso ({unit})",
+  "@analyticsWeightTrendLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsCaloriesTrendLabel": "Calorie (kcal)",
   "analyticsInterpretationTitle": "Interpretazione",
   "analyticsBodyNutritionConfidenceHighHint": "La copertura dei dati in questo intervallo è sufficientemente forte per una lettura del modello più affidabile.",

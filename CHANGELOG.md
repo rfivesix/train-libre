@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Database Update Prompt Snooze:** Implemented a 30-day snooze mechanism when the user declines a database update prompt to prevent aggressive reprompting across screen changes.
 
 ### Changed
+- **Typography:** Updated the inner typography styling of `ValueSummaryCard` to use the exact same TextStyle used in standard `ProgressBar` labels, unifying the visual design.
 - **Dependencies Update:** Updated various Flutter and Dart packages to their latest versions to maintain platform compatibility and security.
 - **Website CTA:** Replaced the iOS TestFlight Beta link and label with the official App Store link.
 - **Design System:** Centralized color constants into `DesignConstants` and unified all primary red elements (such as Failure set states and delete dialogs) to use the consistent brand red color.

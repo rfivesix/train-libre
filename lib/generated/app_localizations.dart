@@ -6098,8 +6098,8 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsWeightTrendLabel.
   ///
   /// In en, this message translates to:
-  /// **'Weight (kg)'**
-  String get analyticsWeightTrendLabel;
+  /// **'Weight ({unit})'**
+  String analyticsWeightTrendLabel(String unit);
 
   /// No description provided for @analyticsCaloriesTrendLabel.
   ///

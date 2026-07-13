@@ -332,7 +332,7 @@ class _BodyNutritionCorrelationScreenState
               ValueSummaryCard(
                   label: l10n.metricsAvgCalories, value: avgCalories),
               ValueSummaryCard(
-                label: l10n.analyticsWeightTrendLabel,
+                label: l10n.analyticsWeightTrendLabel(context.read<UnitService>().suffixFor(UnitDimension.weight)),
                 value: StatisticsPresentationFormatter
                     .bodyNutritionTrendDirectionLabel(
                         l10n, data.weightTrend.direction),
@@ -411,7 +411,7 @@ class _BodyNutritionCorrelationScreenState
           children: [
             _legendDot(
               color: Theme.of(context).colorScheme.primary,
-              label: l10n.analyticsWeightTrendLabel,
+              label: l10n.analyticsWeightTrendLabel(context.read<UnitService>().suffixFor(UnitDimension.weight)),
               shape: BoxShape.circle,
             ),
             _legendDot(
