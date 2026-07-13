@@ -852,7 +852,7 @@ class _MainScreenState extends State<MainScreen>
           actions: [
             IconButton(
               icon: Icon(
-                Platform.isIOS ? LucideIcons.share : LucideIcons.share_2,
+                DesignConstants.adaptiveShareIcon,
                 color: Theme.of(context).brightness == Brightness.dark
                     ? Colors.white
                     : Colors.black,

@@ -814,7 +814,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                               IconButton(
                                 tooltip: l10n.devExportBaseDb,
                                 onPressed: _exportBaseDb,
-                                icon: const Icon(LucideIcons.share),
+                                icon: Icon(DesignConstants.adaptiveShareIcon),
                               ),
                             ],
                           ),

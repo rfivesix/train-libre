@@ -706,7 +706,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                 if (!_isNewRoutine)
                   IconButton(
                     tooltip: l10n.share,
-                    icon: const Icon(LucideIcons.share),
+                    icon: Icon(DesignConstants.adaptiveShareIcon),
                     onPressed: _shareCurrentRoutine,
                   ),
                 if (_isEditMode)

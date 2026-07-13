@@ -326,7 +326,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           if (!_isLoading && _log != null)
             IconButton(
               tooltip: l10n.share,
-              icon: const Icon(LucideIcons.share),
+              icon: Icon(DesignConstants.adaptiveShareIcon),
               onPressed: () => _shareService.showWorkoutShareSheet(
                 context: context,
                 workout: _log!,

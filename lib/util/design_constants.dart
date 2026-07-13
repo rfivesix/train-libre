@@ -1,11 +1,17 @@
 // lib/util/design_constants.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 /// Central source of truth for design tokens including spacing, radii, and padding.
 ///
 /// Ensures visual consistency across the application by providing standardized constants.
 class DesignConstants {
+
+  // === ADAPTIVE ICONS ===
+  /// Returns the platform-appropriate share icon (share for iOS/macOS, share_2 for Android/others)
+  static IconData get adaptiveShareIcon => Platform.isIOS || Platform.isMacOS ? LucideIcons.share : LucideIcons.share_2;
   // === SPACING ===
   // Card Padding
   static const double cardPaddingInternal = 16.0; // Innenabstand von Cards

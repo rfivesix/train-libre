@@ -271,7 +271,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                         PlatformAdaptivePopupMenuItem<String>(
                           value: 'share',
                           label: l10n.share,
-                          icon: LucideIcons.share_2,
+                          icon: DesignConstants.adaptiveShareIcon,
                         ),
                         PlatformAdaptivePopupMenuItem<String>(
                           value: 'delete',

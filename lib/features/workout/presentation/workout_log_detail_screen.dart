@@ -869,7 +869,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           if (!_isLoading && _log != null && !_isEditMode)
             IconButton(
               tooltip: l10n.share,
-              icon: const Icon(LucideIcons.share),
+              icon: Icon(DesignConstants.adaptiveShareIcon),
               onPressed: () => _shareService.showWorkoutShareSheet(
                 context: context,
                 workout: _log!,

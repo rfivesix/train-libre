@@ -397,7 +397,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
                 OutlinedButton.icon(
                   key: const Key('feedback_report_action_share'),
                   onPressed: _isSharing ? null : _shareReport,
-                  icon: const Icon(LucideIcons.share),
+                  icon: Icon(DesignConstants.adaptiveShareIcon),
                   label: Text(l10n.feedbackReportActionShare),
                 ),
                 OutlinedButton.icon(
