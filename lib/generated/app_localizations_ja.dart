@@ -3463,6 +3463,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingRestoreFailed => 'インポートに失敗しました。ファイルを確認して再試行してください。';
 
   @override
+  String get onboardingRestoreFromICloud => 'iCloudから復元';
+
+  @override
+  String get onboardingRestoreICloudSuccess => 'iCloudバックアップが正常に復元されました。';
+
+  @override
+  String get onboardingRestoreICloudFailed =>
+      'iCloudの復元に失敗しました。接続を確認して再試行してください。';
+
+  @override
   String get finishWorkoutTitleLabel => 'ワークアウトのタイトル';
 
   @override

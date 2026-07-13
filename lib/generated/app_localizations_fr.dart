@@ -3619,6 +3619,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'importation a échoué. Veuillez vérifier le fichier et réessayer.';
 
   @override
+  String get onboardingRestoreFromICloud => 'Restaurer depuis iCloud';
+
+  @override
+  String get onboardingRestoreICloudSuccess =>
+      'La sauvegarde iCloud a été restaurée avec succès !';
+
+  @override
+  String get onboardingRestoreICloudFailed =>
+      'La restauration iCloud a échoué. Vérifiez votre connexion et réessayez.';
+
+  @override
   String get finishWorkoutTitleLabel => 'Titre de l\'entraînement';
 
   @override

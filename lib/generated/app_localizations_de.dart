@@ -3593,6 +3593,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Import fehlgeschlagen. Bitte prüfe die Datei und versuche es erneut.';
 
   @override
+  String get onboardingRestoreFromICloud => 'Von iCloud wiederherstellen';
+
+  @override
+  String get onboardingRestoreICloudSuccess =>
+      'iCloud-Backup erfolgreich wiederhergestellt!';
+
+  @override
+  String get onboardingRestoreICloudFailed =>
+      'iCloud-Wiederherstellung fehlgeschlagen. Bitte prüfe deine Verbindung und versuche es erneut.';
+
+  @override
   String get finishWorkoutTitleLabel => 'Workout-Titel';
 
   @override

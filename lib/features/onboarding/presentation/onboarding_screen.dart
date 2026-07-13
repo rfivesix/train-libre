@@ -468,6 +468,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   /// Downloads the iCloud backup and replaces the local database, then
   /// navigates directly to [MainScreen] (skipping the rest of onboarding).
   Future<void> _restoreFromICloud() async {
+    final l10n = AppLocalizations.of(context)!;
+
     setState(() => _isRestoring = true);
     final success = await ICloudSyncService.instance.downloadAndRestore();
     if (!mounted) return;
@@ -478,7 +480,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       await prefs.setBool('hasSeenOnboarding', true);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('iCloud backup restored successfully!')),
+        SnackBar(content: Text(l10n.onboardingRestoreICloudSuccess)),
       );
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainScreen()),
@@ -487,9 +489,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'iCloud restore failed. Check your connection and try again.',
-          ),
+          content: Text(l10n.onboardingRestoreICloudFailed),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -843,7 +843,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       setState(() {
                         _selectedGoal = goal;
                         _selectedTargetRateKgPerWeek =
-                            WeeklyTargetRateCatalog.defaultForGoal(goal, _unitService)
+                            WeeklyTargetRateCatalog.defaultForGoal(
+                                    goal, _unitService)
                                 .kgPerWeek;
                       });
                       _refreshOnboardingRecommendationPreview();

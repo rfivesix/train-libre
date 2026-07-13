@@ -13,7 +13,7 @@ class WelcomeSlide extends StatefulWidget {
   final VoidCallback onRestore;
 
   /// Optional callback for restoring from iCloud. When non-null and on iOS,
-  /// an "Restore from iCloud" button is shown below the manual restore option.
+  /// a restore button is shown below the manual restore option.
   final VoidCallback? onRestoreICloud;
 
   /// Whether an iCloud backup was found and is ready to restore.
@@ -48,8 +48,7 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final showICloudButton =
-        (Platform.isIOS || Platform.isMacOS) && widget.onRestoreICloud != null;
+    final showICloudButton = Platform.isIOS && widget.onRestoreICloud != null;
 
     return SingleChildScrollView(
       child: Padding(
@@ -147,15 +146,14 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
                 ),
               ),
             ),
-            // Tertiary CTA — iCloud restore (iOS/macOS only)
+            // Tertiary CTA — iCloud restore (iOS only)
             if (showICloudButton) ...[
               const SizedBox(height: DesignConstants.spacingM),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   key: const Key('onboarding_restore_icloud_button'),
-                  onPressed:
-                      widget.isRestoring ? null : widget.onRestoreICloud,
+                  onPressed: widget.isRestoring ? null : widget.onRestoreICloud,
                   icon: widget.isRestoring
                       ? const SizedBox(
                           width: 18,
@@ -183,8 +181,8 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
                         ),
                   label: Text(
                     widget.hasICloudBackup
-                        ? 'Restore from iCloud ✓'
-                        : 'Restore from iCloud',
+                        ? '${l10n.onboardingRestoreFromICloud} ✓'
+                        : l10n.onboardingRestoreFromICloud,
                   ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),

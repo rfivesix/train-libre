@@ -6341,6 +6341,24 @@ abstract class AppLocalizations {
   /// **'Import failed. Please check the file and try again.'**
   String get onboardingRestoreFailed;
 
+  /// No description provided for @onboardingRestoreFromICloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from iCloud'**
+  String get onboardingRestoreFromICloud;
+
+  /// No description provided for @onboardingRestoreICloudSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud backup restored successfully!'**
+  String get onboardingRestoreICloudSuccess;
+
+  /// No description provided for @onboardingRestoreICloudFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud restore failed. Check your connection and try again.'**
+  String get onboardingRestoreICloudFailed;
+
   /// No description provided for @finishWorkoutTitleLabel.
   ///
   /// In en, this message translates to:
