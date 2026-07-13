@@ -51,20 +51,20 @@ dependencies:
   timezone: ^0.11.0
   crypto: ^3.0.5
 
-  drift: ^2.34.0
+  drift: ^2.34.1
   sqlite3_flutter_libs: ^0.6.0+eol
   uuid: ^4.3.3
   json_annotation: ^4.12.0
   qr_code_scanner_plus: ^2.2.0
   permission_handler: ^12.0.3
-  flutter_markdown_plus: ^1.0.9
+  flutter_markdown_plus: ^1.0.12
   flutter_markdown_plus_latex: ^1.0.5
   markdown: ^7.3.1
   flutter_body_highlighter:
     git:
       url: https://github.com/rfivesix/flutter_body_highlighter
       ref: main
-  liquid_glass_widgets: ^0.21.1
+  liquid_glass_widgets: ^0.21.3
   flutter_lucide: ^1.11.0
   in_app_review: ^2.0.12
 dev_dependencies:
@@ -72,8 +72,8 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  build_runner: ^2.15.0
-  drift_dev: ^2.20.0
+  build_runner: ^2.15.1
+  drift_dev: ^2.34.3
 # dependency_overrides:
 
 flutter_launcher_icons:
