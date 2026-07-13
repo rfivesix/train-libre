@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - **Dependencies Update:** Updated various Flutter and Dart packages to their latest versions to maintain platform compatibility and security.
+- **Website CTA:** Replaced the iOS TestFlight Beta link and label with the official App Store link.
 
 ### Fixed
 - **Food Search Relevance & Performance:** Completely reworked the food search priority scoring to use pure SQL aggregations (Common Table Expressions) over the user's nutrition logs instead of iterating through them in Dart memory. This restores the highly accurate frequency-based search prioritization (frequently eaten foods appear at the top) while guaranteeing lightning-fast query speeds.
