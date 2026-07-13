@@ -884,6 +884,7 @@ class __OffCatalogRegionPickerContentState
             ),
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
+                    tooltip: l10n.clearSearch,
                     icon: Icon(
                       LucideIcons.x,
                       color: colorScheme.onSurfaceVariant,

@@ -226,6 +226,7 @@ class _AlgorithmInfoBottomSheetState extends State<_AlgorithmInfoBottomSheet> {
                       ),
                     ),
                     IconButton(
+                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                       icon: const Icon(LucideIcons.x),
                       onPressed: () => Navigator.pop(context),
                     ),
