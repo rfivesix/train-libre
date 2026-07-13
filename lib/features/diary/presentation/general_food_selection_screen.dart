@@ -272,6 +272,7 @@ class _GeneralFoodSelectionScreenState
                                     height: 44,
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
+                                      tooltip: l10n.clearSearch,
                                       icon: Icon(
                                         LucideIcons.x,
                                         color: colorScheme.onSurfaceVariant,
@@ -289,6 +290,7 @@ class _GeneralFoodSelectionScreenState
                                     height: 44,
                                     child: IconButton(
                                       padding: EdgeInsets.zero,
+                                      tooltip: l10n.scann_barcode_capslock,
                                       icon: Icon(
                                         LucideIcons.scan_barcode,
                                         color: colorScheme.primary,

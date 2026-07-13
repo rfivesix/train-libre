@@ -250,6 +250,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                               ),
                               suffixIcon: _searchController.text.isNotEmpty
                                   ? IconButton(
+                                      tooltip: l10n.clearSearch,
                                       icon: Icon(
                                         LucideIcons.x,
                                         color: colorScheme.onSurfaceVariant,
