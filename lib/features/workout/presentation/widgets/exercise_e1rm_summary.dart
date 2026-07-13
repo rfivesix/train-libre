@@ -80,7 +80,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.liveWorkoutE1rmBestSession(
-                    _formatDisplayWeightValue(sessionBest, unitService),
+                    unitService.formatDisplayWeight(sessionBest),
                     unitService.suffixFor(UnitDimension.weight),
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -91,7 +91,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
               if (hasDelta)
                 Text(
                   l10n.liveWorkoutE1rmVsLastSession(
-                    '$deltaPrefix${_formatDisplayWeightValue(delta!.abs(), unitService)}',
+                    '$deltaPrefix${unitService.formatDisplayWeight(delta!.abs())}',
                     unitService.suffixFor(UnitDimension.weight),
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -154,16 +154,5 @@ class ExerciseE1rmSummary extends StatelessWidget {
     }
 
     return best;
-  }
-
-  String _formatDisplayWeightValue(
-    double metricValue,
-    UnitService unitService, {
-    int fractionDigits = 1,
-  }) {
-    return unitService
-        .convertDisplayValue(metricValue, UnitDimension.weight)
-        .toStringAsFixed(fractionDigits)
-        .replaceAll('.0', '');
   }
 }

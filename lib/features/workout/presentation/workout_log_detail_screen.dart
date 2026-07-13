@@ -278,10 +278,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         // Strength: Val1 = weight, Val2 = reps
         val1 = setLog.weightKg == null
             ? ''
-            : unitService
-                .convertDisplayValue(setLog.weightKg!, UnitDimension.weight)
-                .toStringAsFixed(1)
-                .replaceAll('.0', '');
+            : unitService.formatDisplayWeight(setLog.weightKg!);
         val2 = setLog.reps?.toString() ?? '';
       }
 

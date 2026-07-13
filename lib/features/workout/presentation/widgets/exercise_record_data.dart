@@ -42,7 +42,7 @@ class ExerciseRecordData {
     );
     final diffText = diffKg == null
         ? ''
-        : ' (+${unitService.convertDisplayValue(diffKg!, UnitDimension.weight).toStringAsFixed(fractionDigits).replaceAll('.0', '')})';
+        : ' (+${unitService.formatDisplayWeight(diffKg!, fractionDigits: fractionDigits)})';
     return '$label (${value.toStringAsFixed(fractionDigits).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}$diffText)';
   }
 }

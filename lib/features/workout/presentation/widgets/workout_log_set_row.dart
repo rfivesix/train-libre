@@ -65,10 +65,7 @@ class WorkoutLogSetRow extends StatelessWidget {
     } else {
       val1Display = setLog.weightKg == null
           ? '-'
-          : unitService
-              .convertDisplayValue(setLog.weightKg!, UnitDimension.weight)
-              .toStringAsFixed(1)
-              .replaceAll('.0', '');
+          : unitService.formatDisplayWeight(setLog.weightKg!);
       val2Display = setLog.reps?.toString() ?? '-';
     }
 
@@ -260,7 +257,7 @@ class WorkoutLogSetRow extends StatelessWidget {
                   ],
                   if (showCurrentSetE1rm)
                     Text(
-                      '${unitService.convertDisplayValue(currentSetE1rm, UnitDimension.weight).toStringAsFixed(1)} ${unitService.suffixFor(UnitDimension.weight)}',
+                      '${unitService.formatDisplayWeight(currentSetE1rm)} ${unitService.suffixFor(UnitDimension.weight)}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 11,
@@ -332,10 +329,10 @@ class WorkoutLogSetRow extends StatelessWidget {
 
     if (setLog.isMaxWeightPR && setLog.weightPRDiff != null) {
       label =
-          "+${setLog.weightPRDiff!.toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}";
+          "+${unitService.formatDisplayWeight(setLog.weightPRDiff!)} ${unitService.suffixFor(UnitDimension.weight)}";
     } else if (setLog.isMaxEst1RMPR && setLog.est1rmPRDiff != null) {
       label =
-          "+${setLog.est1rmPRDiff!.toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)} (1RM)";
+          "+${unitService.formatDisplayWeight(setLog.est1rmPRDiff!)} ${unitService.suffixFor(UnitDimension.weight)} (1RM)";
     } else if (setLog.isMaxVolumePR && setLog.volumePRDiff != null) {
       label =
           "+${setLog.volumePRDiff!.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)} (Vol)";

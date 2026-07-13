@@ -424,7 +424,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       unitService,
     );
     final String diffText = pr.diff != null
-        ? " (+${_formatDisplayWeightValue(pr.diff!, unitService)} ${unitService.suffixFor(UnitDimension.weight)})"
+        ? " (+${unitService.formatDisplayWeight(pr.diff!)} ${unitService.suffixFor(UnitDimension.weight)})"
         : "";
 
     return PrCelebrationBanner(
@@ -1603,18 +1603,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   }) {
     final value = _extractNumericValue(metricText);
     if (value == null) return metricText;
-    return '${_formatDisplayWeightValue(value, unitService, fractionDigits: fractionDigits)} ${unitService.suffixFor(UnitDimension.weight)}';
-  }
-
-  String _formatDisplayWeightValue(
-    double metricValue,
-    UnitService unitService, {
-    int fractionDigits = 1,
-  }) {
-    return unitService
-        .convertDisplayValue(metricValue, UnitDimension.weight)
-        .toStringAsFixed(fractionDigits)
-        .replaceAll('.0', '');
+    return '${unitService.formatDisplayWeight(value, fractionDigits: fractionDigits)} ${unitService.suffixFor(UnitDimension.weight)}';
   }
 
   double? _extractNumericValue(String text) {

@@ -278,7 +278,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                       .toStringAsFixed(3)
                       .replaceAll(RegExp(r'0*$'), '')
                       .replaceAll(RegExp(r'\.$'), '')
-                  : unitService.convertDisplayValue(st.targetWeight!, UnitDimension.weight).toString());
+                  : unitService.formatDisplayWeight(st.targetWeight!));
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
             text: st.targetRir?.toString() ?? '',
@@ -335,7 +335,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                       .toStringAsFixed(3)
                       .replaceAll(RegExp(r'0*$'), '')
                       .replaceAll(RegExp(r'\.$'), '')
-                  : unitService.convertDisplayValue(st.targetWeight!, UnitDimension.weight).toString());
+                  : unitService.formatDisplayWeight(st.targetWeight!));
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
             text: st.targetRir?.toString() ?? '',

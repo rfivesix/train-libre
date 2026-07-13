@@ -76,6 +76,19 @@ class UnitService extends ChangeNotifier {
     };
   }
 
+  
+  String formatDisplayWeight(double metricValue, {int fractionDigits = 1}) {
+    final val = convertDisplayValue(metricValue, UnitDimension.weight);
+    if (val == val.truncateToDouble()) {
+      return val.toInt().toString();
+    }
+    final str = val.toStringAsFixed(fractionDigits);
+    if (str.endsWith('.0') || str.endsWith('.00')) {
+      return str.split('.')[0];
+    }
+    return str;
+  }
+
   String suffixFor(UnitDimension dimension) {
     return switch (dimension) {
       UnitDimension.weight => isMetric ? 'kg' : 'lbs',

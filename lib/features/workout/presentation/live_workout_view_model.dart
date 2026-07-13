@@ -320,10 +320,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         } else {
           initText = setLog.weightKg == null
               ? ''
-              : setLog.weightKg!
-                  .toStringAsFixed(2)
-                  .replaceAll(RegExp(r'0*$'), '')
-                  .replaceAll(RegExp(r'\.$'), '');
+              : unitService.formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
         }
         weightControllers[templateId] = TextEditingController(text: initText);
       }

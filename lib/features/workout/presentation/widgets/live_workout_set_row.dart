@@ -154,17 +154,6 @@ class LiveWorkoutSetRow extends StatelessWidget {
     return weight * (36 / (37 - reps));
   }
 
-  String _formatDisplayWeightValue(
-    double metricValue,
-    UnitService unitService, {
-    int fractionDigits = 1,
-  }) {
-    return unitService
-        .convertDisplayValue(metricValue, UnitDimension.weight)
-        .toStringAsFixed(fractionDigits)
-        .replaceAll('.0', '');
-  }
-
   Widget _buildPRBadge(SetLog setLog, BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final unitService = context.read<UnitService>();
@@ -172,13 +161,13 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     if (setLog.isMaxWeightPR && setLog.weightPRDiff != null) {
       label =
-          "+${_formatDisplayWeightValue(setLog.weightPRDiff!, unitService)} ${unitService.suffixFor(UnitDimension.weight)}";
+          "+${unitService.formatDisplayWeight(setLog.weightPRDiff!)} ${unitService.suffixFor(UnitDimension.weight)}";
     } else if (setLog.isMaxEst1RMPR && setLog.est1rmPRDiff != null) {
       label =
-          "+${_formatDisplayWeightValue(setLog.est1rmPRDiff!, unitService)} ${unitService.suffixFor(UnitDimension.weight)} (1RM)";
+          "+${unitService.formatDisplayWeight(setLog.est1rmPRDiff!)} ${unitService.suffixFor(UnitDimension.weight)} (1RM)";
     } else if (setLog.isMaxVolumePR && setLog.volumePRDiff != null) {
       label =
-          "+${_formatDisplayWeightValue(setLog.volumePRDiff!, unitService, fractionDigits: 0)} ${unitService.suffixFor(UnitDimension.weight)} (Vol)";
+          "+${unitService.formatDisplayWeight(setLog.volumePRDiff!, fractionDigits: 0)} ${unitService.suffixFor(UnitDimension.weight)} (Vol)";
     }
 
     return TweenAnimationBuilder<double>(
@@ -629,7 +618,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 if (showCurrentSetE1rm)
                   Text(
                     l10n.liveWorkoutE1rmCurrentSet(
-                      _formatDisplayWeightValue(currentSetE1rm, unitService),
+                      unitService.formatDisplayWeight(currentSetE1rm),
                       unitService.suffixFor(UnitDimension.weight),
                     ),
                     style: TextStyle(

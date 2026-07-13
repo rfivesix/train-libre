@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Adaptive Icons:** Introduced a platform-adaptive share icon (`share_2` on Android, `share` on iOS/macOS) globally across the app to better align with native OS expectations.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Food Search Relevance & Performance:** Completely reworked the food search priority scoring to use pure SQL aggregations (Common Table Expressions) over the user's nutrition logs instead of iterating through them in Dart memory. This restores the highly accurate frequency-based search prioritization (frequently eaten foods appear at the top) while guaranteeing lightning-fast query speeds.
 - **Daily Nutrition Calculation Performance:** Optimized the `CalculateDailyNutritionUseCase` by eliminating expensive $O(N \times M)$ list iterations and redundant exception handling, significantly improving the render performance of the daily diary summary.
 - **Edit Routine Drag & Drop:** Disabled drag-to-reorder functionality for exercises in the Edit Routine screen while not explicitly in Edit Mode. This prevents users from accidentally reordering exercises when just browsing the routine.
@@ -27,6 +30,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Date/Time Picker Quick Actions:** Added a "Today" ("Heute") button to the adaptive date picker and a "Now" ("Jetzt") button to the adaptive time picker for faster data entry. The duration picker remains unaffected.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Sleep Duration Mapping:** Fixed Apple Health integration to properly map iOS 16 sleep stages (Core, Deep, REM) and `asleep_unspecified`, resolving an issue where sleep duration displayed as 0h 0min on iOS devices.
 - **Food Detail Screen:** Fixed a bug where a 0g portion size would prevent users from switching back to the per 100g view, by automatically defaulting to the 100g view when the tracked portion is 0g.
 - **Exercise Catalog:** Increased the display limit of the exercise catalog search from 50 to 100 entries.
@@ -54,6 +60,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Muscle Name Localization:** Fully localized all anatomical muscle names across the app using arb files to support 5 languages.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Cardio Analytics Isolation:** Strictly isolated Cardio exercises from bodybuilding and hypertrophy metrics. Cardio data points are now filtered out of weekly set volumes, tonnage charts, consistency trackers, and muscle readiness states to prevent analytics pollution.
 - **Cardio UI Data Artifacts:** Fixed a bug on the `ExerciseDetailScreen` where cardio PRs and time-series history displayed as "0" due to queries incorrectly falling back to strength constraints. Passed `isCardio` explicitly down the repository stack to retrieve duration, distance, and pace properly.
 - **Cardio Heatmap Exclusion:** Completely removed the `DualBodyHighlighter` distribution map and primary/secondary muscle chip sections from the `ExerciseDetailScreen` when viewing a Cardio exercise.
@@ -203,6 +212,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Database Catalog Import Optimizations:** Refactored the bulk database import sequence (`BasisDataManager._performBatchImport`) to execute all chunks in a single native database transaction, dynamically loosen disk synchronization guarantees during import (`PRAGMA synchronous = OFF;` and `PRAGMA journal_mode = MEMORY;`) with automatic restoring, and tune chunk size to `5000` to minimize isolate IPC overhead.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Food Entry Alignment in General Food Selection Screen:** Resolved an issue where food entry cards in the general food selection screen had double horizontal padding, causing them to be narrower and misaligned with the search bar.
 
 ## [0.9.36] - 2026-06-26
@@ -223,6 +235,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Onboarding Widget Tests:** Updated the test suites in `onboarding_test.dart` and `adaptive_recommendation_settings_flow_test.dart` to support the updated page indices and bypass the dialog in test environments.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **LaTeX Parser Crash in Recovery Info Dialog:** Resolved a KaTeX rendering crash (`Parser Error: Can't use function '$' in math mode`) inside markdown headings in the Muscle Recovery Tracker details sheet by replacing greedy inline `$` math delimiters with markdown-compatible `\(...\)` delimiters.
 
 
@@ -247,6 +262,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Relaxed Backup Import Constraints:** Permitted full backup imports as long as the base exercise database is initialized, removing locks if the nutrition database download was postponed.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Camera & Health Pre-Permission Refactoring for App Store Compliance (`scanner_screen.dart`, `permission_dialogs.dart`):** Refactored permission-request screens and dialogs to strictly comply with Apple App Store Review Guidelines 5.1.1(iv):
   - Made the Camera Pre-Permission screen non-dismissible by hiding the back button in the App Bar and blocking pop gestures / Android hardware back button.
   - Updated the Camera primary action button text from "Grant Permission" to "Continue" (localized across all supported languages).
@@ -274,6 +292,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.9.34] - 2026-06-21
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Live Workout Screen Layout & Spacing (`live_workout_screen.dart`):** Resolved layout alignment and spacing issues on the live workout screen:
   - Restored the bottom `Column` layout containing the rest timer bar and the Wger attribution widget.
   - Enforced a constant `32.0` logical pixel height wrapper for the attribution widget, preventing layout shifts when the text wraps to two lines on narrow screens.
@@ -313,6 +334,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Glass Progress Bar Coloring (`glass_progress_bar.dart`):** Tweaked the progress fill color treatment for improved visibility and consistency with the Liquid Glass design system.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Live Workout Rest Timer & FAB Padding (`live_workout_screen.dart`):** Fixed incorrect bottom padding on the rest timer bar and glass FAB overlay, resolving a layout issue where these elements could overlap with the safe area or be clipped on devices with home indicators.
 - **iOS Podfile (`Podfile`):** Resolved an iOS build configuration issue in the CocoaPods Podfile that affected dependency resolution.
 - **Test Suite Stability:** Fixed test regressions in `platform_adaptive_recommendation_settings_flow_test.dart` and `workout_log_detail_reactive_test.dart` to align with the new adaptive picker and dropdown architecture.
@@ -320,6 +344,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.9.32] - 2026-06-16
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **`isFluid` Detection Overhaul — Beverage vs. Non-Beverage Classification (Data Forensics):** Completely rewrote the fluid-detection pipeline that determines whether a food item triggers the liquid-tracking UI. A forensic audit of the Open Food Facts parquet dataset revealed that **~30 % of products in the bundled DB** (≈70,500 items) were incorrectly flagged as beverages, including Tabasco, Sriracha, Ketchup, Mustard, BBQ Sauce, Soy Sauce, Balsamic Vinegar, Salad Dressings, Mayonnaise, Ice Cream, Olive Oil, Chicken Broth, Peanut Butter, and Hazelnut Spread:
   - **Root cause:** The old heuristic in `create_off_food_db.py` used `product_quantity_unit ∈ {ml, l, cl}` as the sole primary trigger, with no category-based veto. Sauces, vinegars, and desserts — which routinely carry volume units — bypassed the category check entirely.
   - **Three-tier algorithm:** Replaced both the Python DB generator (`script/create_off_food_db.py`) and the Dart runtime layer (`lib/core/infrastructure/basis_data_manager.dart`) with a unified allowlist → blocklist → volume-unit-fallback heuristic:
@@ -369,6 +396,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Unified Food Search Viewport:** Replaced the multi-tab food search layout with a unified single-scroll track viewport, grouping search results sequentially into three vertical sections: Custom Food matches, Base Food matches, and Other/Open Food Facts matches.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **AI Meal Capture Image Layout:** Fixed a layout issue where the horizontal image preview list was constrained by the screen's outer padding. Removed horizontal padding from the parent scroll view and applied it directly to the list container and label, enabling edge-to-edge scrolling for captured meal images.
 - **Exercise Catalog Never Seeding (Critical):** Resolved a three-layered bug that caused the entire wger exercise catalog to remain empty on fresh installs and after iOS sandbox resets:
   - **Missing bundled asset:** `assets/db/train_libre_training.db` was a 0-byte placeholder file. The bundled SQLite database is now populated from the latest stable wger release (`202606151047`, 852 exercises). Added a 0-byte guard in `BasisDataManager` that aborts the import with a clear error instead of silently opening an empty database.
@@ -397,6 +427,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Implemented a dynamic `Transform.translate` downward translation of `8.0` logical pixels and a custom shadow clipper `_LiveWorkoutFabShadowClipper` when the rest timer bar is active. This narrows the spacing to exactly `8.0` logical pixels to match the Diary Screen's bottom layout, while cleanly cropping the drop shadow at the rest bar's top edge to prevent overlapping visual smudges.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Profile Picture Lazy Loading on Startup:** Resolved an issue where the profile picture avatar in the main screen app bar did not load on a fresh app startup unless the user manually navigated to another screen. Added a reactive `Consumer<ProfileService>` wrapper around the avatar to dynamically update as soon as the asynchronous profile service initialization completes.
 
 ## [0.9.29] - 2026-06-14
@@ -453,6 +486,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Cardio Log View Formatting:** Updated the log details screen (`WorkoutLogDetailScreen`) and set row (`WorkoutLogSetRow`) to format distance with up to 3 decimal places and duration as `MM:SS` format.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Foreground Rest Timer Notifications:** Configured local notifications shown when the app is in the foreground to play sound and vibrate without presenting a visual heads-up drop-down banner (via `DarwinNotificationDetails` alert silencing on iOS, and a dedicated auto-canceling channel with default importance and priority on Android).
 - **Foreground Sound Cut-off:** Extended the auto-cancel delay for foreground notifications to 10 seconds to allow the notification sound and vibration pattern to play to completion before the notification is cleared from the system.
 - **Vibration Settings Compliance:** Wired rest timer notification details to retrieve and check the global `haptics_enabled` preference from `SharedPreferences`, ensuring notification vibrations respect the user's settings.
@@ -463,6 +499,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Global Lucide Icons Migration:** Replaced all 387+ instances of legacy native Material icons across the entire `lib/` directory with crisp, unified vector icons from the Lucide Icons library via an automated regex refactoring pipeline. This eliminates platform-dependent emoji rendering discrepancies, enforces a cohesive, modern visual language across all feature tabs (Diary, Workout, Settings, Profile, Analytics), and significantly streamlines the application's minimalist design identity.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Markdown Export Accuracy:** Fixed a critical bug where beverage nutrition (calories, sugar, carbs) was double-counted when logged as both food and fluid.
 - **Fluid Calorie Calculation:** Corrected an error in the share service where fluid calories were incorrectly scaled by quantity, leading to inflated totals.
 - **Nutrition Summary Metrics:** Added daily user targets (Calories, Protein, Carbs, Fat, Sugar, Water) to the Markdown export summary, matching the interactive Diary UI format.
@@ -485,6 +524,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Relocated and consolidated all primary trailing actions cleanly into the right header container, positioning the new `Icons.share_outlined` button immediately to the left of the static profile picture avatar.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Sleep Sync Freeze & Progress Bar Repair:** Resolved a database deadlock that froze the manual 90-day Sleep Sync at the last iteration (e.g. "Importing Night 58/58...") by removing nested `_db.transaction(...)` blocks from the custom sleep database access objects (`SleepRawImportsDao`, `SleepCanonicalSessionsDao`, `SleepCanonicalStageSegmentsDao`, `SleepCanonicalHeartRateSamplesDao`, `SleepNightlyAnalysesDao`). Refined the pipeline progress calculation to allocate `totalSessions + 5` total steps and report an out-of-bounds progress value (`-1.0`) at initialization, enabling an active indeterminate scanning animation during heavy background isolate calculations before transitioning to determinate progress updates through the database writing phase.
 - **Multilingual Database Sync Labels:** Updated settings database sync labels (`settingsUpdateFoodDatabase`, `settingsUpdateFoodDatabaseSubtitle`, `settingsUpdateFoodDatabaseSuccess`, `settingsUpdateFoodDatabaseError`) in Japanese (`app_ja.arb`) to refer to both the food and exercise databases rather than just the food database, aligning with German, English, French, and Italian translations.
 
@@ -501,6 +543,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Test Suite Realignment:** Updated mock test classes (`FakeSleepImportService` and `_FakeSleepSettingsService`) across the widget and unit test suites to align with the updated `importRecent` method signature.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Health Connect Permissions Crash (`ActivityNotFoundException`):** Patched a native Android runtime crash caused by unsupported contract intents when requesting permissions under the standard `FlutterActivity`. Refactored `MainActivity.kt` to dispatch requests using the native `ActivityCompat.requestPermissions` utility and handle results uniformly in `onRequestPermissionsResult` and `onActivityResult`.
 - **Static Analysis Warnings:** Resolved unused fields and variables (`_isFullBackupRunning`, `_isSleepImporting`, and `unknown` exercise list) and addressed `use_build_context_synchronously` warnings across settings screens using `context.mounted`.
 - **Android Predictive Back Gestures:** Resolved a platform-specific issue where the native predictive back gesture would fail or freeze on Android/GrapheneOS devices. Refactored the core Android container `MainActivity` to inherit from the standard `FlutterActivity` instead of `FlutterFragmentActivity`, eliminating fragment lifecycle dispatcher conflicts. Ported the internal Health Connect permissions launcher and Storage Access Framework directory picker launcher to use the base SDK `startActivityForResult` and `onActivityResult` callbacks to maintain full compile-time compatibility with standard activity lifecycles.
@@ -521,6 +566,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * **Web Screenshot Fallbacks:** Configured the localized web templates to dynamically map `fr`, `it`, and `ja` screenshots directly to the existing verified `en-US` directory, avoiding duplicate storage overhead.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Bottom Navigation Bar Quality Degradation**: Fixed a bug where returning from route transitions (such as speed dial option screens) demoted the navigation bar to medium quality (frosted fallback) while leaving the sibling action button in premium quality.
 - **Static Analysis Cleanup**: Resolved all remaining static analysis warnings by removing the unused `_isRouteActive` field, deleting redundant `didPushNext()` and `didPop()` overrides, cleaning up unnecessary `dart:ui` imports, and globally suppressing `experimental_member_use` warnings for the liquid glass widgets API.
 * **Recovery Screen Muscle Tracking:** Patched the muscle fatigue calculation algorithm by updating the workout history queries to join the new `exercise_translations` table, resolving a bug where exercise names evaluated to null.
@@ -531,6 +579,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **SpeedDial Overlay Quality Isolation**: Decoupled the speed dial action buttons from dynamic performance telemetry and forced them to render with standard quality (`GlassQuality.standard`), eliminating dynamic quality degradation or toggling.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Bottom Navigation FAB Glassmorphic Blur Mismatch**: Fixed a visual discrepancy where the bottom navigation bar's circular FAB lost background blur (rendering flat white) when quality downgraded to `minimal`. Refactored `main_screen.dart` to bypass the package's built-in `extraButton` parameter, instead implementing a layout composition with a custom sibling `AdaptiveGlass` widget configured with `isInteractive: false` to guarantee consistent glassmorphic blur across all rendering quality levels.
 - **Fix:** Restricted calorie adjustment notification banner strictly to the current date view in Diary.
 - **UX:** Configured 3-Zone master cards in Recovery Tracker to be collapsed by default for faster scanning.
@@ -553,6 +604,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Liquid Glass Shadow Clipping**: Integrated `ShadowOuterClipper` across all Liquid Glass components (bottom navigation, FAB, workout overlay, speed dial actions) to strictly clip drop shadows from behind the transparent glass elements, keeping the backgrounds bright and translucent.
 - **Anatomical Body Highlighter Canvas Mappings**: Synchronized SVG path mappings in local package `flutter_body_highlighter` (and bumped version to 1.0.3) to resolve blank forearms, map lateral head triceps (front view), neck muscles (back view), erector spinae (lower back), isolated tibialis anterior (shin-adjacent), and inner-thigh adductors insertion (back view).
 - **Neck & Traps Visual Merge**: Merged the posterior neck SVG paths directly into the `trapezius` map entry in `flutter_body_highlighter` (v1.0.3) and routed all legacy neck/lower neck raw mappings to the `trapezius` token to eliminate the uncolored gap on the back view.
@@ -563,6 +617,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Default Visual Style Swap**: Swapped the out-of-the-box visual style preference default from "Flüssig (Liquid Glass)" (index `1`) to "Standard (Glas)" (index `0`) in `ThemeService` so new app installations default to the frosted standard glass style.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Standard Glass Shader Pipeline Upgrade**: Migrated the standard visual style (`visualStyle == 0`) branch across multiple components (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) from legacy native `BackdropFilter` and solid container fallbacks onto the unified `AdaptiveGlass` shader pipeline from the `liquid_glass_widgets` package.
 - **Light Mode Tint Harmonization**: Fixed Light Mode background burnout/clipping issues where the bottom bar and FAB appeared muddy, dark, and dirty-grey or clipped into raw white by aligning their background `neutralTint` to a clean, bright, semi-transparent white (`Colors.white.withValues(alpha: 0.10)`), matching the functioning `RunningWorkoutOverlay` background exactly.
 - **Ambient Shadow Matrix Unification**: Unified and applied the deep physical depth shadow matrix (`BoxShadow` with `blurRadius: 12`, `offset: Offset(0, 6)`, `Colors.black` at `30%` opacity) across both standard (`visualStyle == 0`) and liquid (`visualStyle == 1`) navigation components to eliminate visual rift and restore parity with the workout overlay.
@@ -581,6 +638,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Navigation Label Typography & Scaling**: Fixed a regression in the `GlassBottomBar` where uninherited Material context caused text labels to scale disproportionately large and render with yellow error underlines. Wrapped the component in a `Material` widget and applied an explicit `DefaultTextStyle` mapping directly to our absolute compact design token (`fontSize: 11.0`, `fontWeight: FontWeight.w600`, `fontFamily: 'Inter'`, `letterSpacing: -0.2`).
 - **Layout & Typography in RunningWorkoutOverlay**: Fixed a critical layout collision where the workout tracking bar overlapped the new `GlassBottomBar` by introducing an 8px layout offset. Fixed a visual regression by realigning the elapsed duration typography with the centralized `titleMedium` system style, ensuring `Inter` font rendering, correct boldness, and consistent tracking.
 
@@ -652,6 +712,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Padding accounts for `topPadding` so the layout centres correctly behind the navigation bar.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Static Analysis**: Resolved the `use_build_context_synchronously` lint warnings inside `_showSaveAsRoutineDialog` by capturing repository and navigation handlers prior to the async bottom sheet UI transitions.
 - **Deprecated Opacity APIs**: Fixed the `deprecated_member_use` compiler warning by replacing `withOpacity` with the modern `withValues(alpha: ...)` API.
 
@@ -679,6 +742,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Nutritional Companion Serialization**: Enhanced food companion imports to preserve complete nutritional profiles, including liquid categorization, caffeine contents, and localized designations.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Widget Integration Regression Testing**: Fully updated the presentation test suite (`recommendation_banner_test.dart`) to validate delta mathematical prefix logic, click-to-apply database updates, and multi-week isolation rules. All test specifications executed successfully with zero failures.
 
 ## [0.9.17] - 2026-06-01
@@ -709,6 +775,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Multi-Perspective Muscle Visibility**: Removed restrictive single-view viewport constraints from the visual rendering layer, allowing dual-aspect muscle groups like Adductors and Forearms to dynamically illuminate on both the anterior (front) and posterior (back) model silhouettes.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Compliance Enforcement Gaps**: Fixed a verification vulnerability by ensuring the "Continue" button remains strictly disabled until active cryptographic acceptance tokens are verified for both distinct legal frameworks.
 - **Biceps Brachii Visual Disconnect**: Resolved a structural pipeline mismatch within the local SVG template rendering framework by linking generic biceps inputs to target and color both the long-head and short-head anatomical path coordinates concurrently.
 - **Anatomical Dropout and Mappings**: Patched an ingestion leak where unmapped compound muscle components were either completely discarded or misattributed to parent groups, stabilizing long-term data integrity for core training logs.
@@ -729,6 +798,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Sleep Scoring Engine LaTeX Refactoring**: Refactored the 3 complex multi-line `cases` equations in `sleep_scoring_engine.md` (Sleep Duration, Light Sleep Penalty, and Circadian Timing) into clear bulleted text conditions and single-line display math blocks (`$$ ... $$`). This completely bypasses markdown backslash-escaping and HTML entity conversion bugs to guarantee robust, beautifully styled green math blocks on all viewports without any KaTeX compiler crashes or text overflows.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Shoulder Highlight Bug**: Resolved a library-level mismatch between SVG path keys and enum mappings, restoring correct anterior/posterior deltoid highlights.
 - **Core Tracking Gaps**: Re-enabled **Abs**, **Obliques**, and **Core** in the recovery tracking engine. Tapping "Abs" now correctly highlights the entire core region on the body model.
 - **Workout Summary Scroll Lock**: Moved all summary elements into a unified `ListView`, eliminating the "tiny window" scrolling limitation on compact viewports.
@@ -753,6 +825,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Localization Architecture Hardening**: Expanded localized string dictionaries (`app_de.arb` and `app_en.arb`) by over 20 new high-density technical prose entries. Completely purged raw LaTeX syntax and legacy academic/clinical citations from translation assets to enforce bulletproof UI rendering.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Information Screen Layout Overflows**: Refactored the `ExpansionTile` headers inside `algorithm_info_sheet.dart` into a single text-wrapped flexible row, completely eliminating right-side pixel clipping and horizontal layout breaking on compact viewports.
 ## [0.9.13] - 2026-05-xx
 
@@ -779,6 +854,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **UI Layout Cleanups**: Removed the restrictive nested Card containers from the Detail-Analyse section, turning it into a clean native Section Header with edge-to-edge, full-width `GlassProgressBar` fields.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Zero-Warning Compliance**: Resolved all remaining lint warnings and static analysis issues across the entire codebase, reaching 100% compile-time safety.
 - **Code Verification**: Validated all architectural changes against the full suite of 610+ regression tests, ensuring 100% green status.
 - **Memory & Persistence Optimization**:
@@ -792,6 +870,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.9.12] - 2026-05-22
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **iOS Barcode Recognition & Xcode Strip Style (#399)**: Resolved a critical issue where the barcode scanner ran smoothly but failed to recognize any barcodes on iOS release builds.
   - Corrected Xcode **Strip Style** from `All Symbols` to `Non-Global Symbols` in Build Settings, preventing the aggressive compilation pipeline from stripping the essential C++ (`zxing-cpp`) native function symbols required by Dart FFI.
   - Retained the optimized `ReaderWidget` configuration (720p `ResolutionPreset.high` and `0.55` crop factor), drastically increasing the scan frame decoding speed and reducing data processing overhead over the FFI bridge without losing scanning accuracy.
@@ -847,6 +928,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Attribution Inventory**: Added a comprehensive license and attribution inventory to the `AboutScreen` for bundled open-source dependencies.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Fluid Deduplication**: Resolved a critical analytics error in `BodyNutritionAnalyticsDataAdapter` where fluid logs linked to food entries were double-counted in daily totals.
 - **Supplement Tracking Stability**: Fixed a mapping regression in `SupplementRepositoryImpl` that caused tracking status and daily goal visibility to be lost during reactive state transitions.
 - **Android SAF Target Resolution**: Corrected `BackupManager` logic for Android Storage Access Framework (SAF) to ensure reliable archive writing to secure, user-selected external directories.
@@ -859,6 +943,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.9.8] - 2026-05-19
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed mapping regression where supplements lost tracking status and daily goals, disappearing from the Diary screen and Supplement Hub.
 - Fixed database-level fluid food double-counting across the analytics compilation pipeline and correlation charts.
 - Fixed failing auto-backup process by resolving target directory structures through secure application documents paths.
@@ -880,6 +967,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Progress Bar Readability**: Implemented dual-layer clipping and contrast-aware text rendering in `GlassProgressBar` to ensure legibility across all progress levels.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Analytics Layout**: Fixed various UI issues in analytics dashboards, including legend shape consistency, edge clipping in horizontal scrolls, and proper current-day filtering in body/nutrition trends.
 - **Navigation**: Resolved inconsistencies in exercise selection routing within routine and live workout editors.
 
@@ -892,6 +982,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Pure Domain Models**: Established total Domain Purity by removing Drift database model leaks (e.g., db.DailyGoalsHistoryData) from repository contracts and use cases, mapping them cleanly to pure Dart entities (like DailyGoal) within the Data layer.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Runtime & Testing**: Eliminated the critical Drift multiple-instances database runtime warning by enforcing a strict single-instance initialization with constructor dependency injection via Provider. Adjusted timestamp delays to 1.1s to accommodate SQLite's CURRENT_TIMESTAMP clock resolution. Fixed day-inclusive range selections for diary queries.
 
 ### Removed
@@ -910,6 +1003,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Settings Overhaul**: Added manual database sync trigger and improved OFF region settings.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **App Tour Stability**: Fixed edge cases where the app tour could crash on specific navigation flows.
 - **Health Export**: Resolved minor synchronization issues with third-party health platforms.
 
@@ -927,6 +1023,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Design Language**: Updated "Liquid Glass" theme as the standard and improved text visibility across various UI elements.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Navigation Stability**: Hardened navigation lifecycle with strict `if (!mounted)` guards to prevent crashes during rapid screen transitions.
 - **Metric/Imperial System**: Fixed unit system inconsistencies in onboarding and various screens (#337).
 - **Database Hardening**: Fixed multiple SQL issues in the OFF database and improved batch processing stability.
@@ -950,6 +1049,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * **Visual Style Improvements:** Adjusted spacing, chart defaults, and text visibility across the Liquid Glass theme.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 * **Database Hardening:** Optimized SQLite operations and strengthened reload logic to prevent data inconsistencies during concurrent actions.
 * **Supplement Default Time:** Fixed an issue where the Supplement Diary FAB defaulted to 00:00 instead of the current time.
@@ -972,6 +1074,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * **Default Settings:** The default `visualStyle` has been updated to `1` in `ThemeService`.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 * **Calorie Calculation:** Fixed a bug where liquid calories were duplicated; the app now filters out fluid entries linked to food logs when calculating total daily intake.
 * **Test Stability:** Updated `SleepSettingsScreen` tests to include the explicit confirmation step required by the glass bottom menu and fixed locale-dependent string matching.
@@ -993,6 +1098,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Refined food and exercise mapping logic for better accuracy.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed Issue #323: Improved deletion logic for water and drinks to prevent orphaned database entries and enabled direct editing.
 - Fixed Issue #322: Resolved a crash occurring during certain nutrition summary updates.
 - Fixed barcode scanner issues and added necessary network permissions for catalog refreshes.
@@ -1010,6 +1118,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Set scanner resolution to maximum to improve barcode detection reliability across devices.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed a crash when manually adding food items during AI meal review.
 - Fixed inconsistent border radius for uploaded images in the AI recommendation screen.
 - Improved layout and input handling on the onboarding calorie recommendation page.
@@ -1032,6 +1143,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Removed unused microphone and speech recognition permission declarations and documentation references.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed several layout overflows on small screens and compact devices.
 - Fixed backup restore edge cases for some legacy backup variants.
 - Fixed hydration and caffeine totals not updating correctly after editing tracked foods/drinks.
@@ -1052,6 +1166,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Improved accessibility and localization support for the nutrition recommendation controls.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Minor bug fixes and performance improvements in the nutrition recommendation flow.
 
 ## [0.9.0] - 2026-05-05
@@ -1068,12 +1185,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Refined recovery, sleep, pulse, and nutrition analytics to make training guidance more transparent and robust.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Preserved compatibility for legacy Hypertrack backups and catalog files while migrating new installs to Train Libre naming.
 - Hardened loading and error handling across Statistics, Diary, Sleep, Pulse, AI meal save, feedback-report, and active workout flows.
 - Reduced Android UI stalls and ANR risk by moving production Drift database work to a background isolate and reducing repeated database lookups.
 
 ## [0.9.0-beta.6] - 2026-05-05
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed severe Pulse loading lag in Statistics by caching hourly heart-rate aggregates instead of repeatedly reprocessing large raw sample histories.
 - Hardened Pulse aggregate cache coverage so small recent caches cannot be mistaken for complete older or larger ranges.
 
@@ -1087,6 +1210,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.9.0-beta.5] - 2025-05-05
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Renamed bundled and remote catalog database artifacts to Train Libre filenames while preserving legacy Hypertrack fallback compatibility.
 - Added English iOS permission usage descriptions for camera, microphone, speech recognition, photo library, and Apple Health access, with German InfoPlist localization kept alongside them.
 - Fixed Sleep day overview week/month loading helper wiring so analyzer, tests, and debug builds compile cleanly.
@@ -1110,6 +1236,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.9.0-beta.4] - 2025-05-05
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved Statistics hub loading so slow or failing sections no longer block the entire tab.
 - Replaced shared Statistics loading behavior with section-level stale-while-refresh state.
 - Kept existing Statistics section data visible while range changes refresh in the background.
@@ -1134,6 +1263,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.9.0-beta.3] - 2025-05-05
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed redundant Add Food meal-card refetching by caching meal total futures and using batched product lookup.
 - Fixed repeated Diary product lookups by batch-loading products for the selected day.
 - Fixed possible stale Statistics range results when switching range chips quickly.
@@ -1166,6 +1298,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Improved share-card branding by using the current Train Libre SVG logo.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Moved the production Drift SQLite connection onto a background isolate to prevent database work from blocking touch handling and causing Android ANRs.
 - Reduced workout-history database load by fetching completed workout sets in bulk instead of issuing one set query per workout log.
 - Removed redundant food-search controller rebuilds while typing in Add Food, Food Explorer, and the general food picker.
@@ -1180,10 +1315,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Renamed the app and repository branding from Hypertrack to Train Libre across Flutter, Android, iOS, widgets, documentation, and package metadata.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Preserved restore compatibility for legacy Hypertrack backups while creating new backups under the Train Libre name.
 
 ## [0.9.0-alpha.4] - 2026-05-02
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Hardened Sleep Health Score handling for ambiguous and missing stage data.
 - Prevented `unknown` and ambiguous `inBedOnly` stages from inflating wake duration, WASO, interruptions, and sleep-efficiency penalties.
 - Improved REM-missing and low-fidelity stage guardrails so scores do not imply unsupported certainty.
@@ -1218,6 +1359,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.9.0-alpha.2] - 2026-04-25
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed Pulse day-scope handling so the current day is now included as a partial-day window (`start of day -> now`) instead of behaving like a fully completed 24-hour period.
 - Added a small guard against zero-length Pulse day windows around local midnight rollover.
 - Improved sleep heart-rate fallback behavior on Android / Health Connect setups by deriving sleep HR from the general heart-rate stream when strict sleep-session-linked heart-rate samples are unavailable.
@@ -1245,6 +1389,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a separate opt-in setting for sending recent meal context to AI meal recommendations. It defaults off and recommendations still work without it.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved Android sleep heart-rate retrieval for Health Connect providers that store valid in-session samples inside longer heart-rate records whose record window can sit outside the strict sleep/import window.
 - Made AI meal save behavior explicit when some recognized/recommended items are unmatched, so partial saves no longer look like all AI items were saved.
 
@@ -1265,6 +1412,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.8.11] - 2026-04-23
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved workout heart-rate retrieval reliability for vendor-originated Health Connect data by adding a safe fallback query window when the strict workout window returns no records.
 - Restored the missing Measurements shortcut on the Statistics hub so body measurements are reachable again from the Body section.
 
@@ -1288,6 +1438,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.8.10] - 2026-04-15
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved backup/restore robustness so malformed or legacy-shaped payload rows no longer abort the full import as easily.
 - Hardened supplement settings/history restore handling for legacy ID mappings and more tolerant type parsing.
 - Improved body/nutrition trend loading stability so outdated async responses no longer overwrite newer range selections.
@@ -1342,6 +1495,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Reused existing health-platform data flows with lightweight workout-window matching instead of introducing a heavier persistence layer for the MVP.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Eliminated misleading or weak “correlation” outputs in sparse or noisy datasets.
 - Reduced risk of overinterpreting incomplete or low-quality data by enforcing stricter gating and clearer fallback states.
 
@@ -1363,6 +1519,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Extended the shared custom dialog helper with optional strict modal behavior (`isDismissible` / `enableDrag`) for critical confirmation flows.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Removed remaining app-level default alert style mismatches in migrated screens so action dialogs now follow one consistent Hypertrack UI pattern.
 - Preserved existing action semantics and async handling across migrated flows (confirm/cancel/save/delete outcomes unchanged).
 
@@ -1443,6 +1602,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Settings flow now clearly communicates that OFF region changes are applied through the existing next refresh/import cycle.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Hardened OFF startup safety when bundle and remote are unavailable for a selected country: imports are skipped safely without destructive side effects.
 - Preserved historical nutrition continuity under OFF region/catalog changes by keeping `off` + `off_retained` semantics intact.
 
@@ -1473,6 +1635,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Workout detail/summary/session restore paths now resolve exercises by stored `exercise_id` first, with graceful fallback.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed potential aggressive refresh behavior by avoiding replace-style writes for base exercises.
 - Fixed a history integrity risk where session restore could lose blocks if exercise names changed after catalog update.
 - Fixed set-log update behavior to preserve existing `exercise_id` linkage when name lookup no longer matches.
@@ -1499,6 +1664,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Cleaned release notes/changelog references tied only to the removed widget rollout.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Restored reliable iOS simulator install/runtime by removing broken app-extension integration from the app build.
 - Preserved and kept active the Measurements deletion persistence fix (including legacy timestamp fallback behavior).
 
@@ -1510,6 +1678,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Improved Android widget row sizing, spacing, and adaptive visibility logic so medium/large widget sizes can display more metrics.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed measurement deletion persistence in the Measurements screen: swiping to delete now removes the session from storage, not only from the current UI state.
 - Hardened measurement-session deletion for legacy records by adding a timestamp-based fallback when legacy session IDs are missing.
 
@@ -1529,6 +1700,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added subtle AI waiting haptics during active generation/loading states.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed missing confirmation haptics on important add/save actions in several key flows.
 - Fixed AI waiting haptics so they stop correctly when generation finishes and no longer continue into review/result screens.
 - Refined the AI waiting haptic pattern to feel more periodic and less abrupt.
@@ -1543,6 +1717,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Statistics hub now groups content into Steps, Recovery, Training, and Body sections.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Removed redundant hub entries that added clutter without meaningful functionality.
 - Fixed remaining localization regressions from the hub reorganization by replacing hardcoded Statistics UI strings with proper l10n usage.
 - Standardized uppercase section-header rendering across the reorganized hub screens.
@@ -1550,6 +1727,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.8.1] - 2026-04-09
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved sleep day-view timeline readability with clearer timestamp labels, better spacing, and stronger light/dark-mode contrast.
 - Corrected the weekly sleep-window chart so displayed time bounds and axis labels better match actual sleep session timing, including cross-midnight sessions.
 - Sleep scoring now applies conservative stage-aware guardrails so mostly-light or REM-missing nights (especially from limited-fidelity sources such as Withings) cannot silently receive near-perfect totals.
@@ -1580,6 +1760,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Due-notification eligibility is strictly gated by due-week status, generated-state status, and notification-state status.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Hardened adaptive recommendation persistence with coherent snapshot/state checks, legacy fallback migration handling, and recovery from malformed canonical keys.
 - Ensured backup/restore continuity for adaptive recommendation settings and canonical recursive state persistence.
 
@@ -1692,6 +1875,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Manual recalculation now forces immediate regeneration without auto-applying active goals
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Safer handling of incoherent or corrupt Bayesian experimental state
 - Safer migration from legacy fragmented Bayesian persistence
 - Removed remaining active use of fragmented Bayesian write paths in normal experimental flow
@@ -1739,6 +1925,9 @@ This alpha improves the adaptive nutrition recommendation MVP with more conserva
 - EN/DE adaptive recommendation wording was revised to match the new semantics and transparency model.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Prevented sparse-data recommendations from drifting maintenance estimates despite explicitly insufficient adaptive data.
 - Reduced sensitivity of weekly trend estimation to noisy start/end bodyweight values.
 - Improved recommendation copy so unresolved food-calorie issues are surfaced more clearly before apply.
@@ -1815,6 +2004,9 @@ This alpha introduces the first end-to-end MVP of adaptive nutrition recommendat
 - Recommendation-related EN/DE strings were moved/expanded in l10n and regenerated.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Prevented implausible calorie outputs from being surfaced without explicit constrained/warning handling.
 - Hardened calorie-input aggregation paths to reduce systematic undercounting in common logging scenarios.
 - Ensured backup/restore explicitly covers adaptive recommendation settings:
@@ -1834,6 +2026,9 @@ This alpha introduces the first end-to-end MVP of adaptive nutrition recommendat
 This release includes a fix for Diary refresh behavior after saving meals through the AI meal-recognition flow.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed a Diary refresh issue after saving meals via the AI meal-recognition flow
   - when a meal was recognized with AI and saved from the Add Food flow, the Diary screen did not always refresh automatically
   - the save result is now propagated correctly so the Diary reloads immediately after the meal is saved
@@ -1850,6 +2045,9 @@ small fixes
 This release is a maintenance and stability update that prepares Hypertrack for the upcoming 0.8 / TDEE cycle.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed backup/restore integrity for meal-related data
   - meal templates and meal items are now included in backups
   - meal/nutrition restore behavior is more complete and reliable
@@ -1972,6 +2170,9 @@ This release focuses on a small set of quality-of-life improvements across AI me
   - Background timer completion now more reliably triggers a notification instead of silently finishing
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 - Fixed AI meal capture layout/actions so media input controls are placed where users expect them
 - Fixed measurement chart default selection logic
@@ -2058,6 +2259,9 @@ This release completes the main **sleep module rollout** and adds the first full
   - better distinction between app-side write problems and downstream platform display limitations
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 - Removed the previous effective **30-day export cap** for initial health export flows
 - Fixed multiple **Health Connect write-path issues**, including:
@@ -2122,6 +2326,9 @@ This beta focuses on **one-way health platform export** and the final stabilizat
   - better distinction between app-side export problems and downstream platform display limitations
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Removed the previous effective **30-day export limit** for initial export flows
 - Fixed multiple **Health Connect write-path issues** around:
   - invalid record intervals
@@ -2158,6 +2365,9 @@ This alpha focuses on one-way health export hardening for Android Health Connect
 - Nutrition/Hydration grouped export flow now records split diagnostics so failures can indicate whether nutrition and hydration failed independently.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Android body-fat export mapping now recognizes real stored measurement type variants (including `fat_percent`) so body-fat entries are no longer dropped before write.
 - Android body-fat export normalization/range handling aligned to Health Connect `BodyFatRecord` percent expectations (`0..100`).
 - Android nutrition export reliability improved:
@@ -2202,6 +2412,9 @@ This stable release includes all `0.7.3-alpha.*` and `0.7.3-beta.1` changes sinc
 - Project docs rewritten and consolidated around implementation-first references.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Manual `Import sleep data now` now performs full-history backfill import.
 - Automatic/periodic sleep import remains incremental (30-day lookback), preserving prior history while refreshing recent windows.
 - Sleep score pipeline issues that previously left scores missing/uncomputed on live import.
@@ -2248,6 +2461,9 @@ This release promotes the current Sleep feature set from alpha toward beta by fi
 - Sleep benchmark bars (duration/heart-rate details) received contrast adjustments for dark and light mode readability.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Manual `Import sleep data now` now performs all-time backfill import instead of a 30-day test-only import.
 - Automatic/sequential sleep import remains incremental (30-day lookback), preserving previously imported historical data while adding/updating newer records.
 - Diary and Statistics refresh flows now trigger periodic sleep sync checks similarly to existing steps refresh behavior.
@@ -2272,6 +2488,9 @@ This alpha finalizes the Sleep health-score pass. It documents and ships the imp
 - Project documentation was rewritten to be implementation-focused and current-state-first across the README, architecture, data/storage, overview, statistics, and sleep technical references.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed release/documentation accuracy by replacing stale or historical descriptions with implementation-grounded documentation and clearer boundaries around what is actually implemented.
 - Fixed nightly-analysis persistence gaps so newly computed score completeness and regularity fields round-trip through schema migration, DAO writes, and repository mapping.
 - Fixed score-model consistency by aligning the pipeline, persisted analysis version, and documentation around the same Sleep Health Score V1 behavior.
@@ -2297,6 +2516,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - Updated repository and aggregation layers to support broader Sleep summaries and derived period views
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed Sleep score pipeline issues that caused scores to remain missing or uncomputed on the live import path
 - Fixed interruption detection gaps that caused wake/interruption results to be missing or unavailable
 - Fixed Sleep heart-rate handling issues affecting import completeness, baseline/delta availability, and display
@@ -2348,6 +2570,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 ## [0.7.2] - 2026-03-31
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Duplicate caffeine logging for fluid entries:** Fixed an issue where saving caffeinated drinks could create duplicate caffeine supplement logs, leading to inflated caffeine totals.
 
 ### Tests
@@ -2366,6 +2591,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - **Steps charts and summaries:** Refined weekly/monthly trend rendering, baseline behavior, goal labeling, and statistics-card presentation for clearer interpretation of step progress.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Android Health Connect completeness:** Fixed paginated `readRecords` ingestion so all result pages are processed, resolving missing or undercounted daily totals on Android.
 - **Duplicate and inflated step totals:** Fixed overlap handling after disabling and re-enabling tracking, and improved multi-source aggregation to avoid double counting.
 - **Statistics steps visibility:** Steps are now shown on the statistics screen only when tracking is enabled, with live updates after settings changes.
@@ -2375,6 +2603,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 ## 0.7.1-beta.1 - 2026-03-27
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Cardio set-row header localization (#75):** Localized cardio header labels (`Distance`, `Time`, `Intensity`) in workout set rows.
 - **Statistics steps visibility (#150):** Steps metric is now shown on the statistics screen only when step tracking is enabled in settings, with live UI updates when toggled.
 - **Auto backup reliability (#151):** Fixed auto-backup failures for invalid/unwritable selected folders by validating writability and falling back to a safe app backup directory.
@@ -2383,12 +2614,18 @@ This alpha significantly expands the Sleep module from early foundation work int
 ## 0.7.1-alpha.4 — 2026-03-26
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Android Health Connect paging:** Fixed `readRecords` ingestion to read all pages instead of only the first result page.
 - **Missing steps on Android:** Resolved undercounted daily totals caused by incomplete Health Connect imports (especially visible when comparing Hypertrack vs Google Fit / Withings).
 
 ## 0.7.1-alpha.3 — 2026-03-26
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Steps inflation after re-enabling tracking:** Resolved an issue where daily totals could jump too high after disabling and re-enabling step tracking.
 - **Idempotent refresh pipeline:** Force refresh and incremental refresh now safely replace overlapping sync windows to prevent duplicate counting.
 - **Safer multi-source aggregation:** Improved handling for overlapping sources (e.g. smartwatch + phone / Withings + system) to avoid double counting.
@@ -2414,6 +2651,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - **Statistics Hub Steps Card:** Refined the reusable steps card rendering and alignment so it visually matches the redesigned steps module.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Bar Baseline Consistency:** Step bars now correctly grow from zero baseline in trend charts instead of appearing visually offset.
 - **Goal Label Alignment:** Goal labels (for example `8k`) are now positioned directly at line height instead of drifting above the dashed target line.
 - **Week Chart Scaling Accuracy:** Goal check markers no longer affect bar-height calculations, preventing subtly shortened bars.
@@ -2436,6 +2676,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - **Diary Refresh on Return:** The diary screen now automatically refreshes its data when returning from Settings or Profile, ensuring step tracking changes are immediately visible.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **"App Update Required" on Android 14+:** Added the missing `<activity-alias>` for `VIEW_PERMISSION_USAGE` with `HEALTH_PERMISSIONS` category, which Android 14+ requires to recognize the app as Health Connect-compatible.
 - **Sync Error Handling:** `StepsSyncService.sync()` now gracefully catches `PlatformException` when permissions are missing, instead of crashing or repeatedly prompting the user.
 
@@ -2453,6 +2696,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - **Data-Quality-Aware Insights:** Body/nutrition and muscle analytics now apply clearer confidence and sufficiency rules before presenting stronger guidance.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Refined Statistics Behavior:** Addressed several v0.7 alpha rough edges regarding analytics state handling and presentation consistency.
 - **Core Tracking Polish:** Targeted reliability and UX refinements for workout and nutrition logging during the v0.7 stabilization cycle.
 
@@ -2733,6 +2979,9 @@ This release represents a complete modernization of Hypertrack's core architectu
   - This screen blocks the UI during startup, displaying a progress bar and detailed status ("Updating base foods: 1500/9000..."), preventing app lag and missing data issues.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Workout Reordering**: Fixed a critical bug where reordering exercises during a live workout was not persisted upon saving. The correct order is now saved to the database history.
 - **Search Reliability**:
   - Fixed an issue where base food items (e.g., "Apple") were hidden in search results due to the sheer volume of Open Food Facts entries. Search now prioritizes local 'User' and 'Base' items.
@@ -2759,6 +3008,9 @@ This release represents a complete modernization of Hypertrack's core architectu
 - **Pause Timer**: Improved logic to persist pause time changes immediately to the routine definition.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed inconsistent UI styling between routine editing and live tracking.
 
 ## [0.5.0-alpha.1] - 2025-12-27
@@ -2850,6 +3102,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 ## [0.4.0-beta.6] - 2025-11-22
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 *   **Critical: Custom Exercises**
     *   Fixed a database error that prevented users from saving new custom exercises (Issue #58).
     *   Resolved an issue where custom exercises appeared with empty titles when added to a routine.
@@ -2889,6 +3144,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 * **UI/UX**
     * changed the Appbar to blur
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 * Fixed an issue where a routine did not loaded.
     
 
@@ -2909,6 +3167,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
     *   The standard "Glass" UI remains the default.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 *   **Critical: Create Food Screen Unusable**
     *   Fixed a critical bug where the "Create Food" screen incorrectly displayed a numeric keyboard for text fields (name, brand), making it impossible to enter non-numeric characters. (Fixes #56)
 *   **Critical: Create/Edit Routine Bugs**
@@ -2928,6 +3189,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 ### Added
 * **App icon:** Now there is an App icon
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 * **Backup:** tried to fix the backup
 ### Changed
 * **App Name:** Changed the name from "Hypertrack" to "Hypertrack".
@@ -2945,6 +3209,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
     *   The "Edit Fluid Entry" dialog now includes fields for the **Name**, **Sugar per 100ml**, and **Caffeine per 100ml**, allowing for precise editing of non-water drinks.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 *   **Critical Data Consistency: Fluid/Liquid Food Deletion**
     *   Fixed a critical bug where deleting a **liquid food entry** (e.g., a juice logged via the food tracker) did not correctly remove the linked Fluid Log and Caffeine Log entries, causing orphaned data (Fixes logic in `deleteFluidEntry`).
@@ -2980,6 +3247,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
     *   A new "Create Routine" card has been added to the Workout Hub for quick access.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 *   **Critical: Database Name Display**
     *   Fixed a critical bug where localized food names (e.g., German, English) were not correctly retrieved from the product database, leading to the display of wrong or empty names in some parts of the app (Issue #56).
@@ -3018,6 +3288,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 *   Adjusted item labels in the bottom navigation bar to max. 1 line for a cleaner UI.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 *   Resolved critical issues with database migration and access, fixing crashes when viewing workout history or adding exercises to routines.
 *   Fixed localization issue in the base foods catalog, ensuring food names are displayed in the correct language.
 
@@ -3080,6 +3353,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 - Diary meal headers show macro line (kcal · P · C · F) below title.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Save button tap area and modal layering in Meal Editor.
 - Scanner and Add Food refresh logic for recents/favorites.
 - Defensive database handling during barcode scan.
@@ -3091,6 +3367,9 @@ EOF
 
 ## [0.4.0-alpha.7] - 2025-10-03
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Backup import failed with *“no such column is_liquid”* → caused Diary/Stats to hang
 - Old backups without password could not be restored (fallback logic improved)
 - App stuck in loading when DB initialization or restore failed
@@ -3103,6 +3382,9 @@ EOF
 
 ## [0.4.0-alpha.6] - 2025-10-03
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Database hotfix**: ensured that all core tables (`food_entries`, `water_entries`, `meals`, `supplement_logs`, etc.) and indices are always created on upgrade, preventing missing-table errors on fresh installs or after updates.
 - Fixed `DiaryScreen` and `Statistics` not loading due to missing DB structures.
 - Backup/restore flow more robust, no crashes when tables were absent.
@@ -3174,6 +3456,9 @@ This is a hotfix release following alpha.4, focused only on database migration s
 - Minor OLED/dark mode polish for nutrient cards
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Database auto-reopen after hot reload (no more `database_closed` errors)
 - Edits in base food database now persist correctly across re-entry
 
@@ -3188,6 +3473,9 @@ This is a hotfix release following alpha.4, focused only on database migration s
 - Routine & Measurements screens: swipe actions match Nutrition design
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Back button in Add Food
 - “Done” moved to AppBar in add exercise flow
 - App version alignment (minSdk 21, targetSdk 36, versionName/Code via local.properties)
