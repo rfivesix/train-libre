@@ -94,7 +94,6 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
                 key: const Key('icloud_sync_toggle'),
                 value: _isEnabled,
                 onChanged: _isBackingUp ? null : _toggleEnabled,
-                activeColor: theme.colorScheme.primary,
               ),
             ],
           ),
@@ -110,6 +109,7 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
           // ── Status indicator ─────────────────────────────────────────────
           if (_lastBackupSuccess != null) ...[
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Icon(
                   _lastBackupSuccess!
@@ -121,14 +121,16 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
                       : theme.colorScheme.error,
                 ),
                 const SizedBox(width: DesignConstants.spacingXS),
-                Text(
-                  _lastBackupSuccess!
-                      ? l10n.icloudBackupSuccess
-                      : l10n.icloudBackupFailed,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: _lastBackupSuccess!
-                        ? Colors.green
-                        : theme.colorScheme.error,
+                Expanded(
+                  child: Text(
+                    _lastBackupSuccess!
+                        ? l10n.icloudBackupSuccess
+                        : l10n.icloudBackupFailed,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: _lastBackupSuccess!
+                          ? Colors.green
+                          : theme.colorScheme.error,
+                    ),
                   ),
                 ),
               ],
