@@ -172,25 +172,26 @@ class RecoverySectionCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '$count',
-                  maxLines: 1,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    height: 1.1,
-                    color: color,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '$count',
+                    maxLines: 1,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
                   ),
                 ),
-                const SizedBox(height: DesignConstants.spacingXS),
+                const SizedBox(height: 2),
                 Text(
-                  StatisticsPresentationFormatter.recoveryStateLabel(
-                          l10n, state)
-                      .toUpperCase(),
+                  StatisticsPresentationFormatter.recoveryStateLabel(l10n, state),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: color.withValues(alpha: 0.85),
-                    fontWeight: FontWeight.w800,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 2),
