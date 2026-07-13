@@ -3128,6 +3128,42 @@ abstract class AppLocalizations {
   /// **'Check & Run Auto-Backup Now'**
   String get autoBackupRunNow;
 
+  /// No description provided for @icloudAutoBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud Auto-Backup'**
+  String get icloudAutoBackupTitle;
+
+  /// No description provided for @icloudAutoBackupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically syncs your database to iCloud Drive whenever the app goes into the background. Your data can be restored on a new device or after reinstalling.'**
+  String get icloudAutoBackupDescription;
+
+  /// No description provided for @icloudBackupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup to iCloud Now'**
+  String get icloudBackupNow;
+
+  /// No description provided for @icloudBackupUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get icloudBackupUploading;
+
+  /// No description provided for @icloudBackupSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup uploaded successfully.'**
+  String get icloudBackupSuccess;
+
+  /// No description provided for @icloudBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed. Check your iCloud connection.'**
+  String get icloudBackupFailed;
+
   /// No description provided for @autoBackupRequestAccessSubtitle.
   ///
   /// In en, this message translates to:

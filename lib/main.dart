@@ -1,5 +1,6 @@
 // lib/main.dart
 
+import 'dart:async';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'util/design_constants.dart';
 
@@ -23,6 +24,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'features/onboarding/presentation/initial_consent_screen.dart';
+import 'core/infrastructure/icloud_sync_service.dart';
 
 import 'features/diary/domain/repositories/diary_repository.dart';
 import 'features/diary/data/nutrition_repository.dart';
@@ -159,6 +161,32 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  late final AppLifecycleListener _lifecycleListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleListener = AppLifecycleListener(
+      onPause: _onAppPause,
+      onHide: _onAppPause,
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  /// Silently snapshot and upload the database to iCloud when the app is
+  /// backgrounded. Only runs if the user has enabled iCloud sync.
+  Future<void> _onAppPause() async {
+    final db = DatabaseHelper.driftDb;
+    if (db == null) return;
+    // Fire-and-forget — we intentionally do not await so the UI is never
+    // blocked by the sync operation.
+    unawaited(ICloudSyncService.instance.syncIfEnabled(db));
+  }
 
   @override
   Widget build(BuildContext context) {

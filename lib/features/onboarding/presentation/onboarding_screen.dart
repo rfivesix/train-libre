@@ -31,6 +31,7 @@ import 'widgets/adaptive_goal_slide.dart';
 import 'widgets/region_selection_slide.dart';
 import '../../../services/off_catalog_country_service.dart';
 import '../../../config/app_data_sources.dart';
+import '../../../core/infrastructure/icloud_sync_service.dart';
 import 'dart:io';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart';
@@ -65,6 +66,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   static const int _lastPageIndex = _pageCount - 1;
 
   bool _isImportedMode = false;
+  bool _hasICloudBackup = false;
 
   String? _heightError;
   String? _dobError;
@@ -133,6 +135,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_isImportedMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _pageController.jumpToPage(_regionSelectionPageIndex);
+      });
+    }
+
+    // Silently check if an iCloud backup is available for restore on iOS.
+    if (Platform.isIOS || Platform.isMacOS) {
+      ICloudSyncService.instance.hasICloudBackup().then((found) {
+        if (mounted) setState(() => _hasICloudBackup = found);
       });
     }
 
@@ -456,7 +465,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  /// Lets the user pick a backup JSON file and import it, skipping onboarding.
+  /// Downloads the iCloud backup and replaces the local database, then
+  /// navigates directly to [MainScreen] (skipping the rest of onboarding).
+  Future<void> _restoreFromICloud() async {
+    setState(() => _isRestoring = true);
+    final success = await ICloudSyncService.instance.downloadAndRestore();
+    if (!mounted) return;
+    setState(() => _isRestoring = false);
+
+    if (success) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('hasSeenOnboarding', true);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('iCloud backup restored successfully!')),
+      );
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+        (route) => false,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'iCloud restore failed. Check your connection and try again.',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
+  /// Picks a JSON backup file and imports it, skipping onboarding.
   Future<void> _restoreFromBackup() async {
     final l10n = AppLocalizations.of(context)!;
 
@@ -745,6 +785,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     isRestoring: _isRestoring,
                     onContinue: _nextPage,
                     onRestore: _restoreFromBackup,
+                    onRestoreICloud: _restoreFromICloud,
+                    hasICloudBackup: _hasICloudBackup,
                   ),
                   RegionSelectionSlide(
                     selectedCountry: _selectedOffCountry,

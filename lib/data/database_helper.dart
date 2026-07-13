@@ -38,6 +38,10 @@ class DatabaseHelper {
     _driftDb = database;
   }
 
+  /// Returns the active [AppDatabase] instance if it has been initialised,
+  /// or `null` if [setDriftDb] has not yet been called.
+  static db.AppDatabase? get driftDb => _driftDb;
+
   db.AppDatabase get dbInstance =>
       _injectedDb ?? (_driftDb ??= db.AppDatabase());
 

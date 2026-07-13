@@ -67,6 +67,7 @@ dependencies:
   liquid_glass_widgets: ^0.21.3
   flutter_lucide: ^1.11.0
   in_app_review: ^2.0.12
+  icloud_storage: ^2.0.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

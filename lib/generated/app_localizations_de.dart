@@ -1741,7 +1741,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String get autoBackupCopyPath => 'Pfad kopieren';
 
   @override
-  String get autoBackupRunNow => 'Jetzt Auto-Backup prüfen & ausführen';
+  String get autoBackupRunNow => 'Jetzt prüfen & Auto-Backup ausführen';
+
+  @override
+  String get icloudAutoBackupTitle => 'iCloud Auto-Backup';
+
+  @override
+  String get icloudAutoBackupDescription =>
+      'Sichert deine Datenbank automatisch in iCloud Drive, wenn die App in den Hintergrund geht. Deine Daten können bei einer Neuinstallation oder auf einem neuen Gerät wiederhergestellt werden.';
+
+  @override
+  String get icloudBackupNow => 'Jetzt in iCloud sichern';
+
+  @override
+  String get icloudBackupUploading => 'Wird hochgeladen…';
+
+  @override
+  String get icloudBackupSuccess => 'Backup erfolgreich hochgeladen.';
+
+  @override
+  String get icloudBackupFailed =>
+      'Backup fehlgeschlagen. Bitte iCloud-Verbindung prüfen.';
 
   @override
   String get autoBackupRequestAccessSubtitle =>

@@ -30,6 +30,9 @@ import 'widgets/local_data_deletion_card.dart';
 import 'widgets/csv_export_card.dart';
 import 'widgets/migration_card.dart';
 import 'widgets/exercise_mapping_card.dart';
+import 'widgets/icloud_sync_card.dart';
+import '../../../core/infrastructure/icloud_sync_service.dart';
+import '../../../data/drift_database.dart' as drift_db;
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for managing application data and backups.
@@ -330,6 +333,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isApple = Platform.isIOS || Platform.isMacOS;
 
     // This calculation is correct.
     final double topPadding =
@@ -402,46 +406,58 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     },
                   ),
                   const Divider(height: 1),
-                  DataAutoBackupCard(
-                    autoBackupDir: _autoBackupDir,
-                    lastAutoBackupFilePath: _lastAutoBackupFilePath,
-                    lastAutoBackupDirUsed: _lastAutoBackupDirUsed,
-                    lastAutoBackupUsedFallback: _lastAutoBackupUsedFallback,
-                    onPickDirectory: _pickAutoBackupDirectory,
-                    onCopyPath: _copyAutoBackupPathToClipboard,
-                    onRunNow: () async {
-                      final ok =
-                          await BackupManager.instance.runAutoBackupIfDue(
-                        interval: const Duration(days: 1),
-                        encrypted: false,
-                        passphrase: null,
-                        retention: 7,
-                        dirPath: _autoBackupDir,
-                        force: true, // New: run immediately
-                      );
-                      await _loadAutoBackupDir();
-                      if (!mounted) return;
-                      final successText = ok
-                          ? (_lastAutoBackupFilePath != null &&
-                                  _lastAutoBackupFilePath!.isNotEmpty
-                              ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
-                              : l10n.snackbarAutoBackupSuccess)
-                          : (_lastAutoBackupError != null &&
-                                  _lastAutoBackupError!.isNotEmpty
-                              ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
-                              : l10n.snackbarAutoBackupFailed);
-                      ScaffoldMessenger.of(this.context).showSnackBar(
-                        SnackBar(
-                          content: Text(successText),
-                          backgroundColor: ok
-                              ? (_lastAutoBackupUsedFallback
-                                  ? Colors.orange
-                                  : null)
-                              : Theme.of(this.context).colorScheme.error,
-                        ),
-                      );
-                    },
-                  ),
+                  if (!isApple)
+                    DataAutoBackupCard(
+                      autoBackupDir: _autoBackupDir,
+                      lastAutoBackupFilePath: _lastAutoBackupFilePath,
+                      lastAutoBackupDirUsed: _lastAutoBackupDirUsed,
+                      lastAutoBackupUsedFallback: _lastAutoBackupUsedFallback,
+                      onPickDirectory: _pickAutoBackupDirectory,
+                      onCopyPath: _copyAutoBackupPathToClipboard,
+                      onRunNow: () async {
+                        final ok =
+                            await BackupManager.instance.runAutoBackupIfDue(
+                          interval: const Duration(days: 1),
+                          encrypted: false,
+                          passphrase: null,
+                          retention: 7,
+                          dirPath: _autoBackupDir,
+                          force: true, // New: run immediately
+                        );
+                        await _loadAutoBackupDir();
+                        if (!mounted) return;
+                        final successText = ok
+                            ? (_lastAutoBackupFilePath != null &&
+                                    _lastAutoBackupFilePath!.isNotEmpty
+                                ? '${l10n.snackbarAutoBackupSuccess}\n$_lastAutoBackupFilePath'
+                                : l10n.snackbarAutoBackupSuccess)
+                            : (_lastAutoBackupError != null &&
+                                    _lastAutoBackupError!.isNotEmpty
+                                ? '${l10n.snackbarAutoBackupFailed}\n$_lastAutoBackupError'
+                                : l10n.snackbarAutoBackupFailed);
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          SnackBar(
+                            content: Text(successText),
+                            backgroundColor: ok
+                                ? (_lastAutoBackupUsedFallback
+                                    ? Colors.orange
+                                    : null)
+                                : Theme.of(this.context).colorScheme.error,
+                          ),
+                        );
+                      },
+                    ),
+                  if (isApple)
+                    ICloudSyncCard(
+                      onBackupNow: () async {
+                        final db = drift_db.AppDatabase();
+                        try {
+                          return await ICloudSyncService.instance.backupNow(db);
+                        } finally {
+                          await db.close();
+                        }
+                      },
+                    ),
                 ],
               ),
             ),

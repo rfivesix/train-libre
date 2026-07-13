@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
@@ -10,11 +12,20 @@ class WelcomeSlide extends StatefulWidget {
   final VoidCallback onContinue;
   final VoidCallback onRestore;
 
+  /// Optional callback for restoring from iCloud. When non-null and on iOS,
+  /// an "Restore from iCloud" button is shown below the manual restore option.
+  final VoidCallback? onRestoreICloud;
+
+  /// Whether an iCloud backup was found and is ready to restore.
+  final bool hasICloudBackup;
+
   const WelcomeSlide({
     super.key,
     required this.isRestoring,
     required this.onContinue,
     required this.onRestore,
+    this.onRestoreICloud,
+    this.hasICloudBackup = false,
   });
 
   @override
@@ -37,6 +48,8 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final showICloudButton =
+        (Platform.isIOS || Platform.isMacOS) && widget.onRestoreICloud != null;
 
     return SingleChildScrollView(
       child: Padding(
@@ -109,7 +122,7 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
               ),
             ),
             const SizedBox(height: DesignConstants.spacingM),
-            // Secondary CTA — restore from backup
+            // Secondary CTA — restore from JSON backup
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -134,6 +147,54 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
                 ),
               ),
             ),
+            // Tertiary CTA — iCloud restore (iOS/macOS only)
+            if (showICloudButton) ...[
+              const SizedBox(height: DesignConstants.spacingM),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  key: const Key('onboarding_restore_icloud_button'),
+                  onPressed:
+                      widget.isRestoring ? null : widget.onRestoreICloud,
+                  icon: widget.isRestoring
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Icon(LucideIcons.cloud),
+                            if (widget.hasICloudBackup)
+                              Positioned(
+                                top: -4,
+                                right: -4,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.green,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                  label: Text(
+                    widget.hasICloudBackup
+                        ? 'Restore from iCloud ✓'
+                        : 'Restore from iCloud',
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

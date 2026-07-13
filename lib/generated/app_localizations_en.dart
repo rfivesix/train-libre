@@ -1738,6 +1738,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoBackupRunNow => 'Check & Run Auto-Backup Now';
 
   @override
+  String get icloudAutoBackupTitle => 'iCloud Auto-Backup';
+
+  @override
+  String get icloudAutoBackupDescription =>
+      'Automatically syncs your database to iCloud Drive whenever the app goes into the background. Your data can be restored on a new device or after reinstalling.';
+
+  @override
+  String get icloudBackupNow => 'Backup to iCloud Now';
+
+  @override
+  String get icloudBackupUploading => 'Uploading…';
+
+  @override
+  String get icloudBackupSuccess => 'Backup uploaded successfully.';
+
+  @override
+  String get icloudBackupFailed =>
+      'Backup failed. Check your iCloud connection.';
+
+  @override
   String get autoBackupRequestAccessSubtitle =>
       'To automatically back up your data, Train Libre needs access to a folder you choose. Your backups will be stored there.';
 

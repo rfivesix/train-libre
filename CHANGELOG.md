@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-alpha.9] - 2026-07-13
 
 ### Added
+- **iCloud Auto-Backup (iOS):** Added automated iCloud Drive backup support. When enabled in Settings → Data Management, the app silently snapshots the Drift SQLite database using `VACUUM INTO` and uploads it to the user's iCloud container whenever the app is sent to the background.
+- **iCloud Restore on Onboarding:** The onboarding Welcome screen now asynchronously checks for an existing iCloud backup on first launch. If one is found, a "Restore from iCloud" button appears (with a green dot indicator), allowing users to restore their data after a reinstall or on a new device — without manual file picking.
+- **iCloud Sync Card in Data Management:** Added an iOS-only `ICloudSyncCard` to the Data Management screen with a toggle to enable/disable automatic sync and a "Backup to iCloud Now" button with live success/error feedback.
 - **Icon Button Tooltips:** Added accessibility tooltips to icon-only buttons across the app (e.g., in the workout sets list) to improve screen reader support and general usability.
 
 ### Fixed
