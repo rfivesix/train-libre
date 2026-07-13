@@ -32,7 +32,7 @@ import 'widgets/migration_card.dart';
 import 'widgets/exercise_mapping_card.dart';
 import 'widgets/icloud_sync_card.dart';
 import '../../../core/infrastructure/icloud_sync_service.dart';
-import '../../../data/drift_database.dart' as drift_db;
+import '../../../data/database_helper.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A screen for managing application data and backups.
@@ -450,12 +450,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                   if (isApple)
                     ICloudSyncCard(
                       onBackupNow: () async {
-                        final db = drift_db.AppDatabase();
-                        try {
-                          return await ICloudSyncService.instance.backupNow(db);
-                        } finally {
-                          await db.close();
-                        }
+                        final db = DatabaseHelper.driftDb!;
+                        return await ICloudSyncService.instance.backupNow(db);
                       },
                     ),
                 ],

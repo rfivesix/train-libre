@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:icloud_storage/icloud_storage.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -84,6 +85,9 @@ class ICloudSyncService {
   Future<bool> _snapshotAndUpload(AppDatabase db) async {
     try {
       final snapshotPath = await _localSnapshotPath;
+      debugPrint(
+        'iCloud backup: preparing snapshot at $snapshotPath for $_kICloudBackupFileName',
+      );
 
       // Delete stale snapshot if it exists, so VACUUM INTO starts fresh.
       final snapshotFile = File(snapshotPath);
@@ -91,6 +95,11 @@ class ICloudSyncService {
 
       // VACUUM INTO creates a defragmented, non-locked copy of the live DB.
       await db.customStatement('VACUUM INTO ?', [snapshotPath]);
+
+      final snapshotSizeBytes = await snapshotFile.length();
+      debugPrint(
+        'iCloud backup: snapshot created ($snapshotSizeBytes bytes, ${(snapshotSizeBytes / (1024 * 1024)).toStringAsFixed(2)} MiB), starting upload',
+      );
 
       // Upload to iCloud.
       await ICloudStorage.upload(
@@ -100,8 +109,14 @@ class ICloudSyncService {
         onProgress: null,
       );
 
+      debugPrint(
+        'iCloud backup: upload completed successfully for $_kICloudBackupFileName',
+      );
+
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('iCloud backup: failed with error: $e');
+      debugPrintStack(stackTrace: st);
       // Swallow errors silently — backup failures should not crash the app.
       return false;
     }
