@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.9] - 2026-07-13
 
+### Added
+- **Icon Button Tooltips:** Added accessibility tooltips to icon-only buttons across the app (e.g., in the workout sets list) to improve screen reader support and general usability.
+
+### Changed
+- **Dependencies Update:** Updated various Flutter and Dart packages to their latest versions to maintain platform compatibility and security.
+
+### Fixed
+- **Food Search Relevance & Performance:** Completely reworked the food search priority scoring to use pure SQL aggregations (Common Table Expressions) over the user's nutrition logs instead of iterating through them in Dart memory. This restores the highly accurate frequency-based search prioritization (frequently eaten foods appear at the top) while guaranteeing lightning-fast query speeds.
+- **Daily Nutrition Calculation Performance:** Optimized the `CalculateDailyNutritionUseCase` by eliminating expensive $O(N \times M)$ list iterations and redundant exception handling, significantly improving the render performance of the daily diary summary.
+
 ## [1.0.0-alpha.8] - 2026-07-10
 
 ### Added
