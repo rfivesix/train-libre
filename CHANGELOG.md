@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - **Food Search Relevance & Performance:** Completely reworked the food search priority scoring to use pure SQL aggregations (Common Table Expressions) over the user's nutrition logs instead of iterating through them in Dart memory. This restores the highly accurate frequency-based search prioritization (frequently eaten foods appear at the top) while guaranteeing lightning-fast query speeds.
 - **Daily Nutrition Calculation Performance:** Optimized the `CalculateDailyNutritionUseCase` by eliminating expensive $O(N \times M)$ list iterations and redundant exception handling, significantly improving the render performance of the daily diary summary.
+- **Edit Routine Drag & Drop:** Disabled drag-to-reorder functionality for exercises in the Edit Routine screen while not explicitly in Edit Mode. This prevents users from accidentally reordering exercises when just browsing the routine.
 
 ## [1.0.0-alpha.8] - 2026-07-10
 

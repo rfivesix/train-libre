@@ -78,30 +78,12 @@ class EditRoutineExerciseCard extends StatelessWidget {
               onPointerUp: onPointerUp,
               onPointerCancel: onPointerCancel,
               onPointerMove: onPointerMove,
-              child: ReorderableDelayedDragStartListener(
-                index: index,
-                child: InkWell(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ExerciseDetailScreen(
-                        exercise: routineExercise.exercise,
-                      ),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Text(
-                      routineExercise.exercise.getLocalizedName(context),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isDraggedItem ? colorScheme.primary : null,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              child: isEditMode
+                  ? ReorderableDelayedDragStartListener(
+                      index: index,
+                      child: _buildTitleContent(context, routineExercise, textTheme, colorScheme),
+                    )
+                  : _buildTitleContent(context, routineExercise, textTheme, colorScheme),
             ),
             leading: null,
             trailing: isEditMode
@@ -336,4 +318,33 @@ class EditRoutineExerciseCard extends StatelessWidget {
           ),
         ),
       );
+
+  Widget _buildTitleContent(
+    BuildContext context,
+    RoutineExercise routineExercise,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    return InkWell(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ExerciseDetailScreen(
+            exercise: routineExercise.exercise,
+          ),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Text(
+          routineExercise.exercise.getLocalizedName(context),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: isDraggedItem ? colorScheme.primary : null,
+          ),
+        ),
+      ),
+    );
+  }
 }
