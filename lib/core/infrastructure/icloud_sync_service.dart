@@ -29,7 +29,7 @@ class ICloudSyncService {
 
   // The iCloud container ID must match what is configured in Xcode.
   // See: Signing & Capabilities → iCloud → Containers.
-  static const _containerId = 'iCloud.com.trainlibre';
+  static const _containerId = 'iCloud.com.rfivesix.trainlibre';
 
   // ── Paths ────────────────────────────────────────────────────────────────
 
