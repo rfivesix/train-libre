@@ -4,6 +4,7 @@ import '../../../../util/design_constants.dart';
 import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../../sleep/data/sleep_hub_summary_repository.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
@@ -117,29 +118,26 @@ class SleepSectionCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: DesignConstants.spacingM),
-              _buildSleepMetricRow(
-                context,
-                color: Theme.of(context).colorScheme.primary,
-                label: l10n.durationLabel,
-                value: durationText,
-                subtitle: l10n.sleepHubAverageLabel,
-              ),
-              const Divider(height: 20),
-              _buildSleepMetricRow(
-                context,
-                color: Theme.of(context).colorScheme.tertiary,
-                label: l10n.sleepHubBedtimeLabel,
-                value: bedtimeText,
-                subtitle: l10n.sleepHubAverageLabel,
-              ),
-              const Divider(height: 20),
-              _buildSleepMetricRow(
-                context,
-                color: Theme.of(context).colorScheme.error,
-                label: l10n.sleepHubInterruptionsLabel,
-                value: interruptionsValue,
-                subtitle: interruptionsSubtitle,
-              ),
+              _buildTwoColumnGrid([
+                ValueSummaryCard(
+                  label: l10n.durationLabel,
+                  value: durationText,
+                  subtitle: l10n.sleepHubAverageLabel,
+                  disableShadow: true,
+                ),
+                ValueSummaryCard(
+                  label: l10n.sleepHubBedtimeLabel,
+                  value: bedtimeText,
+                  subtitle: l10n.sleepHubAverageLabel,
+                  disableShadow: true,
+                ),
+                ValueSummaryCard(
+                  label: l10n.sleepHubInterruptionsLabel,
+                  value: interruptionsValue,
+                  subtitle: interruptionsSubtitle,
+                  disableShadow: true,
+                ),
+              ]),
             ],
           ),
         ),
@@ -191,52 +189,28 @@ class SleepSectionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSleepMetricRow(
-    BuildContext context, {
-    required Color color,
-    required String label,
-    required String value,
-    String? subtitle,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: DesignConstants.spacingXS),
-          height: 10,
-          width: 10,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: DesignConstants.spacingS),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i += 2) {
+      final left = items[i];
+      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              if (subtitle != null)
-                Text(
-                  subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                ),
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
             ],
           ),
         ),
-        Text(
-          value,
-          textAlign: TextAlign.right,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-      ],
-    );
+      );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
   }
 
   String _formatSleepDuration(AppLocalizations l10n, Duration? value) {

@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - **Typography:** Updated the inner typography styling of `ValueSummaryCard` to use the exact same TextStyle used in standard `ProgressBar` labels, unifying the visual design.
+- **Sleep Hub Statistics:** Updated the sleep widget in the Statistics Hub to use a grid of `ValueSummaryCard`s for displaying sleep duration, bedtime, and interruptions, while preserving the sleep score ring.
+- **Recovery Analytics Typography:** Adapted the typography in the Recovery Tracker and Recovery Section Cards to match the updated `ValueSummaryCard` typography (removed caps-lock, adjusted text sizes and weights).
 - **Dependencies Update:** Updated various Flutter and Dart packages to their latest versions to maintain platform compatibility and security.
 - **Website CTA:** Replaced the iOS TestFlight Beta link and label with the official App Store link.
 - **Design System:** Centralized color constants into `DesignConstants` and unified all primary red elements (such as Failure set states and delete dialogs) to use the consistent brand red color.
