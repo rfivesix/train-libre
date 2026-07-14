@@ -119,7 +119,8 @@ void main() {
 
     // Type a new weight
     debugDumpApp();
-    print('Widget with 100: ${find.textContaining('100').evaluate().map((e) => e.widget.runtimeType)}');
+    debugPrint(
+        'Widget with 100: ${find.textContaining('100').evaluate().map((e) => e.widget.runtimeType)}');
     await tester.enterText(find.byType(TextField).at(1), '105');
     await tester.pumpAndSettle();
 

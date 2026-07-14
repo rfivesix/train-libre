@@ -38,6 +38,17 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../../widgets/common/long_running_operation_overlay.dart';
+import '../../../util/permission_dialogs.dart';
+import '../../../services/health/health_platform_steps.dart';
+import '../../pulse/application/pulse_tracking_service.dart';
+import '../../sleep/platform/permissions/sleep_permission_controller.dart';
+import '../../sleep/platform/permissions/healthkit_sleep_permissions_service.dart';
+import '../../sleep/platform/permissions/health_connect_sleep_permissions_service.dart';
+import '../../sleep/platform/sleep_platform_channel.dart';
+import '../../health_export/export_service.dart';
+import '../../health_export/adapters/apple_health/apple_health_export_adapter.dart';
+import '../../health_export/adapters/health_connect/health_connect_export_adapter.dart';
+import '../../health_export/models/export_models.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -832,6 +843,88 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  Future<void> _runAutomatedPermissionSequence() async {
+    final l10n = AppLocalizations.of(context)!;
+    final prefs = await SharedPreferences.getInstance();
+
+    if (!mounted) return;
+
+    // 1. Apple Health / Health Connect Export
+    final appleExportEnabled = prefs.getBool('health_export_apple_enabled') ?? false;
+    final googleExportEnabled = prefs.getBool('health_export_health_connect_enabled') ?? false;
+    if (appleExportEnabled || googleExportEnabled) {
+      final title = Platform.isIOS ? l10n.healthExportAppleHealthTitle : l10n.healthExportHealthConnectTitle;
+      final body = Platform.isIOS ? l10n.healthExportAppleHealthSubtitle : l10n.healthExportHealthConnectSubtitle;
+      final confirmed = await showPrePermissionDialog(
+        context: context,
+        title: title,
+        body: body,
+        continueLabel: l10n.health_permission_continue,
+        cancelLabel: l10n.health_permission_not_now,
+      );
+      if (confirmed && mounted) {
+        final service = HealthExportService(adapters: [AppleHealthExportAdapter(), HealthConnectExportAdapter()]);
+        await service.requestPermissions(Platform.isIOS ? HealthExportPlatform.appleHealth : HealthExportPlatform.healthConnect);
+      }
+    }
+
+    if (!mounted) return;
+
+    // 2. Steps Tracking
+    final stepsEnabled = prefs.getBool('steps_tracking_enabled') ?? false;
+    if (stepsEnabled) {
+      final confirmed = await showPrePermissionDialog(
+        context: context,
+        title: l10n.health_permission_dialog_title,
+        body: l10n.health_permission_dialog_body,
+        continueLabel: l10n.health_permission_continue,
+        cancelLabel: l10n.health_permission_not_now,
+      );
+      if (confirmed && mounted) {
+        const platform = HealthPlatformSteps();
+        await platform.requestPermissions();
+      }
+    }
+
+    if (!mounted) return;
+
+    // 3. Pulse Tracking
+    final pulseEnabled = prefs.getBool('pulse_tracking_enabled') ?? false;
+    if (pulseEnabled) {
+      final confirmed = await showPrePermissionDialog(
+        context: context,
+        title: l10n.pulseSettingsPermissionTitle,
+        body: l10n.pulseSettingsPermissionSubtitle,
+        continueLabel: l10n.health_permission_continue,
+        cancelLabel: l10n.health_permission_not_now,
+      );
+      if (confirmed && mounted) {
+        final service = PulseTrackingService();
+        await service.requestPermissions();
+      }
+    }
+
+    if (!mounted) return;
+
+    // 4. Sleep Tracking
+    final sleepEnabled = prefs.getBool('sleep_tracking_enabled') ?? false;
+    if (sleepEnabled) {
+      final controller = SleepPermissionController(Platform.isIOS
+          ? const HealthKitSleepPermissionsService(HealthKitSleepMethodChannelBridge())
+          : const HealthConnectSleepPermissionsService(HealthConnectSleepMethodChannelBridge()));
+      await controller.requestAccess(context);
+    }
+
+    if (!mounted) return;
+
+    await prefs.setBool('hasSeenOnboarding', true);
+    await AppTourService.instance.queuePostOnboardingOffer();
+
+    if (mounted) {
+      app_main.main();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -858,6 +951,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   setState(() => _currentPage = i);
                   if (i == _adaptiveGoalPageIndex) {
                     _refreshOnboardingRecommendationPreview();
+                  }
+                  if (i == _lastPageIndex && _isImportedMode) {
+                    _runAutomatedPermissionSequence();
                   }
                 },
                 children: [

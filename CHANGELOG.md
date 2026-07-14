@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **iCloud Sync Timestamp:** The iCloud Backup Card in Data Management now persistently tracks and displays a localized "Last synced" / "Letztes Backup" timestamp, informing the user of the exact time of their last successful upload.
 - **Forced Restoring Overlays:** Integrated the blocking `LongRunningOperationOverlay` natively into all local JSON imports and iCloud database restores during Onboarding. This prevents users from navigating away or interrupting the process while large database files are being written or decrypted.
 - **Cross-Platform UI Parity:** Ensured the "Restore from iCloud" option during onboarding is strictly hidden on Android devices, exclusively rendering for iOS and macOS.
+- **Automated Onboarding Permission Sequence:** Implemented a fully compliant permission sequence following a backup restore in the Onboarding flow. The app now reads the restored preferences and sequentially loops through all previously active integrations (Apple Health/Health Connect, Steps, Pulse, Sleep). It reuses the existing custom Glass Bottom Menu explanation widgets to preface each native OS prompt, ensuring compliance with App Store guidelines before finalizing the clean initialization via `main()`.
 ## [1.0.0-alpha.9] - 2026-07-13
 
 ### Added
