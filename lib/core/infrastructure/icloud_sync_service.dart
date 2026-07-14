@@ -77,7 +77,7 @@ class ICloudSyncService {
 
   Future<bool> backupNow(AppDatabase db) async {
     if (!Platform.isIOS && !Platform.isMacOS) return false;
-    
+
     // For manual alpha-debugging, we execute this inline without a silent catch block
     // to allow the UI to catch and inspect PlatformExceptions.
     final snapshotPath = await _localSnapshotPath;
