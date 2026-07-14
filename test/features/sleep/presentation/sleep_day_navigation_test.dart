@@ -124,7 +124,7 @@ Future<void> _pumpRouteTransition(WidgetTester tester) async {
 }
 
 Future<void> _tapMetricTile(WidgetTester tester, String title) async {
-  final titleFinder = find.text(title.toUpperCase());
+  final titleFinder = find.text(title);
   await tester.scrollUntilVisible(
     titleFinder,
     240,
@@ -381,7 +381,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.pumpAndSettle();
-    expect(find.text('Daily score'), findsOneWidget);
+    expect(find.text('Sleep window'), findsOneWidget);
 
     await tester.pumpWidget(
       _testApp(
@@ -466,7 +466,7 @@ void main() {
 
     await tester.tap(find.text('Week'));
     await tester.pumpAndSettle();
-    expect(find.text('Daily score'), findsOneWidget);
+    expect(find.text('Sleep window'), findsOneWidget);
 
     await tester.tap(find.text('Month'));
     await tester.pumpAndSettle();

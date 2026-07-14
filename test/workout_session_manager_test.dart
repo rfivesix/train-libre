@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/data/drift_database.dart' as db;
 import 'package:train_libre/data/drift_database.dart' show AppDatabase;
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
@@ -34,6 +35,7 @@ void main() {
     late LiveWorkoutViewModel manager;
 
     setUp(() async {
+      SharedPreferences.setMockInitialValues({});
       database = AppDatabase(NativeDatabase.memory());
       workoutDb = WorkoutLocalDataSource.forTesting(database);
       manager = LiveWorkoutViewModel.forTesting(
@@ -707,13 +709,17 @@ void main() {
           id: 400,
           exercise: exerciseA,
           pauseSeconds: 60,
-          setTemplates: [SetTemplate(id: 4001, setType: 'normal')],
+          setTemplates: [
+            SetTemplate(id: 4001, setType: 'normal'),
+            SetTemplate(id: 4002, setType: 'normal'),
+          ],
         ),
       ]);
-      await _waitFor(() => manager.setLogs.length == 1);
+      await _waitFor(() => manager.setLogs.length == 2);
 
       // complete set to trigger rest timer
-      await manager.updateSet(4001, isCompleted: true);
+      final setId = manager.setLogs.keys.first;
+      await manager.updateSet(setId, isCompleted: true);
       expect(manager.remainingRestSeconds, 60);
 
       // Adjust positive

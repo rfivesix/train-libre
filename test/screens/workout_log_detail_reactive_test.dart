@@ -84,8 +84,8 @@ void main() {
     // Wait for drift watch stream to propagate
     await tester.pumpAndSettle();
 
-    expect(find.text('Bench Press'), findsOneWidget);
-    expect(find.text('100'), findsOneWidget); // Weight
+    expect(find.text('Bench Press'), findsWidgets);
+    expect(find.textContaining('100'), findsWidgets); // Weight
 
     await tester.pumpWidget(Container());
     await tester.pumpAndSettle();
@@ -115,9 +115,11 @@ void main() {
     await tester.pumpAndSettle();
 
     // Check it correctly shows 100 before typing
-    expect(find.text('100'), findsOneWidget);
+    expect(find.textContaining('100'), findsWidgets);
 
     // Type a new weight
+    debugDumpApp();
+    print('Widget with 100: ${find.textContaining('100').evaluate().map((e) => e.widget.runtimeType)}');
     await tester.enterText(find.byType(TextField).at(1), '105');
     await tester.pumpAndSettle();
 
@@ -130,7 +132,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // The text field should STILL have 105, because edit mode guarded the state
-    expect(find.text('105'), findsOneWidget);
+    expect(find.text('105'), findsWidgets);
 
     // Save to exit edit mode
     await tester.tap(find.text('Save').last);

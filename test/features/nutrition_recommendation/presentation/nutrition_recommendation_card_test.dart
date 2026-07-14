@@ -585,7 +585,7 @@ void main() {
     final l10n = AppLocalizations.of(context)!;
 
     expect(
-        find.text(l10n.adaptiveRecommendationEnergyDensityLabel.toUpperCase()),
+        find.text(l10n.adaptiveRecommendationEnergyDensityLabel),
         findsOneWidget);
     expect(find.text(l10n.adaptiveRecommendationEnergyDensityValue(5938)),
         findsOneWidget);

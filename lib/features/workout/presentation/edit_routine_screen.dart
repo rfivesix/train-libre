@@ -322,12 +322,14 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       ); // Parameters
 
       if (newRoutineExercise != null) {
+        if (!mounted) return;
+        final unitService = context.read<UnitService>();
         for (var st in newRoutineExercise.setTemplates) {
           // FIX: Empty reps for cardio.
           final defaultReps = isCardio ? '' : st.targetReps;
 
           _repsControllers[st.id!] = TextEditingController(text: defaultReps);
-          final unitService = context.read<UnitService>();
+
           final String weightText = (st.targetWeight == null)
               ? ''
               : (isCardio

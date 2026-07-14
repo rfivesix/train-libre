@@ -371,7 +371,7 @@ class WeekWindowCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       SizedBox(
-                        height: 44,
+                        height: 48,
                         child: Row(
                           children: aggregation.days.map((day) {
                             final score = day.score;

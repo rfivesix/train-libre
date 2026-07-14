@@ -11,7 +11,11 @@ import 'package:train_libre/features/workout/domain/models/set_log.dart';
 import 'package:train_libre/features/workout/domain/models/set_template.dart';
 import 'package:train_libre/features/workout/domain/models/workout_log.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
   final english = _labels();
   final german = _labels(
     sharedWithTrainLibre: 'Geteilt mit Train Libre',

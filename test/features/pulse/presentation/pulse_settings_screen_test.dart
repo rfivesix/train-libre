@@ -60,7 +60,8 @@ void main() {
 
     // Confirm pre-permission dialog
     await tester.tap(find.byType(FilledButton));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(service.enabled, isTrue);
     expect(service.permissionRequests, 1);

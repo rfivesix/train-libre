@@ -559,6 +559,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     bool success = false;
     try {
+      if (!mounted) return;
       success = await LongRunningOperationOverlay.run(
         context: context,
         title: l10n.backupImportTitle,
@@ -585,6 +586,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       final pw = await _askRestorePassword(l10n);
       if (pw != null) {
         try {
+          if (!mounted) return;
           success = await LongRunningOperationOverlay.run(
             context: context,
             title: l10n.backupImportTitle,

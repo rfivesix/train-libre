@@ -73,11 +73,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('RANGE'), findsOneWidget);
-    expect(find.text('60-80'), findsOneWidget);
-    expect(find.text('AVERAGE'), findsOneWidget);
-    expect(find.text('70'), findsWidgets);
-    expect(find.text('RESTING'), findsOneWidget);
+    expect(find.text('Range'), findsOneWidget);
+    expect(find.text('60-80 bpm'), findsOneWidget);
+    expect(find.text('Average'), findsOneWidget);
+    expect(find.text('70 bpm'), findsWidgets);
+    expect(find.text('Resting'), findsOneWidget);
     expect(find.byType(MeasurementChartWidget), findsOneWidget);
   });
 

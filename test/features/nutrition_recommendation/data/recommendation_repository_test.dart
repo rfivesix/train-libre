@@ -44,7 +44,7 @@ void main() {
       );
 
       expect(await repository.getGoal(), BodyweightGoal.gainWeight);
-      expect(await repository.getTargetRateKgPerWeek(), 0.25);
+      expect(await repository.getTargetRateKgPerWeek(), closeTo(0.22679, 0.001));
     });
 
     test('persists and restores canonical snapshot + generated/applied',

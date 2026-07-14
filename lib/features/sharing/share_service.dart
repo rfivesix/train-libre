@@ -162,14 +162,15 @@ class ShareService {
     required BuildContext context,
     required WorkoutLog workout,
   }) async {
-    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!, context.read<UnitService>());
+    final unitService = context.read<UnitService>();
+    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!, unitService);
     final locale = Localizations.localeOf(context).toString();
     final details = await _loadExerciseDetails(workout);
     final text = WorkoutShareFormatter(
       labels,
       locale: locale,
       exerciseDetails: details,
-      unitService: context.read<UnitService>(),
+      unitService: unitService,
     ).format(workout);
     await _shareText(text, subject: workout.routineName ?? labels.appName);
   }
@@ -190,7 +191,8 @@ class ShareService {
     WorkoutShareCardLayout layout = WorkoutShareCardLayout.summary,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    final labels = ShareLabels.fromL10n(l10n, context.read<UnitService>());
+    final unitService = context.read<UnitService>();
+    final labels = ShareLabels.fromL10n(l10n, unitService);
     final locale = Localizations.localeOf(context).toString();
     try {
       final details = await _loadExerciseDetails(workout);
@@ -200,7 +202,7 @@ class ShareService {
               labels: labels,
               locale: locale,
               exerciseDetails: details,
-              unitService: context.read<UnitService>(),
+              unitService: unitService,
             )
           : const <MuscleVolumeSummary>[];
       if (!context.mounted) return;

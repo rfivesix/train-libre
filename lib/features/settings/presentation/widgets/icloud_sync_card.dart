@@ -226,7 +226,7 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
                     '${DateFormat.yMMMMd(Localizations.localeOf(context).languageCode).format(_lastSyncDate!)}, ${DateFormat.Hm(Localizations.localeOf(context).languageCode).format(_lastSyncDate!)}')
                 : l10n.icloudNeverSynced,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: DesignConstants.spacingM),
@@ -290,7 +290,7 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
             Container(
               padding: const EdgeInsets.all(DesignConstants.spacingM),
               decoration: BoxDecoration(
-                color: theme.colorScheme.errorContainer.withOpacity(0.2),
+                color: theme.colorScheme.errorContainer.withValues(alpha: 0.2),
                 border: Border.all(color: theme.colorScheme.error, width: 1.5),
                 borderRadius: BorderRadius.circular(8),
               ),
