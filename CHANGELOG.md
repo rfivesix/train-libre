@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - **iCloud Sync Progress UI & Error Handling:** Integrated the blocking `LongRunningOperationOverlay` during manual backup to display real-time upload progress (e.g., "Uploading... 45%"). If the synchronization fails, the app now launches the project-standard full-screen `GlassMenu` overlay containing localized descriptions, a copy action, and dismiss actions.
 - **Multi-language Localization:** Added localized strings for the glassmorphism error menu title, help info, and buttons inside the `.arb` files, ensuring full localization support across all 5 supported languages (English, German, French, Italian, and Japanese).
+- **Background Auto-Backup:** Disabled periodic SQLite auto-backups explicitly for iOS/macOS devices to prevent execution conflicts, keeping this feature active only for Android.
+- **Backup File Visibility:** Transitioned the local snapshot file ('icloud_backup.sqlite') path from user-visible documents storage to the hidden internal `Application Support` directory, cleaning up the iOS Files app experience.
+- **Database Refresh:** Implemented a forced UI refresh and state reset immediately after a successful iCloud database restore, ensuring the newly downloaded data is instantly visible and connected.
 
 ## [1.0.0-alpha.9] - 2026-07-13
 

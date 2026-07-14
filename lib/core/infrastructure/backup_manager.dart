@@ -1026,6 +1026,8 @@ class BackupManager {
     String? dirPath,
     bool force = false,
   }) async {
+    if (Platform.isIOS || Platform.isMacOS) return false;
+
     try {
       final prefs = await _prefsLoader();
       final lastBackupMillis = prefs.getInt('last_auto_backup_timestamp') ?? 0;

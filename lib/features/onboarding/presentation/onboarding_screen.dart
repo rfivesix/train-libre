@@ -5,6 +5,7 @@ import '../../../util/design_constants.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
+import '../../../main.dart' as app_main;
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../data/database_helper.dart';
@@ -482,10 +483,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.onboardingRestoreICloudSuccess)),
       );
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-        (route) => false,
-      );
+      
+      // Close old connection so SQLite releases the file lock
+      DatabaseHelper.driftDb?.close();
+      
+      // Fully restart the app to instantiate a new database connection
+      app_main.main();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

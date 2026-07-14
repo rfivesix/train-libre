@@ -43,7 +43,7 @@ class ICloudSyncService {
 
   /// The local snapshot copy that will be uploaded to iCloud.
   Future<String> get _localSnapshotPath async {
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = await getApplicationSupportDirectory();
     final backupDir = Directory(p.join(dir.path, 'backups'));
     if (!backupDir.existsSync()) await backupDir.create(recursive: true);
     return p.join(backupDir.path, _kICloudBackupFileName);
