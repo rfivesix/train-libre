@@ -115,7 +115,6 @@ class ICloudSyncService {
         'iCloud backup: snapshot created ($snapshotSizeBytes bytes, ${(snapshotSizeBytes / (1024 * 1024)).toStringAsFixed(2)} MiB), starting upload',
       );
 
-      // Upload to iCloud.
       await ICloudStorage.upload(
         containerId: _containerId,
         filePath: snapshotPath,
