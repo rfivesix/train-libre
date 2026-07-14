@@ -23,7 +23,19 @@ class GlassMenu extends StatefulWidget {
   /// Callback triggered when the menu should be dismissed.
   final VoidCallback onDismiss;
 
-  const GlassMenu({super.key, required this.items, required this.onDismiss});
+  /// The optional title to display at the top of the menu.
+  final String? title;
+
+  /// The optional subtitle or description to display below the title.
+  final String? subtitle;
+
+  const GlassMenu({
+    super.key,
+    required this.items,
+    required this.onDismiss,
+    this.title,
+    this.subtitle,
+  });
 
   @override
   State<GlassMenu> createState() => _GlassMenuState();
@@ -50,56 +62,88 @@ class _GlassMenuState extends State<GlassMenu>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: widget.onDismiss,
       child: Scaffold(
         backgroundColor: Colors.black.withValues(alpha: 0.4),
         body: Center(
-          child: Wrap(
-            spacing: 24,
-            runSpacing: 24,
-            children: List.generate(widget.items.length, (index) {
-              final item = widget.items[index];
-              final intervalStart = index * 0.1;
-              final intervalEnd = intervalStart + 0.5;
-
-              final animation = CurvedAnimation(
-                parent: _controller,
-                curve: Interval(
-                  intervalStart,
-                  intervalEnd,
-                  curve: Curves.easeOutBack,
-                ),
-              );
-
-              return ScaleTransition(
-                scale: animation,
-                child: FadeTransition(
-                  opacity: animation,
-                  child: GestureDetector(
-                    onTap: () {
-                      item.onTap();
-                      widget.onDismiss();
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildGlassIcon(item.icon),
-                        const SizedBox(height: DesignConstants.spacingM),
-                        Text(
-                          item.label,
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                      ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.title != null) ...[
+                  Text(
+                    widget.title!,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                ],
+                if (widget.subtitle != null) ...[
+                  Text(
+                    widget.subtitle!,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: Colors.white70,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingXL),
+                ],
+                Wrap(
+                  spacing: 24,
+                  runSpacing: 24,
+                  alignment: WrapAlignment.center,
+                  children: List.generate(widget.items.length, (index) {
+                    final item = widget.items[index];
+                    final intervalStart = index * 0.1;
+                    final intervalEnd = intervalStart + 0.5;
+
+                    final animation = CurvedAnimation(
+                      parent: _controller,
+                      curve: Interval(
+                        intervalStart,
+                        intervalEnd,
+                        curve: Curves.easeOutBack,
+                      ),
+                    );
+
+                    return ScaleTransition(
+                      scale: animation,
+                      child: FadeTransition(
+                        opacity: animation,
+                        child: GestureDetector(
+                          onTap: () {
+                            item.onTap();
+                            widget.onDismiss();
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildGlassIcon(item.icon),
+                              const SizedBox(height: DesignConstants.spacingM),
+                              Text(
+                                item.label,
+                                style:
+                                    Theme.of(context).textTheme.titleLarge?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                 ),
-              );
-            }),
+              ],
+            ),
           ),
         ),
       ),

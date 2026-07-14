@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-alpha.10] - 2026-07-14
+
+### Fixed
+- **iCloud Container Entitlements:** Resolved the container entitlement mismatch by removing the obsolete `$(TeamIdentifierPrefix)` macro from the ubiquity container identifiers list in `Runner.entitlements`, fixing the `E_CTR` invalid container errors on iOS.
+- **iCloud Sync Stream Completion:** Reworked the upload and download operations to wrap `ICloudStorage` calls in a `Completer` that listens to the `onProgress` stream. This prevents the operations from resolving prematurely, fixing a bug where restoring from iCloud would always fail because the app tried to read the downloaded database snapshot before it was fully written.
+- **SQLite Database Lock:** Fixed an issue where running manual backup or auto-backup concurrently caused a `SqliteException(1) output file already exists` crash, by checking if the snapshot file exists and calling an asynchronous `.delete()` on it before starting `VACUUM INTO`.
+- **Flutter Stack Trace Assertion:** Resolved a crash where `debugPrintStack(stackTrace: st)` would trigger a Flutter framework assertion error due to `package:stack_trace` formatting conflicts. Replaced it with a standard `debugPrint("iCloud StackTrace: $st")` statement.
+- **Progress Overlay Exception Interception:** Fixed a bug where native exceptions thrown during the `LongRunningOperationOverlay` run were thrown out of the dialog context as unhandled event loop errors, crashing the app. Exceptions are now caught within the async closure, closing the overlay gracefully and propagating errors to the card UI.
+
+### Changed
+- **iCloud Sync Progress UI & Error Handling:** Integrated the blocking `LongRunningOperationOverlay` during manual backup to display real-time upload progress (e.g., "Uploading... 45%"). If the synchronization fails, the app now launches the project-standard full-screen `GlassMenu` overlay containing localized descriptions, a copy action, and dismiss actions.
+- **Multi-language Localization:** Added localized strings for the glassmorphism error menu title, help info, and buttons inside the `.arb` files, ensuring full localization support across all 5 supported languages (English, German, French, Italian, and Japanese).
+
 ## [1.0.0-alpha.9] - 2026-07-13
 
 ### Added

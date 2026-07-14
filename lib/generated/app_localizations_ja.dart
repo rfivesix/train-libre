@@ -5386,4 +5386,20 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get muscleObliques => '腹斜筋';
+
+  @override
+  String get icloudSyncErrorTitle => 'iCloud同期エラー';
+
+  @override
+  String get icloudSyncErrorHelp =>
+      'iOSの「設定」->「[名前]」->「iCloud」->「iCloud Drive」でiCloud Driveが有効になっていることを確認してください。';
+
+  @override
+  String get icloudSyncErrorCopyLog => '技術エラーログをコピー';
+
+  @override
+  String get icloudSyncErrorClose => '閉じる';
+
+  @override
+  String get icloudSyncErrorCopied => 'エラーログをクリップボードにコピーしました！';
 }

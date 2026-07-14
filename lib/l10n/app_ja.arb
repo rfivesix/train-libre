@@ -2518,5 +2518,10 @@
     "placeholders": {
       "unit": {}
     }
-  }
+  },
+  "icloudSyncErrorTitle": "iCloud同期エラー",
+  "icloudSyncErrorHelp": "iOSの「設定」->「[名前]」->「iCloud」->「iCloud Drive」でiCloud Driveが有効になっていることを確認してください。",
+  "icloudSyncErrorCopyLog": "技術エラーログをコピー",
+  "icloudSyncErrorClose": "閉じる",
+  "icloudSyncErrorCopied": "エラーログをクリップボードにコピーしました！"
 }

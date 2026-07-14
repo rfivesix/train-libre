@@ -2518,5 +2518,10 @@
     "placeholders": {
       "unit": {}
     }
-  }
+  },
+  "icloudSyncErrorTitle": "Sincronizzazione iCloud fallita",
+  "icloudSyncErrorHelp": "Assicurati che iCloud Drive sia abilitato nelle Impostazioni di sistema iOS in Impostazioni -> [Tuo Nome] -> iCloud -> iCloud Drive.",
+  "icloudSyncErrorCopyLog": "Copia registro errori tecnici",
+  "icloudSyncErrorClose": "Chiudi",
+  "icloudSyncErrorCopied": "Registro degli errori copiato negli appunti!"
 }

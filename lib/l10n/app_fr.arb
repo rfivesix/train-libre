@@ -2518,5 +2518,10 @@
     "placeholders": {
       "unit": {}
     }
-  }
+  },
+  "icloudSyncErrorTitle": "Échec de la synchronisation iCloud",
+  "icloudSyncErrorHelp": "Veuillez vous assurer que iCloud Drive est activé dans les réglages système d'iOS sous Réglages -> [Votre Nom] -> iCloud -> iCloud Drive.",
+  "icloudSyncErrorCopyLog": "Copier le journal technique des erreurs",
+  "icloudSyncErrorClose": "Fermer",
+  "icloudSyncErrorCopied": "Journal des erreurs copié dans le presse-papiers !"
 }

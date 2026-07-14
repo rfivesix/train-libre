@@ -5645,4 +5645,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get muscleObliques => 'Obliqui';
+
+  @override
+  String get icloudSyncErrorTitle => 'Sincronizzazione iCloud fallita';
+
+  @override
+  String get icloudSyncErrorHelp =>
+      'Assicurati che iCloud Drive sia abilitato nelle Impostazioni di sistema iOS in Impostazioni -> [Tuo Nome] -> iCloud -> iCloud Drive.';
+
+  @override
+  String get icloudSyncErrorCopyLog => 'Copia registro errori tecnici';
+
+  @override
+  String get icloudSyncErrorClose => 'Chiudi';
+
+  @override
+  String get icloudSyncErrorCopied =>
+      'Registro degli errori copiato negli appunti!';
 }

@@ -1,5 +1,6 @@
 // lib/core/infrastructure/icloud_sync_service.dart
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -75,23 +76,23 @@ class ICloudSyncService {
     return _snapshotAndUpload(db);
   }
 
-  Future<bool> backupNow(AppDatabase db) async {
+  Future<bool> backupNow(
+    AppDatabase db, {
+    void Function(double progress)? onProgress,
+  }) async {
     if (!Platform.isIOS && !Platform.isMacOS) return false;
 
     // For manual alpha-debugging, we execute this inline without a silent catch block
     // to allow the UI to catch and inspect PlatformExceptions.
     final snapshotPath = await _localSnapshotPath;
     final snapshotFile = File(snapshotPath);
-    if (snapshotFile.existsSync()) snapshotFile.deleteSync();
+    if (await snapshotFile.exists()) {
+      await snapshotFile.delete();
+    }
 
     await db.customStatement('VACUUM INTO ?', [snapshotPath]);
 
-    await ICloudStorage.upload(
-      containerId: _containerId,
-      filePath: snapshotPath,
-      destinationRelativePath: _kICloudBackupFileName,
-      onProgress: null,
-    );
+    await _uploadWithProgress(snapshotPath, _kICloudBackupFileName, onProgress);
 
     return true;
   }
@@ -105,7 +106,9 @@ class ICloudSyncService {
 
       // Delete stale snapshot if it exists, so VACUUM INTO starts fresh.
       final snapshotFile = File(snapshotPath);
-      if (snapshotFile.existsSync()) snapshotFile.deleteSync();
+      if (await snapshotFile.exists()) {
+        await snapshotFile.delete();
+      }
 
       // VACUUM INTO creates a defragmented, non-locked copy of the live DB.
       await db.customStatement('VACUUM INTO ?', [snapshotPath]);
@@ -115,12 +118,7 @@ class ICloudSyncService {
         'iCloud backup: snapshot created ($snapshotSizeBytes bytes, ${(snapshotSizeBytes / (1024 * 1024)).toStringAsFixed(2)} MiB), starting upload',
       );
 
-      await ICloudStorage.upload(
-        containerId: _containerId,
-        filePath: snapshotPath,
-        destinationRelativePath: _kICloudBackupFileName,
-        onProgress: null,
-      );
+      await _uploadWithProgress(snapshotPath, _kICloudBackupFileName, null);
 
       debugPrint(
         'iCloud backup: upload completed successfully for $_kICloudBackupFileName',
@@ -129,7 +127,7 @@ class ICloudSyncService {
       return true;
     } catch (e, st) {
       debugPrint('iCloud backup: failed with error: $e');
-      debugPrintStack(stackTrace: st);
+      debugPrint("iCloud StackTrace: $st");
       // Swallow errors silently — backup failures should not crash the app.
       return false;
     }
@@ -161,32 +159,107 @@ class ICloudSyncService {
   /// the database provider).
   ///
   /// Returns `true` on success.
-  Future<bool> downloadAndRestore() async {
+  Future<bool> downloadAndRestore({
+    void Function(double progress)? onProgress,
+  }) async {
     if (!Platform.isIOS && !Platform.isMacOS) return false;
     try {
       final activePath = await _activeDatabasePath;
       final tempPath = '$activePath.restore_tmp';
 
+      // Ensure clean start
+      final tempFile = File(tempPath);
+      if (tempFile.existsSync()) tempFile.deleteSync();
+
       // Download from iCloud into a temp file.
-      await ICloudStorage.download(
-        containerId: _containerId,
-        relativePath: _kICloudBackupFileName,
-        destinationFilePath: tempPath,
-        onProgress: null,
-      );
+      await _downloadWithProgress(_kICloudBackupFileName, tempPath, onProgress);
 
       // Verify the downloaded file exists and is non-empty.
-      final tempFile = File(tempPath);
       if (!tempFile.existsSync() || tempFile.lengthSync() == 0) {
-        tempFile.deleteSync();
+        if (tempFile.existsSync()) tempFile.deleteSync();
         return false;
       }
 
       // Atomically replace the active database.
       await tempFile.rename(activePath);
       return true;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      debugPrint('iCloud restore failed: $e');
+      rethrow;
+    }
+  }
+
+  // ── Progress Wrapping Helpers ─────────────────────────────────────────────
+
+  Future<void> _uploadWithProgress(
+    String localPath,
+    String destPath,
+    void Function(double progress)? onProgress,
+  ) async {
+    final completer = Completer<void>();
+    StreamSubscription<double>? subscription;
+
+    try {
+      await ICloudStorage.upload(
+        containerId: _containerId,
+        filePath: localPath,
+        destinationRelativePath: destPath,
+        onProgress: (stream) {
+          subscription = stream.listen(
+            (progress) {
+              if (onProgress != null) {
+                onProgress(progress);
+              }
+            },
+            onDone: () {
+              if (!completer.isCompleted) completer.complete();
+            },
+            onError: (err) {
+              if (!completer.isCompleted) completer.completeError(err);
+            },
+            cancelOnError: true,
+          );
+        },
+      );
+      await completer.future;
+    } finally {
+      await subscription?.cancel();
+    }
+  }
+
+  Future<void> _downloadWithProgress(
+    String relativePath,
+    String localPath,
+    void Function(double progress)? onProgress,
+  ) async {
+    final completer = Completer<void>();
+    StreamSubscription<double>? subscription;
+
+    try {
+      await ICloudStorage.download(
+        containerId: _containerId,
+        relativePath: relativePath,
+        destinationFilePath: localPath,
+        onProgress: (stream) {
+          subscription = stream.listen(
+            (progress) {
+              if (onProgress != null) {
+                onProgress(progress);
+              }
+            },
+            onDone: () {
+              if (!completer.isCompleted) completer.complete();
+            },
+            onError: (err) {
+              if (!completer.isCompleted) completer.completeError(err);
+            },
+            cancelOnError: true,
+          );
+        },
+      );
+      await completer.future;
+    } finally {
+      await subscription?.cancel();
     }
   }
 }

@@ -449,9 +449,12 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     ),
                   if (isApple)
                     ICloudSyncCard(
-                      onBackupNow: () async {
+                      onBackupNow: ({onProgress}) async {
                         final db = DatabaseHelper.driftDb!;
-                        return await ICloudSyncService.instance.backupNow(db);
+                        return await ICloudSyncService.instance.backupNow(
+                          db,
+                          onProgress: onProgress,
+                        );
                       },
                     ),
                 ],

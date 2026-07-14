@@ -9744,6 +9744,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Obliques'**
   String get muscleObliques;
+
+  /// No description provided for @icloudSyncErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud Sync Failed'**
+  String get icloudSyncErrorTitle;
+
+  /// No description provided for @icloudSyncErrorHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Please ensure that iCloud Drive is enabled in your iOS System Settings under Settings -> [Your Name] -> iCloud -> iCloud Drive.'**
+  String get icloudSyncErrorHelp;
+
+  /// No description provided for @icloudSyncErrorCopyLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Technical Error Log'**
+  String get icloudSyncErrorCopyLog;
+
+  /// No description provided for @icloudSyncErrorClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get icloudSyncErrorClose;
+
+  /// No description provided for @icloudSyncErrorCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Error log copied to clipboard!'**
+  String get icloudSyncErrorCopied;
 }
 
 class _AppLocalizationsDelegate

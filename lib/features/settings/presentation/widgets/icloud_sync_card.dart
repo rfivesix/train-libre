@@ -3,13 +3,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
-import 'package:flutter/services.dart';
-
 import '../../../../core/infrastructure/icloud_sync_service.dart';
-import '../../../../util/design_constants.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../util/design_constants.dart';
+import '../../../../util/cancellation_token.dart';
+import '../../../../widgets/common/long_running_operation_overlay.dart';
+import '../../../../widgets/common/glass_menu.dart';
 import '../../../../widgets/common/platform_adaptive_switch.dart';
 
 /// A settings card (iOS/macOS only) that lets the user enable/disable
@@ -18,7 +20,7 @@ import '../../../../widgets/common/platform_adaptive_switch.dart';
 /// Rendered inside [DataManagementScreen] below the existing auto-backup card.
 class ICloudSyncCard extends StatefulWidget {
   /// Called when the user initiates a manual "Backup Now" action.
-  final Future<bool> Function() onBackupNow;
+  final Future<bool> Function({void Function(double progress)? onProgress}) onBackupNow;
 
   const ICloudSyncCard({super.key, required this.onBackupNow});
 
@@ -62,20 +64,48 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
       _nativeDiagnosticLog = null;
     });
 
+    final l10n = AppLocalizations.of(context)!;
     bool success = false;
+    Object? capturedError;
+    StackTrace? capturedStackTrace;
+
     try {
-      success = await widget.onBackupNow();
-    } on PlatformException catch (e, stackTrace) {
-      _bindErrorDump(
-          'PlatformException [${e.code}]:\nMessage: ${e.message}\nDetails: ${e.details}',
-          stackTrace);
-    } on MissingPluginException catch (e, stackTrace) {
-      _bindErrorDump(
-          'MissingPluginException (Plugin not registered):\n${e.message}',
-          stackTrace);
+      success = await LongRunningOperationOverlay.run(
+        context: context,
+        title: l10n.icloudBackupNow,
+        initialStatus: 'Starting upload...',
+        icon: LucideIcons.cloud_upload,
+        operation: (token, updateProgress) async {
+          try {
+            await widget.onBackupNow(
+              onProgress: (progress) {
+                final normProgress = progress > 1.0 ? progress / 100.0 : progress;
+                final percent = (normProgress * 100).toStringAsFixed(0);
+                updateProgress('Uploading... $percent%', normProgress);
+              },
+            );
+          } catch (e, st) {
+            capturedError = e;
+            capturedStackTrace = st;
+            throw OperationCanceledException();
+          }
+        },
+      );
     } catch (e, stackTrace) {
+      capturedError ??= e;
+      capturedStackTrace ??= stackTrace;
+    }
+
+    if (capturedError != null) {
+      final err = capturedError!;
+      final st = capturedStackTrace ?? StackTrace.current;
       _bindErrorDump(
-          'Unhandled Native/CloudKit Exception:\n${e.toString()}', stackTrace);
+        err is PlatformException 
+            ? 'PlatformException [${err.code}]:\nMessage: ${err.message}\nDetails: ${err.details}'
+            : err.toString(), 
+        st,
+      );
+      _showGlassErrorSheet(err, st);
     }
 
     if (mounted) {
@@ -95,6 +125,49 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
       _nativeDiagnosticLog = dump;
       _lastBackupSuccess = false;
     });
+  }
+
+  void _showGlassErrorSheet(dynamic error, StackTrace stackTrace) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    
+    final String technicalDetails =
+        "=== RAW NATIVE EXCEPTION ===\n$error\n\n=== STACK TRACE ===\n$stackTrace";
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (dialogCtx) {
+        return GlassMenu(
+          title: l10n.icloudSyncErrorTitle,
+          subtitle: l10n.icloudSyncErrorHelp,
+          onDismiss: () => Navigator.of(dialogCtx).pop(),
+          items: [
+            GlassMenuItem(
+              icon: LucideIcons.copy,
+              label: l10n.icloudSyncErrorCopyLog,
+              onTap: () async {
+                await Clipboard.setData(ClipboardData(text: technicalDetails));
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.icloudSyncErrorCopied),
+                      backgroundColor: theme.colorScheme.secondary,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+            ),
+            GlassMenuItem(
+              icon: LucideIcons.circle_x,
+              label: l10n.icloudSyncErrorClose,
+              onTap: () {},
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

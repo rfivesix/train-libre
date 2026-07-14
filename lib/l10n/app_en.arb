@@ -2644,5 +2644,10 @@
     "placeholders": {
       "unit": {}
     }
-  }
+  },
+  "icloudSyncErrorTitle": "iCloud Sync Failed",
+  "icloudSyncErrorHelp": "Please ensure that iCloud Drive is enabled in your iOS System Settings under Settings -> [Your Name] -> iCloud -> iCloud Drive.",
+  "icloudSyncErrorCopyLog": "Copy Technical Error Log",
+  "icloudSyncErrorClose": "Close",
+  "icloudSyncErrorCopied": "Error log copied to clipboard!"
 }

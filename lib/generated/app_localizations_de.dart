@@ -5606,4 +5606,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get muscleObliques => 'Seitliche Bauchmuskeln';
+
+  @override
+  String get icloudSyncErrorTitle => 'iCloud-Synchronisierung fehlgeschlagen';
+
+  @override
+  String get icloudSyncErrorHelp =>
+      'Bitte stelle sicher, dass iCloud Drive in den iOS-Systemeinstellungen unter Einstellungen -> [Dein Name] -> iCloud -> iCloud Drive aktiviert ist.';
+
+  @override
+  String get icloudSyncErrorCopyLog => 'Technisches Fehlerprotokoll kopieren';
+
+  @override
+  String get icloudSyncErrorClose => 'Schließen';
+
+  @override
+  String get icloudSyncErrorCopied =>
+      'Fehlerprotokoll in die Zwischenablage kopiert!';
 }
