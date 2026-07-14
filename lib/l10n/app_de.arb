@@ -2522,5 +2522,7 @@
   "icloudSyncErrorHelp": "Bitte stelle sicher, dass iCloud Drive in den iOS-Systemeinstellungen unter Einstellungen -> [Dein Name] -> iCloud -> iCloud Drive aktiviert ist.",
   "icloudSyncErrorCopyLog": "Technisches Fehlerprotokoll kopieren",
   "icloudSyncErrorClose": "Schließen",
-  "icloudSyncErrorCopied": "Fehlerprotokoll in die Zwischenablage kopiert!"
+  "icloudSyncErrorCopied": "Fehlerprotokoll in die Zwischenablage kopiert!",
+  "icloudLastSynced": "Letztes Backup: {date}",
+  "icloudNeverSynced": "Noch nie synchronisiert"
 }

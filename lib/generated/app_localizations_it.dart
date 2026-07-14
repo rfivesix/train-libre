@@ -5662,4 +5662,12 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get icloudSyncErrorCopied =>
       'Registro degli errori copiato negli appunti!';
+
+  @override
+  String icloudLastSynced(String date) {
+    return 'Ultima sincronizzazione: $date';
+  }
+
+  @override
+  String get icloudNeverSynced => 'Mai sincronizzato';
 }

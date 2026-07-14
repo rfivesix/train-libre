@@ -9774,6 +9774,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error log copied to clipboard!'**
   String get icloudSyncErrorCopied;
+
+  /// No description provided for @icloudLastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced: {date}'**
+  String icloudLastSynced(String date);
+
+  /// No description provided for @icloudNeverSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Never synced'**
+  String get icloudNeverSynced;
 }
 
 class _AppLocalizationsDelegate

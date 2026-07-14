@@ -17,6 +17,9 @@ const _kICloudBackupFileName = 'icloud_backup.sqlite';
 /// The SharedPreferences key for toggling automated iCloud sync.
 const String kICloudSyncEnabledKey = 'is_icloud_sync_enabled';
 
+/// The SharedPreferences key for the last successful backup timestamp.
+const String kICloudLastSyncTimestampKey = 'icloud_last_sync_timestamp';
+
 /// Service responsible for snapshotting the active Drift database and syncing
 /// the snapshot to and from the user's iCloud Drive container.
 ///
@@ -63,6 +66,20 @@ class ICloudSyncService {
     await prefs.setBool(kICloudSyncEnabledKey, enabled);
   }
 
+  /// Returns the last successful sync timestamp, or null if never synced.
+  Future<DateTime?> getLastSyncTimestamp() async {
+    final prefs = await SharedPreferences.getInstance();
+    final millis = prefs.getInt(kICloudLastSyncTimestampKey);
+    if (millis == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(millis);
+  }
+
+  /// Persists the last successful sync timestamp.
+  Future<void> _setLastSyncTimestamp(DateTime timestamp) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(kICloudLastSyncTimestampKey, timestamp.millisecondsSinceEpoch);
+  }
+
   // ── Upload ────────────────────────────────────────────────────────────────
 
   /// Checks if sync is enabled, then snapshots and uploads the database.
@@ -94,6 +111,8 @@ class ICloudSyncService {
 
     await _uploadWithProgress(snapshotPath, _kICloudBackupFileName, onProgress);
 
+    await _setLastSyncTimestamp(DateTime.now());
+
     return true;
   }
 
@@ -123,6 +142,8 @@ class ICloudSyncService {
       debugPrint(
         'iCloud backup: upload completed successfully for $_kICloudBackupFileName',
       );
+
+      await _setLastSyncTimestamp(DateTime.now());
 
       return true;
     } catch (e, st) {

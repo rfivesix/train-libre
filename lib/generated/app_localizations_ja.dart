@@ -5402,4 +5402,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get icloudSyncErrorCopied => 'エラーログをクリップボードにコピーしました！';
+
+  @override
+  String icloudLastSynced(String date) {
+    return '最終同期：$date';
+  }
+
+  @override
+  String get icloudNeverSynced => '未同期';
 }

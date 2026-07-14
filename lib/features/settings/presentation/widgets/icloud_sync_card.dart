@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/infrastructure/icloud_sync_service.dart';
 import '../../../../generated/app_localizations.dart';
@@ -33,6 +34,7 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
   bool _isBackingUp = false;
   bool? _lastBackupSuccess;
   String? _nativeDiagnosticLog;
+  DateTime? _lastSyncDate;
 
   @override
   void initState() {
@@ -42,7 +44,13 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
 
   Future<void> _loadPreference() async {
     final enabled = await ICloudSyncService.instance.isSyncEnabled();
-    if (mounted) setState(() => _isEnabled = enabled);
+    final lastSync = await ICloudSyncService.instance.getLastSyncTimestamp();
+    if (mounted) {
+      setState(() {
+        _isEnabled = enabled;
+        _lastSyncDate = lastSync;
+      });
+    }
   }
 
   Future<void> _toggleEnabled(bool value) async {
@@ -113,6 +121,9 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
         _isBackingUp = false;
         if (_nativeDiagnosticLog == null) {
           _lastBackupSuccess = success;
+        }
+        if (success) {
+          _lastSyncDate = DateTime.now();
         }
       });
     }
@@ -206,6 +217,16 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
             l10n.icloudAutoBackupDescription,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Text(
+            _lastSyncDate != null
+                ? l10n.icloudLastSynced(
+                    '${DateFormat.yMMMMd(Localizations.localeOf(context).languageCode).format(_lastSyncDate!)}, ${DateFormat.Hm(Localizations.localeOf(context).languageCode).format(_lastSyncDate!)}')
+                : l10n.icloudNeverSynced,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: DesignConstants.spacingM),

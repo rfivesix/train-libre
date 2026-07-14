@@ -5623,4 +5623,12 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get icloudSyncErrorCopied =>
       'Fehlerprotokoll in die Zwischenablage kopiert!';
+
+  @override
+  String icloudLastSynced(String date) {
+    return 'Letztes Backup: $date';
+  }
+
+  @override
+  String get icloudNeverSynced => 'Noch nie synchronisiert';
 }
