@@ -37,6 +37,7 @@ import 'dart:io';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
+import '../../../widgets/common/long_running_operation_overlay.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -67,6 +68,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   static const int _lastPageIndex = _pageCount - 1;
 
   bool _isImportedMode = false;
+  bool _requiresHardRestart = false;
   bool _hasICloudBackup = false;
 
   String? _heightError;
@@ -460,6 +462,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await AppTourService.instance.queuePostOnboardingOffer();
 
     if (!mounted) return;
+
+    if (_requiresHardRestart) {
+      app_main.main();
+      return;
+    }
+
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const MainScreen()),
       (route) => false,
@@ -472,23 +480,50 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     setState(() => _isRestoring = true);
-    final success = await ICloudSyncService.instance.downloadAndRestore();
+
+    bool success = false;
+    try {
+      success = await LongRunningOperationOverlay.run(
+        context: context,
+        title: l10n.onboardingRestoreFromICloud,
+        initialStatus: 'Downloading backup...',
+        icon: LucideIcons.cloud_download,
+        operation: (token, updateProgress) async {
+          final res = await ICloudSyncService.instance.downloadAndRestore(
+            onProgress: (progress) {
+              final normProgress = progress > 1.0 ? progress / 100.0 : progress;
+              final percent = (normProgress * 100).toStringAsFixed(0);
+              updateProgress('Downloading... $percent%', normProgress);
+            },
+          );
+          if (!res) throw Exception('Restore failed');
+        },
+      );
+    } catch (e) {
+      success = false;
+    }
+
     if (!mounted) return;
     setState(() => _isRestoring = false);
 
     if (success) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('hasSeenOnboarding', true);
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.onboardingRestoreICloudSuccess)),
       );
-      
+
       // Close old connection so SQLite releases the file lock
       DatabaseHelper.driftDb?.close();
-      
-      // Fully restart the app to instantiate a new database connection
-      app_main.main();
+
+      setState(() {
+        _isImportedMode = true;
+        _requiresHardRestart = true;
+      });
+
+      _pageController.animateToPage(
+        _regionSelectionPageIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -522,16 +557,55 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _isRestoring = true);
     final filePath = result.files.single.path!;
 
-    bool success = await BackupManager.instance.importFullBackupAuto(filePath);
+    bool success = false;
+    try {
+      success = await LongRunningOperationOverlay.run(
+        context: context,
+        title: l10n.backupImportTitle,
+        initialStatus: l10n.backupImportTitle,
+        icon: LucideIcons.download,
+        operation: (token, updateProgress) async {
+          final res = await BackupManager.instance.importFullBackupAuto(
+            filePath,
+            token: token,
+            onProgress: (tableName, progress) {
+              final statusText = l10n.progressImportingTable(tableName);
+              updateProgress(statusText, progress);
+            },
+          );
+          if (!res) throw Exception('Import failed');
+        },
+      );
+    } catch (e) {
+      success = false;
+    }
 
     // If plain import failed, the file might be encrypted — ask for password.
     if (!success && mounted) {
       final pw = await _askRestorePassword(l10n);
       if (pw != null) {
-        success = await BackupManager.instance.importFullBackupAuto(
-          filePath,
-          passphrase: pw,
-        );
+        try {
+          success = await LongRunningOperationOverlay.run(
+            context: context,
+            title: l10n.backupImportTitle,
+            initialStatus: 'Decrypting...',
+            icon: LucideIcons.download,
+            operation: (token, updateProgress) async {
+              final res = await BackupManager.instance.importFullBackupAuto(
+                filePath,
+                passphrase: pw,
+                token: token,
+                onProgress: (tableName, progress) {
+                  final statusText = l10n.progressImportingTable(tableName);
+                  updateProgress(statusText, progress);
+                },
+              );
+              if (!res) throw Exception('Import failed');
+            },
+          );
+        } catch (e) {
+          success = false;
+        }
       }
     }
 
@@ -542,6 +616,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (!mounted) return;
       setState(() {
         _isImportedMode = true;
+        _requiresHardRestart = true;
       });
       ScaffoldMessenger.of(
         context,

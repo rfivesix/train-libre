@@ -1,6 +1,7 @@
 // lib/core/infrastructure/icloud_sync_service.dart
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -106,7 +107,7 @@ class ICloudSyncService {
     if (await snapshotFile.exists()) {
       await snapshotFile.delete();
     }
-
+    await _bundleSharedPreferences(db);
     await db.customStatement('VACUUM INTO ?', [snapshotPath]);
 
     await _uploadWithProgress(snapshotPath, _kICloudBackupFileName, onProgress);
@@ -129,6 +130,7 @@ class ICloudSyncService {
         await snapshotFile.delete();
       }
 
+      await _bundleSharedPreferences(db);
       // VACUUM INTO creates a defragmented, non-locked copy of the live DB.
       await db.customStatement('VACUUM INTO ?', [snapshotPath]);
 
@@ -203,6 +205,12 @@ class ICloudSyncService {
 
       // Atomically replace the active database.
       await tempFile.rename(activePath);
+      
+      // Restore shared preferences from the new database snapshot
+      final tempDb = AppDatabase();
+      await _extractSharedPreferences(tempDb);
+      await tempDb.close();
+
       return true;
     } catch (e) {
       debugPrint('iCloud restore failed: $e');
@@ -281,6 +289,61 @@ class ICloudSyncService {
       await completer.future;
     } finally {
       await subscription?.cancel();
+    }
+  }
+
+  // ── SharedPreferences Synchronization ───────────────────────────────────────
+
+  Future<void> _bundleSharedPreferences(AppDatabase db) async {
+    await db.customStatement(
+        'CREATE TABLE IF NOT EXISTS system_preferences (key TEXT PRIMARY KEY, value TEXT)');
+    final prefs = await SharedPreferences.getInstance();
+    for (final key in prefs.getKeys()) {
+      final value = prefs.get(key);
+      String? strValue;
+      if (value is bool) {
+        strValue = 'b:$value';
+      } else if (value is int) {
+        strValue = 'i:$value';
+      } else if (value is double) {
+        strValue = 'd:$value';
+      } else if (value is String) {
+        strValue = 's:$value';
+      } else if (value is List<String>) {
+        strValue = 'l:${jsonEncode(value)}';
+      }
+
+      if (strValue != null) {
+        await db.customStatement(
+            'INSERT OR REPLACE INTO system_preferences (key, value) VALUES (?, ?)',
+            [key, strValue]);
+      }
+    }
+  }
+
+  Future<void> _extractSharedPreferences(AppDatabase db) async {
+    try {
+      final rows = await db.customSelect('SELECT key, value FROM system_preferences').get();
+      final prefs = await SharedPreferences.getInstance();
+      for (final row in rows) {
+        final key = row.read<String>('key');
+        final valStr = row.read<String>('value');
+        if (valStr.startsWith('b:')) {
+          await prefs.setBool(key, valStr.substring(2) == 'true');
+        } else if (valStr.startsWith('i:')) {
+          await prefs.setInt(key, int.parse(valStr.substring(2)));
+        } else if (valStr.startsWith('d:')) {
+          await prefs.setDouble(key, double.parse(valStr.substring(2)));
+        } else if (valStr.startsWith('s:')) {
+          await prefs.setString(key, valStr.substring(2));
+        } else if (valStr.startsWith('l:')) {
+          final list = jsonDecode(valStr.substring(2)) as List;
+          await prefs.setStringList(key, list.cast<String>());
+        }
+      }
+    } catch (e) {
+      // Table might not exist in older backups
+      debugPrint('Failed to extract shared preferences from backup: $e');
     }
   }
 }

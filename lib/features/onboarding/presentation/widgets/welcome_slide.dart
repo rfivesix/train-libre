@@ -48,7 +48,7 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final showICloudButton = Platform.isIOS && widget.onRestoreICloud != null;
+    final showICloudButton = (Platform.isIOS || Platform.isMacOS) && widget.onRestoreICloud != null;
 
     return SingleChildScrollView(
       child: Padding(

@@ -19,7 +19,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Background Auto-Backup:** Disabled periodic SQLite auto-backups explicitly for iOS/macOS devices to prevent execution conflicts, keeping this feature active only for Android.
 - **Backup File Visibility:** Transitioned the local snapshot file ('icloud_backup.sqlite') path from user-visible documents storage to the hidden internal `Application Support` directory, cleaning up the iOS Files app experience.
 - **Database Refresh:** Implemented a forced UI refresh and state reset immediately after a successful iCloud database restore, ensuring the newly downloaded data is instantly visible and connected.
-
+- **App Settings Synchronization:** App settings stored in `SharedPreferences` (like the iCloud sync toggle itself, UI preferences, and goals) are now seamlessly bundled into a temporary `system_preferences` table inside the Drift SQLite database right before a backup, and extracted immediately upon restore. This guarantees that app configurations survive an iCloud or local restore alongside the database.
+- **Aligned Onboarding Restore Pipeline:** The iCloud database restore sequence in the Onboarding flow has been perfectly aligned 1:1 with the standard local backup restore flow. After a successful database replacement, the Drift connection is closed safely, and the user is funneled through the standard permission checks (Apple Health, Camera, Notifications) before executing a clean app re-initialization via `main()`.
+- **iCloud Sync Timestamp:** The iCloud Backup Card in Data Management now persistently tracks and displays a localized "Last synced" / "Letztes Backup" timestamp, informing the user of the exact time of their last successful upload.
+- **Forced Restoring Overlays:** Integrated the blocking `LongRunningOperationOverlay` natively into all local JSON imports and iCloud database restores during Onboarding. This prevents users from navigating away or interrupting the process while large database files are being written or decrypted.
+- **Cross-Platform UI Parity:** Ensured the "Restore from iCloud" option during onboarding is strictly hidden on Android devices, exclusively rendering for iOS and macOS.
 ## [1.0.0-alpha.9] - 2026-07-13
 
 ### Added
