@@ -335,7 +335,7 @@ class _SleepDayOverviewContent extends StatelessWidget {
         if (overview.scoringResult != null) ...[
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.cardPaddingInternal),
+                horizontal: DesignConstants.spacingL),
             child:
                 SleepScoreBreakdownCard(scoringResult: overview.scoringResult!),
           ),
@@ -343,7 +343,7 @@ class _SleepDayOverviewContent extends StatelessWidget {
         ],
         Padding(
           padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal),
+              horizontal: DesignConstants.spacingL),
           child: SleepMetricTileGrid(overview: overview),
         ),
       ],
@@ -381,7 +381,7 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.cardPaddingInternal),
+          horizontal: DesignConstants.spacingL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -569,7 +569,7 @@ class _SleepEmptyStateCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.cardPaddingInternal),
+          horizontal: DesignConstants.spacingL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

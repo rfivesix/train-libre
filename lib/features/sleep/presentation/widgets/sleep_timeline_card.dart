@@ -19,7 +19,7 @@ class SleepTimelineCard extends StatelessWidget {
     if (chartSegments.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(
-            horizontal: DesignConstants.cardPaddingInternal),
+            horizontal: DesignConstants.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -43,7 +43,7 @@ class SleepTimelineCard extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.cardPaddingInternal),
+              horizontal: DesignConstants.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -207,8 +207,8 @@ List<_TimelineAxisTick> _buildTimelineTicks({
     )..layout();
     final labelWidth = painter.width;
     final left = (anchorX - (labelWidth / 2)).clamp(
-      DesignConstants.cardPaddingInternal,
-      availableWidth - labelWidth - DesignConstants.cardPaddingInternal,
+      DesignConstants.spacingL,
+      availableWidth - labelWidth - DesignConstants.spacingL,
     );
     candidates.add(
       _TimelineAxisTick(

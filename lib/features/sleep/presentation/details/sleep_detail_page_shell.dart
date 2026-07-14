@@ -36,37 +36,33 @@ class SleepDetailPageShell extends StatelessWidget {
               16,
         ),
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.cardPaddingInternal),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(value, style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                      ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value, style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: DesignConstants.spacingS),
-                    Text(statusLabel),
-                  ],
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Text(
-                    subtitle!,
-                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Text(statusLabel),
                 ],
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: DesignConstants.spacingS),
+                Text(
+                  subtitle!,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ],
-            ),
+            ],
           ),
           const SizedBox(height: DesignConstants.spacingM),
           ...children,
