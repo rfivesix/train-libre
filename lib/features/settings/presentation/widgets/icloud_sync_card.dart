@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import 'package:flutter/services.dart';
+
 import '../../../../core/infrastructure/icloud_sync_service.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../generated/app_localizations.dart';
@@ -28,6 +30,7 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
   bool _isEnabled = false;
   bool _isBackingUp = false;
   bool? _lastBackupSuccess;
+  String? _nativeDiagnosticLog;
 
   @override
   void initState() {
@@ -56,14 +59,42 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
     setState(() {
       _isBackingUp = true;
       _lastBackupSuccess = null;
+      _nativeDiagnosticLog = null;
     });
-    final success = await widget.onBackupNow();
+
+    bool success = false;
+    try {
+      success = await widget.onBackupNow();
+    } on PlatformException catch (e, stackTrace) {
+      _bindErrorDump(
+          'PlatformException [${e.code}]:\nMessage: ${e.message}\nDetails: ${e.details}',
+          stackTrace);
+    } on MissingPluginException catch (e, stackTrace) {
+      _bindErrorDump(
+          'MissingPluginException (Plugin not registered):\n${e.message}',
+          stackTrace);
+    } catch (e, stackTrace) {
+      _bindErrorDump(
+          'Unhandled Native/CloudKit Exception:\n${e.toString()}', stackTrace);
+    }
+
     if (mounted) {
       setState(() {
         _isBackingUp = false;
-        _lastBackupSuccess = success;
+        if (_nativeDiagnosticLog == null) {
+          _lastBackupSuccess = success;
+        }
       });
     }
+  }
+
+  void _bindErrorDump(String rawMessage, StackTrace stackTrace) {
+    final String dump =
+        "=== RAW NATIVE EXCEPTION ===\n$rawMessage\n\n=== STACK TRACE ===\n${stackTrace.toString()}";
+    setState(() {
+      _nativeDiagnosticLog = dump;
+      _lastBackupSuccess = false;
+    });
   }
 
   @override
@@ -158,6 +189,78 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
               onPressed: _isBackingUp ? null : _runBackupNow,
             ),
           ),
+
+          // ── Alpha Diagnostics Console ────────────────────────────────────
+          if (_nativeDiagnosticLog != null) ...[
+            const SizedBox(height: DesignConstants.spacingL),
+            Container(
+              padding: const EdgeInsets.all(DesignConstants.spacingM),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.errorContainer.withOpacity(0.2),
+                border: Border.all(color: theme.colorScheme.error, width: 1.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'NATIVE ICLOUD EXCEPTION',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.error,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Container(
+                    height: 180,
+                    padding: const EdgeInsets.all(DesignConstants.spacingS),
+                    color: Colors.black,
+                    child: SingleChildScrollView(
+                      child: SelectableText(
+                        _nativeDiagnosticLog!,
+                        style: const TextStyle(
+                          fontFamily: 'Courier',
+                          fontSize: 11.0,
+                          color: Colors.greenAccent,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      await Clipboard.setData(
+                          ClipboardData(text: _nativeDiagnosticLog!));
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                const Text('Raw logs copied to clipboard!'),
+                            backgroundColor: theme.colorScheme.secondary,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    icon: Icon(LucideIcons.copy,
+                        color: theme.colorScheme.onError),
+                    label: Text('COPY RAW LOGS',
+                        style: TextStyle(
+                            color: theme.colorScheme.onError,
+                            fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.error,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: DesignConstants.spacingM),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -75,11 +75,25 @@ class ICloudSyncService {
     return _snapshotAndUpload(db);
   }
 
-  /// Immediately snapshots the database and uploads to iCloud, regardless of
-  /// the enabled preference. Use for the "Backup Now" button.
   Future<bool> backupNow(AppDatabase db) async {
     if (!Platform.isIOS && !Platform.isMacOS) return false;
-    return _snapshotAndUpload(db);
+    
+    // For manual alpha-debugging, we execute this inline without a silent catch block
+    // to allow the UI to catch and inspect PlatformExceptions.
+    final snapshotPath = await _localSnapshotPath;
+    final snapshotFile = File(snapshotPath);
+    if (snapshotFile.existsSync()) snapshotFile.deleteSync();
+
+    await db.customStatement('VACUUM INTO ?', [snapshotPath]);
+
+    await ICloudStorage.upload(
+      containerId: _containerId,
+      filePath: snapshotPath,
+      destinationRelativePath: _kICloudBackupFileName,
+      onProgress: null,
+    );
+
+    return true;
   }
 
   Future<bool> _snapshotAndUpload(AppDatabase db) async {
