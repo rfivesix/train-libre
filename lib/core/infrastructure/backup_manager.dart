@@ -64,29 +64,43 @@ class BackupManager {
     MealLocalDataSource? mealDb,
     StepsLocalDataSource? stepsDb,
     SharedPreferencesLoader? prefsLoader,
-  })  : _dbHelper = dbHelper ?? userDb ?? DatabaseHelper.instance,
-        _prefsLoader = prefsLoader ?? SharedPreferences.getInstance,
-        _diaryDb = diaryDb ??
-            DiaryLocalDataSource(
-                (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance),
-        _productDb = productDb ??
-            ProductLocalDataSource(
-                (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance),
-        _workoutDb = workoutDb ??
-            WorkoutLocalDataSource(
-                (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance),
-        _profileDb = profileDb ??
-            ProfileLocalDataSource(
-                (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance),
-        _supplementDb = supplementDb ??
-            SupplementLocalDataSource(
-                (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance),
-        _mealDb = mealDb ??
-            MealLocalDataSource(
-                (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance),
-        _stepsDb = stepsDb ??
-            StepsLocalDataSource(
-                (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance);
+  }) : _dbHelper = dbHelper ?? userDb ?? DatabaseHelper.instance,
+       _prefsLoader = prefsLoader ?? SharedPreferences.getInstance,
+       _diaryDb =
+           diaryDb ??
+           DiaryLocalDataSource(
+             (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance,
+           ),
+       _productDb =
+           productDb ??
+           ProductLocalDataSource(
+             (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance,
+           ),
+       _workoutDb =
+           workoutDb ??
+           WorkoutLocalDataSource(
+             (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance,
+           ),
+       _profileDb =
+           profileDb ??
+           ProfileLocalDataSource(
+             (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance,
+           ),
+       _supplementDb =
+           supplementDb ??
+           SupplementLocalDataSource(
+             (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance,
+           ),
+       _mealDb =
+           mealDb ??
+           MealLocalDataSource(
+             (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance,
+           ),
+       _stepsDb =
+           stepsDb ??
+           StepsLocalDataSource(
+             (dbHelper ?? userDb ?? DatabaseHelper.instance).dbInstance,
+           );
 
   ui.Rect _sharePositionOrigin() {
     final views = ui.PlatformDispatcher.instance.views;
@@ -94,7 +108,11 @@ class BackupManager {
     final view = views.first;
     final logicalSize = view.physicalSize / view.devicePixelRatio;
     return ui.Rect.fromLTWH(
-        0, 0, math.max(1, logicalSize.width), math.max(1, logicalSize.height));
+      0,
+      0,
+      math.max(1, logicalSize.width),
+      math.max(1, logicalSize.height),
+    );
   }
 
   Future<Map<String, dynamic>> generateBackupPayload([
@@ -124,11 +142,12 @@ class BackupManager {
     token?.throwIfCancelled();
 
     onProgress?.call('food_items', 0.30);
-    final customProductRows = await (dbInst.select(dbInst.products)
-          ..where((t) => t.source.equals('user')))
-        .get();
+    final customProductRows = await (dbInst.select(
+      dbInst.products,
+    )..where((t) => t.source.equals('user'))).get();
     final customFoodItems = customProductRows
-        .map((row) => FoodItem(
+        .map(
+          (row) => FoodItem(
             barcode: row.barcode,
             name: row.name,
             brand: row.brand ?? '',
@@ -141,7 +160,9 @@ class BackupManager {
             fiber: row.fiber ?? 0.0,
             salt: row.salt ?? 0.0,
             isLiquid: row.isLiquid,
-            category: row.category))
+            category: row.category,
+          ),
+        )
         .toList();
     token?.throwIfCancelled();
 
@@ -166,30 +187,34 @@ class BackupManager {
     token?.throwIfCancelled();
 
     onProgress?.call('goals', 0.60);
-    final goalsHistoryRows =
-        await dbInst.select(dbInst.dailyGoalsHistory).get();
+    final goalsHistoryRows = await dbInst
+        .select(dbInst.dailyGoalsHistory)
+        .get();
     final dailyGoalsHistory = goalsHistoryRows
-        .map((r) => {
-              'targetCalories': r.targetCalories,
-              'targetProtein': r.targetProtein,
-              'targetCarbs': r.targetCarbs,
-              'targetFat': r.targetFat,
-              'targetWater': r.targetWater,
-              'targetSteps': r.targetSteps,
-              'createdAt': r.createdAt.toIso8601String(),
-            })
+        .map(
+          (r) => {
+            'targetCalories': r.targetCalories,
+            'targetProtein': r.targetProtein,
+            'targetCarbs': r.targetCarbs,
+            'targetFat': r.targetFat,
+            'targetWater': r.targetWater,
+            'targetSteps': r.targetSteps,
+            'createdAt': r.createdAt.toIso8601String(),
+          },
+        )
         .toList();
     token?.throwIfCancelled();
 
     onProgress?.call('supplement_settings', 0.65);
     final suppHistoryRows =
         await dbInst.select(dbInst.supplementSettingsHistory).join([
-      drift.leftOuterJoin(
-        dbInst.supplements,
-        dbInst.supplements.id
-            .equalsExp(dbInst.supplementSettingsHistory.supplementId),
-      ),
-    ]).get();
+          drift.leftOuterJoin(
+            dbInst.supplements,
+            dbInst.supplements.id.equalsExp(
+              dbInst.supplementSettingsHistory.supplementId,
+            ),
+          ),
+        ]).get();
     final supplementSettingsHistory = suppHistoryRows.map((row) {
       final sHistory = row.readTable(dbInst.supplementSettingsHistory);
       final supplement = row.readTableOrNull(dbInst.supplements);
@@ -206,12 +231,14 @@ class BackupManager {
     token?.throwIfCancelled();
 
     onProgress?.call('settings', 0.70);
-    final settingsRows = await (dbInst.select(dbInst.appSettings)
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                expression: t.localId, mode: drift.OrderingMode.desc)
-          ]))
-        .get();
+    final settingsRows =
+        await (dbInst.select(dbInst.appSettings)..orderBy([
+              (t) => drift.OrderingTerm(
+                expression: t.localId,
+                mode: drift.OrderingMode.desc,
+              ),
+            ]))
+            .get();
     final settingsRow = settingsRows.isEmpty ? null : settingsRows.first;
     final Map<String, dynamic>? appSettingsMap = settingsRow != null
         ? {
@@ -229,12 +256,14 @@ class BackupManager {
     token?.throwIfCancelled();
 
     onProgress?.call('profile', 0.75);
-    final profileRows = await (dbInst.select(dbInst.profiles)
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                expression: t.localId, mode: drift.OrderingMode.desc)
-          ]))
-        .get();
+    final profileRows =
+        await (dbInst.select(dbInst.profiles)..orderBy([
+              (t) => drift.OrderingTerm(
+                expression: t.localId,
+                mode: drift.OrderingMode.desc,
+              ),
+            ]))
+            .get();
     final profileRow = profileRows.isEmpty ? null : profileRows.first;
     final Map<String, dynamic>? profileMap = profileRow != null
         ? {
@@ -253,45 +282,49 @@ class BackupManager {
     onProgress?.call('steps', 0.80);
     final healthStepRows = await dbInst.select(dbInst.healthStepSegments).get();
     final healthStepSegments = healthStepRows
-        .map((r) => {
-              'provider': r.provider,
-              'sourceId': r.sourceId,
-              'startAt': r.startAt.toUtc().toIso8601String(),
-              'endAt': r.endAt.toUtc().toIso8601String(),
-              'stepCount': r.stepCount,
-              'externalKey': r.externalKey,
-            })
+        .map(
+          (r) => {
+            'provider': r.provider,
+            'sourceId': r.sourceId,
+            'startAt': r.startAt.toUtc().toIso8601String(),
+            'endAt': r.endAt.toUtc().toIso8601String(),
+            'stepCount': r.stepCount,
+            'externalKey': r.externalKey,
+          },
+        )
         .toList();
     token?.throwIfCancelled();
 
     final prefs = await _prefsLoader();
     final userPrefs = <String, dynamic>{
-      for (String key in prefs.getKeys()) key: prefs.get(key)
+      for (String key in prefs.getKeys()) key: prefs.get(key),
     };
 
     final backup = TrainLibreBackup(
-        schemaVersion: currentSchemaVersion,
-        foodEntries: foodEntries,
-        mealTemplates: mealTemplates,
-        fluidEntries: fluidEntries,
-        favoriteBarcodes: favoriteBarcodes,
-        customFoodItems: customFoodItems,
-        measurementSessions: measurementSessions,
-        routines: routines,
-        workoutLogs: workoutLogs,
-        userPreferences: userPrefs,
-        supplements: supplements,
-        supplementLogs: supplementLogs,
-        customExercises: customExercises,
-        dailyGoalsHistory: dailyGoalsHistory,
-        supplementSettingsHistory: supplementSettingsHistory,
-        appSettings: appSettingsMap,
-        profile: profileMap,
-        userFoodOverrides: await _fetchTable('user_food_overrides'),
-        userFoodOverrideTranslations:
-            await _fetchTable('user_food_override_translations'),
-        healthStepSegments: healthStepSegments,
-        offProductsArchive: await _fetchTable('off_products_archive'));
+      schemaVersion: currentSchemaVersion,
+      foodEntries: foodEntries,
+      mealTemplates: mealTemplates,
+      fluidEntries: fluidEntries,
+      favoriteBarcodes: favoriteBarcodes,
+      customFoodItems: customFoodItems,
+      measurementSessions: measurementSessions,
+      routines: routines,
+      workoutLogs: workoutLogs,
+      userPreferences: userPrefs,
+      supplements: supplements,
+      supplementLogs: supplementLogs,
+      customExercises: customExercises,
+      dailyGoalsHistory: dailyGoalsHistory,
+      supplementSettingsHistory: supplementSettingsHistory,
+      appSettings: appSettingsMap,
+      profile: profileMap,
+      userFoodOverrides: await _fetchTable('user_food_overrides'),
+      userFoodOverrideTranslations: await _fetchTable(
+        'user_food_override_translations',
+      ),
+      healthStepSegments: healthStepSegments,
+      offProductsArchive: await _fetchTable('off_products_archive'),
+    );
     final payload = backup.toJson();
     payload['appName'] = currentBackupAppName;
     payload['applicationId'] = currentApplicationId;
@@ -303,30 +336,36 @@ class BackupManager {
     token?.throwIfCancelled();
 
     onProgress?.call('sleep_sessions', 0.88);
-    payload['sleep_canonical_sessions'] =
-        await _fetchTable('sleep_canonical_sessions');
+    payload['sleep_canonical_sessions'] = await _fetchTable(
+      'sleep_canonical_sessions',
+    );
     token?.throwIfCancelled();
 
     onProgress?.call('sleep_stages', 0.90);
-    payload['sleep_canonical_stage_segments'] =
-        await _fetchTable('sleep_canonical_stage_segments');
+    payload['sleep_canonical_stage_segments'] = await _fetchTable(
+      'sleep_canonical_stage_segments',
+    );
     token?.throwIfCancelled();
 
     onProgress?.call('sleep_hr', 0.92);
-    payload['sleep_canonical_heart_rate_samples'] =
-        await _fetchTable('sleep_canonical_heart_rate_samples');
+    payload['sleep_canonical_heart_rate_samples'] = await _fetchTable(
+      'sleep_canonical_heart_rate_samples',
+    );
     token?.throwIfCancelled();
 
     onProgress?.call('sleep_analyses', 0.94);
-    payload['sleep_nightly_analyses'] =
-        await _fetchTable('sleep_nightly_analyses');
+    payload['sleep_nightly_analyses'] = await _fetchTable(
+      'sleep_nightly_analyses',
+    );
     token?.throwIfCancelled();
 
     onProgress?.call('pulse_data', 0.96);
-    payload['pulse_hourly_aggregates'] =
-        await _fetchTable('pulse_hourly_aggregates');
-    payload['pulse_aggregate_metadata'] =
-        await _fetchTable('pulse_aggregate_metadata');
+    payload['pulse_hourly_aggregates'] = await _fetchTable(
+      'pulse_hourly_aggregates',
+    );
+    payload['pulse_aggregate_metadata'] = await _fetchTable(
+      'pulse_aggregate_metadata',
+    );
     token?.throwIfCancelled();
 
     onProgress?.call('cardio_data', 0.98);
@@ -389,13 +428,17 @@ class BackupManager {
     try {
       final jsonString = await _generateBackupJson(token, onProgress);
       token?.throwIfCancelled();
-      final wrapper =
-          await EncryptionUtil.encryptString(jsonString, passphrase);
+      final wrapper = await EncryptionUtil.encryptString(
+        jsonString,
+        passphrase,
+      );
       token?.throwIfCancelled();
       final wrappedJson = await compute(jsonEncode, wrapper);
       token?.throwIfCancelled();
       return await _writeAndShareFile(
-          wrappedJson, '$currentBackupFilePrefix-enc');
+        wrappedJson,
+        '$currentBackupFilePrefix-enc',
+      );
     } catch (e) {
       if (e is OperationCanceledException) {
         rethrow;
@@ -436,8 +479,10 @@ class BackupManager {
       final jsonMapRaw = await compute(jsonDecode, raw) as Map<String, dynamic>;
       Map<String, dynamic> payload;
       if (jsonMapRaw['enc'] != null) {
-        final clearText =
-            await EncryptionUtil.decryptToString(jsonMapRaw, passphrase ?? "");
+        final clearText = await EncryptionUtil.decryptToString(
+          jsonMapRaw,
+          passphrase ?? "",
+        );
         payload = await compute(jsonDecode, clearText) as Map<String, dynamic>;
       } else {
         payload = jsonMapRaw;
@@ -598,17 +643,20 @@ class BackupManager {
 
         // Clear dynamic sleep and pulse tables first
         await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
-        await dbInst
-            .customStatement('DELETE FROM sleep_canonical_stage_segments');
-        await dbInst
-            .customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
+        await dbInst.customStatement(
+          'DELETE FROM sleep_canonical_stage_segments',
+        );
+        await dbInst.customStatement(
+          'DELETE FROM sleep_canonical_heart_rate_samples',
+        );
         await dbInst.customStatement('DELETE FROM sleep_canonical_sessions');
         await dbInst.customStatement('DELETE FROM sleep_raw_imports');
         await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
         await dbInst.customStatement('DELETE FROM pulse_aggregate_metadata');
         await dbInst.customStatement('DELETE FROM user_food_overrides');
-        await dbInst
-            .customStatement('DELETE FROM user_food_override_translations');
+        await dbInst.customStatement(
+          'DELETE FROM user_food_override_translations',
+        );
         await dbInst.delete(dbInst.cardioSamples).go();
         await dbInst.delete(dbInst.cardioActivities).go();
 
@@ -628,9 +676,9 @@ class BackupManager {
         await dbInst.delete(dbInst.meals).go();
         await dbInst.delete(dbInst.appSettings).go();
         await dbInst.delete(dbInst.profiles).go();
-        await (dbInst.delete(dbInst.products)
-              ..where((t) => t.source.equals('user')))
-            .go();
+        await (dbInst.delete(
+          dbInst.products,
+        )..where((t) => t.source.equals('user'))).go();
 
         // Clear workout tables
         await dbInst.delete(dbInst.setLogs).go();
@@ -638,9 +686,9 @@ class BackupManager {
         await dbInst.delete(dbInst.routineSetTemplates).go();
         await dbInst.delete(dbInst.routineExercises).go();
         await dbInst.delete(dbInst.routines).go();
-        await (dbInst.delete(dbInst.exercises)
-              ..where((tbl) => tbl.isCustom.equals(true)))
-            .go();
+        await (dbInst.delete(
+          dbInst.exercises,
+        )..where((tbl) => tbl.isCustom.equals(true))).go();
 
         token?.throwIfCancelled();
         onProgress?.call('preferences', 0.25);
@@ -663,17 +711,20 @@ class BackupManager {
 
         onProgress?.call('products_archive', 0.30);
         await _importTable(
-            'off_products_archive', payload['offProductsArchive']);
+          'off_products_archive',
+          payload['offProductsArchive'],
+        );
         token?.throwIfCancelled();
 
         onProgress?.call('user_data', 0.35);
         await _dbHelper.importUserData(
-            foodEntries: backup.foodEntries,
-            fluidEntries: backup.fluidEntries,
-            favoriteBarcodes: backup.favoriteBarcodes,
-            measurementSessions: backup.measurementSessions,
-            supplements: backup.supplements,
-            supplementLogs: backup.supplementLogs);
+          foodEntries: backup.foodEntries,
+          fluidEntries: backup.fluidEntries,
+          favoriteBarcodes: backup.favoriteBarcodes,
+          measurementSessions: backup.measurementSessions,
+          supplements: backup.supplements,
+          supplementLogs: backup.supplementLogs,
+        );
         token?.throwIfCancelled();
 
         onProgress?.call('custom_foods', 0.50);
@@ -707,12 +758,15 @@ class BackupManager {
                 nameEn: drift.Value(item.nameEn),
                 ingredientsText: drift.Value(item.ingredientsText),
                 ingredientsAnalysisTags: drift.Value(
-                    item.ingredientsAnalysisTags != null
-                        ? jsonEncode(item.ingredientsAnalysisTags)
-                        : null),
-                additivesTags: drift.Value(item.additivesTags != null
-                    ? jsonEncode(item.additivesTags)
-                    : null),
+                  item.ingredientsAnalysisTags != null
+                      ? jsonEncode(item.ingredientsAnalysisTags)
+                      : null,
+                ),
+                additivesTags: drift.Value(
+                  item.additivesTags != null
+                      ? jsonEncode(item.additivesTags)
+                      : null,
+                ),
                 productQuantity: drift.Value(item.productQuantity),
                 productQuantityUnit: drift.Value(item.productQuantityUnit),
               ),
@@ -728,7 +782,9 @@ class BackupManager {
 
         onProgress?.call('workouts', 0.70);
         await _workoutDb.importWorkoutData(
-            routines: backup.routines, workoutLogs: backup.workoutLogs);
+          routines: backup.routines,
+          workoutLogs: backup.workoutLogs,
+        );
         token?.throwIfCancelled();
 
         onProgress?.call('custom_exercises', 0.80);
@@ -756,7 +812,9 @@ class BackupManager {
               );
               continue;
             }
-            await dbInst.into(dbInst.dailyGoalsHistory).insert(
+            await dbInst
+                .into(dbInst.dailyGoalsHistory)
+                .insert(
                   db.DailyGoalsHistoryCompanion(
                     targetCalories: drift.Value(targetCalories),
                     targetProtein: drift.Value(targetProtein),
@@ -786,14 +844,16 @@ class BackupManager {
             for (final row in backup.supplementSettingsHistory) {
               final supplementIdRaw = row['supplementId']?.toString().trim();
               final legacyLocalIdRaw = row['supplementLegacyLocalId'];
-              final legacyLocalId = _asInt(legacyLocalIdRaw)?.toString() ??
+              final legacyLocalId =
+                  _asInt(legacyLocalIdRaw)?.toString() ??
                   legacyLocalIdRaw?.toString().trim();
-              final mappedId = (supplementIdRaw != null &&
+              final mappedId =
+                  (supplementIdRaw != null &&
                       validSupplementIds.contains(supplementIdRaw))
                   ? supplementIdRaw
                   : (legacyLocalId != null
-                      ? supplementIdByLegacyLocalId[legacyLocalId]
-                      : null);
+                        ? supplementIdByLegacyLocalId[legacyLocalId]
+                        : null);
               final isTracked = _asBool(row['isTracked']);
               final dose = _asDouble(row['dose']);
               final createdAt = _asDateTime(row['createdAt']);
@@ -832,7 +892,9 @@ class BackupManager {
           final profileId = p['id']?.toString().trim();
           if (profileId != null && profileId.isNotEmpty) {
             restoredUserId = profileId;
-            await dbInst.into(dbInst.profiles).insert(
+            await dbInst
+                .into(dbInst.profiles)
+                .insert(
                   db.ProfilesCompanion(
                     id: drift.Value(profileId),
                     username: drift.Value(p['username']?.toString()),
@@ -868,12 +930,13 @@ class BackupManager {
             final userId = restoredUserId;
             final existingProfile = await (dbInst.select(
               dbInst.profiles,
-            )..where((t) => t.id.equals(userId)))
-                .getSingleOrNull();
+            )..where((t) => t.id.equals(userId))).getSingleOrNull();
 
             // Ensure FK target exists even when profile payload is absent.
             if (existingProfile == null) {
-              await dbInst.into(dbInst.profiles).insert(
+              await dbInst
+                  .into(dbInst.profiles)
+                  .insert(
                     db.ProfilesCompanion(
                       id: drift.Value(userId),
                       visibility: const drift.Value('private'),
@@ -883,24 +946,27 @@ class BackupManager {
                   );
             }
 
-            await dbInst.into(dbInst.appSettings).insert(
+            await dbInst
+                .into(dbInst.appSettings)
+                .insert(
                   db.AppSettingsCompanion(
                     userId: drift.Value(userId),
-                    themeMode:
-                        drift.Value(s['themeMode']?.toString() ?? 'system'),
-                    unitSystem:
-                        drift.Value(s['unitSystem']?.toString() ?? 'metric'),
+                    themeMode: drift.Value(
+                      s['themeMode']?.toString() ?? 'system',
+                    ),
+                    unitSystem: drift.Value(
+                      s['unitSystem']?.toString() ?? 'metric',
+                    ),
                     targetCalories: drift.Value(
                       _asInt(s['targetCalories']) ?? 2500,
                     ),
-                    targetProtein:
-                        drift.Value(_asInt(s['targetProtein']) ?? 180),
+                    targetProtein: drift.Value(
+                      _asInt(s['targetProtein']) ?? 180,
+                    ),
                     targetCarbs: drift.Value(_asInt(s['targetCarbs']) ?? 250),
                     targetFat: drift.Value(_asInt(s['targetFat']) ?? 80),
                     targetWater: drift.Value(_asInt(s['targetWater']) ?? 3000),
-                    targetSteps: drift.Value(
-                      _asInt(s['targetSteps']) ?? 8000,
-                    ),
+                    targetSteps: drift.Value(_asInt(s['targetSteps']) ?? 8000),
                   ),
                   mode: drift.InsertMode.insertOrReplace,
                 );
@@ -936,40 +1002,55 @@ class BackupManager {
 
         onProgress?.call('sleep_sessions', 0.96);
         await _importTable(
-            'sleep_canonical_sessions', payload['sleep_canonical_sessions']);
+          'sleep_canonical_sessions',
+          payload['sleep_canonical_sessions'],
+        );
         token?.throwIfCancelled();
 
         onProgress?.call('sleep_stages', 0.97);
-        await _importTable('sleep_canonical_stage_segments',
-            payload['sleep_canonical_stage_segments']);
+        await _importTable(
+          'sleep_canonical_stage_segments',
+          payload['sleep_canonical_stage_segments'],
+        );
         token?.throwIfCancelled();
 
         onProgress?.call('sleep_hr', 0.98);
-        await _importTable('sleep_canonical_heart_rate_samples',
-            payload['sleep_canonical_heart_rate_samples']);
+        await _importTable(
+          'sleep_canonical_heart_rate_samples',
+          payload['sleep_canonical_heart_rate_samples'],
+        );
         token?.throwIfCancelled();
 
         onProgress?.call('sleep_analyses', 0.99);
         await _importTable(
-            'sleep_nightly_analyses', payload['sleep_nightly_analyses']);
+          'sleep_nightly_analyses',
+          payload['sleep_nightly_analyses'],
+        );
         token?.throwIfCancelled();
 
         onProgress?.call('pulse_data', 0.995);
         await _importTable(
-            'pulse_hourly_aggregates', payload['pulse_hourly_aggregates']);
+          'pulse_hourly_aggregates',
+          payload['pulse_hourly_aggregates'],
+        );
         await _importTable(
-            'pulse_aggregate_metadata', payload['pulse_aggregate_metadata']);
+          'pulse_aggregate_metadata',
+          payload['pulse_aggregate_metadata'],
+        );
         token?.throwIfCancelled();
 
         onProgress?.call('cardio_data', 0.999);
         await _importTable('cardio_activities', payload['cardio_activities']);
         await _importTable('cardio_samples', payload['cardio_samples']);
-        await _importTable('user_food_overrides',
-            payload['user_food_overrides'] ?? payload['userFoodOverrides']);
         await _importTable(
-            'user_food_override_translations',
-            payload['user_food_override_translations'] ??
-                payload['userFoodOverrideTranslations']);
+          'user_food_overrides',
+          payload['user_food_overrides'] ?? payload['userFoodOverrides'],
+        );
+        await _importTable(
+          'user_food_override_translations',
+          payload['user_food_override_translations'] ??
+              payload['userFoodOverrideTranslations'],
+        );
         token?.throwIfCancelled();
       });
       success = true;
@@ -1005,11 +1086,21 @@ class BackupManager {
   Future<void> _importTable(String tableName, List<dynamic>? rows) async {
     if (rows == null || rows.isEmpty) return;
     final dbInst = _dbHelper.dbInstance;
+
+    // Prevent SQL injection in table name
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(tableName)) return;
+
     await dbInst.customStatement('DELETE FROM $tableName');
+
     for (final row in rows) {
       if (row is! Map) continue;
       final map = Map<String, dynamic>.from(row);
       final columns = map.keys.toList();
+
+      // Prevent SQL injection in column names
+      if (!columns.every((col) => RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(col)))
+        continue;
+
       final placeholders = List.filled(columns.length, '?').join(', ');
       final values = columns.map((col) => map[col]).toList();
       final sql =
@@ -1040,8 +1131,10 @@ class BackupManager {
       String suffix = '';
 
       if (encrypted && passphrase != null) {
-        final wrapper =
-            await EncryptionUtil.encryptString(jsonString, passphrase);
+        final wrapper = await EncryptionUtil.encryptString(
+          jsonString,
+          passphrase,
+        );
         content = await compute(jsonEncode, wrapper);
         suffix = '-enc';
       }
@@ -1066,11 +1159,15 @@ class BackupManager {
         }
 
         if (savedSafPath != null) {
-          await prefs.setInt('last_auto_backup_timestamp',
-              DateTime.now().millisecondsSinceEpoch);
+          await prefs.setInt(
+            'last_auto_backup_timestamp',
+            DateTime.now().millisecondsSinceEpoch,
+          );
           await prefs.setString('auto_backup_last_file_path', savedSafPath);
           await prefs.setString(
-              'auto_backup_last_dir_used', savedDir ?? 'SAF Shared Storage');
+            'auto_backup_last_dir_used',
+            savedDir ?? 'SAF Shared Storage',
+          );
           await prefs.setBool('auto_backup_last_used_fallback', false);
           await prefs.remove('auto_backup_last_error');
 
@@ -1088,7 +1185,8 @@ class BackupManager {
           return true;
         } else {
           debugPrint(
-              'Auto-backup SAF write returned null, falling back to local sandbox...');
+            'Auto-backup SAF write returned null, falling back to local sandbox...',
+          );
         }
       }
 
@@ -1102,18 +1200,24 @@ class BackupManager {
       final chosenPath = (dirPath != null && dirPath.trim().isNotEmpty)
           ? dirPath.trim()
           : (savedDir != null && savedDir.trim().isNotEmpty
-              ? savedDir.trim()
-              : null);
+                ? savedDir.trim()
+                : null);
       final isFallbackUsed = chosenPath != null && directory.path != chosenPath;
 
       final ts = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      final file = File(p.join(
-          directory.path, '$currentAutoBackupFilePrefix$suffix-[$ts].json'));
+      final file = File(
+        p.join(
+          directory.path,
+          '$currentAutoBackupFilePrefix$suffix-[$ts].json',
+        ),
+      );
 
       await directory.create(recursive: true);
       await file.writeAsString(content, flush: true);
       await prefs.setInt(
-          'last_auto_backup_timestamp', DateTime.now().millisecondsSinceEpoch);
+        'last_auto_backup_timestamp',
+        DateTime.now().millisecondsSinceEpoch,
+      );
 
       await prefs.setString('auto_backup_last_file_path', file.path);
       await prefs.setString('auto_backup_last_dir_used', directory.path);
@@ -1125,12 +1229,14 @@ class BackupManager {
         final files = directory
             .listSync()
             .whereType<File>()
-            .where((f) =>
-                p.basename(f.path).startsWith(currentAutoBackupFilePrefix))
+            .where(
+              (f) => p.basename(f.path).startsWith(currentAutoBackupFilePrefix),
+            )
             .toList();
         if (files.length > retention) {
           files.sort(
-              (a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
+            (a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()),
+          );
           for (var i = 0; i < files.length - retention; i++) {
             await files[i].delete();
           }
@@ -1150,16 +1256,24 @@ class BackupManager {
   }
 
   static Future<Map<String, double>?> _getWorkoutHeartRate(
-      String workoutLogId, DateTime startTime, DateTime endTime) async {
+    String workoutLogId,
+    DateTime startTime,
+    DateTime endTime,
+  ) async {
     final dbInst = DatabaseHelper.instance.dbInstance;
     // 1. Try to read from cardio_samples
     try {
-      final rows = await dbInst.customSelect('''
+      final rows = await dbInst
+          .customSelect(
+            '''
         SELECT s.data_json
         FROM cardio_activities a
         JOIN cardio_samples s ON a.id = s.cardio_activity_id
         WHERE a.workout_log_id = ? AND s.data_type = 'HeartRate'
-      ''', variables: [drift.Variable<String>(workoutLogId)]).get();
+      ''',
+            variables: [drift.Variable<String>(workoutLogId)],
+          )
+          .get();
       if (rows.isNotEmpty) {
         final dataJson = rows.first.read<String>('data_json');
         final decoded = jsonDecode(dataJson);
@@ -1193,14 +1307,19 @@ class BackupManager {
     try {
       final startMs = startTime.millisecondsSinceEpoch;
       final endMs = endTime.millisecondsSinceEpoch;
-      final rows = await dbInst.customSelect('''
+      final rows = await dbInst
+          .customSelect(
+            '''
         SELECT min_bpm, max_bpm, sum_bpm, sample_count
         FROM pulse_hourly_aggregates
         WHERE bucket_end_ms > ? AND bucket_start_ms < ?
-      ''', variables: [
-        drift.Variable<int>(startMs),
-        drift.Variable<int>(endMs)
-      ]).get();
+      ''',
+            variables: [
+              drift.Variable<int>(startMs),
+              drift.Variable<int>(endMs),
+            ],
+          )
+          .get();
       if (rows.isNotEmpty) {
         double min = double.infinity;
         double max = double.negativeInfinity;
@@ -1229,19 +1348,24 @@ class BackupManager {
     final fluidEntries = await _diaryDb.getAllFluidEntries();
     if (entries.isEmpty && fluidEntries.isEmpty) return false;
 
-    final archivedEntries =
-        entries.where((e) => e.archiveLocalId != null).toList();
-    final legacyEntries =
-        entries.where((e) => e.archiveLocalId == null).toList();
+    final archivedEntries = entries
+        .where((e) => e.archiveLocalId != null)
+        .toList();
+    final legacyEntries = entries
+        .where((e) => e.archiveLocalId == null)
+        .toList();
 
     final Map<int, FoodItem> archiveProductsMap = {};
     final Map<String, FoodItem> legacyProductsMap = {};
 
     if (archivedEntries.isNotEmpty) {
-      final archiveIds =
-          archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
-      final archivedProducts =
-          await _productDb.getProductsByArchiveIds(archiveIds);
+      final archiveIds = archivedEntries
+          .map((e) => e.archiveLocalId!)
+          .toSet()
+          .toList();
+      final archivedProducts = await _productDb.getProductsByArchiveIds(
+        archiveIds,
+      );
       archiveProductsMap.addAll(archivedProducts);
     }
 
@@ -1267,8 +1391,8 @@ class BackupManager {
         'sugar_g',
         'fiber_g',
         'caffeine_mg',
-        'water_liquids_ml'
-      ]
+        'water_liquids_ml',
+      ],
     ];
 
     for (final e in entries) {
@@ -1299,7 +1423,7 @@ class BackupManager {
           sugar.toStringAsFixed(1),
           fiber.toStringAsFixed(1),
           caffeine.toStringAsFixed(1),
-          0
+          0,
         ]);
       }
     }
@@ -1324,7 +1448,7 @@ class BackupManager {
         sugar.toStringAsFixed(1),
         0.0.toStringAsFixed(1),
         caffeine.toStringAsFixed(1),
-        f.quantityInMl
+        f.quantityInMl,
       ]);
     }
 
@@ -1363,8 +1487,8 @@ class BackupManager {
         'rpe',
         'rir',
         'set_notes',
-        'workout_notes'
-      ]
+        'workout_notes',
+      ],
     ];
     for (final l in logs) {
       for (final s in l.sets) {
@@ -1384,7 +1508,7 @@ class BackupManager {
           s.rpe ?? 0,
           s.rir ?? 0,
           s.notes ?? '',
-          l.notes ?? ''
+          l.notes ?? '',
         ]);
       }
     }
@@ -1412,7 +1536,7 @@ class BackupManager {
     // 1. Measurements CSV
     final sessions = await _profileDb.getMeasurementSessions();
     List<List<dynamic>> measurementRows = [
-      ['date', 'type', 'value', 'unit']
+      ['date', 'type', 'value', 'unit'],
     ];
     for (final s in sessions) {
       for (final m in s.measurements) {
@@ -1420,7 +1544,7 @@ class BackupManager {
           DateFormat('yyyy-MM-dd').format(s.timestamp),
           m.type,
           m.value,
-          m.unit
+          m.unit,
         ]);
       }
     }
@@ -1475,15 +1599,17 @@ class BackupManager {
           'Light Minutes',
           'REM Minutes',
           'Awake Minutes',
-          'Sleep Score'
-        ]
+          'Sleep Score',
+        ],
       ];
       for (final r in sleepRows) {
         final sessionId = r.read<String>('session_id');
-        final startTime =
-            DateTime.fromMillisecondsSinceEpoch(r.read<int>('started_at'));
-        final endTime =
-            DateTime.fromMillisecondsSinceEpoch(r.read<int>('ended_at'));
+        final startTime = DateTime.fromMillisecondsSinceEpoch(
+          r.read<int>('started_at'),
+        );
+        final endTime = DateTime.fromMillisecondsSinceEpoch(
+          r.read<int>('ended_at'),
+        );
         final stages = sessionStages[sessionId] ?? {};
 
         sleepCsvRows.add([
@@ -1495,7 +1621,7 @@ class BackupManager {
           (stages['light'] ?? 0.0).toStringAsFixed(1),
           (stages['rem'] ?? 0.0).toStringAsFixed(1),
           (stages['awake'] ?? 0.0).toStringAsFixed(1),
-          r.readNullable<double>('score') ?? 0.0
+          r.readNullable<double>('score') ?? 0.0,
         ]);
       }
       final sCsv = csv.encode(sleepCsvRows);
@@ -1517,13 +1643,13 @@ class BackupManager {
       ''').get();
 
       List<List<dynamic>> stepsCsvRows = [
-        ['Date', 'Total Steps', 'Core Source Origin']
+        ['Date', 'Total Steps', 'Core Source Origin'],
       ];
       for (final r in stepRows) {
         stepsCsvRows.add([
           r.read<String>('day_local'),
           r.read<int>('total_steps'),
-          r.read<String>('source_key')
+          r.read<String>('source_key'),
         ]);
       }
       final stepsCsvStr = csv.encode(stepsCsvRows);
@@ -1547,11 +1673,12 @@ class BackupManager {
       ''').get();
 
       List<List<dynamic>> hrCsvRows = [
-        ['Date/Timestamp', 'Context', 'Min BPM', 'Max BPM', 'Avg BPM']
+        ['Date/Timestamp', 'Context', 'Min BPM', 'Max BPM', 'Avg BPM'],
       ];
       for (final r in baselineRows) {
-        final t =
-            DateTime.fromMillisecondsSinceEpoch(r.read<int>('bucket_start_ms'));
+        final t = DateTime.fromMillisecondsSinceEpoch(
+          r.read<int>('bucket_start_ms'),
+        );
         final count = r.read<num>('sample_count').toInt();
         final avg = count > 0 ? r.read<double>('sum_bpm') / count : 0.0;
         hrCsvRows.add([
@@ -1559,16 +1686,18 @@ class BackupManager {
           'Daily Baseline',
           r.read<double>('min_bpm'),
           r.read<double>('max_bpm'),
-          avg.toStringAsFixed(1)
+          avg.toStringAsFixed(1),
         ]);
       }
 
       for (final w in workoutList) {
         final wId = w.read<String>('id');
-        final startTime =
-            DateTime.fromMillisecondsSinceEpoch(w.read<int>('start_time'));
-        final endTime =
-            DateTime.fromMillisecondsSinceEpoch(w.read<int>('end_time'));
+        final startTime = DateTime.fromMillisecondsSinceEpoch(
+          w.read<int>('start_time'),
+        );
+        final endTime = DateTime.fromMillisecondsSinceEpoch(
+          w.read<int>('end_time'),
+        );
         final hr = await _getWorkoutHeartRate(wId, startTime, endTime);
         if (hr != null) {
           hrCsvRows.add([
@@ -1576,7 +1705,7 @@ class BackupManager {
             'Workout Session ID: $wId',
             hr['min']!,
             hr['max']!,
-            hr['avg']!.toStringAsFixed(1)
+            hr['avg']!.toStringAsFixed(1),
           ]);
         }
       }
@@ -1639,15 +1768,14 @@ class BackupManager {
 }
 
 @visibleForTesting
-Future<String> encodeBackupJsonPayloadForTesting(
-  Map<String, dynamic> payload,
-) {
+Future<String> encodeBackupJsonPayloadForTesting(Map<String, dynamic> payload) {
   return compute(jsonEncode, payload);
 }
 
 @visibleForTesting
 Future<Map<String, dynamic>> decodeBackupJsonPayloadForTesting(
-    String source) async {
+  String source,
+) async {
   final decoded = await compute(jsonDecode, source);
   if (decoded is! Map) {
     throw const FormatException('Backup JSON root must be an object.');
