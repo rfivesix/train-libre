@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-alpha.11] - 2026-07-15
 
 ### Added
-- **Premium Empty States & Loading System:** Implemented a new highly modular, glassmorphic empty state and loading skeleton system across the Diary screen. Differentiates cleanly between "Cold Start" (educational hero icon and bobbing arrow) for new users and "Active Gap" (subtle translucent glass overlay over pulsing skeleton layout components) when no data is logged for a given day.
+- **Premium Empty States & Loading System:** Implemented a new highly modular, glassmorphic empty state and loading skeleton system across the Diary screen and Statistics Hub. Differentiates cleanly between "Cold Start" (educational hero icon and bobbing arrow) for new users and "Active Gap" (subtle translucent glass overlay over pulsing skeleton layout components) when no data is logged for a given day or period.
 
 ### Fixed
 - **Diary Supplements and Wearables State Resolution:** Fixed a bug where active-state data streams for supplements and wearables were blocked or incorrectly overridden by skeleton dummy data on the diary screen.

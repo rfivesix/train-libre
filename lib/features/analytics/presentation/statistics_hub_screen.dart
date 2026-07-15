@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
@@ -152,111 +153,185 @@ class _StatisticsHubScreenView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
+        physics: (viewModel.isActiveGap || viewModel.isLoading)
+            ? const NeverScrollableScrollPhysics()
+            : null,
         slivers: [
           SliverPadding(
             padding: finalPadding,
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                TimeRangeFilter(
-                  ranges: _timeRanges(l10n),
-                  selectedIndex: _hubBlocks.indexOf(viewModel.activeBlockType),
-                  onSelected: (index) {
-                    viewModel.activeBlockType = _hubBlocks[index];
-                  },
-                  onPrevious:
-                      viewModel.activeBlockType == TimeframeBlock.maxBlock
-                          ? null
-                          : () => viewModel.shiftTimeframe(true),
-                  onNext: viewModel.activeBlockType == TimeframeBlock.maxBlock
-                      ? null
-                      : () => viewModel.shiftTimeframe(false),
-                  displayDate: _unifiedRangeLabel(viewModel, l10n),
-                  onTapDateDisplay: () async {
-                    final selected =
-                        await adaptive_pickers.showAdaptiveTimeframePicker(
-                      context: context,
-                      activeBlock: viewModel.activeBlockType,
-                      initialAnchor: viewModel.anchorDate,
-                      initialIsRolling: viewModel.isRolling,
-                      earliestAvailableDay: DateTime(2020),
-                    );
-                    if (selected != null) {
-                      viewModel.setTimeframeSelection(selected);
-                    }
-                  },
-                  nextEnabled: viewModel.activeBlockType !=
-                          TimeframeBlock.maxBlock &&
-                      (viewModel.isRolling ||
-                          !viewModel.activeBlockType
-                              .getBounds(viewModel.anchorDate, DateTime(2020))
-                              .start
-                              .isAtSameMomentAs(viewModel.activeBlockType
-                                  .getBounds(DateTime.now(), DateTime(2020))
-                                  .start)),
-                  showDateNavigation:
-                      viewModel.activeBlockType != TimeframeBlock.maxBlock,
-                ),
-                const SizedBox(height: DesignConstants.spacingL),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.cardPaddingInternal,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (viewModel.stepsTrackingEnabled) ...[
-                        AppSectionHeader(title: l10n.steps),
-                        RepaintBoundary(
-                          child: _buildStepsCard(context, viewModel, l10n),
+            sliver: viewModel.isLoadingColdStart
+                ? const SliverToBoxAdapter(
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : viewModel.isColdStart
+                    ? SliverToBoxAdapter(
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height -
+                              appBarHeight -
+                              200,
+                          child: ColdStartEmptyState(
+                            icon: LucideIcons.chart_spline,
+                            title: l10n.statisticsColdStartTitle,
+                            subtitle: l10n.statisticsColdStartSubtitle,
+                            callToAction:
+                                l10n.emptyStateDiaryColdStartCallToAction,
+                          ),
                         ),
-                        const SizedBox(height: DesignConstants.spacingL),
-                      ],
-                      AppSectionHeader(title: l10n.sectionRecovery),
-                      RepaintBoundary(
-                        child: _buildRecoverySection(context, viewModel, l10n),
+                      )
+                    : SliverList(
+                        delegate: SliverChildListDelegate([
+                          TimeRangeFilter(
+                            ranges: _timeRanges(l10n),
+                            selectedIndex:
+                                _hubBlocks.indexOf(viewModel.activeBlockType),
+                            onSelected: (index) {
+                              viewModel.activeBlockType = _hubBlocks[index];
+                            },
+                            onPrevious: viewModel.activeBlockType ==
+                                    TimeframeBlock.maxBlock
+                                ? null
+                                : () => viewModel.shiftTimeframe(true),
+                            onNext: viewModel.activeBlockType ==
+                                    TimeframeBlock.maxBlock
+                                ? null
+                                : () => viewModel.shiftTimeframe(false),
+                            displayDate: _unifiedRangeLabel(viewModel, l10n),
+                            onTapDateDisplay: () async {
+                              final selected = await adaptive_pickers
+                                  .showAdaptiveTimeframePicker(
+                                context: context,
+                                activeBlock: viewModel.activeBlockType,
+                                initialAnchor: viewModel.anchorDate,
+                                initialIsRolling: viewModel.isRolling,
+                                earliestAvailableDay: DateTime(2020),
+                              );
+                              if (selected != null) {
+                                viewModel.setTimeframeSelection(selected);
+                              }
+                            },
+                            nextEnabled: viewModel.activeBlockType !=
+                                    TimeframeBlock.maxBlock &&
+                                (viewModel.isRolling ||
+                                    !viewModel.activeBlockType
+                                        .getBounds(viewModel.anchorDate,
+                                            DateTime(2020))
+                                        .start
+                                        .isAtSameMomentAs(viewModel
+                                            .activeBlockType
+                                            .getBounds(
+                                                DateTime.now(), DateTime(2020))
+                                            .start)),
+                            showDateNavigation: viewModel.activeBlockType !=
+                                TimeframeBlock.maxBlock,
+                          ),
+                          const SizedBox(height: DesignConstants.spacingL),
+                          Builder(builder: (context) {
+                            Widget contentColumn = Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (viewModel.stepsTrackingEnabled) ...[
+                                  AppSectionHeader(title: l10n.steps),
+                                  RepaintBoundary(
+                                    child: _buildStepsCard(
+                                        context, viewModel, l10n),
+                                  ),
+                                  const SizedBox(
+                                      height: DesignConstants.spacingL),
+                                ],
+                                AppSectionHeader(title: l10n.sectionRecovery),
+                                RepaintBoundary(
+                                  child: _buildRecoverySection(
+                                      context, viewModel, l10n),
+                                ),
+                                if (viewModel.sleepTrackingEnabled) ...[
+                                  const SizedBox(
+                                      height: DesignConstants.spacingS),
+                                  RepaintBoundary(
+                                    child: _buildSleepSection(
+                                        context, viewModel, l10n),
+                                  ),
+                                ],
+                                if (viewModel.pulseTrackingEnabled) ...[
+                                  const SizedBox(
+                                      height: DesignConstants.spacingS),
+                                  RepaintBoundary(
+                                    child: _buildPulseSection(
+                                        context, viewModel, l10n),
+                                  ),
+                                ],
+                                const SizedBox(
+                                    height: DesignConstants.spacingL),
+                                AppSectionHeader(
+                                    title: l10n.statisticsSectionTraining),
+                                RepaintBoundary(
+                                  child: _buildConsistencySection(
+                                      context, viewModel, l10n),
+                                ),
+                                const SizedBox(
+                                    height: DesignConstants.spacingS),
+                                RepaintBoundary(
+                                  child: _buildPerformanceSection(
+                                      context, viewModel, l10n),
+                                ),
+                                const SizedBox(
+                                    height: DesignConstants.spacingS),
+                                RepaintBoundary(
+                                  child: _buildMuscleVolumeSection(
+                                      context, viewModel, l10n),
+                                ),
+                                const SizedBox(
+                                    height: DesignConstants.spacingL),
+                                AppSectionHeader(
+                                    title: l10n.statisticsSectionBody),
+                                RepaintBoundary(
+                                  child: _buildBodyMetricsSection(
+                                      context, viewModel, l10n),
+                                ),
+                                const SizedBox(
+                                    height: DesignConstants.spacingS),
+                                _buildMeasurementsShortcutCard(context, l10n),
+                                const BottomContentSpacer(),
+                              ],
+                            );
+
+                            Widget content = Skeletonizer(
+                              enabled:
+                                  viewModel.isLoading || viewModel.isActiveGap,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal:
+                                      DesignConstants.cardPaddingInternal,
+                                ),
+                                child: contentColumn,
+                              ),
+                            );
+
+                            if (viewModel.isActiveGap || viewModel.isLoading) {
+                              content = SizedBox(
+                                height: MediaQuery.of(context).size.height -
+                                    appBarHeight -
+                                    140,
+                                child: ClipRect(
+                                  child: SingleChildScrollView(
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    child: content,
+                                  ),
+                                ),
+                              );
+                            }
+
+                            if (viewModel.isActiveGap) {
+                              content = ActiveGapOverlay(
+                                message: l10n.statisticsActiveGapTitle,
+                                background: content,
+                              );
+                            }
+
+                            return content;
+                          }),
+                        ]),
                       ),
-                      if (viewModel.sleepTrackingEnabled) ...[
-                        const SizedBox(height: DesignConstants.spacingS),
-                        RepaintBoundary(
-                          child: _buildSleepSection(context, viewModel, l10n),
-                        ),
-                      ],
-                      if (viewModel.pulseTrackingEnabled) ...[
-                        const SizedBox(height: DesignConstants.spacingS),
-                        RepaintBoundary(
-                          child: _buildPulseSection(context, viewModel, l10n),
-                        ),
-                      ],
-                      const SizedBox(height: DesignConstants.spacingL),
-                      AppSectionHeader(title: l10n.statisticsSectionTraining),
-                      RepaintBoundary(
-                        child:
-                            _buildConsistencySection(context, viewModel, l10n),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingS),
-                      RepaintBoundary(
-                        child:
-                            _buildPerformanceSection(context, viewModel, l10n),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingS),
-                      RepaintBoundary(
-                        child:
-                            _buildMuscleVolumeSection(context, viewModel, l10n),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingL),
-                      AppSectionHeader(title: l10n.statisticsSectionBody),
-                      RepaintBoundary(
-                        child:
-                            _buildBodyMetricsSection(context, viewModel, l10n),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingS),
-                      _buildMeasurementsShortcutCard(context, l10n),
-                      const BottomContentSpacer(),
-                    ],
-                  ),
-                ),
-              ]),
-            ),
           ),
         ],
       ),

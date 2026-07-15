@@ -5430,4 +5430,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get emptyStateDiaryColdStartCallToAction => '最初の記録をここに追加しましょう';
+
+  @override
+  String get statisticsColdStartTitle => '分析へようこそ！';
+
+  @override
+  String get statisticsColdStartSubtitle =>
+      '最初のワークアウトや食事を記録するか、歩数や睡眠を追跡すると、進行状況がここに視覚化されます。';
+
+  @override
+  String get statisticsActiveGapTitle => 'データがありません';
 }

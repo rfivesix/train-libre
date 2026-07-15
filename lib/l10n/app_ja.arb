@@ -2531,5 +2531,8 @@
   "emptyStateDiaryColdStartTitle": "日記へようこそ！",
   "emptyStateDiaryColdStartSubtitle": "ここで栄養と水分の摂取を記録しましょう。",
   "emptyStateActiveGapOverlay": "この期間のデータはありません",
-  "emptyStateDiaryColdStartCallToAction": "最初の記録をここに追加しましょう"
+  "emptyStateDiaryColdStartCallToAction": "最初の記録をここに追加しましょう",
+  "statisticsColdStartTitle": "分析へようこそ！",
+  "statisticsColdStartSubtitle": "最初のワークアウトや食事を記録するか、歩数や睡眠を追跡すると、進行状況がここに視覚化されます。",
+  "statisticsActiveGapTitle": "データがありません"
 }

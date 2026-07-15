@@ -2664,5 +2664,8 @@
   "emptyStateDiaryColdStartTitle": "Welcome to your Diary!",
   "emptyStateDiaryColdStartSubtitle": "Keep track of your nutrition and hydration here.",
   "emptyStateActiveGapOverlay": "No data for this period",
-  "emptyStateDiaryColdStartCallToAction": "Log your first entry here"
+  "emptyStateDiaryColdStartCallToAction": "Log your first entry here",
+  "statisticsColdStartTitle": "Welcome to your Analytics!",
+  "statisticsColdStartSubtitle": "Your progress will be visualized here as soon as you log your first workouts, meals, or track your steps and sleep.",
+  "statisticsActiveGapTitle": "No data available"
 }

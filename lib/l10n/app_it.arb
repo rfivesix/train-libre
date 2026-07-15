@@ -2531,5 +2531,8 @@
   "emptyStateDiaryColdStartTitle": "Benvenuto nel tuo Diario!",
   "emptyStateDiaryColdStartSubtitle": "Tieni traccia della tua alimentazione e idratazione qui.",
   "emptyStateActiveGapOverlay": "Nessun dato per questo periodo",
-  "emptyStateDiaryColdStartCallToAction": "Registra qui la tua prima voce"
+  "emptyStateDiaryColdStartCallToAction": "Registra qui la tua prima voce",
+  "statisticsColdStartTitle": "Benvenuto nelle tue statistiche!",
+  "statisticsColdStartSubtitle": "I tuoi progressi verranno visualizzati qui non appena registrerai i tuoi primi allenamenti, pasti o traccerai i tuoi passi e il sonno.",
+  "statisticsActiveGapTitle": "Nessun dato disponibile"
 }

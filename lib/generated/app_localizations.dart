@@ -9822,6 +9822,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log your first entry here'**
   String get emptyStateDiaryColdStartCallToAction;
+
+  /// No description provided for @statisticsColdStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your Analytics!'**
+  String get statisticsColdStartTitle;
+
+  /// No description provided for @statisticsColdStartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress will be visualized here as soon as you log your first workouts, meals, or track your steps and sleep.'**
+  String get statisticsColdStartSubtitle;
+
+  /// No description provided for @statisticsActiveGapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get statisticsActiveGapTitle;
 }
 
 class _AppLocalizationsDelegate

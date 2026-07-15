@@ -19,6 +19,7 @@ import '../../steps/data/steps_aggregation_repository.dart';
 import '../../steps/domain/steps_models.dart';
 import '../../../services/health/steps_sync_service.dart';
 import '../../../util/perf_debug_timer.dart';
+import '../../diary/data/sources/diary_local_data_source.dart';
 
 class SectionLoadState<T> {
   final T? data;
@@ -179,6 +180,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
   final PulseAnalysisRepository _pulseRepository;
   final StepsSyncService _stepsSyncService;
   final SleepSyncService _sleepSyncService;
+  final DiaryLocalDataSource _diaryDataSource;
   final _rangePolicy = StatisticsRangePolicyService.instance;
 
   StatisticsRangePolicyService get rangePolicy => _rangePolicy;
@@ -323,6 +325,12 @@ class StatisticsHubViewModel extends ChangeNotifier {
   bool _pulseTrackingEnabled = false;
   bool get pulseTrackingEnabled => _pulseTrackingEnabled;
 
+  bool _isColdStart = false;
+  bool get isColdStart => _isColdStart;
+  
+  bool _isLoadingColdStart = true;
+  bool get isLoadingColdStart => _isLoadingColdStart;
+
   int _hubAnalyticsLoadGeneration = 0;
 
   List<Map<String, dynamic>> get workoutsPerWeek =>
@@ -351,6 +359,48 @@ class StatisticsHubViewModel extends ChangeNotifier {
   int get targetSteps =>
       _stepsState.data?.targetSteps ?? StepsSyncService.defaultStepsGoal;
 
+  bool get isLoading {
+    return _isLoadingColdStart ||
+        _stepsState.isLoading ||
+        _sleepState.isLoading ||
+        _pulseState.isLoading ||
+        _consistencyState.isLoading ||
+        _volumeMusclesState.isLoading ||
+        _bodyNutritionState.isLoading;
+  }
+
+  bool get isActiveGap {
+    if (_isLoadingColdStart || _isColdStart) return false;
+
+    // Check if still loading
+    if (_stepsState.isLoading ||
+        _sleepState.isLoading ||
+        _pulseState.isLoading ||
+        _consistencyState.isLoading ||
+        _volumeMusclesState.isLoading ||
+        _bodyNutritionState.isLoading) {
+      return false;
+    }
+
+    // Check enabled metrics
+    if (_stepsTrackingEnabled && (stepsRange?.totalSteps ?? 0) > 0) {
+      return false;
+    }
+    if (_sleepTrackingEnabled && (sleepSummary?.hasData ?? false)) {
+      return false;
+    }
+    if (_pulseTrackingEnabled && (pulseSummary?.hasData ?? false)) {
+      return false;
+    }
+
+    // Check app features
+    if ((_consistencyState.data?.trainingStats.totalWorkouts ?? 0) > 0) return false;
+    if (bodyNutrition != null && (bodyNutrition!.weightDays > 0 || bodyNutrition!.loggedCalorieDays > 0)) return false;
+
+    // If nothing has data, it's an active gap
+    return true;
+  }
+
   StatisticsHubViewModel({
     StatisticsHubDataAdapter? hubDataAdapter,
     StepsAggregationRepository? stepsRepository,
@@ -358,6 +408,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     PulseAnalysisRepository? pulseRepository,
     StepsSyncService? stepsSyncService,
     SleepSyncService? sleepSyncService,
+    DiaryLocalDataSource? diaryDataSource,
     Future<(StatisticsHubPayload, BodyNutritionAnalyticsResult)> Function(
       TimeframeBlock selectedBlockType,
       DateTime anchorDate,
@@ -382,6 +433,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
         _pulseRepository = pulseRepository ?? HealthPulseAnalysisRepository(),
         _stepsSyncService = stepsSyncService ?? StepsSyncService(),
         _sleepSyncService = sleepSyncService ?? SleepSyncService(),
+        _diaryDataSource = diaryDataSource ?? DiaryLocalDataSource.instance,
         _fetchHubAnalyticsOverride = fetchHubAnalytics,
         _importSleepIfDueOverride = importSleepIfDue,
         _isSleepTrackingEnabledOverride = isSleepTrackingEnabled,
@@ -397,7 +449,17 @@ class StatisticsHubViewModel extends ChangeNotifier {
       _onPulseTrackingEnabledChanged,
     );
     _syncTrackingEnabledFromSettings();
+    _checkColdStart();
     loadHubAnalytics();
+  }
+
+  Future<void> _checkColdStart() async {
+    _isLoadingColdStart = true;
+    notifyListeners();
+    final hasEntries = await _diaryDataSource.hasAnyDiaryEntries();
+    _isColdStart = !hasEntries;
+    _isLoadingColdStart = false;
+    notifyListeners();
   }
 
   @override

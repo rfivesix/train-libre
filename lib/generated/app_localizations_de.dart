@@ -5653,4 +5653,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get emptyStateDiaryColdStartCallToAction =>
       'Trage hier deinen ersten Eintrag ein';
+
+  @override
+  String get statisticsColdStartTitle => 'Willkommen in deinen Statistiken!';
+
+  @override
+  String get statisticsColdStartSubtitle =>
+      'Hier wird dein Fortschritt visualisiert, sobald du deine ersten Workouts, Mahlzeiten oder Schritte und Schlaf trackst.';
+
+  @override
+  String get statisticsActiveGapTitle => 'Keine Daten verfügbar';
 }

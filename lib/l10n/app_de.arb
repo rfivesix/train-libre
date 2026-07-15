@@ -2530,5 +2530,8 @@
   "emptyStateDiaryColdStartTitle": "Willkommen im Tagebuch!",
   "emptyStateDiaryColdStartSubtitle": "Hier behältst du den Überblick über deine Ernährung und Flüssigkeitszufuhr.",
   "emptyStateActiveGapOverlay": "Keine Daten für diesen Zeitraum",
-  "emptyStateDiaryColdStartCallToAction": "Trage hier deinen ersten Eintrag ein"
+  "emptyStateDiaryColdStartCallToAction": "Trage hier deinen ersten Eintrag ein",
+  "statisticsColdStartTitle": "Willkommen in deinen Statistiken!",
+  "statisticsColdStartSubtitle": "Hier wird dein Fortschritt visualisiert, sobald du deine ersten Workouts, Mahlzeiten oder Schritte und Schlaf trackst.",
+  "statisticsActiveGapTitle": "Keine Daten verfügbar"
 }
