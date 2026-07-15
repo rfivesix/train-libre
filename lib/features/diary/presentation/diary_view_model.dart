@@ -120,8 +120,17 @@ class DiaryViewModel extends ChangeNotifier {
   bool showSugarInOverview = false;
 
   bool? hasEverLoggedData;
+  bool hasWeightMeasurementForSelectedDate = false;
+
   bool get hasDataForSelectedDate =>
-      fluidEntries.isNotEmpty || entriesByMeal.values.any((m) => m.isNotEmpty);
+      fluidEntries.isNotEmpty ||
+      entriesByMeal.values.any((m) => m.isNotEmpty) ||
+      _activeSupplementLogs.isNotEmpty ||
+      _activeWorkouts.isNotEmpty ||
+      (stepsForSelectedDay != null && stepsForSelectedDay! > 0) ||
+      (sleepOverview != null && (sleepOverview!.totalSleepMinutes ?? 0) > 0) ||
+      (pulseSummary != null && pulseSummary!.sampleCount > 0) ||
+      hasWeightMeasurementForSelectedDate;
 
   int targetSteps = StepsSyncService.defaultStepsGoal;
 
@@ -322,6 +331,7 @@ class DiaryViewModel extends ChangeNotifier {
           _activeGoals?.targetSteps ?? StepsSyncService.defaultStepsGoal;
       
       hasEverLoggedData = await _nutritionRepo.hasAnyDiaryEntries();
+      hasWeightMeasurementForSelectedDate = await _nutritionRepo.hasWeightMeasurementForDate(selectedDate);
 
       isLoading = false;
       notifyListeners();

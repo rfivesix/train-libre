@@ -43,6 +43,9 @@ class NutritionRepository implements IDiaryRepository {
   Future<bool> hasAnyDiaryEntries() => _localDataSource.hasAnyDiaryEntries();
 
   @override
+  Future<bool> hasWeightMeasurementForDate(DateTime date) => _localDataSource.hasWeightMeasurementForDate(date);
+
+  @override
   @Deprecated('Use watchGoalsForDate instead')
   Future<DailyGoal?> getGoalsForDate(DateTime date) async {
     final data = await _localDataSource.getGoalsForDate(date);

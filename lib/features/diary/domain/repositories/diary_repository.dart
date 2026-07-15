@@ -10,6 +10,7 @@ abstract class IDiaryRepository {
   Stream<List<FoodEntry>> watchEntriesForDate(DateTime date);
   Stream<List<FluidEntry>> watchFluidEntriesForDate(DateTime date);
   Future<bool> hasAnyDiaryEntries();
+  Future<bool> hasWeightMeasurementForDate(DateTime date);
 
   @Deprecated('Use watchGoalsForDate instead')
   Future<DailyGoal?> getGoalsForDate(DateTime date);

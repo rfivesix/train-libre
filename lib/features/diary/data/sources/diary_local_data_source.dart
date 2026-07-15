@@ -219,10 +219,45 @@ class DiaryLocalDataSource {
     }).toList();
   }
   Future<bool> hasAnyDiaryEntries() async {
-    final hasFood = await (_db.select(_db.nutritionLogs)..limit(1)).getSingleOrNull() != null;
-    if (hasFood) return true;
-    final hasFluid = await (_db.select(_db.fluidLogs)..limit(1)).getSingleOrNull() != null;
-    return hasFluid;
+    if (await (_db.select(_db.nutritionLogs)..limit(1)).getSingleOrNull() != null) return true;
+    if (await (_db.select(_db.fluidLogs)..limit(1)).getSingleOrNull() != null) return true;
+    if (await (_db.select(_db.supplementLogs)..limit(1)).getSingleOrNull() != null) return true;
+    if (await (_db.select(_db.workoutLogs)..limit(1)).getSingleOrNull() != null) return true;
+    if (await (_db.select(_db.healthStepSegments)..limit(1)).getSingleOrNull() != null) return true;
+
+    try {
+      final sleepRes = await _db.customSelect('SELECT 1 FROM sleep_raw_imports LIMIT 1').getSingleOrNull();
+      if (sleepRes != null) return true;
+    } catch (_) {}
+
+    try {
+      final pulseRes = await _db.customSelect('SELECT 1 FROM pulse_hourly_aggregates LIMIT 1').getSingleOrNull();
+      if (pulseRes != null) return true;
+    } catch (_) {}
+
+    try {
+      final weightRes = await _db.customSelect("SELECT 1 FROM measurements WHERE chart_type = 'weight' LIMIT 1").getSingleOrNull();
+      if (weightRes != null) return true;
+    } catch (_) {}
+
+    return false;
+  }
+
+  Future<bool> hasWeightMeasurementForDate(DateTime date) async {
+    final startOfDay = DateTime(date.year, date.month, date.day);
+    final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+    try {
+      final res = await _db.customSelect(
+        "SELECT 1 FROM measurements WHERE chart_type = 'weight' AND timestamp >= ? AND timestamp <= ? LIMIT 1",
+        variables: [
+          drift.Variable.withDateTime(startOfDay),
+          drift.Variable.withDateTime(endOfDay)
+        ],
+      ).getSingleOrNull();
+      return res != null;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> updateFluidEntry(FluidEntry entry) async {
