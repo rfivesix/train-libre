@@ -27,13 +27,17 @@ class SupplementSummaryWidget extends StatelessWidget {
     final goalOnlySupplements = trackedSupplements
         .where(
           (ts) =>
-              ts.supplement.dailyGoal != null &&
+              ts.supplement.dailyGoal == null &&
               ts.supplement.dailyLimit == null,
         )
         .toList();
 
     final progressSupplements = trackedSupplements
-        .where((ts) => ts.supplement.dailyLimit != null)
+        .where(
+          (ts) =>
+              ts.supplement.dailyGoal != null ||
+              ts.supplement.dailyLimit != null,
+        )
         .toList();
 
     if (goalOnlySupplements.isEmpty && progressSupplements.isEmpty) {
@@ -59,7 +63,7 @@ class SupplementSummaryWidget extends StatelessWidget {
                 label: supplement.getLocalizedName(context),
                 unit: supplement.unit,
                 value: ts.totalDosedToday,
-                target: supplement.dailyLimit!,
+                target: supplement.dailyLimit ?? supplement.dailyGoal!,
                 color: Colors.amber.shade600,
                 height: 54,
                 borderRadius: DesignConstants.borderRadiusL,

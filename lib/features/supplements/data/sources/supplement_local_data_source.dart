@@ -409,12 +409,6 @@ class SupplementLocalDataSource {
               createdAt: drift.Value(now),
               updatedAt: drift.Value(now)),
           db.SupplementsCompanion.insert(
-              name: 'Protein',
-              dose: 30.0,
-              unit: 'g',
-              createdAt: drift.Value(now),
-              updatedAt: drift.Value(now)),
-          db.SupplementsCompanion.insert(
               name: 'Caffeine',
               dose: 100.0,
               unit: 'mg',

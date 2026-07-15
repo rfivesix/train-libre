@@ -24,15 +24,18 @@ class StepsSummaryCard extends StatelessWidget {
           int? stepsForSelectedDay,
           int targetSteps,
           DateTime selectedDate,
+          bool showSkeleton,
         })>(
       selector: (context, vm) => (
         isStepsWidgetLoading: vm.isStepsWidgetLoading,
         stepsForSelectedDay: vm.stepsForSelectedDay,
         targetSteps: vm.targetSteps,
         selectedDate: vm.selectedDate,
+        showSkeleton: !vm.hasDataForSelectedDate,
       ),
       builder: (context, data, child) {
-        if (data.isStepsWidgetLoading) {
+        final showSkeleton = data.showSkeleton;
+        if (data.isStepsWidgetLoading && !showSkeleton) {
           return Padding(
             padding:
                 const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
@@ -55,7 +58,8 @@ class StepsSummaryCard extends StatelessWidget {
           );
         }
 
-        if ((data.stepsForSelectedDay ?? 0) <= 0) {
+        final steps = showSkeleton ? 5000 : (data.stepsForSelectedDay ?? 0);
+        if (steps <= 0) {
           return const SizedBox.shrink();
         }
 

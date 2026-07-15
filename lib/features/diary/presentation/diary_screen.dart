@@ -677,152 +677,163 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             padding: finalPadding.copyWith(bottom: 0),
             sliver: SliverToBoxAdapter(
               child: RepaintBoundary(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Selector<
-                              DiaryViewModel,
-                              ({
-                                DailyNutrition? dailyNutrition,
-                                DateTime selectedDate,
-                                bool showSugarInOverview
-                              })>(
-                            selector: (context, vm) => (
-                              dailyNutrition: showSkeleton 
-                                  ? DailyNutrition(targetCalories: 2000, targetProtein: 150, targetCarbs: 200, targetFat: 60)
-                                  : vm.dailyNutrition,
-                              selectedDate: vm.selectedDate,
-                              showSugarInOverview: vm.showSugarInOverview,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Selector<
+                        DiaryViewModel,
+                        ({
+                          DailyNutrition? dailyNutrition,
+                          DateTime selectedDate,
+                          bool showSugarInOverview
+                        })>(
+                      selector: (context, vm) => (
+                        dailyNutrition: showSkeleton
+                            ? DailyNutrition(
+                                targetCalories: 2000,
+                                targetProtein: 150,
+                                targetCarbs: 200,
+                                targetFat: 60)
+                            : vm.dailyNutrition,
+                        selectedDate: vm.selectedDate,
+                        showSugarInOverview: vm.showSugarInOverview,
+                      ),
+                      builder: (context, data, child) {
+                        final dailyNutrition = data.dailyNutrition;
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (dailyNutrition != null &&
+                                data.selectedDate.isSameDate(DateTime.now()))
+                              RecommendationBanner(
+                                currentCalories: dailyNutrition.targetCalories,
+                              ),
+                            AppSectionHeader(title: l10n.today_overview_text),
+                            if (dailyNutrition != null)
+                              RepaintBoundary(
+                                key: _macroSummaryKey,
+                                child: NutritionSummaryWidget(
+                                  nutritionData: dailyNutrition,
+                                  l10n: l10n,
+                                  isExpandedView: false,
+                                  showSugarInOverview: data.showSugarInOverview,
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: DesignConstants.spacingXS),
+                    Selector<
+                        DiaryViewModel,
+                        ({
+                          List<TrackedSupplement> trackedSupplements,
+                          DateTime selectedDate
+                        })>(
+                      selector: (context, vm) => (
+                        trackedSupplements:
+                            (showSkeleton && vm.trackedSupplements.isEmpty)
+                                ? [
+                                    TrackedSupplement(
+                                        supplement: Supplement(
+                                            name: 'Whey Protein',
+                                            defaultDose: 30,
+                                            dailyLimit: 100,
+                                            unit: 'g'),
+                                        totalDosedToday: 30)
+                                  ]
+                                : vm.trackedSupplements,
+                        selectedDate: vm.selectedDate,
+                      ),
+                      builder: (context, data, child) {
+                        return SupplementSummaryWidget(
+                          trackedSupplements: data.trackedSupplements,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const SupplementHubScreen(),
                             ),
-                            builder: (context, data, child) {
-                              final dailyNutrition = data.dailyNutrition;
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  if (dailyNutrition != null &&
-                                      data.selectedDate
-                                          .isSameDate(DateTime.now()))
-                                    RecommendationBanner(
-                                      currentCalories:
-                                          dailyNutrition.targetCalories,
-                                    ),
-                                  AppSectionHeader(
-                                      title: l10n.today_overview_text),
-                                  if (dailyNutrition != null)
-                                    RepaintBoundary(
-                                      key: _macroSummaryKey,
-                                      child: NutritionSummaryWidget(
-                                        nutritionData: dailyNutrition,
-                                        l10n: l10n,
-                                        isExpandedView: false,
-                                        showSugarInOverview:
-                                            data.showSugarInOverview,
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
                           ),
-                          const SizedBox(height: DesignConstants.spacingXS),
-                          Selector<
-                              DiaryViewModel,
-                              ({
-                                List<TrackedSupplement> trackedSupplements,
-                                DateTime selectedDate
-                              })>(
-                            selector: (context, vm) => (
-                              trackedSupplements: showSkeleton 
-                                  ? [TrackedSupplement(supplement: Supplement(id: 1, name: 'Whey Protein', defaultDose: 30, unit: 'g'), totalDosedToday: 30)]
-                                  : vm.trackedSupplements,
-                              selectedDate: vm.selectedDate,
-                            ),
-                            builder: (context, data, child) {
-                              return SupplementSummaryWidget(
-                                trackedSupplements: data.trackedSupplements,
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const SupplementHubScreen(),
-                                  ),
+                        );
+                      },
+                    ),
+                    if (stepsEnabled) const StepsSummaryCard(),
+                    if (sleepEnabled) const SleepSummaryCard(),
+                    if (pulseEnabled) const PulseSummaryCard(),
+                    // New section: insert workout summary here.
+                    if (hasWorkoutSummary || showSkeleton)
+                      Selector<DiaryViewModel, Map<String, dynamic>?>(
+                        selector: (context, vm) => showSkeleton
+                            ? {
+                                'duration': const Duration(minutes: 45),
+                                'volume': 10000.0,
+                                'sets': 15,
+                                'count': 1
+                              }
+                            : vm.workoutSummary,
+                        builder: (context, workoutSummary, child) {
+                          if (workoutSummary == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return TodaysWorkoutSummaryCard(
+                            duration: workoutSummary['duration'] as Duration,
+                            volume: workoutSummary['volume'] as double,
+                            sets: workoutSummary['sets'] as int,
+                            workoutCount: workoutSummary['count'] as int,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const WorkoutHistoryScreen(),
                                 ),
                               );
                             },
-                          ),
-                          if (stepsEnabled) const StepsSummaryCard(),
-                          if (sleepEnabled) const SleepSummaryCard(),
-                          if (pulseEnabled) const PulseSummaryCard(),
-                          // New section: insert workout summary here.
-                          if (hasWorkoutSummary || showSkeleton)
-                            Selector<DiaryViewModel, Map<String, dynamic>?>(
-                              selector: (context, vm) => showSkeleton
-                                  ? {'duration': const Duration(minutes: 45), 'volume': 10000.0, 'sets': 15, 'count': 1}
-                                  : vm.workoutSummary,
-                              builder: (context, workoutSummary, child) {
-                                if (workoutSummary == null) {
-                                  return const SizedBox.shrink();
-                                }
-                                return TodaysWorkoutSummaryCard(
-                                  duration:
-                                      workoutSummary['duration'] as Duration,
-                                  volume: workoutSummary['volume'] as double,
-                                  sets: workoutSummary['sets'] as int,
-                                  workoutCount: workoutSummary['count'] as int,
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const WorkoutHistoryScreen(),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                        ],
+                          );
+                        },
                       ),
-                    ),
-                  ),
+                  ],
                 ),
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: finalPadding.left),
-                  sliver: SliverToBoxAdapter(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: DesignConstants.spacingXL),
-                        AppSectionHeader(title: l10n.protocol_today_capslock),
-                        _buildTodaysLog(l10n),
-                      ],
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: EdgeInsets.only(
-                    left: finalPadding.left,
-                    right: finalPadding.right,
-                    bottom: finalPadding.bottom,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: RepaintBoundary(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: DesignConstants.spacingXL),
-                          AppSectionHeader(
-                              title: l10n.measurementWeightCapslock),
-                          const WeightChartCard(),
-                          const BottomContentSpacer(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: finalPadding.left),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: DesignConstants.spacingXL),
+                  AppSectionHeader(title: l10n.protocol_today_capslock),
+                  _buildTodaysLog(l10n),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.only(
+              left: finalPadding.left,
+              right: finalPadding.right,
+              bottom: finalPadding.bottom,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: RepaintBoundary(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: DesignConstants.spacingXL),
+                    AppSectionHeader(title: l10n.measurementWeightCapslock),
+                    const WeightChartCard(),
+                    const BottomContentSpacer(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
 
     if (showSkeleton) {
@@ -1201,8 +1212,19 @@ class _MealCardState extends State<_MealCard> {
         if (!vm.hasDataForSelectedDate) {
           return [
             TrackedFoodItem(
-              item: FoodItem(name: 'Placeholder Food', calories: 250, protein: 10, carbs: 30, fat: 5, barcode: 'dummy', source: FoodItemSource.user),
-              entry: FoodEntry(barcode: 'dummy', quantityInGrams: 100, timestamp: DateTime.now(), mealType: widget.mealKey),
+              item: FoodItem(
+                  name: 'Placeholder Food',
+                  calories: 250,
+                  protein: 10,
+                  carbs: 30,
+                  fat: 5,
+                  barcode: 'dummy',
+                  source: FoodItemSource.user),
+              entry: FoodEntry(
+                  barcode: 'dummy',
+                  quantityInGrams: 100,
+                  timestamp: DateTime.now(),
+                  mealType: widget.mealKey),
             )
           ];
         }
@@ -1366,7 +1388,11 @@ class _FluidsCardState extends State<_FluidsCard> {
       selector: (context, vm) {
         if (!vm.hasDataForSelectedDate) {
           return [
-            FluidEntry(timestamp: DateTime.now(), quantityInMl: 250, name: 'Water', kcal: 0),
+            FluidEntry(
+                timestamp: DateTime.now(),
+                quantityInMl: 250,
+                name: 'Water',
+                kcal: 0),
           ];
         }
         return vm.fluidEntries;

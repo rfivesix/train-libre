@@ -236,8 +236,8 @@ class DiaryLocalDataSource {
     } catch (_) {}
 
     try {
-      final weightRes = await _db.customSelect("SELECT 1 FROM measurements WHERE chart_type = 'weight' LIMIT 1").getSingleOrNull();
-      if (weightRes != null) return true;
+      final weightRes = await _db.customSelect("SELECT COUNT(*) as count FROM measurements WHERE chart_type = 'weight'").getSingleOrNull();
+      if (weightRes != null && weightRes.read<int>('count') > 1) return true;
     } catch (_) {}
 
     return false;

@@ -24,14 +24,17 @@ class PulseSummaryCard extends StatelessWidget {
           bool isPulseWidgetLoading,
           PulseAnalysisSummary? pulseSummary,
           DateTime selectedDate,
+          bool showSkeleton,
         })>(
       selector: (context, vm) => (
         isPulseWidgetLoading: vm.isPulseWidgetLoading,
         pulseSummary: vm.pulseSummary,
         selectedDate: vm.selectedDate,
+        showSkeleton: !vm.hasDataForSelectedDate,
       ),
       builder: (context, data, child) {
-        if (data.isPulseWidgetLoading) {
+        final showSkeleton = data.showSkeleton;
+        if (data.isPulseWidgetLoading && !showSkeleton) {
           return SummaryCard(
             padding: EdgeInsets.zero,
             margin:
@@ -54,16 +57,16 @@ class PulseSummaryCard extends StatelessWidget {
         }
 
         final summary = data.pulseSummary;
-        if (summary == null || !summary.hasData) {
+        if ((summary == null || !summary.hasData) && !showSkeleton) {
           return const SizedBox.shrink();
         }
 
-        final rangeText = summary.hasCoreMetrics
+        final rangeText = showSkeleton ? '60-120 ${l10n.sleepBpmUnit}' : (summary!.hasCoreMetrics
             ? '${summary.minBpm!.round()}-${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}'
-            : '--';
-        final restingText = summary.restingBpm != null
+            : '--');
+        final restingText = showSkeleton ? '65 ${l10n.sleepBpmUnit}' : (summary!.restingBpm != null
             ? '${summary.restingBpm!.round()} ${l10n.sleepBpmUnit}'
-            : '--';
+            : '--');
 
         return RepaintBoundary(
           child: SummaryCard(

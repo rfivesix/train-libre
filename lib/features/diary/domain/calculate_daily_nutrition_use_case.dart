@@ -171,15 +171,32 @@ class CalculateDailyNutritionUseCase {
       );
     }
 
+    final double targetCaffeineDouble = targetCaffeine.toDouble();
     final Set<int> trackedSuppIds = {};
     final List<TrackedSupplement> trackedSupps = [];
 
     for (final s in supplementsForDate) {
       final hasLog = todaysDoses.containsKey(s.id);
       if (s.isTracked || hasLog) {
+        var supplementToUse = s;
+        if ((s.code == 'caffeine' || s.name.toLowerCase() == 'caffeine') &&
+            s.dailyGoal == null &&
+            s.dailyLimit == null) {
+          supplementToUse = Supplement(
+            id: s.id,
+            code: s.code,
+            name: s.name,
+            defaultDose: s.defaultDose,
+            unit: s.unit,
+            dailyLimit: targetCaffeineDouble,
+            notes: s.notes,
+            isBuiltin: s.isBuiltin,
+            isTracked: s.isTracked,
+          );
+        }
         trackedSupps.add(
           TrackedSupplement(
-            supplement: s,
+            supplement: supplementToUse,
             totalDosedToday: todaysDoses[s.id] ?? 0.0,
           ),
         );
@@ -199,8 +216,24 @@ class CalculateDailyNutritionUseCase {
       if (s.id != null &&
           todaysDoses.containsKey(s.id) &&
           !trackedSuppIds.contains(s.id)) {
+        var supplementToUse = s;
+        if ((s.code == 'caffeine' || s.name.toLowerCase() == 'caffeine') &&
+            s.dailyGoal == null &&
+            s.dailyLimit == null) {
+          supplementToUse = Supplement(
+            id: s.id,
+            code: s.code,
+            name: s.name,
+            defaultDose: s.defaultDose,
+            unit: s.unit,
+            dailyLimit: targetCaffeineDouble,
+            notes: s.notes,
+            isBuiltin: s.isBuiltin,
+            isTracked: s.isTracked,
+          );
+        }
         trackedSupps.add(
-          TrackedSupplement(supplement: s, totalDosedToday: todaysDoses[s.id]!),
+          TrackedSupplement(supplement: supplementToUse, totalDosedToday: todaysDoses[s.id]!),
         );
         trackedSuppIds.add(s.id!);
       }
