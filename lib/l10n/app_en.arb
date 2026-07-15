@@ -490,6 +490,7 @@
   "manage_all_plans": "Manage all plans",
   "workoutSectionStart": "Start",
   "workoutSectionMyPlans": "My plans",
+  "emptyStateWorkoutRoutinesCallout": "Create your first routine to track your workouts in the gym in a structured way.",
   "workoutSectionHistoryLibrary": "History & library",
   "workoutAllRoutines": "All routines",
   "workoutEntryWorkouts": "Workouts",

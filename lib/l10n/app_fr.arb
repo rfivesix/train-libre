@@ -491,6 +491,7 @@
   "manage_all_plans": "Gérer tous les forfaits",
   "workoutSectionStart": "Commencer",
   "workoutSectionMyPlans": "Mes projets",
+  "emptyStateWorkoutRoutinesCallout": "Créez votre première routine pour suivre vos entraînements en salle de manière structurée.",
   "workoutSectionHistoryLibrary": "Histoire et bibliothèque",
   "workoutAllRoutines": "Toutes les routines",
   "workoutEntryWorkouts": "Entraînements",

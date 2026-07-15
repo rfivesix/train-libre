@@ -180,6 +180,41 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               final routines = snapshot.data ?? [];
+              if (routines.isEmpty) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildCreateRoutineCard(context, l10n),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: DesignConstants.spacingS,
+                          vertical: DesignConstants.spacingM,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.emptyStateWorkoutRoutinesCallout,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
+                                    height: 1.3,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 clipBehavior: Clip.none,

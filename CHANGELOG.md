@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - **Diary Supplements and Wearables State Resolution:** Fixed a bug where active-state data streams for supplements and wearables were blocked or incorrectly overridden by skeleton dummy data on the diary screen.
 - **Tracked Supplements Display Logic:** Restored display logic to show all currently tracked supplements without any daily goals or limits as simple checkmark cards, while dynamically displaying any supplement that has a `dailyGoal` or `dailyLimit` set as a progress bar.
+- **Workout Hub Empty Routines State:** Rendered an inviting helper text to the right of the "Neue Routine" button when the user has no custom workout routines created, which automatically disappears as soon as the first routine is created.
 - **Onboarding Weight Checks:** Adjusted empty-state checks to ensure a single onboarding weight entry does not prematurely bypass the Cold Start empty state.
 
 ## [1.0.0-alpha.10] - 2026-07-14

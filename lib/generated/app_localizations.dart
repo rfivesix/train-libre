@@ -2234,6 +2234,12 @@ abstract class AppLocalizations {
   /// **'My plans'**
   String get workoutSectionMyPlans;
 
+  /// No description provided for @emptyStateWorkoutRoutinesCallout.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first routine to track your workouts in the gym in a structured way.'**
+  String get emptyStateWorkoutRoutinesCallout;
+
   /// No description provided for @workoutSectionHistoryLibrary.
   ///
   /// In en, this message translates to:

@@ -491,6 +491,7 @@
   "manage_all_plans": "Gestisci tutti i piani",
   "workoutSectionStart": "Inizio",
   "workoutSectionMyPlans": "I miei piani",
+  "emptyStateWorkoutRoutinesCallout": "Crea la tua prima scheda per tracciare i tuoi allenamenti in palestra in modo strutturato.",
   "workoutSectionHistoryLibrary": "Storia e biblioteca",
   "workoutAllRoutines": "Tutte le routine",
   "workoutEntryWorkouts": "Allenamenti",

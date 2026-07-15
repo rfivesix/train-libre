@@ -491,6 +491,7 @@
   "manage_all_plans": "すべての計画を管理する",
   "workoutSectionStart": "始める",
   "workoutSectionMyPlans": "私の計画",
+  "emptyStateWorkoutRoutinesCallout": "ジムでのワークアウトを体系的に記録するために、最初のルーティンを作成しましょう。",
   "workoutSectionHistoryLibrary": "歴史と図書館",
   "workoutAllRoutines": "すべてのルーチン",
   "workoutEntryWorkouts": "トレーニング",

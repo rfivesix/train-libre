@@ -1239,6 +1239,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get workoutSectionMyPlans => '私の計画';
 
   @override
+  String get emptyStateWorkoutRoutinesCallout =>
+      'ジムでのワークアウトを体系的に記録するために、最初のルーティンを作成しましょう。';
+
+  @override
   String get workoutSectionHistoryLibrary => '歴史と図書館';
 
   @override

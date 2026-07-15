@@ -1257,6 +1257,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get workoutSectionMyPlans => 'Meine Pläne';
 
   @override
+  String get emptyStateWorkoutRoutinesCallout =>
+      'Erstelle deine erste Routine, um deine Workouts im Gym strukturiert zu tracken.';
+
+  @override
   String get workoutSectionHistoryLibrary => 'Verlauf & Bibliothek';
 
   @override
