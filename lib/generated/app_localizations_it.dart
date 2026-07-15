@@ -5670,4 +5670,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get icloudNeverSynced => 'Mai sincronizzato';
+
+  @override
+  String get emptyStateDiaryColdStartTitle => 'Benvenuto nel tuo Diario!';
+
+  @override
+  String get emptyStateDiaryColdStartSubtitle =>
+      'Tieni traccia della tua alimentazione e idratazione qui.';
+
+  @override
+  String get emptyStateActiveGapOverlay => 'Nessun dato per questo periodo';
+
+  @override
+  String get emptyStateDiaryColdStartCallToAction =>
+      'Registra qui la tua prima voce';
 }

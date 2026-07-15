@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-alpha.11] - 2026-07-15
+
+### Added
+- **Premium Empty States & Loading System:** Implemented a new highly modular, glassmorphic empty state and loading skeleton system across the Diary screen. Differentiates cleanly between "Cold Start" (educational hero icon and bobbing arrow) for new users and "Active Gap" (subtle translucent glass overlay over pulsing skeleton layout components) when no data is logged for a given day.
+
 ## [1.0.0-alpha.10] - 2026-07-14
 
 ### Fixed

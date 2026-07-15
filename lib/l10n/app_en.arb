@@ -2658,5 +2658,9 @@
       }
     }
   },
-  "icloudNeverSynced": "Never synced"
+  "icloudNeverSynced": "Never synced",
+  "emptyStateDiaryColdStartTitle": "Welcome to your Diary!",
+  "emptyStateDiaryColdStartSubtitle": "Keep track of your nutrition and hydration here.",
+  "emptyStateActiveGapOverlay": "No data for this period",
+  "emptyStateDiaryColdStartCallToAction": "Log your first entry here"
 }

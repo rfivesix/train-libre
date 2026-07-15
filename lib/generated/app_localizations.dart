@@ -9786,6 +9786,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Never synced'**
   String get icloudNeverSynced;
+
+  /// No description provided for @emptyStateDiaryColdStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your Diary!'**
+  String get emptyStateDiaryColdStartTitle;
+
+  /// No description provided for @emptyStateDiaryColdStartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep track of your nutrition and hydration here.'**
+  String get emptyStateDiaryColdStartSubtitle;
+
+  /// No description provided for @emptyStateActiveGapOverlay.
+  ///
+  /// In en, this message translates to:
+  /// **'No data for this period'**
+  String get emptyStateActiveGapOverlay;
+
+  /// No description provided for @emptyStateDiaryColdStartCallToAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Log your first entry here'**
+  String get emptyStateDiaryColdStartCallToAction;
 }
 
 class _AppLocalizationsDelegate

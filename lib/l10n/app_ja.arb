@@ -2525,5 +2525,9 @@
   "icloudSyncErrorClose": "閉じる",
   "icloudSyncErrorCopied": "エラーログをクリップボードにコピーしました！",
   "icloudLastSynced": "最終同期：{date}",
-  "icloudNeverSynced": "未同期"
+  "icloudNeverSynced": "未同期",
+  "emptyStateDiaryColdStartTitle": "日記へようこそ！",
+  "emptyStateDiaryColdStartSubtitle": "ここで栄養と水分の摂取を記録しましょう。",
+  "emptyStateActiveGapOverlay": "この期間のデータはありません",
+  "emptyStateDiaryColdStartCallToAction": "最初の記録をここに追加しましょう"
 }

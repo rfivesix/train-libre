@@ -119,6 +119,10 @@ class DiaryViewModel extends ChangeNotifier {
   Map<String, dynamic>? workoutSummary;
   bool showSugarInOverview = false;
 
+  bool? hasEverLoggedData;
+  bool get hasDataForSelectedDate =>
+      fluidEntries.isNotEmpty || entriesByMeal.values.any((m) => m.isNotEmpty);
+
   int targetSteps = StepsSyncService.defaultStepsGoal;
 
   // Delegated Health Sync Properties
@@ -316,6 +320,8 @@ class DiaryViewModel extends ChangeNotifier {
       workoutSummary = state.workoutSummary;
       targetSteps =
           _activeGoals?.targetSteps ?? StepsSyncService.defaultStepsGoal;
+      
+      hasEverLoggedData = await _nutritionRepo.hasAnyDiaryEntries();
 
       isLoading = false;
       notifyListeners();

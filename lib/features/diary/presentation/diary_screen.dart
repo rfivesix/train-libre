@@ -646,6 +646,45 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       top: basePadding.top + appBarHeight,
     );
 
+    final hasEverLoggedData =
+        context.select<DiaryViewModel, bool?>((vm) => vm.hasEverLoggedData);
+    final hasDataForSelectedDate =
+        context.select<DiaryViewModel, bool>((vm) => vm.hasDataForSelectedDate);
+
+    if (hasEverLoggedData == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (!hasEverLoggedData) {
+      return ColdStartEmptyState(
+        icon: LucideIcons.notebook_pen,
+        title: l10n.emptyStateDiaryColdStartTitle,
+        subtitle: l10n.emptyStateDiaryColdStartSubtitle,
+        callToAction: l10n.emptyStateDiaryColdStartCallToAction,
+      );
+    }
+
+    if (!hasDataForSelectedDate) {
+      return RefreshIndicator(
+        onRefresh: () => syncHealthData(forceStepsRefresh: true),
+        child: ActiveGapOverlay(
+          message: l10n.emptyStateActiveGapOverlay,
+          background: CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverPadding(
+                padding: finalPadding,
+                sliver: const SliverToBoxAdapter(
+                  child: DiarySkeletonLayout(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return isLoading
         ? const Center(child: CircularProgressIndicator())
         : RefreshIndicator(

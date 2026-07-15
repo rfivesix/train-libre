@@ -2524,5 +2524,9 @@
   "icloudSyncErrorClose": "Schließen",
   "icloudSyncErrorCopied": "Fehlerprotokoll in die Zwischenablage kopiert!",
   "icloudLastSynced": "Letztes Backup: {date}",
-  "icloudNeverSynced": "Noch nie synchronisiert"
+  "icloudNeverSynced": "Noch nie synchronisiert",
+  "emptyStateDiaryColdStartTitle": "Willkommen im Tagebuch!",
+  "emptyStateDiaryColdStartSubtitle": "Hier behältst du den Überblick über deine Ernährung und Flüssigkeitszufuhr.",
+  "emptyStateActiveGapOverlay": "Keine Daten für diesen Zeitraum",
+  "emptyStateDiaryColdStartCallToAction": "Trage hier deinen ersten Eintrag ein"
 }

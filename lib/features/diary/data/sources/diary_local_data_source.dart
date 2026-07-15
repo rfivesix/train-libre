@@ -218,6 +218,12 @@ class DiaryLocalDataSource {
       );
     }).toList();
   }
+  Future<bool> hasAnyDiaryEntries() async {
+    final hasFood = await (_db.select(_db.nutritionLogs)..limit(1)).getSingleOrNull() != null;
+    if (hasFood) return true;
+    final hasFluid = await (_db.select(_db.fluidLogs)..limit(1)).getSingleOrNull() != null;
+    return hasFluid;
+  }
 
   Future<void> updateFluidEntry(FluidEntry entry) async {
     if (entry.id == null) return;

@@ -5410,4 +5410,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get icloudNeverSynced => '未同期';
+
+  @override
+  String get emptyStateDiaryColdStartTitle => '日記へようこそ！';
+
+  @override
+  String get emptyStateDiaryColdStartSubtitle => 'ここで栄養と水分の摂取を記録しましょう。';
+
+  @override
+  String get emptyStateActiveGapOverlay => 'この期間のデータはありません';
+
+  @override
+  String get emptyStateDiaryColdStartCallToAction => '最初の記録をここに追加しましょう';
 }

@@ -2525,5 +2525,9 @@
   "icloudSyncErrorClose": "Fermer",
   "icloudSyncErrorCopied": "Journal des erreurs copié dans le presse-papiers !",
   "icloudLastSynced": "Dernière synchronisation : {date}",
-  "icloudNeverSynced": "Jamais synchronisé"
+  "icloudNeverSynced": "Jamais synchronisé",
+  "emptyStateDiaryColdStartTitle": "Bienvenue dans votre Journal !",
+  "emptyStateDiaryColdStartSubtitle": "Gardez une trace de votre alimentation et de votre hydratation ici.",
+  "emptyStateActiveGapOverlay": "Aucune donnée pour cette période",
+  "emptyStateDiaryColdStartCallToAction": "Enregistrez votre première entrée ici"
 }

@@ -2525,5 +2525,9 @@
   "icloudSyncErrorClose": "Chiudi",
   "icloudSyncErrorCopied": "Registro degli errori copiato negli appunti!",
   "icloudLastSynced": "Ultima sincronizzazione: {date}",
-  "icloudNeverSynced": "Mai sincronizzato"
+  "icloudNeverSynced": "Mai sincronizzato",
+  "emptyStateDiaryColdStartTitle": "Benvenuto nel tuo Diario!",
+  "emptyStateDiaryColdStartSubtitle": "Tieni traccia della tua alimentazione e idratazione qui.",
+  "emptyStateActiveGapOverlay": "Nessun dato per questo periodo",
+  "emptyStateDiaryColdStartCallToAction": "Registra qui la tua prima voce"
 }
