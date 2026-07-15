@@ -1,4 +1,5 @@
 import '../../../services/unit_service.dart';
+
 enum BodyweightGoal {
   loseWeight,
   maintainWeight,
@@ -74,49 +75,70 @@ class WeeklyTargetRateOption {
 class WeeklyTargetRateCatalog {
   const WeeklyTargetRateCatalog._();
 
-  static List<WeeklyTargetRateOption> supportedOptions(UnitService unitService) {
+  static List<WeeklyTargetRateOption> supportedOptions(
+      UnitService unitService) {
     final isImperial = !unitService.isMetric;
-    
+
     // Helper to convert lbs to kg for storage
-    double toKg(double lbs) => unitService.convertToMetric(lbs, UnitDimension.weight);
+    double toKg(double lbs) =>
+        unitService.convertToMetric(lbs, UnitDimension.weight);
 
     if (isImperial) {
       return [
-        WeeklyTargetRateOption(goal: BodyweightGoal.loseWeight, kgPerWeek: toKg(-0.50)),
-        WeeklyTargetRateOption(goal: BodyweightGoal.loseWeight, kgPerWeek: toKg(-1.00), isDefault: true),
-        WeeklyTargetRateOption(goal: BodyweightGoal.loseWeight, kgPerWeek: toKg(-1.50)),
-        WeeklyTargetRateOption(goal: BodyweightGoal.loseWeight, kgPerWeek: toKg(-2.00)),
-        
-        WeeklyTargetRateOption(goal: BodyweightGoal.maintainWeight, kgPerWeek: 0, isDefault: true),
-        
-        WeeklyTargetRateOption(goal: BodyweightGoal.gainWeight, kgPerWeek: toKg(0.25)),
-        WeeklyTargetRateOption(goal: BodyweightGoal.gainWeight, kgPerWeek: toKg(0.50), isDefault: true),
-        WeeklyTargetRateOption(goal: BodyweightGoal.gainWeight, kgPerWeek: toKg(1.00)),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.loseWeight, kgPerWeek: toKg(-0.50)),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.loseWeight,
+            kgPerWeek: toKg(-1.00),
+            isDefault: true),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.loseWeight, kgPerWeek: toKg(-1.50)),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.loseWeight, kgPerWeek: toKg(-2.00)),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.maintainWeight, kgPerWeek: 0, isDefault: true),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.gainWeight, kgPerWeek: toKg(0.25)),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.gainWeight,
+            kgPerWeek: toKg(0.50),
+            isDefault: true),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.gainWeight, kgPerWeek: toKg(1.00)),
       ];
     } else {
       return [
-        WeeklyTargetRateOption(goal: BodyweightGoal.loseWeight, kgPerWeek: -0.25),
-        WeeklyTargetRateOption(goal: BodyweightGoal.loseWeight, kgPerWeek: -0.50, isDefault: true),
-        WeeklyTargetRateOption(goal: BodyweightGoal.loseWeight, kgPerWeek: -0.75),
-        WeeklyTargetRateOption(goal: BodyweightGoal.loseWeight, kgPerWeek: -1.00),
-        
-        WeeklyTargetRateOption(goal: BodyweightGoal.maintainWeight, kgPerWeek: 0, isDefault: true),
-        
-        WeeklyTargetRateOption(goal: BodyweightGoal.gainWeight, kgPerWeek: 0.10),
-        WeeklyTargetRateOption(goal: BodyweightGoal.gainWeight, kgPerWeek: 0.25, isDefault: true),
-        WeeklyTargetRateOption(goal: BodyweightGoal.gainWeight, kgPerWeek: 0.50),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.loseWeight, kgPerWeek: -0.25),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.loseWeight, kgPerWeek: -0.50, isDefault: true),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.loseWeight, kgPerWeek: -0.75),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.loseWeight, kgPerWeek: -1.00),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.maintainWeight, kgPerWeek: 0, isDefault: true),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.gainWeight, kgPerWeek: 0.10),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.gainWeight, kgPerWeek: 0.25, isDefault: true),
+        WeeklyTargetRateOption(
+            goal: BodyweightGoal.gainWeight, kgPerWeek: 0.50),
       ];
     }
   }
 
-  static List<WeeklyTargetRateOption> optionsForGoal(BodyweightGoal goal, UnitService unitService) {
+  static List<WeeklyTargetRateOption> optionsForGoal(
+      BodyweightGoal goal, UnitService unitService) {
     return supportedOptions(unitService)
         .where((option) => option.goal == goal)
         .toList(growable: false);
   }
 
-  static WeeklyTargetRateOption defaultForGoal(BodyweightGoal goal, UnitService unitService) {
-    return optionsForGoal(goal, unitService).firstWhere((option) => option.isDefault);
+  static WeeklyTargetRateOption defaultForGoal(
+      BodyweightGoal goal, UnitService unitService) {
+    return optionsForGoal(goal, unitService)
+        .firstWhere((option) => option.isDefault);
   }
 
   static bool isSupported({
@@ -126,7 +148,8 @@ class WeeklyTargetRateCatalog {
   }) {
     // We allow a small epsilon for float comparison when checking supported options
     return supportedOptions(unitService).any(
-      (option) => option.goal == goal && (option.kgPerWeek - kgPerWeek).abs() < 0.001,
+      (option) =>
+          option.goal == goal && (option.kgPerWeek - kgPerWeek).abs() < 0.001,
     );
   }
 
@@ -135,7 +158,8 @@ class WeeklyTargetRateCatalog {
     required double kgPerWeek,
     required UnitService unitService,
   }) {
-    if (isSupported(goal: goal, kgPerWeek: kgPerWeek, unitService: unitService)) {
+    if (isSupported(
+        goal: goal, kgPerWeek: kgPerWeek, unitService: unitService)) {
       return kgPerWeek;
     }
     return defaultForGoal(goal, unitService).kgPerWeek;

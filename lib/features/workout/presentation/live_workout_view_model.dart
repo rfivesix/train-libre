@@ -320,7 +320,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         } else {
           initText = setLog.weightKg == null
               ? ''
-              : unitService.formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
+              : unitService.formatDisplayWeight(setLog.weightKg!,
+                  fractionDigits: 2);
         }
         weightControllers[templateId] = TextEditingController(text: initText);
       }
@@ -721,7 +722,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_targetRestEndTime != null) {
-        final remaining = _targetRestEndTime!.difference(DateTime.now()).inSeconds;
+        final remaining =
+            _targetRestEndTime!.difference(DateTime.now()).inSeconds;
         if (remaining > 0) {
           if (_remainingRestSeconds != remaining) {
             _remainingRestSeconds = remaining;
@@ -766,7 +768,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     if (_remainingRestSeconds <= 0) return;
     _remainingRestSeconds += deltaSeconds;
     if (_targetRestEndTime != null) {
-      _targetRestEndTime = _targetRestEndTime!.add(Duration(seconds: deltaSeconds));
+      _targetRestEndTime =
+          _targetRestEndTime!.add(Duration(seconds: deltaSeconds));
     }
     if (_remainingRestSeconds <= 0) {
       _remainingRestSeconds = 0;

@@ -17,6 +17,7 @@ import 'widgets/confirm_log_meal_bottom_sheet.dart';
 import 'add_food_screen.dart';
 import 'meal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen that displays a list of the user's saved meals.
 ///
@@ -305,10 +306,11 @@ class _MealsScreenState extends State<MealsScreen> {
                         ),
                         const SizedBox(height: DesignConstants.spacingL),
                         // Outlined CTA to build a template from scratch
-                        OutlinedButton.icon(
+                        AppButton.secondary(
                           onPressed: () => _createMealAndOpenEditor(l10n),
-                          icon: const Icon(LucideIcons.plus),
-                          label: Text(l10n.mealsCreateManually),
+                          label: l10n.mealsCreateManually,
+                          tooltip: l10n.mealsCreateManually,
+                          icon: LucideIcons.plus,
                         ),
                       ],
                     ),

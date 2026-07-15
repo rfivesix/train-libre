@@ -10,6 +10,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/legal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 class InitialConsentScreen extends StatefulWidget {
   final Widget nextScreen;
@@ -176,17 +177,12 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                     const SizedBox(height: DesignConstants.spacingL),
                     SizedBox(
                       width: double.infinity,
-                      child: FilledButton(
+                      child: AppButton.primary(
                         onPressed: (_privacyAccepted && _termsAccepted)
                             ? _acceptAndProceed
                             : null,
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(56),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: Text(l10n.accept_and_get_started),
+                        label: l10n.accept_and_get_started,
+                        tooltip: l10n.accept_and_get_started,
                       ),
                     ),
                   ],

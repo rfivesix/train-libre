@@ -332,7 +332,9 @@ class _BodyNutritionCorrelationScreenState
               ValueSummaryCard(
                   label: l10n.metricsAvgCalories, value: avgCalories),
               ValueSummaryCard(
-                label: l10n.analyticsWeightTrendLabel(context.read<UnitService>().suffixFor(UnitDimension.weight)),
+                label: l10n.analyticsWeightTrendLabel(context
+                    .read<UnitService>()
+                    .suffixFor(UnitDimension.weight)),
                 value: StatisticsPresentationFormatter
                     .bodyNutritionTrendDirectionLabel(
                         l10n, data.weightTrend.direction),
@@ -399,7 +401,8 @@ class _BodyNutritionCorrelationScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.analyticsBodyNutritionNormalizedHint(context.read<UnitService>().suffixFor(UnitDimension.weight)),
+          l10n.analyticsBodyNutritionNormalizedHint(
+              context.read<UnitService>().suffixFor(UnitDimension.weight)),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.outline,
               ),
@@ -411,7 +414,8 @@ class _BodyNutritionCorrelationScreenState
           children: [
             _legendDot(
               color: Theme.of(context).colorScheme.primary,
-              label: l10n.analyticsWeightTrendLabel(context.read<UnitService>().suffixFor(UnitDimension.weight)),
+              label: l10n.analyticsWeightTrendLabel(
+                  context.read<UnitService>().suffixFor(UnitDimension.weight)),
               shape: BoxShape.circle,
             ),
             _legendDot(

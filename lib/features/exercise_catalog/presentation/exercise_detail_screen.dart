@@ -21,6 +21,7 @@ import '../../../services/profile_service.dart';
 import 'create_exercise_screen.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 enum ExerciseMetric { maxWeight, volume, est1rm, distance, duration, pace }
 
@@ -186,19 +187,21 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () => close(),
-                    child: Text(cancelLabel),
+                    label: cancelLabel,
+                    tooltip: cancelLabel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       close();
                       _duplicateAndEdit();
                     },
-                    child: Text(buttonLabel),
+                    label: buttonLabel,
+                    tooltip: buttonLabel,
                   ),
                 ),
               ],

@@ -9,6 +9,7 @@ import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/frosted_container.dart';
 import '../../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 class LegalScreen extends StatefulWidget {
   const LegalScreen({super.key});
@@ -183,17 +184,12 @@ class _LegalScreenState extends State<LegalScreen> {
   }
 
   Widget _buildBrowserButton(AppLocalizations l10n) {
-    return ElevatedButton.icon(
+    return AppButton.primary(
       onPressed: () =>
           _handleLink('https://rfivesix.github.io/train-libre/privacy-policy/'),
-      icon: const Icon(LucideIcons.globe),
-      label: Text(l10n.view_in_browser),
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size.fromHeight(56),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-        ),
-      ),
+      label: l10n.view_in_browser,
+      tooltip: l10n.view_in_browser,
+      icon: LucideIcons.globe,
     );
   }
 }

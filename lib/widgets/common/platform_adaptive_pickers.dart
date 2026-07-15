@@ -9,6 +9,7 @@ import '../../features/statistics/domain/timeframe_block.dart';
 import 'package:intl/intl.dart';
 import 'glass_border_painter.dart';
 import '../../services/haptic_feedback_service.dart';
+import 'app_button.dart';
 
 /// Helper to get the localized date picker title.
 String _getSelectDateTitle(BuildContext context) {
@@ -167,20 +168,18 @@ Future<DateTime?> _showGlassDatePicker({
                 child: Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton.secondary(
                         onPressed: () => Navigator.pop(ctx),
-                        child: Text(l10n?.cancel ?? 'Cancel'),
+                        label: l10n?.cancel ?? 'Cancel',
+                        tooltip: l10n?.cancel ?? 'Cancel',
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Theme.of(ctx).colorScheme.primary,
-                          foregroundColor: Theme.of(ctx).colorScheme.onPrimary,
-                        ),
+                      child: AppButton.primary(
                         onPressed: () => Navigator.pop(ctx, tempDate),
-                        child: Text(l10n?.snackbarButtonOK ?? 'OK'),
+                        label: l10n?.snackbarButtonOK ?? 'OK',
+                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
                       ),
                     ),
                   ],
@@ -312,20 +311,18 @@ Future<TimeOfDay?> _showGlassTimePicker({
                 child: Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton.secondary(
                         onPressed: () => Navigator.pop(ctx),
-                        child: Text(l10n?.cancel ?? 'Cancel'),
+                        label: l10n?.cancel ?? 'Cancel',
+                        tooltip: l10n?.cancel ?? 'Cancel',
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Theme.of(ctx).colorScheme.primary,
-                          foregroundColor: Theme.of(ctx).colorScheme.onPrimary,
-                        ),
+                      child: AppButton.primary(
                         onPressed: () => Navigator.pop(ctx, tempDateTime),
-                        child: Text(l10n?.snackbarButtonOK ?? 'OK'),
+                        label: l10n?.snackbarButtonOK ?? 'OK',
+                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
                       ),
                     ),
                   ],
@@ -663,18 +660,15 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                 child: Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton.secondary(
                         onPressed: () => Navigator.pop(ctx),
-                        child: Text(l10n?.cancel ?? 'Cancel'),
+                        label: l10n?.cancel ?? 'Cancel',
+                        tooltip: l10n?.cancel ?? 'Cancel',
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Theme.of(ctx).colorScheme.primary,
-                          foregroundColor: Theme.of(ctx).colorScheme.onPrimary,
-                        ),
+                      child: AppButton.primary(
                         onPressed: () {
                           final selectedDate = options[selectedIndex];
                           final isRolling = selectedDate.year == 9999;
@@ -683,7 +677,8 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                           Navigator.pop(ctx,
                               TimeframeSelection(anchor, isRolling: isRolling));
                         },
-                        child: Text(l10n?.snackbarButtonOK ?? 'OK'),
+                        label: l10n?.snackbarButtonOK ?? 'OK',
+                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
                       ),
                     ),
                   ],
@@ -778,20 +773,18 @@ Future<int?> showAdaptiveBlockTypePicker({
                 child: Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton.secondary(
                         onPressed: () => Navigator.pop(ctx),
-                        child: Text(l10n?.cancel ?? 'Cancel'),
+                        label: l10n?.cancel ?? 'Cancel',
+                        tooltip: l10n?.cancel ?? 'Cancel',
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Theme.of(ctx).colorScheme.primary,
-                          foregroundColor: Theme.of(ctx).colorScheme.onPrimary,
-                        ),
+                      child: AppButton.primary(
                         onPressed: () => Navigator.pop(ctx, selectedIndex),
-                        child: Text(l10n?.snackbarButtonOK ?? 'OK'),
+                        label: l10n?.snackbarButtonOK ?? 'OK',
+                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
                       ),
                     ),
                   ],
@@ -886,20 +879,18 @@ Future<Duration?> showAdaptiveDurationPicker({
                 child: Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton.secondary(
                         onPressed: () => Navigator.pop(ctx),
-                        child: Text(l10n?.cancel ?? 'Cancel'),
+                        label: l10n?.cancel ?? 'Cancel',
+                        tooltip: l10n?.cancel ?? 'Cancel',
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Theme.of(ctx).colorScheme.primary,
-                          foregroundColor: Theme.of(ctx).colorScheme.onPrimary,
-                        ),
+                      child: AppButton.primary(
                         onPressed: () => Navigator.pop(ctx, selectedDuration),
-                        child: Text(l10n?.snackbarButtonOK ?? 'OK'),
+                        label: l10n?.snackbarButtonOK ?? 'OK',
+                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
                       ),
                     ),
                   ],

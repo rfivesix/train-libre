@@ -269,7 +269,9 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                                 StatisticsPresentationFormatter.formatWeight(
                                   recent,
                                 ),
-                                context.read<UnitService>().suffixFor(UnitDimension.weight),
+                                context
+                                    .read<UnitService>()
+                                    .suffixFor(UnitDimension.weight),
                               ),
                             ),
                             trailing: Column(
@@ -349,7 +351,9 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                               (data['weight'] as num).toDouble(),
                             ),
                             (data['reps'] as num).toInt(),
-                            context.read<UnitService>().suffixFor(UnitDimension.weight),
+                            context
+                                .read<UnitService>()
+                                .suffixFor(UnitDimension.weight),
                           )
                         : '–',
                     subtitle: hasData

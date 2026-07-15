@@ -43,6 +43,7 @@ import 'widgets/recommendation_banner.dart';
 import 'meal_screen.dart';
 import '../../../core/infrastructure/share_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
 ///
@@ -178,14 +179,15 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: close,
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () async {
                       final vm = viewModel;
                       final state = key.currentState;
@@ -234,7 +236,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         );
                       }
                     },
-                    child: Text(l10n.save),
+                    label: l10n.save,
+                    tooltip: l10n.save,
                   ),
                 ),
               ],
@@ -283,14 +286,15 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: close,
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final state = dialogStateKey.currentState;
                       if (state != null) {
@@ -316,7 +320,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         }
                       }
                     },
-                    child: Text(l10n.save),
+                    label: l10n.save,
+                    tooltip: l10n.save,
                   ),
                 ),
               ],
@@ -549,17 +554,18 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final state = dialogStateKey.currentState;
                       if (state != null) {
@@ -585,7 +591,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         }
                       }
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],
@@ -818,14 +825,15 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: close,
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () async {
                       final vm = viewModel;
                       final state = key.currentState;
@@ -883,7 +891,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       if (!mounted) return;
                       vm.loadDataForDate(diaryDate, queueIfInFlight: true);
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],

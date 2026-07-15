@@ -13,6 +13,7 @@ import '../../../widgets/common/summary_card.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A portal for overviewing nutrition and meal planning.
 ///
@@ -262,13 +263,14 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
         const SizedBox(height: 10),
         Align(
           alignment: Alignment.centerLeft,
-          child: ElevatedButton(
+          child: AppButton.primary(
             onPressed: () {
               Navigator.of(
                 context,
               ).push(MaterialPageRoute(builder: (_) => const GoalsScreen()));
             },
-            child: Text(AppLocalizations.of(context)!.my_goals),
+            label: AppLocalizations.of(context)!.my_goals,
+            tooltip: AppLocalizations.of(context)!.my_goals,
           ),
         ),
       ],
@@ -337,7 +339,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  ElevatedButton(
+                  AppButton.primary(
                     onPressed: () => Navigator.of(context)
                         .push(
                           MaterialPageRoute(
@@ -345,7 +347,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                           ),
                         )
                         .then((_) => _refreshData()),
-                    child: Text(l10n.edit),
+                    label: l10n.edit,
+                    tooltip: l10n.edit,
                   ),
                 ],
               ),

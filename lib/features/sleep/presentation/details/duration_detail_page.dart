@@ -44,16 +44,17 @@ class DurationDetailPage extends StatelessWidget {
     final status = duration.inHours >= SleepDurationThresholds.optimalLowerHours
         ? l10n.sleepDurationStatusWithinTarget
         : l10n.sleepDurationStatusBelowTarget;
-        
+
     final min = SleepDurationThresholds.minDisplayHours.toDouble() * 60.0;
     final max = SleepDurationThresholds.maxDisplayHours.toDouble() * 60.0;
-    
+
     return SleepDetailPageShell(
       title: l10n.sleepMetricDurationTitle,
       value: formatDuration(duration),
       statusLabel: status,
       subtitle: l10n.sleepDurationSubtitle,
-      statusColor: SleepDurationThresholds.getColorForHours(duration.inMinutes / 60.0),
+      statusColor:
+          SleepDurationThresholds.getColorForHours(duration.inMinutes / 60.0),
       children: [
         SleepBenchmarkBar(
           min: min,
@@ -80,7 +81,8 @@ class DurationDetailPage extends StatelessWidget {
             BenchmarkSegment(
               limit: SleepDurationThresholds.criticalUpperHours * 60.0,
               color: Colors.orange,
-              label: '${SleepDurationThresholds.criticalUpperHours.toStringAsFixed(1).replaceAll('.0', '')}h',
+              label:
+                  '${SleepDurationThresholds.criticalUpperHours.toStringAsFixed(1).replaceAll('.0', '')}h',
             ),
             BenchmarkSegment(
               limit: max,

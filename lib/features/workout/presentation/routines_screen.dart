@@ -17,6 +17,7 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import '../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen that displays a list of all saved [Routine] templates.
 ///
@@ -239,9 +240,10 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
 
                 child: SummaryCard(
                   child: ListTile(
-                    leading: ElevatedButton(
+                    leading: AppButton.primary(
                       onPressed: () => _startWorkout(routine),
-                      child: Text(l10n.startButton),
+                      label: l10n.startButton,
+                      tooltip: l10n.startButton,
                     ),
                     title: Text(
                       routine.name,
@@ -357,36 +359,21 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             const SizedBox(height: DesignConstants.spacingXL),
 
             // Existing button: create routine
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
+            AppButton.primary(
               onPressed: _createNewRoutine,
-              icon: const Icon(LucideIcons.plus),
-              label: Text(
-                l10n.createFirstRoutineButton,
-                style: textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
-              ),
+              label: l10n.createFirstRoutineButton,
+              tooltip: l10n.createFirstRoutineButton,
+              icon: LucideIcons.plus,
             ),
 
             const SizedBox(height: DesignConstants.spacingM),
 
             // New: start free workout (visible in empty state too)
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
+            AppButton.secondary(
               onPressed: _startEmptyWorkout,
-              icon: const Icon(LucideIcons.circle_play),
-              label: Text(l10n.startEmptyWorkoutButton),
+              label: l10n.startEmptyWorkoutButton,
+              tooltip: l10n.startEmptyWorkoutButton,
+              icon: LucideIcons.circle_play,
             ),
           ],
         ),

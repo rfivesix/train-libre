@@ -6,7 +6,8 @@ import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
-import '../../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../../../util/design_constants.dart';
 
 /// A single row representing a set within an exercise log.

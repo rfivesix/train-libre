@@ -5,6 +5,7 @@ import '../../../../util/design_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../widgets/common/glass_border_painter.dart';
+import '../../../../widgets/common/app_button.dart';
 
 /// Represents an action item within a [showGlassBottomMenu].
 class GlassMenuAction {
@@ -432,26 +433,24 @@ Future<bool> showDeleteConfirmation(
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(false);
                   },
-                  child: Text(l10n.cancel),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    foregroundColor: Colors.white,
-                  ),
+                child: AppButton.primary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(true);
                   },
-                  child: Text(effectiveConfirmLabel),
+                  label: effectiveConfirmLabel,
+                  tooltip: effectiveConfirmLabel,
                 ),
               ),
             ],
@@ -498,26 +497,24 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(ActiveWorkoutConflictResult.cancel);
                   },
-                  child: Text(l10n.cancel),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    foregroundColor: Colors.white,
-                  ),
+                child: AppButton.primary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(ActiveWorkoutConflictResult.discard);
                   },
-                  child: Text(l10n.discardButton),
+                  label: l10n.discardButton,
+                  tooltip: l10n.discardButton,
                 ),
               ),
             ],
@@ -525,12 +522,13 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
           const SizedBox(height: DesignConstants.spacingM),
           SizedBox(
             width: double.infinity,
-            child: FilledButton(
+            child: AppButton.primary(
               onPressed: () {
                 close();
                 Navigator.of(ctx).pop(ActiveWorkoutConflictResult.resume);
               },
-              child: Text(l10n.resumeWorkoutButton),
+              label: l10n.resumeWorkoutButton,
+              tooltip: l10n.resumeWorkoutButton,
             ),
           ),
         ],

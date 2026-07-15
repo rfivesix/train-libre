@@ -26,6 +26,7 @@ import '../../features/app/presentation/widgets/glass_bottom_menu.dart'; // Adde
 import '../../features/app/presentation/app_initializer_screen.dart'; // Added
 import '../../util/design_constants.dart'; // Added
 import 'package:flutter_lucide/flutter_lucide.dart'; // Added
+import '../../widgets/common/app_button.dart';
 
 // Type definition for the callback
 typedef ProgressCallback = void Function(
@@ -338,7 +339,7 @@ class BasisDataManager {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () async {
                       if (!isMissingEither) {
                         await prefs.setString(
@@ -351,12 +352,13 @@ class BasisDataManager {
                         Navigator.of(ctx).pop(false);
                       }
                     },
-                    child: Text(l10n.offDownloadCancel),
+                    label: l10n.offDownloadCancel,
+                    tooltip: l10n.offDownloadCancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       // Return true to signal the caller to launch the download
                       // screen. Do NOT push here — the sheet must fully close
@@ -365,9 +367,12 @@ class BasisDataManager {
                       // causing a navigation race condition.
                       Navigator.of(ctx).pop(true);
                     },
-                    child: Text(isMissingEither
+                    label: isMissingEither
                         ? l10n.offDownloadConfirm
-                        : "Update Now"),
+                        : "Update Now",
+                    tooltip: isMissingEither
+                        ? l10n.offDownloadConfirm
+                        : "Update Now",
                   ),
                 ),
               ],

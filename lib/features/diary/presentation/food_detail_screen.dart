@@ -22,6 +22,7 @@ import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 // Dev flag: keep disabled for production or remove dev-only sections entirely.
 const bool kDevEditEnabled = false;
@@ -316,22 +317,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(false);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(true);
                     },
-                    child: Text(l10n.createCopyAndEdit),
+                    label: l10n.createCopyAndEdit,
+                    tooltip: l10n.createCopyAndEdit,
                   ),
                 ),
               ],
@@ -454,26 +457,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(false);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(true);
                     },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(ctx).colorScheme.error,
-                      foregroundColor: Theme.of(ctx).colorScheme.onError,
-                    ),
-                    child: Text(l10n.delete),
+                    label: l10n.delete,
+                    tooltip: l10n.delete,
                   ),
                 ),
               ],
@@ -798,10 +799,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                           const SizedBox(height: DesignConstants.spacingM),
                           Row(
                             children: [
-                              ElevatedButton.icon(
+                              AppButton.primary(
                                 onPressed: _saveDevEdits,
-                                icon: const Icon(LucideIcons.save),
-                                label: Text(l10n.save),
+                                label: l10n.save,
+                                tooltip: l10n.save,
+                                icon: LucideIcons.save,
                               ),
                               const SizedBox(width: DesignConstants.spacingM),
                               TextButton.icon(

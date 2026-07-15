@@ -8,7 +8,8 @@ import '../../domain/models/set_template.dart';
 import 'set_type_chip.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
-import '../../../../widgets/common/platform_adaptive_pickers.dart' as adaptive_pickers;
+import '../../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../../../util/design_constants.dart';
 
 class RoutineSetRowWidget extends StatelessWidget {

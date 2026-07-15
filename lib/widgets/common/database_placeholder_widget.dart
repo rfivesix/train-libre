@@ -3,6 +3,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
 import '../../core/infrastructure/basis_data_manager.dart';
+import 'app_button.dart';
 
 class DatabasePlaceholderWidget extends StatelessWidget {
   final String title;
@@ -69,14 +70,15 @@ class DatabasePlaceholderWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: DesignConstants.spacingXL),
-              FilledButton.icon(
+              AppButton.primary(
                 onPressed: onDownloadPressed ??
                     () async {
                       await BasisDataManager.instance
                           .promptOffDatabaseDownloadIfFirstTime(context);
                     },
-                icon: const Icon(LucideIcons.download),
-                label: Text(l10n.offDownloadCTA),
+                label: l10n.offDownloadCTA,
+                tooltip: l10n.offDownloadCTA,
+                icon: LucideIcons.download,
               ),
             ],
           ),

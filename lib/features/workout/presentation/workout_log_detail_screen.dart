@@ -38,6 +38,7 @@ import 'edit_routine_screen.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A detailed view for a single completed [WorkoutLog].
 ///
@@ -713,17 +714,18 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final name = controller.text.trim();
                       if (name.isNotEmpty) {
@@ -731,7 +733,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                         Navigator.of(ctx).pop(name);
                       }
                     },
-                    child: Text(l10n.save),
+                    label: l10n.save,
+                    tooltip: l10n.save,
                   ),
                 ),
               ],

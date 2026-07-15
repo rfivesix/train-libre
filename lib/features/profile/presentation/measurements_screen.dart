@@ -24,6 +24,7 @@ import '../../../widgets/common/platform_adaptive_pickers.dart'
 import '../../../util/date_util.dart';
 import '../../../features/statistics/domain/timeframe_block.dart';
 import '../../../util/timeframe_label_formatter.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen for viewing and analyzing body measurement history.
 class MeasurementsScreen extends StatefulWidget {
@@ -331,10 +332,11 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: DesignConstants.spacingXL),
-            ElevatedButton.icon(
+            AppButton.primary(
               onPressed: () => _showMeasurementBottomMenu(),
-              icon: const Icon(LucideIcons.plus),
-              label: Text(l10n.addMeasurement),
+              label: l10n.addMeasurement,
+              tooltip: l10n.addMeasurement,
+              icon: LucideIcons.plus,
             ),
           ],
         ),
@@ -794,7 +796,11 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingL),
-          FilledButton(onPressed: _saveSession, child: Text(l10n.save)),
+          AppButton.primary(
+            onPressed: _saveSession,
+            label: l10n.save,
+            tooltip: l10n.save,
+          ),
         ],
       ),
     );

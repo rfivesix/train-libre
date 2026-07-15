@@ -30,6 +30,7 @@ import '../../app/presentation/app_initializer_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -622,17 +623,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: DesignConstants.spacingL),
                   SizedBox(
                     width: double.infinity,
-                    child: FilledButton.icon(
-                      key: const Key('delete_all_local_app_data_button'),
-                      icon: const Icon(LucideIcons.trash_2),
-                      label: Text(l10n.deleteAllLocalAppData),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                        foregroundColor: Theme.of(context).colorScheme.onError,
-                      ),
+                    child: AppButton.primary(
                       onPressed: _isLocalResetRunning
                           ? null
                           : _confirmAndDeleteLocalData,
+                      label: l10n.deleteAllLocalAppData,
+                      tooltip: l10n.deleteAllLocalAppData,
+                      icon: LucideIcons.trash_2,
                     ),
                   ),
                   if (_isLocalResetRunning)
@@ -685,9 +682,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: DesignConstants.spacingM),
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
+              child: AppButton.primary(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(l10n.snackbarButtonOK),
+                label: l10n.snackbarButtonOK,
+                tooltip: l10n.snackbarButtonOK,
               ),
             ),
           ],
@@ -748,15 +746,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
+                      child: AppButton.primary(
                         onPressed: canConfirm
                             ? () => Navigator.of(ctx).pop(true)
                             : null,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.error,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: Text(l10n.delete),
+                        label: l10n.delete,
+                        tooltip: l10n.delete,
                       ),
                     ),
                   ],
@@ -790,7 +785,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (useGradientIcon) {
       iconWidget = ShaderMask(
         blendMode: BlendMode.srcIn,
-        shaderCallback: (bounds) => DesignConstants.createAiGradientShader(bounds),
+        shaderCallback: (bounds) =>
+            DesignConstants.createAiGradientShader(bounds),
         child: Icon(icon, size: 36),
       );
     }

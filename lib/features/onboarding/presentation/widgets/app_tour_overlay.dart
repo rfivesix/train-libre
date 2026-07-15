@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/app_button.dart';
 
 /// Full-screen spotlight overlay used by the in-app walkthrough.
 class AppTourOverlay extends StatelessWidget {
@@ -133,10 +134,10 @@ class AppTourOverlay extends StatelessWidget {
                                     child: Text(skipLabel),
                                   ),
                                   const Spacer(),
-                                  FilledButton(
-                                    key: const Key('app_tour_next_button'),
+                                  AppButton.primary(
                                     onPressed: onNext,
-                                    child: Text(nextLabel),
+                                    label: nextLabel,
+                                    tooltip: nextLabel,
                                   ),
                                 ],
                               ),

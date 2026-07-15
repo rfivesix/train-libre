@@ -12,6 +12,7 @@ import '../data/backup_restore_diagnostics_provider.dart';
 import '../domain/feedback_report_builder.dart';
 import '../domain/feedback_report_models.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 class FeedbackReportScreen extends StatefulWidget {
   final FeedbackReportBuilder? reportBuilder;
@@ -346,17 +347,10 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           const SizedBox(height: DesignConstants.spacingL),
           SizedBox(
             width: double.infinity,
-            child: FilledButton.icon(
-              key: const Key('feedback_report_generate_preview_button'),
+            child: AppButton.primary(
               onPressed: _isGeneratingPreview ? null : _generatePreview,
-              icon: _isGeneratingPreview
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(LucideIcons.eye),
-              label: Text(l10n.feedbackReportGeneratePreview),
+              label: l10n.feedbackReportGeneratePreview,
+              tooltip: l10n.feedbackReportGeneratePreview,
             ),
           ),
           if (_previewText != null) ...[
@@ -382,29 +376,29 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                OutlinedButton.icon(
-                  key: const Key('feedback_report_action_copy'),
+                AppButton.secondary(
                   onPressed: _isCopying ? null : _copyReport,
-                  icon: const Icon(LucideIcons.copy),
-                  label: Text(l10n.feedbackReportActionCopy),
+                  label: l10n.feedbackReportActionCopy,
+                  tooltip: l10n.feedbackReportActionCopy,
+                  icon: LucideIcons.copy,
                 ),
-                OutlinedButton.icon(
-                  key: const Key('feedback_report_action_save'),
+                AppButton.secondary(
                   onPressed: _isSaving ? null : _saveReportFile,
-                  icon: const Icon(LucideIcons.download),
-                  label: Text(l10n.feedbackReportActionSave),
+                  label: l10n.feedbackReportActionSave,
+                  tooltip: l10n.feedbackReportActionSave,
+                  icon: LucideIcons.download,
                 ),
-                OutlinedButton.icon(
-                  key: const Key('feedback_report_action_share'),
+                AppButton.secondary(
                   onPressed: _isSharing ? null : _shareReport,
-                  icon: Icon(DesignConstants.adaptiveShareIcon),
-                  label: Text(l10n.feedbackReportActionShare),
+                  label: l10n.feedbackReportActionShare,
+                  tooltip: l10n.feedbackReportActionShare,
+                  icon: DesignConstants.adaptiveShareIcon,
                 ),
-                OutlinedButton.icon(
-                  key: const Key('feedback_report_action_email'),
+                AppButton.secondary(
                   onPressed: _isEmailing ? null : _openEmailDraft,
-                  icon: const Icon(LucideIcons.mail),
-                  label: Text(l10n.feedbackReportActionEmail),
+                  label: l10n.feedbackReportActionEmail,
+                  tooltip: l10n.feedbackReportActionEmail,
+                  icon: LucideIcons.mail,
                 ),
               ],
             ),

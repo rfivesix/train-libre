@@ -84,8 +84,8 @@ void main() async {
 
   // Create the workout session manager before injecting it. Restoration is
   // handled by AppInitializerScreen after the first frame is visible.
-  final workoutSessionManager =
-      LiveWorkoutViewModel(repository: workoutRepository, unitService: unitService);
+  final workoutSessionManager = LiveWorkoutViewModel(
+      repository: workoutRepository, unitService: unitService);
 
   // Start the app with all required providers and Liquid Glass Setup.
   runApp(
@@ -238,7 +238,8 @@ class _MyAppState extends State<MyApp> {
 
         // Use brand accent by default; optional Android toggle enables dynamic Material colors.
         final Color lightSeed = useDynamicMaterialColors
-            ? (lightDynamic?.primary ?? DesignConstants.brandAccentColorLightMode)
+            ? (lightDynamic?.primary ??
+                DesignConstants.brandAccentColorLightMode)
             : DesignConstants.brandAccentColorLightMode;
         final Color darkSeed = useDynamicMaterialColors
             ? (darkDynamic?.primary ?? DesignConstants.brandAccentColor)

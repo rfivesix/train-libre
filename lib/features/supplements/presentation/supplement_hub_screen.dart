@@ -15,6 +15,7 @@ import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen for managing the catalog of available supplements (Supplement Hub).
 class SupplementHubScreen extends StatefulWidget {
@@ -90,25 +91,24 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
+                        child: AppButton.secondary(
                           onPressed: () {
                             close();
                             Navigator.of(ctx).pop(false);
                           },
-                          child: Text(l10n.cancel),
+                          label: l10n.cancel,
+                          tooltip: l10n.cancel,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
+                        child: AppButton.primary(
                           onPressed: () {
                             close();
                             Navigator.of(ctx).pop(true);
                           },
-                          child: Text(l10n.delete),
+                          label: l10n.delete,
+                          tooltip: l10n.delete,
                         ),
                       ),
                     ],

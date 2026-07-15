@@ -28,6 +28,7 @@ import 'widgets/workout_summary_bar.dart';
 import 'widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen providing a summary of a recently finished workout session.
 ///
@@ -484,23 +485,12 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       // Fertig-Button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: DesignConstants.spacingL),
-                            backgroundColor: colorScheme.primary,
-                            foregroundColor: colorScheme.onPrimary,
-                          ),
+                        child: AppButton.primary(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: Text(
-                            l10n.doneButtonLabel,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          label: l10n.doneButtonLabel,
+                          tooltip: l10n.doneButtonLabel,
                         ),
                       ),
                     ],
@@ -800,31 +790,10 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                     child: Text(l10n.discard),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
-                  FilledButton.icon(
+                  AppButton.primary(
                     onPressed: _isSyncing ? null : _syncRoutine,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusS),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: DesignConstants.spacingL,
-                        vertical: 10,
-                      ),
-                    ),
-                    icon: _isSyncing
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
-                            ),
-                          )
-                        : const Icon(LucideIcons.check, size: 18),
-                    label: Text(l10n.updateNow),
+                    label: l10n.updateNow,
+                    tooltip: l10n.updateNow,
                   ),
                 ],
               ),

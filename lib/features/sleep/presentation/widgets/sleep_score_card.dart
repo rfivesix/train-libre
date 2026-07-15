@@ -36,8 +36,7 @@ class SleepScoreCard extends StatelessWidget {
         ? l10n.sleepScoreCompletenessLabel('--')
         : l10n.sleepScoreCompletenessLabel('${(completeness * 100).round()}%');
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

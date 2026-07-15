@@ -186,7 +186,8 @@ class RecoverySectionCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  StatisticsPresentationFormatter.recoveryStateLabel(l10n, state),
+                  StatisticsPresentationFormatter.recoveryStateLabel(
+                      l10n, state),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(

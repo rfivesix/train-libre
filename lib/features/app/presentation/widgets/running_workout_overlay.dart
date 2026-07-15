@@ -3,6 +3,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class RunningWorkoutOverlay extends StatelessWidget {
   final String elapsedDuration;
@@ -85,7 +86,7 @@ class _RunningWorkoutRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    //final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Row(
@@ -106,30 +107,16 @@ class _RunningWorkoutRow extends StatelessWidget {
             ],
           ),
         ),
-        FilledButton(
+        AppButton.primary(
           onPressed: onContinue,
-          style: FilledButton.styleFrom(
-            backgroundColor: cs.primary,
-            foregroundColor: cs.onPrimary,
-            minimumSize: const Size(0, 28),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: Text(l10n.continue_workout_button),
+          label: l10n.continue_workout_button,
+          tooltip: l10n.continue_workout_button,
         ),
         const SizedBox(width: DesignConstants.spacingS),
-        FilledButton(
+        AppButton.primary(
           onPressed: onDiscard,
-          style: FilledButton.styleFrom(
-            backgroundColor: cs.error,
-            foregroundColor: cs.onError,
-            minimumSize: const Size(0, 28),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: Text(l10n.discard_button),
+          label: l10n.discard_button,
+          tooltip: l10n.discard_button,
         ),
       ],
     );

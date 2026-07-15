@@ -4,6 +4,7 @@ import '../../../util/design_constants.dart';
 import '../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
+import '../../../widgets/common/app_button.dart';
 
 enum MealType { breakfast, lunch, dinner, snack }
 
@@ -113,15 +114,11 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: DesignConstants.spacingS, vertical: 6),
-            child: ElevatedButton(
+            child: AppButton.primary(
               onPressed: _canSave ? _onSave : null,
-              child: _saving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.save),
+              label: l10n.save,
+              tooltip: l10n.save,
+              isLoading: _saving,
             ),
           ),
         ],

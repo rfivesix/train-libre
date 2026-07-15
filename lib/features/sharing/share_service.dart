@@ -163,7 +163,8 @@ class ShareService {
     required WorkoutLog workout,
   }) async {
     final unitService = context.read<UnitService>();
-    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!, unitService);
+    final labels =
+        ShareLabels.fromL10n(AppLocalizations.of(context)!, unitService);
     final locale = Localizations.localeOf(context).toString();
     final details = await _loadExerciseDetails(workout);
     final text = WorkoutShareFormatter(
@@ -179,7 +180,8 @@ class ShareService {
     required BuildContext context,
     required Routine routine,
   }) async {
-    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!, context.read<UnitService>());
+    final labels = ShareLabels.fromL10n(
+        AppLocalizations.of(context)!, context.read<UnitService>());
     final locale = Localizations.localeOf(context).toString();
     final text = RoutineShareFormatter(labels, locale: locale).format(routine);
     await _shareText(text, subject: routine.name);

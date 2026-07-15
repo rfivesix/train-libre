@@ -17,7 +17,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - **Sleep Target Range Visualization:** Upgraded the horizontal target range visualization bar (`SleepBenchmarkBar`) on the Sleep Duration and Heart Rate detail screens. Replaced the binary visualization (Green/Gray) with a highly detailed 3-color segmented representation (Green/Orange/Red) that perfectly maps to the domain model (Optimal/Warning/Critical). Added exact numerical text indicators at the color transitions. Extracted the previously hardcoded threshold values into a centralized `SleepThresholds` configuration file.
-### Changed
 - **iCloud Sync Progress UI & Error Handling:** Integrated the blocking `LongRunningOperationOverlay` during manual backup to display real-time upload progress (e.g., "Uploading... 45%"). If the synchronization fails, the app now launches the project-standard full-screen `GlassMenu` overlay containing localized descriptions, a copy action, and dismiss actions.
 - **Multi-language Localization:** Added localized strings for the glassmorphism error menu title, help info, and buttons inside the `.arb` files, ensuring full localization support across all 5 supported languages (English, German, French, Italian, and Japanese).
 - **Background Auto-Backup:** Disabled periodic SQLite auto-backups explicitly for iOS/macOS devices to prevent execution conflicts, keeping this feature active only for Android.
@@ -29,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Forced Restoring Overlays:** Integrated the blocking `LongRunningOperationOverlay` natively into all local JSON imports and iCloud database restores during Onboarding. This prevents users from navigating away or interrupting the process while large database files are being written or decrypted.
 - **Cross-Platform UI Parity:** Ensured the "Restore from iCloud" option during onboarding is strictly hidden on Android devices, exclusively rendering for iOS and macOS.
 - **Automated Onboarding Permission Sequence:** Implemented a fully compliant permission sequence following a backup restore in the Onboarding flow. The app now reads the restored preferences and sequentially loops through all previously active integrations (Apple Health/Health Connect, Steps, Pulse, Sleep). It reuses the existing custom Glass Bottom Menu explanation widgets to preface each native OS prompt, ensuring compliance with App Store guidelines before finalizing the clean initialization via `main()`.
+- **Global Button System:** Migrated all platform-specific standard buttons (`ElevatedButton`, `FilledButton`, `OutlinedButton`) to the unified, custom-designed `AppButton`. This ensures a single, cohesive, premium aesthetic with consistent 12.0dp border radii, standard heights, and native-feeling tap animations across all platforms. `TextButton` instances were intentionally preserved.
 ## [1.0.0-alpha.9] - 2026-07-13
 
 ### Added

@@ -10,7 +10,9 @@ import 'share_set_type.dart';
 
 class WorkoutShareFormatter {
   const WorkoutShareFormatter(this.labels,
-      {this.locale, this.exerciseDetails = const {}, required this.unitService});
+      {this.locale,
+      this.exerciseDetails = const {},
+      required this.unitService});
 
   final ShareLabels labels;
   final String? locale;
@@ -230,17 +232,20 @@ class WorkoutShareFormatter {
     final hasDuration = set.durationSeconds != null && set.durationSeconds! > 0;
 
     if (hasWeight && hasReps) {
-      final dispW = unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
+      final dispW =
+          unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
       parts.add('${_formatNumber(dispW)} ${labels.kg} x ${set.reps}');
     } else if (hasReps) {
       parts.add('${set.reps} ${labels.reps}');
     } else if (hasWeight) {
-      final dispW = unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
+      final dispW =
+          unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
       parts.add('${_formatNumber(dispW)} ${labels.kg}');
     }
 
     if (hasDistance) {
-      final dispD = unitService.convertDisplayValue(set.distanceKm!, UnitDimension.distance);
+      final dispD = unitService.convertDisplayValue(
+          set.distanceKm!, UnitDimension.distance);
       parts.add('${_formatNumber(dispD)} ${labels.km}');
     }
     if (hasDuration) {

@@ -10,6 +10,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../domain/models/supplement.dart';
 import '../../../../util/supplement_l10n.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/app_button.dart';
 
 /// A menu that shows a list of supplements to choose from.
 /// A selection menu for choosing a supplement to log.
@@ -112,9 +113,10 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: AppButton.secondary(
                 onPressed: widget.close,
-                child: Text(l10n.cancel),
+                label: l10n.cancel,
+                tooltip: l10n.cancel,
               ),
             ),
           ],
@@ -166,14 +168,15 @@ class _LogSupplementDoseBodyState extends State<LogSupplementDoseBody> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: AppButton.secondary(
                 onPressed: widget.onCancel,
-                child: Text(l10n.cancel),
+                label: l10n.cancel,
+                tooltip: l10n.cancel,
               ),
             ),
             const SizedBox(width: DesignConstants.spacingM),
             Expanded(
-              child: FilledButton(
+              child: AppButton.primary(
                 onPressed: () {
                   final st = _key.currentState;
                   if (st == null) return;
@@ -183,7 +186,8 @@ class _LogSupplementDoseBodyState extends State<LogSupplementDoseBody> {
                   if (dose == null || dose <= 0) return;
                   widget.onSubmit(dose, st.selectedDateTime);
                 },
-                child: Text(widget.primaryLabel),
+                label: widget.primaryLabel,
+                tooltip: widget.primaryLabel,
               ),
             ),
           ],

@@ -10,6 +10,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/glass_pill_button.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen for mapping unknown exercise names to known database [Exercise] objects.
 class ExerciseMappingScreen extends StatefulWidget {
@@ -195,18 +196,11 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                 ),
                 child: SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
+                  child: AppButton.primary(
                     onPressed: _applying ? null : _apply,
-                    icon: _applying
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(LucideIcons.check),
-                    label: Text(
-                      _applying ? l10n.applyingChanges : l10n.applyMapping,
-                    ),
+                    label: _applying ? l10n.applyingChanges : l10n.applyMapping,
+                    tooltip:
+                        _applying ? l10n.applyingChanges : l10n.applyMapping,
                   ),
                 ),
               ),

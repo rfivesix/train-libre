@@ -17,6 +17,7 @@ import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'live_workout_view_model.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// The central management screen for all workout-related activities.
 ///
@@ -298,9 +299,10 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  ElevatedButton(
+                  AppButton.primary(
                     onPressed: () => _startRoutine(routine),
-                    child: Text(l10n.start_button),
+                    label: l10n.start_button,
+                    tooltip: l10n.start_button,
                   ),
                 ],
               ),

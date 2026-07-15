@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class DataAutoBackupCard extends StatelessWidget {
   const DataAutoBackupCard({
@@ -50,20 +51,22 @@ class DataAutoBackupCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(LucideIcons.folder_open),
-                  label: Text(l10n.autoBackupChooseFolder),
+                child: AppButton.secondary(
                   onPressed: onPickDirectory,
+                  label: l10n.autoBackupChooseFolder,
+                  tooltip: l10n.autoBackupChooseFolder,
+                  icon: LucideIcons.folder_open,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(LucideIcons.copy),
-                  label: Text(l10n.autoBackupCopyPath),
+                child: AppButton.secondary(
                   onPressed: (autoBackupDir == null || autoBackupDir!.isEmpty)
                       ? null
                       : onCopyPath,
+                  label: l10n.autoBackupCopyPath,
+                  tooltip: l10n.autoBackupCopyPath,
+                  icon: LucideIcons.copy,
                 ),
               ),
             ],
@@ -71,10 +74,11 @@ class DataAutoBackupCard extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingM),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: const Icon(LucideIcons.cloud_upload),
-              label: Text(l10n.autoBackupRunNow),
+            child: AppButton.primary(
               onPressed: onRunNow,
+              label: l10n.autoBackupRunNow,
+              tooltip: l10n.autoBackupRunNow,
+              icon: LucideIcons.cloud_upload,
             ),
           ),
           if (lastAutoBackupUsedFallback &&

@@ -105,17 +105,23 @@ class HeartRateDetailPage extends StatelessWidget {
                 BenchmarkSegment(
                   limit: base - HeartRateThresholds.optimalDeviation,
                   color: Colors.orange,
-                  label: (base - HeartRateThresholds.optimalDeviation).round().toString(),
+                  label: (base - HeartRateThresholds.optimalDeviation)
+                      .round()
+                      .toString(),
                 ),
                 BenchmarkSegment(
                   limit: base + HeartRateThresholds.optimalDeviation,
                   color: Colors.green,
-                  label: (base + HeartRateThresholds.optimalDeviation).round().toString(),
+                  label: (base + HeartRateThresholds.optimalDeviation)
+                      .round()
+                      .toString(),
                 ),
                 BenchmarkSegment(
                   limit: base + HeartRateThresholds.warningDeviation,
                   color: Colors.orange,
-                  label: (base + HeartRateThresholds.warningDeviation).round().toString(),
+                  label: (base + HeartRateThresholds.warningDeviation)
+                      .round()
+                      .toString(),
                 ),
                 BenchmarkSegment(
                   limit: max,

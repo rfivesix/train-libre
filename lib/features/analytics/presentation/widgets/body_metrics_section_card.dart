@@ -107,7 +107,8 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   disableShadow: true,
                 ),
                 ValueSummaryCard(
-                  label: l10n.analyticsWeightTrendLabel(unitService.suffixFor(UnitDimension.weight)),
+                  label: l10n.analyticsWeightTrendLabel(
+                      unitService.suffixFor(UnitDimension.weight)),
                   value: body == null
                       ? l10n.analyticsTrendUnclear
                       : StatisticsPresentationFormatter
@@ -140,7 +141,8 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   _legendDot(
                     context,
                     color: Theme.of(context).colorScheme.primary,
-                    label: l10n.analyticsBodyNutritionTotalWeightLabel(unitService.suffixFor(UnitDimension.weight)),
+                    label: l10n.analyticsBodyNutritionTotalWeightLabel(
+                        unitService.suffixFor(UnitDimension.weight)),
                     shape: BoxShape.circle,
                   ),
                   const SizedBox(width: DesignConstants.spacingM),

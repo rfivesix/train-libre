@@ -20,6 +20,7 @@ import '../widgets/sleep_score_card.dart';
 import '../widgets/sleep_timeline_card.dart';
 import 'sleep_day_view_model.dart' hide SleepPeriodScope;
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class SleepDayOverviewPage extends StatefulWidget {
   const SleepDayOverviewPage({
@@ -342,8 +343,8 @@ class _SleepDayOverviewContent extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingS),
         ],
         Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingL),
+          padding:
+              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
           child: SleepMetricTileGrid(overview: overview),
         ),
       ],
@@ -380,8 +381,7 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
         isDark ? const Color(0xFF34D399) : const Color(0xFF065F46);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -568,8 +568,7 @@ class _SleepEmptyStateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -581,12 +580,13 @@ class _SleepEmptyStateCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              OutlinedButton.icon(
+              AppButton.secondary(
                 onPressed: onOpenSettings,
-                icon: const Icon(LucideIcons.settings),
-                label: Text(l10n.sleepOpenSettingsButton),
+                label: l10n.sleepOpenSettingsButton,
+                tooltip: l10n.sleepOpenSettingsButton,
+                icon: LucideIcons.settings,
               ),
-              FilledButton.icon(
+              AppButton.primary(
                 onPressed: () async {
                   final ok = await onImportNow();
                   if (!context.mounted) return;
@@ -600,8 +600,9 @@ class _SleepEmptyStateCard extends StatelessWidget {
                     ),
                   );
                 },
-                icon: const Icon(LucideIcons.refresh_cw),
-                label: Text(l10n.sleepImportNowButton),
+                label: l10n.sleepImportNowButton,
+                tooltip: l10n.sleepImportNowButton,
+                icon: LucideIcons.refresh_cw,
               ),
             ],
           ),

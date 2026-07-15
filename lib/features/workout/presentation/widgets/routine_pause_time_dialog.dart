@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../widgets/common/app_button.dart';
 
 /// A dialog that lets the user pick a pause/rest duration using an iOS-style
 /// minute:second scroll wheel, matching the glass picker styling used in the
@@ -78,23 +79,21 @@ class _RoutinePauseTimeDialogState extends State<RoutinePauseTimeDialog> {
           child: Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: widget.onCancel,
-                  child: Text(l10n.cancel),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  ),
+                child: AppButton.primary(
                   onPressed: () {
                     final totalSeconds = _selectedDuration.inSeconds;
                     widget.onSave(totalSeconds > 0 ? totalSeconds : null);
                   },
-                  child: Text(l10n.save),
+                  label: l10n.save,
+                  tooltip: l10n.save,
                 ),
               ),
             ],

@@ -130,10 +130,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
         _saltController.text = (prefs.getInt('targetSalt') ?? 6).toString();
         _selectedGoal = selectedGoal;
         _selectedTargetRateKgPerWeek = WeeklyTargetRateCatalog.coerceTargetRate(
-      goal: selectedGoal,
-      kgPerWeek: selectedTargetRate,
-      unitService: context.read<UnitService>(),
-    );
+          goal: selectedGoal,
+          kgPerWeek: selectedTargetRate,
+          unitService: context.read<UnitService>(),
+        );
         _selectedPriorActivityLevel = selectedPriorActivityLevel;
         _selectedExtraCardioHoursOption = selectedExtraCardioHoursOption;
 
@@ -261,7 +261,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         setState(() {
                           _selectedGoal = goal;
                           _selectedTargetRateKgPerWeek =
-                              WeeklyTargetRateCatalog.defaultForGoal(goal, context.read<UnitService>())
+                              WeeklyTargetRateCatalog.defaultForGoal(
+                                      goal, context.read<UnitService>())
                                   .kgPerWeek;
                         });
                       },
@@ -271,8 +272,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children: WeeklyTargetRateCatalog.optionsForGoal(
-                        _selectedGoal, context.read<UnitService>()
-                      ).map((option) {
+                              _selectedGoal, context.read<UnitService>())
+                          .map((option) {
                         final selected =
                             option.kgPerWeek == _selectedTargetRateKgPerWeek;
                         return ChoiceChip(
@@ -476,12 +477,18 @@ class _GoalsScreenState extends State<GoalsScreen> {
     }
   }
 
-  String _rateLabel(BuildContext context, AppLocalizations l10n, double kgPerWeek) {
+  String _rateLabel(
+      BuildContext context, AppLocalizations l10n, double kgPerWeek) {
     final unitService = context.read<UnitService>();
     final sign = kgPerWeek > 0 ? '+' : '';
-    final displayValue = unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
-    final valStr = displayValue.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '');
-    return l10n.adaptiveRatePerWeek('$sign$valStr', unitService.suffixFor(UnitDimension.weight));
+    final displayValue =
+        unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
+    final valStr = displayValue
+        .toStringAsFixed(2)
+        .replaceAll(RegExp(r'0*$'), '')
+        .replaceAll(RegExp(r'\.$'), '');
+    return l10n.adaptiveRatePerWeek(
+        '$sign$valStr', unitService.suffixFor(UnitDimension.weight));
   }
 
   String _priorActivityLabel(

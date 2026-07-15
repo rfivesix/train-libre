@@ -34,6 +34,7 @@ import 'widgets/icloud_sync_card.dart';
 import '../../../core/infrastructure/icloud_sync_service.dart';
 import '../../../data/database_helper.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen for managing application data and backups.
 ///
@@ -234,16 +235,18 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text(l10n.unitMetricLabel),
+                  label: l10n.unitMetricLabel,
+                  tooltip: l10n.unitMetricLabel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text(l10n.unitImperialLabel),
+                  label: l10n.unitImperialLabel,
+                  tooltip: l10n.unitImperialLabel,
                 ),
               ),
             ],
@@ -557,9 +560,10 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
             const SizedBox(height: DesignConstants.spacingM),
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
+              child: AppButton.primary(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(l10n.snackbarButtonOK),
+                label: l10n.snackbarButtonOK,
+                tooltip: l10n.snackbarButtonOK,
               ),
             ),
           ],
@@ -615,30 +619,26 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
-                        key: const Key('cancel_delete_local_data_button'),
+                      child: AppButton.secondary(
                         onPressed: () {
                           close();
                           Navigator.of(ctx).pop(false);
                         },
-                        child: Text(l10n.cancel),
+                        label: l10n.cancel,
+                        tooltip: l10n.cancel,
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
-                        key: const Key('confirm_delete_local_data_button'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.error,
-                          foregroundColor: Colors.white,
-                        ),
+                      child: AppButton.primary(
                         onPressed: canConfirm
                             ? () {
                                 close();
                                 Navigator.of(ctx).pop(true);
                               }
                             : null,
-                        child: Text(l10n.delete),
+                        label: l10n.delete,
+                        tooltip: l10n.delete,
                       ),
                     ),
                   ],
@@ -678,22 +678,24 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(false);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(true);
                     },
-                    child: Text(l10n.onboardingNext),
+                    label: l10n.onboardingNext,
+                    tooltip: l10n.onboardingNext,
                   ),
                 ),
               ],
@@ -799,23 +801,25 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton.secondary(
                         onPressed: () {
                           close();
                           Navigator.of(ctx).pop(null);
                         },
-                        child: Text(l10n.dialogButtonCancel),
+                        label: l10n.dialogButtonCancel,
+                        tooltip: l10n.dialogButtonCancel,
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
+                      child: AppButton.primary(
                         onPressed: () {
                           final value = controller.text.trim();
                           close();
                           Navigator.of(ctx).pop(value);
                         },
-                        child: Text(l10n.snackbarButtonOK),
+                        label: l10n.snackbarButtonOK,
+                        tooltip: l10n.snackbarButtonOK,
                       ),
                     ),
                   ],

@@ -487,7 +487,8 @@ class ProductLocalDataSource {
 
     // Calculate frequency score in SQL using CTEs to avoid O(NxM) correlated subqueries
     final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-    final String historyScoreExpr = 'COALESCE(rbl.score, 0) + COALESCE(ril.score, 0) AS history_priority_score';
+    final String historyScoreExpr =
+        'COALESCE(rbl.score, 0) + COALESCE(ril.score, 0) AS history_priority_score';
     // Must be the first variables because they match the FIRST two `?` in the CTEs!
     variables.add(Variable.withDateTime(thirtyDaysAgo));
     variables.add(Variable.withDateTime(thirtyDaysAgo));

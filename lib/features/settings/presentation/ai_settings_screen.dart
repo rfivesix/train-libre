@@ -14,6 +14,7 @@ import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -571,35 +572,28 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: FilledButton.icon(
+                            child: AppButton.primary(
                               onPressed: _saveApiKey,
-                              icon: const Icon(LucideIcons.save),
-                              label: Text(
-                                _selectedProvider == AiProvider.ollama
-                                    ? 'Save Settings'
-                                    : l10n.aiSaveKey,
-                              ),
+                              label: _selectedProvider == AiProvider.ollama
+                                  ? 'Save Settings'
+                                  : l10n.aiSaveKey,
+                              tooltip: _selectedProvider == AiProvider.ollama
+                                  ? 'Save Settings'
+                                  : l10n.aiSaveKey,
+                              icon: LucideIcons.save,
                             ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: OutlinedButton.icon(
+                            child: AppButton.secondary(
                               onPressed: ((_hasKey ||
                                           _selectedProvider ==
                                               AiProvider.ollama) &&
                                       !_isTesting)
                                   ? _testConnection
                                   : null,
-                              icon: _isTesting
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(LucideIcons.wifi),
-                              label: Text(l10n.aiTestConnection),
+                              label: l10n.aiTestConnection,
+                              tooltip: l10n.aiTestConnection,
                             ),
                           ),
                         ],

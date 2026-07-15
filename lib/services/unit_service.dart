@@ -76,7 +76,6 @@ class UnitService extends ChangeNotifier {
     };
   }
 
-  
   String formatDisplayWeight(double metricValue, {int fractionDigits = 1}) {
     final val = convertDisplayValue(metricValue, UnitDimension.weight);
     if (val == val.truncateToDouble()) {

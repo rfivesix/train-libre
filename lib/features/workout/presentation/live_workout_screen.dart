@@ -34,6 +34,7 @@ import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../util/time_util.dart';
+import '../../../widgets/common/app_button.dart';
 
 String _formatPauseTime(int? seconds) => formatPauseDuration(seconds);
 
@@ -225,17 +226,18 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop((
@@ -243,7 +245,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                         notes: notesController.text.trim(),
                       ));
                     },
-                    child: Text(l10n.finishWorkoutButton),
+                    label: l10n.finishWorkoutButton,
+                    tooltip: l10n.finishWorkoutButton,
                   ),
                 ),
               ],
@@ -463,10 +466,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: DesignConstants.spacingXL),
-            ElevatedButton.icon(
+            AppButton.primary(
               onPressed: _addExercise,
-              icon: const Icon(LucideIcons.plus),
-              label: Text(l10n.fabAddExercise),
+              label: l10n.fabAddExercise,
+              tooltip: l10n.fabAddExercise,
+              icon: LucideIcons.plus,
             ),
           ],
         ),
@@ -768,7 +772,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                     const Icon(
                                                                   LucideIcons
                                                                       .trash_2,
-                                                                  color: DesignConstants.brandRedColor,
+                                                                  color: DesignConstants
+                                                                      .brandRedColor,
                                                                 ),
                                                                 onPressed:
                                                                     () {},
@@ -1002,7 +1007,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                     const Icon(
                                                                   LucideIcons
                                                                       .trash_2,
-                                                                  color: DesignConstants.brandRedColor,
+                                                                  color: DesignConstants
+                                                                      .brandRedColor,
                                                                 ),
                                                                 tooltip: l10n
                                                                     .removeExercise,
@@ -1461,26 +1467,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           // Skip Button
                           SizedBox(
                             height: 38,
-                            child: FilledButton(
-                              style: FilledButton.styleFrom(
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                backgroundColor: colorScheme.primary,
-                                foregroundColor: colorScheme.onPrimary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                              ),
+                            child: AppButton.primary(
                               onPressed: () => manager.cancelRest(),
-                              child: Text(
-                                l10n.skipButton,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
+                              label: l10n.skipButton,
+                              tooltip: l10n.skipButton,
                             ),
                           ),
                         ],

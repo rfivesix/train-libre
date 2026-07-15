@@ -3,6 +3,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class LocalDataDeletionCard extends StatelessWidget {
   const LocalDataDeletionCard({
@@ -39,15 +40,11 @@ class LocalDataDeletionCard extends StatelessWidget {
             const SizedBox(height: DesignConstants.spacingL),
             SizedBox(
               width: double.infinity,
-              child: FilledButton.icon(
-                key: const Key('delete_all_local_app_data_button'),
-                icon: const Icon(LucideIcons.trash_2),
-                label: Text(l10n.deleteAllLocalAppData),
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error,
-                  foregroundColor: theme.colorScheme.onError,
-                ),
+              child: AppButton.primary(
                 onPressed: isLocalResetRunning ? null : onDeletePressed,
+                label: l10n.deleteAllLocalAppData,
+                tooltip: l10n.deleteAllLocalAppData,
+                icon: LucideIcons.trash_2,
               ),
             ),
             if (isLocalResetRunning)

@@ -17,6 +17,7 @@ import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A searchable list of all available exercises in the database.
 class ExerciseCatalogScreen extends StatefulWidget {
@@ -152,16 +153,17 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton.secondary(
                         onPressed: () {
                           close();
                         },
-                        child: Text(l10n.cancel),
+                        label: l10n.cancel,
+                        tooltip: l10n.cancel,
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
+                      child: AppButton.primary(
                         onPressed: () {
                           setState(() {
                             _selectedCategories = tempSelected;
@@ -169,7 +171,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                           _runFilter(_searchController.text);
                           close();
                         },
-                        child: Text(l10n.doneButtonLabel),
+                        label: l10n.doneButtonLabel,
+                        tooltip: l10n.doneButtonLabel,
                       ),
                     ),
                   ],

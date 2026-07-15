@@ -45,6 +45,7 @@ import '../../../navigation/app_route_observer.dart';
 import '../../../services/app_tour_service.dart';
 import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
 import '../../../services/app_review_service.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// The root scaffold containing the main navigation structure.
 ///
@@ -386,7 +387,7 @@ class _MainScreenState extends State<MainScreen>
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    FilledButton(
+                    AppButton.primary(
                       onPressed: () async {
                         // Show loading indicator on top of the menu.
                         showDialog(
@@ -413,7 +414,8 @@ class _MainScreenState extends State<MainScreen>
                           ).pop((log: newWorkoutLog, routine: fullRoutine));
                         }
                       },
-                      child: Text(l10n.startButton),
+                      label: l10n.startButton,
+                      tooltip: l10n.startButton,
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
@@ -617,14 +619,15 @@ class _MainScreenState extends State<MainScreen>
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: close,
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () async {
                       final state = key.currentState;
                       if (state == null) return;
@@ -677,7 +680,8 @@ class _MainScreenState extends State<MainScreen>
                         await _refreshDiaryForActiveDate(queueIfInFlight: true);
                       }
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],
@@ -762,17 +766,18 @@ class _MainScreenState extends State<MainScreen>
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final state = dialogStateKey.currentState;
                       if (state != null) {
@@ -797,7 +802,8 @@ class _MainScreenState extends State<MainScreen>
                         }
                       }
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],
@@ -989,18 +995,18 @@ class _MainScreenState extends State<MainScreen>
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
-                  key: const Key('app_tour_offer_skip_button'),
+                child: AppButton.secondary(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text(l10n.appTourOfferSkip),
+                  label: l10n.appTourOfferSkip,
+                  tooltip: l10n.appTourOfferSkip,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
-                  key: const Key('app_tour_offer_start_button'),
+                child: AppButton.primary(
                   onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text(l10n.appTourOfferStart),
+                  label: l10n.appTourOfferStart,
+                  tooltip: l10n.appTourOfferStart,
                 ),
               ),
             ],

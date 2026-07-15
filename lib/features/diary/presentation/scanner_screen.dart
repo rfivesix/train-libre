@@ -13,6 +13,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
@@ -344,23 +345,19 @@ class _ScannerScreenState extends State<ScannerScreen>
               style: const TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            AppButton.primary(
               onPressed: _isRequestingPermission
                   ? null
                   : (_cameraPermissionStatus.isPermanentlyDenied
                       ? _openSettings
                       : _requestPermission),
-              child: _isRequestingPermission
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(
-                      _cameraPermissionStatus.isPermanentlyDenied
-                          ? l10n.scannerOpenSettings
-                          : l10n.scannerGrantPermission,
-                    ),
+              label: _cameraPermissionStatus.isPermanentlyDenied
+                  ? l10n.scannerOpenSettings
+                  : l10n.scannerGrantPermission,
+              tooltip: _cameraPermissionStatus.isPermanentlyDenied
+                  ? l10n.scannerOpenSettings
+                  : l10n.scannerGrantPermission,
+              isLoading: _isRequestingPermission,
             ),
           ],
         ),

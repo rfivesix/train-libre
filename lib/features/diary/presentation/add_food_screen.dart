@@ -801,7 +801,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 constraints: const BoxConstraints(),
                 icon: ShaderMask(
                   blendMode: BlendMode.srcIn,
-                  shaderCallback: (bounds) => DesignConstants.createAiGradientShader(bounds),
+                  shaderCallback: (bounds) =>
+                      DesignConstants.createAiGradientShader(bounds),
                   child: const Icon(LucideIcons.sparkles, size: 24),
                 ),
                 onPressed: () async {

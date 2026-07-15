@@ -209,27 +209,28 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                                   ),
                                                 ),
                                                 alignment: Alignment.center,
-                                                child: action['gradient'] ==
-                                                        true
-                                                    ? ShaderMask(
-                                                        blendMode:
-                                                            BlendMode.srcIn,
-                                                        shaderCallback: (bounds) =>
-                                                            DesignConstants.createAiGradientShader(
-                                                          bounds,
-                                                        ),
-                                                        child: Icon(
-                                                          action['icon'],
-                                                          size: 28,
-                                                        ),
-                                                      )
-                                                    : Icon(
-                                                        action['icon'],
-                                                        size: 28,
-                                                        color: isDarkLocal
-                                                            ? Colors.white
-                                                            : Colors.black,
-                                                      ),
+                                                child:
+                                                    action['gradient'] == true
+                                                        ? ShaderMask(
+                                                            blendMode:
+                                                                BlendMode.srcIn,
+                                                            shaderCallback: (bounds) =>
+                                                                DesignConstants
+                                                                    .createAiGradientShader(
+                                                              bounds,
+                                                            ),
+                                                            child: Icon(
+                                                              action['icon'],
+                                                              size: 28,
+                                                            ),
+                                                          )
+                                                        : Icon(
+                                                            action['icon'],
+                                                            size: 28,
+                                                            color: isDarkLocal
+                                                                ? Colors.white
+                                                                : Colors.black,
+                                                          ),
                                               ),
                                             ),
                                           ],

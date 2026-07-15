@@ -23,6 +23,7 @@ import '../../../widgets/common/macro_badge_row.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A comprehensive screen for viewing and editing a meal and its ingredients.
 ///
@@ -417,23 +418,25 @@ class _MealScreenState extends State<MealScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       closeQty();
                       Navigator.of(qtyCtx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final val = int.tryParse(qtyCtrl.text);
                       closeQty();
                       Navigator.of(qtyCtx).pop(val);
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],
@@ -595,22 +598,24 @@ class _MealScreenState extends State<MealScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton(
+                          child: AppButton.secondary(
                             onPressed: () {
                               close();
                               Navigator.of(ctx).pop(false);
                             },
-                            child: Text(l10n.cancel),
+                            label: l10n.cancel,
+                            tooltip: l10n.cancel,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: FilledButton(
+                          child: AppButton.primary(
                             onPressed: () {
                               close();
                               Navigator.of(ctx).pop(true);
                             },
-                            child: Text(l10n.save),
+                            label: l10n.save,
+                            tooltip: l10n.save,
                           ),
                         ),
                       ],

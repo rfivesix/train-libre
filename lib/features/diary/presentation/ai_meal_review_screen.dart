@@ -25,6 +25,7 @@ import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// Review screen for AI-suggested food items.
 ///
@@ -193,17 +194,18 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final val = int.tryParse(controller.text);
                       if (val != null && val > 0) {
@@ -211,7 +213,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                         Navigator.of(ctx).pop(val);
                       }
                     },
-                    child: Text(l10n.save),
+                    label: l10n.save,
+                    tooltip: l10n.save,
                   ),
                 ),
               ],
@@ -436,22 +439,24 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(false);
                   },
-                  child: Text(AppLocalizations.of(context)!.cancel),
+                  label: AppLocalizations.of(context)!.cancel,
+                  tooltip: AppLocalizations.of(context)!.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
+                child: AppButton.primary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(true);
                   },
-                  child: Text(l10n.aiValidationSaveMatchedItemsButton),
+                  label: l10n.aiValidationSaveMatchedItemsButton,
+                  tooltip: l10n.aiValidationSaveMatchedItemsButton,
                 ),
               ),
             ],
@@ -531,10 +536,11 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       vertical: DesignConstants.spacingS),
-                  child: OutlinedButton.icon(
+                  child: AppButton.secondary(
                     onPressed: _addManualItem,
-                    icon: const Icon(LucideIcons.plus),
-                    label: Text(l10n.aiReviewAddItem),
+                    label: l10n.aiReviewAddItem,
+                    tooltip: l10n.aiReviewAddItem,
+                    icon: LucideIcons.plus,
                   ),
                 ),
 
@@ -571,16 +577,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     ),
                   ),
                   const SizedBox(height: DesignConstants.spacingS),
-                  OutlinedButton.icon(
+                  AppButton.secondary(
                     onPressed: _isRetrying ? null : _retryWithFeedback,
-                    icon: _isRetrying
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(LucideIcons.rotate_cw),
-                    label: Text(l10n.aiReviewRetryButton),
+                    label: l10n.aiReviewRetryButton,
+                    tooltip: l10n.aiReviewRetryButton,
                   ),
                 ],
 
@@ -659,26 +659,13 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   flex: 3,
                   child: SizedBox(
                     height: 48,
-                    child: FilledButton.icon(
+                    child: AppButton.primary(
                       onPressed:
                           (_items.isNotEmpty && !_isSaving && !_isMatching)
                               ? _saveToDiary
                               : null,
-                      icon: _isSaving
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(LucideIcons.check),
-                      label: Text(
-                        l10n.aiReviewSaveToDiary,
-                        style: const TextStyle(fontSize: 16),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      label: l10n.aiReviewSaveToDiary,
+                      tooltip: l10n.aiReviewSaveToDiary,
                     ),
                   ),
                 ),

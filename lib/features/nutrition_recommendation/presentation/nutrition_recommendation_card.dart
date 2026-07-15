@@ -13,6 +13,7 @@ import '../domain/confidence_models.dart';
 import '../domain/goal_models.dart';
 import '../domain/recommendation_models.dart';
 import 'recommendation_ui_copy.dart';
+import '../../../widgets/common/app_button.dart';
 
 class NutritionRecommendationCard extends StatelessWidget {
   final BodyweightGoal goal;
@@ -74,7 +75,8 @@ class NutritionRecommendationCard extends StatelessWidget {
               onRecalculate: onRecalculate,
               onApply: onApply,
               goalLabel: _goalLabel(l10n, recommendation!.goal),
-              rateLabel: _rateLabel(context, l10n, recommendation!.targetRateKgPerWeek),
+              rateLabel: _rateLabel(
+                  context, l10n, recommendation!.targetRateKgPerWeek),
               formattedGeneratedAt: _formatDateTime(
                 context,
                 generatedAt ?? recommendation!.generatedAt,
@@ -96,13 +98,19 @@ class NutritionRecommendationCard extends StatelessWidget {
     }
   }
 
-  String _rateLabel(BuildContext context, AppLocalizations l10n, double kgPerWeek) {
+  String _rateLabel(
+      BuildContext context, AppLocalizations l10n, double kgPerWeek) {
     if (kgPerWeek == 0) return '-';
     final unitService = context.read<UnitService>();
     final sign = kgPerWeek > 0 ? '+' : '';
-    final displayValue = unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
-    final valStr = displayValue.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '');
-    return l10n.adaptiveRatePerWeek('$sign$valStr', unitService.suffixFor(UnitDimension.weight));
+    final displayValue =
+        unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
+    final valStr = displayValue
+        .toStringAsFixed(2)
+        .replaceAll(RegExp(r'0*$'), '')
+        .replaceAll(RegExp(r'\.$'), '');
+    return l10n.adaptiveRatePerWeek(
+        '$sign$valStr', unitService.suffixFor(UnitDimension.weight));
   }
 
   String _formatDate(BuildContext context, DateTime value) {
@@ -799,26 +807,28 @@ class _RecommendationActions extends StatelessWidget {
       children: [
         SizedBox(
           width: 168,
-          child: OutlinedButton.icon(
+          child: AppButton.secondary(
             onPressed: isRecalculating ? null : onRecalculate,
-            icon: const Icon(LucideIcons.rotate_cw, size: 18),
-            label: Text(
-              isRecalculating
-                  ? l10n.adaptiveRecommendationRecalculating
-                  : l10n.adaptiveRecommendationRecalculateNowAction,
-            ),
+            label: isRecalculating
+                ? l10n.adaptiveRecommendationRecalculating
+                : l10n.adaptiveRecommendationRecalculateNowAction,
+            tooltip: isRecalculating
+                ? l10n.adaptiveRecommendationRecalculating
+                : l10n.adaptiveRecommendationRecalculateNowAction,
+            icon: LucideIcons.rotate_cw,
           ),
         ),
         SizedBox(
           width: 168,
-          child: FilledButton.icon(
+          child: AppButton.primary(
             onPressed: isApplying ? null : onApply,
-            icon: const Icon(LucideIcons.check, size: 18),
-            label: Text(
-              isApplying
-                  ? l10n.adaptiveRecommendationApplying
-                  : l10n.adaptiveRecommendationApplyAction,
-            ),
+            label: isApplying
+                ? l10n.adaptiveRecommendationApplying
+                : l10n.adaptiveRecommendationApplyAction,
+            tooltip: isApplying
+                ? l10n.adaptiveRecommendationApplying
+                : l10n.adaptiveRecommendationApplyAction,
+            icon: LucideIcons.check,
           ),
         ),
       ],

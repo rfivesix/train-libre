@@ -10,6 +10,7 @@ import '../../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../services/base_food_language_service.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class ConfirmLogMealBottomSheet extends StatefulWidget {
   final String mealName;
@@ -257,17 +258,18 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: AppButton.secondary(
                 onPressed: () {
                   widget.onClose();
                   Navigator.of(context).pop(false);
                 },
-                child: Text(l10n.cancel),
+                label: l10n.cancel,
+                tooltip: l10n.cancel,
               ),
             ),
             const SizedBox(width: DesignConstants.spacingM),
             Expanded(
-              child: FilledButton(
+              child: AppButton.primary(
                 onPressed: () {
                   // Build final quantities map to hand over
                   final Map<String, int> finalQuantities = {};
@@ -284,7 +286,8 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                   widget.onClose();
                   Navigator.of(context).pop(true);
                 },
-                child: Text(l10n.save),
+                label: l10n.save,
+                tooltip: l10n.save,
               ),
             ),
           ],

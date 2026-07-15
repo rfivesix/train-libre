@@ -126,7 +126,8 @@ class DetectPersonalRecordUseCase {
         alerts.add(PRAlert(
           exerciseName: currentSet.exerciseName,
           recordType: "Best Volume Set",
-          achievementValue: "{\${unitService.convertDisplayValue(currentVolume, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}} ${unitService.suffixFor(UnitDimension.weight)}",
+          achievementValue:
+              "{\${unitService.convertDisplayValue(currentVolume, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}} ${unitService.suffixFor(UnitDimension.weight)}",
           diff: volumeDiff,
         ));
       }

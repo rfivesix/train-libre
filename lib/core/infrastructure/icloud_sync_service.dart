@@ -78,7 +78,8 @@ class ICloudSyncService {
   /// Persists the last successful sync timestamp.
   Future<void> _setLastSyncTimestamp(DateTime timestamp) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(kICloudLastSyncTimestampKey, timestamp.millisecondsSinceEpoch);
+    await prefs.setInt(
+        kICloudLastSyncTimestampKey, timestamp.millisecondsSinceEpoch);
   }
 
   // ── Upload ────────────────────────────────────────────────────────────────
@@ -205,7 +206,7 @@ class ICloudSyncService {
 
       // Atomically replace the active database.
       await tempFile.rename(activePath);
-      
+
       // Restore shared preferences from the new database snapshot
       final tempDb = AppDatabase();
       await _extractSharedPreferences(tempDb);
@@ -323,7 +324,9 @@ class ICloudSyncService {
 
   Future<void> _extractSharedPreferences(AppDatabase db) async {
     try {
-      final rows = await db.customSelect('SELECT key, value FROM system_preferences').get();
+      final rows = await db
+          .customSelect('SELECT key, value FROM system_preferences')
+          .get();
       final prefs = await SharedPreferences.getInstance();
       for (final row in rows) {
         final key = row.read<String>('key');

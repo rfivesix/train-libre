@@ -20,6 +20,7 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen for managing user-specific identity and data.
 class ProfileScreen extends StatefulWidget {
@@ -207,17 +208,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton.secondary(
                         onPressed: () {
                           close();
                           Navigator.of(ctx).pop();
                         },
-                        child: Text(l10n.cancel),
+                        label: l10n.cancel,
+                        tooltip: l10n.cancel,
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
+                      child: AppButton.primary(
                         onPressed: () async {
                           final parsedHeight = double.tryParse(
                             heightCtrl.text.replaceAll(',', '.'),
@@ -249,7 +251,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Navigator.of(ctx).pop();
                           _loadProfileData();
                         },
-                        child: Text(l10n.save),
+                        label: l10n.save,
+                        tooltip: l10n.save,
                       ),
                     ),
                   ],

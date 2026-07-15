@@ -48,7 +48,9 @@ class ShareCardRenderer {
     Map<String, Exercise> exerciseDetails = const {},
   }) {
     final formatter = WorkoutShareFormatter(labels,
-        locale: locale, exerciseDetails: exerciseDetails, unitService: context.read<UnitService>());
+        locale: locale,
+        exerciseDetails: exerciseDetails,
+        unitService: context.read<UnitService>());
     final stats = formatter.stats(workout);
     final child = switch (layout) {
       WorkoutShareCardLayout.summary => _WorkoutSummaryCard(

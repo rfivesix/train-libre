@@ -19,6 +19,7 @@ import '../../../widgets/common/algorithm_info_sheet.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// Screen for capturing meal input via photo(s) or text before AI analysis.
 ///
@@ -336,14 +337,15 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l10n.cancel),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
+                child: AppButton.primary(
                   onPressed: () {
                     Navigator.of(ctx).pop();
                     Navigator.of(context).push(
@@ -351,7 +353,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           builder: (_) => const AiSettingsScreen()),
                     );
                   },
-                  child: Text(l10n.aiSettingsTitle),
+                  label: l10n.aiSettingsTitle,
+                  tooltip: l10n.aiSettingsTitle,
                 ),
               ),
             ],

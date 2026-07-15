@@ -178,7 +178,9 @@ class _RecommendationBannerState extends State<RecommendationBanner>
 
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? DesignConstants.summaryCardDarkMode : DesignConstants.summaryCardWhiteMode;
+    final bg = isDark
+        ? DesignConstants.summaryCardDarkMode
+        : DesignConstants.summaryCardWhiteMode;
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
 

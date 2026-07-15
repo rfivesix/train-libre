@@ -14,6 +14,7 @@ import '../../../../util/cancellation_token.dart';
 import '../../../../widgets/common/long_running_operation_overlay.dart';
 import '../../../../widgets/common/glass_menu.dart';
 import '../../../../widgets/common/platform_adaptive_switch.dart';
+import '../../../../widgets/common/app_button.dart';
 
 /// A settings card (iOS/macOS only) that lets the user enable/disable
 /// automatic iCloud backup and trigger a manual backup.
@@ -21,7 +22,8 @@ import '../../../../widgets/common/platform_adaptive_switch.dart';
 /// Rendered inside [DataManagementScreen] below the existing auto-backup card.
 class ICloudSyncCard extends StatefulWidget {
   /// Called when the user initiates a manual "Backup Now" action.
-  final Future<bool> Function({void Function(double progress)? onProgress}) onBackupNow;
+  final Future<bool> Function({void Function(double progress)? onProgress})
+      onBackupNow;
 
   const ICloudSyncCard({super.key, required this.onBackupNow});
 
@@ -87,7 +89,8 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
           try {
             await widget.onBackupNow(
               onProgress: (progress) {
-                final normProgress = progress > 1.0 ? progress / 100.0 : progress;
+                final normProgress =
+                    progress > 1.0 ? progress / 100.0 : progress;
                 final percent = (normProgress * 100).toStringAsFixed(0);
                 updateProgress('Uploading... $percent%', normProgress);
               },
@@ -108,9 +111,9 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
       final err = capturedError!;
       final st = capturedStackTrace ?? StackTrace.current;
       _bindErrorDump(
-        err is PlatformException 
+        err is PlatformException
             ? 'PlatformException [${err.code}]:\nMessage: ${err.message}\nDetails: ${err.details}'
-            : err.toString(), 
+            : err.toString(),
         st,
       );
       _showGlassErrorSheet(err, st);
@@ -141,7 +144,7 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
   void _showGlassErrorSheet(dynamic error, StackTrace stackTrace) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    
+
     final String technicalDetails =
         "=== RAW NATIVE EXCEPTION ===\n$error\n\n=== STACK TRACE ===\n$stackTrace";
 
@@ -266,21 +269,14 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
           // ── Manual backup button ─────────────────────────────────────────
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
-              key: const Key('icloud_backup_now_button'),
-              icon: _isBackingUp
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(LucideIcons.cloud_upload),
-              label: Text(
-                _isBackingUp
-                    ? l10n.icloudBackupUploading
-                    : l10n.icloudBackupNow,
-              ),
+            child: AppButton.secondary(
               onPressed: _isBackingUp ? null : _runBackupNow,
+              label: _isBackingUp
+                  ? l10n.icloudBackupUploading
+                  : l10n.icloudBackupNow,
+              tooltip: _isBackingUp
+                  ? l10n.icloudBackupUploading
+                  : l10n.icloudBackupNow,
             ),
           ),
 
@@ -324,7 +320,7 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
                     ),
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
-                  ElevatedButton.icon(
+                  AppButton.primary(
                     onPressed: () async {
                       await Clipboard.setData(
                           ClipboardData(text: _nativeDiagnosticLog!));
@@ -339,17 +335,9 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
                         );
                       }
                     },
-                    icon: Icon(LucideIcons.copy,
-                        color: theme.colorScheme.onError),
-                    label: Text('COPY RAW LOGS',
-                        style: TextStyle(
-                            color: theme.colorScheme.onError,
-                            fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.error,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: DesignConstants.spacingM),
-                    ),
+                    label: 'COPY RAW LOGS',
+                    tooltip: 'COPY RAW LOGS',
+                    icon: LucideIcons.copy,
                   ),
                 ],
               ),

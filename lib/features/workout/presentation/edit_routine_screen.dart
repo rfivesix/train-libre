@@ -24,6 +24,7 @@ import 'widgets/edit_routine_exercise_card.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen for creating or modifying a [Routine].
 ///
@@ -113,22 +114,24 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(false);
                     },
-                    child: Text(l10n.discardButton),
+                    label: l10n.discardButton,
+                    tooltip: l10n.discardButton,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(true);
                     },
-                    child: Text(l10n.save),
+                    label: l10n.save,
+                    tooltip: l10n.save,
                   ),
                 ),
               ],
@@ -274,7 +277,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           final String weightText = (st.targetWeight == null)
               ? ''
               : (isCardio
-                  ? unitService.convertDisplayValue(st.targetWeight!, UnitDimension.distance)
+                  ? unitService
+                      .convertDisplayValue(
+                          st.targetWeight!, UnitDimension.distance)
                       .toStringAsFixed(3)
                       .replaceAll(RegExp(r'0*$'), '')
                       .replaceAll(RegExp(r'\.$'), '')
@@ -333,7 +338,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           final String weightText = (st.targetWeight == null)
               ? ''
               : (isCardio
-                  ? unitService.convertDisplayValue(st.targetWeight!, UnitDimension.distance)
+                  ? unitService
+                      .convertDisplayValue(
+                          st.targetWeight!, UnitDimension.distance)
                       .toStringAsFixed(3)
                       .replaceAll(RegExp(r'0*$'), '')
                       .replaceAll(RegExp(r'\.$'), '')
@@ -401,12 +408,19 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         currentTemplates.add(
           set.copyWith(
             targetReps: _repsControllers[set.id!]?.text,
-            targetWeight: _weightControllers[set.id!]!.text.isEmpty ? null : (() {
-              final raw = double.tryParse(_weightControllers[set.id!]!.text.replaceAll(',', '.'));
-              if (raw == null) return null;
-              final unitService = context.read<UnitService>();
-              return unitService.convertToMetric(raw, re.exercise.categoryName.toLowerCase() == 'cardio' ? UnitDimension.distance : UnitDimension.weight);
-            })(),
+            targetWeight: _weightControllers[set.id!]!.text.isEmpty
+                ? null
+                : (() {
+                    final raw = double.tryParse(
+                        _weightControllers[set.id!]!.text.replaceAll(',', '.'));
+                    if (raw == null) return null;
+                    final unitService = context.read<UnitService>();
+                    return unitService.convertToMetric(
+                        raw,
+                        re.exercise.categoryName.toLowerCase() == 'cardio'
+                            ? UnitDimension.distance
+                            : UnitDimension.weight);
+                  })(),
             targetRir: int.tryParse(rirText),
             clearTargetRir: rirText.isEmpty,
           ),

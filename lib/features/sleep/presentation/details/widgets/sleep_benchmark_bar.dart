@@ -4,6 +4,7 @@ class BenchmarkSegment {
   /// The upper bound of this segment (in the same units as min/max)
   final double limit;
   final Color color;
+
   /// Optional label to draw exactly at this boundary (e.g., '7h')
   final String? label;
 
@@ -82,16 +83,17 @@ class SleepBenchmarkBar extends StatelessWidget {
                               color: segment.color.withValues(
                                 alpha: isDark ? 0.78 : 0.6,
                               ),
-                              borderRadius: currentLeft == 0.0 && segmentFraction == 1.0
-                                  ? trackRadius
-                                  : BorderRadius.horizontal(
-                                      left: currentLeft == 0.0
-                                          ? const Radius.circular(999)
-                                          : Radius.zero,
-                                      right: segmentFraction == 1.0
-                                          ? const Radius.circular(999)
-                                          : Radius.zero,
-                                    ),
+                              borderRadius:
+                                  currentLeft == 0.0 && segmentFraction == 1.0
+                                      ? trackRadius
+                                      : BorderRadius.horizontal(
+                                          left: currentLeft == 0.0
+                                              ? const Radius.circular(999)
+                                              : Radius.zero,
+                                          right: segmentFraction == 1.0
+                                              ? const Radius.circular(999)
+                                              : Radius.zero,
+                                        ),
                             ),
                           ),
                         ),
@@ -100,10 +102,12 @@ class SleepBenchmarkBar extends StatelessWidget {
                     }
 
                     if (marker != null) {
-                      final outlineColor = Theme.of(context).scaffoldBackgroundColor;
+                      final outlineColor =
+                          Theme.of(context).scaffoldBackgroundColor;
                       children.add(
                         Positioned(
-                          left: marker * constraints.maxWidth - (markerWidth / 2),
+                          left:
+                              marker * constraints.maxWidth - (markerWidth / 2),
                           top: 4,
                           bottom: 4,
                           child: Container(
@@ -156,8 +160,11 @@ class SleepBenchmarkBar extends StatelessWidget {
             }
 
             for (final segment in sortedSegments) {
-              if (segment.label != null && segment.limit > min && segment.limit < max) {
-                final fraction = ((segment.limit - min) / range).clamp(0.0, 1.0);
+              if (segment.label != null &&
+                  segment.limit > min &&
+                  segment.limit < max) {
+                final fraction =
+                    ((segment.limit - min) / range).clamp(0.0, 1.0);
                 labels.add(
                   Positioned(
                     left: fraction * constraints.maxWidth,

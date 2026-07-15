@@ -57,7 +57,8 @@ class RecommendationRepository {
   final SharedPreferencesLoader _prefsLoader;
   final UnitService _unitService;
 
-  RecommendationRepository({SharedPreferencesLoader? prefsLoader, UnitService? unitService})
+  RecommendationRepository(
+      {SharedPreferencesLoader? prefsLoader, UnitService? unitService})
       : _prefsLoader = prefsLoader ?? SharedPreferences.getInstance,
         _unitService = unitService ?? UnitService();
 
@@ -75,9 +76,11 @@ class RecommendationRepository {
     final goal = await getGoal();
     final raw = prefs.getDouble(_targetRateKey);
     if (raw == null) {
-      return WeeklyTargetRateCatalog.defaultForGoal(goal, _unitService).kgPerWeek;
+      return WeeklyTargetRateCatalog.defaultForGoal(goal, _unitService)
+          .kgPerWeek;
     }
-    return WeeklyTargetRateCatalog.coerceTargetRate(goal: goal, kgPerWeek: raw, unitService: _unitService);
+    return WeeklyTargetRateCatalog.coerceTargetRate(
+        goal: goal, kgPerWeek: raw, unitService: _unitService);
   }
 
   Future<void> saveGoalAndTargetRate({

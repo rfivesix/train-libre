@@ -49,6 +49,7 @@ import '../../health_export/export_service.dart';
 import '../../health_export/adapters/apple_health/apple_health_export_adapter.dart';
 import '../../health_export/adapters/health_connect/health_connect_export_adapter.dart';
 import '../../health_export/models/export_models.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -667,17 +668,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () => Navigator.of(ctx).pop(null),
-                  child: Text(l10n.cancel),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
+                child: AppButton.primary(
                   onPressed: () =>
                       Navigator.of(ctx).pop(controller.text.trim()),
-                  child: Text(l10n.onboardingNext),
+                  label: l10n.onboardingNext,
+                  tooltip: l10n.onboardingNext,
                 ),
               ),
             ],
@@ -850,11 +853,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (!mounted) return;
 
     // 1. Apple Health / Health Connect Export
-    final appleExportEnabled = prefs.getBool('health_export_apple_enabled') ?? false;
-    final googleExportEnabled = prefs.getBool('health_export_health_connect_enabled') ?? false;
+    final appleExportEnabled =
+        prefs.getBool('health_export_apple_enabled') ?? false;
+    final googleExportEnabled =
+        prefs.getBool('health_export_health_connect_enabled') ?? false;
     if (appleExportEnabled || googleExportEnabled) {
-      final title = Platform.isIOS ? l10n.healthExportAppleHealthTitle : l10n.healthExportHealthConnectTitle;
-      final body = Platform.isIOS ? l10n.healthExportAppleHealthSubtitle : l10n.healthExportHealthConnectSubtitle;
+      final title = Platform.isIOS
+          ? l10n.healthExportAppleHealthTitle
+          : l10n.healthExportHealthConnectTitle;
+      final body = Platform.isIOS
+          ? l10n.healthExportAppleHealthSubtitle
+          : l10n.healthExportHealthConnectSubtitle;
       final confirmed = await showPrePermissionDialog(
         context: context,
         title: title,
@@ -863,8 +872,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         cancelLabel: l10n.health_permission_not_now,
       );
       if (confirmed && mounted) {
-        final service = HealthExportService(adapters: [AppleHealthExportAdapter(), HealthConnectExportAdapter()]);
-        await service.requestPermissions(Platform.isIOS ? HealthExportPlatform.appleHealth : HealthExportPlatform.healthConnect);
+        final service = HealthExportService(adapters: [
+          AppleHealthExportAdapter(),
+          HealthConnectExportAdapter()
+        ]);
+        await service.requestPermissions(Platform.isIOS
+            ? HealthExportPlatform.appleHealth
+            : HealthExportPlatform.healthConnect);
       }
     }
 
@@ -910,8 +924,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final sleepEnabled = prefs.getBool('sleep_tracking_enabled') ?? false;
     if (sleepEnabled) {
       final controller = SleepPermissionController(Platform.isIOS
-          ? const HealthKitSleepPermissionsService(HealthKitSleepMethodChannelBridge())
-          : const HealthConnectSleepPermissionsService(HealthConnectSleepMethodChannelBridge()));
+          ? const HealthKitSleepPermissionsService(
+              HealthKitSleepMethodChannelBridge())
+          : const HealthConnectSleepPermissionsService(
+              HealthConnectSleepMethodChannelBridge()));
       await controller.requestAccess(context);
     }
 
@@ -1071,36 +1087,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       icon: const Icon(LucideIcons.arrow_left),
                     ),
                     const Spacer(),
-                    ElevatedButton(
-                      key: const Key('onboarding_bottom_next_button'),
+                    AppButton.primary(
                       onPressed: _isGeneratingOnboardingRecommendation
                           ? null
                           : _nextPage,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesignConstants.spacingXXL,
-                          vertical: DesignConstants.spacingL,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: _isGeneratingOnboardingRecommendation &&
-                              _currentPage == _adaptiveGoalPageIndex
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              _currentPage == _lastPageIndex
-                                  ? l10n.onboardingFinish.toUpperCase()
-                                  : l10n.onboardingNext.toUpperCase(),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                      label: _currentPage == _lastPageIndex
+                          ? l10n.onboardingFinish.toUpperCase()
+                          : l10n.onboardingNext.toUpperCase(),
+                      tooltip: _currentPage == _lastPageIndex
+                          ? l10n.onboardingFinish.toUpperCase()
+                          : l10n.onboardingNext.toUpperCase(),
+                      isLoading: _isGeneratingOnboardingRecommendation &&
+                          _currentPage == _adaptiveGoalPageIndex,
                     ),
                   ],
                 ),

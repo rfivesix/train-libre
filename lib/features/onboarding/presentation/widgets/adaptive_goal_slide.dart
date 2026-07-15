@@ -139,7 +139,8 @@ class AdaptiveGoalSlide extends StatelessWidget {
           Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: WeeklyTargetRateCatalog.optionsForGoal(selectedGoal, context.read<UnitService>())
+            children: WeeklyTargetRateCatalog.optionsForGoal(
+                    selectedGoal, context.read<UnitService>())
                 .map((option) {
               final isSelected =
                   option.kgPerWeek == selectedTargetRateKgPerWeek;
@@ -191,12 +192,18 @@ class AdaptiveGoalSlide extends StatelessWidget {
     }
   }
 
-  String _rateLabel(BuildContext context, AppLocalizations l10n, double kgPerWeek) {
+  String _rateLabel(
+      BuildContext context, AppLocalizations l10n, double kgPerWeek) {
     final unitService = context.read<UnitService>();
     final sign = kgPerWeek > 0 ? '+' : '';
-    final displayValue = unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
-    final valStr = displayValue.toStringAsFixed(2).replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '');
-    return l10n.adaptiveRatePerWeek('$sign$valStr', unitService.suffixFor(UnitDimension.weight));
+    final displayValue =
+        unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
+    final valStr = displayValue
+        .toStringAsFixed(2)
+        .replaceAll(RegExp(r'0*$'), '')
+        .replaceAll(RegExp(r'\.$'), '');
+    return l10n.adaptiveRatePerWeek(
+        '$sign$valStr', unitService.suffixFor(UnitDimension.weight));
   }
 
   String _priorActivityLabel(

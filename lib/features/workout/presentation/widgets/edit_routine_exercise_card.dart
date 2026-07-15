@@ -81,9 +81,11 @@ class EditRoutineExerciseCard extends StatelessWidget {
               child: isEditMode
                   ? ReorderableDelayedDragStartListener(
                       index: index,
-                      child: _buildTitleContent(context, routineExercise, textTheme, colorScheme),
+                      child: _buildTitleContent(
+                          context, routineExercise, textTheme, colorScheme),
                     )
-                  : _buildTitleContent(context, routineExercise, textTheme, colorScheme),
+                  : _buildTitleContent(
+                      context, routineExercise, textTheme, colorScheme),
             ),
             leading: null,
             trailing: isEditMode
@@ -282,8 +284,9 @@ class EditRoutineExerciseCard extends StatelessWidget {
         children: [
           _buildHeader(l10n.setLabel, flex: 2),
           _buildHeader(
-              l10n.cardioDistanceLabel(
-                  context.read<UnitService>().suffixFor(UnitDimension.distance)),
+              l10n.cardioDistanceLabel(context
+                  .read<UnitService>()
+                  .suffixFor(UnitDimension.distance)),
               flex: 4),
           const SizedBox(width: 8),
           _buildHeader(l10n.cardioTimeLabel, flex: 4),
