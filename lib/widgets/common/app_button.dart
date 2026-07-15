@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../util/design_constants.dart';
 
 enum AppButtonVariant { primary, secondary, danger }
 
-enum AppButtonSize { regular, small }
+enum AppButtonSize { regular, medium, small }
 
 class AppButton extends StatefulWidget {
   final String label;
@@ -124,8 +125,8 @@ class _AppButtonState extends State<AppButton>
         );
         break;
       case AppButtonVariant.danger:
-        backgroundColor = theme.colorScheme.error;
-        foregroundColor = theme.colorScheme.onError;
+        backgroundColor = DesignConstants.brandRedColor;
+        foregroundColor = Colors.white;
         break;
     }
 
@@ -140,16 +141,34 @@ class _AppButtonState extends State<AppButton>
       }
     }
 
-    final double height = widget.size == AppButtonSize.small ? 36.0 : 48.0;
-    final EdgeInsets padding = widget.size == AppButtonSize.small
-        ? const EdgeInsets.symmetric(horizontal: 12.0)
-        : const EdgeInsets.symmetric(horizontal: 16.0);
-    final TextStyle? textStyle = widget.size == AppButtonSize.small
-        ? theme.textTheme.labelMedium
-        : theme.textTheme.labelLarge;
-    final double iconSize = widget.size == AppButtonSize.small ? 16.0 : 20.0;
-    final double progressSize =
-        widget.size == AppButtonSize.small ? 14.0 : 18.0;
+    final double height;
+    final EdgeInsets padding;
+    final TextStyle? textStyle;
+    final double iconSize;
+    final double progressSize;
+    switch (widget.size) {
+      case AppButtonSize.regular:
+        height = 48.0;
+        padding = const EdgeInsets.symmetric(horizontal: 16.0);
+        textStyle = theme.textTheme.labelLarge;
+        iconSize = 20.0;
+        progressSize = 18.0;
+        break;
+      case AppButtonSize.medium:
+        height = 40.0;
+        padding = const EdgeInsets.symmetric(horizontal: 12.0);
+        textStyle = theme.textTheme.labelMedium;
+        iconSize = 18.0;
+        progressSize = 16.0;
+        break;
+      case AppButtonSize.small:
+        height = 32.0;
+        padding = const EdgeInsets.symmetric(horizontal: 8.0);
+        textStyle = theme.textTheme.labelMedium;
+        iconSize = 16.0;
+        progressSize = 14.0;
+        break;
+    }
 
     Widget buttonContent = Container(
       height: height,
@@ -186,6 +205,8 @@ class _AppButtonState extends State<AppButton>
                 color: foregroundColor,
                 fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),

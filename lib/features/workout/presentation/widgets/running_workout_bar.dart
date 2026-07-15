@@ -47,18 +47,20 @@ class RunningWorkoutBar extends StatelessWidget {
             ],
           ),
         ),
-        // Resume (accent)
+        // Resume (accent, small)
         AppButton.primary(
           onPressed: onResume,
           label: l10n.continue_workout_button,
           tooltip: l10n.continue_workout_button,
+          size: AppButtonSize.small,
         ),
         const SizedBox(width: DesignConstants.spacingS),
-        // Discard (red)
-        AppButton.primary(
+        // Discard (danger, small)
+        AppButton.danger(
           onPressed: onDiscard,
           label: l10n.discard_button,
           tooltip: l10n.discard_button,
+          size: AppButtonSize.small,
         ),
       ],
     );

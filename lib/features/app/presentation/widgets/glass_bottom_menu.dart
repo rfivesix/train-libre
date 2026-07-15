@@ -444,7 +444,7 @@ Future<bool> showDeleteConfirmation(
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: AppButton.primary(
+                child: AppButton.danger(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(true);
@@ -508,7 +508,7 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: AppButton.primary(
+                child: AppButton.danger(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(ActiveWorkoutConflictResult.discard);

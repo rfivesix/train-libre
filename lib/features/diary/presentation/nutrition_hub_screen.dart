@@ -339,7 +339,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  AppButton.primary(
+                  AppButton.secondary(
                     onPressed: () => Navigator.of(context)
                         .push(
                           MaterialPageRoute(
@@ -349,6 +349,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                         .then((_) => _refreshData()),
                     label: l10n.edit,
                     tooltip: l10n.edit,
+                    size: AppButtonSize.small,
                   ),
                 ],
               ),

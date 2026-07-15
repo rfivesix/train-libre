@@ -130,8 +130,9 @@ class DesignConstants {
   /// A darkened version of the brand color for better contrast in Light Mode.
   static const Color brandAccentColorLightMode = Color(0xFF8B9E00);
 
-  /// A rich red color used for destructive actions and errors.
-  static const Color brandRedColor = Colors.red;
+  /// A rich, saturated red used for destructive actions and errors.
+  /// Chosen for maximum visual impact: vivid, warm, and unmistakably urgent.
+  static const Color brandRedColor = Color(0xFFE5253A);
 
   /// The standard colors used for AI-related gradients and accents.
   static const List<Color> aiGradientColors = [

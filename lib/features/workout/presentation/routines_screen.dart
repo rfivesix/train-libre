@@ -244,6 +244,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                       onPressed: () => _startWorkout(routine),
                       label: l10n.startButton,
                       tooltip: l10n.startButton,
+                      size: AppButtonSize.small,
                     ),
                     title: Text(
                       routine.name,

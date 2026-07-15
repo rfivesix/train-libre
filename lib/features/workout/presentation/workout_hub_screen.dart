@@ -303,6 +303,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                     onPressed: () => _startRoutine(routine),
                     label: l10n.start_button,
                     tooltip: l10n.start_button,
+                    size: AppButtonSize.medium,
                   ),
                 ],
               ),

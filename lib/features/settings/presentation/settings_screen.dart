@@ -623,13 +623,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: DesignConstants.spacingL),
                   SizedBox(
                     width: double.infinity,
-                    child: AppButton.primary(
+                    child: AppButton.danger(
                       onPressed: _isLocalResetRunning
                           ? null
                           : _confirmAndDeleteLocalData,
                       label: l10n.deleteAllLocalAppData,
                       tooltip: l10n.deleteAllLocalAppData,
                       icon: LucideIcons.trash_2,
+                      isLoading: _isLocalResetRunning,
                     ),
                   ),
                   if (_isLocalResetRunning)
@@ -746,7 +747,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: AppButton.primary(
+                      child: AppButton.danger(
                         onPressed: canConfirm
                             ? () => Navigator.of(ctx).pop(true)
                             : null,
