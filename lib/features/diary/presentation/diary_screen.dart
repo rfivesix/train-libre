@@ -17,6 +17,7 @@ import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/models/tracked_food_item.dart';
 import '../../supplements/domain/models/tracked_supplement.dart';
+import '../../supplements/domain/models/supplement.dart';
 import 'add_food_screen.dart';
 import 'add_food_navigation_result.dart';
 import '../../supplements/presentation/supplement_hub_screen.dart';
@@ -44,6 +45,7 @@ import 'meal_screen.dart';
 import '../../../core/infrastructure/share_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
 ///
@@ -664,38 +666,17 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       );
     }
 
-    if (!hasDataForSelectedDate) {
-      return RefreshIndicator(
-        onRefresh: () => syncHealthData(forceStepsRefresh: true),
-        child: ActiveGapOverlay(
-          message: l10n.emptyStateActiveGapOverlay,
-          background: CustomScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverPadding(
-                padding: finalPadding,
-                sliver: const SliverToBoxAdapter(
-                  child: DiarySkeletonLayout(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+    final bool showSkeleton = !hasDataForSelectedDate;
 
-    return isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : RefreshIndicator(
-            onRefresh: () => syncHealthData(forceStepsRefresh: true),
-            child: CustomScrollView(
-              controller: _scrollController,
-              slivers: [
-                SliverPadding(
-                  padding: finalPadding.copyWith(bottom: 0),
-                  sliver: SliverToBoxAdapter(
-                    child: RepaintBoundary(
+    Widget content = Skeletonizer(
+      enabled: showSkeleton,
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverPadding(
+            padding: finalPadding.copyWith(bottom: 0),
+            sliver: SliverToBoxAdapter(
+              child: RepaintBoundary(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -708,7 +689,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 bool showSugarInOverview
                               })>(
                             selector: (context, vm) => (
-                              dailyNutrition: vm.dailyNutrition,
+                              dailyNutrition: showSkeleton 
+                                  ? DailyNutrition(targetCalories: 2000, targetProtein: 150, targetCarbs: 200, targetFat: 60)
+                                  : vm.dailyNutrition,
                               selectedDate: vm.selectedDate,
                               showSugarInOverview: vm.showSugarInOverview,
                             ),
@@ -750,7 +733,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 DateTime selectedDate
                               })>(
                             selector: (context, vm) => (
-                              trackedSupplements: vm.trackedSupplements,
+                              trackedSupplements: showSkeleton 
+                                  ? [TrackedSupplement(supplement: Supplement(id: 1, name: 'Whey Protein', defaultDose: 30, unit: 'g'), totalDosedToday: 30)]
+                                  : vm.trackedSupplements,
                               selectedDate: vm.selectedDate,
                             ),
                             builder: (context, data, child) {
@@ -769,9 +754,11 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                           if (sleepEnabled) const SleepSummaryCard(),
                           if (pulseEnabled) const PulseSummaryCard(),
                           // New section: insert workout summary here.
-                          if (hasWorkoutSummary)
+                          if (hasWorkoutSummary || showSkeleton)
                             Selector<DiaryViewModel, Map<String, dynamic>?>(
-                              selector: (context, vm) => vm.workoutSummary,
+                              selector: (context, vm) => showSkeleton
+                                  ? {'duration': const Duration(minutes: 45), 'volume': 10000.0, 'sets': 15, 'count': 1}
+                                  : vm.workoutSummary,
                               builder: (context, workoutSummary, child) {
                                 if (workoutSummary == null) {
                                   return const SizedBox.shrink();
@@ -836,6 +823,20 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                 ),
               ],
             ),
+    );
+
+    if (showSkeleton) {
+      content = ActiveGapOverlay(
+        message: l10n.emptyStateActiveGapOverlay,
+        background: content,
+      );
+    }
+
+    return isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : RefreshIndicator(
+            onRefresh: () => syncHealthData(forceStepsRefresh: true),
+            child: content,
           );
   }
 
@@ -1196,7 +1197,17 @@ class _MealCardState extends State<_MealCard> {
     final l10n = AppLocalizations.of(context)!;
 
     return Selector<DiaryViewModel, List<TrackedFoodItem>>(
-      selector: (context, vm) => vm.entriesByMeal[widget.mealKey] ?? const [],
+      selector: (context, vm) {
+        if (!vm.hasDataForSelectedDate) {
+          return [
+            TrackedFoodItem(
+              item: FoodItem(name: 'Placeholder Food', calories: 250, protein: 10, carbs: 30, fat: 5, barcode: 'dummy', source: FoodItemSource.user),
+              entry: FoodEntry(barcode: 'dummy', quantityInGrams: 100, timestamp: DateTime.now(), mealType: widget.mealKey),
+            )
+          ];
+        }
+        return vm.entriesByMeal[widget.mealKey] ?? const [];
+      },
       shouldRebuild: (prev, next) => !_listEquals(prev, next),
       builder: (context, items, child) {
         final mealMacros = _MealMacros();
@@ -1352,7 +1363,14 @@ class _FluidsCardState extends State<_FluidsCard> {
     final l10n = AppLocalizations.of(context)!;
 
     return Selector<DiaryViewModel, List<FluidEntry>>(
-      selector: (context, vm) => vm.fluidEntries,
+      selector: (context, vm) {
+        if (!vm.hasDataForSelectedDate) {
+          return [
+            FluidEntry(timestamp: DateTime.now(), quantityInMl: 250, name: 'Water', kcal: 0),
+          ];
+        }
+        return vm.fluidEntries;
+      },
       shouldRebuild: (prev, next) => !_fluidListEquals(prev, next),
       builder: (context, fluids, child) {
         return RepaintBoundary(

@@ -24,4 +24,3 @@ export 'empty_states/app_skeleton.dart';
 export 'empty_states/bobbing_arrow.dart';
 export 'empty_states/cold_start_empty_state.dart';
 export 'empty_states/active_gap_overlay.dart';
-export 'empty_states/diary_skeleton_layout.dart';
