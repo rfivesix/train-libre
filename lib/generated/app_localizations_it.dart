@@ -2020,6 +2020,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nutritionSectionMyMeals => 'Le mie ricette';
 
   @override
+  String get emptyStateNutritionRecipesCallout =>
+      'Crea la tua prima ricetta per registrare rapidamente i tuoi pasti frequenti.';
+
+  @override
   String get nutritionSectionToolsAndLibrary => 'Strumenti e libreria';
 
   @override

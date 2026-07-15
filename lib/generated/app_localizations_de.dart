@@ -2010,6 +2010,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nutritionSectionMyMeals => 'Meine Rezepte';
 
   @override
+  String get emptyStateNutritionRecipesCallout =>
+      'Erstelle dein erstes Rezept, um deine häufigen Mahlzeiten schnell zu protokollieren.';
+
+  @override
   String get nutritionSectionToolsAndLibrary => 'Tools und Bibliothek';
 
   @override

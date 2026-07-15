@@ -2029,6 +2029,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nutritionSectionMyMeals => 'Mes recettes';
 
   @override
+  String get emptyStateNutritionRecipesCallout =>
+      'Créez votre première recette pour enregistrer rapidement vos repas fréquents.';
+
+  @override
   String get nutritionSectionToolsAndLibrary => 'Outils et bibliothèque';
 
   @override

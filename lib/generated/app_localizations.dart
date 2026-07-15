@@ -3626,6 +3626,12 @@ abstract class AppLocalizations {
   /// **'My recipes'**
   String get nutritionSectionMyMeals;
 
+  /// No description provided for @emptyStateNutritionRecipesCallout.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first recipe to quickly log your frequent meals.'**
+  String get emptyStateNutritionRecipesCallout;
+
   /// No description provided for @nutritionSectionToolsAndLibrary.
   ///
   /// In en, this message translates to:

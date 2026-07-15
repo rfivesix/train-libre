@@ -235,14 +235,14 @@ class _AppButtonState extends State<AppButton>
                 )
               : null,
         ),
-        child: Center(child: labelRow),
+        child: labelRow,
       );
     } else {
       // ── Your custom Rim Color adaptation ───────────────────────────────────
       final Color rimColor = isDark
           ? Colors.grey.shade700
           : theme.colorScheme.onSurface.withValues(alpha: 0.1);
-
+ 
 // Inner content container — carries the solid background, rim border, and labels
       final Widget innerContent = Container(
         height: height,
@@ -260,7 +260,7 @@ class _AppButtonState extends State<AppButton>
           borderRadius: BorderRadius.circular(radius),
           border: Border.all(color: rimColor, width: 1.1),
         ),
-        child: Center(child: labelRow),
+        child: labelRow,
       );
 
       // ── Clean Glass Stack without any shadow ───────────────────────────────

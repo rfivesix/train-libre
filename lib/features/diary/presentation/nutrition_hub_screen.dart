@@ -191,17 +191,51 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                 AppSectionHeader(title: l10n.nutritionSectionMyMeals),
                 SizedBox(
                   height: 150,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    clipBehavior: Clip.none,
-                    itemCount: meals.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return _buildCreateMealCard(context, l10n);
-                      }
-                      return _buildMealCard(context, meals[index - 1]);
-                    },
-                  ),
+                  child: meals.isEmpty
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildCreateMealCard(context, l10n),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: DesignConstants.spacingS,
+                                  vertical: DesignConstants.spacingM,
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.emptyStateNutritionRecipesCallout,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.6),
+                                            height: 1.3,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          clipBehavior: Clip.none,
+                          itemCount: meals.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == 0) {
+                              return _buildCreateMealCard(context, l10n);
+                            }
+                            return _buildMealCard(context, meals[index - 1]);
+                          },
+                        ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
                 AppSectionHeader(title: l10n.nutritionSectionToolsAndLibrary),

@@ -833,6 +833,7 @@
   "myMealsCL": "MY RECIPES",
   "nutritionSectionTodayInFocus": "Today in focus",
   "nutritionSectionMyMeals": "My recipes",
+  "emptyStateNutritionRecipesCallout": "Create your first recipe to quickly log your frequent meals.",
   "nutritionSectionToolsAndLibrary": "Tools & library",
   "supplement_caffeine": "Caffeine",
   "supplement_creatine_monohydrate": "Creatine Monohydrate",

@@ -1964,6 +1964,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nutritionSectionMyMeals => 'マイレシピ';
 
   @override
+  String get emptyStateNutritionRecipesCallout =>
+      'お気に入りの食事をすばやく記録するために、最初のレシピを作成しましょう。';
+
+  @override
   String get nutritionSectionToolsAndLibrary => 'ツールとライブラリ';
 
   @override

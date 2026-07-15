@@ -35,6 +35,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   static const ShareService _shareService = ShareService();
   late final Stream<List<Routine>> _routinesStream;
   bool _initialRoutineOpened = false;
+  final Set<int> _dismissedRoutineIds = {};
 
   @override
   void initState() {
@@ -178,7 +179,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          final routines = snapshot.data ?? [];
+          final routines = (snapshot.data ?? [])
+              .where((r) => !_dismissedRoutineIds.contains(r.id))
+              .toList();
 
           // If an initialRoutineId was passed, navigate there directly on first load.
           if (widget.initialRoutineId != null &&
@@ -234,6 +237,11 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
 
                 onDismissed: (direction) {
                   if (direction == DismissDirection.endToStart) {
+                    setState(() {
+                      if (routine.id != null) {
+                        _dismissedRoutineIds.add(routine.id!);
+                      }
+                    });
                     _performDeleteRoutine(routine);
                   }
                 },
