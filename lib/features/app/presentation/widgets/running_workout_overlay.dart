@@ -111,12 +111,14 @@ class _RunningWorkoutRow extends StatelessWidget {
           onPressed: onContinue,
           label: l10n.continue_workout_button,
           tooltip: l10n.continue_workout_button,
+          size: AppButtonSize.small,
         ),
         const SizedBox(width: DesignConstants.spacingS),
-        AppButton.primary(
+        AppButton.danger(
           onPressed: onDiscard,
           label: l10n.discard_button,
           tooltip: l10n.discard_button,
+          size: AppButtonSize.small,
         ),
       ],
     );
