@@ -81,19 +81,41 @@ class CalculateDailyNutritionUseCase {
 
     // Cache properties for O(1) quantity matching and faster time diff calculations
     final Map<int, List<int>> fluidFoodSignatures = {};
-    for (final food in foodEntries) {
-      final foodItem = food.archiveLocalId != null
-          ? foodProductsByArchiveLocalId[food.archiveLocalId!]
-          : foodProductsByBarcode[food.barcode];
-      if (foodItem != null &&
-          (foodItem.isFluid || (foodItem.isLiquid ?? false))) {
-        final qty = food.quantityInGrams;
-        final ms = food.timestamp.millisecondsSinceEpoch;
-        if (fluidFoodSignatures.containsKey(qty)) {
-          fluidFoodSignatures[qty]!.add(ms);
-        } else {
-          fluidFoodSignatures[qty] = [ms];
+
+    final Map<String, List<TrackedFoodItem>> groupedEntries = {
+      'mealtypeBreakfast': [],
+      'mealtypeLunch': [],
+      'mealtypeDinner': [],
+      'mealtypeSnack': [],
+    };
+
+    for (final entry in foodEntries) {
+      final foodItem = entry.archiveLocalId != null
+          ? foodProductsByArchiveLocalId[entry.archiveLocalId!]
+          : foodProductsByBarcode[entry.barcode];
+
+      if (foodItem != null) {
+        // Properties needed for fluid matching logic
+        if (foodItem.isFluid || (foodItem.isLiquid ?? false)) {
+          final qty = entry.quantityInGrams;
+          final ms = entry.timestamp.millisecondsSinceEpoch;
+          if (fluidFoodSignatures.containsKey(qty)) {
+            fluidFoodSignatures[qty]!.add(ms);
+          } else {
+            fluidFoodSignatures[qty] = [ms];
+          }
         }
+
+        // Summary calculations
+        final ratio = entry.quantityInGrams / 100.0;
+        summary.calories += (foodItem.calories * ratio).round();
+        summary.protein += (foodItem.protein * ratio).round();
+        summary.carbs += (foodItem.carbs * ratio).round();
+        summary.fat += (foodItem.fat * ratio).round();
+        summary.sugar += (foodItem.sugar ?? 0) * ratio;
+
+        final trackedItem = TrackedFoodItem(entry: entry, item: foodItem);
+        groupedEntries[entry.mealType]?.add(trackedItem);
       }
     }
 
@@ -129,32 +151,6 @@ class CalculateDailyNutritionUseCase {
       final factor = entry.quantityInMl / 100.0;
       summary.sugar += (entry.sugarPer100ml ?? 0) * factor;
       summary.carbs += ((entry.carbsPer100ml ?? 0) * factor).round();
-    }
-
-    // Food
-
-    final Map<String, List<TrackedFoodItem>> groupedEntries = {
-      'mealtypeBreakfast': [],
-      'mealtypeLunch': [],
-      'mealtypeDinner': [],
-      'mealtypeSnack': [],
-    };
-
-    for (final entry in foodEntries) {
-      final foodItem = entry.archiveLocalId != null
-          ? foodProductsByArchiveLocalId[entry.archiveLocalId!]
-          : foodProductsByBarcode[entry.barcode];
-      if (foodItem != null) {
-        final ratio = entry.quantityInGrams / 100.0;
-        summary.calories += (foodItem.calories * ratio).round();
-        summary.protein += (foodItem.protein * ratio).round();
-        summary.carbs += (foodItem.carbs * ratio).round();
-        summary.fat += (foodItem.fat * ratio).round();
-        summary.sugar += (foodItem.sugar ?? 0) * ratio;
-
-        final trackedItem = TrackedFoodItem(entry: entry, item: foodItem);
-        groupedEntries[entry.mealType]?.add(trackedItem);
-      }
     }
 
     for (var meal in groupedEntries.values) {

@@ -4,3 +4,6 @@
 ## 2024-05-19 - Removed O(N) intermediate lists in calculate_daily_nutrition_use_case.dart
 **Learning:** `CalculateDailyNutritionUseCase` runs frequently (e.g., debounced at 16ms) in this codebase, so any memory allocation like `.toList()` or control-flow exceptions (`firstWhere` with `try-catch`) inside it cause significant main-thread blocking overhead.
 **Action:** Always favor single-pass `for` loops for data accumulation over chained Iterable methods (`where().toList().forEach()`) in core synchronous UseCases, and strictly avoid control-flow exceptions.
+## 2024-06-25 - Combine Duplicate Loops in Reactive Use Cases
+**Learning:** `CalculateDailyNutritionUseCase` in the diary module is executed reactively (e.g., via a 16ms debounced ViewModel). Duplicate O(N) loops over the same collections (like `foodEntries`) that execute independent, commutative calculations (like updating multiple summary fields or caching signatures) introduce significant, unnecessary overhead on the main thread during high-frequency updates.
+**Action:** Always combine independent, commutative loops over the same collections into a single pass when optimizing highly reactive, frequently executed calculations to minimize iteration and property lookup overhead.
