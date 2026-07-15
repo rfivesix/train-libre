@@ -1171,7 +1171,8 @@ class _MainScreenState extends State<MainScreen>
         // Laufendes Workout Overlay
         if (isWorkoutRunning)
           Positioned(
-            bottom: kNavBarHeight + 32, // pill clears nav bar top (96px) with 8px gap from internal margin
+            bottom: kNavBarHeight +
+                32, // pill clears nav bar top (96px) with 8px gap from internal margin
             left: 16,
             right: 16,
             child: RepaintBoundary(
@@ -1245,13 +1246,18 @@ class _MainScreenState extends State<MainScreen>
                             children: [
                               ClipPath(
                                 clipper: ShadowOuterClipper(
-                                    borderRadius: DesignConstants.bottomNavigationBarHeight / 2),
+                                    borderRadius: DesignConstants
+                                            .bottomNavigationBarHeight /
+                                        2),
                                 child: Container(
                                   width: maxTabW,
-                                  height: DesignConstants.bottomNavigationBarHeight, // Match barHeight
+                                  height: DesignConstants
+                                      .bottomNavigationBarHeight, // Match barHeight
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(
-                                        DesignConstants.bottomNavigationBarHeight / 2),
+                                        DesignConstants
+                                                .bottomNavigationBarHeight /
+                                            2),
                                     boxShadow: DesignConstants.glassShadow,
                                   ),
                                 ),
@@ -1259,10 +1265,12 @@ class _MainScreenState extends State<MainScreen>
                               SizedBox(width: spacing),
                               ClipPath(
                                 clipper: ShadowOuterClipper(
-                                    borderRadius: DesignConstants.fabSize / 2, isOval: true),
+                                    borderRadius: DesignConstants.fabSize / 2,
+                                    isOval: true),
                                 child: Container(
                                   width: extraButtonSize,
-                                  height: DesignConstants.fabSize, // Match barHeight
+                                  height: DesignConstants
+                                      .fabSize, // Match barHeight
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(
                                         DesignConstants.fabSize / 2),
@@ -1297,9 +1305,11 @@ class _MainScreenState extends State<MainScreen>
                                     child: GlassTabBar.bottom(
                                       selectedIndex: _currentIndex,
                                       onTabSelected: _onNavigationTapped,
-                                      barHeight: DesignConstants.bottomNavigationBarHeight,
-                                      barBorderRadius:
-                                          DesignConstants.bottomNavigationBarHeight / 2, // Half of height for perfectly rounded semi-circle ends
+                                      barHeight: DesignConstants
+                                          .bottomNavigationBarHeight,
+                                      barBorderRadius: DesignConstants
+                                              .bottomNavigationBarHeight /
+                                          2, // Half of height for perfectly rounded semi-circle ends
                                       tabWidth:
                                           null, // Stretches to occupy all horizontal space
                                       horizontalPadding: 0.0,
@@ -1307,7 +1317,7 @@ class _MainScreenState extends State<MainScreen>
                                       quality: GlassQuality.premium,
                                       indicatorExpansion:
                                           const EdgeInsets.symmetric(
-                                              horizontal: 14),
+                                              horizontal: 14, vertical: 8),
                                       selectedIconColor:
                                           theme.colorScheme.primary,
                                       unselectedIconColor:
