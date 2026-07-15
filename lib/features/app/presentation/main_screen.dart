@@ -84,7 +84,7 @@ class _MainScreenState extends State<MainScreen>
   ThemeService get themeService =>
       Provider.of<ThemeService>(context, listen: false);
 
-  double get kNavBarHeight => 62;
+  double get kNavBarHeight => DesignConstants.bottomNavigationBarHeight;
   double kBarFabGap = 12.0;
 
   DateTime get _currentActiveDate {
@@ -1130,7 +1130,11 @@ class _MainScreenState extends State<MainScreen>
     // the system Scaffold does not automatically inset floating Snackbars.
     // By providing a transparent dummy bottomNavigationBar, ScaffoldMessenger
     // will natively push up all Snackbars (including those from settings).
-    final double dynamicBottomPadding = isWorkoutRunning ? 120 + 68 : 120;
+    final double dynamicBottomPadding = isWorkoutRunning
+        ? (DesignConstants.bottomNavigationBarHeight +
+            DesignConstants.workoutOverlayHeight +
+            48.0)
+        : (DesignConstants.bottomNavigationBarHeight + 48.0);
 
     return Stack(
       children: [
@@ -1167,7 +1171,7 @@ class _MainScreenState extends State<MainScreen>
         // Laufendes Workout Overlay
         if (isWorkoutRunning)
           Positioned(
-            bottom: 36 + kNavBarHeight,
+            bottom: kNavBarHeight + 32, // pill clears nav bar top (96px) with 8px gap from internal margin
             left: 16,
             right: 16,
             child: RepaintBoundary(
@@ -1223,7 +1227,7 @@ class _MainScreenState extends State<MainScreen>
                   final double horizontalPadding = 0.0;
                   final double verticalPadding = 20.0;
                   final double spacing = 8.0;
-                  final double extraButtonSize = 74.0;
+                  final double extraButtonSize = DesignConstants.fabSize;
                   final double maxTabW = constraints.maxWidth -
                       (horizontalPadding * 2) -
                       (extraButtonSize + spacing);
@@ -1240,12 +1244,14 @@ class _MainScreenState extends State<MainScreen>
                           child: Row(
                             children: [
                               ClipPath(
-                                clipper: ShadowOuterClipper(borderRadius: 37),
+                                clipper: ShadowOuterClipper(
+                                    borderRadius: DesignConstants.bottomNavigationBarHeight / 2),
                                 child: Container(
                                   width: maxTabW,
-                                  height: 74.0, // Match barHeight
+                                  height: DesignConstants.bottomNavigationBarHeight, // Match barHeight
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(37),
+                                    borderRadius: BorderRadius.circular(
+                                        DesignConstants.bottomNavigationBarHeight / 2),
                                     boxShadow: DesignConstants.glassShadow,
                                   ),
                                 ),
@@ -1253,12 +1259,13 @@ class _MainScreenState extends State<MainScreen>
                               SizedBox(width: spacing),
                               ClipPath(
                                 clipper: ShadowOuterClipper(
-                                    borderRadius: 37, isOval: true),
+                                    borderRadius: DesignConstants.fabSize / 2, isOval: true),
                                 child: Container(
                                   width: extraButtonSize,
-                                  height: 74.0, // Match barHeight
+                                  height: DesignConstants.fabSize, // Match barHeight
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(37),
+                                    borderRadius: BorderRadius.circular(
+                                        DesignConstants.fabSize / 2),
                                     boxShadow: DesignConstants.glassShadow,
                                   ),
                                 ),
@@ -1290,9 +1297,9 @@ class _MainScreenState extends State<MainScreen>
                                     child: GlassTabBar.bottom(
                                       selectedIndex: _currentIndex,
                                       onTabSelected: _onNavigationTapped,
-                                      barHeight: 74,
+                                      barHeight: DesignConstants.bottomNavigationBarHeight,
                                       barBorderRadius:
-                                          37, // Half of height for perfectly rounded semi-circle ends
+                                          DesignConstants.bottomNavigationBarHeight / 2, // Half of height for perfectly rounded semi-circle ends
                                       tabWidth:
                                           null, // Stretches to occupy all horizontal space
                                       horizontalPadding: 0.0,
@@ -1380,7 +1387,7 @@ class _MainScreenState extends State<MainScreen>
                                           onTap: _toggleAddMenu,
                                           child: SizedBox(
                                             width: extraButtonSize,
-                                            height: 74.0,
+                                            height: DesignConstants.fabSize,
                                             child: Center(
                                               child: Icon(
                                                 LucideIcons.plus,

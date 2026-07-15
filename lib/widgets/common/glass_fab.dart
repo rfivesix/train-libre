@@ -90,7 +90,7 @@ class _GlassFabState extends State<GlassFab>
       ),
     );
 
-    final double effectiveRadius = hasLabel ? 37.0 : 999.0;
+    final double effectiveRadius = hasLabel ? (DesignConstants.fabSize / 2) : 999.0;
     final Widget content = Stack(
       children: [
         Positioned.fill(
@@ -114,15 +114,15 @@ class _GlassFabState extends State<GlassFab>
             child: AdaptiveGlass(
               settings: DesignConstants.liquidGlassSettings(isDark),
               shape: hasLabel
-                  ? const LiquidRoundedSuperellipse(borderRadius: 37)
+                  ? LiquidRoundedSuperellipse(borderRadius: DesignConstants.fabSize / 2)
                   : const LiquidOval(),
               quality: GlassQuality.premium,
               child: GlassGlow(
                 glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
                 glowRadius: 1.0,
                 child: Container(
-                  height: 74.0, // Match main screen bottom bar height
-                  width: hasLabel ? null : 74.0,
+                  height: DesignConstants.fabSize, // Match main screen bottom bar height
+                  width: hasLabel ? null : DesignConstants.fabSize,
                   decoration: BoxDecoration(
                     color: neutralTint,
                     borderRadius: BorderRadius.circular(effectiveRadius),

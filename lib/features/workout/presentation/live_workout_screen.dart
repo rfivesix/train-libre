@@ -1284,7 +1284,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                             vm.remainingRestSeconds > 0 || vm.showRestDone;
                         return Positioned(
                           bottom: showRestBar
-                              ? 134.0
+                              ? (DesignConstants.workoutOverlayHeight + 60.0)
                               : (24.0 + MediaQuery.paddingOf(context).bottom),
                           right: 16.0,
                           child: RepaintBoundary(
@@ -1324,7 +1324,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    const double r = 37;
+    final double r = DesignConstants.workoutOverlayHeight / 2;
 
     if (isRunning) {
       final restSeconds = manager.remainingRestSeconds;
@@ -1336,7 +1336,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
         child: SizedBox(
-          height: 74.0,
+          height: DesignConstants.workoutOverlayHeight,
           child: Stack(
             children: [
               Positioned.fill(
@@ -1355,14 +1355,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 maxQuality: GlassQuality.premium,
                 child: AdaptiveGlass(
                   settings: DesignConstants.liquidGlassSettings(isDark),
-                  shape: const LiquidRoundedSuperellipse(borderRadius: r),
+                  shape: LiquidRoundedSuperellipse(borderRadius: r),
                   quality: GlassQuality.premium,
                   child: GlassGlow(
                     glowColor:
                         Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
                     glowRadius: 1.0,
                     child: Container(
-                      height: 74.0,
+                      height: DesignConstants.workoutOverlayHeight,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20.0, vertical: 12.0),
                       decoration: BoxDecoration(
@@ -1487,7 +1487,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: SizedBox(
-        height: 74.0,
+        height: DesignConstants.workoutOverlayHeight,
         child: Stack(
           children: [
             Positioned.fill(
@@ -1513,14 +1513,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                   lightIntensity: isDark ? 0.55 : 0.80,
                   saturation: 1.20,
                 ),
-                shape: const LiquidRoundedSuperellipse(borderRadius: r),
+                shape: LiquidRoundedSuperellipse(borderRadius: r),
                 quality: GlassQuality.premium,
                 child: GlassGlow(
                   glowColor:
                       Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
                   glowRadius: 1.0,
                   child: Container(
-                    height: 74.0,
+                    height: DesignConstants.workoutOverlayHeight,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20.0, vertical: 12.0),
                     decoration: BoxDecoration(

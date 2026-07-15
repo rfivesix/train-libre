@@ -37,11 +37,10 @@ class SpeedDialMenuOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDarkLocal = Theme.of(context).brightness == Brightness.dark;
-    final Color neutralTintLocal =
-        DesignConstants.glassNeutralTint(isDarkLocal);
+
 
     // Define liquid animation radius locally here or from a constant.
-    const double rLiquid = 99;
+    const double rLiquid = 100.0; // Large radius ensures perfect-circle glass appearance
 
     return AnimatedBuilder(
       animation: animation,
@@ -72,7 +71,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  bottom: 116.0,
+                  bottom: 102.0,
                   right: 16.0,
                   child: Material(
                     color: Colors.transparent,
@@ -94,8 +93,8 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                         // Sprout coordinate system calculations
                         final int actionCount = actions.length;
                         final double yFinal =
-                            163.0 + (actionCount - 1 - index) * 94.0;
-                        final double yFab = 69.0;
+                            140.0 + (actionCount - 1 - index) * 76.0;
+                        final double yFab = 64.0;
                         final double offsetY = yFinal - yFab;
                         final double offsetX =
                             0.0; // Perfectly aligned with FAB
@@ -106,10 +105,12 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                         final double labelOpacity = labelTv;
                         final double labelOffsetX = (1.0 - labelTv) * -16.0;
 
-                        // Liquid stretch parameters
+                        // Liquid stretch parameters — scale from fabSize to match FAB appearance
                         final double stretch = _getStretch(tv);
-                        final double btnWidth = 74.0 * (1.0 - stretch * 0.3);
-                        final double btnHeight = 74.0 * (1.0 + stretch);
+                        final double btnWidth =
+                            DesignConstants.fabSize * (1.0 - stretch * 0.3);
+                        final double btnHeight =
+                            DesignConstants.fabSize * (1.0 + stretch);
 
                         return Transform.translate(
                           offset:
@@ -118,7 +119,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                             opacity: tv,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
-                                vertical: 10.0,
+                                vertical: 6.0,
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -143,14 +144,16 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                   const SizedBox(
                                       width: DesignConstants.spacingL),
                                   SizedBox(
-                                    width: 74.0,
-                                    height: 74.0,
+                                    // Fixed container prevents layout jumps during stretch animation
+                                    width: DesignConstants.fabSize,
+                                    height: DesignConstants.fabSize,
                                     child: Center(
                                       child: SizedBox(
                                         width: btnWidth,
                                         height: btnHeight,
                                         child: Stack(
                                           children: [
+                                            // Shadow layer — identical to FAB shadow
                                             Positioned.fill(
                                               child: ClipPath(
                                                 clipper: ShadowOuterClipper(
@@ -168,69 +171,62 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                                 ),
                                               ),
                                             ),
-                                            GlassButton.custom(
-                                              onTap: () {
-                                                onActionTap(action['action']);
-                                              },
-                                              width: btnWidth,
-                                              height: btnHeight,
-                                              useOwnLayer: true,
-                                              quality: GlassQuality.minimal,
-                                              shape:
-                                                  const LiquidRoundedSuperellipse(
-                                                borderRadius: rLiquid,
-                                              ),
-                                              settings: DesignConstants
-                                                  .liquidGlassSettings(
-                                                      isDarkLocal),
-                                              child: Container(
-                                                width: btnWidth,
-                                                height: btnHeight,
-                                                decoration: BoxDecoration(
-                                                  color: neutralTintLocal,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          rLiquid),
-                                                ),
-                                                foregroundDecoration:
-                                                    BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          rLiquid),
-                                                  border: Border.all(
-                                                    color: isDarkLocal
-                                                        ? Colors.white
-                                                            .withValues(
-                                                                alpha: 0.20)
-                                                        : Colors.black
-                                                            .withValues(
-                                                                alpha: 0.08),
-                                                    width: 1.2,
+                                            // Premium glass layer — identical pattern to the FAB
+                                            GlassAdaptiveScope(
+                                              minQuality: GlassQuality.premium,
+                                              maxQuality: GlassQuality.premium,
+                                              child: AdaptiveGlass(
+                                                shape: const LiquidOval(),
+                                                settings: DesignConstants
+                                                    .liquidGlassSettings(
+                                                        isDarkLocal),
+                                                quality: GlassQuality.premium,
+                                                useOwnLayer: true,
+                                                isInteractive: false,
+                                                child: Material(
+                                                  color: Colors.transparent,
+                                                  child: InkWell(
+                                                    customBorder:
+                                                        const CircleBorder(),
+                                                    onTap: () {
+                                                      onActionTap(
+                                                          action['action']);
+                                                    },
+                                                    child: SizedBox(
+                                                      width: btnWidth,
+                                                      height: btnHeight,
+                                                      child: Center(
+                                                        child: action[
+                                                                    'gradient'] ==
+                                                                true
+                                                            ? ShaderMask(
+                                                                blendMode:
+                                                                    BlendMode
+                                                                        .srcIn,
+                                                                shaderCallback:
+                                                                    (bounds) =>
+                                                                        DesignConstants
+                                                                            .createAiGradientShader(
+                                                                  bounds,
+                                                                ),
+                                                                child: Icon(
+                                                                  action['icon'],
+                                                                  size: 28,
+                                                                ),
+                                                              )
+                                                            : Icon(
+                                                                action['icon'],
+                                                                size: 28,
+                                                                color: isDarkLocal
+                                                                    ? Colors
+                                                                        .white
+                                                                    : Colors
+                                                                        .black,
+                                                              ),
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
-                                                alignment: Alignment.center,
-                                                child:
-                                                    action['gradient'] == true
-                                                        ? ShaderMask(
-                                                            blendMode:
-                                                                BlendMode.srcIn,
-                                                            shaderCallback: (bounds) =>
-                                                                DesignConstants
-                                                                    .createAiGradientShader(
-                                                              bounds,
-                                                            ),
-                                                            child: Icon(
-                                                              action['icon'],
-                                                              size: 28,
-                                                            ),
-                                                          )
-                                                        : Icon(
-                                                            action['icon'],
-                                                            size: 28,
-                                                            color: isDarkLocal
-                                                                ? Colors.white
-                                                                : Colors.black,
-                                                          ),
                                               ),
                                             ),
                                           ],
@@ -259,12 +255,14 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                         children: [
                           ClipPath(
                             clipper: ShadowOuterClipper(
-                                borderRadius: 37, isOval: true),
+                                borderRadius: DesignConstants.fabSize / 2,
+                                isOval: true),
                             child: Container(
-                              width: 74.0,
-                              height: 74.0,
+                              width: DesignConstants.fabSize,
+                              height: DesignConstants.fabSize,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(37),
+                                borderRadius: BorderRadius.circular(
+                                    DesignConstants.fabSize / 2),
                                 boxShadow: DesignConstants.glassShadow,
                               ),
                             ),
@@ -286,8 +284,8 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                   customBorder: const CircleBorder(),
                                   onTap: onClose,
                                   child: SizedBox(
-                                    width: 74.0,
-                                    height: 74.0,
+                                    width: DesignConstants.fabSize,
+                                    height: DesignConstants.fabSize,
                                     child: Center(
                                       child: RotationTransition(
                                         turns: Tween<double>(

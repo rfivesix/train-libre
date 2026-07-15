@@ -9,12 +9,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - **Premium Empty States & Loading System:** Implemented a new highly modular, glassmorphic empty state and loading skeleton system across the Diary screen and Statistics Hub. Differentiates cleanly between "Cold Start" (educational hero icon and bobbing arrow) for new users and "Active Gap" (subtle translucent glass overlay over pulsing skeleton layout components) when no data is logged for a given day or period.
 
+### Changed
+- **Centralized Premium Glass UI Height Standards:** Polished and centralized the vertical proportions of all key glassmorphic components to perfectly match native iOS standards (Apple HIG) via new shared design tokens in `DesignConstants`.
+- **Glass Bottom Navigation Bar & FAB:** Reduced the floating bottom navigation bar height and floating action button (FAB) size from 74dp to 64dp, updating related shadow paths, clip states, and dynamic safety paddings.
+- **Glass Workout Overlay & Rest Timer:** Scaled the running workout progress bar overlay and the live workout rest timer bar height from 74dp to 64dp. Dynamically offset the floating action button bottom padding above active rest timers to maintain a consistent 8dp clearance (124dp total offset).
+- **Glass Plus-Menu & Overlay Items:** Refactored the Speed Dial overlay to use the 64dp FAB anchor and smaller 56dp custom action buttons, recalibrating the sprout animation coordinate offsets and spacing gaps.
+- **Glass Bottom Sheet Menu Items:** Polished the `_GlassTile` options within the modal bottom sheet menu to use a 36dp leading icon container and 8dp vertical padding, yielding a standard 52dp height for interactive list items.
+
 ### Fixed
 - **Diary Supplements and Wearables State Resolution:** Fixed a bug where active-state data streams for supplements and wearables were blocked or incorrectly overridden by skeleton dummy data on the diary screen.
 - **Tracked Supplements Display Logic:** Restored display logic to show all currently tracked supplements without any daily goals or limits as simple checkmark cards, while dynamically displaying any supplement that has a `dailyGoal` or `dailyLimit` set as a progress bar.
 - **Workout Hub Empty Routines State:** Rendered an inviting helper text to the right of the "Neue Routine" button when the user has no custom workout routines created, which automatically disappears as soon as the first routine is created.
 - **Nutrition Hub Empty Recipes State:** Implemented matching layout behavior for the "Meine Rezepte" section in the Nutrition Hub, showing an inviting recipe creation helper text to the right of the "Rezept erstellen" button when no custom recipes exist.
 - **Onboarding Weight Checks:** Adjusted empty-state checks to ensure a single onboarding weight entry does not prematurely bypass the Cold Start empty state.
+- **Speed Dial Button Shape:** Restored `borderRadius: 100` on Speed Dial action buttons so they render as true circular liquid-glass orbs, not rounded rectangles (regression from the size-token refactor that set radius equal to button size 56).
+- **Workout Overlay Spacing:** Tightened the vertical gap between the running workout pill and the bottom navigation bar — reduced internal margin from 20dp to 8dp and Positioned bottom offset from `36 + navBarHeight` to `20 + navBarHeight`, eliminating the excessive dead space.
 
 ## [1.0.0-alpha.10] - 2026-07-14
 

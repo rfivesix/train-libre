@@ -301,12 +301,12 @@ class _GlassTile extends StatelessWidget {
 
     final tileContent = Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: 14, vertical: DesignConstants.spacingM),
+          horizontal: 14, vertical: DesignConstants.spacingS),
       child: Row(
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusM),

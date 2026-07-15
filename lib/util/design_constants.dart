@@ -95,6 +95,22 @@ class DesignConstants {
   static const Color summaryCardDarkMode = Color(0xFF2A2A2A);
 
   // === GLASSMORPHISM ===
+  // Glassmorphic Component Sizes (Apple HIG Aligned)
+  /// Standard height for the premium floating bottom navigation bar.
+  static const double bottomNavigationBarHeight = 64.0;
+
+  /// Standard size (width & height) for the main Glass FAB.
+  static const double fabSize = 64.0;
+
+  /// Standard height for floating overlays such as the Running Workout Overlay and the Live Rest Timer bar.
+  static const double workoutOverlayHeight = 64.0;
+
+  /// Standard size for the action item buttons inside the Speed Dial (Plus) Menu.
+  static const double speedDialActionSize = 56.0;
+
+  /// Standard height for custom list tiles/interactive items inside glass menus.
+  static const double glassTileHeight = 52.0;
+
   /// Unified shadow for glassmorphic elements.
   static List<BoxShadow> get glassShadow => [
         BoxShadow(
