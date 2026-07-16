@@ -1005,13 +1005,24 @@ class BackupManager {
   Future<void> _importTable(String tableName, List<dynamic>? rows) async {
     if (rows == null || rows.isEmpty) return;
     final dbInst = _dbHelper.dbInstance;
+    // Basic protection against SQL injection via table name
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(tableName)) return;
+
     await dbInst.customStatement('DELETE FROM $tableName');
     for (final row in rows) {
       if (row is! Map) continue;
       final map = Map<String, dynamic>.from(row);
-      final columns = map.keys.toList();
+
+      // Filter out invalid column names to prevent SQL injection
+      final validEntries = map.entries.where(
+          (e) => RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(e.key.toString()));
+
+      if (validEntries.isEmpty) continue;
+
+      final columns = validEntries.map((e) => e.key).toList();
+      final values = validEntries.map((e) => e.value).toList();
       final placeholders = List.filled(columns.length, '?').join(', ');
-      final values = columns.map((col) => map[col]).toList();
+
       final sql =
           'INSERT OR REPLACE INTO $tableName (${columns.join(', ')}) VALUES ($placeholders)';
       await dbInst.customStatement(sql, values);
