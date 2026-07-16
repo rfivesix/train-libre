@@ -714,6 +714,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
               automaticallyImplyLeading: false,
               leading: Navigator.of(context).canPop()
                   ? IconButton(
+                      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                       icon: const Icon(LucideIcons.arrow_left),
                       onPressed: () => _handlePopAttempt(),
                     )

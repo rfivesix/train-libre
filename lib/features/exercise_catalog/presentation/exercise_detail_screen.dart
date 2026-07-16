@@ -227,6 +227,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         title: _currentExercise.getLocalizedName(context),
         actions: [
           IconButton(
+            tooltip: l10n.edit,
             icon: const Icon(LucideIcons.pencil),
             onPressed: () {
               if (_currentExercise.source == 'user') {
