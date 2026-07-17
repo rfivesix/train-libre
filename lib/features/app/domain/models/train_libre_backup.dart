@@ -181,7 +181,8 @@ class TrainLibreBackup {
                               )
                               .toList() ??
                           [],
-                      pauseSeconds: reMap['pause_seconds'],
+                      pauseSeconds: (reMap['pause_seconds'] as num?)?.toInt() ?? (reMap['pauseSeconds'] as num?)?.toInt(),
+                      notes: reMap['notes'] as String?,
                     );
                   }).toList() ??
                   [],
