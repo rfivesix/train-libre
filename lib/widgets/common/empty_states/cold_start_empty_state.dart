@@ -11,6 +11,7 @@ class ColdStartEmptyState extends StatelessWidget {
   final bool targetCenter;
   final double? customEndXOffset;
   final double? customTargetYOffset;
+  final bool showArrow;
 
   const ColdStartEmptyState({
     super.key,
@@ -21,6 +22,7 @@ class ColdStartEmptyState extends StatelessWidget {
     this.targetCenter = false,
     this.customEndXOffset,
     this.customTargetYOffset,
+    this.showArrow = true,
   });
 
   @override
@@ -109,15 +111,18 @@ class ColdStartEmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingM),
-          Expanded(
-            flex: 4,
-            child: CurvedArrow(
-              key: const ValueKey('cold_start_curved_arrow'),
-              targetCenter: targetCenter,
-              customEndXOffset: customEndXOffset,
-              customTargetYOffset: customTargetYOffset,
-            ),
-          ),
+          if (showArrow)
+            Expanded(
+              flex: 4,
+              child: CurvedArrow(
+                key: const ValueKey('cold_start_curved_arrow'),
+                targetCenter: targetCenter,
+                customEndXOffset: customEndXOffset,
+                customTargetYOffset: customTargetYOffset,
+              ),
+            )
+          else
+            const Spacer(flex: 4),
         ],
       ),
     );

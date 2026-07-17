@@ -27,6 +27,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Notifications:** Fixed an issue where rest timer notifications on iOS would only trigger or double-trigger when returning to the app. Notifications are now correctly scheduled and foreground banners are cleanly suppressed.
 - **Adaptive Pickers:** Removed redundant manual haptic feedback calls from the adaptive date, time, and timeframe pickers to prevent double haptics when scrolling.
 - **Security:** Fixed a high-severity SQL injection vulnerability in the backup import flow by strictly validating table and column names.
+- **Empty States:** Replaced all legacy single-text empty-state placeholders across the app with the new premium `ColdStartEmptyState` glassmorphic hero component. Affected screens: Edit Routine, Food Explorer (Recents, Favorites, and Recipes/Meals tabs).
+- **Empty States:** The `ColdStartEmptyState` now supports an optional `showArrow` parameter (default: `true`). This allows the tutorial curved arrow to be hidden on read-only or context-inappropriate screens (e.g., Recents and Favorites tabs in the Food Explorer).
+- **Empty States:** The `SeamlessLoadingOverlay` widget now renders the underlying child wrapped in a `Skeletonizer` shimmer as the cold-start loading state, replacing the previous `CircularProgressIndicator` fallback. All analytics detail screens (Recovery Tracker, PR Dashboard, Consistency Tracker, Muscle Group Analytics) automatically benefit from this change.
+- **Statistics Hub:** All statistics section cards (Steps, Sleep, Pulse, Consistency, Volume/Muscles, Performance, Body Metrics) now always render as full cards even when tracking is disabled or data is absent. Instead of hiding or collapsing, each card renders its content behind a premium `CardEmptyStateOverlay` — a glassmorphic `BackdropFilter` with a pill-shaped message explaining the state (e.g., "No data available for this period" or "Enable step tracking in Settings"). The shimmer skeleton is preserved under the overlay for a premium feel.
+- **Statistics Hub (Refinement):** Steps, Sleep, and Pulse cards (and their section headers) are now **completely hidden** from the Statistics Hub when the respective tracking feature is disabled in Settings — no empty state placeholder at all. When the feature **is** enabled but no data was logged in the selected time range, the card renders with a uniform glassmorphic `CardEmptyStateOverlay` reading "Keine Daten für diesen Zeitraum verfügbar". The Recovery (Muskel-Bereitschaft) card now also uses this overlay instead of its previous inline no-data text label.
+
+
+
 
 ## [1.0.0-alpha.11] - 2026-07-15
 

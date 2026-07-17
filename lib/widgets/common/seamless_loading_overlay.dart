@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '../../util/design_constants.dart';
 
 /// A wrapper widget that provides a seamless loading experience.
-/// If [isLoading] and [isEmpty] are both true, it displays a full-screen loading spinner (or [fallback]).
-/// If [isLoading] is true but [isEmpty] is false, it displays the [child] with a small loading
-/// spinner overlaid in the top-right corner to indicate background fetching without destroying the UI.
+/// If [isLoading] and [isEmpty] are both true, displays the [child] wrapped
+/// in a [Skeletonizer] for a premium shimmer effect (or [fallback] if provided).
+/// If [isLoading] is true but [isEmpty] is false, shows a subtle spinner overlay.
 class SeamlessLoadingOverlay extends StatelessWidget {
   final bool isLoading;
   final bool isEmpty;
@@ -24,7 +25,11 @@ class SeamlessLoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading && isEmpty) {
-      return fallback ?? const Center(child: CircularProgressIndicator());
+      if (fallback != null) return fallback!;
+      return Skeletonizer(
+        enabled: true,
+        child: IgnorePointer(child: child),
+      );
     }
 
     if (isLoading) {

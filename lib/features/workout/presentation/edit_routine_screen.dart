@@ -25,6 +25,7 @@ import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
 
 /// A screen for creating or modifying a [Routine].
 ///
@@ -786,10 +787,18 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                         child: _isLoading
                             ? const Center(child: CircularProgressIndicator())
                             : _routineExercises.isEmpty
-                                ? Center(
-                                    child: Text(
-                                      l10n.emptyStateAddFirstExercise,
-                                      style: textTheme.titleMedium,
+                                ? Padding(
+                                    padding: EdgeInsets.only(
+                                      top: _isEditMode ? 0.0 : topPadding,
+                                    ),
+                                    child: ColdStartEmptyState(
+                                      icon: LucideIcons.circle_plus,
+                                      title: l10n.emptyStateAddFirstExercise,
+                                      subtitle: l10n.emptyStateAddFirstExerciseSubtitle,
+                                      callToAction: l10n.fabAddExercise,
+                                      targetCenter: false,
+                                      customEndXOffset: 110.0,
+                                      customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
                                     ),
                                   )
                                 : ReorderableListView.builder(

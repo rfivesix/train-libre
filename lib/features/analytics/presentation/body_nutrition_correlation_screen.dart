@@ -15,6 +15,7 @@ import '../../../services/unit_service.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
+import 'package:skeletonizer/skeletonizer.dart';
 
 class BodyNutritionCorrelationScreen extends StatefulWidget {
   final int initialRangeIndex;
@@ -97,7 +98,7 @@ class _BodyNutritionCorrelationScreenState
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.bodyNutritionCorrelationTitle),
       body: _isLoading && _analytics == null
-          ? const Center(child: CircularProgressIndicator())
+          ? Skeletonizer(enabled: true, child: IgnorePointer(child: _buildUnavailableState(l10n)))
           : _analytics == null
               ? _buildUnavailableState(l10n)
               : Stack(
