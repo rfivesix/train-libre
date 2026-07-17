@@ -105,5 +105,15 @@
 			<string>Any</string>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>dev.flutter.background.refresh</string>
+		<string>task.tdeeCalculation</string>
+	</array>
 </dict>
 </plist>

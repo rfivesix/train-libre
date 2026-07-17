@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-alpha.12] - 2026-07-17
 
 ### Added
+- **Background Tasks:** Added `workmanager` integration to schedule periodic background tasks on iOS and Android. The Adaptive Nutrition TDEE recalculation is now scheduled to run in the background.
 - **Accessibility:** Added localized tooltips to the diary date navigator to improve screen reader support and usability.
 
 ### Changed
@@ -16,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - **Onboarding:** Added a loading spinner to the "Next" button on the region selection page during database update checks, preventing the app from appearing frozen.
 - **Diary Supplements:** Restored the expected UI behavior for supplements on the Diary screen. Supplements with a `dailyGoal` or no limit are now displayed as checkmark cards again, and only supplements with a specific `dailyLimit` (e.g., Caffeine) are shown as progress bars.
+- **Notifications:** Fixed an issue where rest timer notifications on iOS would only trigger or double-trigger when returning to the app. Notifications are now correctly scheduled and foreground banners are cleanly suppressed.
 - **Adaptive Pickers:** Removed redundant manual haptic feedback calls from the adaptive date, time, and timeframe pickers to prevent double haptics when scrolling.
 - **Security:** Fixed a high-severity SQL injection vulnerability in the backup import flow by strictly validating table and column names.
 

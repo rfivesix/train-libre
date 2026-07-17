@@ -43,6 +43,36 @@ import 'features/profile/data/sources/profile_local_data_source.dart';
 import 'features/supplements/domain/repositories/supplement_repository.dart';
 import 'features/supplements/data/supplement_repository_impl.dart';
 import 'features/supplements/data/sources/supplement_local_data_source.dart';
+import 'package:workmanager/workmanager.dart';
+import 'features/nutrition_recommendation/data/recommendation_service.dart';
+import 'services/local_notification_service.dart';
+
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      WidgetsFlutterBinding.ensureInitialized();
+      
+      final database = db.AppDatabase();
+      DatabaseHelper.setDriftDb(database);
+      
+      await LocalNotificationService.instance.initialize();
+      
+      final service = AdaptiveNutritionRecommendationService(
+        databaseHelper: DatabaseHelper.instance,
+      );
+      
+      // Attempt to generate/refresh if due, which will also notify the user
+      // via the stream in LocalNotificationService.
+      await service.refreshRecommendationIfDue();
+      
+      return Future.value(true);
+    } catch (e) {
+      debugPrint("Background task error: $e");
+      return Future.value(false);
+    }
+  });
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -143,6 +173,17 @@ void main() async {
   );
 
   // Background update checks are handled by AppInitializerScreen.
+  Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: false,
+  );
+  
+  Workmanager().registerPeriodicTask(
+    "1",
+    "tdeeCalculationTask",
+    frequency: const Duration(hours: 12),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+  );
 }
 
 /// The entry point of the Train Libre application.
