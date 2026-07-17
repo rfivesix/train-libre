@@ -1004,16 +1004,31 @@ class BackupManager {
 
   Future<void> _importTable(String tableName, List<dynamic>? rows) async {
     if (rows == null || rows.isEmpty) return;
+
+    final validIdentifier = RegExp(r'^[a-zA-Z0-9_]+$');
+    if (!validIdentifier.hasMatch(tableName)) return;
+
     final dbInst = _dbHelper.dbInstance;
     await dbInst.customStatement('DELETE FROM $tableName');
     for (final row in rows) {
       if (row is! Map) continue;
       final map = Map<String, dynamic>.from(row);
-      final columns = map.keys.toList();
-      final placeholders = List.filled(columns.length, '?').join(', ');
-      final values = columns.map((col) => map[col]).toList();
+
+      final validColumns = <String>[];
+      final values = <dynamic>[];
+
+      for (final entry in map.entries) {
+        if (validIdentifier.hasMatch(entry.key)) {
+          validColumns.add(entry.key);
+          values.add(entry.value);
+        }
+      }
+
+      if (validColumns.isEmpty) continue;
+
+      final placeholders = List.filled(validColumns.length, '?').join(', ');
       final sql =
-          'INSERT OR REPLACE INTO $tableName (${columns.join(', ')}) VALUES ($placeholders)';
+          'INSERT OR REPLACE INTO $tableName (${validColumns.join(', ')}) VALUES ($placeholders)';
       await dbInst.customStatement(sql, values);
     }
   }
