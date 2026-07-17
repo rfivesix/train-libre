@@ -1120,6 +1120,7 @@ class _DiaryDateNavigator extends StatelessWidget {
       children: [
         _compactIconButton(
           icon: LucideIcons.chevron_left,
+          tooltip: MaterialLocalizations.of(context).previousPageTooltip,
           onPressed: onPreviousDay,
         ),
         Flexible(
@@ -1141,6 +1142,7 @@ class _DiaryDateNavigator extends StatelessWidget {
         ),
         _compactIconButton(
           icon: LucideIcons.chevron_right,
+          tooltip: MaterialLocalizations.of(context).nextPageTooltip,
           onPressed: onNextDay,
         ),
       ],
@@ -1150,9 +1152,11 @@ class _DiaryDateNavigator extends StatelessWidget {
   Widget _compactIconButton({
     required IconData icon,
     required VoidCallback onPressed,
+    String? tooltip,
   }) {
     return IconButton(
       icon: Icon(icon),
+      tooltip: tooltip,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints.tightFor(width: 36, height: 48),
