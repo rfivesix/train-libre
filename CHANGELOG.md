@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Performance:** Eliminated redundant loops and iterations in the `CalculateDailyNutritionUseCase`, significantly improving the performance of daily nutrition calculations.
 
 ### Fixed
+- **Adaptive Pickers:** Removed redundant manual haptic feedback calls from the adaptive date, time, and timeframe pickers to prevent double haptics when scrolling.
 - **Security:** Fixed a high-severity SQL injection vulnerability in the backup import flow by strictly validating table and column names.
 
 ## [1.0.0-alpha.11] - 2026-07-15

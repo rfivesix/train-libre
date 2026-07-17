@@ -151,7 +151,6 @@ Future<DateTime?> _showGlassDatePicker({
                     use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
                         Localizations.localeOf(ctx).languageCode == 'de',
                     onDateTimeChanged: (DateTime newDate) {
-                      HapticFeedbackService.instance.selectionFeedback();
                       tempDate = newDate;
                     },
                   ),
@@ -294,7 +293,6 @@ Future<TimeOfDay?> _showGlassTimePicker({
                     use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
                         Localizations.localeOf(ctx).languageCode == 'de',
                     onDateTimeChanged: (DateTime newDateTime) {
-                      HapticFeedbackService.instance.selectionFeedback();
                       tempDateTime = newDateTime;
                     },
                   ),
@@ -641,7 +639,6 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
                         FixedExtentScrollController(initialItem: initialIndex),
                     itemExtent: 40,
                     onSelectedItemChanged: (int index) {
-                      HapticFeedbackService.instance.selectionFeedback();
                       selectedIndex = index;
                     },
                     children: options
@@ -755,7 +752,6 @@ Future<int?> showAdaptiveBlockTypePicker({
                         FixedExtentScrollController(initialItem: initialIndex),
                     itemExtent: 40,
                     onSelectedItemChanged: (int index) {
-                      HapticFeedbackService.instance.selectionFeedback();
                       selectedIndex = index;
                     },
                     children:
@@ -863,7 +859,6 @@ Future<Duration?> showAdaptiveDurationPicker({
                     mode: CupertinoTimerPickerMode.hms,
                     initialTimerDuration: initialDuration,
                     onTimerDurationChanged: (Duration newDuration) {
-                      HapticFeedbackService.instance.selectionFeedback();
                       selectedDuration = newDuration;
                     },
                   ),
