@@ -99,6 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
   bool _isRestoring = false;
   bool _isGeneratingOnboardingRecommendation = false;
+  bool _isCheckingDatabase = false;
   Future<void>? _onboardingRecommendationFuture;
 
   late final AdaptiveNutritionRecommendationService _recommendationService;
@@ -697,8 +698,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (mounted) {
         final isTesting = Platform.environment.containsKey('FLUTTER_TEST');
         if (!isTesting) {
-          await BasisDataManager.instance
-              .promptOffDatabaseDownloadIfFirstTime(context);
+          setState(() => _isCheckingDatabase = true);
+          try {
+            await BasisDataManager.instance
+                .promptOffDatabaseDownloadIfFirstTime(context);
+          } finally {
+            if (mounted) {
+              setState(() => _isCheckingDatabase = false);
+            }
+          }
         }
       }
       if (_isImportedMode) {
@@ -1083,12 +1091,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Row(
                   children: [
                     IconButton.filledTonal(
-                      onPressed: _prevPage,
+                      onPressed: _isCheckingDatabase ? null : _prevPage,
                       icon: const Icon(LucideIcons.arrow_left),
                     ),
                     const Spacer(),
                     AppButton.primary(
-                      onPressed: _isGeneratingOnboardingRecommendation
+                      onPressed: _isGeneratingOnboardingRecommendation || _isCheckingDatabase
                           ? null
                           : _nextPage,
                       label: _currentPage == _lastPageIndex
@@ -1097,8 +1105,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       tooltip: _currentPage == _lastPageIndex
                           ? l10n.onboardingFinish.toUpperCase()
                           : l10n.onboardingNext.toUpperCase(),
-                      isLoading: _isGeneratingOnboardingRecommendation &&
-                          _currentPage == _adaptiveGoalPageIndex,
+                      isLoading: (_isGeneratingOnboardingRecommendation &&
+                              _currentPage == _adaptiveGoalPageIndex) ||
+                          _isCheckingDatabase,
                     ),
                   ],
                 ),
