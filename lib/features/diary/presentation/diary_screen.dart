@@ -658,11 +658,14 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     }
 
     if (!hasEverLoggedData) {
-      return ColdStartEmptyState(
-        icon: LucideIcons.notebook_pen,
-        title: l10n.emptyStateDiaryColdStartTitle,
-        subtitle: l10n.emptyStateDiaryColdStartSubtitle,
-        callToAction: l10n.emptyStateDiaryColdStartCallToAction,
+      return Padding(
+        padding: EdgeInsets.only(top: appBarHeight + basePadding.top),
+        child: ColdStartEmptyState(
+          icon: LucideIcons.notebook_pen,
+          title: l10n.emptyStateDiaryColdStartTitle,
+          subtitle: l10n.emptyStateDiaryColdStartSubtitle,
+          callToAction: l10n.emptyStateDiaryColdStartCallToAction,
+        ),
       );
     }
 

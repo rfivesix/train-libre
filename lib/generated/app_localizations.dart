@@ -9814,7 +9814,7 @@ abstract class AppLocalizations {
   /// No description provided for @emptyStateActiveGapOverlay.
   ///
   /// In en, this message translates to:
-  /// **'No data for this period'**
+  /// **'No data available for this period'**
   String get emptyStateActiveGapOverlay;
 
   /// No description provided for @emptyStateDiaryColdStartCallToAction.

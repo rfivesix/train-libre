@@ -35,6 +35,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../util/time_util.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
 
 String _formatPauseTime(int? seconds) => formatPauseDuration(seconds);
 
@@ -439,41 +440,22 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     );
   }
 
-  Widget _buildEmptyState(AppLocalizations l10n) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              LucideIcons.circle_plus,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: DesignConstants.spacingL),
-            Text(
-              l10n.emptyStateAddFirstExercise,
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(
-              l10n.emptyStateAddFirstExerciseSubtitle,
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
-            AppButton.primary(
-              onPressed: _addExercise,
-              label: l10n.fabAddExercise,
-              tooltip: l10n.fabAddExercise,
-              icon: LucideIcons.plus,
-            ),
-          ],
-        ),
+  Widget _buildEmptyState(BuildContext context, AppLocalizations l10n) {
+    // The top of the FAB from the bottom of the screen is:
+    // 24.0 (bottom offset) + safeAreaBottom + 64.0 (FAB height) = 88.0 + safeAreaBottom
+    // We add 12px so the arrow head points just above the button.
+    final fabTopOffset = 100.0 + MediaQuery.paddingOf(context).bottom;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 32.0),
+      child: ColdStartEmptyState(
+        icon: LucideIcons.circle_plus,
+        title: l10n.emptyStateAddFirstExercise,
+        subtitle: l10n.emptyStateAddFirstExerciseSubtitle,
+        callToAction: l10n.fabAddExercise,
+        targetCenter: false,
+        customEndXOffset: 110.0, // Center of the wide right-aligned FAB
+        customTargetYOffset: fabTopOffset,
       ),
     );
   }
@@ -616,7 +598,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           ),
                           Expanded(
                             child: exercises.isEmpty
-                                ? _buildEmptyState(l10n)
+                                ? _buildEmptyState(context, l10n)
                                 : Overlay(
                                     initialEntries: [
                                       OverlayEntry(

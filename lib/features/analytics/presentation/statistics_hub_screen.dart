@@ -45,7 +45,7 @@ import 'widgets/pulse_section_card.dart';
 import 'widgets/recovery_section_card.dart';
 import 'widgets/sleep_section_card.dart';
 
-class StatisticsHubScreen extends StatelessWidget {
+class StatisticsHubScreen extends StatefulWidget {
   const StatisticsHubScreen({
     super.key,
     StatisticsHubDataAdapter? hubDataAdapter,
@@ -81,38 +81,63 @@ class StatisticsHubScreen extends StatelessWidget {
   final Future<String> Function()? stepsProviderNameLoader;
 
   @override
+  State<StatisticsHubScreen> createState() => StatisticsHubScreenState();
+}
+
+class StatisticsHubScreenState extends State<StatisticsHubScreen> {
+  late StatisticsHubViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = StatisticsHubViewModel(
+      hubDataAdapter: widget._hubDataAdapter,
+      stepsRepository: widget._stepsRepository,
+      sleepSummaryRepository: widget._sleepSummaryRepository,
+      pulseRepository: widget._pulseRepository,
+      fetchHubAnalytics: widget.fetchHubAnalytics,
+      importSleepIfDue: widget.importSleepIfDue,
+      isSleepTrackingEnabled: widget.isSleepTrackingEnabled,
+      targetStepsLoader: widget.targetStepsLoader,
+      stepsProviderNameLoader: widget.stepsProviderNameLoader ??
+          () async {
+            if (!mounted) return 'Lokale Daten';
+            final l10n = AppLocalizations.of(context);
+            if (l10n == null) return 'Lokale Daten';
+            final stepsSyncService = StepsSyncService();
+            final providerFilter = await stepsSyncService.getProviderFilter();
+            final providerRaw =
+                StepsSyncService.providerFilterToRaw(providerFilter);
+            if (providerRaw == 'appleHealth') {
+              return l10n.statisticsProviderAppleHealth;
+            }
+            if (providerRaw == 'healthConnect') {
+              return l10n.statisticsProviderHealthConnect;
+            }
+            if (providerRaw == 'withings') {
+              return l10n.statisticsProviderWithings;
+            }
+            if (providerRaw == 'garmin') return l10n.statisticsProviderGarmin;
+            if (providerRaw == 'fitbit') return l10n.statisticsProviderFitbit;
+            return l10n.statisticsProviderLocal;
+          },
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  void refresh() {
+    _viewModel.loadHubAnalytics();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<StatisticsHubViewModel>(
-      create: (context) => StatisticsHubViewModel(
-        hubDataAdapter: _hubDataAdapter,
-        stepsRepository: _stepsRepository,
-        sleepSummaryRepository: _sleepSummaryRepository,
-        pulseRepository: _pulseRepository,
-        fetchHubAnalytics: fetchHubAnalytics,
-        importSleepIfDue: importSleepIfDue,
-        isSleepTrackingEnabled: isSleepTrackingEnabled,
-        targetStepsLoader: targetStepsLoader,
-        stepsProviderNameLoader: stepsProviderNameLoader ??
-            () async {
-              final l10n = AppLocalizations.of(context)!;
-              final stepsSyncService = StepsSyncService();
-              final providerFilter = await stepsSyncService.getProviderFilter();
-              final providerRaw =
-                  StepsSyncService.providerFilterToRaw(providerFilter);
-              if (providerRaw == 'appleHealth') {
-                return l10n.statisticsProviderAppleHealth;
-              }
-              if (providerRaw == 'healthConnect') {
-                return l10n.statisticsProviderHealthConnect;
-              }
-              if (providerRaw == 'withings') {
-                return l10n.statisticsProviderWithings;
-              }
-              if (providerRaw == 'garmin') return l10n.statisticsProviderGarmin;
-              if (providerRaw == 'fitbit') return l10n.statisticsProviderFitbit;
-              return l10n.statisticsProviderLocal;
-            },
-      ),
+    return ChangeNotifierProvider<StatisticsHubViewModel>.value(
+      value: _viewModel,
       child: const _StatisticsHubScreenView(),
     );
   }

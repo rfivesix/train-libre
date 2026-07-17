@@ -5601,7 +5601,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep track of your nutrition and hydration here.';
 
   @override
-  String get emptyStateActiveGapOverlay => 'No data for this period';
+  String get emptyStateActiveGapOverlay => 'No data available for this period';
 
   @override
   String get emptyStateDiaryColdStartCallToAction =>

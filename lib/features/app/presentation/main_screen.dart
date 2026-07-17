@@ -65,6 +65,8 @@ class _MainScreenState extends State<MainScreen>
   int _currentIndex = 0;
   final GlobalKey<DiaryScreenState> _tagebuchKey =
       GlobalKey<DiaryScreenState>();
+  final GlobalKey<StatisticsHubScreenState> _statsKey =
+      GlobalKey<StatisticsHubScreenState>();
   final GlobalKey _tourNavigationBarKey = GlobalKey();
   final GlobalKey _tourFabKey = GlobalKey();
   final GlobalKey _tourDiaryTabKey = GlobalKey();
@@ -144,6 +146,9 @@ class _MainScreenState extends State<MainScreen>
       return;
     }
     setState(() => _currentIndex = index);
+    if (index == 2) {
+      _statsKey.currentState?.refresh();
+    }
   }
 
   final bool _isWarping = false;
@@ -1156,9 +1161,9 @@ class _MainScreenState extends State<MainScreen>
                   storageKey: PageStorageKey('tab_workout'),
                   child: WorkoutHubScreen(),
                 ),
-                const KeepAlivePage(
-                  storageKey: PageStorageKey('tab_stats'),
-                  child: StatisticsHubScreen(),
+                KeepAlivePage(
+                  storageKey: const PageStorageKey('tab_stats'),
+                  child: StatisticsHubScreen(key: _statsKey),
                 ),
                 const KeepAlivePage(
                   storageKey: PageStorageKey('tab_nutrition'),

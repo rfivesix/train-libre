@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - **Onboarding:** Added a loading spinner to the "Next" button on the region selection page during database update checks, preventing the app from appearing frozen.
 - **Backups:** Fixed an issue where routine pause timers (`pauseSeconds`) and exercise notes within routines were not correctly exported/imported via JSON backup.
+- **Live Workout:** Fixed a string interpolation bug that caused new Personal Records to always display as "1 kg" (or "1 km").
+- **Live Workout:** Changed Personal Record logic so that establishing a baseline (logging an exercise for the very first time) no longer triggers a "New Record" notification. Only subsequent improvements will trigger it.
 - **Statistics:** Improved the empty state UI in the Statistics Hub. The label now reads "Keine Daten für diesen Zeitraum" to match the Diary screen, and the shimmer effect now correctly applies to the underlying hidden skeleton elements.
 - **Empty States:** Fixed the "Cold Start" empty state layout. The tutorial arrow now points exactly to the center of the "+" FAB, and the content is shifted back up to its correct vertical position on both the Diary and Statistics screens.
 - **Diary Supplements:** Restored the expected UI behavior for supplements on the Diary screen. Supplements with a `dailyGoal` or no limit are now displayed as checkmark cards again, and only supplements with a specific `dailyLimit` (e.g., Caffeine) are shown as progress bars.
