@@ -25,19 +25,11 @@ class SupplementSummaryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final goalOnlySupplements = trackedSupplements
-        .where(
-          (ts) =>
-              ts.supplement.dailyGoal == null &&
-              ts.supplement.dailyLimit == null,
-        )
+        .where((ts) => ts.supplement.dailyLimit == null)
         .toList();
 
     final progressSupplements = trackedSupplements
-        .where(
-          (ts) =>
-              ts.supplement.dailyGoal != null ||
-              ts.supplement.dailyLimit != null,
-        )
+        .where((ts) => ts.supplement.dailyLimit != null)
         .toList();
 
     if (goalOnlySupplements.isEmpty && progressSupplements.isEmpty) {
