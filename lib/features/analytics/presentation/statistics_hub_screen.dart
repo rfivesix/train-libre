@@ -184,24 +184,20 @@ class _StatisticsHubScreenView extends StatelessWidget {
         slivers: [
           SliverPadding(
             padding: finalPadding,
-            sliver: viewModel.isLoadingColdStart
-                ? const SliverToBoxAdapter(
-                    child: Center(child: CircularProgressIndicator()),
+            sliver: (viewModel.isColdStart && !viewModel.isLoadingColdStart)
+                ? SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: ColdStartEmptyState(
+                      icon: LucideIcons.chart_spline,
+                      title: l10n.statisticsColdStartTitle,
+                      subtitle: l10n.statisticsColdStartSubtitle,
+                      callToAction:
+                          l10n.emptyStateDiaryColdStartCallToAction,
+                    ),
                   )
-                : viewModel.isColdStart
-                    ? SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: ColdStartEmptyState(
-                          icon: LucideIcons.chart_spline,
-                          title: l10n.statisticsColdStartTitle,
-                          subtitle: l10n.statisticsColdStartSubtitle,
-                          callToAction:
-                              l10n.emptyStateDiaryColdStartCallToAction,
-                        ),
-                      )
-                    : SliverList(
-                        delegate: SliverChildListDelegate([
-                          TimeRangeFilter(
+                : SliverList(
+                    delegate: SliverChildListDelegate([
+                      TimeRangeFilter(
                             ranges: _timeRanges(l10n),
                             selectedIndex:
                                 _hubBlocks.indexOf(viewModel.activeBlockType),

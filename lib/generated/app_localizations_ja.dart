@@ -5426,7 +5426,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get emptyStateDiaryColdStartSubtitle => 'ここで栄養と水分の摂取を記録しましょう。';
 
   @override
-  String get emptyStateActiveGapOverlay => 'この期間のデータはありません';
+  String get emptyStateActiveGapOverlay => 'この期間に利用可能なデータはありません';
 
   @override
   String get emptyStateDiaryColdStartCallToAction => '最初の記録をここに追加しましょう';

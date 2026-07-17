@@ -653,11 +653,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final hasDataForSelectedDate =
         context.select<DiaryViewModel, bool>((vm) => vm.hasDataForSelectedDate);
 
-    if (hasEverLoggedData == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (!hasEverLoggedData) {
+    if (hasEverLoggedData == false) {
       return Padding(
         padding: EdgeInsets.only(top: appBarHeight + basePadding.top),
         child: ColdStartEmptyState(
@@ -669,7 +665,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       );
     }
 
-    final bool showSkeleton = !hasDataForSelectedDate;
+    final bool showSkeleton = !hasDataForSelectedDate || isLoading || hasEverLoggedData == null;
 
     Widget content = Skeletonizer(
       enabled: showSkeleton,
@@ -839,19 +835,17 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       ),
     );
 
-    if (showSkeleton) {
+    if (showSkeleton && !hasDataForSelectedDate) {
       content = ActiveGapOverlay(
         message: l10n.emptyStateActiveGapOverlay,
         background: content,
       );
     }
 
-    return isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : RefreshIndicator(
-            onRefresh: () => syncHealthData(forceStepsRefresh: true),
-            child: content,
-          );
+    return RefreshIndicator(
+      onRefresh: () => syncHealthData(forceStepsRefresh: true),
+      child: content,
+    );
   }
 
   // Section headers now use the centralized AppSectionHeader widget.

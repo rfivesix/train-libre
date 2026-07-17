@@ -5701,7 +5701,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Gardez une trace de votre alimentation et de votre hydratation ici.';
 
   @override
-  String get emptyStateActiveGapOverlay => 'Aucune donnée pour cette période';
+  String get emptyStateActiveGapOverlay =>
+      'Aucune donnée disponible pour cette période';
 
   @override
   String get emptyStateDiaryColdStartCallToAction =>
