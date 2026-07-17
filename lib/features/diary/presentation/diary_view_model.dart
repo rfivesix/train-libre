@@ -281,24 +281,30 @@ class DiaryViewModel extends ChangeNotifier {
       final targetCaffeine = await _prefsRepo.getTargetCaffeine() ?? 400;
       showSugarInOverview = await _prefsRepo.getShowSugarInDiaryOverview();
 
-      final archivedEntries =
-          _activeEntries.where((e) => e.archiveLocalId != null).toList();
-      final legacyEntries =
-          _activeEntries.where((e) => e.archiveLocalId == null).toList();
+      // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
+      final Set<int> archiveIdsSet = {};
+      final Set<String> barcodesSet = {};
+
+      for (final entry in _activeEntries) {
+        if (entry.archiveLocalId != null) {
+          archiveIdsSet.add(entry.archiveLocalId!);
+        } else {
+          barcodesSet.add(entry.barcode);
+        }
+      }
 
       final Map<int, FoodItem> archiveProductsMap = {};
       final Map<String, FoodItem> legacyProductsMap = {};
 
-      if (archivedEntries.isNotEmpty) {
-        final archiveIds =
-            archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+      if (archiveIdsSet.isNotEmpty) {
+        final archiveIds = archiveIdsSet.toList();
         final archivedProducts =
             await _nutritionRepo.getProductsByArchiveIds(archiveIds);
         archiveProductsMap.addAll(archivedProducts);
       }
 
-      if (legacyEntries.isNotEmpty) {
-        final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+      if (barcodesSet.isNotEmpty) {
+        final barcodes = barcodesSet.toList();
         final legacyProducts =
             await _nutritionRepo.getProductsByBarcodes(barcodes);
         for (final p in legacyProducts) {
