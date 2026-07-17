@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.12] - 2026-07-17
 
+### Added
+- **Accessibility:** Added localized tooltips to the diary date navigator to improve screen reader support and usability.
+
+### Changed
+- **Performance:** Optimized the processing of active entries in the Diary view model.
+- **Performance:** Eliminated redundant loops and iterations in the `CalculateDailyNutritionUseCase`, significantly improving the performance of daily nutrition calculations.
+
+### Fixed
+- **Security:** Fixed a high-severity SQL injection vulnerability in the backup import flow by strictly validating table and column names.
+
 ## [1.0.0-alpha.11] - 2026-07-15
 
 ### Added
