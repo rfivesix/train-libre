@@ -26,7 +26,7 @@ class ColdStartEmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Spacer(flex: 3),
+          const Spacer(flex: 1),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
             child: AdaptiveGlass(

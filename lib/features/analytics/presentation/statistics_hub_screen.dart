@@ -164,18 +164,14 @@ class _StatisticsHubScreenView extends StatelessWidget {
                     child: Center(child: CircularProgressIndicator()),
                   )
                 : viewModel.isColdStart
-                    ? SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.height -
-                              appBarHeight -
-                              200,
-                          child: ColdStartEmptyState(
-                            icon: LucideIcons.chart_spline,
-                            title: l10n.statisticsColdStartTitle,
-                            subtitle: l10n.statisticsColdStartSubtitle,
-                            callToAction:
-                                l10n.emptyStateDiaryColdStartCallToAction,
-                          ),
+                    ? SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: ColdStartEmptyState(
+                          icon: LucideIcons.chart_spline,
+                          title: l10n.statisticsColdStartTitle,
+                          subtitle: l10n.statisticsColdStartSubtitle,
+                          callToAction:
+                              l10n.emptyStateDiaryColdStartCallToAction,
                         ),
                       )
                     : SliverList(
@@ -294,16 +290,11 @@ class _StatisticsHubScreenView extends StatelessWidget {
                               ],
                             );
 
-                            Widget content = Skeletonizer(
-                              enabled:
-                                  viewModel.isLoading || viewModel.isActiveGap,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal:
-                                      DesignConstants.cardPaddingInternal,
-                                ),
-                                child: contentColumn,
+                            Widget content = Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DesignConstants.cardPaddingInternal,
                               ),
+                              child: contentColumn,
                             );
 
                             if (viewModel.isActiveGap || viewModel.isLoading) {
@@ -321,9 +312,15 @@ class _StatisticsHubScreenView extends StatelessWidget {
                               );
                             }
 
+                            content = Skeletonizer(
+                              enabled:
+                                  viewModel.isLoading || viewModel.isActiveGap,
+                              child: content,
+                            );
+
                             if (viewModel.isActiveGap) {
                               content = ActiveGapOverlay(
-                                message: l10n.statisticsActiveGapTitle,
+                                message: l10n.emptyStateActiveGapOverlay,
                                 background: content,
                               );
                             }

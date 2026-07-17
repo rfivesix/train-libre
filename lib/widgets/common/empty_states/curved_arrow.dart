@@ -50,13 +50,13 @@ class _CurvedArrowPainter extends CustomPainter {
     final startY = 0.0;
 
     // End at the center of the FAB
-    // Assume FAB center is ~65px from the right edge.
-    // The FAB size is 74px, margin right is 16px. So center is 16 + 37 = 53px from right edge.
-    final endX = size.width - 53.0;
+    // Assume FAB center is ~48px from the right edge.
+    // The FAB size is 64px, margin right is 16px. So center is 16 + 32 = 48px from right edge.
+    final endX = size.width - 48.0;
     
-    // The top of the FAB is exactly 106px from the bottom of the screen (12 bottom + 20 padding + 74 height).
-    // We want the arrow to stop 10px above the FAB.
-    final targetY = size.height - 116.0;
+    // The top of the FAB is exactly 96px from the bottom of the screen (12 bottom offset + 20 vertical padding + 64 height).
+    // We want the arrow to stop 10px above the FAB, so it stops 106px from the bottom.
+    final targetY = size.height - 106.0;
 
     final availableHeight = targetY - startY;
     if (availableHeight < 40) {
