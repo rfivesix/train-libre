@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-alpha.12] - 2026-07-17
+
 ## [1.0.0-alpha.11] - 2026-07-15
 
 ### Added
