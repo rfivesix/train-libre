@@ -863,6 +863,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     ),
                   )
                 : IconButton(
+                    tooltip: l10n.edit,
                     icon: const Icon(LucideIcons.pencil),
                     onPressed: _toggleEditMode,
                   ),
@@ -932,6 +933,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                           ),
                                           if (_isEditMode)
                                             IconButton(
+                                              tooltip: l10n.selectDateTitle,
                                               icon: Icon(
                                                 LucideIcons.calendar,
                                                 size: 18,

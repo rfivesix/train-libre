@@ -1,3 +1,3 @@
-## 2024-05-19 - Adding Tooltips to IconButtons for Accessibility
-**Learning:** Icon-only buttons (`IconButton`) require a `tooltip` property to provide a semantic label for screen readers and a visual hover hint, acting as an ARIA-equivalent in Flutter.
-**Action:** Always add a `tooltip` property to `IconButton` widgets when they do not have an accompanying text label. When using standard navigation/system buttons, use `MaterialLocalizations.of(context)` properties like `previousPageTooltip` or `nextPageTooltip` to provide standard, automatically localized tooltips.
+## $(date +%Y-%m-%d) - Add Tooltips to Icon-Only Buttons for Better Accessibility
+**Learning:** In Flutter, `IconButton` widgets that only display an icon do not inherently provide semantic labels to screen readers or visual hover hints for desktop/web users. This severely limits accessibility and discoverability.
+**Action:** When adding or reviewing icon-only buttons, consistently utilize the `tooltip` property (often populated via existing ARB localization strings like `l10n.edit` or `l10n.selectDateTitle`) to ensure elements are semantically identifiable and have visual hover hints.
