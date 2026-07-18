@@ -175,7 +175,6 @@ void main() async {
   // Background update checks are handled by AppInitializerScreen.
   Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: false,
   );
   
   Workmanager().registerPeriodicTask(

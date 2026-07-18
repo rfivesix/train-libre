@@ -723,7 +723,7 @@ class _MainScreenState extends State<MainScreen>
 
     await DatabaseHelper.instance.insertSupplementLog(
       SupplementLog(
-        supplementId: caffeineSupplement.id!,
+        supplementId: caffeineSupplement!.id!,
         dose: doseMg,
         unit: 'mg',
         timestamp: timestamp,

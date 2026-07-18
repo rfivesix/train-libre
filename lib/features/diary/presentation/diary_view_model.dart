@@ -409,7 +409,7 @@ class DiaryViewModel extends ChangeNotifier {
 
     await _supplementRepo.insertSupplementLog(
       SupplementLog(
-        supplementId: caffeineSupplement.id!,
+        supplementId: caffeineSupplement!.id!,
         dose: doseMg,
         unit: 'mg',
         timestamp: timestamp,
