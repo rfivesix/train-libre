@@ -147,11 +147,9 @@ class _MainScreenState extends State<MainScreen>
     }
     setState(() => _currentIndex = index);
     if (index == 2) {
-      Future.delayed(const Duration(milliseconds: 360), () {
-        if (mounted && _currentIndex == 2) {
-          _statsKey.currentState?.refresh();
-        }
-      });
+      if (mounted && _currentIndex == 2) {
+        _statsKey.currentState?.refresh();
+      }
     }
   }
 

@@ -600,13 +600,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           Expanded(
                             child: exercises.isEmpty
                                 ? _buildEmptyState(context, l10n)
-                                : Overlay(
-                                    initialEntries: [
-                                      OverlayEntry(
-                                        builder: (context) =>
-                                            Consumer<LiveWorkoutViewModel>(
-                                          builder: (context, vm, child) {
-                                            final exercises = vm.exercises;
+                                : Consumer<LiveWorkoutViewModel>(
+                                    builder: (context, vm, child) {
+                                      final exercises = vm.exercises;
                                             return ReorderableListView.builder(
                                               scrollController:
                                                   _scrollController,
@@ -616,7 +612,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                       .pixels(1500.0),
                                               padding: EdgeInsets.only(
                                                 bottom: (showRestBar
-                                                        ? 180.0
+                                                        ? 220.0
                                                         : DesignConstants
                                                             .bottomContentSpacer) +
                                                     MediaQuery.paddingOf(
@@ -1205,9 +1201,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             );
                                           },
                                         ),
-                                      ),
-                                    ],
-                                  ),
                           ),
                         ],
                       ),

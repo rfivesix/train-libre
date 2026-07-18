@@ -29,14 +29,7 @@ class SleepSectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.sleep;
     final title = l10n.sleepHubScoreLabel;
 
-    if (state.isLoading && !state.hasData) {
-      return AnalyticsCardBase.buildSectionLoadingCard(
-        context,
-        l10n,
-        sectionId,
-        title,
-      );
-    }
+
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,

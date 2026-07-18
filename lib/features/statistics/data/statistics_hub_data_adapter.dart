@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../../util/body_nutrition_analytics_utils.dart';
 import '../../../util/perf_debug_timer.dart';
@@ -140,7 +141,7 @@ class StatisticsHubDataAdapter {
         bodyNutrition,
       ]);
 
-      final payload = StatisticsHubPayload(
+      final payload = await Isolate.run(() => StatisticsHubPayload(
         recentPrs: results[0] as List<Map<String, dynamic>>,
         weeklyVolume: results[1] as List<Map<String, dynamic>>,
         workoutsPerWeek: results[2] as List<Map<String, dynamic>>,
@@ -155,7 +156,7 @@ class StatisticsHubDataAdapter {
           results[6] as Map<String, dynamic>,
         ),
         notableImprovements: results[7] as List<Map<String, dynamic>>,
-      );
+      ));
 
       return (payload, results[8] as BodyNutritionAnalyticsResult);
     } finally {

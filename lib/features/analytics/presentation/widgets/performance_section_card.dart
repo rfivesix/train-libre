@@ -26,14 +26,7 @@ class PerformanceSectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.performanceRecords;
     final title = l10n.exerciseAnalyticsTitle;
 
-    if (state.isLoading && !state.hasData) {
-      return AnalyticsCardBase.buildSectionLoadingCard(
-        context,
-        l10n,
-        sectionId,
-        title,
-      );
-    }
+
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,

@@ -197,11 +197,11 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
 
     return PopScope(
-      canPop: _cameraPermissionStatus.isGranted,
+      canPop: true,
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          automaticallyImplyLeading: _cameraPermissionStatus.isGranted,
+          automaticallyImplyLeading: true,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           foregroundColor: Theme.of(context).colorScheme.onSurface,
           elevation: 0,

@@ -29,14 +29,7 @@ class ConsistencySectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.consistency;
     final title = l10n.workoutsPerWeekLabel;
 
-    if (state.isLoading && !state.hasData) {
-      return AnalyticsCardBase.buildSectionLoadingCard(
-        context,
-        l10n,
-        sectionId,
-        title,
-      );
-    }
+
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,

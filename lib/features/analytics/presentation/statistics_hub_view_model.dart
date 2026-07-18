@@ -135,10 +135,12 @@ class VolumeMusclesSectionData {
 class HubRangeContext {
   final TimeframeBlock selectedBlockType;
   final int daysBack;
+  final DateTime endDate;
 
   const HubRangeContext({
     required this.selectedBlockType,
     required this.daysBack,
+    required this.endDate,
   });
 }
 
@@ -558,20 +560,47 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
     unawaited(_checkColdStart());
 
-    unawaited(_loadStepsSection(loadGeneration, rangeContextFuture));
-    unawaited(_loadSleepSection(loadGeneration, rangeContextFuture));
-    unawaited(_loadPulseSection(loadGeneration, rangeContextFuture));
+    // Wait 350ms for the page slide transition and bottom bar animations to finish completely.
+    // This keeps the 120Hz transition perfectly fluid, while the spinners show instantly.
+    await Future.delayed(const Duration(milliseconds: 350));
+    if (loadGeneration != _hubAnalyticsLoadGeneration) return;
+
+    // Load sections sequentially and yield to the event loop between each.
+    // This spreads the CPU work across frames, keeping animations at 120Hz.
+    await _loadStepsSection(loadGeneration, rangeContextFuture);
+    await Future.delayed(Duration.zero);
+    if (loadGeneration != _hubAnalyticsLoadGeneration) return;
+
+    await _loadSleepSection(loadGeneration, rangeContextFuture);
+    await Future.delayed(Duration.zero);
+    if (loadGeneration != _hubAnalyticsLoadGeneration) return;
+
+    await _loadPulseSection(loadGeneration, rangeContextFuture);
+    await Future.delayed(Duration.zero);
+    if (loadGeneration != _hubAnalyticsLoadGeneration) return;
 
     if (_fetchHubAnalyticsOverride != null) {
-      unawaited(_loadLegacyAggregateSections(loadGeneration));
+      await _loadLegacyAggregateSections(loadGeneration);
       return;
     }
 
-    unawaited(_loadRecoverySection(loadGeneration));
-    unawaited(_loadConsistencySection(loadGeneration));
-    unawaited(_loadPerformanceRecordsSection(loadGeneration));
-    unawaited(_loadVolumeMusclesSection(loadGeneration));
-    unawaited(_loadBodyNutritionSection(loadGeneration));
+    await _loadRecoverySection(loadGeneration);
+    await Future.delayed(Duration.zero);
+    if (loadGeneration != _hubAnalyticsLoadGeneration) return;
+
+    await _loadConsistencySection(loadGeneration);
+    await Future.delayed(Duration.zero);
+    if (loadGeneration != _hubAnalyticsLoadGeneration) return;
+
+    await _loadPerformanceRecordsSection(loadGeneration);
+    await Future.delayed(Duration.zero);
+    if (loadGeneration != _hubAnalyticsLoadGeneration) return;
+
+    await _loadVolumeMusclesSection(loadGeneration);
+    await Future.delayed(Duration.zero);
+    if (loadGeneration != _hubAnalyticsLoadGeneration) return;
+
+    await _loadBodyNutritionSection(loadGeneration);
   }
 
   bool _isCurrentStepsLoad(int generation) =>
@@ -615,6 +644,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     return HubRangeContext(
       selectedBlockType: selectedBlockType,
       daysBack: resolvedRange.effectiveDays ?? 30,
+      endDate: resolvedRange.dateRange?.end ?? DateTime.now(),
     );
   }
 
@@ -630,7 +660,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       final endDate = DateTime.now();
       final results = await Future.wait<dynamic>([
         _stepsRepository.getRangeAggregation(
-          endDate: endDate,
+          endDate: rangeContext.endDate,
           daysBack: rangeContext.daysBack,
         ),
         _stepsRepository.isTrackingEnabled(),
@@ -704,7 +734,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       final rangeContext = results[1] as HubRangeContext;
       rangeLabel = '${rangeContext.daysBack}d';
       final summary = await _sleepSummaryRepository.fetchSummary(
-        endDate: DateTime.now(),
+        endDate: rangeContext.endDate,
         daysBack: rangeContext.daysBack,
       );
       if (!_isCurrentSleepLoad(generation) || !_sleepTrackingEnabled) return;

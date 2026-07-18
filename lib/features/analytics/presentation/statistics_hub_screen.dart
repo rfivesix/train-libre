@@ -364,10 +364,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     final section = viewModel.stepsState;
-    if (section.isLoading && !section.hasData) {
-      return AnalyticsCardBase.buildSectionLoadingCard(
-          context, l10n, StatisticsHubSectionId.steps, l10n.steps);
-    }
+
     if (section.hasError && !section.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
           context,

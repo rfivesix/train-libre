@@ -32,14 +32,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.bodyNutrition;
     final title = l10n.sectionBodyNutrition;
 
-    if (state.isLoading && !state.hasData) {
-      return AnalyticsCardBase.buildSectionLoadingCard(
-        context,
-        l10n,
-        sectionId,
-        title,
-      );
-    }
+
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,

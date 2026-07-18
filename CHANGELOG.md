@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - **Code Quality:** Fixed unchecked nullable value accesses in daily nutrition logging.
 - **Code Quality:** Removed duplicate tooltip arguments from Diary Screen icon buttons.
+- **Scanner:** Fixed an issue where the back arrow button would disappear when camera permission was denied.
+- **Statistics:** Improved performance and prevented micro-stutters during data reloading by offloading analytics payload parsing to a background isolate.
+- **Statistics:** Fixed the Steps tracker card freezing on current period data by correctly binding the date range selector.
+- **Live Workout:** Removed unnecessary local `Overlay` wrapper from the list builder, resolving a closure capture bug to ensure bottom padding updates instantly, and optimized the padding height to `220.0` when the rest timer is active to clear the FAB perfectly.
+- **Statistics:** Optimized the rendering pipeline by showing the loading indicators immediately, but deferring the sequential SQLite queries and isolate creation by 350ms to allow the page transition and bottom bar animations to finish completely, rendering at a perfect 120Hz.
+- **Statistics:** Removed all initial and reloading circular progress spinners from the analytics cards, allowing them to fall back to their full layouts which are beautifully skeletonized by the page's `Skeletonizer` for a premium shimmering effect.
 ## [1.0.0-alpha.12] - 2026-07-17
 
 ### Added
