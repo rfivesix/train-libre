@@ -398,15 +398,14 @@ class DiaryViewModel extends ChangeNotifier {
 
     final supplements = await _supplementRepo.getAllSupplements();
     Supplement? caffeineSupplement;
-    try {
-      caffeineSupplement = supplements.firstWhere(
-        (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
-      );
-    } catch (e) {
-      return;
+    for (final s in supplements) {
+      if ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine') {
+        caffeineSupplement = s;
+        break;
+      }
     }
 
-    if (caffeineSupplement.id == null) return;
+    if (caffeineSupplement?.id == null) return;
 
     await _supplementRepo.insertSupplementLog(
       SupplementLog(
