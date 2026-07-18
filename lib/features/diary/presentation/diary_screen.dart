@@ -653,20 +653,19 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final hasDataForSelectedDate =
         context.select<DiaryViewModel, bool>((vm) => vm.hasDataForSelectedDate);
 
-    if (hasEverLoggedData == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (!hasEverLoggedData) {
-      return ColdStartEmptyState(
-        icon: LucideIcons.notebook_pen,
-        title: l10n.emptyStateDiaryColdStartTitle,
-        subtitle: l10n.emptyStateDiaryColdStartSubtitle,
-        callToAction: l10n.emptyStateDiaryColdStartCallToAction,
+    if (hasEverLoggedData == false) {
+      return Padding(
+        padding: EdgeInsets.only(top: appBarHeight + basePadding.top),
+        child: ColdStartEmptyState(
+          icon: LucideIcons.notebook_pen,
+          title: l10n.emptyStateDiaryColdStartTitle,
+          subtitle: l10n.emptyStateDiaryColdStartSubtitle,
+          callToAction: l10n.emptyStateDiaryColdStartCallToAction,
+        ),
       );
     }
 
-    final bool showSkeleton = !hasDataForSelectedDate;
+    final bool showSkeleton = !hasDataForSelectedDate || isLoading || hasEverLoggedData == null;
 
     Widget content = Skeletonizer(
       enabled: showSkeleton,
@@ -836,19 +835,17 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       ),
     );
 
-    if (showSkeleton) {
+    if (showSkeleton && !hasDataForSelectedDate) {
       content = ActiveGapOverlay(
         message: l10n.emptyStateActiveGapOverlay,
         background: content,
       );
     }
 
-    return isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : RefreshIndicator(
-            onRefresh: () => syncHealthData(forceStepsRefresh: true),
-            child: content,
-          );
+    return RefreshIndicator(
+      onRefresh: () => syncHealthData(forceStepsRefresh: true),
+      child: content,
+    );
   }
 
   // Section headers now use the centralized AppSectionHeader widget.
@@ -1121,6 +1118,7 @@ class _DiaryDateNavigator extends StatelessWidget {
         _compactIconButton(
           tooltip: MaterialLocalizations.of(context).previousPageTooltip,
           icon: LucideIcons.chevron_left,
+          tooltip: MaterialLocalizations.of(context).previousPageTooltip,
           onPressed: onPreviousDay,
         ),
         Flexible(
@@ -1143,6 +1141,7 @@ class _DiaryDateNavigator extends StatelessWidget {
         _compactIconButton(
           tooltip: MaterialLocalizations.of(context).nextPageTooltip,
           icon: LucideIcons.chevron_right,
+          tooltip: MaterialLocalizations.of(context).nextPageTooltip,
           onPressed: onNextDay,
         ),
       ],
@@ -1157,6 +1156,7 @@ class _DiaryDateNavigator extends StatelessWidget {
     return IconButton(
       tooltip: tooltip,
       icon: Icon(icon),
+      tooltip: tooltip,
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints.tightFor(width: 36, height: 48),

@@ -5687,7 +5687,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tieni traccia della tua alimentazione e idratazione qui.';
 
   @override
-  String get emptyStateActiveGapOverlay => 'Nessun dato per questo periodo';
+  String get emptyStateActiveGapOverlay =>
+      'Nessun dato disponibile per questo periodo';
 
   @override
   String get emptyStateDiaryColdStartCallToAction =>

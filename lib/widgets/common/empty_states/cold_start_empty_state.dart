@@ -8,6 +8,10 @@ class ColdStartEmptyState extends StatelessWidget {
   final String title;
   final String subtitle;
   final String callToAction;
+  final bool targetCenter;
+  final double? customEndXOffset;
+  final double? customTargetYOffset;
+  final bool showArrow;
 
   const ColdStartEmptyState({
     super.key,
@@ -15,6 +19,10 @@ class ColdStartEmptyState extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.callToAction,
+    this.targetCenter = false,
+    this.customEndXOffset,
+    this.customTargetYOffset,
+    this.showArrow = true,
   });
 
   @override
@@ -26,7 +34,7 @@ class ColdStartEmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Spacer(flex: 3),
+          const Spacer(flex: 1),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
             child: AdaptiveGlass(
@@ -96,18 +104,25 @@ class ColdStartEmptyState extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
             child: Text(
               callToAction,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+              style: theme.textTheme.bodyLarge?.copyWith(
                 color: isDark ? Colors.white70 : Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: DesignConstants.spacingM),
-          const Expanded(
-            flex: 4,
-            child: CurvedArrow(key: ValueKey('cold_start_curved_arrow')),
-          ),
+          if (showArrow)
+            Expanded(
+              flex: 4,
+              child: CurvedArrow(
+                key: const ValueKey('cold_start_curved_arrow'),
+                targetCenter: targetCenter,
+                customEndXOffset: customEndXOffset,
+                customTargetYOffset: customTargetYOffset,
+              ),
+            )
+          else
+            const Spacer(flex: 4),
         ],
       ),
     );

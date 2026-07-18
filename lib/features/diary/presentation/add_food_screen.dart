@@ -32,6 +32,7 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 
@@ -527,36 +528,12 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       return const Center(child: CircularProgressIndicator());
     }
     if (_favoriteFoodItems.isEmpty) {
-      // Newer, improved empty state
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(DesignConstants.spacingXL),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                LucideIcons.heart,
-                size: 80,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: DesignConstants.spacingL),
-              Text(
-                l10n.noFavorites,
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
-                l10n.favoritesEmptyState,
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-            ],
-          ),
-        ),
+      return ColdStartEmptyState(
+        icon: LucideIcons.heart,
+        title: l10n.noFavorites,
+        subtitle: l10n.favoritesEmptyState,
+        callToAction: '',
+        showArrow: false,
       );
     }
     return Column(
@@ -584,34 +561,12 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       return const Center(child: CircularProgressIndicator());
     }
     if (_recentFoodItems.isEmpty) {
-      // Newer, improved empty state
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(DesignConstants.spacingXL),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(LucideIcons.history,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
-              const SizedBox(height: DesignConstants.spacingL),
-              Text(
-                l10n.nothingTrackedYet,
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
-                l10n.recentEmptyState,
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-            ],
-          ),
-        ),
+      return ColdStartEmptyState(
+        icon: LucideIcons.history,
+        title: l10n.nothingTrackedYet,
+        subtitle: l10n.recentEmptyState,
+        callToAction: '',
+        showArrow: false,
       );
     }
     return Column(
@@ -992,36 +947,14 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
 
     if (_meals.isEmpty) {
-      // Empty state: no top button anymore; creation happens via the FAB.
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(DesignConstants.spacingXL),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                LucideIcons.utensils,
-                size: 80,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: DesignConstants.spacingL),
-              Text(
-                l10n.mealsEmptyTitle,
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
-                l10n.mealsEmptyBody,
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-            ],
-          ),
-        ),
+      return ColdStartEmptyState(
+        icon: LucideIcons.utensils,
+        title: l10n.mealsEmptyTitle,
+        subtitle: l10n.mealsEmptyBody,
+        callToAction: l10n.mealsCreate,
+        targetCenter: false,
+        customEndXOffset: 110.0,
+        customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
       );
     }
 

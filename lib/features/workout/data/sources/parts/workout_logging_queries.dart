@@ -449,6 +449,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   exerciseId: drift.Value(exercise.uuid!),
                   orderIndex: drift.Value(orderIndex),
                   pauseSeconds: drift.Value(re.pauseSeconds),
+                  notes: drift.Value(re.notes),
                 ),
               );
 

@@ -556,6 +556,8 @@ class StatisticsHubViewModel extends ChangeNotifier {
     _bodyNutritionState = _bodyNutritionState.loading(loadGeneration);
     notifyListeners();
 
+    unawaited(_checkColdStart());
+
     unawaited(_loadStepsSection(loadGeneration, rangeContextFuture));
     unawaited(_loadSleepSection(loadGeneration, rangeContextFuture));
     unawaited(_loadPulseSection(loadGeneration, rangeContextFuture));

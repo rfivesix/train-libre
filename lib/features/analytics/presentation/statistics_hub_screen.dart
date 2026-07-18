@@ -30,11 +30,13 @@ import 'pr_dashboard_screen.dart';
 import 'recovery_tracker_screen.dart';
 import '../../profile/presentation/measurements_screen.dart';
 import '../../steps/presentation/statistics_steps_card.dart';
+import '../../steps/domain/steps_models.dart';
 import '../../pulse/presentation/pulse_analysis_screen.dart';
 import '../../../services/health/steps_sync_service.dart';
 import 'statistics_hub_view_model.dart';
 import '../../../util/timeframe_label_formatter.dart';
 
+import '../../../widgets/common/empty_states/card_empty_state_overlay.dart';
 // Standalone widget imports
 import 'widgets/analytics_card_base.dart';
 import 'widgets/body_metrics_section_card.dart';
@@ -45,7 +47,7 @@ import 'widgets/pulse_section_card.dart';
 import 'widgets/recovery_section_card.dart';
 import 'widgets/sleep_section_card.dart';
 
-class StatisticsHubScreen extends StatelessWidget {
+class StatisticsHubScreen extends StatefulWidget {
   const StatisticsHubScreen({
     super.key,
     StatisticsHubDataAdapter? hubDataAdapter,
@@ -81,38 +83,63 @@ class StatisticsHubScreen extends StatelessWidget {
   final Future<String> Function()? stepsProviderNameLoader;
 
   @override
+  State<StatisticsHubScreen> createState() => StatisticsHubScreenState();
+}
+
+class StatisticsHubScreenState extends State<StatisticsHubScreen> {
+  late StatisticsHubViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = StatisticsHubViewModel(
+      hubDataAdapter: widget._hubDataAdapter,
+      stepsRepository: widget._stepsRepository,
+      sleepSummaryRepository: widget._sleepSummaryRepository,
+      pulseRepository: widget._pulseRepository,
+      fetchHubAnalytics: widget.fetchHubAnalytics,
+      importSleepIfDue: widget.importSleepIfDue,
+      isSleepTrackingEnabled: widget.isSleepTrackingEnabled,
+      targetStepsLoader: widget.targetStepsLoader,
+      stepsProviderNameLoader: widget.stepsProviderNameLoader ??
+          () async {
+            if (!mounted) return 'Lokale Daten';
+            final l10n = AppLocalizations.of(context);
+            if (l10n == null) return 'Lokale Daten';
+            final stepsSyncService = StepsSyncService();
+            final providerFilter = await stepsSyncService.getProviderFilter();
+            final providerRaw =
+                StepsSyncService.providerFilterToRaw(providerFilter);
+            if (providerRaw == 'appleHealth') {
+              return l10n.statisticsProviderAppleHealth;
+            }
+            if (providerRaw == 'healthConnect') {
+              return l10n.statisticsProviderHealthConnect;
+            }
+            if (providerRaw == 'withings') {
+              return l10n.statisticsProviderWithings;
+            }
+            if (providerRaw == 'garmin') return l10n.statisticsProviderGarmin;
+            if (providerRaw == 'fitbit') return l10n.statisticsProviderFitbit;
+            return l10n.statisticsProviderLocal;
+          },
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  void refresh() {
+    _viewModel.loadHubAnalytics();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<StatisticsHubViewModel>(
-      create: (context) => StatisticsHubViewModel(
-        hubDataAdapter: _hubDataAdapter,
-        stepsRepository: _stepsRepository,
-        sleepSummaryRepository: _sleepSummaryRepository,
-        pulseRepository: _pulseRepository,
-        fetchHubAnalytics: fetchHubAnalytics,
-        importSleepIfDue: importSleepIfDue,
-        isSleepTrackingEnabled: isSleepTrackingEnabled,
-        targetStepsLoader: targetStepsLoader,
-        stepsProviderNameLoader: stepsProviderNameLoader ??
-            () async {
-              final l10n = AppLocalizations.of(context)!;
-              final stepsSyncService = StepsSyncService();
-              final providerFilter = await stepsSyncService.getProviderFilter();
-              final providerRaw =
-                  StepsSyncService.providerFilterToRaw(providerFilter);
-              if (providerRaw == 'appleHealth') {
-                return l10n.statisticsProviderAppleHealth;
-              }
-              if (providerRaw == 'healthConnect') {
-                return l10n.statisticsProviderHealthConnect;
-              }
-              if (providerRaw == 'withings') {
-                return l10n.statisticsProviderWithings;
-              }
-              if (providerRaw == 'garmin') return l10n.statisticsProviderGarmin;
-              if (providerRaw == 'fitbit') return l10n.statisticsProviderFitbit;
-              return l10n.statisticsProviderLocal;
-            },
-      ),
+    return ChangeNotifierProvider<StatisticsHubViewModel>.value(
+      value: _viewModel,
       child: const _StatisticsHubScreenView(),
     );
   }
@@ -159,28 +186,20 @@ class _StatisticsHubScreenView extends StatelessWidget {
         slivers: [
           SliverPadding(
             padding: finalPadding,
-            sliver: viewModel.isLoadingColdStart
-                ? const SliverToBoxAdapter(
-                    child: Center(child: CircularProgressIndicator()),
+            sliver: (viewModel.isColdStart && !viewModel.isLoadingColdStart)
+                ? SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: ColdStartEmptyState(
+                      icon: LucideIcons.chart_spline,
+                      title: l10n.statisticsColdStartTitle,
+                      subtitle: l10n.statisticsColdStartSubtitle,
+                      callToAction:
+                          l10n.emptyStateDiaryColdStartCallToAction,
+                    ),
                   )
-                : viewModel.isColdStart
-                    ? SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.height -
-                              appBarHeight -
-                              200,
-                          child: ColdStartEmptyState(
-                            icon: LucideIcons.chart_spline,
-                            title: l10n.statisticsColdStartTitle,
-                            subtitle: l10n.statisticsColdStartSubtitle,
-                            callToAction:
-                                l10n.emptyStateDiaryColdStartCallToAction,
-                          ),
-                        ),
-                      )
-                    : SliverList(
-                        delegate: SliverChildListDelegate([
-                          TimeRangeFilter(
+                : SliverList(
+                    delegate: SliverChildListDelegate([
+                      TimeRangeFilter(
                             ranges: _timeRanges(l10n),
                             selectedIndex:
                                 _hubBlocks.indexOf(viewModel.activeBlockType),
@@ -294,16 +313,11 @@ class _StatisticsHubScreenView extends StatelessWidget {
                               ],
                             );
 
-                            Widget content = Skeletonizer(
-                              enabled:
-                                  viewModel.isLoading || viewModel.isActiveGap,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal:
-                                      DesignConstants.cardPaddingInternal,
-                                ),
-                                child: contentColumn,
+                            Widget content = Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DesignConstants.cardPaddingInternal,
                               ),
+                              child: contentColumn,
                             );
 
                             if (viewModel.isActiveGap || viewModel.isLoading) {
@@ -321,9 +335,15 @@ class _StatisticsHubScreenView extends StatelessWidget {
                               );
                             }
 
+                            content = Skeletonizer(
+                              enabled:
+                                  viewModel.isLoading || viewModel.isActiveGap,
+                              child: content,
+                            );
+
                             if (viewModel.isActiveGap) {
                               content = ActiveGapOverlay(
-                                message: l10n.statisticsActiveGapTitle,
+                                message: l10n.emptyStateActiveGapOverlay,
                                 background: content,
                               );
                             }
@@ -361,44 +381,21 @@ class _StatisticsHubScreenView extends StatelessWidget {
         (range?.dailyTotals.any((bucket) => bucket.steps > 0) ?? false);
     final subtitleRange = _unifiedRangeLabel(viewModel, l10n);
     final stepsTitle = l10n.steps;
-    final noDataText = !viewModel.stepsTrackingEnabled
-        ? l10n.statisticsEnableStepTrackingHint
-        : l10n.statisticsNoStepDataYet;
 
-    // Fallback info if tracking disabled or no data
-    if (!viewModel.stepsTrackingEnabled || !hasData) {
-      return AnalyticsCardBase.decorateSectionCard(
-        context,
-        state: section,
-        child: SummaryCard(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const StepsModuleScreen()),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(DesignConstants.spacingL),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AnalyticsCardBase.buildHeaderWithChevron(
-                  context,
-                  label: stepsTitle,
-                  chipText: subtitleRange,
-                ),
-                const SizedBox(height: DesignConstants.spacingS),
-                Text(
-                  noDataText,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+    final displayRange = hasData
+        ? range!
+        : RangeStepsAggregation(
+            start: DateTime.now().subtract(const Duration(days: 7)),
+            end: DateTime.now(),
+            dailyTotals: List.generate(7, (i) {
+              return StepsBucket(
+                start: DateTime.now().subtract(Duration(days: 7 - i)),
+                steps: [6200, 8100, 7300, 5400, 9200, 10500, 8500][i],
+              );
+            }),
+            totalSteps: 55200,
+            averageDailySteps: 7885.0,
+          );
 
     // In 7-day mode we show today's steps; in longer ranges we show total steps.
     final bool isSevenDays = viewModel.activeBlockType.index == 0;
@@ -407,33 +404,43 @@ class _StatisticsHubScreenView extends StatelessWidget {
     String stepsSubtitle = l10n.today;
 
     if (isSevenDays) {
-      final todayBucket = range!.dailyTotals.lastWhere(
+      final todayBucket = displayRange.dailyTotals.lastWhere(
         (bucket) =>
             bucket.start.isBefore(DateTime.now().add(const Duration(days: 1))),
-        orElse: () => range.dailyTotals.last, // fallback
+        orElse: () => displayRange.dailyTotals.last, // fallback
       );
       currentSteps = todayBucket.steps;
     } else {
-      currentSteps = range!.totalSteps;
+      currentSteps = displayRange.totalSteps;
       stepsSubtitle = l10n.statisticsTotalSteps;
+    }
+
+    Widget cardChild = StatisticsStepsCard(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const StepsModuleScreen()),
+        );
+      },
+      title: stepsTitle,
+      chipText: subtitleRange,
+      currentSteps: currentSteps,
+      currentStepsSubtitle: stepsSubtitle,
+      dailyTotals: displayRange.dailyTotals,
+      dailyGoal: viewModel.targetSteps,
+    );
+
+    if (!hasData) {
+      cardChild = CardEmptyStateOverlay(
+        isEmpty: true,
+        message: l10n.emptyStateActiveGapOverlay,
+        child: cardChild,
+      );
     }
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
       state: section,
-      child: StatisticsStepsCard(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const StepsModuleScreen()),
-          );
-        },
-        title: stepsTitle,
-        chipText: subtitleRange,
-        currentSteps: currentSteps,
-        currentStepsSubtitle: stepsSubtitle,
-        dailyTotals: range.dailyTotals,
-        dailyGoal: viewModel.targetSteps,
-      ),
+      child: cardChild,
     );
   }
 
@@ -460,7 +467,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    return RecoverySectionCard(
+    final card = RecoverySectionCard(
       state: viewModel.recoveryState,
       chipText: null, // As requested, no pill for Recovery
       onRetry: () => viewModel.loadHubAnalytics(),
@@ -470,6 +477,13 @@ class _StatisticsHubScreenView extends StatelessWidget {
         );
       },
     );
+    final hasData = viewModel.recoveryState.data?.hasData ?? false;
+    if (hasData) return card;
+    return CardEmptyStateOverlay(
+      isEmpty: true,
+      message: l10n.emptyStateActiveGapOverlay,
+      child: card,
+    );
   }
 
   Widget _buildSleepSection(
@@ -477,11 +491,19 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    return SleepSectionCard(
+    final card = SleepSectionCard(
       state: viewModel.sleepState,
       rangeLabel: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
       onTap: () => SleepNavigation.openDay(context),
+    );
+    // Only show overlay when tracking IS enabled but no data
+    final hasData = viewModel.sleepState.data?.hasData ?? false;
+    if (hasData) return card;
+    return CardEmptyStateOverlay(
+      isEmpty: true,
+      message: l10n.emptyStateActiveGapOverlay,
+      child: card,
     );
   }
 
@@ -491,7 +513,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     final rangeLabel = _unifiedRangeLabel(viewModel, l10n);
-    return PulseSectionCard(
+    final card = PulseSectionCard(
       state: viewModel.pulseState,
       fallbackRangeLabel: rangeLabel ?? '',
       onRetry: () => viewModel.loadHubAnalytics(),
@@ -501,6 +523,14 @@ class _StatisticsHubScreenView extends StatelessWidget {
         );
       },
     );
+    // Only show overlay when tracking IS enabled but no data
+    final hasData = viewModel.pulseState.data?.hasData ?? false;
+    if (hasData) return card;
+    return CardEmptyStateOverlay(
+      isEmpty: true,
+      message: l10n.emptyStateActiveGapOverlay,
+      child: card,
+    );
   }
 
   Widget _buildConsistencySection(
@@ -508,7 +538,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    return ConsistencySectionCard(
+    final card = ConsistencySectionCard(
       state: viewModel.consistencyState,
       chipText: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
@@ -518,6 +548,14 @@ class _StatisticsHubScreenView extends StatelessWidget {
         );
       },
     );
+    final totalWorkouts =
+        viewModel.consistencyState.data?.trainingStats.totalWorkouts ?? 0;
+    if (totalWorkouts > 0) return card;
+    return CardEmptyStateOverlay(
+      isEmpty: true,
+      message: l10n.emptyStateActiveGapOverlay,
+      child: card,
+    );
   }
 
   Widget _buildPerformanceSection(
@@ -525,7 +563,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    return PerformanceSectionCard(
+    final card = PerformanceSectionCard(
       state: viewModel.performanceState,
       chipText: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
@@ -535,6 +573,15 @@ class _StatisticsHubScreenView extends StatelessWidget {
         );
       },
     );
+    final hasRecords =
+        (viewModel.performanceState.data?.recentPrs.isNotEmpty ?? false) ||
+        (viewModel.performanceState.data?.notableImprovements.isNotEmpty ?? false);
+    if (hasRecords) return card;
+    return CardEmptyStateOverlay(
+      isEmpty: true,
+      message: l10n.emptyStateActiveGapOverlay,
+      child: card,
+    );
   }
 
   Widget _buildMuscleVolumeSection(
@@ -542,7 +589,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    return MuscleVolumeSectionCard(
+    final card = MuscleVolumeSectionCard(
       state: viewModel.volumeMusclesState,
       rangeLabel: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
@@ -552,6 +599,14 @@ class _StatisticsHubScreenView extends StatelessWidget {
         );
       },
     );
+    final hasVolumeData =
+        viewModel.volumeMusclesState.data?.weeklyVolume.isNotEmpty ?? false;
+    if (hasVolumeData) return card;
+    return CardEmptyStateOverlay(
+      isEmpty: true,
+      message: l10n.emptyStateActiveGapOverlay,
+      child: card,
+    );
   }
 
   Widget _buildBodyMetricsSection(
@@ -559,7 +614,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    return BodyMetricsSectionCard(
+    final card = BodyMetricsSectionCard(
       state: viewModel.bodyNutritionState,
       rangeLabel: _unifiedRangeLabel(viewModel, l10n),
       onRetry: () => viewModel.loadHubAnalytics(),
@@ -572,6 +627,14 @@ class _StatisticsHubScreenView extends StatelessWidget {
           ),
         );
       },
+    );
+    final bodyNutrition = viewModel.bodyNutritionState.data;
+    final hasBodyData = bodyNutrition?.hasAnyData ?? false;
+    if (hasBodyData) return card;
+    return CardEmptyStateOverlay(
+      isEmpty: true,
+      message: l10n.emptyStateActiveGapOverlay,
+      child: card,
     );
   }
 

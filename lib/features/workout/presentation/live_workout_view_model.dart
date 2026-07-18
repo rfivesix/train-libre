@@ -101,14 +101,6 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _appLifecycleState = state;
-    if (_remainingRestSeconds <= 0) return;
-    if (_isAppInForeground) {
-      LocalNotificationService.instance.cancelRestTimerNotification();
-    } else {
-      LocalNotificationService.instance.scheduleRestTimerDoneNotification(
-        secondsFromNow: _remainingRestSeconds,
-      );
-    }
   }
 
   Future<void> tryRestoreSession() async {
@@ -715,10 +707,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _remainingRestSeconds = seconds;
     _targetRestEndTime = DateTime.now().add(Duration(seconds: seconds));
 
-    if (!_isAppInForeground) {
-      LocalNotificationService.instance
-          .scheduleRestTimerDoneNotification(secondsFromNow: seconds);
-    }
+    LocalNotificationService.instance
+        .scheduleRestTimerDoneNotification(secondsFromNow: seconds);
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_targetRestEndTime != null) {
@@ -733,18 +723,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           timer.cancel();
           _remainingRestSeconds = 0;
           _showRestDone = true;
+          
           if (_isAppInForeground) {
-            LocalNotificationService.instance.cancelRestTimerNotification();
-            try {
-              unawaited(LocalNotificationService.instance
-                  .showRestTimerDoneNotification(foreground: true));
-            } catch (_) {}
             try {
               unawaited(HapticFeedbackService.instance.vibrate());
             } catch (_) {}
-          } else {
-            LocalNotificationService.instance.showRestTimerDoneNotification();
           }
+          
           _restDoneBannerTimer = Timer(const Duration(seconds: 10), () {
             _showRestDone = false;
             notifyListeners();
@@ -771,20 +756,16 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       _targetRestEndTime =
           _targetRestEndTime!.add(Duration(seconds: deltaSeconds));
     }
+    
+    LocalNotificationService.instance.cancelRestTimerNotification();
+    
     if (_remainingRestSeconds <= 0) {
       _remainingRestSeconds = 0;
       _restTimer?.cancel();
       if (_isAppInForeground) {
-        LocalNotificationService.instance.cancelRestTimerNotification();
-        try {
-          unawaited(LocalNotificationService.instance
-              .showRestTimerDoneNotification(foreground: true));
-        } catch (_) {}
         try {
           unawaited(HapticFeedbackService.instance.vibrate());
         } catch (_) {}
-      } else {
-        LocalNotificationService.instance.showRestTimerDoneNotification();
       }
       _showRestDone = true;
       _restDoneBannerTimer = Timer(const Duration(seconds: 10), () {
@@ -792,11 +773,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         notifyListeners();
       });
     } else {
-      if (!_isAppInForeground) {
-        LocalNotificationService.instance.scheduleRestTimerDoneNotification(
-          secondsFromNow: _remainingRestSeconds,
-        );
-      }
+      LocalNotificationService.instance.scheduleRestTimerDoneNotification(
+        secondsFromNow: _remainingRestSeconds,
+      );
     }
     notifyListeners();
   }

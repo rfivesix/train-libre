@@ -124,12 +124,14 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
 
         // Find the currently selected item or fall back to the first item
         DropdownMenuItem<T>? selectedItem;
-        try {
-          selectedItem = items.firstWhere((item) => item.value == state.value);
-        } catch (_) {
-          if (items.isNotEmpty) {
-            selectedItem = items.first;
+        for (final item in items) {
+          if (item.value == state.value) {
+            selectedItem = item;
+            break;
           }
+        }
+        if (selectedItem == null && items.isNotEmpty) {
+          selectedItem = items.first;
         }
 
         final selectedText =

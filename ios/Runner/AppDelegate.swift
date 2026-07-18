@@ -14,23 +14,8 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    if #available(iOS 10.0, *) {
-      UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
-    }
     configureChannelsIfNeeded()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
-
-  override func userNotificationCenter(
-    _ center: UNUserNotificationCenter,
-    willPresent notification: UNNotification,
-    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
-  ) {
-    if #available(iOS 14.0, *) {
-      completionHandler([.banner, .list, .badge, .sound])
-    } else {
-      completionHandler([.alert, .badge, .sound])
-    }
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {

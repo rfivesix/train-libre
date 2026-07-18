@@ -64,22 +64,28 @@ class DetectPersonalRecordUseCase {
     if (currentWeight > 0) {
       final oldMaxWeight = historicalBests['maxWeight'] ?? 0.0;
       if (currentWeight > oldMaxWeight) {
-        isMaxWeightPR = true;
-        weightDiff = oldMaxWeight > 0 ? currentWeight - oldMaxWeight : null;
+        if (oldMaxWeight > 0) {
+          isMaxWeightPR = true;
+          weightDiff = currentWeight - oldMaxWeight;
+        }
         historicalBests['maxWeight'] = currentWeight; // Updating local map
       }
 
       final oldMaxVolume = historicalBests['maxVolume'] ?? 0.0;
       if (currentVolume > oldMaxVolume) {
-        isMaxVolumePR = true;
-        volumeDiff = oldMaxVolume > 0 ? currentVolume - oldMaxVolume : null;
+        if (oldMaxVolume > 0) {
+          isMaxVolumePR = true;
+          volumeDiff = currentVolume - oldMaxVolume;
+        }
         historicalBests['maxVolume'] = currentVolume;
       }
 
       final oldMaxEst1rm = historicalBests['maxEst1rm'] ?? 0.0;
       if (currentEst1rm > oldMaxEst1rm) {
-        isMaxEst1RMPR = true;
-        est1rmDiff = oldMaxEst1rm > 0 ? currentEst1rm - oldMaxEst1rm : null;
+        if (oldMaxEst1rm > 0) {
+          isMaxEst1RMPR = true;
+          est1rmDiff = currentEst1rm - oldMaxEst1rm;
+        }
         historicalBests['maxEst1rm'] = currentEst1rm;
       }
     }
@@ -87,25 +93,29 @@ class DetectPersonalRecordUseCase {
     if (currentDistance > 0 || currentDuration > 0) {
       final oldMaxDistance = historicalBests['maxDistance'] ?? 0.0;
       if (currentDistance > oldMaxDistance) {
-        isMaxDistancePR = true;
-        distanceDiff =
-            oldMaxDistance > 0 ? currentDistance - oldMaxDistance : null;
+        if (oldMaxDistance > 0) {
+          isMaxDistancePR = true;
+          distanceDiff = currentDistance - oldMaxDistance;
+        }
         historicalBests['maxDistance'] = currentDistance;
       }
 
       final oldMaxDuration = historicalBests['maxDuration']?.toInt() ?? 0;
       if (currentDuration > oldMaxDuration) {
-        isMaxDurationPR = true;
-        durationDiff =
-            oldMaxDuration > 0 ? currentDuration - oldMaxDuration : null;
+        if (oldMaxDuration > 0) {
+          isMaxDurationPR = true;
+          durationDiff = currentDuration - oldMaxDuration;
+        }
         historicalBests['maxDuration'] = currentDuration.toDouble();
       }
 
       final oldFastestPace = historicalBests['fastestPace'] ?? 0.0;
       if (currentPace != double.infinity &&
           (oldFastestPace == 0.0 || currentPace < oldFastestPace)) {
-        isFastestPacePR = true;
-        paceDiff = oldFastestPace > 0 ? oldFastestPace - currentPace : null;
+        if (oldFastestPace > 0) {
+          isFastestPacePR = true;
+          paceDiff = oldFastestPace - currentPace;
+        }
         historicalBests['fastestPace'] = currentPace;
       }
     }
@@ -118,7 +128,7 @@ class DetectPersonalRecordUseCase {
           exerciseName: currentSet.exerciseName,
           recordType: "Best Max Weight",
           achievementValue:
-              "{\${unitService.convertDisplayValue(currentWeight, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}} ${unitService.suffixFor(UnitDimension.weight)}",
+              "${unitService.convertDisplayValue(currentWeight, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}",
           diff: weightDiff,
         ));
       }
@@ -127,7 +137,7 @@ class DetectPersonalRecordUseCase {
           exerciseName: currentSet.exerciseName,
           recordType: "Best Volume Set",
           achievementValue:
-              "{\${unitService.convertDisplayValue(currentVolume, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}} ${unitService.suffixFor(UnitDimension.weight)}",
+              "${unitService.convertDisplayValue(currentVolume, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}",
           diff: volumeDiff,
         ));
       }
@@ -136,7 +146,7 @@ class DetectPersonalRecordUseCase {
           exerciseName: currentSet.exerciseName,
           recordType: "Best 1-Rep Max",
           achievementValue:
-              "{\${unitService.convertDisplayValue(currentEst1rm, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}} ${unitService.suffixFor(UnitDimension.weight)}",
+              "${unitService.convertDisplayValue(currentEst1rm, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}",
           diff: est1rmDiff,
         ));
       }

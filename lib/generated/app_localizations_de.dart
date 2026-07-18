@@ -5648,7 +5648,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Hier behältst du den Überblick über deine Ernährung und Flüssigkeitszufuhr.';
 
   @override
-  String get emptyStateActiveGapOverlay => 'Keine Daten für diesen Zeitraum';
+  String get emptyStateActiveGapOverlay =>
+      'Keine Daten für diesen Zeitraum verfügbar';
 
   @override
   String get emptyStateDiaryColdStartCallToAction =>

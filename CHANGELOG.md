@@ -4,6 +4,42 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-alpha.13] - 2026-07-19
+
+## [1.0.0-alpha.12] - 2026-07-17
+
+### Added
+- **Background Tasks:** Added `workmanager` integration to schedule periodic background tasks on iOS and Android. The Adaptive Nutrition TDEE recalculation is now scheduled to run in the background.
+- **Accessibility:** Added localized tooltips to the diary date navigator to improve screen reader support and usability.
+- **Accessibility:** Added missing tooltips to IconButtons app-wide for improved screen reader support.
+
+### Changed
+- **Performance:** Optimized the processing of active entries in the Diary view model.
+- **Performance:** Eliminated redundant loops and iterations in the `CalculateDailyNutritionUseCase`, significantly improving the performance of daily nutrition calculations.
+- **Performance:** Removed expensive try-catch blocks in favor of null-safe searching for `firstWhere` control flow.
+
+### Fixed
+- **Onboarding:** Added a loading spinner to the "Next" button on the region selection page during database update checks, preventing the app from appearing frozen.
+- **Backups:** Fixed an issue where routine pause timers (`pauseSeconds`) and exercise notes within routines were not correctly exported/imported via JSON backup.
+- **Live Workout:** Fixed a string interpolation bug that caused new Personal Records to always display as "1 kg" (or "1 km").
+- **Live Workout:** Changed Personal Record logic so that establishing a baseline (logging an exercise for the very first time) no longer triggers a "New Record" notification. Only subsequent improvements will trigger it.
+- **Statistics:** Improved the empty state UI in the Statistics Hub. The active gap overlay label now reads "Keine Daten für diesen Zeitraum verfügbar" to match the Diary screen.
+- **Empty States:** Fixed the "Cold Start" empty state layout. The tutorial arrow now points exactly to the center of the "+" FAB, and the height calculations have been refined to lift the arrow tip cleanly above the FAB on both the Diary and Statistics screens.
+- **Empty States:** Replaced the loading `CircularProgressIndicator` during initialization (cold start loading) on both the Diary and Statistics screens with a shimmering skeleton card layout (`Skeletonizer`), eliminating the crude spinners and ensuring smooth visual transitions.
+- **Statistics:** Fixed a bug where the Statistics screen would not automatically refresh after tracking a new workout or logging diary entries. Switching to the statistics tab now triggers a fresh reload of the data, which is delayed by 300ms to allow the bottom navigation bar animations to finish smoothly without drop frames (jank).
+- **Diary Supplements:** Restored the expected UI behavior for supplements on the Diary screen. Supplements with a `dailyGoal` or no limit are now displayed as checkmark cards again, and only supplements with a specific `dailyLimit` (e.g., Caffeine) are shown as progress bars.
+- **Notifications:** Fixed an issue where rest timer notifications on iOS would only trigger or double-trigger when returning to the app. Notifications are now correctly scheduled and foreground banners are cleanly suppressed.
+- **Adaptive Pickers:** Removed redundant manual haptic feedback calls from the adaptive date, time, and timeframe pickers to prevent double haptics when scrolling.
+- **Security:** Fixed a high-severity SQL injection vulnerability in the backup import flow by strictly validating table and column names.
+- **Empty States:** Replaced all legacy single-text empty-state placeholders across the app with the new premium `ColdStartEmptyState` glassmorphic hero component. Affected screens: Edit Routine, Food Explorer (Recents, Favorites, and Recipes/Meals tabs).
+- **Empty States:** The `ColdStartEmptyState` now supports an optional `showArrow` parameter (default: `true`). This allows the tutorial curved arrow to be hidden on read-only or context-inappropriate screens (e.g., Recents and Favorites tabs in the Food Explorer).
+- **Empty States:** The `SeamlessLoadingOverlay` widget now renders the underlying child wrapped in a `Skeletonizer` shimmer as the cold-start loading state, replacing the previous `CircularProgressIndicator` fallback. All analytics detail screens (Recovery Tracker, PR Dashboard, Consistency Tracker, Muscle Group Analytics) automatically benefit from this change.
+- **Statistics Hub:** All statistics section cards (Steps, Sleep, Pulse, Consistency, Volume/Muscles, Performance, Body Metrics) now always render as full cards even when tracking is disabled or data is absent. Instead of hiding or collapsing, each card renders its content behind a premium `CardEmptyStateOverlay` — a glassmorphic `BackdropFilter` with a pill-shaped message explaining the state (e.g., "No data available for this period" or "Enable step tracking in Settings"). The shimmer skeleton is preserved under the overlay for a premium feel.
+- **Statistics Hub (Refinement):** Steps, Sleep, and Pulse cards (and their section headers) are now **completely hidden** from the Statistics Hub when the respective tracking feature is disabled in Settings — no empty state placeholder at all. When the feature **is** enabled but no data was logged in the selected time range, the card renders with a uniform glassmorphic `CardEmptyStateOverlay` reading "Keine Daten für diesen Zeitraum verfügbar". The Recovery (Muskel-Bereitschaft) card now also uses this overlay instead of its previous inline no-data text label.
+
+
+
+
 ## [1.0.0-alpha.11] - 2026-07-15
 
 ### Added
