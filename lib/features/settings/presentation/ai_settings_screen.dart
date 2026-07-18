@@ -557,6 +557,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 ),
                                 if (_hasKey)
                                   IconButton(
+                                    tooltip: l10n.delete,
                                     icon: const Icon(
                                       LucideIcons.trash_2,
                                       color: Colors.red,

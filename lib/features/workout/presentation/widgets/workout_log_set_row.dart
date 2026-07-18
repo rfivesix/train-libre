@@ -226,6 +226,7 @@ class WorkoutLogSetRow extends StatelessWidget {
             width: 48,
             child: isEditMode
                 ? IconButton(
+                    tooltip: AppLocalizations.of(context)!.delete,
                     icon: const Icon(
                       LucideIcons.trash_2,
                       color: DesignConstants.brandRedColor,

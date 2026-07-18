@@ -535,6 +535,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             automaticallyImplyLeading:
                 false, // We will provide our own back button
             leading: IconButton(
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               icon: const Icon(LucideIcons.arrow_left),
               onPressed: _handleBack,
             ),
