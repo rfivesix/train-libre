@@ -7,3 +7,6 @@
 ## 2024-11-20 - Set Building over Iterable Pipelines
 **Learning:** High-frequency rendering view models often use `where(...).toList()` paired with `.map(...).toSet().toList()` to filter distinct data subsets from a master list (like getting unique IDs from active entities). This O(4N) pipeline generates numerous intermediate arrays to be GC'd.
 **Action:** Replace functional-style `.where(...).toList().map(...)` chains with a single `for` loop that evaluates the condition and directly `add`s elements into native `Set` objects, cutting traversal down to O(N) and averting list allocation.
+## 2024-05-18 - Avoid try-catch for control flow
+**Learning:** Using `try-catch` blocks for control flow, particularly catching `StateError` from `firstWhere` when an item is not found, incurs a significant performance overhead in Dart. This is due to the generation of stack traces when an exception is thrown. In hot paths like Flutter's `build` methods or reactive view models (like `PlatformAdaptiveDropdownFormField` or `DiaryViewModel`), this can cause noticeable main-thread blocking and frame drops.
+**Action:** Always prefer manual loops (`for (final item in items) { ... break; }`) or `collection` package helpers (like `firstWhereOrNull`) over `try-catch` with `firstWhere` to gracefully handle missing elements without throwing exceptions.
