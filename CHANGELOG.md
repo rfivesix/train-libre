@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.13] - 2026-07-19
 
+### Changed
+- **Dependencies:** Removed deprecated `isInDebugMode` flag from `Workmanager` initialization.
+
+### Fixed
+- **Code Quality:** Fixed unchecked nullable value accesses in daily nutrition logging.
+- **Code Quality:** Removed duplicate tooltip arguments from Diary Screen icon buttons.
 ## [1.0.0-alpha.12] - 2026-07-17
 
 ### Added
