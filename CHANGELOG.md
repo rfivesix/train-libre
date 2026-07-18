@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - **Dependencies:** Removed deprecated `isInDebugMode` flag from `Workmanager` initialization.
+- **Empty States & Skeletonizer:** Harmonized Empty State & Skeletonizer architecture across remaining screens. Replaced legacy blank empty states with interactive/read-only `ColdStartEmptyState` and page-body `Skeletonizer` + `ActiveGapOverlay` combos while preserving timeframe filter interactivity on Routines, Workouts History, Meal, Sleep, Measurements, and Analytics detail views.
 
 ### Fixed
 - **Code Quality:** Fixed unchecked nullable value accesses in daily nutrition logging.

@@ -657,7 +657,6 @@ class StatisticsHubViewModel extends ChangeNotifier {
     try {
       final rangeContext = await rangeContextFuture;
       rangeLabel = '${rangeContext.daysBack}d';
-      final endDate = DateTime.now();
       final results = await Future.wait<dynamic>([
         _stepsRepository.getRangeAggregation(
           endDate: rangeContext.endDate,

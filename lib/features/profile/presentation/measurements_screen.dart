@@ -1,5 +1,6 @@
-// lib/features/profile/presentation/measurements_screen.dart
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import '../../analytics/domain/models/chart_data_point.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../domain/repositories/profile_repository.dart';
@@ -212,15 +213,52 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
+    final hasNoData = _filteredSessions.isEmpty;
+    final displaySessions = hasNoData ? getMockSessions(_activeDateRange) : _filteredSessions;
+
+    Widget bodyContent = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Chart (follows same date range) ──
+        _buildChartSection(l10n, colorScheme, textTheme),
+        const SizedBox(height: DesignConstants.spacingXL),
+
+        // ── Session list header ──
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.screenPaddingHorizontal,
+          ),
+          child: AppSectionHeader(title: l10n.all_measurements),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+
+        // ── Filtered/Mock sessions ──
+        ...displaySessions.map(
+          (session) => _buildSessionCard(
+              l10n, colorScheme, textTheme, session),
+        ),
+        const BottomContentSpacer(),
+      ],
+    );
+
+    if (hasNoData) {
+      bodyContent = ActiveGapOverlay(
+        message: l10n.emptyStateActiveGapOverlay,
+        background: Skeletonizer(
+          enabled: true,
+          child: IgnorePointer(child: bodyContent),
+        ),
+      );
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.measurementsScreenTitle),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,
-        isEmpty: _sessions.isEmpty,
+        isEmpty: false, // Handle empty state at timeframe/content level
         extendBodyBehindAppBar: true,
-        fallback: _buildEmptyState(l10n, context),
         child: CustomScrollView(
           slivers: [
             SliverPadding(
@@ -270,41 +308,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                     showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
                   ),
                   const SizedBox(height: DesignConstants.spacingL),
-
-                  // ── Chart (follows same date range) ──
-                  if (_availableMeasurementTypes.isNotEmpty) ...[
-                    _buildChartSection(l10n, colorScheme, textTheme),
-                    const SizedBox(height: DesignConstants.spacingXL),
-                  ],
-
-                  // ── Session list header ──
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.screenPaddingHorizontal,
-                    ),
-                    child: AppSectionHeader(title: l10n.all_measurements),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-
-                  // ── Filtered sessions ──
-                  ..._filteredSessions.map(
-                    (session) => _buildSessionCard(
-                        l10n, colorScheme, textTheme, session),
-                  ),
-                  if (_filteredSessions.isEmpty)
-                    Padding(
-                      padding: DesignConstants.cardPadding,
-                      child: Center(
-                        child: Text(
-                          l10n.measurementsEmptyState,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  const BottomContentSpacer(),
+                  bodyContent,
                 ]),
               ),
             ),
@@ -319,38 +323,15 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     );
   }
 
-  Widget _buildEmptyState(AppLocalizations l10n, BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: DesignConstants.cardPadding,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              l10n.measurementsEmptyState,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
-            AppButton.primary(
-              onPressed: () => _showMeasurementBottomMenu(),
-              label: l10n.addMeasurement,
-              tooltip: l10n.addMeasurement,
-              icon: LucideIcons.plus,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildChartSection(
     AppLocalizations l10n,
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
     final unitService = context.watch<UnitService>();
-    if (_selectedChartType == null) return const SizedBox.shrink();
+    final chartType = _displayChartType;
+    final types = _displayMeasurementTypes;
+    final hasNoData = _filteredSessions.isEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,14 +341,13 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             horizontal: DesignConstants.screenPaddingHorizontal,
           ),
           child: PlatformAdaptiveDropdownFormField<String>(
-            value: _selectedChartType,
+            value: chartType,
             onChanged: (String? newValue) {
               if (newValue != null) {
                 setState(() => _selectedChartType = newValue);
               }
             },
-            items: _availableMeasurementTypes
-                .map<DropdownMenuItem<String>>((String value) {
+            items: types.map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(l10n.getLocalizedMeasurementName(value)),
@@ -376,13 +356,20 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
           ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
-        MeasurementChartWidget(
-          chartType: _selectedChartType!,
-          dateRange: _activeDateRange,
-          unit: _getMeasurementUnit(_selectedChartType!, unitService),
-          repository: _repository,
-          edgeToEdge: true,
-        ),
+        if (hasNoData)
+          MeasurementChartWidget.fromData(
+            dataPoints: _getMockChartDataPoints(chartType, _activeDateRange),
+            unit: _getMeasurementUnit(chartType, unitService),
+            edgeToEdge: true,
+          )
+        else
+          MeasurementChartWidget(
+            chartType: chartType,
+            dateRange: _activeDateRange,
+            unit: _getMeasurementUnit(chartType, unitService),
+            repository: _repository,
+            edgeToEdge: true,
+          ),
       ],
     );
   }
@@ -547,6 +534,54 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       default:
         return LucideIcons.ruler;
     }
+  }
+
+  List<MeasurementSession> getMockSessions(DateTimeRange range) {
+    final start = range.start;
+    final end = range.end;
+    final duration = end.difference(start);
+    final step = duration.inDays ~/ 4;
+
+    return List.generate(3, (i) {
+      final date = start.add(Duration(days: (i + 1) * step));
+      return MeasurementSession(
+        id: i,
+        timestamp: date,
+        measurements: [
+          Measurement(sessionId: i, type: 'weight', value: 80.0 - i * 0.5, unit: 'kg'),
+          Measurement(sessionId: i, type: 'fat_percent', value: 15.0 - i * 0.1, unit: '%'),
+          Measurement(sessionId: i, type: 'waist', value: 88.0 - i * 0.2, unit: 'cm'),
+        ],
+      );
+    });
+  }
+
+  List<ChartDataPoint> _getMockChartDataPoints(String chartType, DateTimeRange range) {
+    final start = range.start;
+    final end = range.end;
+    final duration = end.difference(start);
+    final step = duration.inDays ~/ 4;
+
+    double baseValue = 75.0;
+    if (chartType == 'fat_percent') { baseValue = 15.0; }
+    else if (chartType == 'waist') { baseValue = 85.0; }
+    else if (chartType == 'neck') { baseValue = 38.0; }
+    else if (chartType == 'chest') { baseValue = 100.0; }
+
+    return List.generate(4, (i) {
+      final date = start.add(Duration(days: (i + 1) * step));
+      final double variation = i * 0.3 - 0.5;
+      return ChartDataPoint(date: date, value: baseValue + variation);
+    });
+  }
+
+  List<String> get _displayMeasurementTypes {
+    if (_availableMeasurementTypes.isNotEmpty) return _availableMeasurementTypes;
+    return ['weight', 'fat_percent', 'waist'];
+  }
+
+  String get _displayChartType {
+    return _selectedChartType ?? 'weight';
   }
 }
 

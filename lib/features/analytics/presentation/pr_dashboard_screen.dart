@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import '../../statistics/presentation/statistics_formatter.dart';
@@ -111,14 +112,35 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
+    final hasNoData = _recentPrs.isEmpty && _allTimePrs.isEmpty && _notableImprovements.isEmpty;
+    final displayNotable = hasNoData ? getMockNotableImprovements() : _notableImprovements;
+    final displayRecent = hasNoData ? getMockRecentPrs() : _recentPrs;
+    final displayAllTime = hasNoData ? getMockAllTimePrs() : _allTimePrs;
+    final displayByRepRange = hasNoData ? getMockPrsByRepRange() : _prsByRepRange;
+
+    Widget bodyContent = _buildBodyContent(
+      displayNotable,
+      displayRecent,
+      displayAllTime,
+      displayByRepRange,
+    );
+
+    if (hasNoData) {
+      bodyContent = ActiveGapOverlay(
+        message: "Keine Bestleistungen in diesem Zeitraum",
+        background: Skeletonizer(
+          enabled: true,
+          child: IgnorePointer(child: bodyContent),
+        ),
+      );
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.prDashboardTitle),
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,
-        isEmpty: _recentPrs.isEmpty &&
-            _allTimePrs.isEmpty &&
-            _notableImprovements.isEmpty,
+        isEmpty: false, // Handle empty state at timeframe/content level
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
           padding: DesignConstants.screenPadding.copyWith(
@@ -224,144 +246,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                 showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
               ),
               const SizedBox(height: DesignConstants.spacingS),
-              SummaryCard(
-                child: _notableImprovements.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(DesignConstants.spacingM),
-                        child: Text(l10n.analyticsNoPrTrendInWindow),
-                      )
-                    : Column(
-                        children: _notableImprovements.asMap().entries.map((
-                          entry,
-                        ) {
-                          final row = entry.value;
-                          final previous =
-                              (row['previousBestE1rm'] as num).toDouble();
-                          final recent =
-                              (row['recentBestE1rm'] as num).toDouble();
-                          final improvement =
-                              (row['improvementPct'] as num).toDouble();
-                          final delta = recent - previous;
-
-                          return ListTile(
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                            /*
-                                leading: entry.key == _topMomentumIndex
-                                    ? Icon(
-                                        LucideIcons.trending_up,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                      )
-                                    : null,
-                                */
-                            title: Text(
-                              row['exerciseName'] as String,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              l10n.analyticsE1rmProgress(
-                                StatisticsPresentationFormatter.formatWeight(
-                                  previous,
-                                ),
-                                StatisticsPresentationFormatter.formatWeight(
-                                  recent,
-                                ),
-                                context
-                                    .read<UnitService>()
-                                    .suffixFor(UnitDimension.weight),
-                              ),
-                            ),
-                            trailing: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '+${improvement.toStringAsFixed(1)}%',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelMedium
-                                      ?.copyWith(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                                Text(
-                                  'Δ ${StatisticsPresentationFormatter.formatWeight(delta)}',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.labelSmall,
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-              ),
-              const SizedBox(height: DesignConstants.spacingL),
-              AppSectionHeader(title: l10n.analyticsRecentRecords),
-              SummaryCard(
-                child: _recentPrs.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(DesignConstants.spacingM),
-                        child: Text(l10n.noWorkoutDataLabel),
-                      )
-                    : Column(
-                        children: _recentPrs.asMap().entries.map((entry) {
-                          return _buildRankedRow(
-                            rank: entry.key + 1,
-                            exerciseName: entry.value['exerciseName'] as String,
-                            valueLabel: _perfLabel(entry.value),
-                          );
-                        }).toList(),
-                      ),
-              ),
-              const SizedBox(height: DesignConstants.spacingL),
-              AppSectionHeader(title: l10n.allTimeRecordsLabel),
-              _allTimePrs.isEmpty
-                  ? Text(
-                      l10n.noWorkoutDataLabel,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    )
-                  : _buildTwoColumnGrid(
-                      _allTimePrs.asMap().entries.map((entry) {
-                        return ValueSummaryCard(
-                          label: '#${entry.key + 1}',
-                          value: _perfLabel(entry.value),
-                          subtitle: entry.value['exerciseName'] as String,
-                        );
-                      }).toList(),
-                    ),
-              const SizedBox(height: DesignConstants.spacingL),
-              AppSectionHeader(title: l10n.prsByRepRangeLabel),
-              _buildTwoColumnGrid(
-                _prsByRepRange.entries.map((entry) {
-                  final data = entry.value;
-                  final hasData = data != null;
-                  return ValueSummaryCard(
-                    label: entry.key.replaceAll(
-                      'RM',
-                      l10n.analyticsRepRangeSuffix,
-                    ),
-                    value: hasData
-                        ? l10n.analyticsPerfWithReps(
-                            StatisticsPresentationFormatter.formatWeight(
-                              (data['weight'] as num).toDouble(),
-                            ),
-                            (data['reps'] as num).toInt(),
-                            context
-                                .read<UnitService>()
-                                .suffixFor(UnitDimension.weight),
-                          )
-                        : '–',
-                    subtitle: hasData
-                        ? data['exerciseName'] as String
-                        : l10n.analyticsNoRecordYet,
-                  );
-                }).toList(),
-              ),
+              bodyContent,
             ],
           ),
         ),
@@ -428,6 +313,210 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  List<Map<String, dynamic>> getMockNotableImprovements() {
+    return [
+      {
+        'exerciseName': 'Bankdrücken',
+        'previousBestE1rm': 80.0,
+        'recentBestE1rm': 85.0,
+        'improvementPct': 6.25,
+      },
+      {
+        'exerciseName': 'Kniebeuge',
+        'previousBestE1rm': 100.0,
+        'recentBestE1rm': 108.0,
+        'improvementPct': 8.0,
+      },
+    ];
+  }
+
+  List<Map<String, dynamic>> getMockRecentPrs() {
+    return [
+      {
+        'exerciseName': 'Bankdrücken',
+        'weight': 82.5,
+        'reps': 5,
+        'calculatedE1rm': 92.8,
+      },
+      {
+        'exerciseName': 'Kniebeuge',
+        'weight': 105.0,
+        'reps': 3,
+        'calculatedE1rm': 111.3,
+      },
+    ];
+  }
+
+  List<Map<String, dynamic>> getMockAllTimePrs() {
+    return [
+      {
+        'exerciseName': 'Bankdrücken',
+        'weight': 85.0,
+        'reps': 3,
+        'calculatedE1rm': 90.1,
+      },
+      {
+        'exerciseName': 'Kniebeuge',
+        'weight': 110.0,
+        'reps': 2,
+        'calculatedE1rm': 113.7,
+      },
+    ];
+  }
+
+  Map<String, Map<String, dynamic>?> getMockPrsByRepRange() {
+    return {
+      '1RM': {'exerciseName': 'Kniebeuge', 'weight': 115.0, 'reps': 1},
+      '2RM': {'exerciseName': 'Bankdrücken', 'weight': 85.0, 'reps': 2},
+      '3RM': {'exerciseName': 'Kniebeuge', 'weight': 105.0, 'reps': 3},
+      '5RM': {'exerciseName': 'Kreuzheben', 'weight': 130.0, 'reps': 5},
+      '8RM': null,
+      '10RM': null,
+      '12RM': null,
+    };
+  }
+
+  Widget _buildBodyContent(
+    List<Map<String, dynamic>> notableImprovements,
+    List<Map<String, dynamic>> recentPrs,
+    List<Map<String, dynamic>> allTimePrs,
+    Map<String, Map<String, dynamic>?> prsByRepRange,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SummaryCard(
+          child: notableImprovements.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(DesignConstants.spacingM),
+                  child: Text(l10n.analyticsNoPrTrendInWindow),
+                )
+              : Column(
+                  children: notableImprovements.asMap().entries.map((
+                    entry,
+                  ) {
+                    final row = entry.value;
+                    final previous =
+                        (row['previousBestE1rm'] as num).toDouble();
+                    final recent =
+                        (row['recentBestE1rm'] as num).toDouble();
+                    final improvement =
+                        (row['improvementPct'] as num).toDouble();
+                    final delta = recent - previous;
+
+                    return ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        row['exerciseName'] as String,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        l10n.analyticsE1rmProgress(
+                          StatisticsPresentationFormatter.formatWeight(
+                            previous,
+                          ),
+                          StatisticsPresentationFormatter.formatWeight(
+                            recent,
+                          ),
+                          context
+                              .read<UnitService>()
+                              .suffixFor(UnitDimension.weight),
+                        ),
+                      ),
+                      trailing: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '+${improvement.toStringAsFixed(1)}%',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          Text(
+                            'Δ ${StatisticsPresentationFormatter.formatWeight(delta)}',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.labelSmall,
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
+        AppSectionHeader(title: l10n.analyticsRecentRecords),
+        SummaryCard(
+          child: recentPrs.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(DesignConstants.spacingM),
+                  child: Text(l10n.noWorkoutDataLabel),
+                )
+              : Column(
+                  children: recentPrs.asMap().entries.map((entry) {
+                    return _buildRankedRow(
+                      rank: entry.key + 1,
+                      exerciseName: entry.value['exerciseName'] as String,
+                      valueLabel: _perfLabel(entry.value),
+                    );
+                  }).toList(),
+                ),
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
+        AppSectionHeader(title: l10n.allTimeRecordsLabel),
+        allTimePrs.isEmpty
+            ? Text(
+                l10n.noWorkoutDataLabel,
+                style: Theme.of(context).textTheme.bodyMedium,
+              )
+            : _buildTwoColumnGrid(
+                allTimePrs.asMap().entries.map((entry) {
+                  return ValueSummaryCard(
+                    label: '#${entry.key + 1}',
+                    value: _perfLabel(entry.value),
+                    subtitle: entry.value['exerciseName'] as String,
+                  );
+                }).toList(),
+              ),
+        const SizedBox(height: DesignConstants.spacingL),
+        AppSectionHeader(title: l10n.prsByRepRangeLabel),
+        _buildTwoColumnGrid(
+          prsByRepRange.entries.map((entry) {
+            final data = entry.value;
+            final hasData = data != null;
+            return ValueSummaryCard(
+              label: entry.key.replaceAll(
+                'RM',
+                l10n.analyticsRepRangeSuffix,
+              ),
+              value: hasData
+                  ? l10n.analyticsPerfWithReps(
+                      StatisticsPresentationFormatter.formatWeight(
+                        (data['weight'] as num).toDouble(),
+                      ),
+                      (data['reps'] as num).toInt(),
+                      context
+                          .read<UnitService>()
+                          .suffixFor(UnitDimension.weight),
+                    )
+                  : '–',
+              subtitle: hasData
+                  ? data['exerciseName'] as String
+                  : l10n.analyticsNoRecordYet,
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

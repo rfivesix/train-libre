@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../statistics/domain/analytics_state.dart';
@@ -143,30 +144,59 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    final thisWeek = _trainingStats.thisWeekCount;
-    final avgPerWeek = _trainingStats.avgPerWeek;
-    final streak = _trainingStats.streakWeeks;
-    final total = _trainingStats.totalWorkouts;
-    final trainingDaysPerWeek =
-        ConsistencyDomainService.computeTrainingDaysPerWeekLast4(
-      workoutDayCounts: _workoutDayCounts,
-    );
-    final rhythmDelta = ConsistencyDomainService.computeRhythmDelta(
-      weeklyMetrics: _weeklyMetrics,
-    );
-    final rollingConsistency =
-        ConsistencyDomainService.rollingConsistencyPercent(
-      weeklyMetrics: _weeklyMetrics,
-    );
+    final hasNoData = _weeklyMetrics.isEmpty;
+    final bounds = _isRolling
+        ? _activeBlock.getRollingBounds()
+        : _activeBlock.getBounds(_anchorDate, DateTime(2020));
+    final displayMetrics = hasNoData ? getMockWeeklyMetrics(bounds) : _weeklyMetrics;
+    final displayStats = hasNoData ? getMockTrainingStats() : _trainingStats;
+
+
+    final trainingDaysPerWeek = hasNoData
+        ? 2.5
+        : ConsistencyDomainService.computeTrainingDaysPerWeekLast4(
+            workoutDayCounts: _workoutDayCounts,
+          );
+    final rhythmDelta = hasNoData
+        ? 0.5
+        : ConsistencyDomainService.computeRhythmDelta(
+            weeklyMetrics: _weeklyMetrics,
+          );
+    final rollingConsistency = hasNoData
+        ? 80.0
+        : ConsistencyDomainService.rollingConsistencyPercent(
+            weeklyMetrics: _weeklyMetrics,
+          );
+
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
+
+    Widget bodyContent = _buildBodyContent(
+      context,
+      displayStats,
+      displayMetrics,
+      trainingDaysPerWeek,
+      rhythmDelta,
+      rollingConsistency,
+      l10n,
+    );
+
+    if (hasNoData) {
+      bodyContent = ActiveGapOverlay(
+        message: "Keine Trainingskonsistenz für diesen Zeitraum",
+        background: Skeletonizer(
+          enabled: true,
+          child: IgnorePointer(child: bodyContent),
+        ),
+      );
+    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.consistencyTrackerTitle),
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,
-        isEmpty: _weeklyMetrics.isEmpty,
+        isEmpty: false, // Handle empty state at timeframe/content level
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
           padding: DesignConstants.screenPadding.copyWith(
@@ -261,389 +291,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             .start),
               ),
               const SizedBox(height: DesignConstants.spacingM),
-              AppSectionHeader(title: l10n.analyticsKpisHeader),
-              Column(
-                children: [
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: ValueSummaryCard(
-                            label: l10n.metricsWorkoutsWeek,
-                            value: '$thisWeek',
-                            subtitle: l10n.thisWeekLabel,
-                          ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingS),
-                        Expanded(
-                          child: ValueSummaryCard(
-                            label: l10n.streakLabel,
-                            value: '$streak',
-                            subtitle: l10n.weeksLabel,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: ValueSummaryCard(
-                            label: l10n.analyticsRollingConsistency,
-                            value: '${rollingConsistency.toStringAsFixed(0)}%',
-                            subtitle: l10n.analyticsWeeksAtLeast2Workouts,
-                          ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingS),
-                        Expanded(
-                          child: ValueSummaryCard(
-                            label: l10n.analyticsTrainingDaysPerWeek,
-                            value: trainingDaysPerWeek.toStringAsFixed(1),
-                            subtitle: l10n.analyticsLast4Weeks,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: ValueSummaryCard(
-                            label: l10n.avgPerWeekLabel,
-                            value: avgPerWeek.toStringAsFixed(1),
-                            subtitle: l10n.workoutsPerWeekLabel,
-                          ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingS),
-                        Expanded(
-                          child: ValueSummaryCard(
-                            label: l10n.analyticsRhythm,
-                            value: ConsistencyDomainService.formatTrend(
-                                rhythmDelta),
-                            subtitle: l10n.analyticsVsPrior4Weeks,
-                            valueColor: rhythmDelta > 0
-                                ? Theme.of(context).colorScheme.primary
-                                : rhythmDelta < 0
-                                    ? Theme.of(context).colorScheme.error
-                                    : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              AppSectionHeader(
-                title: '${_metricName(l10n)} · ${l10n.analyticsViewWeek}',
-              ),
-              PlatformAdaptiveDropdownFormField<_ConsistencyMetric>(
-                value: _selectedMetric,
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedMetric = val);
-                },
-                items: [
-                  DropdownMenuItem(
-                    value: _ConsistencyMetric.volume,
-                    child: Text(l10n.metricsVolumeLifted),
-                  ),
-                  DropdownMenuItem(
-                    value: _ConsistencyMetric.duration,
-                    child: Text(l10n.durationLabel),
-                  ),
-                  DropdownMenuItem(
-                    value: _ConsistencyMetric.frequency,
-                    child: Text(l10n.workoutsPerWeekLabel),
-                  ),
-                ],
-              ),
-              const SizedBox(height: DesignConstants.spacingS),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    '${_metricName(l10n)} (${_metricUnit(l10n)})',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    _isRolling
-                        ? TimeframeLabelFormatter.formatRolling(
-                            _activeBlock, l10n)
-                        : TimeframeLabelFormatter.format(
-                            _activeBlock, _anchorDate, l10n),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-              const SizedBox(height: DesignConstants.spacingXS),
-              RepaintBoundary(
-                child: SizedBox(
-                  height: 210,
-                  child: _weeklyMetrics.isEmpty
-                      ? AnalyticsChartDefaults.stateView(
-                          context: context,
-                          l10n: l10n,
-                          status: AnalyticsStatus.empty,
-                          emptyLabel: l10n.noWorkoutDataLabel,
-                          height: 210,
-                        )
-                      : BarChart(
-                          BarChartData(
-                            alignment: BarChartAlignment.spaceAround,
-                            borderData: AnalyticsChartDefaults.noBorder,
-                            gridData:
-                                AnalyticsChartDefaults.themeAwareCompactGrid(
-                                    context),
-                            barTouchData: BarTouchData(
-                              enabled: true,
-                              touchTooltipData: BarTouchTooltipData(
-                                fitInsideHorizontally: true,
-                                fitInsideVertically: true,
-                                tooltipBorderRadius: BorderRadius.circular(16),
-                                tooltipMargin: 12,
-                                tooltipPadding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 10,
-                                ),
-                                getTooltipColor: (_) {
-                                  final isDark = Theme.of(context).brightness ==
-                                      Brightness.dark;
-                                  return isDark
-                                      ? const Color(0xFF2A2A2A)
-                                      : Theme.of(context)
-                                          .colorScheme
-                                          .surface
-                                          .withValues(alpha: 0.95);
-                                },
-                                tooltipBorder: BorderSide(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.08),
-                                ),
-                                getTooltipItem:
-                                    (group, groupIndex, rod, rodIndex) {
-                                  final i = group.x.toInt();
-                                  if (i < 0 || i >= _weeklyMetrics.length) {
-                                    return null;
-                                  }
-                                  final row = _weeklyMetrics[i];
-                                  return BarTooltipItem(
-                                    '${row.weekLabel}\n${rod.toY.toStringAsFixed(1)} ${_metricUnit(l10n)}',
-                                    Theme.of(context)
-                                            .textTheme
-                                            .labelSmall
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface,
-                                              fontWeight: FontWeight.w600,
-                                            ) ??
-                                        TextStyle(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                  );
-                                },
-                              ),
-                            ),
-                            titlesData: AnalyticsChartDefaults.standardTitles(
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 28,
-                                  getTitlesWidget: (value, meta) =>
-                                      AnalyticsChartDefaults.tickLabel(
-                                    context,
-                                    _formatAxisValue(value),
-                                  ),
-                                ),
-                              ),
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 30,
-                                  getTitlesWidget: (value, meta) {
-                                    final i = value.toInt();
-                                    if (i < 0 || i >= _weeklyMetrics.length) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    final label = _weeklyMetrics[i].weekLabel;
-                                    return AnalyticsChartDefaults.tickLabel(
-                                      context,
-                                      label,
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                            barGroups:
-                                _weeklyMetrics.asMap().entries.map((entry) {
-                              final value = _metricValue(
-                                entry.value,
-                              );
-                              return BarChartGroupData(
-                                x: entry.key,
-                                barRods: [
-                                  BarChartRodData(
-                                    toY: value,
-                                    width: 12,
-                                    borderRadius: BorderRadius.circular(4),
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary
-                                        .withValues(
-                                          alpha: _weeklyBarAlpha(
-                                            index: entry.key,
-                                            total: _weeklyMetrics.length,
-                                          ),
-                                        ),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'X: ${l10n.analyticsViewWeek.toLowerCase()} · ${_isRolling ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n) : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n)}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              AppSectionHeader(title: l10n.trainingCalendarLabel),
-              Text(
-                l10n.analyticsCalendarExplainer,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: DesignConstants.spacingS),
-              _calendarLegend(l10n),
-              const SizedBox(height: DesignConstants.spacingS),
-              SummaryCard(
-                child: RepaintBoundary(
-                  child: TableCalendar<int>(
-                    firstDay: DateTime.now().subtract(
-                      const Duration(days: 365),
-                    ),
-                    lastDay: DateTime.now().add(
-                      const Duration(days: 30),
-                    ),
-                    focusedDay: _focusedDay,
-                    selectedDayPredicate: (day) =>
-                        _selectedDay != null && isSameDay(_selectedDay, day),
-                    eventLoader: (day) {
-                      final count = _dailyCount(day);
-                      if (count <= 0) return const [];
-                      return List<int>.filled(count, 1);
-                    },
-                    headerStyle: HeaderStyle(
-                      titleCentered: true,
-                      formatButtonVisible: false,
-                      titleTextStyle: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(fontWeight: FontWeight.bold) ??
-                          const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    calendarStyle: CalendarStyle(
-                      outsideDaysVisible: false,
-                      defaultTextStyle: Theme.of(context).textTheme.bodySmall ??
-                          const TextStyle(),
-                    ),
-                    calendarBuilders: CalendarBuilders<int>(
-                      defaultBuilder: (context, day, _) {
-                        final count = _dailyCount(day);
-                        if (count <= 0) return null;
-                        final intensity = _calendarIntensityForCount(
-                          count,
-                        );
-                        return Container(
-                          margin: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withValues(alpha: intensity),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '${day.day}',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall,
-                          ),
-                        );
-                      },
-                      markerBuilder: (context, day, events) {
-                        final count = _dailyCount(day);
-                        if (count <= 0) {
-                          return const SizedBox.shrink();
-                        }
-                        return Positioned(
-                          bottom: 3,
-                          child: Text(
-                            count.toString(),
-                            style: Theme.of(
-                              context,
-                            ).textTheme.labelSmall,
-                          ),
-                        );
-                      },
-                    ),
-                    onDaySelected: (selectedDay, focusedDay) {
-                      setState(() {
-                        _selectedDay = selectedDay;
-                        _focusedDay = focusedDay;
-                      });
-                    },
-                    onPageChanged: (focusedDay) {
-                      setState(() => _focusedDay = focusedDay);
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
-                _selectedDay == null
-                    ? l10n.analyticsSelectDayPrompt
-                    : l10n.analyticsSelectedDayWorkouts(
-                        '${_selectedDay!.day}.${_selectedDay!.month}.${_selectedDay!.year}',
-                        _dailyCount(_selectedDay!),
-                      ),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.analyticsTotalSessions,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  Text(
-                    '$total',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
+              bodyContent,
             ],
           ),
         ),
@@ -683,18 +331,398 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     );
   }
 
+  List<WeeklyConsistencyMetricPayload> getMockWeeklyMetrics(DateTimeRange range) {
+    final start = range.start;
+    final end = range.end;
+    final duration = end.difference(start);
+    final weeks = (duration.inDays / 7).ceil().clamp(4, 52);
+
+    return List.generate(weeks, (i) {
+      final date = start.add(Duration(days: i * 7));
+      return WeeklyConsistencyMetricPayload(
+        weekStart: date,
+        weekLabel: 'W${i + 1}',
+        count: i % 3 + 1,
+        durationMinutes: 45.0 + (i % 2) * 15.0,
+        tonnage: 1500.0 + i * 200.0,
+      );
+    });
+  }
+
+  TrainingStatsPayload getMockTrainingStats() {
+    return const TrainingStatsPayload(
+      totalWorkouts: 24,
+      thisWeekCount: 3,
+      avgPerWeek: 2.5,
+      streakWeeks: 4,
+    );
+  }
+
+  Widget _buildBodyContent(
+    BuildContext context,
+    TrainingStatsPayload stats,
+    List<WeeklyConsistencyMetricPayload> weeklyMetrics,
+    double trainingDaysPerWeek,
+    double rhythmDelta,
+    double rollingConsistency,
+    AppLocalizations l10n,
+  ) {
+    final thisWeek = stats.thisWeekCount;
+    final streak = stats.streakWeeks;
+    final avgPerWeek = stats.avgPerWeek;
+    final total = stats.totalWorkouts;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppSectionHeader(title: l10n.analyticsKpisHeader),
+        Column(
+          children: [
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.metricsWorkoutsWeek,
+                      value: '$thisWeek',
+                      subtitle: l10n.thisWeekLabel,
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.streakLabel,
+                      value: '$streak',
+                      subtitle: l10n.weeksLabel,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.analyticsRollingConsistency,
+                      value: '${rollingConsistency.toStringAsFixed(0)}%',
+                      subtitle: l10n.analyticsWeeksAtLeast2Workouts,
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.analyticsTrainingDaysPerWeek,
+                      value: trainingDaysPerWeek.toStringAsFixed(1),
+                      subtitle: l10n.analyticsLast4Weeks,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.avgPerWeekLabel,
+                      value: avgPerWeek.toStringAsFixed(1),
+                      subtitle: l10n.workoutsPerWeekLabel,
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.analyticsRhythm,
+                      value: ConsistencyDomainService.formatTrend(rhythmDelta),
+                      subtitle: l10n.analyticsVsPrior4Weeks,
+                      valueColor: rhythmDelta > 0
+                          ? Theme.of(context).colorScheme.primary
+                          : rhythmDelta < 0
+                              ? Theme.of(context).colorScheme.error
+                              : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        AppSectionHeader(
+          title: '${_metricName(l10n)} · ${l10n.analyticsViewWeek}',
+        ),
+        PlatformAdaptiveDropdownFormField<_ConsistencyMetric>(
+          value: _selectedMetric,
+          onChanged: (val) {
+            if (val != null) setState(() => _selectedMetric = val);
+          },
+          items: [
+            DropdownMenuItem(
+              value: _ConsistencyMetric.volume,
+              child: Text(l10n.metricsVolumeLifted),
+            ),
+            DropdownMenuItem(
+              value: _ConsistencyMetric.duration,
+              child: Text(l10n.durationLabel),
+            ),
+            DropdownMenuItem(
+              value: _ConsistencyMetric.frequency,
+              child: Text(l10n.workoutsPerWeekLabel),
+            ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              '${_metricName(l10n)} (${_metricUnit(l10n)})',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              _isRolling
+                  ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
+                  : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingXS),
+        RepaintBoundary(
+          child: SizedBox(
+            height: 210,
+            child: weeklyMetrics.isEmpty
+                ? AnalyticsChartDefaults.stateView(
+                    context: context,
+                    l10n: l10n,
+                    status: AnalyticsStatus.empty,
+                    emptyLabel: l10n.noWorkoutDataLabel,
+                    height: 210,
+                  )
+                : BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      borderData: AnalyticsChartDefaults.noBorder,
+                      gridData: AnalyticsChartDefaults.themeAwareCompactGrid(context),
+                      barTouchData: BarTouchData(
+                        enabled: true,
+                        touchTooltipData: BarTouchTooltipData(
+                          fitInsideHorizontally: true,
+                          fitInsideVertically: true,
+                          tooltipBorderRadius: BorderRadius.circular(16),
+                          tooltipMargin: 12,
+                          tooltipPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          getTooltipColor: (_) {
+                            final isDark = Theme.of(context).brightness == Brightness.dark;
+                            return isDark
+                                ? const Color(0xFF2A2A2A)
+                                : Theme.of(context).colorScheme.surface.withValues(alpha: 0.95);
+                          },
+                          tooltipBorder: BorderSide(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                          ),
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                            final i = group.x.toInt();
+                            if (i < 0 || i >= weeklyMetrics.length) {
+                              return null;
+                            }
+                            final row = weeklyMetrics[i];
+                            return BarTooltipItem(
+                              '${row.weekLabel}\n${rod.toY.toStringAsFixed(1)} ${_metricUnit(l10n)}',
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ) ??
+                                  TextStyle(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                            );
+                          },
+                        ),
+                      ),
+                      titlesData: AnalyticsChartDefaults.standardTitles(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 28,
+                            getTitlesWidget: (value, meta) => AnalyticsChartDefaults.tickLabel(
+                              context,
+                              _formatAxisValue(value),
+                            ),
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 30,
+                            getTitlesWidget: (value, meta) {
+                              final i = value.toInt();
+                              if (i < 0 || i >= weeklyMetrics.length) {
+                                return const SizedBox.shrink();
+                              }
+                              final label = weeklyMetrics[i].weekLabel;
+                              return AnalyticsChartDefaults.tickLabel(
+                                context,
+                                label,
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      barGroups: weeklyMetrics.asMap().entries.map((entry) {
+                        final value = _metricValue(entry.value);
+                        return BarChartGroupData(
+                          x: entry.key,
+                          barRods: [
+                            BarChartRodData(
+                              toY: value,
+                              width: 12,
+                              borderRadius: BorderRadius.circular(4),
+                              color: Theme.of(context).colorScheme.primary.withValues(
+                                    alpha: _weeklyBarAlpha(
+                                      index: entry.key,
+                                      total: weeklyMetrics.length,
+                                    ),
+                                  ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'X: ${l10n.analyticsViewWeek.toLowerCase()} · ${_isRolling ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n) : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n)}',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        AppSectionHeader(title: l10n.trainingCalendarLabel),
+        Text(
+          l10n.analyticsCalendarExplainer,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        _calendarLegend(l10n),
+        const SizedBox(height: DesignConstants.spacingS),
+        SummaryCard(
+          child: RepaintBoundary(
+            child: TableCalendar<int>(
+              firstDay: DateTime.now().subtract(const Duration(days: 365)),
+              lastDay: DateTime.now().add(const Duration(days: 30)),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => _selectedDay != null && isSameDay(_selectedDay, day),
+              eventLoader: (day) {
+                final count = _dailyCount(day);
+                if (count <= 0) return const [];
+                return List<int>.filled(count, 1);
+              },
+              headerStyle: HeaderStyle(
+                titleCentered: true,
+                formatButtonVisible: false,
+                titleTextStyle: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold) ?? const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              calendarStyle: CalendarStyle(
+                outsideDaysVisible: false,
+                defaultTextStyle: Theme.of(context).textTheme.bodySmall ?? const TextStyle(),
+              ),
+              calendarBuilders: CalendarBuilders<int>(
+                defaultBuilder: (context, day, _) {
+                  final count = _dailyCount(day);
+                  if (count <= 0) return null;
+                  final intensity = _calendarIntensityForCount(count);
+                  return Container(
+                    margin: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: intensity),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${day.day}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  );
+                },
+                markerBuilder: (context, day, events) {
+                  final count = _dailyCount(day);
+                  if (count <= 0) return const SizedBox.shrink();
+                  return Positioned(
+                    bottom: 3,
+                    child: Text(
+                      count.toString(),
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  );
+                },
+              ),
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+              onPageChanged: (focusedDay) {
+                setState(() => _focusedDay = focusedDay);
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Text(
+          _selectedDay == null
+              ? l10n.analyticsSelectDayPrompt
+              : l10n.analyticsSelectedDayWorkouts(
+                  '${_selectedDay!.day}.${_selectedDay!.month}.${_selectedDay!.year}',
+                  _dailyCount(_selectedDay!),
+                ),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.analyticsTotalSessions,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            Text(
+              '$total',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   double _calendarIntensityForCount(int count) {
-    return (0.18 + (count * 0.14)).clamp(0.18, 0.65);
+    return switch (count) {
+      <= 0 => 0.0,
+      1 => 0.35,
+      2 => 0.65,
+      _ => 1.0,
+    };
   }
 
   double _weeklyBarAlpha({required int index, required int total}) {
-    const minAlpha = 0.35;
-    const maxAlpha = 1.0;
-    if (total <= 0) return minAlpha;
-    final ratio = (index + 1) / total;
-    return (minAlpha + (ratio * (maxAlpha - minAlpha))).clamp(
-      minAlpha,
-      maxAlpha,
-    );
+    if (total <= 1) return 1.0;
+    final fraction = index / (total - 1);
+    return 0.45 + fraction * 0.55;
   }
 }

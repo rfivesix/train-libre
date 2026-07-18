@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
@@ -97,7 +98,10 @@ class _MuscleGroupAnalyticsScreenState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    final muscles = (_analytics['muscles'] as List<dynamic>? ?? const [])
+    final hasNoData = _analytics.isEmpty;
+    final displayAnalytics = hasNoData ? getMockAnalytics() : _analytics;
+
+    final muscles = (displayAnalytics['muscles'] as List<dynamic>? ?? const [])
         .cast<Map<String, dynamic>>()
         .where(
           (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
@@ -107,9 +111,9 @@ class _MuscleGroupAnalyticsScreenState
         .toList(growable: false);
 
     final undertrained =
-        (_analytics['undertrained'] as List<dynamic>? ?? const [])
+        (displayAnalytics['undertrained'] as List<dynamic>? ?? const [])
             .cast<String>();
-    final dataQualityOk = (_analytics['dataQualityOk'] as bool?) ?? false;
+    final dataQualityOk = (displayAnalytics['dataQualityOk'] as bool?) ?? false;
 
     final workload = <String, double>{};
     for (final m in muscles) {
@@ -122,17 +126,38 @@ class _MuscleGroupAnalyticsScreenState
     final highlights =
         MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
 
-    final double totalWeeks = ((_analytics['daysBack'] as int?) ?? 7) / 7.0;
+    final double totalWeeks = ((displayAnalytics['daysBack'] as int?) ?? 7) / 7.0;
 
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
+
+    Widget bodyContent = _buildBodyContent(
+      context,
+      muscles,
+      undertrained,
+      dataQualityOk,
+      totalWeeks,
+      highlights,
+      workload,
+      l10n,
+    );
+
+    if (hasNoData) {
+      bodyContent = ActiveGapOverlay(
+        message: "Keine Volumenverteilung vorhanden",
+        background: Skeletonizer(
+          enabled: true,
+          child: IgnorePointer(child: bodyContent),
+        ),
+      );
+    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.muscleAnalyticsTitle),
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,
-        isEmpty: _analytics.isEmpty,
+        isEmpty: false, // Handle empty state at timeframe/content level
         extendBodyBehindAppBar: true,
         child: SingleChildScrollView(
           padding: DesignConstants.screenPadding.copyWith(
@@ -238,64 +263,7 @@ class _MuscleGroupAnalyticsScreenState
                 showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
               ),
               const SizedBox(height: DesignConstants.spacingM),
-              _sectionLabel(l10n.analyticsRecentDistributionHeatmap),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (workload.isEmpty)
-                    AnalyticsChartDefaults.stateView(
-                      context: context,
-                      l10n: l10n,
-                      status: AnalyticsStatus.empty,
-                      emptyLabel: l10n.noWorkoutDataLabel,
-                    )
-                  else ...[
-                    RepaintBoundary(
-                      child: _buildBodyHeatmap(
-                        context,
-                        highlights,
-                        muscles,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Text(
-                    l10n.analyticsRadarVolumeCaption,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              _sectionLabel(
-                l10n.analyticsWeeklySetsByMuscle,
-                isPrimary: true,
-              ),
-              RepaintBoundary(
-                child: _buildWeeklySetsCard(muscles, totalWeeks),
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              _sectionLabel(l10n.analyticsFrequencyByMuscle),
-              RepaintBoundary(
-                child: _buildFrequencyCard(muscles),
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              _sectionLabel(l10n.analyticsGuidanceTitle),
-              const SizedBox(height: DesignConstants.spacingXS),
-              Text(
-                dataQualityOk
-                    ? l10n.analyticsGuidanceDirectionalDisclaimer
-                    : l10n.analyticsGuidanceSoftenedDisclaimer,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-              ),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
-                _guidanceLabel(dataQualityOk, undertrained),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              bodyContent,
             ],
           ),
         ),
@@ -706,6 +674,88 @@ class _MuscleGroupAnalyticsScreenState
               bottom: DesignConstants.spacingS,
               top: DesignConstants.spacingXS)
           : null,
+    );
+  }
+
+  Map<String, dynamic> getMockAnalytics() {
+    return {
+      'daysBack': 7,
+      'dataQualityOk': true,
+      'undertrained': ['Brust', 'Rücken'],
+      'muscles': [
+        {'muscleGroup': 'Brust', 'equivalentSets': 12.0, 'workoutCount': 3},
+        {'muscleGroup': 'Rücken', 'equivalentSets': 10.0, 'workoutCount': 2},
+        {'muscleGroup': 'Beine', 'equivalentSets': 8.0, 'workoutCount': 2},
+        {'muscleGroup': 'Schultern', 'equivalentSets': 6.0, 'workoutCount': 1},
+        {'muscleGroup': 'Bizeps', 'equivalentSets': 4.0, 'workoutCount': 2},
+        {'muscleGroup': 'Trizeps', 'equivalentSets': 4.0, 'workoutCount': 2},
+      ],
+    };
+  }
+
+  Widget _buildBodyContent(
+    BuildContext context,
+    List<Map<String, dynamic>> muscles,
+    List<String> undertrained,
+    bool dataQualityOk,
+    double totalWeeks,
+    List<BodyPartHighlightData> highlights,
+    Map<String, double> workload,
+    AppLocalizations l10n,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel(l10n.analyticsRecentDistributionHeatmap),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            RepaintBoundary(
+              child: _buildBodyHeatmap(
+                context,
+                highlights,
+                muscles,
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            Text(
+              l10n.analyticsRadarVolumeCaption,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        _sectionLabel(
+          l10n.analyticsWeeklySetsByMuscle,
+          isPrimary: true,
+        ),
+        RepaintBoundary(
+          child: _buildWeeklySetsCard(muscles, totalWeeks),
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        _sectionLabel(l10n.analyticsFrequencyByMuscle),
+        RepaintBoundary(
+          child: _buildFrequencyCard(muscles),
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        _sectionLabel(l10n.analyticsGuidanceTitle),
+        const SizedBox(height: DesignConstants.spacingXS),
+        Text(
+          dataQualityOk
+              ? l10n.analyticsGuidanceDirectionalDisclaimer
+              : l10n.analyticsGuidanceSoftenedDisclaimer,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Text(
+          _guidanceLabel(dataQualityOk, undertrained),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ],
     );
   }
 }

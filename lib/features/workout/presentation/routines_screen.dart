@@ -342,51 +342,14 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     AppLocalizations l10n,
     TextTheme textTheme,
   ) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              LucideIcons.list_todo,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: DesignConstants.spacingL),
-            Text(
-              l10n.emptyRoutinesTitle,
-              style: textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(
-              l10n.emptyRoutinesSubtitle,
-              textAlign: TextAlign.center,
-              style: textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
-
-            // Existing button: create routine
-            AppButton.primary(
-              onPressed: _createNewRoutine,
-              label: l10n.createFirstRoutineButton,
-              tooltip: l10n.createFirstRoutineButton,
-              icon: LucideIcons.plus,
-            ),
-
-            const SizedBox(height: DesignConstants.spacingM),
-
-            // New: start free workout (visible in empty state too)
-            AppButton.secondary(
-              onPressed: _startEmptyWorkout,
-              label: l10n.startEmptyWorkoutButton,
-              tooltip: l10n.startEmptyWorkoutButton,
-              icon: LucideIcons.circle_play,
-            ),
-          ],
-        ),
-      ),
+    return ColdStartEmptyState(
+      icon: LucideIcons.swatch_book,
+      title: l10n.emptyRoutinesTitle,
+      subtitle: l10n.emptyRoutinesSubtitle,
+      callToAction: l10n.addRoutineButton,
+      showArrow: true,
+      customEndXOffset: 110.0,
+      customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
     );
   }
 }

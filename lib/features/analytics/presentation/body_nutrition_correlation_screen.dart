@@ -1,3 +1,4 @@
+import '../../statistics/domain/statistics_data_quality_policy.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import 'package:flutter/material.dart';
 
@@ -8,7 +9,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/body_nutrition_analytics_utils.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
+
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
@@ -45,7 +46,6 @@ class _BodyNutritionCorrelationScreenState
   ];
 
   BodyNutritionAnalyticsResult? _analytics;
-  bool _loadFailed = false;
   int _loadEpoch = 0;
 
   @override
@@ -68,14 +68,12 @@ class _BodyNutritionCorrelationScreenState
       if (!mounted || loadEpoch != _loadEpoch) return;
       setState(() {
         _analytics = analytics;
-        _loadFailed = false;
         _isLoading = false;
       });
     } catch (_) {
       if (!mounted || loadEpoch != _loadEpoch) return;
       setState(() {
         _analytics = null;
-        _loadFailed = true;
         _isLoading = false;
       });
     }
@@ -94,197 +92,156 @@ class _BodyNutritionCorrelationScreenState
     final l10n = AppLocalizations.of(context)!;
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
 
+    final hasNoData = _analytics == null;
+    final displayAnalytics = _analytics ?? getMockCorrelationResult(
+      _isRolling
+          ? _activeBlock.getRollingBounds()
+          : _activeBlock.getBounds(_anchorDate, DateTime(2020)),
+    );
+
+    Widget bodyContent = _buildBodyContent(l10n, displayAnalytics);
+
+    if (hasNoData) {
+      bodyContent = ActiveGapOverlay(
+        message: "Nicht genügend Korrelationsdaten vorhanden",
+        background: Skeletonizer(
+          enabled: true,
+          child: IgnorePointer(child: bodyContent),
+        ),
+      );
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.bodyNutritionCorrelationTitle),
-      body: _isLoading && _analytics == null
-          ? Skeletonizer(enabled: true, child: IgnorePointer(child: _buildUnavailableState(l10n)))
-          : _analytics == null
-              ? _buildUnavailableState(l10n)
-              : Stack(
-                  children: [
-                    SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        top: DesignConstants.screenPadding.top + topPadding,
-                        bottom: DesignConstants.bottomContentSpacer,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TimeRangeFilter(
-                            ranges: _ranges(l10n),
-                            selectedIndex: _validBlocks.indexOf(_activeBlock),
-                            onSelected: (index) {
-                              setState(() {
-                                _activeBlock = _validBlocks[index];
-                                _isRolling = false;
-                              });
-                              _load();
-                            },
-                            onPrevious: _activeBlock == TimeframeBlock.maxBlock
-                                ? null
-                                : () {
-                                    setState(() {
-                                      final currentBounds =
-                                          _activeBlock.getBounds(
-                                              DateTime.now(), DateTime(2020));
-                                      final myBounds = _activeBlock.getBounds(
-                                          _anchorDate, DateTime(2020));
-                                      final isOngoing = !_isRolling &&
-                                          myBounds.start.isAtSameMomentAs(
-                                              currentBounds.start);
-
-                                      if (isOngoing) {
-                                        _isRolling = true;
-                                      } else if (_isRolling) {
-                                        _isRolling = false;
-                                        _anchorDate = _activeBlock.shift(
-                                            DateTime.now(), -1);
-                                      } else {
-                                        _anchorDate =
-                                            _activeBlock.shift(_anchorDate, -1);
-                                      }
-                                    });
-                                    _load();
-                                  },
-                            onNext: _activeBlock == TimeframeBlock.maxBlock
-                                ? null
-                                : () {
-                                    setState(() {
-                                      if (_isRolling) {
-                                        _isRolling = false;
-                                        _anchorDate = DateTime.now();
-                                      } else {
-                                        final previousAnchor = _activeBlock
-                                            .shift(DateTime.now(), -1);
-                                        final previousBounds =
-                                            _activeBlock.getBounds(
-                                                previousAnchor, DateTime(2020));
-                                        final myBounds = _activeBlock.getBounds(
-                                            _anchorDate, DateTime(2020));
-                                        final isPreviousToOngoing =
-                                            !_isRolling &&
-                                                myBounds.start.isAtSameMomentAs(
-                                                    previousBounds.start);
-
-                                        if (isPreviousToOngoing) {
-                                          _isRolling = true;
-                                        } else {
-                                          _anchorDate = _activeBlock.shift(
-                                              _anchorDate, 1);
-                                        }
-                                      }
-                                    });
-                                    _load();
-                                  },
-                            displayDate: _isRolling
-                                ? TimeframeLabelFormatter.formatRolling(
-                                    _activeBlock, l10n)
-                                : TimeframeLabelFormatter.format(
-                                    _activeBlock, _anchorDate, l10n),
-                            onTapDateDisplay: () async {
-                              final selected = await adaptive_pickers
-                                  .showAdaptiveTimeframePicker(
-                                context: context,
-                                activeBlock: _activeBlock,
-                                initialAnchor: _anchorDate,
-                                earliestAvailableDay: DateTime(2020),
-                                initialIsRolling: _isRolling,
-                              );
-                              if (selected != null) {
-                                setState(() {
-                                  _anchorDate = selected.anchorDate;
-                                  _isRolling = selected.isRolling;
-                                });
-                                _load();
-                              }
-                            },
-                            nextEnabled: _activeBlock == TimeframeBlock.maxBlock
-                                ? false
-                                : (_isRolling
-                                    ? true
-                                    : !_activeBlock
-                                        .getBounds(_anchorDate, DateTime(2020))
-                                        .start
-                                        .isAtSameMomentAs(_activeBlock
-                                            .getBounds(
-                                                DateTime.now(), DateTime(2020))
-                                            .start)),
-                            showDateNavigation:
-                                _activeBlock != TimeframeBlock.maxBlock,
-                          ),
-                          const SizedBox(height: DesignConstants.spacingM),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal:
-                                  DesignConstants.screenPaddingHorizontal,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildSummaryCard(l10n, _analytics!),
-                                const SizedBox(
-                                    height: DesignConstants.spacingM),
-                                AppSectionHeader(
-                                  title:
-                                      l10n.analyticsBodyNutritionTrendContext,
-                                ),
-                                _buildTrendComparisonCard(l10n, _analytics!),
-                                const SizedBox(
-                                    height: DesignConstants.spacingM),
-                                AppSectionHeader(
-                                  title: l10n.analyticsInterpretationTitle,
-                                ),
-                                _buildInterpretationCard(l10n, _analytics!),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (_isLoading)
-                      Positioned(
-                        top: topPadding + DesignConstants.spacingM,
-                        right: DesignConstants.spacingM,
-                        child: const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                  ],
-                ),
-    );
-  }
-
-  Widget _buildUnavailableState(AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: DesignConstants.screenPadding,
-        child: SummaryCard(
-          child: Padding(
-            padding: const EdgeInsets.all(DesignConstants.spacingL),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.only(
+              top: DesignConstants.screenPadding.top + topPadding,
+              bottom: DesignConstants.bottomContentSpacer,
+            ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _loadFailed ? l10n.error : l10n.analyticsInsightNotEnoughData,
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                TimeRangeFilter(
+                  ranges: _ranges(l10n),
+                  selectedIndex: _validBlocks.indexOf(_activeBlock),
+                  onSelected: (index) {
+                    setState(() {
+                      _activeBlock = _validBlocks[index];
+                      _isRolling = false;
+                    });
+                    _load();
+                  },
+                  onPrevious: _activeBlock == TimeframeBlock.maxBlock
+                      ? null
+                      : () {
+                          setState(() {
+                            final currentBounds =
+                                _activeBlock.getBounds(
+                                    DateTime.now(), DateTime(2020));
+                            final myBounds = _activeBlock.getBounds(
+                                _anchorDate, DateTime(2020));
+                            final isOngoing = !_isRolling &&
+                                myBounds.start.isAtSameMomentAs(
+                                    currentBounds.start);
+
+                            if (isOngoing) {
+                              _isRolling = true;
+                            } else if (_isRolling) {
+                              _isRolling = false;
+                              _anchorDate = _activeBlock.shift(
+                                  DateTime.now(), -1);
+                            } else {
+                              _anchorDate =
+                                  _activeBlock.shift(_anchorDate, -1);
+                            }
+                          });
+                          _load();
+                        },
+                  onNext: _activeBlock == TimeframeBlock.maxBlock
+                      ? null
+                      : () {
+                          setState(() {
+                            if (_isRolling) {
+                              _isRolling = false;
+                              _anchorDate = DateTime.now();
+                            } else {
+                              final previousAnchor = _activeBlock
+                                  .shift(DateTime.now(), -1);
+                              final previousBounds =
+                                  _activeBlock.getBounds(
+                                      previousAnchor, DateTime(2020));
+                              final myBounds = _activeBlock.getBounds(
+                                  _anchorDate, DateTime(2020));
+                              final isPreviousToOngoing =
+                                  !_isRolling &&
+                                      myBounds.start.isAtSameMomentAs(
+                                          previousBounds.start);
+
+                              if (isPreviousToOngoing) {
+                                _isRolling = true;
+                              } else {
+                                _anchorDate = _activeBlock.shift(
+                                    _anchorDate, 1);
+                              }
+                            }
+                          });
+                          _load();
+                        },
+                  displayDate: _isRolling
+                      ? TimeframeLabelFormatter.formatRolling(
+                          _activeBlock, l10n)
+                      : TimeframeLabelFormatter.format(
+                          _activeBlock, _anchorDate, l10n),
+                  onTapDateDisplay: () async {
+                    final selected = await adaptive_pickers
+                        .showAdaptiveTimeframePicker(
+                      context: context,
+                      activeBlock: _activeBlock,
+                      initialAnchor: _anchorDate,
+                      earliestAvailableDay: DateTime(2020),
+                      initialIsRolling: _isRolling,
+                    );
+                    if (selected != null) {
+                      setState(() {
+                        _anchorDate = selected.anchorDate;
+                        _isRolling = selected.isRolling;
+                      });
+                      _load();
+                    }
+                  },
+                  nextEnabled: _activeBlock == TimeframeBlock.maxBlock
+                      ? false
+                      : (_isRolling
+                          ? true
+                          : !_activeBlock
+                              .getBounds(_anchorDate, DateTime(2020))
+                              .start
+                              .isAtSameMomentAs(_activeBlock
+                                  .getBounds(
+                                      DateTime.now(), DateTime(2020))
+                                  .start)),
+                  showDateNavigation:
+                      _activeBlock != TimeframeBlock.maxBlock,
                 ),
-                const SizedBox(height: DesignConstants.spacingS),
-                Text(
-                  _loadFailed
-                      ? l10n.aiErrorNetwork
-                      : l10n.analyticsInsightNotEnoughData,
-                  style: theme.textTheme.bodyMedium,
-                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                bodyContent,
               ],
             ),
           ),
-        ),
+          if (_isLoading)
+            Positioned(
+              top: topPadding + DesignConstants.spacingM,
+              right: DesignConstants.spacingM,
+              child: const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -531,5 +488,92 @@ class _BodyNutritionCorrelationScreenState
     return _isRolling
         ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
         : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
+  }
+
+  BodyNutritionAnalyticsResult getMockCorrelationResult(DateTimeRange range) {
+    final start = range.start;
+    final end = range.end;
+    final duration = end.difference(start).inDays.clamp(7, 180);
+
+    final mockDailyWeight = List.generate(duration, (i) {
+      final date = start.add(Duration(days: i));
+      return DailyValuePoint(day: date, value: 80.0 - (i * 0.05));
+    });
+
+    final mockDailyCalories = List.generate(duration, (i) {
+      final date = start.add(Duration(days: i));
+      return DailyValuePoint(day: date, value: 2500.0 + (i * 10.0));
+    });
+
+    return BodyNutritionAnalyticsResult(
+      range: range,
+      totalDays: duration,
+      currentWeightKg: 78.5,
+      weightChangeKg: -1.5,
+      avgDailyCalories: 2600.0,
+      weightDays: duration,
+      loggedCalorieDays: duration,
+      weightDaily: mockDailyWeight,
+      smoothedWeight: mockDailyWeight,
+      caloriesDaily: mockDailyCalories,
+      smoothedCalories: mockDailyCalories,
+      normalizedWeightTrend: mockDailyWeight,
+      normalizedCaloriesTrend: mockDailyCalories,
+      normalizedTrendRange: range,
+      weightTrend: const BodyNutritionTrendSnapshot(
+        direction: BodyNutritionTrendDirection.falling,
+        slopePerWeek: -0.35,
+        netChange: -1.5,
+        signalToNoise: 2.5,
+      ),
+      calorieTrend: const BodyNutritionTrendSnapshot(
+        direction: BodyNutritionTrendDirection.rising,
+        slopePerWeek: 70.0,
+        netChange: 300.0,
+        signalToNoise: 1.8,
+      ),
+      relationship: BodyNutritionRelationshipType.alignedCutLike,
+      confidence: BodyNutritionConfidence.high,
+      qualitySummary: BodyNutritionDataQualitySummary(
+        spanDays: duration,
+        weightDays: duration,
+        calorieDays: duration,
+        overlapDays: duration,
+        weightCoverage: 1.0,
+        calorieCoverage: 1.0,
+        overlapCoverage: 1.0,
+        weightLargestGapDays: 0,
+        calorieLargestGapDays: 0,
+      ),
+      insightType: BodyNutritionInsightType.weightDownCaloriesDown,
+      insightDataQuality: const StatisticsDataQualityAssessment(
+        hasSufficientData: true,
+        reasonHook: '',
+      ),
+    );
+  }
+
+  Widget _buildBodyContent(AppLocalizations l10n, BodyNutritionAnalyticsResult analytics) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.screenPaddingHorizontal,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSummaryCard(l10n, analytics),
+          const SizedBox(height: DesignConstants.spacingM),
+          AppSectionHeader(
+            title: l10n.analyticsBodyNutritionTrendContext,
+          ),
+          _buildTrendComparisonCard(l10n, analytics),
+          const SizedBox(height: DesignConstants.spacingM),
+          AppSectionHeader(
+            title: l10n.analyticsInterpretationTitle,
+          ),
+          _buildInterpretationCard(l10n, analytics),
+        ],
+      ),
+    );
   }
 }

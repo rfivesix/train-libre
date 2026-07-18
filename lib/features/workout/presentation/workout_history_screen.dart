@@ -15,6 +15,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/common.dart';
 
 /// A screen displaying a list of all previously completed workout sessions.
 ///
@@ -75,29 +76,12 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                 padding: DesignConstants.cardPadding.copyWith(
                   top: DesignConstants.cardPadding.top + topPadding,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      LucideIcons.history,
-                      size: 80,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingL),
-                    Text(
-                      l10n.workoutHistoryEmptyTitle,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    Text(
-                      l10n.emptyHistory,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
-                    ),
-                  ],
+                child: ColdStartEmptyState(
+                  icon: LucideIcons.history,
+                  title: l10n.workoutHistoryEmptyTitle,
+                  subtitle: l10n.emptyHistory,
+                  callToAction: '',
+                  showArrow: false,
                 ),
               ),
             );

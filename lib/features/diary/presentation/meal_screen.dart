@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
@@ -269,15 +270,18 @@ class _MealScreenState extends State<MealScreen> {
                 // === Nutrients (total sum) ===
                 AppSectionHeader(title: l10n.nutritionSectionLabel),
                 AppCardContainer(
-                  child: MacroBadgeRow(
-                    kcal: _items.isEmpty ? null : _totalKcal.round(),
-                    protein: _items.isEmpty ? null : _totalP,
-                    carbs: _items.isEmpty ? null : _totalC,
-                    fat: _items.isEmpty ? null : _totalF,
-                    useBadges: Provider.of<ThemeService>(context)
-                        .useColorfulMacroBadges,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
+                  child: Skeletonizer(
+                    enabled: _editMode && _items.isEmpty,
+                    child: MacroBadgeRow(
+                      kcal: (_editMode && _items.isEmpty) ? 0 : (_items.isEmpty ? null : _totalKcal.round()),
+                      protein: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalP),
+                      carbs: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalC),
+                      fat: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalF),
+                      useBadges: Provider.of<ThemeService>(context)
+                          .useColorfulMacroBadges,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
@@ -288,13 +292,27 @@ class _MealScreenState extends State<MealScreen> {
                 AppSectionHeader(title: l10n.ingredientsCapsLock),
 
                 if (_items.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Text(
-                      l10n.emptyCategory,
-                      textAlign: TextAlign.center,
-                    ),
-                  )
+                  if (_editMode)
+                    SizedBox(
+                      height: 320,
+                      child: ColdStartEmptyState(
+                        icon: LucideIcons.apple,
+                        title: l10n.mealIngredientsTitle,
+                        subtitle: l10n.emptyCategory,
+                        callToAction: l10n.mealAddIngredient,
+                        showArrow: true,
+                        customEndXOffset: 110.0,
+                        customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
+                      ),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        l10n.emptyCategory,
+                        textAlign: TextAlign.center,
+                      ),
+                    )
                 else
                   Column(
                     children: List.generate(_items.length, (i) {
