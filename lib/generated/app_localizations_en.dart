@@ -2032,6 +2032,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete this supplement? All historical data will be lost.\n\nTip: You can simply untrack it by editing the supplement instead.';
 
   @override
+  String get editSupplementLogTitle => 'Edit Log Entry';
+
+  @override
+  String get deleteSupplementLogConfirm =>
+      'Are you sure you want to delete this log entry?';
+
+  @override
   String get fieldRequired => 'Required';
 
   @override

@@ -1996,6 +1996,12 @@ class AppLocalizationsJa extends AppLocalizations {
       'この補足を削除してもよろしいですか?すべての履歴データは失われます。\n\nヒント: 代わりにサプリメントを編集することで、追跡を解除することができます。';
 
   @override
+  String get editSupplementLogTitle => '入力を編集';
+
+  @override
+  String get deleteSupplementLogConfirm => 'この入力を削除してもよろしいですか？';
+
+  @override
   String get fieldRequired => '必須';
 
   @override

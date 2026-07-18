@@ -844,6 +844,8 @@
   "emptySupplements": "Aucun supplément disponible",
   "undo": "Défaire",
   "deleteSupplementConfirm": "Êtes-vous sûr de vouloir supprimer ce supplément ? Toutes les données historiques seront perdues.\n\nAstuce : Vous pouvez simplement supprimer le suivi en modifiant le supplément à la place.",
+  "editSupplementLogTitle": "Modifier l'entrée",
+  "deleteSupplementLogConfirm": "Voulez-vous vraiment supprimer cette entrée ?",
   "fieldRequired": "Requis",
   "unitNotSupported": "Unité non prise en charge.",
   "caffeineUnitLocked": "Pour la caféine l’unité est fixe : mg.",

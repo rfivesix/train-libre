@@ -3686,6 +3686,18 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to delete this supplement? All historical data will be lost.\n\nTip: You can simply untrack it by editing the supplement instead.'**
   String get deleteSupplementConfirm;
 
+  /// No description provided for @editSupplementLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Log Entry'**
+  String get editSupplementLogTitle;
+
+  /// No description provided for @deleteSupplementLogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this log entry?'**
+  String get deleteSupplementLogConfirm;
+
   /// No description provided for @fieldRequired.
   ///
   /// In en, this message translates to:

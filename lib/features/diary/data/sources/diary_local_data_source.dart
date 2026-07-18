@@ -15,6 +15,7 @@ class DiaryLocalDataSource {
   final drift_db.AppDatabase _db;
   drift_db.AppDatabase get db => _db;
   final SupplementLocalDataSource _supplementDbHelper;
+  SupplementLocalDataSource get supplementDbHelper => _supplementDbHelper;
 
   static DiaryLocalDataSource get instance =>
       DatabaseHelper.instance.diaryLocalDataSource;

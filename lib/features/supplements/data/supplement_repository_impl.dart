@@ -1,4 +1,5 @@
-// lib/features/supplements/data/supplement_repository_impl.dart
+import 'package:drift/drift.dart' as drift;
+import '../../../data/drift_database.dart' as db;
 import 'sources/supplement_local_data_source.dart';
 import '../domain/models/supplement.dart';
 import '../domain/models/supplement_log.dart';
@@ -66,7 +67,13 @@ class SupplementRepositoryImpl implements SupplementRepository {
 
   @override
   Future<void> updateSupplementLog(SupplementLog log) {
-    return _localDataSource.updateSupplementLog(log);
+    return _localDataSource.updateSupplementLog(
+      db.SupplementLogsCompanion(
+        localId: drift.Value(log.id!),
+        amount: drift.Value(log.dose),
+        takenAt: drift.Value(log.timestamp),
+      ),
+    );
   }
 
   @override

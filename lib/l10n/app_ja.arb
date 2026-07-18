@@ -844,6 +844,8 @@
   "emptySupplements": "サプリメントは利用できません",
   "undo": "元に戻す",
   "deleteSupplementConfirm": "この補足を削除してもよろしいですか?すべての履歴データは失われます。\n\nヒント: 代わりにサプリメントを編集することで、追跡を解除することができます。",
+  "editSupplementLogTitle": "入力を編集",
+  "deleteSupplementLogConfirm": "この入力を削除してもよろしいですか？",
   "fieldRequired": "必須",
   "unitNotSupported": "ユニットはサポートされていません。",
   "caffeineUnitLocked": "カフェインの場合、単位は mg に固定されています。",

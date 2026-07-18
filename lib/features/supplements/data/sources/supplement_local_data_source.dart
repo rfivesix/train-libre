@@ -381,13 +381,11 @@ class SupplementLocalDataSource {
     }
   }
 
-  Future<void> updateSupplementLog(SupplementLog log) async {
-    if (log.id == null) return;
+  Future<void> updateSupplementLog(db.SupplementLogsCompanion entry) async {
+    final id = entry.localId.value;
     await (dbInstance.update(dbInstance.supplementLogs)
-          ..where((tbl) => tbl.localId.equals(log.id!)))
-        .write(db.SupplementLogsCompanion(
-            amount: drift.Value(log.dose),
-            takenAt: drift.Value(log.timestamp)));
+          ..where((tbl) => tbl.localId.equals(id)))
+        .write(entry);
   }
 
   Future<void> deleteSupplementLog(int logId) async {

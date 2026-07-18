@@ -13,13 +13,13 @@ class SupplementSummaryWidget extends StatelessWidget {
   /// The list of supplement tracking data.
   final List<TrackedSupplement> trackedSupplements;
 
-  /// Callback when the widget is tapped, usually opens tracking management.
-  final VoidCallback onTap;
+  /// Callback when a supplement bar is tapped, passing the selected supplement.
+  final void Function(TrackedSupplement) onTapSupplement;
 
   const SupplementSummaryWidget({
     super.key,
     required this.trackedSupplements,
-    required this.onTap,
+    required this.onTapSupplement,
   });
 
   @override
@@ -40,14 +40,14 @@ class SupplementSummaryWidget extends StatelessWidget {
       children: [
         ...goalOnlySupplements.map(
           (ts) => GestureDetector(
-            onTap: onTap,
+            onTap: () => onTapSupplement(ts),
             child: _CheckmarkCard(trackedSupplement: ts),
           ),
         ),
         ...progressSupplements.map((ts) {
           final supplement = ts.supplement;
           return GestureDetector(
-            onTap: onTap,
+            onTap: () => onTapSupplement(ts),
             child: Padding(
               padding: const EdgeInsets.symmetric(
                   vertical: DesignConstants.spacingXS),

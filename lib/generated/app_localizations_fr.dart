@@ -2061,6 +2061,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Êtes-vous sûr de vouloir supprimer ce supplément ? Toutes les données historiques seront perdues.\n\nAstuce : Vous pouvez simplement supprimer le suivi en modifiant le supplément à la place.';
 
   @override
+  String get editSupplementLogTitle => 'Modifier l\'entrée';
+
+  @override
+  String get deleteSupplementLogConfirm =>
+      'Voulez-vous vraiment supprimer cette entrée ?';
+
+  @override
   String get fieldRequired => 'Requis';
 
   @override

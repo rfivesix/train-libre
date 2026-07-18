@@ -6,6 +6,9 @@ import '../domain/models/fluid_entry.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/repositories/diary_repository.dart';
+import '../../supplements/domain/models/supplement_log.dart';
+import 'package:drift/drift.dart' as drift;
+import '../../../../data/drift_database.dart' as db;
 
 /// Concrete implementation of [IDiaryRepository] implementing database transaction logic.
 class NutritionRepository implements IDiaryRepository {
@@ -109,4 +112,18 @@ class NutritionRepository implements IDiaryRepository {
   @override
   Future<int> insertFoodEntry(FoodEntry entry) =>
       _localDataSource.insertFoodEntry(entry);
+
+  @override
+  Future<void> updateSupplementLog(SupplementLog log) =>
+      _localDataSource.supplementDbHelper.updateSupplementLog(
+        db.SupplementLogsCompanion(
+          localId: drift.Value(log.id!),
+          amount: drift.Value(log.dose),
+          takenAt: drift.Value(log.timestamp),
+        ),
+      );
+
+  @override
+  Future<void> deleteSupplementLog(int id) =>
+      _localDataSource.supplementDbHelper.deleteSupplementLog(id);
 }

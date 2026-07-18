@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.13] - 2026-07-19
 
+### Added
+- **Diary Supplements:** Implemented the ability to edit or delete individual historic supplement entries directly from the Diary Screen via a premium glass bottom sheet detail view.
+
 ### Changed
 - **Dependencies:** Removed deprecated `isInDebugMode` flag from `Workmanager` initialization.
 

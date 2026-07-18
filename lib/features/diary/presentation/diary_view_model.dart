@@ -419,6 +419,45 @@ class DiaryViewModel extends ChangeNotifier {
     );
   }
 
+  List<SupplementLog> supplementLogsForSupplement(int supplementId) {
+    return _activeSupplementLogs
+        .where((log) => log.supplementId == supplementId)
+        .toList()
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+  }
+
+  Future<void> updateSupplementAmount(int logId, double newAmount, {DateTime? newTimestamp}) async {
+    final idx = _activeSupplementLogs.indexWhere((log) => log.id == logId);
+    if (idx != -1) {
+      final oldLog = _activeSupplementLogs[idx];
+      final newLog = SupplementLog(
+        id: oldLog.id,
+        supplementId: oldLog.supplementId,
+        dose: newAmount,
+        unit: oldLog.unit,
+        timestamp: newTimestamp ?? oldLog.timestamp,
+        sourceFoodEntryId: oldLog.sourceFoodEntryId,
+        sourceFluidEntryId: oldLog.sourceFluidEntryId,
+      );
+      // Optimistic update
+      _activeSupplementLogs[idx] = newLog;
+      _updateCalculatedState();
+
+      await _supplementRepo.updateSupplementLog(newLog);
+    }
+  }
+
+  Future<void> deleteSupplement(int logId) async {
+    final idx = _activeSupplementLogs.indexWhere((log) => log.id == logId);
+    if (idx != -1) {
+      // Optimistic update
+      _activeSupplementLogs.removeAt(idx);
+      _updateCalculatedState();
+
+      await _supplementRepo.deleteSupplementLog(logId);
+    }
+  }
+
   void pickDate(DateTime newDate) {
     if (!newDate.isSameDate(selectedDate)) {
       setSelectedDate(newDate);

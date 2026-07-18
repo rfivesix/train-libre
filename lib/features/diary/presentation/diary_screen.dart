@@ -18,6 +18,8 @@ import '../domain/models/food_item.dart';
 import '../domain/models/tracked_food_item.dart';
 import '../../supplements/domain/models/tracked_supplement.dart';
 import '../../supplements/domain/models/supplement.dart';
+import '../../supplements/domain/models/supplement_log.dart';
+import '../../supplements/presentation/dialogs/log_supplement_menu.dart';
 import 'add_food_screen.dart';
 import 'add_food_navigation_result.dart';
 import '../../supplements/presentation/supplement_hub_screen.dart';
@@ -25,6 +27,8 @@ import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
+import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/swipe_action_background.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'widgets/nutrition_summary_widget.dart';
 import '../../supplements/presentation/widgets/supplement_summary_widget.dart';
@@ -135,6 +139,231 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   Future<void> _deleteFluidEntry(int id) async {
     final viewModel = context.read<DiaryViewModel>();
     await viewModel.deleteFluidEntry(id);
+  }
+
+  void _showSupplementDetailSheet(
+      BuildContext context, TrackedSupplement trackedSupplement) {
+    final supplement = trackedSupplement.supplement;
+    final vm = context.read<DiaryViewModel>();
+    showGlassBottomMenu(
+      context: context,
+      title: null,
+      contentBuilder: (sheetContext, closeSheet) {
+        return ChangeNotifierProvider.value(
+          value: vm,
+          child: Consumer<DiaryViewModel>(
+            builder: (context, vm, child) {
+              final currentTracked = vm.trackedSupplements.firstWhere(
+                (ts) => ts.supplement.id == supplement.id,
+                orElse: () => TrackedSupplement(
+                  supplement: supplement,
+                  totalDosedToday: 0.0,
+                ),
+              );
+
+              final logs = vm.supplementLogsForSupplement(supplement.id!);
+              final isGerman = Localizations.localeOf(context).languageCode == 'de';
+              final timeSuffix = isGerman ? ' Uhr' : '';
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 64.0),
+                        child: Text(
+                          supplement.getLocalizedName(context),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        child: Text(
+                          '${currentTracked.totalDosedToday.toStringAsFixed(1).replaceAll('.0', '')} ${supplement.unit}',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  const Divider(),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  if (logs.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: DesignConstants.spacingXL),
+                      child: Center(
+                        child: Text(
+                          AppLocalizations.of(context)!.emptySupplementLogs,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.5),
+                              ),
+                        ),
+                      ),
+                    )
+                  else
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 280),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: logs.length,
+                        itemBuilder: (context, index) {
+                          final log = logs[index];
+                          final timeStr = DateFormat.Hm().format(log.timestamp) + timeSuffix;
+                          final doseStr =
+                              '${log.dose.toStringAsFixed(1).replaceAll('.0', '')} ${log.unit}';
+
+                          return Dismissible(
+                            key: Key('supplement_log_${log.id}'),
+                            background: const SwipeActionBackground(
+                              color: Colors.blueAccent,
+                              icon: LucideIcons.pencil,
+                              alignment: Alignment.centerLeft,
+                            ),
+                            secondaryBackground: const SwipeActionBackground(
+                              color: DesignConstants.brandRedColor,
+                              icon: LucideIcons.trash,
+                              alignment: Alignment.centerRight,
+                            ),
+                            confirmDismiss: (direction) async {
+                              if (direction == DismissDirection.startToEnd) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  _editSupplementLog(context, vm, supplement, log);
+                                });
+                                return false;
+                              } else {
+                                return await showDeleteConfirmation(
+                                  context,
+                                  title: AppLocalizations.of(context)!.deleteConfirmTitle,
+                                  content: AppLocalizations.of(context)!.deleteSupplementLogConfirm,
+                                );
+                              }
+                            },
+                            onDismissed: (direction) {
+                              if (direction == DismissDirection.endToStart) {
+                                vm.deleteSupplement(log.id!);
+                              }
+                            },
+                            child: SummaryCard(
+                              margin: const EdgeInsets.symmetric(
+                                vertical: DesignConstants.spacingXS,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DesignConstants.spacingM,
+                                vertical: DesignConstants.spacingM,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.clock,
+                                        size: 16,
+                                        color: Colors.grey,
+                                      ),
+                                      const SizedBox(width: DesignConstants.spacingS),
+                                      Text(
+                                        timeStr,
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    doseStr,
+                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppButton.secondary(
+                          onPressed: () {
+                            closeSheet();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const SupplementHubScreen(),
+                              ),
+                            );
+                          },
+                          label: AppLocalizations.of(context)!.manageSupplementsTitle,
+                          tooltip: AppLocalizations.of(context)!.manageSupplementsTitle,
+                        ),
+                      ),
+                      const SizedBox(width: DesignConstants.spacingM),
+                      Expanded(
+                        child: AppButton.primary(
+                          onPressed: closeSheet,
+                          label: AppLocalizations.of(context)!.cancel,
+                          tooltip: AppLocalizations.of(context)!.cancel,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _editSupplementLog(
+    BuildContext context,
+    DiaryViewModel vm,
+    Supplement supplement,
+    SupplementLog log,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showGlassBottomMenu<(double, DateTime)?>(
+      context: context,
+      title: l10n.editSupplementLogTitle,
+      contentBuilder: (ctx, close) {
+        return LogSupplementDoseBody(
+          supplement: supplement,
+          initialDose: log.dose,
+          initialTimestamp: log.timestamp,
+          primaryLabel: l10n.save,
+          onCancel: close,
+          onSubmit: (dose, ts) {
+            close();
+            Navigator.of(ctx).pop((dose, ts));
+          },
+        );
+      },
+    );
+
+    if (result != null) {
+      await vm.updateSupplementAmount(log.id!, result.$1, newTimestamp: result.$2);
+    }
   }
 
   Future<void> _editFluidEntry(FluidEntry entry) async {
@@ -749,11 +978,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       builder: (context, data, child) {
                         return SupplementSummaryWidget(
                           trackedSupplements: data.trackedSupplements,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const SupplementHubScreen(),
-                            ),
-                          ),
+                          onTapSupplement: (ts) =>
+                              _showSupplementDetailSheet(context, ts),
                         );
                       },
                     ),

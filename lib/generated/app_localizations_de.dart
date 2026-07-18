@@ -2042,6 +2042,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Möchtest du dieses Supplement wirklich löschen? Alle historischen Daten gehen verloren.\n\nTipp: Du kannst stattdessen auch einfach das Tracking beenden, indem du das Supplement bearbeitest.';
 
   @override
+  String get editSupplementLogTitle => 'Eintrag bearbeiten';
+
+  @override
+  String get deleteSupplementLogConfirm =>
+      'Möchtest du diesen Eintrag wirklich löschen?';
+
+  @override
   String get fieldRequired => 'Pflichtfeld';
 
   @override

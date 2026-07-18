@@ -2052,6 +2052,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Sei sicuro di voler eliminare questo supplemento? Tutti i dati storici andranno persi.\n\nSuggerimento: puoi semplicemente annullarne la traccia modificando il supplemento.';
 
   @override
+  String get editSupplementLogTitle => 'Modifica voce';
+
+  @override
+  String get deleteSupplementLogConfirm =>
+      'Sei sicuro di voler eliminare questa voce?';
+
+  @override
   String get fieldRequired => 'Necessario';
 
   @override

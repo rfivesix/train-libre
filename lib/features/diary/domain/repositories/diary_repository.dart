@@ -3,6 +3,7 @@ import '../models/daily_goal.dart';
 import '../models/fluid_entry.dart';
 import '../models/food_entry.dart';
 import '../models/food_item.dart';
+import '../../../supplements/domain/models/supplement_log.dart';
 
 /// Abstract contract for Diary data persistence and operations.
 abstract class IDiaryRepository {
@@ -32,4 +33,7 @@ abstract class IDiaryRepository {
   Future<void> updateFoodEntry(FoodEntry entry);
   Future<int> insertFluidEntry(FluidEntry entry);
   Future<int> insertFoodEntry(FoodEntry entry);
+
+  Future<void> updateSupplementLog(SupplementLog log);
+  Future<void> deleteSupplementLog(int id);
 }

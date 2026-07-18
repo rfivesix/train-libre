@@ -844,6 +844,8 @@
   "emptySupplements": "Noch keine Supplements vorhanden",
   "undo": "Rückgängig",
   "deleteSupplementConfirm": "Möchtest du dieses Supplement wirklich löschen? Alle historischen Daten gehen verloren.\n\nTipp: Du kannst stattdessen auch einfach das Tracking beenden, indem du das Supplement bearbeitest.",
+  "editSupplementLogTitle": "Eintrag bearbeiten",
+  "deleteSupplementLogConfirm": "Möchtest du diesen Eintrag wirklich löschen?",
   "fieldRequired": "Pflichtfeld",
   "unitNotSupported": "Einheit wird nicht unterstützt.",
   "caffeineUnitLocked": "Bei Koffein ist die Einheit fest: mg.",

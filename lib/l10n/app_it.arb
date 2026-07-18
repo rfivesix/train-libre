@@ -844,6 +844,8 @@
   "emptySupplements": "Nessun supplemento disponibile",
   "undo": "Disfare",
   "deleteSupplementConfirm": "Sei sicuro di voler eliminare questo supplemento? Tutti i dati storici andranno persi.\n\nSuggerimento: puoi semplicemente annullarne la traccia modificando il supplemento.",
+  "editSupplementLogTitle": "Modifica voce",
+  "deleteSupplementLogConfirm": "Sei sicuro di voler eliminare questa voce?",
   "fieldRequired": "Necessario",
   "unitNotSupported": "Unità non supportata.",
   "caffeineUnitLocked": "Per la caffeina l'unità è fissa: mg.",
