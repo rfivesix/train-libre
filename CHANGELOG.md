@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-alpha.14] - 2026-07-22
 
+### Accessibility
+- **AI Meal Capture:** Added localized tooltip `l10n.aiMealCapture` to the AI Meal Capture button on the Add Food screen for improved screen reader support.
+
+### Security
+- **Backup Export:** Fixed dynamic table name SQL injection vulnerability in `BackupManager._fetchTable` by strictly validating table names using alphanumeric regex before query execution.
+
+### Performance
+- **Data Export & Analytics:** Optimized data extraction loops across Export Manager, Share Service, Health Export Data Source, and Statistics Data Adapter by eliminating intermediate chained iterable allocations.
+- **Diary ViewModel:** Optimized iterable pipelines and supplement log filtering in Diary ViewModel to reduce memory allocation during UI updates.
+
+### Dependencies
+- **GitHub Actions:** Bumped `actions/setup-python` to v7 in GitHub workflows.
+- **Dependencies:** Bumped Flutter/Dart dependencies (`drift`, `drift_dev`, `flutter_local_notifications`, `google_fonts`, `liquid_glass_widgets`, `package_info_plus`, `share_plus`, `uuid`).
+
+
 ## [1.0.0-alpha.13] - 2026-07-19
 
 ### Added
