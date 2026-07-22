@@ -107,8 +107,8 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
               width: double.infinity,
               child: AppButton.primary(
                 onPressed: widget.isRestoring ? null : widget.onContinue,
-                label: l10n.onboardingContinueSetup.toUpperCase(),
-                tooltip: l10n.onboardingContinueSetup.toUpperCase(),
+                label: l10n.onboardingContinueSetup,
+                tooltip: l10n.onboardingContinueSetup,
               ),
             ),
             const SizedBox(height: DesignConstants.spacingM),

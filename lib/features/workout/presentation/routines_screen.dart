@@ -342,14 +342,20 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     AppLocalizations l10n,
     TextTheme textTheme,
   ) {
-    return ColdStartEmptyState(
-      icon: LucideIcons.swatch_book,
-      title: l10n.emptyRoutinesTitle,
-      subtitle: l10n.emptyRoutinesSubtitle,
-      callToAction: l10n.addRoutineButton,
-      showArrow: true,
-      customEndXOffset: 110.0,
-      customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
+    final double topPadding =
+        MediaQuery.of(context).padding.top + kToolbarHeight;
+
+    return Padding(
+      padding: EdgeInsets.only(top: topPadding),
+      child: ColdStartEmptyState(
+        icon: LucideIcons.swatch_book,
+        title: l10n.emptyRoutinesTitle,
+        subtitle: l10n.emptyRoutinesSubtitle,
+        callToAction: l10n.addRoutineButton,
+        showArrow: true,
+        customEndXOffset: 110.0,
+        customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
+      ),
     );
   }
 }

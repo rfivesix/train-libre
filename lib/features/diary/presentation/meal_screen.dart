@@ -294,7 +294,7 @@ class _MealScreenState extends State<MealScreen> {
                 if (_items.isEmpty)
                   if (_editMode)
                     SizedBox(
-                      height: 320,
+                      height: 480,
                       child: ColdStartEmptyState(
                         icon: LucideIcons.apple,
                         title: l10n.mealIngredientsTitle,
@@ -302,7 +302,8 @@ class _MealScreenState extends State<MealScreen> {
                         callToAction: l10n.mealAddIngredient,
                         showArrow: true,
                         customEndXOffset: 110.0,
-                        customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
+                        customTargetYOffset:
+                            110.0 + MediaQuery.paddingOf(context).bottom,
                       ),
                     )
                   else

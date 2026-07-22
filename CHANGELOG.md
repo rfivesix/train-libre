@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Accessibility
 - **AI Meal Capture:** Added localized tooltip `l10n.aiMealCapture` to the AI Meal Capture button on the Add Food screen for improved screen reader support.
 
+### Fixed
+- **Empty States:** Fixed vertical positioning of `ColdStartEmptyState` in `RoutinesScreen` by accounting for top app bar padding (`topPadding`).
+- **Empty States:** Fixed ingredient empty state in `MealScreen` by providing adequate vertical height, resolving straight arrow lines and text overlapping.
+
 ### Security
 - **Backup Export:** Fixed dynamic table name SQL injection vulnerability in `BackupManager._fetchTable` by strictly validating table names using alphanumeric regex before query execution.
 
