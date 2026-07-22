@@ -754,6 +754,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               child: IconButton(
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
+                tooltip: l10n.aiMealCapture,
                 icon: ShaderMask(
                   blendMode: BlendMode.srcIn,
                   shaderCallback: (bounds) =>
