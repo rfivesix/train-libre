@@ -342,6 +342,11 @@ class BackupManager {
   }
 
   Future<List<Map<String, dynamic>>> _fetchTable(String tableName) async {
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(tableName)) {
+      debugPrint('Invalid table name for backup: $tableName');
+      return [];
+    }
+
     try {
       final rows = await _dbHelper.dbInstance
           .customSelect('SELECT * FROM $tableName')
