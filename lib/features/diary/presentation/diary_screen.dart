@@ -101,13 +101,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   Future<void> shareAsText() async {
     final l10n = AppLocalizations.of(context)!;
     try {
-      await _shareService.shareDailyLogAsText(viewModel.selectedDate,
-          l10n: l10n, unitService: context.read<UnitService>());
+      await _shareService.shareDailyLogAsText(
+        viewModel.selectedDate,
+        l10n: l10n,
+        unitService: context.read<UnitService>(),
+      );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.shareFailed)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
       }
     }
   }
@@ -117,14 +120,17 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   }
 
   Future<void> syncHealthData({bool forceStepsRefresh = false}) async {
-    await context
-        .read<DiaryViewModel>()
-        .syncHealthData(forceStepsRefresh: forceStepsRefresh);
+    await context.read<DiaryViewModel>().syncHealthData(
+      forceStepsRefresh: forceStepsRefresh,
+    );
   }
 
   @Deprecated('Use setSelectedDate or syncHealthData instead')
-  Future<void> loadDataForDate(DateTime date,
-      {bool queueIfInFlight = false, bool forceStepsRefresh = false}) async {
+  Future<void> loadDataForDate(
+    DateTime date, {
+    bool queueIfInFlight = false,
+    bool forceStepsRefresh = false,
+  }) async {
     setSelectedDate(date);
     if (forceStepsRefresh) {
       await syncHealthData(forceStepsRefresh: true);
@@ -142,7 +148,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   }
 
   void _showSupplementDetailSheet(
-      BuildContext context, TrackedSupplement trackedSupplement) {
+    BuildContext context,
+    TrackedSupplement trackedSupplement,
+  ) {
     final supplement = trackedSupplement.supplement;
     final vm = context.read<DiaryViewModel>();
     showGlassBottomMenu(
@@ -162,7 +170,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               );
 
               final logs = vm.supplementLogsForSupplement(supplement.id!);
-              final isGerman = Localizations.localeOf(context).languageCode == 'de';
+              final isGerman =
+                  Localizations.localeOf(context).languageCode == 'de';
               final timeSuffix = isGerman ? ' Uhr' : '';
 
               return Column(
@@ -179,16 +188,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                       Positioned(
                         right: 0,
                         child: Text(
                           '${currentTracked.totalDosedToday.toStringAsFixed(1).replaceAll('.0', '')} ${supplement.unit}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
@@ -202,15 +211,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   if (logs.isEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          vertical: DesignConstants.spacingXL),
+                        vertical: DesignConstants.spacingXL,
+                      ),
                       child: Center(
                         child: Text(
                           AppLocalizations.of(context)!.emptySupplementLogs,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.5),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.5),
                               ),
                         ),
                       ),
@@ -223,7 +233,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         itemCount: logs.length,
                         itemBuilder: (context, index) {
                           final log = logs[index];
-                          final timeStr = DateFormat.Hm().format(log.timestamp) + timeSuffix;
+                          final timeStr =
+                              DateFormat.Hm().format(log.timestamp) +
+                              timeSuffix;
                           final doseStr =
                               '${log.dose.toStringAsFixed(1).replaceAll('.0', '')} ${log.unit}';
 
@@ -241,15 +253,26 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                             ),
                             confirmDismiss: (direction) async {
                               if (direction == DismissDirection.startToEnd) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  _editSupplementLog(context, vm, supplement, log);
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  _editSupplementLog(
+                                    context,
+                                    vm,
+                                    supplement,
+                                    log,
+                                  );
                                 });
                                 return false;
                               } else {
                                 return await showDeleteConfirmation(
                                   context,
-                                  title: AppLocalizations.of(context)!.deleteConfirmTitle,
-                                  content: AppLocalizations.of(context)!.deleteSupplementLogConfirm,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  )!.deleteConfirmTitle,
+                                  content: AppLocalizations.of(
+                                    context,
+                                  )!.deleteSupplementLogConfirm,
                                 );
                               }
                             },
@@ -267,7 +290,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 vertical: DesignConstants.spacingM,
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
@@ -276,10 +300,15 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                         size: 16,
                                         color: Colors.grey,
                                       ),
-                                      const SizedBox(width: DesignConstants.spacingS),
+                                      const SizedBox(
+                                        width: DesignConstants.spacingS,
+                                      ),
                                       Text(
                                         timeStr,
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
                                               fontWeight: FontWeight.w600,
                                             ),
                                       ),
@@ -287,9 +316,12 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                   ),
                                   Text(
                                     doseStr,
-                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).colorScheme.primary,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                         ),
                                   ),
                                 ],
@@ -308,12 +340,17 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                             closeSheet();
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => const SupplementHubScreen(),
+                                builder: (context) =>
+                                    const SupplementHubScreen(),
                               ),
                             );
                           },
-                          label: AppLocalizations.of(context)!.manageSupplementsTitle,
-                          tooltip: AppLocalizations.of(context)!.manageSupplementsTitle,
+                          label: AppLocalizations.of(
+                            context,
+                          )!.manageSupplementsTitle,
+                          tooltip: AppLocalizations.of(
+                            context,
+                          )!.manageSupplementsTitle,
                         ),
                       ),
                       const SizedBox(width: DesignConstants.spacingM),
@@ -362,7 +399,11 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     );
 
     if (result != null) {
-      await vm.updateSupplementAmount(log.id!, result.$1, newTimestamp: result.$2);
+      await vm.updateSupplementAmount(
+        log.id!,
+        result.$1,
+        newTimestamp: result.$2,
+      );
     }
   }
 
@@ -462,9 +503,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         close();
                       } catch (e) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.error)),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(l10n.error)));
                       }
                     },
                     label: l10n.save,
@@ -484,83 +525,85 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final GlobalKey<QuantityDialogContentState> dialogStateKey = GlobalKey();
     final vm = viewModel;
 
-    final result = await showGlassBottomMenu<
-        ({
-          int quantity,
-          DateTime timestamp,
-          String mealType,
-          bool isLiquid,
-          double? sugarPer100ml,
-          double? caffeinePer100ml,
-        })?>(
-      context: context,
-      title: trackedItem.item.getLocalizedName(context),
-      contentBuilder: (ctx, close) {
-        final linkedFluid = vm.fluidEntries
-            .where((f) => f.linkedFoodEntryId == trackedItem.entry.id)
-            .firstOrNull;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Dialog content, now used as bottom-sheet content
-            QuantityDialogContent(
-              key: dialogStateKey,
-              item: trackedItem.item,
-              initialQuantity: trackedItem.entry.quantityInGrams,
-              initialTimestamp: trackedItem.entry.timestamp,
-              initialMealType: trackedItem.entry.mealType,
-              initialIsLiquid: linkedFluid != null ? true : null,
-              initialSugar: linkedFluid?.sugarPer100ml,
-              initialCaffeine: linkedFluid?.caffeinePer100ml,
-            ),
-            const SizedBox(height: DesignConstants.spacingM),
-            Row(
+    final result =
+        await showGlassBottomMenu<
+          ({
+            int quantity,
+            DateTime timestamp,
+            String mealType,
+            bool isLiquid,
+            double? sugarPer100ml,
+            double? caffeinePer100ml,
+          })?
+        >(
+          context: context,
+          title: trackedItem.item.getLocalizedName(context),
+          contentBuilder: (ctx, close) {
+            final linkedFluid = vm.fluidEntries
+                .where((f) => f.linkedFoodEntryId == trackedItem.entry.id)
+                .firstOrNull;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: AppButton.secondary(
-                    onPressed: close,
-                    label: l10n.cancel,
-                    tooltip: l10n.cancel,
-                  ),
+                // Dialog content, now used as bottom-sheet content
+                QuantityDialogContent(
+                  key: dialogStateKey,
+                  item: trackedItem.item,
+                  initialQuantity: trackedItem.entry.quantityInGrams,
+                  initialTimestamp: trackedItem.entry.timestamp,
+                  initialMealType: trackedItem.entry.mealType,
+                  initialIsLiquid: linkedFluid != null ? true : null,
+                  initialSugar: linkedFluid?.sugarPer100ml,
+                  initialCaffeine: linkedFluid?.caffeinePer100ml,
                 ),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                  child: AppButton.primary(
-                    onPressed: () {
-                      final state = dialogStateKey.currentState;
-                      if (state != null) {
-                        final quantity = int.tryParse(state.quantityText);
-                        final caffeine = double.tryParse(
-                          state.caffeineText.replaceAll(',', '.'),
-                        );
-                        final sugar = double.tryParse(
-                          state.sugarText.replaceAll(',', '.'),
-                        );
+                const SizedBox(height: DesignConstants.spacingM),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton.secondary(
+                        onPressed: close,
+                        label: l10n.cancel,
+                        tooltip: l10n.cancel,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingM),
+                    Expanded(
+                      child: AppButton.primary(
+                        onPressed: () {
+                          final state = dialogStateKey.currentState;
+                          if (state != null) {
+                            final quantity = int.tryParse(state.quantityText);
+                            final caffeine = double.tryParse(
+                              state.caffeineText.replaceAll(',', '.'),
+                            );
+                            final sugar = double.tryParse(
+                              state.sugarText.replaceAll(',', '.'),
+                            );
 
-                        if (quantity != null && quantity > 0) {
-                          close();
-                          // Return the correct anonymous tuple here.
-                          Navigator.of(ctx).pop((
-                            quantity: quantity,
-                            timestamp: state.selectedDateTime,
-                            mealType: state.selectedMealType,
-                            isLiquid: state.isLiquid,
-                            sugarPer100ml: sugar,
-                            caffeinePer100ml: caffeine,
-                          ));
-                        }
-                      }
-                    },
-                    label: l10n.save,
-                    tooltip: l10n.save,
-                  ),
+                            if (quantity != null && quantity > 0) {
+                              close();
+                              // Return the correct anonymous tuple here.
+                              Navigator.of(ctx).pop((
+                                quantity: quantity,
+                                timestamp: state.selectedDateTime,
+                                mealType: state.selectedMealType,
+                                isLiquid: state.isLiquid,
+                                sugarPer100ml: sugar,
+                                caffeinePer100ml: caffeine,
+                              ));
+                            }
+                          }
+                        },
+                        label: l10n.save,
+                        tooltip: l10n.save,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
+            );
+          },
         );
-      },
-    );
 
     // Continue processing the result data.
     if (result != null) {
@@ -576,9 +619,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
       // 1. Delete FluidEntry if linked.
       if (trackedItem.entry.id != null) {
-        await vm.deleteFluidEntryByLinkedFoodId(
-          trackedItem.entry.id!,
-        );
+        await vm.deleteFluidEntryByLinkedFoodId(trackedItem.entry.id!);
       }
       // 2. Recreate FluidEntry if it is now liquid.
       if (result.isLiquid) {
@@ -630,18 +671,11 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
     if (!mounted) return;
 
-    final meal = <String, dynamic>{
-      'id': newMealId,
-      'name': '',
-      'notes': '',
-    };
+    final meal = <String, dynamic>{'id': newMealId, 'name': '', 'notes': ''};
 
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => MealScreen(
-          meal: meal,
-          prefillItems: prefill,
-        ),
+        builder: (_) => MealScreen(meal: meal, prefillItems: prefill),
       ),
     );
 
@@ -652,9 +686,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       final savedItems = await DatabaseHelper.instance.getMealItems(newMealId);
       final meals = await DatabaseHelper.instance.getMeals();
       final created = meals.cast<Map<String, dynamic>?>().firstWhere(
-            (m) => m?['id'] == newMealId,
-            orElse: () => null,
-          );
+        (m) => m?['id'] == newMealId,
+        orElse: () => null,
+      );
       if (created != null &&
           (created['name'] as String).isEmpty &&
           savedItems.isEmpty) {
@@ -708,9 +742,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       quantityInGrams: quantity,
       mealType: resultMealType,
     );
-    final newFoodEntryId = await vm.insertFoodEntry(
-      newFoodEntry,
-    );
+    final newFoodEntryId = await vm.insertFoodEntry(newFoodEntry);
 
     if (!mounted) return;
 
@@ -742,14 +774,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   // In lib/screens/diary_screen.dart
 
   Future<
-      ({
-        int quantity,
-        DateTime timestamp,
-        String mealType,
-        bool isLiquid,
-        double? sugarPer100ml,
-        double? caffeinePer100ml,
-      })?> _showQuantityMenu(
+    ({
+      int quantity,
+      DateTime timestamp,
+      String mealType,
+      bool isLiquid,
+      double? sugarPer100ml,
+      double? caffeinePer100ml,
+    })?
+  >
+  _showQuantityMenu(
     FoodItem item,
     String mealType, {
     DateTime? initialDate, // <--- New parameter
@@ -853,19 +887,25 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading =
-        context.select<DiaryViewModel, bool>((vm) => vm.isLoading);
-    final stepsEnabled =
-        context.select<DiaryViewModel, bool>((vm) => vm.stepsTrackingEnabled);
-    final sleepEnabled =
-        context.select<DiaryViewModel, bool>((vm) => vm.sleepTrackingEnabled);
-    final pulseEnabled =
-        context.select<DiaryViewModel, bool>((vm) => vm.pulseTrackingEnabled);
-    final hasWorkoutSummary =
-        context.select<DiaryViewModel, bool>((vm) => vm.workoutSummary != null);
+    final isLoading = context.select<DiaryViewModel, bool>(
+      (vm) => vm.isLoading,
+    );
+    final stepsEnabled = context.select<DiaryViewModel, bool>(
+      (vm) => vm.stepsTrackingEnabled,
+    );
+    final sleepEnabled = context.select<DiaryViewModel, bool>(
+      (vm) => vm.sleepTrackingEnabled,
+    );
+    final pulseEnabled = context.select<DiaryViewModel, bool>(
+      (vm) => vm.pulseTrackingEnabled,
+    );
+    final hasWorkoutSummary = context.select<DiaryViewModel, bool>(
+      (vm) => vm.workoutSummary != null,
+    );
     final l10n = AppLocalizations.of(context)!;
-    final double appBarHeight =
-        MediaQuery.paddingOf(context).top; // + kToolbarHeight;
+    final double appBarHeight = MediaQuery.paddingOf(
+      context,
+    ).top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
     const EdgeInsets basePadding = DesignConstants
@@ -877,10 +917,12 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       top: basePadding.top + appBarHeight,
     );
 
-    final hasEverLoggedData =
-        context.select<DiaryViewModel, bool?>((vm) => vm.hasEverLoggedData);
-    final hasDataForSelectedDate =
-        context.select<DiaryViewModel, bool>((vm) => vm.hasDataForSelectedDate);
+    final hasEverLoggedData = context.select<DiaryViewModel, bool?>(
+      (vm) => vm.hasEverLoggedData,
+    );
+    final hasDataForSelectedDate = context.select<DiaryViewModel, bool>(
+      (vm) => vm.hasDataForSelectedDate,
+    );
 
     if (hasEverLoggedData == false) {
       return Padding(
@@ -894,7 +936,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       );
     }
 
-    final bool showSkeleton = !hasDataForSelectedDate || isLoading || hasEverLoggedData == null;
+    final bool showSkeleton =
+        !hasDataForSelectedDate || isLoading || hasEverLoggedData == null;
 
     Widget content = Skeletonizer(
       enabled: showSkeleton,
@@ -910,19 +953,21 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Selector<
-                        DiaryViewModel,
-                        ({
-                          DailyNutrition? dailyNutrition,
-                          DateTime selectedDate,
-                          bool showSugarInOverview
-                        })>(
+                      DiaryViewModel,
+                      ({
+                        DailyNutrition? dailyNutrition,
+                        DateTime selectedDate,
+                        bool showSugarInOverview,
+                      })
+                    >(
                       selector: (context, vm) => (
                         dailyNutrition: showSkeleton
                             ? DailyNutrition(
                                 targetCalories: 2000,
                                 targetProtein: 150,
                                 targetCarbs: 200,
-                                targetFat: 60)
+                                targetFat: 60,
+                              )
                             : vm.dailyNutrition,
                         selectedDate: vm.selectedDate,
                         showSugarInOverview: vm.showSugarInOverview,
@@ -955,24 +1000,27 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                     ),
                     const SizedBox(height: DesignConstants.spacingXS),
                     Selector<
-                        DiaryViewModel,
-                        ({
-                          List<TrackedSupplement> trackedSupplements,
-                          DateTime selectedDate
-                        })>(
+                      DiaryViewModel,
+                      ({
+                        List<TrackedSupplement> trackedSupplements,
+                        DateTime selectedDate,
+                      })
+                    >(
                       selector: (context, vm) => (
                         trackedSupplements:
                             (showSkeleton && vm.trackedSupplements.isEmpty)
-                                ? [
-                                    TrackedSupplement(
-                                        supplement: Supplement(
-                                            name: 'Whey Protein',
-                                            defaultDose: 30,
-                                            dailyLimit: 100,
-                                            unit: 'g'),
-                                        totalDosedToday: 30)
-                                  ]
-                                : vm.trackedSupplements,
+                            ? [
+                                TrackedSupplement(
+                                  supplement: Supplement(
+                                    name: 'Whey Protein',
+                                    defaultDose: 30,
+                                    dailyLimit: 100,
+                                    unit: 'g',
+                                  ),
+                                  totalDosedToday: 30,
+                                ),
+                              ]
+                            : vm.trackedSupplements,
                         selectedDate: vm.selectedDate,
                       ),
                       builder: (context, data, child) {
@@ -994,7 +1042,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 'duration': const Duration(minutes: 45),
                                 'volume': 10000.0,
                                 'sets': 15,
-                                'count': 1
+                                'count': 1,
                               }
                             : vm.workoutSummary,
                         builder: (context, workoutSummary, child) {
@@ -1155,9 +1203,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         }
                       } catch (_) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.error)),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(l10n.error)));
                         return;
                       }
 
@@ -1193,17 +1241,17 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
           onEditFluid: _editFluidEntry,
           onDeleteFluid: _deleteFluidEntry,
         ),
-        ...mealOrder.where((k) => k != "fluids").map((mealKey) {
-          return _MealCard(
-            key: ValueKey(mealKey),
-            title: _getLocalizedMealName(l10n, mealKey),
-            mealKey: mealKey,
-            onAddFood: () => _addFoodToMeal(mealKey),
-            onEditFood: _editFoodEntry,
-            onDeleteFood: _deleteFoodEntry,
-            onSaveAsTemplate: _saveAsMealTemplate,
-          );
-        }),
+        for (final mealKey in mealOrder)
+          if (mealKey != "fluids")
+            _MealCard(
+              key: ValueKey(mealKey),
+              title: _getLocalizedMealName(l10n, mealKey),
+              mealKey: mealKey,
+              onAddFood: () => _addFoodToMeal(mealKey),
+              onEditFood: _editFoodEntry,
+              onDeleteFood: _deleteFoodEntry,
+              onSaveAsTemplate: _saveAsMealTemplate,
+            ),
       ],
     );
   }
@@ -1352,8 +1400,9 @@ class _DiaryDateNavigator extends StatelessWidget {
             onTap: onPickDate,
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingXS,
-                  vertical: DesignConstants.spacingS),
+                horizontal: DesignConstants.spacingXS,
+                vertical: DesignConstants.spacingS,
+              ),
               child: Text(
                 title,
                 maxLines: 1,
@@ -1395,7 +1444,7 @@ class _MealCard extends StatefulWidget {
   final Future<void> Function(TrackedFoodItem) onEditFood;
   final Future<void> Function(int) onDeleteFood;
   final Future<void> Function(List<TrackedFoodItem>, AppLocalizations)
-      onSaveAsTemplate;
+  onSaveAsTemplate;
 
   const _MealCard({
     super.key,
@@ -1440,19 +1489,21 @@ class _MealCardState extends State<_MealCard> {
           return [
             TrackedFoodItem(
               item: FoodItem(
-                  name: 'Placeholder Food',
-                  calories: 250,
-                  protein: 10,
-                  carbs: 30,
-                  fat: 5,
-                  barcode: 'dummy',
-                  source: FoodItemSource.user),
+                name: 'Placeholder Food',
+                calories: 250,
+                protein: 10,
+                carbs: 30,
+                fat: 5,
+                barcode: 'dummy',
+                source: FoodItemSource.user,
+              ),
               entry: FoodEntry(
-                  barcode: 'dummy',
-                  quantityInGrams: 100,
-                  timestamp: DateTime.now(),
-                  mealType: widget.mealKey),
-            )
+                barcode: 'dummy',
+                quantityInGrams: 100,
+                timestamp: DateTime.now(),
+                mealType: widget.mealKey,
+              ),
+            ),
           ];
         }
         return vm.entriesByMeal[widget.mealKey] ?? const [];
@@ -1460,18 +1511,20 @@ class _MealCardState extends State<_MealCard> {
       shouldRebuild: (prev, next) => !_listEquals(prev, next),
       builder: (context, items, child) {
         final mealMacros = _MealMacros();
+        final solidItems = <TrackedFoodItem>[];
+
         for (var item in items) {
           final factor = item.entry.quantityInGrams / 100.0;
           mealMacros.calories += (item.item.calories * factor).toDouble();
           mealMacros.protein += (item.item.protein * factor).toDouble();
           mealMacros.carbs += (item.item.carbs * factor).toDouble();
           mealMacros.fat += (item.item.fat * factor).toDouble();
-        }
 
-        final solidItems = items.where((item) {
           final fi = item.item;
-          return fi.isLiquid != true && !fi.isFluid;
-        }).toList();
+          if (fi.isLiquid != true && !fi.isFluid) {
+            solidItems.add(item);
+          }
+        }
 
         return RepaintBoundary(
           child: AppCardContainer(
@@ -1485,11 +1538,16 @@ class _MealCardState extends State<_MealCard> {
                   child: Row(
                     children: [
                       Expanded(
-                          child: Text(widget.title,
-                              style: theme.textTheme.titleMedium)),
-                      Icon(_isOpen
-                          ? LucideIcons.chevron_up
-                          : LucideIcons.chevron_down),
+                        child: Text(
+                          widget.title,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      Icon(
+                        _isOpen
+                            ? LucideIcons.chevron_up
+                            : LucideIcons.chevron_down,
+                      ),
                       const SizedBox(width: DesignConstants.spacingXS),
                       IconButton(
                         icon: const Icon(LucideIcons.circle_plus),
@@ -1507,8 +1565,9 @@ class _MealCardState extends State<_MealCard> {
                     protein: mealMacros.protein,
                     carbs: mealMacros.carbs,
                     fat: mealMacros.fat,
-                    useBadges:
-                        context.read<ThemeService>().useColorfulMacroBadges,
+                    useBadges: context
+                        .read<ThemeService>()
+                        .useColorfulMacroBadges,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -1525,20 +1584,18 @@ class _MealCardState extends State<_MealCard> {
                     children: [
                       if (items.isNotEmpty)
                         const SizedBox(height: DesignConstants.spacingS),
-                      ...items.asMap().entries.expand(
-                        (entry) {
-                          final index = entry.key;
-                          final item = entry.value;
-                          return [
-                            if (index > 0) const Divider(height: 1),
-                            FoodEntryTile(
-                              trackedItem: item,
-                              onEdit: widget.onEditFood,
-                              onDelete: widget.onDeleteFood,
-                            ),
-                          ];
-                        },
-                      ),
+                      ...items.asMap().entries.expand((entry) {
+                        final index = entry.key;
+                        final item = entry.value;
+                        return [
+                          if (index > 0) const Divider(height: 1),
+                          FoodEntryTile(
+                            trackedItem: item,
+                            onEdit: widget.onEditFood,
+                            onDelete: widget.onDeleteFood,
+                          ),
+                        ];
+                      }),
                       if (solidItems.isNotEmpty) ...[
                         const SizedBox(height: DesignConstants.spacingXS),
                         TextButton(
@@ -1616,10 +1673,11 @@ class _FluidsCardState extends State<_FluidsCard> {
         if (!vm.hasDataForSelectedDate) {
           return [
             FluidEntry(
-                timestamp: DateTime.now(),
-                quantityInMl: 250,
-                name: 'Water',
-                kcal: 0),
+              timestamp: DateTime.now(),
+              quantityInMl: 250,
+              name: 'Water',
+              kcal: 0,
+            ),
           ];
         }
         return vm.fluidEntries;
@@ -1638,11 +1696,16 @@ class _FluidsCardState extends State<_FluidsCard> {
                   child: Row(
                     children: [
                       Expanded(
-                          child: Text(l10n.waterHeader,
-                              style: theme.textTheme.titleMedium)),
-                      Icon(_isOpen
-                          ? LucideIcons.chevron_up
-                          : LucideIcons.chevron_down),
+                        child: Text(
+                          l10n.waterHeader,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      Icon(
+                        _isOpen
+                            ? LucideIcons.chevron_up
+                            : LucideIcons.chevron_down,
+                      ),
                       const SizedBox(width: DesignConstants.spacingXS),
                       IconButton(
                         icon: const Icon(LucideIcons.circle_plus),
@@ -1669,7 +1732,8 @@ class _FluidsCardState extends State<_FluidsCard> {
                               (entry.sugarPer100ml! / 100) * entry.quantityInMl;
                         }
                         if (entry.caffeinePer100ml != null) {
-                          totalCaffeine += (entry.caffeinePer100ml! / 100) *
+                          totalCaffeine +=
+                              (entry.caffeinePer100ml! / 100) *
                               entry.quantityInMl;
                         }
                       }
@@ -1678,8 +1742,9 @@ class _FluidsCardState extends State<_FluidsCard> {
                         sugar: totalSugar,
                         caffeine: totalCaffeine,
                         waterMl: totalMl,
-                        useBadges:
-                            ctx.read<ThemeService>().useColorfulMacroBadges,
+                        useBadges: ctx
+                            .read<ThemeService>()
+                            .useColorfulMacroBadges,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
@@ -1698,20 +1763,18 @@ class _FluidsCardState extends State<_FluidsCard> {
                     children: [
                       if (fluids.isNotEmpty)
                         const SizedBox(height: DesignConstants.spacingS),
-                      ...fluids.asMap().entries.expand(
-                        (entry) {
-                          final index = entry.key;
-                          final fluid = entry.value;
-                          return [
-                            if (index > 0) const Divider(height: 1),
-                            FluidEntryTile(
-                              entry: fluid,
-                              onEdit: widget.onEditFluid,
-                              onDelete: widget.onDeleteFluid,
-                            ),
-                          ];
-                        },
-                      ),
+                      ...fluids.asMap().entries.expand((entry) {
+                        final index = entry.key;
+                        final fluid = entry.value;
+                        return [
+                          if (index > 0) const Divider(height: 1),
+                          FluidEntryTile(
+                            entry: fluid,
+                            onEdit: widget.onEditFluid,
+                            onDelete: widget.onDeleteFluid,
+                          ),
+                        ];
+                      }),
                     ],
                   ),
                   secondChild: const SizedBox.shrink(),

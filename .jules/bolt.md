@@ -10,3 +10,6 @@
 ## 2024-05-18 - Avoid try-catch for control flow
 **Learning:** Using `try-catch` blocks for control flow, particularly catching `StateError` from `firstWhere` when an item is not found, incurs a significant performance overhead in Dart. This is due to the generation of stack traces when an exception is thrown. In hot paths like Flutter's `build` methods or reactive view models (like `PlatformAdaptiveDropdownFormField` or `DiaryViewModel`), this can cause noticeable main-thread blocking and frame drops.
 **Action:** Always prefer manual loops (`for (final item in items) { ... break; }`) or `collection` package helpers (like `firstWhereOrNull`) over `try-catch` with `firstWhere` to gracefully handle missing elements without throwing exceptions.
+## 2024-05-19 - Removed nested pipelines in Widget build and ViewModels
+**Learning:** In Flutter, the `build` method and `ViewModel` getter methods run frequently. Using combinations of `.where().toList()` and `.map()` creates numerous intermediate collections and closures that pressure the garbage collector, slowing down frame rates and increasing memory footprint.
+**Action:** Replace `iterable.where(...).toList()` and chained `.map(...)` calls with standard `for` loop accumulations in critical UI or reactivity paths (like `_MealCard` rendering and `supplementLogsForSupplement`).
