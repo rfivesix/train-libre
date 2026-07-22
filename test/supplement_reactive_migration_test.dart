@@ -37,12 +37,12 @@ void main() {
       // 1. Establish the stream expectation
       final stream = localDataSource.watchAllSupplements();
 
-      // Creatine, Protein, Caffeine are standard supplements
+      // Creatine, Caffeine are standard supplements (2 items)
       expectLater(
         stream,
         emitsInOrder([
-          hasLength(3), // Initial empty/standard
-          hasLength(4), // Emitted after we insert Vitamin D
+          hasLength(2), // Initial standard supplements (Creatine, Caffeine)
+          hasLength(3), // Emitted after inserting Vitamin D
         ]),
       );
 
