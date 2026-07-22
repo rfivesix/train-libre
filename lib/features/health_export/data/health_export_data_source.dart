@@ -270,17 +270,23 @@ class HealthExportDataSource {
     );
     if (entries.isEmpty) return const <ExportNutritionRecord>[];
 
-    final archivedEntries =
-        entries.where((e) => e.archiveLocalId != null).toList();
-    final legacyEntries =
-        entries.where((e) => e.archiveLocalId == null).toList();
+    // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
+    final Set<int> archiveIdsSet = {};
+    final Set<String> barcodesSet = {};
+
+    for (final entry in entries) {
+      if (entry.archiveLocalId != null) {
+        archiveIdsSet.add(entry.archiveLocalId!);
+      } else {
+        barcodesSet.add(entry.barcode);
+      }
+    }
 
     final Map<int, db.OffProductsArchiveData> archiveProductsMap = {};
     final Map<String, db.Product> legacyProductsMap = {};
 
-    if (archivedEntries.isNotEmpty) {
-      final archiveIds =
-          archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+    if (archiveIdsSet.isNotEmpty) {
+      final archiveIds = archiveIdsSet.toList();
       final dbInstance = await _db.database;
       final rows = await (dbInstance.select(dbInstance.offProductsArchive)
             ..where((tbl) => tbl.localId.isIn(archiveIds)))
@@ -290,8 +296,8 @@ class HealthExportDataSource {
       }
     }
 
-    if (legacyEntries.isNotEmpty) {
-      final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+    if (barcodesSet.isNotEmpty) {
+      final barcodes = barcodesSet.toList();
       final products = await _loadProductsByBarcode(barcodes);
       for (final p in products) {
         legacyProductsMap[p.barcode] = p;

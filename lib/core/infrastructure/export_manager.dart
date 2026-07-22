@@ -271,24 +271,31 @@ class ExportManager {
     // -------------------------------------------------------------------------
     final entries = await foodHelper.getAllFoodEntries();
     final fluidEntries = await foodHelper.getAllFluidEntries();
-    final archivedEntries =
-        entries.where((e) => e.archiveLocalId != null).toList();
-    final legacyEntries =
-        entries.where((e) => e.archiveLocalId == null).toList();
+
+    // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
+    final Set<int> archiveIdsSet = {};
+    final Set<String> barcodesSet = {};
+
+    for (final entry in entries) {
+      if (entry.archiveLocalId != null) {
+        archiveIdsSet.add(entry.archiveLocalId!);
+      } else {
+        barcodesSet.add(entry.barcode);
+      }
+    }
 
     final Map<int, FoodItem> archiveProductsMap = {};
     final Map<String, FoodItem> legacyProductsMap = {};
 
-    if (archivedEntries.isNotEmpty) {
-      final archiveIds =
-          archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+    if (archiveIdsSet.isNotEmpty) {
+      final archiveIds = archiveIdsSet.toList();
       final archivedProducts = await foodHelper.productLocalDataSource
           .getProductsByArchiveIds(archiveIds);
       archiveProductsMap.addAll(archivedProducts);
     }
 
-    if (legacyEntries.isNotEmpty) {
-      final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+    if (barcodesSet.isNotEmpty) {
+      final barcodes = barcodesSet.toList();
       final legacyProducts = await foodHelper.productLocalDataSource
           .getProductsByBarcodes(barcodes);
       for (final p in legacyProducts) {
