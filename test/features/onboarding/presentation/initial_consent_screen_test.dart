@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/onboarding/presentation/initial_consent_screen.dart';
+import 'package:train_libre/widgets/common/app_button.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,11 +33,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final nextButton = find.byType(FilledButton);
+    final nextButton = find.byType(AppButton);
     expect(nextButton, findsOneWidget);
 
     // Check if button is disabled
-    var button = tester.widget<FilledButton>(nextButton);
+    var button = tester.widget<AppButton>(nextButton);
     expect(button.onPressed, isNull);
 
     // Find and tap the privacy policy checkbox
@@ -47,7 +48,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Still disabled
-    button = tester.widget<FilledButton>(nextButton);
+    button = tester.widget<AppButton>(nextButton);
     expect(button.onPressed, isNull);
 
     // Tap second checkbox (Terms of Service)
@@ -55,7 +56,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Now enabled
-    button = tester.widget<FilledButton>(nextButton);
+    button = tester.widget<AppButton>(nextButton);
     expect(button.onPressed, isNotNull);
   });
 }

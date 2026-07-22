@@ -7,6 +7,7 @@ import 'package:train_libre/features/workout/data/sources/workout_local_data_sou
 import 'package:train_libre/features/workout/presentation/edit_routine_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:train_libre/widgets/common/app_button.dart';
 
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/unit_service.dart';
@@ -96,7 +97,7 @@ void main() {
     expect(find.text('Unsaved Changes'), findsOneWidget);
 
     // Tap Discard
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Discard'));
+    await tester.tap(find.widgetWithText(AppButton, 'Discard'));
     await tester.pumpAndSettle();
 
     // Sheet is gone and screen is popped
@@ -125,7 +126,7 @@ void main() {
     expect(find.text('Unsaved Changes'), findsOneWidget);
 
     // Tap Save on the bottom sheet
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(AppButton, 'Save'));
     await tester.pumpAndSettle();
 
     // Sheet is gone and screen is popped

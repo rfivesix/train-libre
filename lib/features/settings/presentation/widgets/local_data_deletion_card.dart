@@ -41,6 +41,7 @@ class LocalDataDeletionCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: AppButton.danger(
+                key: const Key('delete_all_local_app_data_button'),
                 onPressed: isLocalResetRunning ? null : onDeletePressed,
                 label: l10n.deleteAllLocalAppData,
                 tooltip: l10n.deleteAllLocalAppData,

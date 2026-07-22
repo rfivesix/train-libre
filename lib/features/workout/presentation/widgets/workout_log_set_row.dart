@@ -106,6 +106,7 @@ class WorkoutLogSetRow extends StatelessWidget {
           flex: isCardio ? 4 : 2,
           child: isEditMode
               ? TextFormField(
+                  key: ValueKey('weight_input_${setLog.id}'),
                   controller: weightController,
                   textAlign: TextAlign.center,
                   keyboardType: const TextInputType.numberWithOptions(

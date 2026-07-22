@@ -7,6 +7,7 @@ import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
 import 'package:train_libre/util/cancellation_token.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/features/settings/presentation/sleep_settings_screen.dart';
+import 'package:train_libre/widgets/common/app_button.dart';
 import 'package:train_libre/services/theme_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -168,8 +169,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // 2. Tap the confirmation button inside the showGlassBottomMenu dialog
-    // The controller uses a FilledButton for the confirmation action.
-    await tester.tap(find.byType(FilledButton));
+    // The controller uses an AppButton for the confirmation action.
+    await tester.tap(find.byType(AppButton));
     await tester.pumpAndSettle();
 
     // 3. Verify the state updated

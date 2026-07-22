@@ -348,6 +348,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           SizedBox(
             width: double.infinity,
             child: AppButton.primary(
+              key: const Key('feedback_report_generate_preview_button'),
               onPressed: _isGeneratingPreview ? null : _generatePreview,
               label: l10n.feedbackReportGeneratePreview,
               tooltip: l10n.feedbackReportGeneratePreview,
@@ -377,24 +378,28 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
               runSpacing: 8,
               children: [
                 AppButton.secondary(
+                  key: const Key('feedback_report_action_copy'),
                   onPressed: _isCopying ? null : _copyReport,
                   label: l10n.feedbackReportActionCopy,
                   tooltip: l10n.feedbackReportActionCopy,
                   icon: LucideIcons.copy,
                 ),
                 AppButton.secondary(
+                  key: const Key('feedback_report_action_save'),
                   onPressed: _isSaving ? null : _saveReportFile,
                   label: l10n.feedbackReportActionSave,
                   tooltip: l10n.feedbackReportActionSave,
                   icon: LucideIcons.download,
                 ),
                 AppButton.secondary(
+                  key: const Key('feedback_report_action_share'),
                   onPressed: _isSharing ? null : _shareReport,
                   label: l10n.feedbackReportActionShare,
                   tooltip: l10n.feedbackReportActionShare,
                   icon: DesignConstants.adaptiveShareIcon,
                 ),
                 AppButton.secondary(
+                  key: const Key('feedback_report_action_email'),
                   onPressed: _isEmailing ? null : _openEmailDraft,
                   label: l10n.feedbackReportActionEmail,
                   tooltip: l10n.feedbackReportActionEmail,

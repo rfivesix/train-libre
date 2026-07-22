@@ -107,21 +107,26 @@ void main() {
           logOrder: const drift.Value(0),
         ));
 
+    // Use a tall viewport so ReorderableListView.builder renders all items eagerly
+    await tester.binding.setSurfaceSize(const Size(800, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
     await tester.pumpAndSettle();
 
-    // Tap edit button
+    // Tap edit button to enter edit mode
     await tester.tap(find.byIcon(LucideIcons.pencil));
     await tester.pumpAndSettle();
 
-    // Check it correctly shows 100 before typing
+    // The weight input field is keyed by set localId
+    final weightFieldFinder = find.byKey(ValueKey('weight_input_${setRow.localId}'));
+
+    // Verify the field is in the tree and shows the initial weight
+    expect(weightFieldFinder, findsOneWidget);
     expect(find.textContaining('100'), findsWidgets);
 
     // Type a new weight
-    debugDumpApp();
-    debugPrint(
-        'Widget with 100: ${find.textContaining('100').evaluate().map((e) => e.widget.runtimeType)}');
-    await tester.enterText(find.byType(TextField).at(1), '105');
+    await tester.enterText(weightFieldFinder, '105');
     await tester.pumpAndSettle();
 
     // Push new sets via DB (simulating a background sync or other device edit)

@@ -620,6 +620,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                   children: [
                     Expanded(
                       child: AppButton.secondary(
+                        key: const Key('cancel_delete_local_data_button'),
                         onPressed: () {
                           close();
                           Navigator.of(ctx).pop(false);
@@ -631,6 +632,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
                       child: AppButton.primary(
+                        key: const Key('confirm_delete_local_data_button'),
                         onPressed: canConfirm
                             ? () {
                                 close();

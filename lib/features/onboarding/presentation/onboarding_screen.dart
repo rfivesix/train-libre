@@ -1096,6 +1096,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     const Spacer(),
                     AppButton.primary(
+                      key: const Key('onboarding_bottom_next_button'),
                       onPressed: _isGeneratingOnboardingRecommendation || _isCheckingDatabase
                           ? null
                           : _nextPage,

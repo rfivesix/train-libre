@@ -4,6 +4,7 @@ import 'package:train_libre/features/pulse/application/pulse_tracking_service.da
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/features/settings/presentation/pulse_settings_screen.dart';
 import 'package:train_libre/widgets/common/platform_adaptive_switch_list_tile.dart';
+import 'package:train_libre/widgets/common/app_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakePulseTrackingService implements PulseTrackingSettingsService {
@@ -59,7 +60,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     // Confirm pre-permission dialog
-    await tester.tap(find.byType(FilledButton));
+    await tester.tap(find.byType(AppButton));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 

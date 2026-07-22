@@ -106,6 +106,7 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
             SizedBox(
               width: double.infinity,
               child: AppButton.primary(
+                key: const Key('onboarding_continue_setup_button'),
                 onPressed: widget.isRestoring ? null : widget.onContinue,
                 label: l10n.onboardingContinueSetup,
                 tooltip: l10n.onboardingContinueSetup,
