@@ -140,7 +140,11 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadMeasurements();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _loadMeasurements();
+      }
+    });
   }
 
   Future<void> _loadMeasurements() async {
@@ -210,46 +214,14 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final unitService = context.watch<UnitService>();
+    final locale = Localizations.localeOf(context).toString();
+    final dateFormat = DateFormat.yMMMMEEEEd(locale).add_Hm();
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
     final hasNoData = _filteredSessions.isEmpty;
     final displaySessions = hasNoData ? getMockSessions(_activeDateRange) : _filteredSessions;
-
-    Widget bodyContent = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── Chart (follows same date range) ──
-        _buildChartSection(l10n, colorScheme, textTheme),
-        const SizedBox(height: DesignConstants.spacingXL),
-
-        // ── Session list header ──
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesignConstants.screenPaddingHorizontal,
-          ),
-          child: AppSectionHeader(title: l10n.all_measurements),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-
-        // ── Filtered/Mock sessions ──
-        ...displaySessions.map(
-          (session) => _buildSessionCard(
-              l10n, colorScheme, textTheme, session),
-        ),
-        const BottomContentSpacer(),
-      ],
-    );
-
-    if (hasNoData) {
-      bodyContent = ActiveGapOverlay(
-        message: l10n.emptyStateActiveGapOverlay,
-        background: Skeletonizer(
-          enabled: true,
-          child: IgnorePointer(child: bodyContent),
-        ),
-      );
-    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -266,51 +238,96 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                 top: topPadding + DesignConstants.spacingM,
                 left: 0,
                 right: 0,
-                bottom: 0,
+                bottom: DesignConstants.spacingS,
               ),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // ── Unified time range filter (identical to Statistics Hub) ──
-                  TimeRangeFilter(
-                    ranges: _timeRangeLabels(l10n),
-                    selectedIndex: _blocks.indexOf(_activeBlock),
-                    onSelected: (index) {
-                      setState(() {
-                        _activeBlock = _blocks[index];
-                        _isRolling = _activeBlock != TimeframeBlock.maxBlock;
-                        _anchorDate = DateTime.now();
-                      });
-                    },
-                    onPrevious: _activeBlock == TimeframeBlock.maxBlock
-                        ? null
-                        : () => _shiftTimeframe(true),
-                    onNext: _nextEnabled ? () => _shiftTimeframe(false) : null,
-                    displayDate: _rangeDisplayLabel(l10n),
-                    onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
-                        ? null
-                        : () async {
-                            final selected = await adaptive_pickers
-                                .showAdaptiveTimeframePicker(
-                              context: context,
-                              activeBlock: _activeBlock,
-                              initialAnchor: _anchorDate,
-                              initialIsRolling: _isRolling,
-                              earliestAvailableDay: DateTime(2020),
-                            );
-                            if (selected != null) {
-                              setState(() {
-                                _anchorDate = selected.anchorDate;
-                                _isRolling = selected.isRolling;
-                              });
-                            }
-                          },
-                    nextEnabled: _nextEnabled,
-                    showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Unified time range filter (identical to Statistics Hub) ──
+                    TimeRangeFilter(
+                      ranges: _timeRangeLabels(l10n),
+                      selectedIndex: _blocks.indexOf(_activeBlock),
+                      onSelected: (index) {
+                        setState(() {
+                          _activeBlock = _blocks[index];
+                          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
+                          _anchorDate = DateTime.now();
+                        });
+                      },
+                      onPrevious: _activeBlock == TimeframeBlock.maxBlock
+                          ? null
+                          : () => _shiftTimeframe(true),
+                      onNext: _nextEnabled ? () => _shiftTimeframe(false) : null,
+                      displayDate: _rangeDisplayLabel(l10n),
+                      onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
+                          ? null
+                          : () async {
+                              final selected = await adaptive_pickers
+                                  .showAdaptiveTimeframePicker(
+                                context: context,
+                                activeBlock: _activeBlock,
+                                initialAnchor: _anchorDate,
+                                initialIsRolling: _isRolling,
+                                earliestAvailableDay: DateTime(2020),
+                              );
+                              if (selected != null) {
+                                setState(() {
+                                  _anchorDate = selected.anchorDate;
+                                  _isRolling = selected.isRolling;
+                                });
+                              }
+                            },
+                      nextEnabled: _nextEnabled,
+                      showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
+                    ),
+                    const SizedBox(height: DesignConstants.spacingL),
+                    // ── Chart (follows same date range) ──
+                    _buildChartSection(l10n, colorScheme, textTheme),
+                    const SizedBox(height: DesignConstants.spacingXL),
+                    // ── Session list header ──
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.screenPaddingHorizontal,
+                      ),
+                      child: AppSectionHeader(title: l10n.all_measurements),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                  ],
+                ),
+              ),
+            ),
+            if (hasNoData)
+              SliverToBoxAdapter(
+                child: ActiveGapOverlay(
+                  message: l10n.emptyStateActiveGapOverlay,
+                  background: Skeletonizer(
+                    enabled: true,
+                    child: Column(
+                      children: displaySessions
+                          .map((session) => _buildSessionCard(
+                              l10n, colorScheme, textTheme, unitService, dateFormat, session))
+                          .toList(),
+                    ),
                   ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                  bodyContent,
-                ]),
+                ),
+              )
+            else
+              SliverList.builder(
+                itemCount: displaySessions.length,
+                itemBuilder: (context, index) {
+                  return _buildSessionCard(
+                    l10n,
+                    colorScheme,
+                    textTheme,
+                    unitService,
+                    dateFormat,
+                    displaySessions[index],
+                  );
+                },
               ),
+            const SliverToBoxAdapter(
+              child: BottomContentSpacer(),
             ),
           ],
         ),
@@ -378,10 +395,10 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     AppLocalizations l10n,
     ColorScheme colorScheme,
     TextTheme textTheme,
+    UnitService unitService,
+    DateFormat dateFormat,
     MeasurementSession session,
   ) {
-    final unitService = context.watch<UnitService>();
-    final locale = Localizations.localeOf(context).toString();
     final sortedMeasurements = session.measurements.toList()
       ..sort((a, b) => a.type.compareTo(b.type));
 
@@ -427,9 +444,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  DateFormat.yMMMMEEEEd(locale)
-                      .add_Hm()
-                      .format(session.timestamp),
+                  dateFormat.format(session.timestamp),
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
