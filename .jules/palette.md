@@ -5,3 +5,7 @@
 ## 2024-05-19 - Adding Tooltips to IconButtons for Accessibility
 **Learning:** Icon-only buttons (`IconButton`) require a `tooltip` property to provide a semantic label for screen readers and a visual hover hint, acting as an ARIA-equivalent in Flutter.
 **Action:** Always add a `tooltip` property to `IconButton` widgets when they do not have an accompanying text label. When using standard navigation/system buttons, use `MaterialLocalizations.of(context)` properties like `previousPageTooltip` or `nextPageTooltip` to provide standard, automatically localized tooltips.
+
+## 2024-05-19 - Adding Tooltips to IconButtons for Accessibility (Custom Features)
+**Learning:** Found a missing tooltip on the primary AI Meal Capture action button. Icon-only buttons mapping to custom features should reuse existing localized strings (e.g., `l10n.aiMealCapture`) if an exact tooltip string isn't available, to ensure users understand the button's function without relying solely on the icon (which might not be universally recognizable).
+**Action:** When adding tooltips to custom icon-only actions, scan the localization file for the closest matching feature name if a dedicated tooltip string does not exist.
