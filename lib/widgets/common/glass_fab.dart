@@ -108,15 +108,14 @@ class _GlassFabState extends State<GlassFab>
           ),
         ),
         GlassAdaptiveScope(
-          minQuality: GlassQuality.premium,
-          maxQuality: GlassQuality.premium,
+          maxQuality: DesignConstants.defaultGlassQuality,
           child: RepaintBoundary(
             child: AdaptiveGlass(
               settings: DesignConstants.liquidGlassSettings(isDark),
               shape: hasLabel
                   ? LiquidRoundedSuperellipse(borderRadius: DesignConstants.fabSize / 2)
                   : const LiquidOval(),
-              quality: GlassQuality.premium,
+              quality: DesignConstants.defaultGlassQuality,
               child: GlassGlow(
                 glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
                 glowRadius: 1.0,

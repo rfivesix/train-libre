@@ -1,5 +1,5 @@
-// lib/util/design_constants.dart
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -128,6 +128,16 @@ class DesignConstants {
   static Color glassColor(bool isDark) => isDark
       ? Colors.white.withValues(alpha: 0.12)
       : Colors.white.withValues(alpha: 0.15);
+
+  /// Default platform-adaptive glass quality.
+  /// Uses [GlassQuality.standard] on Android for optimal GPU subpass performance,
+  /// and [GlassQuality.premium] on iOS/macOS.
+  static GlassQuality get defaultGlassQuality {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return GlassQuality.standard;
+    }
+    return GlassQuality.premium;
+  }
 
   /// Unified settings for liquid glassmorphic rendering.
   static LiquidGlassSettings liquidGlassSettings(bool isDark) =>

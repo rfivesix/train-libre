@@ -1327,12 +1327,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 ),
               ),
               GlassAdaptiveScope(
-                minQuality: GlassQuality.premium,
-                maxQuality: GlassQuality.premium,
+                maxQuality: DesignConstants.defaultGlassQuality,
                 child: AdaptiveGlass(
                   settings: DesignConstants.liquidGlassSettings(isDark),
                   shape: LiquidRoundedSuperellipse(borderRadius: r),
-                  quality: GlassQuality.premium,
+                  quality: DesignConstants.defaultGlassQuality,
                   child: GlassGlow(
                     glowColor:
                         Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
@@ -1478,8 +1477,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               ),
             ),
             GlassAdaptiveScope(
-              minQuality: GlassQuality.premium,
-              maxQuality: GlassQuality.premium,
+              maxQuality: DesignConstants.defaultGlassQuality,
               child: AdaptiveGlass(
                 settings: LiquidGlassSettings(
                   thickness: 30,
@@ -1490,7 +1488,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                   saturation: 1.20,
                 ),
                 shape: LiquidRoundedSuperellipse(borderRadius: r),
-                quality: GlassQuality.premium,
+                quality: DesignConstants.defaultGlassQuality,
                 child: GlassGlow(
                   glowColor:
                       Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),

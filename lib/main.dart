@@ -122,7 +122,8 @@ void main() async {
     LiquidGlassWidgets.wrap(
       adaptiveQuality: true,
       adaptiveConfig: GlassAdaptiveScopeConfig(
-        initialQuality: initialGlassQuality,
+        initialQuality: initialGlassQuality ?? DesignConstants.defaultGlassQuality,
+        maxQuality: DesignConstants.defaultGlassQuality,
         allowStepUp: true,
         onQualityChanged: (_, to) => prefs.setString('glass_quality', to.name),
       ),

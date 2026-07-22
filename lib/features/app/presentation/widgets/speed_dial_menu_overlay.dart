@@ -173,14 +173,13 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                             ),
                                             // Premium glass layer — identical pattern to the FAB
                                             GlassAdaptiveScope(
-                                              minQuality: GlassQuality.premium,
-                                              maxQuality: GlassQuality.premium,
+                                              maxQuality: DesignConstants.defaultGlassQuality,
                                               child: AdaptiveGlass(
                                                 shape: const LiquidOval(),
                                                 settings: DesignConstants
                                                     .liquidGlassSettings(
                                                         isDarkLocal),
-                                                quality: GlassQuality.premium,
+                                                quality: DesignConstants.defaultGlassQuality,
                                                 useOwnLayer: true,
                                                 isInteractive: false,
                                                 child: Material(
@@ -268,13 +267,12 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                             ),
                           ),
                           GlassAdaptiveScope(
-                            minQuality: GlassQuality.premium,
-                            maxQuality: GlassQuality.premium,
+                            maxQuality: DesignConstants.defaultGlassQuality,
                             child: AdaptiveGlass(
                               shape: const LiquidOval(),
                               settings: DesignConstants.liquidGlassSettings(
                                   isDarkLocal),
-                              quality: GlassQuality.premium,
+                              quality: DesignConstants.defaultGlassQuality,
                               useOwnLayer: true,
                               isInteractive:
                                   false, // Force background blur during animations

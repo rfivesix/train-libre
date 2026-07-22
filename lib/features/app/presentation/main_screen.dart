@@ -1303,8 +1303,7 @@ class _MainScreenState extends State<MainScreen>
                               vertical: verticalPadding,
                             ),
                             child: GlassAdaptiveScope(
-                              minQuality: GlassQuality.premium,
-                              maxQuality: GlassQuality.premium,
+                              maxQuality: DesignConstants.defaultGlassQuality,
                               child: Row(
                                 children: [
                                   Expanded(
@@ -1315,12 +1314,11 @@ class _MainScreenState extends State<MainScreen>
                                           .bottomNavigationBarHeight,
                                       barBorderRadius: DesignConstants
                                               .bottomNavigationBarHeight /
-                                          2, // Half of height for perfectly rounded semi-circle ends
-                                      tabWidth:
-                                          null, // Stretches to occupy all horizontal space
+                                          2,
+                                      tabWidth: null,
                                       horizontalPadding: 0.0,
                                       verticalPadding: 0.0,
-                                      quality: GlassQuality.premium,
+                                      quality: DesignConstants.defaultGlassQuality,
                                       indicatorExpansion:
                                           const EdgeInsets.symmetric(
                                               horizontal: 14, vertical: 8),
@@ -1392,7 +1390,7 @@ class _MainScreenState extends State<MainScreen>
                                       settings:
                                           DesignConstants.liquidGlassSettings(
                                               isDark),
-                                      quality: GlassQuality.premium,
+                                      quality: DesignConstants.defaultGlassQuality,
                                       useOwnLayer: true,
                                       isInteractive:
                                           true, //false, // Force blur in minimal quality

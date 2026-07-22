@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../util/design_constants.dart';
 
 /// Configuration item for [PlatformAdaptivePopupMenu].
 class PlatformAdaptivePopupMenuItem<T> {
@@ -48,7 +49,7 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
 
     return AdaptiveLiquidGlassLayer(
       settings: menuSettings,
-      quality: GlassQuality.premium,
+      quality: DesignConstants.defaultGlassQuality,
       child: GlassMenu(
         menuWidth: 200,
         settings: menuSettings,
@@ -147,7 +148,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
                 constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
             return AdaptiveLiquidGlassLayer(
               settings: menuSettings,
-              quality: GlassQuality.premium,
+              quality: DesignConstants.defaultGlassQuality,
               child: GlassMenu(
                 menuWidth: menuWidth,
                 autoAdjustToScreen: true,
