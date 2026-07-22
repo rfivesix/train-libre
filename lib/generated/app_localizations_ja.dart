@@ -3194,6 +3194,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsWeeksAtLeast2Workouts => '少なくとも2回のセッションで週に1回';
 
   @override
+  String get analyticsInTimeframe => '対象期間内';
+
+  @override
+  String get analyticsVsPriorPeriod => '前期間比';
+
+  @override
   String get analyticsCalendarExplainer =>
       '色の濃さは 1 日あたりのセッションを反映しており、これが真の一貫性マップになります。';
 

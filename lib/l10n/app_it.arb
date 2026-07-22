@@ -1418,6 +1418,8 @@
   "analyticsVsPrior4Weeks": "rispetto alle 4 settimane precedenti",
   "analyticsRollingConsistency": "Consistenza del rotolamento",
   "analyticsWeeksAtLeast2Workouts": "settimane con almeno 2 sessioni",
+  "analyticsInTimeframe": "Nel periodo",
+  "analyticsVsPriorPeriod": "rispetto al periodo precedente",
   "analyticsCalendarExplainer": "L'intensità del colore riflette le sessioni giornaliere, rendendola una vera mappa di coerenza.",
   "analyticsSelectDayPrompt": "Seleziona un giorno per controllare il conteggio delle sessioni.",
   "analyticsSelectedDayWorkouts": "{date}: {count} sessioni",

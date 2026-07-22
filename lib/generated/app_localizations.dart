@@ -5879,6 +5879,18 @@ abstract class AppLocalizations {
   /// **'weeks with at least 2 sessions'**
   String get analyticsWeeksAtLeast2Workouts;
 
+  /// No description provided for @analyticsInTimeframe.
+  ///
+  /// In en, this message translates to:
+  /// **'In timeframe'**
+  String get analyticsInTimeframe;
+
+  /// No description provided for @analyticsVsPriorPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'vs prior period'**
+  String get analyticsVsPriorPeriod;
+
   /// No description provided for @analyticsCalendarExplainer.
   ///
   /// In en, this message translates to:

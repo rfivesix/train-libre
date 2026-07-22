@@ -3282,6 +3282,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsWeeksAtLeast2Workouts => 'weeks with at least 2 sessions';
 
   @override
+  String get analyticsInTimeframe => 'In timeframe';
+
+  @override
+  String get analyticsVsPriorPeriod => 'vs prior period';
+
+  @override
   String get analyticsCalendarExplainer =>
       'Color intensity reflects sessions per day, making this a true consistency map.';
 

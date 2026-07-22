@@ -3325,6 +3325,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'settimane con almeno 2 sessioni';
 
   @override
+  String get analyticsInTimeframe => 'Nel periodo';
+
+  @override
+  String get analyticsVsPriorPeriod => 'rispetto al periodo precedente';
+
+  @override
   String get analyticsCalendarExplainer =>
       'L\'intensità del colore riflette le sessioni giornaliere, rendendola una vera mappa di coerenza.';
 

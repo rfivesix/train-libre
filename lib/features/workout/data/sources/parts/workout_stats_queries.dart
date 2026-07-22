@@ -1242,10 +1242,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
   /// Returns per-week consistency metrics for the last [weeksBack] weeks.
   Future<List<Map<String, dynamic>>> getWeeklyConsistencyMetrics({
     int weeksBack = 12,
+    DateTime? untilDate,
   }) async {
     final stopwatch = Stopwatch()..start();
-    final now = DateTime.now();
-    final since = now.subtract(Duration(days: weeksBack * 7));
+    final effectiveUntil = untilDate ?? DateTime.now();
+    final since = effectiveUntil.subtract(Duration(days: weeksBack * 7));
     final dbInstance = await database;
 
     final weekMap = <String, Map<String, dynamic>>{};
@@ -1268,7 +1269,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     }
 
     for (int w = weeksBack - 1; w >= 0; w--) {
-      ensureWeek(now.subtract(Duration(days: w * 7)));
+      ensureWeek(effectiveUntil.subtract(Duration(days: w * 7)));
     }
 
     final workoutRows = await (dbInstance.select(dbInstance.workoutLogs)
@@ -1277,7 +1278,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
                 tbl.status.equals('completed') &
                 tbl.startTime.isBetweenValues(
                   since,
-                  now.add(const Duration(days: 1)),
+                  effectiveUntil.add(const Duration(days: 1)),
                 ),
           )
           ..orderBy([(t) => drift.OrderingTerm(expression: t.startTime)]))
@@ -1322,7 +1323,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
                 dbInstance.workoutLogs.status.equals('completed') &
                 dbInstance.workoutLogs.startTime.isBetweenValues(
                   since,
-                  now.add(const Duration(days: 1)),
+                  effectiveUntil.add(const Duration(days: 1)),
                 ),
           ))
         .get();

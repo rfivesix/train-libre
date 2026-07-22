@@ -1418,6 +1418,8 @@
   "analyticsVsPrior4Weeks": "gegenüber den 4 Wochen davor",
   "analyticsRollingConsistency": "Rollierende Konsistenz",
   "analyticsWeeksAtLeast2Workouts": "Wochen mit mindestens 2 Einheiten",
+  "analyticsInTimeframe": "Im Zeitraum",
+  "analyticsVsPriorPeriod": "gegenüber Vorperiode",
   "analyticsCalendarExplainer": "Die Farbdichte zeigt Einheiten pro Tag. Dadurch dient der Kalender als echte Konsistenz-Ansicht.",
   "analyticsSelectDayPrompt": "Wähle einen Tag aus, um die Anzahl der Einheiten zu sehen.",
   "analyticsSelectedDayWorkouts": "{date}: {count} Einheiten",

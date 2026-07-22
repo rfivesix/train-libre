@@ -3335,6 +3335,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'semaines avec au moins 2 séances';
 
   @override
+  String get analyticsInTimeframe => 'Dans la période';
+
+  @override
+  String get analyticsVsPriorPeriod => 'vs période précédente';
+
+  @override
   String get analyticsCalendarExplainer =>
       'L\'intensité des couleurs reflète les séances quotidiennes, ce qui en fait une véritable carte de cohérence.';
 

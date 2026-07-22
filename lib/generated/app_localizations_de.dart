@@ -3306,6 +3306,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wochen mit mindestens 2 Einheiten';
 
   @override
+  String get analyticsInTimeframe => 'Im Zeitraum';
+
+  @override
+  String get analyticsVsPriorPeriod => 'gegenüber Vorperiode';
+
+  @override
   String get analyticsCalendarExplainer =>
       'Die Farbdichte zeigt Einheiten pro Tag. Dadurch dient der Kalender als echte Konsistenz-Ansicht.';
 

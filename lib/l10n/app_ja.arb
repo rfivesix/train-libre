@@ -1418,6 +1418,8 @@
   "analyticsVsPrior4Weeks": "過去 4 週間との比較",
   "analyticsRollingConsistency": "ローリング一貫性",
   "analyticsWeeksAtLeast2Workouts": "少なくとも2回のセッションで週に1回",
+  "analyticsInTimeframe": "対象期間内",
+  "analyticsVsPriorPeriod": "前期間比",
   "analyticsCalendarExplainer": "色の濃さは 1 日あたりのセッションを反映しており、これが真の一貫性マップになります。",
   "analyticsSelectDayPrompt": "セッション数を検査する日を選択します。",
   "analyticsSelectedDayWorkouts": "{date}: {count} セッション",

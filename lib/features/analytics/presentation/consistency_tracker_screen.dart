@@ -73,13 +73,23 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     final bounds = _isRolling
         ? _activeBlock.getRollingBounds()
         : _activeBlock.getBounds(_anchorDate, DateTime(2020));
+    final untilDate = _isRolling ? DateTime.now() : bounds.end;
+
+    final weeksBack = switch (_activeBlock) {
+      TimeframeBlock.month => 4,
+      TimeframeBlock.threeMonths => 13,
+      TimeframeBlock.sixMonths => 26,
+      TimeframeBlock.year => 52,
+      _ => 4,
+    };
+
     final daysBack =
         DateTime.now().difference(bounds.start).inDays.clamp(1, 3650);
-    final weeksBack = (daysBack / 7).ceil().clamp(1, 1000);
 
     final stats = WorkoutLocalDataSource.instance.getTrainingStats();
     final weekly = WorkoutLocalDataSource.instance.getWeeklyConsistencyMetrics(
       weeksBack: weeksBack,
+      untilDate: untilDate,
     );
     final dayCounts = WorkoutLocalDataSource.instance.getWorkoutDayCounts(
       daysBack: daysBack,
@@ -96,8 +106,25 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
           .map(WeeklyConsistencyMetricPayload.fromMap)
           .toList();
       _workoutDayCounts = results[2] as Map<DateTime, int>;
+      _focusedDay = _isRolling ? DateTime.now() : _anchorDate;
       _isLoading = false;
     });
+  }
+
+  int _computeMaxStreak(List<WeeklyConsistencyMetricPayload> weeklyMetrics) {
+    int maxStreak = 0;
+    int currentStreak = 0;
+    for (final m in weeklyMetrics) {
+      if (m.count > 0) {
+        currentStreak++;
+        if (currentStreak > maxStreak) {
+          maxStreak = currentStreak;
+        }
+      } else {
+        currentStreak = 0;
+      }
+    }
+    return maxStreak;
   }
 
   DateTime _normalize(DateTime date) =>
@@ -110,14 +137,6 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       _ConsistencyMetric.volume => row.tonnage,
       _ConsistencyMetric.duration => row.durationMinutes,
       _ConsistencyMetric.frequency => row.count.toDouble(),
-    };
-  }
-
-  String _metricName(AppLocalizations l10n) {
-    return switch (_selectedMetric) {
-      _ConsistencyMetric.volume => l10n.metricsVolumeLifted,
-      _ConsistencyMetric.duration => l10n.durationLabel,
-      _ConsistencyMetric.frequency => l10n.workoutsPerWeekLabel,
     };
   }
 
@@ -151,17 +170,30 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     final displayMetrics = hasNoData ? getMockWeeklyMetrics(bounds) : _weeklyMetrics;
     final displayStats = hasNoData ? getMockTrainingStats() : _trainingStats;
 
-
     final trainingDaysPerWeek = hasNoData
         ? 2.5
-        : ConsistencyDomainService.computeTrainingDaysPerWeekLast4(
-            workoutDayCounts: _workoutDayCounts,
-          );
+        : (_isRolling
+            ? ConsistencyDomainService.computeTrainingDaysPerWeekLast4(
+                workoutDayCounts: _workoutDayCounts,
+              )
+            : ((_workoutDayCounts.entries
+                        .where((e) =>
+                            (e.key.isAfter(bounds.start) ||
+                                e.key.isAtSameMomentAs(bounds.start)) &&
+                            (e.key.isBefore(bounds.end) ||
+                                e.key.isAtSameMomentAs(bounds.end)) &&
+                            e.value > 0)
+                        .length) /
+                    (_weeklyMetrics.isEmpty
+                        ? 1.0
+                        : _weeklyMetrics.length.toDouble())));
+
     final rhythmDelta = hasNoData
         ? 0.5
         : ConsistencyDomainService.computeRhythmDelta(
             weeklyMetrics: _weeklyMetrics,
           );
+
     final rollingConsistency = hasNoData
         ? 80.0
         : ConsistencyDomainService.rollingConsistencyPercent(
@@ -178,6 +210,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       trainingDaysPerWeek,
       rhythmDelta,
       rollingConsistency,
+      _isRolling,
       l10n,
     );
 
@@ -365,12 +398,24 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     double trainingDaysPerWeek,
     double rhythmDelta,
     double rollingConsistency,
+    bool isRolling,
     AppLocalizations l10n,
   ) {
-    final thisWeek = stats.thisWeekCount;
-    final streak = stats.streakWeeks;
-    final avgPerWeek = stats.avgPerWeek;
-    final total = stats.totalWorkouts;
+    final timeframeTotalWorkouts = weeklyMetrics.isEmpty
+        ? 0
+        : weeklyMetrics.map((e) => e.count).fold(0, (a, b) => a + b);
+    final total = isRolling ? stats.totalWorkouts : timeframeTotalWorkouts;
+    final thisWeek = isRolling ? stats.thisWeekCount : timeframeTotalWorkouts;
+    final streak = isRolling
+        ? stats.streakWeeks
+        : _computeMaxStreak(weeklyMetrics);
+    final avgPerWeek = isRolling
+        ? stats.avgPerWeek
+        : (weeklyMetrics.isEmpty
+            ? 0.0
+            : timeframeTotalWorkouts / weeklyMetrics.length.toDouble());
+
+    final timeframeSubtitle = l10n.analyticsInTimeframe;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,9 +429,12 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                 children: [
                   Expanded(
                     child: ValueSummaryCard(
-                      label: l10n.metricsWorkoutsWeek,
+                      label: isRolling
+                          ? l10n.metricsWorkoutsWeek
+                          : l10n.totalWorkoutsLabel,
                       value: '$thisWeek',
-                      subtitle: l10n.thisWeekLabel,
+                      subtitle:
+                          isRolling ? l10n.thisWeekLabel : timeframeSubtitle,
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
@@ -394,7 +442,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                     child: ValueSummaryCard(
                       label: l10n.streakLabel,
                       value: '$streak',
-                      subtitle: l10n.weeksLabel,
+                      subtitle:
+                          isRolling ? l10n.weeksLabel : timeframeSubtitle,
                     ),
                   ),
                 ],
@@ -409,7 +458,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                     child: ValueSummaryCard(
                       label: l10n.analyticsRollingConsistency,
                       value: '${rollingConsistency.toStringAsFixed(0)}%',
-                      subtitle: l10n.analyticsWeeksAtLeast2Workouts,
+                      subtitle: isRolling
+                          ? l10n.analyticsWeeksAtLeast2Workouts
+                          : timeframeSubtitle,
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
@@ -417,7 +468,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                     child: ValueSummaryCard(
                       label: l10n.analyticsTrainingDaysPerWeek,
                       value: trainingDaysPerWeek.toStringAsFixed(1),
-                      subtitle: l10n.analyticsLast4Weeks,
+                      subtitle: isRolling
+                          ? l10n.analyticsLast4Weeks
+                          : timeframeSubtitle,
                     ),
                   ),
                 ],
@@ -432,7 +485,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                     child: ValueSummaryCard(
                       label: l10n.avgPerWeekLabel,
                       value: avgPerWeek.toStringAsFixed(1),
-                      subtitle: l10n.workoutsPerWeekLabel,
+                      subtitle: isRolling
+                          ? l10n.workoutsPerWeekLabel
+                          : timeframeSubtitle,
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
@@ -440,7 +495,9 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                     child: ValueSummaryCard(
                       label: l10n.analyticsRhythm,
                       value: ConsistencyDomainService.formatTrend(rhythmDelta),
-                      subtitle: l10n.analyticsVsPrior4Weeks,
+                      subtitle: isRolling
+                          ? l10n.analyticsVsPrior4Weeks
+                          : timeframeSubtitle,
                       valueColor: rhythmDelta > 0
                           ? Theme.of(context).colorScheme.primary
                           : rhythmDelta < 0
@@ -455,7 +512,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
         ),
         const SizedBox(height: DesignConstants.spacingM),
         AppSectionHeader(
-          title: '${_metricName(l10n)} · ${l10n.analyticsViewWeek}',
+          title: l10n.consistencyTrackerTitle,
         ),
         PlatformAdaptiveDropdownFormField<_ConsistencyMetric>(
           value: _selectedMetric,
@@ -478,31 +535,11 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
           ],
         ),
         const SizedBox(height: DesignConstants.spacingS),
-        Wrap(
-          spacing: 8,
-          runSpacing: 4,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              '${_metricName(l10n)} (${_metricUnit(l10n)})',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              _isRolling
-                  ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
-                  : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-        ),
-        const SizedBox(height: DesignConstants.spacingXS),
         RepaintBoundary(
           child: SizedBox(
             height: 210,
-            child: weeklyMetrics.isEmpty
+            child: (weeklyMetrics.isEmpty ||
+                    weeklyMetrics.every((m) => _metricValue(m) <= 0))
                 ? AnalyticsChartDefaults.stateView(
                     context: context,
                     l10n: l10n,

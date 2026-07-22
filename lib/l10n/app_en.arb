@@ -1417,6 +1417,8 @@
   "analyticsVsPrior4Weeks": "vs the previous 4 weeks",
   "analyticsRollingConsistency": "Rolling Consistency",
   "analyticsWeeksAtLeast2Workouts": "weeks with at least 2 sessions",
+  "analyticsInTimeframe": "In timeframe",
+  "analyticsVsPriorPeriod": "vs prior period",
   "analyticsCalendarExplainer": "Color intensity reflects sessions per day, making this a true consistency map.",
   "analyticsSelectDayPrompt": "Select a day to inspect session count.",
   "analyticsSelectedDayWorkouts": "{date}: {count} sessions",
