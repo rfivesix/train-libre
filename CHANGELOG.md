@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Data Export & Analytics:** Optimized data extraction loops across Export Manager, Share Service, Health Export Data Source, and Statistics Data Adapter by eliminating intermediate chained iterable allocations.
 - **Diary ViewModel:** Optimized iterable pipelines and supplement log filtering in Diary ViewModel to reduce memory allocation during UI updates.
 
+### Changed
+- **Deployment Script:** Updated iOS build pipeline in `script/deploy_release.sh` to automatically sanitize version strings by stripping prerelease suffixes (e.g. `-alpha.xx` or `-beta.xx`) when calling `flutter build ios` and `flutter build ipa` for Apple App Store & TestFlight compatibility.
+
 ### Dependencies
 - **GitHub Actions:** Bumped `actions/setup-python` to v7 in GitHub workflows.
 - **Dependencies:** Bumped Flutter/Dart dependencies (`drift`, `drift_dev`, `flutter_local_notifications`, `google_fonts`, `liquid_glass_widgets`, `package_info_plus`, `share_plus`, `uuid`).

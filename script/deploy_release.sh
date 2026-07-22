@@ -35,6 +35,10 @@ else
   echo "Production/stable version detected."
 fi
 
+# Sanitize version string for iOS (Apple rejects pre-release suffixes like -alpha.xx or -beta.xx)
+IOS_BUILD_NAME="${VERSION_NUMBER%%-*}"
+echo "iOS build version (cleaned): $IOS_BUILD_NAME"
+
 # ------------------------------------------------------------------------------
 # STEP 2: Branch Verification & PR Automation
 # ------------------------------------------------------------------------------
@@ -93,11 +97,11 @@ flutter build apk --release
 
 # Die l10n und pod-Infrastruktur wird vor dem iOS-Build frisch aufgesetzt.
 # Das neue Podfile zwingt alle Targets (inkl. Swift Packages) auf iOS 14.0.
-echo "Regenerating iOS configuration with correct 14.0 deployment target..."
-flutter build ios --config-only
+echo "Regenerating iOS configuration with correct 14.0 deployment target (Version: $IOS_BUILD_NAME)..."
+flutter build ios --config-only --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
 
-echo "Building iOS Production Release Artifact (IPA) (Build: $NEW_BUILD_NUMBER)..."
-flutter build ipa --release
+echo "Building iOS Production Release Artifact (IPA) (Build: $NEW_BUILD_NUMBER, Version: $IOS_BUILD_NAME)..."
+flutter build ipa --release --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
 
 # ------------------------------------------------------------------------------
 # STEP 4: Changelog Extraction
