@@ -26,14 +26,14 @@ dependencies:
   url_launcher: ^6.2.6
   path_provider: ^2.1.6
   file_picker: ^12.0.0-beta.5
-  share_plus: ^13.1.0
+  share_plus: ^13.2.1
   fl_chart: ^1.1.0
   flutter_svg: ^2.3.0
   vibration: ^3.2.0
   csv: ^8.0.0
   provider: ^6.1.5+1
-  google_fonts: ^8.1.0
-  package_info_plus: ^10.1.0 # or the latest version
+  google_fonts: ^8.2.0
+  package_info_plus: ^10.2.1 # or the latest version
   image_picker: ^1.2.2
   cryptography: ^2.7.0
   table_calendar: ^3.2.0
@@ -47,13 +47,13 @@ dependencies:
   # AI Meal Capture (#81)
   http: ^1.2.0
   flutter_secure_storage: ^10.3.0
-  flutter_local_notifications: ^22.0.1
+  flutter_local_notifications: ^22.1.0
   timezone: ^0.11.0
   crypto: ^3.0.5
 
-  drift: ^2.34.1
+  drift: ^2.34.2
   sqlite3_flutter_libs: ^0.6.0+eol
-  uuid: ^4.3.3
+  uuid: ^4.6.0
   json_annotation: ^4.12.0
   qr_code_scanner_plus: ^2.2.0
   permission_handler: ^12.0.3
@@ -64,7 +64,7 @@ dependencies:
     git:
       url: https://github.com/rfivesix/flutter_body_highlighter
       ref: main
-  liquid_glass_widgets: ^0.21.3
+  liquid_glass_widgets: ^0.22.1
   flutter_lucide: ^1.11.0
   in_app_review: ^2.0.12
   icloud_storage: ^2.0.3
@@ -76,7 +76,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
   build_runner: ^2.15.1
-  drift_dev: ^2.34.3
+  drift_dev: ^2.34.4
 # dependency_overrides:
 
 flutter_launcher_icons:
