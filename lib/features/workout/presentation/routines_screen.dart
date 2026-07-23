@@ -188,19 +188,23 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
               !_initialRoutineOpened &&
               routines.isNotEmpty) {
             _initialRoutineOpened = true;
-            try {
-              final routineToEdit = routines.firstWhere(
-                (r) => r.id == widget.initialRoutineId,
-              );
+            Routine? routineToEdit;
+            for (final r in routines) {
+              if (r.id == widget.initialRoutineId) {
+                routineToEdit = r;
+                break;
+              }
+            }
+            if (routineToEdit != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) =>
-                        EditRoutineScreen(routine: routineToEdit),
+                        EditRoutineScreen(routine: routineToEdit!),
                   ),
                 );
               });
-            } catch (_) {}
+            }
           }
 
           if (routines.isEmpty) {
