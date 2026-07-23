@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.2] - 2026-07-23
 
+### Legal
+- **Privacy Policy v1.5 — iCloud Backup Disclosure:** Added iCloud Backup clause (item 5) to Section 6 (Data Security & Backups) across all legal documents to disclose the new optional iCloud Backup feature introduced in this release. Clause confirms: (1) the feature is strictly opt-in and user-controlled via Apple ID / iOS settings; (2) backup data is encrypted by Apple's iCloud infrastructure; (3) Train Libre has no access to backup files or encryption keys on any external server; (4) data privacy is governed by Apple's iCloud Privacy Policy. Updated across: in-app `legal_screen.dart` (EN + DE), `docs/privacy-policy/privacy_policy.md` (EN + DE), `docs/privacy.html`, `docs/privacy-policy/index.html`, and `docs/script.js` i18n translations for all five supported languages (EN, DE, FR, IT, JA). Document version bumped from 1.4 → 1.5, effective date 23. Juli 2026.
+
 ### Added
 - **AI Meal Pre-Processing & UI Refinements:** Added instant local pre-processing pipeline (`PhotoPreProcessor`) for AI photo scanning. As soon as a photo is captured or selected, image optimization and base64 encoding run in the background with a blurred preview thumbnail, a grey progress bar, and interactive cancelation via the delete button.
 - **AI Meal Review & Spatial Depth Hooks:** Added inline quick quantity stepper controls (`-25g`, `+25g`), explicit trash deletion buttons on `MealReviewComparisonCard`, and quick-action feedback tags ("Larger portions", "Separate ingredients", etc.) on `AiMealReviewScreen`. Extended candidate data models (`AiSuggestedItem`, `AiMealCandidateItem`) with spatial depth fields (`volumeCm3`, `depthConfidence`, `spatialBoundingBox`) to support future camera depth / LiDAR scan integration.

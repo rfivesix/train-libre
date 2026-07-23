@@ -461,8 +461,8 @@ class _LegalSection {
 }
 
 const _germanLegalDocument = _LegalDocument(
-  version: '1.4',
-  date: '26. Mai 2026',
+  version: '1.5',
+  date: '23. Juli 2026',
   legalNotice: '''
 Angaben gemäß § 5 DDG:
 
@@ -620,6 +620,7 @@ Die App bietet Ihnen Funktionen zur Sicherung Ihrer Daten, um Datenverlust bei G
 - 2. Verschlüsselung: Zum Schutz Ihrer sensiblen Daten können Backups vor dem Export mit einem von Ihnen gewählten Passwort verschlüsselt werden. Die Verschlüsselung erfolgt lokal auf dem Gerät mittels starker kryptografischer Algorithmen. Unverschlüsselte Backups sollten stets an sicheren Speicherorten aufbewahrt werden.
 - 3. Automatische Backups: Sie können automatische Backups in konfigurierbaren Intervallen aktivieren. Unter Android nutzt diese Funktion das Storage Access Framework (SAF) zur direkten Ablage in einem von Ihnen ausgewählten Zielordner. Alternativ erfolgt die Ablage im lokalen App-Dokumentenverzeichnis. Diese Backup-Dateien verbleiben auf Ihrem Gerät, es sei denn, Sie kopieren sie aktiv an einen externen Cloud-Speicherort (z. B. iCloud Drive oder Google Drive).
 - 4. System-Backups: Bitte beachten Sie, dass bei aktivierten systemweiten Geräte-Backups (z. B. über Apple iCloud oder Google Drive Backup) die Anwendungsdaten von Train Libre standardmäßig vom Betriebssystem in die jeweilige Cloud hochgeladen werden. Dies liegt außerhalb unseres Einflussbereichs und kann in den Systemeinstellungen Ihres Geräts für Train Libre deaktiviert werden.
+- 5. iCloud-Backup (nur iOS): Train Libre bietet auf iOS eine optionale iCloud-Backup-Funktion an. Wenn Sie diese aktivieren, synchronisiert die App Ihre lokale Datenbank automatisch in Ihren persönlichen iCloud-Drive-Ordner über die iCloud-Infrastruktur von Apple. Diese Funktion ist strikt optional und wird ausschließlich über Ihre Apple-ID und die iOS-Systemeinstellungen gesteuert – Train Libre aktiviert, plant oder greift ohne Ihr Zutun nicht darauf zu. Backup-Daten werden von Apples iCloud-Infrastruktur verschlüsselt (im Ruhezustand und bei der Übertragung); Train Libre speichert, hostet, verarbeitet oder hat keinen Zugriff auf Ihre Backup-Dateien oder Verschlüsselungsschlüssel auf externen Unternehmensservern. Der Datenschutz für diese Funktion unterliegt Apples iCloud-Datenschutzrichtlinie (https://www.apple.com/legal/privacy/).
 ''',
     ),
     _LegalSection(
@@ -661,8 +662,8 @@ Der Quellcode von Train Libre wird unter der GNU General Public License v3.0 (GP
 );
 
 const _englishLegalDocument = _LegalDocument(
-  version: '1.4',
-  date: 'May 26, 2026',
+  version: '1.5',
+  date: 'July 23, 2026',
   legalNotice: '''
 Information according to § 5 DDG:
 
@@ -815,6 +816,7 @@ The app offers functions to back up your data in order to prevent data loss in t
 - 2. Encryption: To protect your sensitive data, backups can be encrypted with a password of your choice before export. The encryption is performed locally on the device using strong cryptographic algorithms. Unencrypted backups should always be stored in secure locations.
 - 3. Automatic Backups: You can enable automatic backups at configurable intervals. On Android, this feature uses the Storage Access Framework (SAF) to save directly to a target folder selected by you. Alternatively, the file is saved in the local app document directory. These backup files remain on your device unless you actively copy them to an external cloud storage location (e.g., iCloud Drive or Google Drive).
 - 4. System Backups: Please note that if system-wide device backups are enabled (e.g., via Apple iCloud or Google Drive Backup), Train Libre's application data will by default be uploaded to the respective cloud by the operating system. This is beyond our control and can be disabled for Train Libre in your device's system settings.
+- 5. iCloud Backup (iOS only): Train Libre offers an optional iCloud Backup feature on iOS. If enabled by you, the app automatically syncs your local database to your personal iCloud Drive folder via Apple's iCloud infrastructure. This feature is strictly opt-in and controlled exclusively through your Apple ID and iOS system settings — Train Libre does not activate, schedule, or access it without your action. Backup data is encrypted at rest and in transit by Apple's iCloud infrastructure; Train Libre does not store, host, process, or have access to any of your backup files or encryption keys on any external company server. Your data privacy for this feature is governed by Apple's iCloud Privacy Policy (https://www.apple.com/legal/privacy/).
 ''',
     ),
     _LegalSection(
