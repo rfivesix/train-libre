@@ -262,6 +262,8 @@ void main() {
       final state = useCase.execute(
         goals: null,
         targetSugar: 50,
+        targetFiber: 30,
+        targetSalt: 6,
         targetCaffeine: 400,
         foodEntries: foodEntries,
         fluidEntries: [],

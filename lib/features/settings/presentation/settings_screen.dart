@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../config/app_data_sources.dart';
+import '../../../core/infrastructure/user_preferences_repository.dart';
 import '../../feedback_report/presentation/feedback_report_screen.dart';
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
@@ -48,10 +49,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  static const String _showSugarInDiaryOverviewPrefKey =
-      'showSugarInDiaryOverview';
-
-  bool _showSugarInDiaryOverview = false;
+  String _overviewExtraNutrient = 'fiber';
   OffCatalogCountry _activeOffCatalogCountry =
       AppDataSources.defaultOffCatalogCountry;
   BaseFoodLanguage _baseFoodLanguage = BaseFoodLanguage.auto;
@@ -90,11 +88,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadDiaryOverviewSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+    final nutrient =
+        await UserPreferencesRepository.instance.getOverviewExtraNutrient();
     if (!mounted) return;
     setState(() {
-      _showSugarInDiaryOverview =
-          prefs.getBool(_showSugarInDiaryOverviewPrefKey) ?? false;
+      _overviewExtraNutrient = nutrient;
     });
   }
 
@@ -304,28 +302,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   wrapInCard: false,
                 ),
                 const Divider(height: 1),
-                PlatformAdaptiveSwitchListTile(
-                  secondary: Icon(
-                    LucideIcons.candy,
+                ListTile(
+                  leading: Icon(
+                    LucideIcons.sparkles,
                     size: 36,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   title: Text(
-                    l10n.settingsShowSugarInDiaryOverviewTitle,
+                    l10n.settingsOverviewExtraNutrientTitle,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
-                    l10n.settingsShowSugarInDiaryOverviewSubtitle,
+                    _getExtraNutrientLabel(l10n, _overviewExtraNutrient),
                   ),
-                  value: _showSugarInDiaryOverview,
-                  onChanged: (value) async {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool(
-                        _showSugarInDiaryOverviewPrefKey, value);
-                    if (!mounted) return;
-                    setState(() => _showSugarInDiaryOverview = value);
-                    hasStepsSettingsChanged = true;
-                  },
+                  trailing: const Icon(LucideIcons.chevron_right),
+                  onTap: () => _showOverviewExtraNutrientPicker(context, l10n),
                 ),
                 const Divider(height: 1),
                 PlatformAdaptiveSwitchListTile(
@@ -812,6 +803,76 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return SummaryCard(
       child: tile,
     );
+  }
+
+  String _getExtraNutrientLabel(AppLocalizations l10n, String key) {
+    switch (key.toLowerCase()) {
+      case 'sugar':
+        return l10n.sugar;
+      case 'salt':
+        return l10n.salt;
+      case 'fiber':
+      default:
+        return l10n.fiber;
+    }
+  }
+
+  void _showOverviewExtraNutrientPicker(
+      BuildContext context, AppLocalizations l10n) async {
+    final selected = await showGlassBottomMenu<String>(
+      context: context,
+      title: l10n.settingsOverviewExtraNutrientTitle,
+      contentBuilder: (sheetContext, closeSheet) {
+        final options = [
+          {'key': 'fiber', 'label': l10n.fiber, 'icon': LucideIcons.wheat},
+          {'key': 'sugar', 'label': l10n.sugar, 'icon': LucideIcons.candy},
+          {'key': 'salt', 'label': l10n.salt, 'icon': LucideIcons.cooking_pot},
+        ];
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: options.map((opt) {
+            final key = opt['key'] as String;
+            final label = opt['label'] as String;
+            final icon = opt['icon'] as IconData;
+            final isSelected = _overviewExtraNutrient == key;
+
+            return ListTile(
+              leading: Icon(
+                icon,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              title: Text(
+                label,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              trailing: isSelected
+                  ? Icon(
+                      LucideIcons.check,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                  : null,
+              onTap: () {
+                closeSheet();
+                Navigator.of(sheetContext).pop(key);
+              },
+            );
+          }).toList(),
+        );
+      },
+    );
+
+    if (selected != null && selected != _overviewExtraNutrient) {
+      await UserPreferencesRepository.instance
+          .setOverviewExtraNutrient(selected);
+      if (!mounted) return;
+      setState(() => _overviewExtraNutrient = selected);
+      hasStepsSettingsChanged = true;
+    }
   }
 }
 

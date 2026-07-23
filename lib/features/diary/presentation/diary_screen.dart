@@ -957,7 +957,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       ({
                         DailyNutrition? dailyNutrition,
                         DateTime selectedDate,
-                        bool showSugarInOverview,
+                        String overviewExtraNutrient,
                       })
                     >(
                       selector: (context, vm) => (
@@ -970,7 +970,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                               )
                             : vm.dailyNutrition,
                         selectedDate: vm.selectedDate,
-                        showSugarInOverview: vm.showSugarInOverview,
+                        overviewExtraNutrient: vm.overviewExtraNutrient,
                       ),
                       builder: (context, data, child) {
                         final dailyNutrition = data.dailyNutrition;
@@ -991,7 +991,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                   nutritionData: dailyNutrition,
                                   l10n: l10n,
                                   isExpandedView: false,
-                                  showSugarInOverview: data.showSugarInOverview,
+                                  extraNutrient: data.overviewExtraNutrient,
                                 ),
                               ),
                           ],

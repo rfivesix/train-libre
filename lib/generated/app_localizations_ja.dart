@@ -4387,6 +4387,12 @@ class AppLocalizationsJa extends AppLocalizations {
       '上部の毎日の概要セクションに砂糖が表示されます';
 
   @override
+  String get settingsOverviewExtraNutrientTitle => '概要の追加栄養素';
+
+  @override
+  String get settingsOverviewExtraNutrientSubtitle => '毎日の概要に3つ目の栄養素を追加';
+
+  @override
   String get settingsSectionHealthTracking => '健康状態と追跡';
 
   @override

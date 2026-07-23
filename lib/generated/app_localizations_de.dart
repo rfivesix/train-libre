@@ -4569,6 +4569,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Blendet Zucker in der oberen Tagesübersicht ein';
 
   @override
+  String get settingsOverviewExtraNutrientTitle =>
+      'Zusätzlicher Nährstoff in der Übersicht';
+
+  @override
+  String get settingsOverviewExtraNutrientSubtitle =>
+      'Füge ein drittes Nährstoff-Feld zur Tagesübersicht hinzu';
+
+  @override
   String get settingsSectionHealthTracking => 'Gesundheit & Tracking';
 
   @override

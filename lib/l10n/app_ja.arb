@@ -1453,7 +1453,7 @@
         "type": "String"
       }
     }
-  },
+},
   "analyticsPeriodLabel": "期間",
   "analyticsEquivalentSetsExplainer": "同等のハード セットでは、プライマリ x1.0 とセカンダリ x0.3 の重み付けが使用されます。頻度は、同等のセットが 1.0 以上に達した日のみをカウントします。",
   "analyticsWeeklySetsByMuscle": "Ø 筋肉別週次セット",
@@ -2094,6 +2094,8 @@
   "settingsAppearanceSubtitle": "テーマ、ビジュアルスタイル、ハプティクスを調整する",
   "settingsShowSugarInDiaryOverviewTitle": "日記の概要に砂糖を表示",
   "settingsShowSugarInDiaryOverviewSubtitle": "上部の毎日の概要セクションに砂糖が表示されます",
+  "settingsOverviewExtraNutrientTitle": "概要の追加栄養素",
+  "settingsOverviewExtraNutrientSubtitle": "毎日の概要に3つ目の栄養素を追加",
   "settingsSectionHealthTracking": "健康状態と追跡",
   "settingsStepsSubtitle": "追跡、ソースポリシー、およびプロバイダー",
   "settingsSleepSubtitle": "インポート、権限、スリープ状態",

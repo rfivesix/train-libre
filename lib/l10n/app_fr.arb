@@ -2094,6 +2094,8 @@
   "settingsAppearanceSubtitle": "Ajustez le thème, le style visuel et l'haptique",
   "settingsShowSugarInDiaryOverviewTitle": "Afficher le sucre dans l'aperçu du journal",
   "settingsShowSugarInDiaryOverviewSubtitle": "Affiche le sucre dans la section supérieure d'aperçu quotidien",
+  "settingsOverviewExtraNutrientTitle": "Nutriment supplémentaire dans l'aperçu",
+  "settingsOverviewExtraNutrientSubtitle": "Ajoutez un troisième nutriment à l'aperçu quotidien",
   "settingsSectionHealthTracking": "Santé et suivi",
   "settingsStepsSubtitle": "Suivi, politique de source et fournisseurs",
   "settingsSleepSubtitle": "Importation, autorisations et état de veille",

@@ -4602,6 +4602,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra lo zucchero nella sezione panoramica giornaliera in alto';
 
   @override
+  String get settingsOverviewExtraNutrientTitle =>
+      'Nutriente aggiuntivo nella panoramica';
+
+  @override
+  String get settingsOverviewExtraNutrientSubtitle =>
+      'Aggiungi un terzo nutriente alla panoramica giornaliera';
+
+  @override
   String get settingsSectionHealthTracking => 'Salute e monitoraggio';
 
   @override

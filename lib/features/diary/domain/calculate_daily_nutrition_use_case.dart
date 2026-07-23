@@ -27,6 +27,8 @@ class CalculateDailyNutritionUseCase {
   DailyNutritionState execute({
     required DailyGoal? goals,
     required int targetSugar,
+    required int targetFiber,
+    required int targetSalt,
     required int targetCaffeine,
     required List<FoodEntry> foodEntries,
     required List<FluidEntry> fluidEntries,
@@ -50,6 +52,8 @@ class CalculateDailyNutritionUseCase {
       targetFat: targetFat,
       targetWater: targetWater,
       targetSugar: targetSugar,
+      targetFiber: targetFiber,
+      targetSalt: targetSalt,
       targetCaffeine: targetCaffeine,
     );
 
@@ -109,6 +113,8 @@ class CalculateDailyNutritionUseCase {
         summary.carbs += (foodItem.carbs * ratio).round();
         summary.fat += (foodItem.fat * ratio).round();
         summary.sugar += (foodItem.sugar ?? 0) * ratio;
+        summary.fiber += (foodItem.fiber ?? 0) * ratio;
+        summary.salt += (foodItem.salt ?? 0) * ratio;
 
         final trackedItem = TrackedFoodItem(entry: entry, item: foodItem);
         groupedEntries[entry.mealType]?.add(trackedItem);

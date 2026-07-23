@@ -4534,6 +4534,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Shows sugar in the top daily overview section';
 
   @override
+  String get settingsOverviewExtraNutrientTitle =>
+      'Additional Nutrient in Overview';
+
+  @override
+  String get settingsOverviewExtraNutrientSubtitle =>
+      'Add a third nutrient tile to the daily overview section';
+
+  @override
   String get settingsSectionHealthTracking => 'Health & Tracking';
 
   @override

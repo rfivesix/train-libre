@@ -99,6 +99,7 @@ class DiaryViewModel extends ChangeNotifier {
   StreamSubscription<List<Supplement>>? _supplementsSubscription;
   StreamSubscription<List<SupplementLog>>? _supplementLogsSubscription;
   StreamSubscription<List<WorkoutLog>>? _workoutsSubscription;
+  StreamSubscription<String>? _extraNutrientSubscription;
 
   Timer? _updateDebounceTimer;
   bool _isCalculating = false;
@@ -118,6 +119,7 @@ class DiaryViewModel extends ChangeNotifier {
   List<TrackedSupplement> trackedSupplements = [];
   Map<String, dynamic>? workoutSummary;
   bool showSugarInOverview = false;
+  String overviewExtraNutrient = 'fiber';
 
   bool? hasEverLoggedData;
   bool hasWeightMeasurementForSelectedDate = false;
@@ -163,11 +165,21 @@ class DiaryViewModel extends ChangeNotifier {
          (initialDate ?? DateTime.now()).dateOnly,
        ) {
     healthSyncCoordinator.addListener(notifyListeners);
+    _extraNutrientSubscription = _prefsRepo
+        .watchOverviewExtraNutrient()
+        .listen((nutrient) {
+      if (overviewExtraNutrient != nutrient) {
+        overviewExtraNutrient = nutrient;
+        showSugarInOverview = nutrient == 'sugar';
+        _updateCalculatedState();
+      }
+    });
     setSelectedDate(selectedDate);
   }
 
   @override
   void dispose() {
+    _extraNutrientSubscription?.cancel();
     _updateDebounceTimer?.cancel();
     _goalsSubscription?.cancel();
     _entriesSubscription?.cancel();
@@ -286,8 +298,11 @@ class DiaryViewModel extends ChangeNotifier {
 
     try {
       final targetSugar = await _prefsRepo.getTargetSugar() ?? 50;
+      final targetFiber = await _prefsRepo.getTargetFiber() ?? 30;
+      final targetSalt = await _prefsRepo.getTargetSalt() ?? 6;
       final targetCaffeine = await _prefsRepo.getTargetCaffeine() ?? 400;
-      showSugarInOverview = await _prefsRepo.getShowSugarInDiaryOverview();
+      overviewExtraNutrient = await _prefsRepo.getOverviewExtraNutrient();
+      showSugarInOverview = overviewExtraNutrient == 'sugar';
 
       // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
       final Set<int> archiveIdsSet = {};
@@ -327,6 +342,8 @@ class DiaryViewModel extends ChangeNotifier {
       final state = _calculateUseCase.execute(
         goals: _activeGoals,
         targetSugar: targetSugar,
+        targetFiber: targetFiber,
+        targetSalt: targetSalt,
         targetCaffeine: targetCaffeine,
         foodEntries: _activeEntries,
         fluidEntries: _activeFluids,

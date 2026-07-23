@@ -4610,6 +4610,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Affiche le sucre dans la section supérieure d\'aperçu quotidien';
 
   @override
+  String get settingsOverviewExtraNutrientTitle =>
+      'Nutriment supplémentaire dans l\'aperçu';
+
+  @override
+  String get settingsOverviewExtraNutrientSubtitle =>
+      'Ajoutez un troisième nutriment à l\'aperçu quotidien';
+
+  @override
   String get settingsSectionHealthTracking => 'Santé et suivi';
 
   @override

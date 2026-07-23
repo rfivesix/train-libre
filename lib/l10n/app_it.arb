@@ -2094,6 +2094,8 @@
   "settingsAppearanceSubtitle": "Modifica il tema, lo stile visivo e l'aspetto tattile",
   "settingsShowSugarInDiaryOverviewTitle": "Mostra lo zucchero nella panoramica del diario",
   "settingsShowSugarInDiaryOverviewSubtitle": "Mostra lo zucchero nella sezione panoramica giornaliera in alto",
+  "settingsOverviewExtraNutrientTitle": "Nutriente aggiuntivo nella panoramica",
+  "settingsOverviewExtraNutrientSubtitle": "Aggiungi un terzo nutriente alla panoramica giornaliera",
   "settingsSectionHealthTracking": "Salute e monitoraggio",
   "settingsStepsSubtitle": "Monitoraggio, policy di origine e fornitori",
   "settingsSleepSubtitle": "Importazione, autorizzazioni e stato di sospensione",

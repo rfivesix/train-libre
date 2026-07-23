@@ -2093,6 +2093,8 @@
   "settingsAppearanceSubtitle": "Design, Stil und Haptik anpassen",
   "settingsShowSugarInDiaryOverviewTitle": "Zucker in Tagebuch-Übersicht anzeigen",
   "settingsShowSugarInDiaryOverviewSubtitle": "Blendet Zucker in der oberen Tagesübersicht ein",
+  "settingsOverviewExtraNutrientTitle": "Zusätzlicher Nährstoff in der Übersicht",
+  "settingsOverviewExtraNutrientSubtitle": "Füge ein drittes Nährstoff-Feld zur Tagesübersicht hinzu",
   "settingsSectionHealthTracking": "Gesundheit & Tracking",
   "settingsStepsSubtitle": "Tracking, Quellenrichtlinie und Provider",
   "settingsSleepSubtitle": "Import, Berechtigungen und Schlafstatus",

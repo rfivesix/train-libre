@@ -2092,6 +2092,8 @@
   "settingsAppearanceSubtitle": "Adjust theme, visual style, and haptics",
   "settingsShowSugarInDiaryOverviewTitle": "Show sugar in Diary overview",
   "settingsShowSugarInDiaryOverviewSubtitle": "Shows sugar in the top daily overview section",
+  "settingsOverviewExtraNutrientTitle": "Additional Nutrient in Overview",
+  "settingsOverviewExtraNutrientSubtitle": "Add a third nutrient tile to the daily overview section",
   "settingsSectionHealthTracking": "Health & Tracking",
   "settingsStepsSubtitle": "Tracking, source policy, and providers",
   "settingsSleepSubtitle": "Import, permissions, and sleep status",

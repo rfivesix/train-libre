@@ -7962,6 +7962,18 @@ abstract class AppLocalizations {
   /// **'Shows sugar in the top daily overview section'**
   String get settingsShowSugarInDiaryOverviewSubtitle;
 
+  /// No description provided for @settingsOverviewExtraNutrientTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional Nutrient in Overview'**
+  String get settingsOverviewExtraNutrientTitle;
+
+  /// No description provided for @settingsOverviewExtraNutrientSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a third nutrient tile to the daily overview section'**
+  String get settingsOverviewExtraNutrientSubtitle;
+
   /// No description provided for @settingsSectionHealthTracking.
   ///
   /// In en, this message translates to:
