@@ -266,7 +266,8 @@ class BackupManager {
 
     final prefs = await _prefsLoader();
     final userPrefs = <String, dynamic>{
-      for (String key in prefs.getKeys()) key: prefs.get(key)
+      for (String key in prefs.getKeys())
+        if (!key.startsWith('ai_api_key_')) key: prefs.get(key)
     };
 
     final backup = TrainLibreBackup(

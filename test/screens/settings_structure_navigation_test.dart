@@ -252,7 +252,7 @@ void main() {
           find.byKey(const Key('settings_restart_app_tour_tile'));
       final healthSection =
           find.byKey(const Key('settings_section_health_tracking'));
-      final diaryText = find.text('Show sugar in Diary overview');
+      final diaryText = find.text('Additional Nutrient in Overview');
 
       expect(restartTile, findsOneWidget);
       expect(healthSection, findsOneWidget);

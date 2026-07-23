@@ -23,8 +23,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Performance
 - **Iterable & Control Flow Optimizations:** Optimized product lookup and UI screen iterations (`ProductLocalDataSource`, `MealsScreen`, `RoutinesScreen`) by replacing chained iterable method allocations with single-pass loops/Sets and replacing exception-throwing `firstWhere` lookups with safe null checks (PR #531).
 
+### Security
+- **Backup AI API Key Exclusion:** AI provider API keys (SharedPreferences keys with prefix `ai_api_key_*`) are now explicitly excluded from backup payloads in `BackupManager.generateBackupPayload()`. Keys stored via `FlutterSecureStorage` were already excluded by design; this ensures SharedPreferences-level keys are also never exported to backup files.
 
-
+### Fixed
+- **Onboarding App Tour Auto-Start:** Removed the opt-in dialog asking users whether they want the app tour after completing onboarding. The tour now starts automatically on first launch, giving every new user a guided introduction to the app without a choice screen.
+- **Consent Re-Displayed After App Reset:** After performing a local data reset (via Settings or Data Management), the Privacy Policy & Terms of Use consent screen is now shown again before re-entering the app. Previously the app navigated directly to `AppInitializerScreen`, bypassing the consent check that only runs at cold boot in `main()`.
+- **Navigation Test (settings_structure_navigation_test):** Updated test expectation from `'Show sugar in Diary overview'` to `'Additional Nutrient in Overview'` to match the renamed setting tile introduced in the configurable overview nutrient feature.
 ## [1.0.0-beta.1] - 2026-07-23
 
 ### Changed

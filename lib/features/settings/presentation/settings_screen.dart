@@ -29,6 +29,7 @@ import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../widgets/common/common.dart';
 import '../../app/presentation/app_initializer_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
+import '../../onboarding/presentation/initial_consent_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
@@ -685,7 +686,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AppInitializerScreen()),
+        MaterialPageRoute(
+          builder: (_) => InitialConsentScreen(
+            nextScreen: const AppInitializerScreen(),
+          ),
+        ),
         (route) => false,
       );
     } catch (_) {

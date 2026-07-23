@@ -975,61 +975,12 @@ class _MainScreenState extends State<MainScreen>
 
     switch (entry) {
       case AppTourEntryPoint.postOnboardingOffer:
-        await _showPostOnboardingTourOffer();
+        await _startAppTour();
         break;
       case AppTourEntryPoint.settingsRestart:
         await _startAppTour();
         break;
     }
-  }
-
-  Future<void> _showPostOnboardingTourOffer() async {
-    if (!mounted || _isTourOfferVisible) return;
-    final l10n = AppLocalizations.of(context)!;
-    setState(() => _isTourOfferVisible = true);
-    final shouldStartTour = await showGlassBottomMenu<bool>(
-      context: context,
-      title: l10n.appTourOfferTitle,
-      contentBuilder: (ctx, close) => Column(
-        key: const Key('app_tour_offer_dialog'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l10n.appTourOfferBody,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
-          Row(
-            children: [
-              Expanded(
-                child: AppButton.secondary(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  label: l10n.appTourOfferSkip,
-                  tooltip: l10n.appTourOfferSkip,
-                ),
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: AppButton.primary(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  label: l10n.appTourOfferStart,
-                  tooltip: l10n.appTourOfferStart,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    setState(() => _isTourOfferVisible = false);
-    await AppTourService.instance.markOfferShown();
-
-    if (shouldStartTour == true) {
-      await _startAppTour();
-      return;
-    }
-    await AppTourService.instance.markSkipped();
   }
 
   Future<void> _startAppTour() async {

@@ -12,6 +12,7 @@ import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/app_initializer_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
+import '../../onboarding/presentation/initial_consent_screen.dart';
 import '../../exercise_catalog/presentation/exercise_mapping_screen.dart';
 import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
@@ -572,7 +573,9 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (_) => const AppInitializerScreen(skipOffDatabase: true),
+          builder: (_) => InitialConsentScreen(
+            nextScreen: const AppInitializerScreen(skipOffDatabase: true),
+          ),
         ),
         (route) => false,
       );
