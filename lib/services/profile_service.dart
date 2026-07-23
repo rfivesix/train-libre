@@ -20,12 +20,33 @@ class ProfileService extends ChangeNotifier {
 
   String? _profileImagePath;
   UserGender _gender = UserGender.male;
+  String _userName = '';
 
   /// The local file path to the user's profile image.
   String? get profileImagePath => _profileImagePath;
 
   /// The user's biological gender preference.
   UserGender get gender => _gender;
+
+  /// The user's registered name.
+  String get userName => _userName;
+
+  /// Returns the capitalized initial letter of the user's name.
+  String get initialLetter {
+    final trimmed = _userName.trim();
+    if (trimmed.isNotEmpty) {
+      return trimmed[0].toUpperCase();
+    }
+    return 'U';
+  }
+
+  /// Updates the cached username and notifies listeners.
+  void updateUserName(String name) {
+    final clean = name.trim();
+    if (_userName == clean) return;
+    _userName = clean;
+    notifyListeners();
+  }
 
   /// A counter that increments whenever the profile image is updated.
   ///
@@ -51,9 +72,11 @@ class ProfileService extends ChangeNotifier {
 
     final profile = await repository.getUserProfile();
     _gender = UserGender.fromString(profile?.gender);
+    _userName = profile?.username ?? '';
 
     notifyListeners();
   }
+
 
   /// Updates the user's gender and persists it to the database.
   Future<void> updateGender(

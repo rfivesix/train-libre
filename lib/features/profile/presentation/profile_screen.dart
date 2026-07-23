@@ -240,12 +240,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: heightMetric,
                             gender: selectedGender,
                           );
+                          profileService.updateUserName(nameCtrl.text.trim());
                           if (selectedGender != null) {
                             await profileService.updateGender(
                               UserGender.fromString(selectedGender),
                               _repository,
                             );
                           }
+
                           if (!ctx.mounted) return;
                           close();
                           Navigator.of(ctx).pop();

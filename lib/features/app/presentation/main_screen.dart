@@ -1488,39 +1488,41 @@ class _MainScreenState extends State<MainScreen>
               builder: (context, profileService, _) {
                 final hasImage = profileService.profileImagePath != null;
                 final isDark = Theme.of(context).brightness == Brightness.dark;
-                final iconColor = isDark ? Colors.white : Colors.black;
+                final bgCircleColor = isDark ? Colors.white : Colors.black;
+                final initialTextColor = isDark ? Colors.black : Colors.white;
+                final initial = profileService.initialLetter;
+
                 return Center(
                   child: Container(
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: hasImage
-                          ? Colors.transparent
-                          : (isDark ? Colors.grey[800] : Colors.grey[200]),
-                      border: hasImage
-                          ? null
-                          : Border.all(
-                              color: iconColor,
-                              width: 2.0,
-                            ),
+                      color: hasImage ? Colors.transparent : bgCircleColor,
                     ),
                     child: hasImage
                         ? CircleAvatar(
                             radius: 18,
                             backgroundColor: Colors.transparent,
                             backgroundImage: FileImage(
-                                File(profileService.profileImagePath!)),
+                              File(profileService.profileImagePath!),
+                            ),
                           )
-                        : Icon(
-                            LucideIcons.user,
-                            size: 20,
-                            color: iconColor,
+                        : Center(
+                            child: Text(
+                              initial,
+                              style: TextStyle(
+                                color: initialTextColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                   ),
                 );
               },
             ),
+
           ),
         ),
       ),
