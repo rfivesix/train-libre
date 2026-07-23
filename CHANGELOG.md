@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-beta.2] - 2026-07-23
+
+### Performance
+- **Iterable & Control Flow Optimizations:** Optimized product lookup and UI screen iterations (`ProductLocalDataSource`, `MealsScreen`, `RoutinesScreen`) by replacing chained iterable method allocations with single-pass loops/Sets and replacing exception-throwing `firstWhere` lookups with safe null checks (PR #531).
+
 ## [1.0.0-beta.1] - 2026-07-23
 
 ### Changed
