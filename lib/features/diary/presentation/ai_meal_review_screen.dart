@@ -107,9 +107,26 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // Validation
   // ---------------------------------------------------------------------------
 
-  Future<void> _validateCurrentItems() async {
+  void _updateItemNutritionLocally(int index) {
+    if (index < 0 || index >= _items.length) return;
+    final item = _items[index];
+    final food = item.matchedFood;
+    if (food != null) {
+      final factor = item.suggestion.estimatedGrams / 100.0;
+      item.nutrition = AiNutritionTotals(
+        kcal: food.calories * factor,
+        protein: food.protein * factor,
+        carbs: food.carbs * factor,
+        fat: food.fat * factor,
+      );
+    }
+  }
+
+  Future<void> _validateCurrentItems({bool showLoading = false}) async {
     if (!mounted) return;
-    setState(() => _isMatching = true);
+    if (showLoading) {
+      setState(() => _isMatching = true);
+    }
     final candidate = _candidateFromReviewItems();
     final result = await AiMealValidationEngine().validateMealCandidate(
       candidate: candidate,
@@ -165,7 +182,19 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   void _removeItem(int index) {
     setState(() => _items.removeAt(index));
-    _validateCurrentItems();
+    _validateCurrentItems(showLoading: false);
+  }
+
+  void _adjustQuantityBy(int index, int delta) {
+    final item = _items[index];
+    final newGrams = (item.suggestion.estimatedGrams + delta).clamp(10, 5000);
+    if (newGrams != item.suggestion.estimatedGrams) {
+      setState(() {
+        item.suggestion.estimatedGrams = newGrams;
+        _updateItemNutritionLocally(index);
+      });
+      _validateCurrentItems(showLoading: false);
+    }
   }
 
   void _editQuantity(int index) async {
@@ -225,8 +254,11 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     );
 
     if (result != null && mounted) {
-      setState(() => item.suggestion.estimatedGrams = result);
-      _validateCurrentItems();
+      setState(() {
+        item.suggestion.estimatedGrams = result;
+        _updateItemNutritionLocally(index);
+      });
+      _validateCurrentItems(showLoading: false);
     }
   }
 
@@ -251,7 +283,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
               : selectedItem.getLocalizedName(context);
         })();
       });
-      _validateCurrentItems();
+      _validateCurrentItems(showLoading: false);
     }
   }
 
@@ -285,7 +317,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           ),
         );
       });
-      _validateCurrentItems();
+      _validateCurrentItems(showLoading: false);
       HapticFeedbackService.instance.confirmationFeedback();
     }
   }
@@ -529,6 +561,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                           : () => _replaceWithFood(index),
                       onReplace: () => _replaceWithFood(index),
                       onEditQuantity: () => _editQuantity(index),
+                      onQuickAdjustQuantity: (delta) =>
+                          _adjustQuantityBy(index, delta),
                     );
                   }),
 
@@ -567,6 +601,17 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   ),
                 ),
                 if (_showFeedback) ...[
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      _buildFeedbackChip(theme, 'Larger portions'),
+                      _buildFeedbackChip(theme, 'Smaller portions'),
+                      _buildFeedbackChip(theme, 'Separate ingredients'),
+                      _buildFeedbackChip(theme, 'No sauce/dressing'),
+                    ],
+                  ),
                   const SizedBox(height: DesignConstants.spacingS),
                   TextField(
                     controller: _feedbackController,
@@ -674,6 +719,21 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFeedbackChip(ThemeData theme, String text) {
+    return ActionChip(
+      label: Text(text, style: const TextStyle(fontSize: 12)),
+      visualDensity: VisualDensity.compact,
+      onPressed: () {
+        final current = _feedbackController.text.trim();
+        if (current.isEmpty) {
+          _feedbackController.text = text;
+        } else if (!current.contains(text)) {
+          _feedbackController.text = '$current, $text';
+        }
+      },
     );
   }
 

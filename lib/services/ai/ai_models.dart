@@ -61,11 +61,23 @@ class AiSuggestedItem {
   /// Barcode of a matched product in the local database (filled after fuzzy matching).
   String? matchedBarcode;
 
+  /// Optional estimated volume in cubic centimeters from camera depth/LiDAR scans.
+  double? volumeCm3;
+
+  /// Optional depth / spatial measurement confidence score (0.0 - 1.0).
+  double? depthConfidence;
+
+  /// Optional spatial 3D bounding box metadata.
+  Map<String, dynamic>? spatialBoundingBox;
+
   AiSuggestedItem({
     required this.name,
     required this.estimatedGrams,
     required this.confidence,
     this.matchedBarcode,
+    this.volumeCm3,
+    this.depthConfidence,
+    this.spatialBoundingBox,
   });
 
   factory AiSuggestedItem.fromJson(Map<String, dynamic> json) {
@@ -74,6 +86,9 @@ class AiSuggestedItem {
       estimatedGrams: (json['estimatedGrams'] as num?)?.toInt() ?? 100,
       confidence:
           (json['confidence'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 0.5,
+      volumeCm3: (json['volumeCm3'] as num?)?.toDouble(),
+      depthConfidence: (json['depthConfidence'] as num?)?.toDouble(),
+      spatialBoundingBox: json['spatialBoundingBox'] as Map<String, dynamic>?,
     );
   }
 
@@ -81,6 +96,9 @@ class AiSuggestedItem {
         'name': name,
         'estimatedGrams': estimatedGrams,
         'confidence': confidence,
+        if (volumeCm3 != null) 'volumeCm3': volumeCm3,
+        if (depthConfidence != null) 'depthConfidence': depthConfidence,
+        if (spatialBoundingBox != null) 'spatialBoundingBox': spatialBoundingBox,
       };
 }
 

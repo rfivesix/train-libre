@@ -1,12 +1,14 @@
 // lib/screens/ai_meal_capture_screen.dart
 
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../services/ai_meal_validation.dart';
 import '../../../services/ai_service.dart';
+import 'util/photo_pre_processor.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -47,6 +49,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   // Photo state
   final List<File> _images = [];
   static const int _maxImages = 4;
+  final PhotoPreProcessor _preProcessor = PhotoPreProcessor();
 
   // Analysis state
   bool _isAnalyzing = false;
@@ -79,6 +82,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void dispose() {
     _stopAiWaitingHaptics();
+    _preProcessor.dispose();
     _textController.dispose();
     _analyzeButtonAnimationController.dispose();
     super.dispose();
@@ -184,7 +188,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       maxWidth: 1024,
     );
     if (photo != null && mounted) {
-      setState(() => _images.add(File(photo.path)));
+      final file = File(photo.path);
+      setState(() => _images.add(file));
+      _preProcessor.processImages([file]);
     }
   }
 
@@ -197,13 +203,17 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       maxWidth: 1024,
     );
     if (picked.isNotEmpty && mounted) {
+      final newFiles = picked.take(remaining).map((x) => File(x.path)).toList();
       setState(() {
-        _images.addAll(picked.take(remaining).map((x) => File(x.path)));
+        _images.addAll(newFiles);
       });
+      _preProcessor.processImages(newFiles);
     }
   }
 
   void _removeImage(int index) {
+    final file = _images[index];
+    _preProcessor.cancelAndRemove(file);
     setState(() => _images.removeAt(index));
   }
 
@@ -218,6 +228,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (!_hasInput) return;
     setState(() => _isAnalyzing = true);
     _startAiWaitingHaptics();
+
+    if (_images.isNotEmpty) {
+      await _preProcessor.waitForCompletion(_images);
+    }
 
     // Resolve the AI matching language (decoupled from app UI locale)
     final aiMatchLang = await AiMatchingLanguageService.readChoice();
@@ -469,40 +483,88 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Widget _buildPhotoThumbnail(int index, ThemeData theme) {
-    return Stack(
-      children: [
-        Container(
-          width: 140,
-          height: 140,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant,
-              width: 1.5,
-            ),
-            image: DecorationImage(
-              image: FileImage(_images[index]),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Positioned(
-          top: 6,
-          right: 6,
-          child: GestureDetector(
-            onTap: () => _removeImage(index),
-            child: Container(
-              padding: const EdgeInsets.all(4),
+    final file = _images[index];
+    final notifier = _preProcessor.getNotifier(file);
+
+    return ValueListenableBuilder<PreProcessState>(
+      valueListenable: notifier,
+      builder: (context, state, _) {
+        final isPreparing = state.status == PreProcessStatus.processing ||
+            state.status == PreProcessStatus.idle;
+
+        return Stack(
+          children: [
+            Container(
+              width: 140,
+              height: 140,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white24, width: 1),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusL),
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 1.5,
+                ),
               ),
-              child: const Icon(LucideIcons.x, size: 14, color: Colors.white),
+              child: ClipRRect(
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusL - 1.5),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.file(
+                      file,
+                      fit: BoxFit.cover,
+                    ),
+                    if (isPreparing) ...[
+                      ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.3),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: state.progress.clamp(0.05, 1.0),
+                            child: Container(
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+            Positioned(
+              top: 6,
+              right: 6,
+              child: GestureDetector(
+                onTap: () => _removeImage(index),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white24, width: 1),
+                  ),
+                  child:
+                      const Icon(LucideIcons.x, size: 14, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

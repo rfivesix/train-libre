@@ -7,7 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-beta.2] - 2026-07-23
 
 ### Added
+- **AI Meal Pre-Processing & UI Refinements:** Added instant local pre-processing pipeline (`PhotoPreProcessor`) for AI photo scanning. As soon as a photo is captured or selected, image optimization and base64 encoding run in the background with a blurred preview thumbnail, a grey progress bar, and interactive cancelation via the delete button.
+- **AI Meal Review & Spatial Depth Hooks:** Added inline quick quantity stepper controls (`-25g`, `+25g`), explicit trash deletion buttons on `MealReviewComparisonCard`, and quick-action feedback tags ("Larger portions", "Separate ingredients", etc.) on `AiMealReviewScreen`. Extended candidate data models (`AiSuggestedItem`, `AiMealCandidateItem`) with spatial depth fields (`volumeCm3`, `depthConfidence`, `spatialBoundingBox`) to support future camera depth / LiDAR scan integration.
 - **Goals Screen:** Added support for setting custom, variable weekly target rates (e.g. 370 g/week or 0.37 kg/week) via a reusable iOS-style wheel scroll picker (`showAdaptiveTargetRatePicker` with `CupertinoPicker` and `_GlassPickerSheet`), complete with haptic tick feedback, unit system support (kg/g vs lbs/oz), and full localizations across all 5 supported languages (`de`, `en`, `fr`, `it`, `ja`).
+
+### Fixed
+- **AI Meal Review UX & Card Layout:** Fixed full-screen/full-list loading spinner when editing quantities or modifying items by updating values and running validation silently in the background without flickering. Fixed `Dismissible` swipe-to-delete height mismatch by resetting `SummaryCard` default vertical margin (`margin: EdgeInsets.zero`) and internal double padding (`padding: EdgeInsets.zero`), aligning the red delete background perfectly 1:1 with the white card container. Stacked Swap & Delete icons vertically above the quantity stepper for a compact, spacious left-side macro badge display.
 
 ### Changed
 - **Profile App Bar Avatar:** Updated the empty state profile button in the top app bar to display a Trade Republic style solid circular avatar containing the capitalized initial letter of the user's name when no custom profile picture is set. Custom profile images remain unchanged.
