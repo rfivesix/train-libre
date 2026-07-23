@@ -13,3 +13,6 @@
 ## 2024-05-19 - Removed nested pipelines in Widget build and ViewModels
 **Learning:** In Flutter, the `build` method and `ViewModel` getter methods run frequently. Using combinations of `.where().toList()` and `.map()` creates numerous intermediate collections and closures that pressure the garbage collector, slowing down frame rates and increasing memory footprint.
 **Action:** Replace `iterable.where(...).toList()` and chained `.map(...)` calls with standard `for` loop accumulations in critical UI or reactivity paths (like `_MealCard` rendering and `supplementLogsForSupplement`).
+## 2024-11-20 - Unnecessary Iterable allocations for drift .isIn()
+**Learning:** In Dart and Drift, passing a Set to `.isIn()` is supported directly because `.isIn()` takes an `Iterable<T>`. Chaining `.toList()` (e.g. `barcodesSet.toList()`) creates a redundant intermediate array allocation.
+**Action:** Pass the native `Set` directly into `.isIn()` to avoid creating unneeded lists, especially in high-frequency queries or data loading operations.

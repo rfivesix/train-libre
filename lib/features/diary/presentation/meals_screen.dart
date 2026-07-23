@@ -229,8 +229,15 @@ class _MealsScreenState extends State<MealsScreen> {
 
     try {
       final items = await DatabaseHelper.instance.getMealItems(newMealId);
-      final created = _meals.firstWhere((m) => m['id'] == newMealId);
-      if ((created['name'] as String) == defaultName && items.isEmpty) {
+      Map<String, dynamic>? created;
+      for (final m in _meals) {
+        if (m['id'] == newMealId) {
+          created = m;
+          break;
+        }
+      }
+
+      if (created != null && (created['name'] as String) == defaultName && items.isEmpty) {
         await DatabaseHelper.instance.deleteMeal(newMealId);
         await _reloadMeals();
       }
