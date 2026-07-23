@@ -321,6 +321,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     List<SetLog> sets, {
     DateTime? beforeTimestamp,
   }) async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     _newRecordsPerExercise.clear();
     final db = WorkoutLocalDataSource.instance;
     final Map<String, Map<String, double>> historicalBests = {};
@@ -428,14 +430,14 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
           if (isMaxWeightPR) {
             _newRecordsPerExercise[exName]!.add(ExerciseRecordData.weight(
-              label: 'Best Max Weight',
+              label: l10n.exerciseMetricMaxWeight,
               valueKg: currentWeight,
               diffKg: weightDiff,
             ));
           }
           if (isMaxVolumePR) {
             _newRecordsPerExercise[exName]!.add(ExerciseRecordData.weight(
-              label: 'Best Volume Set',
+              label: l10n.exerciseMetricVolume,
               valueKg: currentVolume,
               diffKg: volumeDiff,
               fractionDigits: 0,
@@ -443,7 +445,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           }
           if (isMaxEst1RMPR) {
             _newRecordsPerExercise[exName]!.add(ExerciseRecordData.weight(
-              label: 'Best 1-Rep Max',
+              label: l10n.exerciseMetricEst1RM,
               valueKg: currentEst1rm,
               diffKg: est1rmDiff,
             ));
@@ -867,7 +869,12 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     icon: const Icon(LucideIcons.pencil),
                     onPressed: _toggleEditMode,
                   ),
-          if (!_isLoading && _log != null && !_isEditMode)
+          if (!_isLoading && _log != null && !_isEditMode) ...[
+            IconButton(
+              tooltip: l10n.saveAsRoutineTitle,
+              icon: const Icon(LucideIcons.bookmark_plus),
+              onPressed: _showSaveAsRoutineDialog,
+            ),
             IconButton(
               tooltip: l10n.share,
               icon: Icon(DesignConstants.adaptiveShareIcon),
@@ -876,6 +883,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                 workout: _log!,
               ),
             ),
+          ],
         ],
       ),
       body: _isLoading
@@ -903,117 +911,128 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                           bottom: _isDragging ? 800.0 : 0.0,
                         ),
                         children: [
-                          // Header Info
+                          // Header Info (Clean Hero section)
                           Padding(
-                            padding: DesignConstants.cardPadding,
-                            child: SummaryCard(
-                              child: Padding(
-                                padding: const EdgeInsets.all(
-                                    DesignConstants.spacingL),
-                                child: Form(
-                                  key: _formKey,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal:
+                                  DesignConstants.screenPaddingHorizontal,
+                              vertical: DesignConstants.spacingM,
+                            ),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _log!.routineName ??
+                                              l10n.freeWorkoutTitle,
+                                          style:
+                                              textTheme.headlineSmall?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      if (_isEditMode)
+                                        IconButton(
+                                          tooltip: l10n.selectDateTitle,
+                                          icon: Icon(
+                                            LucideIcons.calendar,
+                                            size: 20,
+                                            color: colorScheme.primary,
+                                          ),
+                                          onPressed: _pickDateTime,
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat.yMMMMd(locale).add_Hm().format(
+                                          _editedStartTime ?? _log!.startTime,
+                                        ),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  if (_isEditMode) ...[
+                                    const SizedBox(
+                                        height: DesignConstants.spacingM),
+                                    TextFormField(
+                                      controller: _notesController,
+                                      decoration: InputDecoration(
+                                        labelText: l10n.notesLabel,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            DesignConstants.borderRadiusM,
+                                          ),
+                                        ),
+                                      ),
+                                      maxLines: 3,
+                                    ),
+                                  ] else if (_log!.notes != null &&
+                                      _log!.notes!.isNotEmpty) ...[
+                                    const SizedBox(
+                                        height: DesignConstants.spacingM),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(
+                                          DesignConstants.spacingM),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.surfaceContainerLow,
+                                        borderRadius: BorderRadius.circular(
+                                          DesignConstants.borderRadiusM,
+                                        ),
+                                        border: Border.all(
+                                          color: colorScheme.outlineVariant
+                                              .withValues(alpha: 0.5),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${l10n.notesLabel}: ${_log!.notes!}',
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (_exerciseDetails.isNotEmpty) ...[
+                            Builder(
+                              builder: (context) {
+                                final heatmapWidget = _buildMuscleHeatmap(l10n);
+                                if (heatmapWidget is SizedBox) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal:
+                                        DesignConstants.screenPaddingHorizontal,
+                                    vertical: DesignConstants.spacingM,
+                                  ),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        _log!.routineName ??
-                                            l10n.freeWorkoutTitle,
-                                        style: textTheme.headlineMedium,
-                                      ),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            DateFormat.yMMMMd(
-                                              locale,
-                                            ).add_Hm().format(
-                                                  _editedStartTime ??
-                                                      _log!.startTime,
-                                                ),
-                                          ),
-                                          if (_isEditMode)
-                                            IconButton(
-                                              tooltip: l10n.selectDateTitle,
-                                              icon: Icon(
-                                                LucideIcons.calendar,
-                                                size: 18,
-                                                color: colorScheme.primary,
-                                              ),
-                                              onPressed: _pickDateTime,
-                                            ),
-                                        ],
+                                      AppSectionHeader(
+                                        title: l10n
+                                            .analyticsRecentDistributionHeatmap,
+                                        padding: EdgeInsets.zero,
                                       ),
                                       const SizedBox(
                                         height: DesignConstants.spacingM,
                                       ),
-                                      _isEditMode
-                                          ? TextFormField(
-                                              controller: _notesController,
-                                              decoration: InputDecoration(
-                                                labelText: l10n.notesLabel,
-                                              ),
-                                              maxLines: 3,
-                                            )
-                                          : (_log!.notes != null &&
-                                                  _log!.notes!.isNotEmpty
-                                              ? Text(
-                                                  '${l10n.notesLabel}: ${_log!.notes!}',
-                                                  style: const TextStyle(
-                                                    fontStyle: FontStyle.italic,
-                                                  ),
-                                                )
-                                              : const SizedBox.shrink()),
-                                      if (!_isEditMode) ...[
-                                        const SizedBox(
-                                            height: DesignConstants.spacingM),
-                                        Center(
-                                          child: TextButton.icon(
-                                            onPressed: _showSaveAsRoutineDialog,
-                                            icon: const Icon(LucideIcons.files,
-                                                size: 18),
-                                            label: Text(
-                                              l10n.saveAsRoutineButton,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.w600),
-                                            ),
-                                            style: TextButton.styleFrom(
-                                              foregroundColor: colorScheme
-                                                  .primary
-                                                  .withValues(alpha: 0.8),
-                                              padding:
-                                                  DesignConstants.screenPadding,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                      heatmapWidget,
                                     ],
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
-                          ),
-                          if (_exerciseDetails.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal:
-                                    DesignConstants.screenPaddingHorizontal,
-                                vertical: DesignConstants.spacingM,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AppSectionHeader(
-                                    title:
-                                        l10n.analyticsRecentDistributionHeatmap,
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                  const SizedBox(
-                                    height: DesignConstants.spacingM,
-                                  ),
-                                  _buildMuscleHeatmap(l10n),
-                                ],
-                              ),
-                            ),
+                          ],
                           if (_heartRateSummary != null &&
                               (_pulseTrackingEnabled ||
                                   _heartRateSummary!.hasData))
@@ -1034,37 +1053,25 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 horizontal:
                                     DesignConstants.screenPaddingHorizontal,
                               ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    l10n.workoutSummaryNewRecordsTitle,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          color: Colors.amber[800],
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                  AlgorithmInfoButton(
-                                    title:
-                                        "Estimated 1-Rep Max Heuristic (Epley Equation)",
-                                    explanation:
-                                        "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
-                                    keyPoints: const [
-                                      "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
-                                      "Estimates are sports-science heuristics designed for healthy individuals.",
-                                      "Provides a safe way to track strength progression without testing true failure.",
-                                    ],
-                                    technicalTitle: "Epley Equation Details",
-                                    technicalExplanation:
-                                        "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
-                                    citationUrl:
-                                        "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
-                                  ),
-                                ],
+                              child: AppSectionHeader(
+                                title: l10n.workoutSummaryNewRecordsTitle,
+                                padding: EdgeInsets.zero,
+                                action: AlgorithmInfoButton(
+                                  title:
+                                      "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                                  explanation:
+                                      "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                                  keyPoints: const [
+                                    "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
+                                    "Estimates are sports-science heuristics designed for healthy individuals.",
+                                    "Provides a safe way to track strength progression without testing true failure.",
+                                  ],
+                                  technicalTitle: "Epley Equation Details",
+                                  technicalExplanation:
+                                      "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                                  citationUrl:
+                                      "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                                ),
                               ),
                             ),
                             const SizedBox(height: DesignConstants.spacingS),
@@ -1102,6 +1109,19 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             ),
                             const SizedBox(height: DesignConstants.spacingL),
                           ],
+
+                          // EXERCISE LIST SECTION HEADER
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal:
+                                  DesignConstants.screenPaddingHorizontal,
+                              vertical: DesignConstants.spacingS,
+                            ),
+                            child: AppSectionHeader(
+                              title: l10n.workoutSummaryExerciseOverview,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
 
                           // Sets
                           if (!_isEditMode)

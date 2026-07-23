@@ -16,6 +16,7 @@ import '../domain/models/workout_log.dart';
 import 'edit_routine_screen.dart';
 import '../../../services/health/workout_heart_rate_models.dart';
 import '../../../services/health/workout_heart_rate_service.dart';
+import '../../pulse/application/pulse_tracking_service.dart';
 import '../../../services/unit_service.dart';
 import '../../../services/profile_service.dart';
 import '../../../services/haptic_feedback_service.dart';
@@ -63,6 +64,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   bool _showSyncBanner = false;
   Routine? _associatedRoutine;
   bool _isSyncing = false;
+  bool _pulseTrackingEnabled = false;
 
   @override
   void initState() {
@@ -82,6 +84,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         startTime: data.startTime,
         endTime: data.endTime,
       );
+      final pulseTrackingFuture = PulseTrackingService().isTrackingEnabled();
       final Map<String, _ExerciseSummaryData> summaryMap = {};
       final Map<String, List<ExerciseRecordData>> newRecordsMap = {};
       final Map<String, Exercise> detailsMap = {};
@@ -284,6 +287,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
 
       final heartRate = await heartRateFuture;
+      final pulseTrackingEnabled = await pulseTrackingFuture;
 
       if (mounted) {
         setState(() {
@@ -292,6 +296,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           _newRecordsPerExercise = newRecordsMap;
           _exerciseDetails = detailsMap;
           _heartRateSummary = heartRate;
+          _pulseTrackingEnabled = pulseTrackingEnabled;
           _associatedRoutine = associatedRoutine;
           _showSyncBanner = showSyncBanner;
           _isLoading = false;
@@ -356,6 +361,32 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               progress: null,
                             ),
                             const SizedBox(height: DesignConstants.spacingL),
+
+                            // Routine Title & Notes (Hero Section FIRST)
+                            if (_log!.routineName != null &&
+                                _log!.routineName!.isNotEmpty) ...[
+                              Text(
+                                _log!.routineName!,
+                                style: textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                              const SizedBox(height: DesignConstants.spacingXS),
+                            ],
+                            if (_log!.notes != null &&
+                                _log!.notes!.isNotEmpty) ...[
+                              Text(
+                                _log!.notes!,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                              const SizedBox(height: DesignConstants.spacingM),
+                            ],
+
                             if (_showSyncBanner &&
                                 _associatedRoutine != null) ...[
                               _buildSyncBanner(colorScheme, textTheme),
@@ -365,64 +396,34 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               _buildMuscleHeatmap(l10n),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
-                            if (_heartRateSummary != null) ...[
+                            if (_heartRateSummary != null &&
+                                (_pulseTrackingEnabled ||
+                                    _heartRateSummary!.hasData)) ...[
                               _buildHeartRateCard(l10n, _heartRateSummary!),
-                              const SizedBox(height: DesignConstants.spacingL),
-                            ],
-
-                            if (_log!.routineName != null &&
-                                _log!.routineName!.isNotEmpty) ...[
-                              Text(
-                                _log!.routineName!,
-                                style: textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: DesignConstants.spacingS),
-                            ],
-                            if (_log!.notes != null &&
-                                _log!.notes!.isNotEmpty) ...[
-                              Text(
-                                _log!.notes!,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontStyle: FontStyle.italic,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
 
                             // NEW RECORDS SECTION
                             if (_newRecordsPerExercise.isNotEmpty) ...[
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    l10n.workoutSummaryNewRecordsTitle,
-                                    style: textTheme.titleMedium?.copyWith(
-                                      color: Colors.amber[800],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  AlgorithmInfoButton(
-                                    title:
-                                        "Estimated 1-Rep Max Heuristic (Epley Equation)",
-                                    explanation:
-                                        "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
-                                    keyPoints: const [
-                                      "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
-                                      "Estimates are sports-science heuristics designed for healthy individuals.",
-                                      "Provides a safe way to track strength progression without testing true failure.",
-                                    ],
-                                    technicalTitle: "Epley Equation Details",
-                                    technicalExplanation:
-                                        "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
-                                    citationUrl:
-                                        "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
-                                  ),
-                                ],
+                              AppSectionHeader(
+                                title: l10n.workoutSummaryNewRecordsTitle,
+                                padding: EdgeInsets.zero,
+                                action: AlgorithmInfoButton(
+                                  title:
+                                      "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                                  explanation:
+                                      "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                                  keyPoints: const [
+                                    "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
+                                    "Estimates are sports-science heuristics designed for healthy individuals.",
+                                    "Provides a safe way to track strength progression without testing true failure.",
+                                  ],
+                                  technicalTitle: "Epley Equation Details",
+                                  technicalExplanation:
+                                      "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                                  citationUrl:
+                                      "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                                ),
                               ),
                               const SizedBox(height: DesignConstants.spacingS),
                               ..._newRecordsPerExercise.entries.map((entry) {
@@ -454,9 +455,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
 
-                            Text(
-                              l10n.workoutSummaryExerciseOverview,
-                              style: textTheme.titleMedium,
+                            AppSectionHeader(
+                              title: l10n.workoutSummaryExerciseOverview,
+                              padding: EdgeInsets.zero,
                             ),
                             const SizedBox(height: DesignConstants.spacingS),
                             ..._summaryPerExercise.entries.map((entry) {

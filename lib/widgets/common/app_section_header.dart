@@ -23,12 +23,16 @@ class AppSectionHeader extends StatelessWidget {
   /// If true, reduces the top padding to tight spacing (e.g., for the very first section in a screen).
   final bool isFirst;
 
+  /// Optional trailing action widget (e.g. info button or action link).
+  final Widget? action;
+
   const AppSectionHeader({
     super.key,
     required this.title,
     this.autoUpperCase = true,
     this.padding,
     this.isFirst = false,
+    this.action,
   });
 
   @override
@@ -46,17 +50,27 @@ class AppSectionHeader extends StatelessWidget {
               )
             : DesignConstants.sectionHeaderPadding);
 
+    final titleTextWidget = Text(
+      displayText,
+      style: theme.textTheme.labelMedium?.copyWith(
+        fontSize: 14.0,
+        color: theme.colorScheme.onSurfaceVariant,
+        fontWeight: FontWeight.w600,
+        letterSpacing: DesignConstants.sectionHeaderLetterSpacing,
+      ),
+    );
+
     return Padding(
       padding: resolvedPadding,
-      child: Text(
-        displayText,
-        style: theme.textTheme.labelMedium?.copyWith(
-          fontSize: 14.0,
-          color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w600,
-          letterSpacing: DesignConstants.sectionHeaderLetterSpacing,
-        ),
-      ),
+      child: action == null
+          ? titleTextWidget
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: titleTextWidget),
+                action!,
+              ],
+            ),
     );
   }
 }
