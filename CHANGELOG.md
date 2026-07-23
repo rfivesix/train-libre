@@ -6,8 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.2] - 2026-07-23
 
+### Added
+- **Goals Screen:** Added support for setting custom, variable weekly target rates (e.g. 370 g/week or 0.37 kg/week) via a reusable iOS-style wheel scroll picker (`showAdaptiveTargetRatePicker` with `CupertinoPicker` and `_GlassPickerSheet`), complete with haptic tick feedback, unit system support (kg/g vs lbs/oz), and full localizations across all 5 supported languages (`de`, `en`, `fr`, `it`, `ja`).
+
 ### Performance
 - **Iterable & Control Flow Optimizations:** Optimized product lookup and UI screen iterations (`ProductLocalDataSource`, `MealsScreen`, `RoutinesScreen`) by replacing chained iterable method allocations with single-pass loops/Sets and replacing exception-throwing `firstWhere` lookups with safe null checks (PR #531).
+
 
 ## [1.0.0-beta.1] - 2026-07-23
 

@@ -950,6 +950,9 @@
   "onboardingFeaturePrivacyBody": "Aucun compte, aucun cloud obligatoire. Vos données vous appartiennent.",
   "onboardingSettingsHint": "Tous les réglages peuvent être modifiés plus tard à tout moment dans les paramètres.",
   "adaptiveRatePerWeekLabel": "Taux cible hebdomadaire",
+  "customTargetRateOption": "Personnalisé",
+  "customTargetRateDialogTitle": "Définir l'objectif personnalisé",
+
   "onboardingNameTitle": "Quel est ton nom?",
   "onboardingNameLabel": "Votre nom",
   "onboardingNameError": "Veuillez entrer votre nom",

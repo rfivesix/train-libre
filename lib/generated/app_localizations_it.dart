@@ -2380,6 +2380,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get adaptiveRatePerWeekLabel => 'Tasso target settimanale';
 
   @override
+  String get customTargetRateOption => 'Personalizzato';
+
+  @override
+  String get customTargetRateDialogTitle => 'Imposta obiettivo personalizzato';
+
+  @override
   String get onboardingNameTitle => 'Come ti chiami?';
 
   @override

@@ -2358,6 +2358,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveRatePerWeekLabel => 'Weekly Target Rate';
 
   @override
+  String get customTargetRateOption => 'Custom';
+
+  @override
+  String get customTargetRateDialogTitle => 'Set Custom Target Rate';
+
+  @override
   String get onboardingNameTitle => 'What\'s your name?';
 
   @override

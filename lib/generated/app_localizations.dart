@@ -4280,6 +4280,18 @@ abstract class AppLocalizations {
   /// **'Weekly Target Rate'**
   String get adaptiveRatePerWeekLabel;
 
+  /// No description provided for @customTargetRateOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get customTargetRateOption;
+
+  /// No description provided for @customTargetRateDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Custom Target Rate'**
+  String get customTargetRateDialogTitle;
+
   /// No description provided for @onboardingNameTitle.
   ///
   /// In en, this message translates to:

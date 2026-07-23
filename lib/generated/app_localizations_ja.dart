@@ -2311,6 +2311,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adaptiveRatePerWeekLabel => '週次目標レート';
 
   @override
+  String get customTargetRateOption => 'カスタム';
+
+  @override
+  String get customTargetRateDialogTitle => 'カスタム目標レートを設定';
+
+  @override
   String get onboardingNameTitle => 'あなたの名前は何ですか？';
 
   @override

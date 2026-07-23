@@ -949,6 +949,9 @@
   "onboardingFeaturePrivacyBody": "No accounts, no forced cloud. Your data belongs to you.",
   "onboardingSettingsHint": "All settings can be changed later at any time in Settings.",
   "adaptiveRatePerWeekLabel": "Weekly Target Rate",
+  "customTargetRateOption": "Custom",
+  "customTargetRateDialogTitle": "Set Custom Target Rate",
+
   "onboardingNameTitle": "What's your name?",
   "onboardingNameLabel": "Your Name",
   "onboardingNameError": "Please enter your name",

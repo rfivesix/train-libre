@@ -950,6 +950,9 @@
   "onboardingFeaturePrivacyBody": "アカウント不要、クラウド強制なし。データはあなたのものです。",
   "onboardingSettingsHint": "すべての設定は後からいつでも設定画面で変更できます。",
   "adaptiveRatePerWeekLabel": "週次目標レート",
+  "customTargetRateOption": "カスタム",
+  "customTargetRateDialogTitle": "カスタム目標レートを設定",
+
   "onboardingNameTitle": "あなたの名前は何ですか？",
   "onboardingNameLabel": "あなたの名前",
   "onboardingNameError": "あなたの名前を入力してください",

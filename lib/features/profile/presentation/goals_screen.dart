@@ -14,6 +14,8 @@ import '../../nutrition_recommendation/domain/goal_models.dart';
 import '../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
 import '../../../data/database_helper.dart';
 
+
+
 /// A screen for defining daily health and nutrition targets.
 class GoalsScreen extends StatefulWidget {
   final AdaptiveNutritionRecommendationService? recommendationService;
@@ -268,28 +270,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       },
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: WeeklyTargetRateCatalog.optionsForGoal(
-                              _selectedGoal, context.read<UnitService>())
-                          .map((option) {
-                        final selected =
-                            option.kgPerWeek == _selectedTargetRateKgPerWeek;
-                        return ChoiceChip(
-                          label: Text(
-                            _rateLabel(context, l10n, option.kgPerWeek),
-                          ),
-                          selected: selected,
-                          onSelected: (_) {
-                            setState(() {
-                              _selectedTargetRateKgPerWeek = option.kgPerWeek;
-                            });
-                          },
-                        );
-                      }).toList(growable: false),
-                    ),
+                    _buildTargetRateChips(context, l10n),
                     const SizedBox(height: DesignConstants.spacingXL),
+
                     AppSectionHeader(
                       key: const Key(
                         'goals_recommendation_settings_section_title',
@@ -477,19 +460,112 @@ class _GoalsScreenState extends State<GoalsScreen> {
     }
   }
 
+  Widget _buildTargetRateChips(BuildContext context, AppLocalizations l10n) {
+    if (_selectedGoal == BodyweightGoal.maintainWeight) {
+      return const SizedBox.shrink();
+    }
+
+    final unitService = context.read<UnitService>();
+    final presetOptions = WeeklyTargetRateCatalog.optionsForGoal(
+      _selectedGoal,
+      unitService,
+    );
+    final isCustom = !WeeklyTargetRateCatalog.isPreset(
+      goal: _selectedGoal,
+      kgPerWeek: _selectedTargetRateKgPerWeek,
+      unitService: unitService,
+    );
+
+    final chips = <Widget>[];
+
+    for (final option in presetOptions) {
+      final selected =
+          !isCustom &&
+          (option.kgPerWeek - _selectedTargetRateKgPerWeek).abs() < 0.001;
+      chips.add(
+        ChoiceChip(
+          label: Text(_rateLabel(context, l10n, option.kgPerWeek)),
+          selected: selected,
+          onSelected: (_) {
+            setState(() {
+              _selectedTargetRateKgPerWeek = option.kgPerWeek;
+            });
+          },
+        ),
+      );
+    }
+
+    final String customChipText;
+    if (isCustom) {
+      customChipText = _rateLabel(context, l10n, _selectedTargetRateKgPerWeek);
+    } else {
+
+      customChipText =
+          (l10n.customTargetRateOption.isNotEmpty)
+              ? l10n.customTargetRateOption
+              : 'Eigener Wert';
+    }
+
+    chips.add(
+      ChoiceChip(
+        key: const Key('goals_custom_rate_chip'),
+        label: Text(customChipText),
+        selected: isCustom,
+        onSelected: (_) async {
+          final newRate = await showAdaptiveTargetRatePicker(
+            context: context,
+            goal: _selectedGoal,
+            initialKgPerWeek:
+                _selectedTargetRateKgPerWeek == 0
+                    ? WeeklyTargetRateCatalog.defaultForGoal(
+                      _selectedGoal,
+                      unitService,
+                    ).kgPerWeek
+                    : _selectedTargetRateKgPerWeek,
+            unitService: unitService,
+          );
+          if (newRate != null && mounted) {
+            setState(() {
+              _selectedTargetRateKgPerWeek = newRate;
+            });
+          }
+        },
+      ),
+    );
+
+    return Wrap(spacing: 8, runSpacing: 8, children: chips);
+  }
+
   String _rateLabel(
-      BuildContext context, AppLocalizations l10n, double kgPerWeek) {
+    BuildContext context,
+    AppLocalizations l10n,
+    double kgPerWeek,
+  ) {
     final unitService = context.read<UnitService>();
     final sign = kgPerWeek > 0 ? '+' : '';
-    final displayValue =
-        unitService.convertDisplayValue(kgPerWeek.abs(), UnitDimension.weight);
+    final isMetric = unitService.isMetric;
+
+    if (isMetric) {
+      final grams = (kgPerWeek.abs() * 1000).round();
+      if (grams < 1000 && grams % 100 != 0) {
+        return '$sign$grams g/Woche';
+      }
+    }
+
+    final displayValue = unitService.convertDisplayValue(
+      kgPerWeek.abs(),
+      UnitDimension.weight,
+    );
     final valStr = displayValue
         .toStringAsFixed(2)
         .replaceAll(RegExp(r'0*$'), '')
         .replaceAll(RegExp(r'\.$'), '');
     return l10n.adaptiveRatePerWeek(
-        '$sign$valStr', unitService.suffixFor(UnitDimension.weight));
+      '$sign$valStr',
+      unitService.suffixFor(UnitDimension.weight),
+    );
   }
+
 
   String _priorActivityLabel(
     AppLocalizations l10n,

@@ -153,15 +153,32 @@ class WeeklyTargetRateCatalog {
     );
   }
 
+  static bool isPreset({
+    required BodyweightGoal goal,
+    required double kgPerWeek,
+    required UnitService unitService,
+  }) {
+    return isSupported(
+      goal: goal,
+      kgPerWeek: kgPerWeek,
+      unitService: unitService,
+    );
+  }
+
   static double coerceTargetRate({
     required BodyweightGoal goal,
     required double kgPerWeek,
     required UnitService unitService,
   }) {
-    if (isSupported(
-        goal: goal, kgPerWeek: kgPerWeek, unitService: unitService)) {
-      return kgPerWeek;
+    if (goal == BodyweightGoal.maintainWeight) {
+      return 0.0;
+    }
+    final absRate = kgPerWeek.abs();
+    if (absRate >= 0.01 && absRate <= 3.0) {
+      return goal == BodyweightGoal.loseWeight ? -absRate : absRate;
     }
     return defaultForGoal(goal, unitService).kgPerWeek;
   }
 }
+
+

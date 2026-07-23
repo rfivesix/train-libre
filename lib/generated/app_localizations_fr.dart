@@ -2391,6 +2391,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adaptiveRatePerWeekLabel => 'Taux cible hebdomadaire';
 
   @override
+  String get customTargetRateOption => 'Personnalisé';
+
+  @override
+  String get customTargetRateDialogTitle => 'Définir l\'objectif personnalisé';
+
+  @override
   String get onboardingNameTitle => 'Quel est ton nom?';
 
   @override
