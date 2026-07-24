@@ -9,3 +9,7 @@
 ## 2024-05-19 - Adding Tooltips to IconButtons for Accessibility (Custom Features)
 **Learning:** Found a missing tooltip on the primary AI Meal Capture action button. Icon-only buttons mapping to custom features should reuse existing localized strings (e.g., `l10n.aiMealCapture`) if an exact tooltip string isn't available, to ensure users understand the button's function without relying solely on the icon (which might not be universally recognizable).
 **Action:** When adding tooltips to custom icon-only actions, scan the localization file for the closest matching feature name if a dedicated tooltip string does not exist.
+
+## 2024-05-20 - Adding Localized Tooltips for Accessibility
+**Learning:** Hardcoded tooltips (e.g., `tooltip: "Notizen bearbeiten"`) break localization and can be confusing or inaccessible for users relying on different languages. Using standard ARB keys ensures screen readers and hover states respect the user's locale.
+**Action:** Always use localized strings (e.g., `l10n.exerciseNoteTitle`) for `tooltip` properties in `IconButton` widgets instead of hardcoding strings.
