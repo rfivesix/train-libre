@@ -3,34 +3,31 @@ appId: com.rfivesix.trainlibre
 - launchApp:
     clearState: true
 
-- tapOn: "0"
-- tapOn:
-    point: "20%,65%" # ToS
-- tapOn: "Accept & Get Started"
-# - tapOn: "Allow"
 - extendedWaitUntil:
     visible: "Restore from Backup"
     timeout: 60000
 - tapOn: "Restore from Backup"
 - tapOn: "backup.json"
 - tapOn: "Open"
+
+# Onboarding Step 1: Metric unit system
 - extendedWaitUntil:
-    visible: "Maybe later" 
+    visible: "NEXT\nNEXT\nNEXT"
     timeout: 60000
-- tapOn: 
-    text: "Maybe later"
-- tapOn: 
-    text: "Diary"
+- tapOn:
+    text: "Metric.*"
     optional: true
-    repeat: 2
-    delay: 10000
-- takeScreenshot: 01_diary
-- tapOn: 
-    text: "Nutrition\nNutrition"
-    optional: true
-    repeat: 2
-    delay: 10000
-- takeScreenshot: 02_nutrition
+- tapOn: "NEXT\nNEXT\nNEXT"
+
+# Onboarding Step 2: Region selection
+- tapOn: "United States (US)"
+- tapOn: "Germany (DE)"
+- tapOn: "NEXT\nNEXT\nNEXT"
+
+# Onboarding Step 3: AI & Health completion (last page)
+- tapOn: "START TRACKING\nSTART TRACKING\nSTART TRACKING"
+
+# Navigation to Settings -> Data Backup Screenshot
 - tapOn:
     point: 91%,13%
 - tapOn: "Settings\nTheme, units, data and more"
@@ -41,24 +38,36 @@ appId: com.rfivesix.trainlibre
 - tapOn: "Back"
 - tapOn: "Back"
 - tapOn: "Back"
-- waitForAnimationToEnd
-- tapOn:
-    text: "Allow “Train Libre” to read"
-    index: 1
-- tapOn: "Don’t Allow"
-- tapOn: "Statistics\nStatistics"
+
+# Tabs
+- tapOn: 
+    text: "Diary"
+    optional: true
+    repeat: 2
+    delay: 10000
+- takeScreenshot: 01_diary
+- tapOn: 
+    text: "Nutrition"
+    optional: true
+    repeat: 2
+    delay: 10000
+- takeScreenshot: 02_nutrition
+- tapOn: "Statistics"
 - scrollUntilVisible:
     element: "Body measurements\nAll measurements"
 - scroll
 - tapOn: "Body measurements\nAll measurements"
+- waitForAnimationToEnd
 - takeScreenshot: 04_measurements
 - tapOn: "Back"
 - scrollUntilVisible:
-    element: "Muscle Readiness\nCurrently\nSeveral muscle groups still recovering\nRecovering: 6  Ready: 3  Fresh: 4"
+    element: "Muscle Readiness"
     direction: UP
-- tapOn: "Muscle Readiness\nCurrently\nSeveral muscle groups still recovering\nRecovering: 6  Ready: 3  Fresh: 4"
+- tapOn: "Muscle Readiness"
 - takeScreenshot: 05_recovery
 - tapOn: "Back"
+
+# AI Meal Capture configuration
 - tapOn:
     point: 91%,13%
 - tapOn: "Settings\nTheme, units, data and more"
@@ -69,6 +78,8 @@ appId: com.rfivesix.trainlibre
 - tapOn: "Back"
 - tapOn: "Back"
 - tapOn: "Back"
+
+# AI Meal Capture Photo capture
 - tapOn:
     point: 80%,90%
 - tapOn:
@@ -80,13 +91,14 @@ appId: com.rfivesix.trainlibre
     delay: 5000
 - tapOn:
     point: 88%,83%
-- tapOn: "Photo, June 01, 9:45 AM"
 - tapOn:
-    text: "Photo, June 01, 9:45 AM"
-    index: 1
+    text: "Photo, June 01.*"
+    optional: true
 - tapOn: "Done"
 - takeScreenshot: 06_ai
 - tapOn: "Back"
+
+# Workout start & log
 - tapOn:
     point: 80%,90%
 - tapOn:
