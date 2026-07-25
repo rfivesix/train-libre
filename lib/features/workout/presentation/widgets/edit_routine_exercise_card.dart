@@ -94,7 +94,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: const Icon(LucideIcons.pencil),
-                        tooltip: "Notizen bearbeiten",
+                        tooltip: l10n.exerciseNoteTitle,
                         onPressed: onEditNotes,
                       ),
                       if (routineExercise.pauseSeconds != null &&

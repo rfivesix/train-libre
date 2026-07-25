@@ -928,8 +928,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                   LucideIcons
                                                                       .pencil,
                                                                 ),
-                                                                tooltip:
-                                                                    "Notizen bearbeiten",
+                                                                tooltip: l10n
+                                                                    .exerciseNoteTitle,
                                                                 onPressed: () =>
                                                                     _editExerciseNotes(
                                                                         context,

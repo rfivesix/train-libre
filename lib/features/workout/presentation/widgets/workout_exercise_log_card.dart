@@ -140,7 +140,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                 if (isEditMode)
                   IconButton(
                     icon: const Icon(LucideIcons.pencil),
-                    tooltip: "Notizen bearbeiten",
+                    tooltip: l10n.exerciseNoteTitle,
                     onPressed: () => onEditNotes(exerciseName),
                   ),
                 if (isEditMode)
