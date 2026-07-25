@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.4] - 2026-07-26
 
+### Fixed
+- **Exercise Notes Localized Tooltips:** Replaced hardcoded German tooltip strings (`"Notizen bearbeiten"`) with localized strings (`l10n.exerciseNoteTitle`) across workout components (`LiveWorkoutScreen`, `EditRoutineExerciseCard`, `WorkoutExerciseLogCard`), ensuring correct accessibility labels for screen readers in all supported languages (PR #532).
+- **Food Selection Accessibility Tooltips:** Added missing localized tooltips (`l10n.add_button`) to icon-only add buttons in `FoodExplorerScreen`, `GeneralFoodSelectionScreen`, and `FoodItemSearchTile` for enhanced screen reader navigation (PR #534).
+
+### Performance
+- **Sleep Aggregation Iterable Optimizations:** Optimized `SleepPeriodAggregationEngine` (`sleep_period_aggregations.dart`) by refactoring `_meanScore` and `_averageDuration` to process parameters as `Iterable` instead of `List`. Replaced chained `.map().whereType().toList().fold()` allocations with single-pass `for` loops, reducing iteration complexity to O(N) time and eliminating intermediate array allocations (PR #533).
+
 ## [1.0.0-beta.3] - 2026-07-25
 
 ### Changed
