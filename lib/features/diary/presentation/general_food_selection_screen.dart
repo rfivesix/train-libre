@@ -202,6 +202,7 @@ class _GeneralFoodSelectionScreenState
           ],
         ),
         trailing: IconButton(
+          tooltip: l10n.add_button,
           icon: Icon(LucideIcons.circle_plus, color: colorScheme.primary),
           onPressed: () => Navigator.of(context).pop(item),
         ),

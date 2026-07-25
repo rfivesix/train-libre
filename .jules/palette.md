@@ -13,3 +13,7 @@
 ## 2024-05-20 - Adding Localized Tooltips for Accessibility
 **Learning:** Hardcoded tooltips (e.g., `tooltip: "Notizen bearbeiten"`) break localization and can be confusing or inaccessible for users relying on different languages. Using standard ARB keys ensures screen readers and hover states respect the user's locale.
 **Action:** Always use localized strings (e.g., `l10n.exerciseNoteTitle`) for `tooltip` properties in `IconButton` widgets instead of hardcoding strings.
+
+## 2026-07-25 - Accessibility Tooltips in Generic Utility Screens
+**Learning:** Missing `tooltip` on `IconButton` widgets is a common pattern in generic utility screens like search and selection screens, impacting screen reader capability.
+**Action:** Always add localized tooltips to generic IconButtons across the application, especially inside list tiles and search results.

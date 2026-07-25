@@ -355,6 +355,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           ],
         ),
         trailing: IconButton(
+          tooltip: l10n.add_button,
           icon: Icon(
             LucideIcons.circle_plus,
             color: colorScheme.primary,
