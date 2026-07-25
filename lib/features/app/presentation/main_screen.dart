@@ -965,21 +965,30 @@ class _MainScreenState extends State<MainScreen>
     final renderObject = targetContext.findRenderObject();
     if (renderObject is! RenderBox || !renderObject.hasSize) return null;
     final topLeft = renderObject.localToGlobal(Offset.zero);
-    final rawRect = topLeft & renderObject.size;
+    final rect = topLeft & renderObject.size;
+
+    if (key == _tourNavigationBarKey) {
+      return Rect.fromLTWH(
+        rect.left + 16,
+        rect.top,
+        rect.width,
+        rect.height,
+      );
+    }
 
     if (key == _tourDiaryTabKey ||
         key == _tourWorkoutTabKey ||
         key == _tourStatisticsTabKey ||
         key == _tourNutritionTabKey) {
       return Rect.fromLTWH(
-        rawRect.left - 14,
-        rawRect.top - 4,
-        rawRect.width + 28,
-        rawRect.height + 22,
+        rect.left - 12,
+        rect.top - 4,
+        rect.width + 24,
+        rect.height + 28,
       );
     }
 
-    return rawRect;
+    return rect;
   }
 
   Future<void> _handlePendingAppTourEntry() async {
