@@ -75,7 +75,7 @@ class _MainScreenState extends State<MainScreen>
   final GlobalKey _tourNutritionTabKey = GlobalKey();
   bool _isAddMenuOpen = false;
   bool _isTourActive = false;
-  bool _isTourOfferVisible = false;
+  final bool _isTourOfferVisible = false;
   bool _isRouteObserverAttached = false;
   int _tourStepIndex = 0;
   Rect? _tourTargetRect;
@@ -965,7 +965,21 @@ class _MainScreenState extends State<MainScreen>
     final renderObject = targetContext.findRenderObject();
     if (renderObject is! RenderBox || !renderObject.hasSize) return null;
     final topLeft = renderObject.localToGlobal(Offset.zero);
-    return topLeft & renderObject.size;
+    final rawRect = topLeft & renderObject.size;
+
+    if (key == _tourDiaryTabKey ||
+        key == _tourWorkoutTabKey ||
+        key == _tourStatisticsTabKey ||
+        key == _tourNutritionTabKey) {
+      return Rect.fromLTWH(
+        rawRect.left - 14,
+        rawRect.top - 4,
+        rawRect.width + 28,
+        rawRect.height + 22,
+      );
+    }
+
+    return rawRect;
   }
 
   Future<void> _handlePendingAppTourEntry() async {
@@ -1014,9 +1028,12 @@ class _MainScreenState extends State<MainScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_isTourActive) return;
-      final targetRect =
-          _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
-      setState(() => _tourTargetRect = targetRect);
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (!mounted || !_isTourActive || _tourStepIndex != index) return;
+        final targetRect =
+            _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
+        setState(() => _tourTargetRect = targetRect);
+      });
     });
   }
 
@@ -1039,6 +1056,7 @@ class _MainScreenState extends State<MainScreen>
       _tourTargetRect = null;
       _tourStepIndex = 0;
     });
+    _onNavigationTapped(0);
     await AppTourService.instance.markSkipped();
   }
 
@@ -1049,6 +1067,7 @@ class _MainScreenState extends State<MainScreen>
       _tourTargetRect = null;
       _tourStepIndex = 0;
     });
+    _onNavigationTapped(0);
     await AppTourService.instance.markCompleted();
   }
 
@@ -1178,10 +1197,8 @@ class _MainScreenState extends State<MainScreen>
           left: 16,
           right: 16,
           child: RepaintBoundary(
-            child: KeyedSubtree(
-              key: _tourNavigationBarKey,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
+            child: LayoutBuilder(
+              builder: (context, constraints) {
                   final double horizontalPadding = 0.0;
                   final double verticalPadding = 20.0;
                   final double spacing = 8.0;
@@ -1258,69 +1275,72 @@ class _MainScreenState extends State<MainScreen>
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: GlassTabBar.bottom(
-                                      selectedIndex: _currentIndex,
-                                      onTabSelected: _onNavigationTapped,
-                                      barHeight: DesignConstants
-                                          .bottomNavigationBarHeight,
-                                      barBorderRadius: DesignConstants
-                                              .bottomNavigationBarHeight /
-                                          2,
-                                      tabWidth: null,
-                                      horizontalPadding: 0.0,
-                                      verticalPadding: 0.0,
-                                      quality: DesignConstants.defaultGlassQuality,
-                                      indicatorExpansion:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 14, vertical: 8),
-                                      selectedIconColor:
-                                          theme.colorScheme.primary,
-                                      unselectedIconColor:
-                                          isDark ? Colors.white : Colors.black,
-                                      indicatorColor:
-                                          (isDark ? Colors.white : Colors.black)
-                                              .withValues(alpha: 0.15),
-                                      settings:
-                                          DesignConstants.liquidGlassSettings(
-                                              isDark),
-                                      tabs: [
-                                        GlassTab(
-                                          label: l10n.diary,
-                                          icon: Icon(
-                                            LucideIcons.notebook,
-                                            key: _tourDiaryTabKey,
+                                    child: KeyedSubtree(
+                                      key: _tourNavigationBarKey,
+                                      child: GlassTabBar.bottom(
+                                        selectedIndex: _currentIndex,
+                                        onTabSelected: _onNavigationTapped,
+                                        barHeight: DesignConstants
+                                            .bottomNavigationBarHeight,
+                                        barBorderRadius: DesignConstants
+                                                .bottomNavigationBarHeight /
+                                            2,
+                                        tabWidth: null,
+                                        horizontalPadding: 0.0,
+                                        verticalPadding: 0.0,
+                                        quality: DesignConstants.defaultGlassQuality,
+                                        indicatorExpansion:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 14, vertical: 8),
+                                        selectedIconColor:
+                                            theme.colorScheme.primary,
+                                        unselectedIconColor:
+                                            isDark ? Colors.white : Colors.black,
+                                        indicatorColor:
+                                            (isDark ? Colors.white : Colors.black)
+                                                .withValues(alpha: 0.15),
+                                        settings:
+                                            DesignConstants.liquidGlassSettings(
+                                                isDark),
+                                        tabs: [
+                                          GlassTab(
+                                            label: l10n.diary,
+                                            icon: Icon(
+                                              LucideIcons.notebook,
+                                              key: _tourDiaryTabKey,
+                                            ),
+                                            activeIcon:
+                                                const Icon(LucideIcons.notebook),
                                           ),
-                                          activeIcon:
-                                              const Icon(LucideIcons.notebook),
-                                        ),
-                                        GlassTab(
-                                          label: l10n.workout,
-                                          icon: Icon(
-                                            LucideIcons.dumbbell,
-                                            key: _tourWorkoutTabKey,
+                                          GlassTab(
+                                            label: l10n.workout,
+                                            icon: Icon(
+                                              LucideIcons.dumbbell,
+                                              key: _tourWorkoutTabKey,
+                                            ),
+                                            activeIcon:
+                                                const Icon(LucideIcons.dumbbell),
                                           ),
-                                          activeIcon:
-                                              const Icon(LucideIcons.dumbbell),
-                                        ),
-                                        GlassTab(
-                                          label: l10n.statistics,
-                                          icon: Icon(
-                                            LucideIcons.chart_no_axes_column,
-                                            key: _tourStatisticsTabKey,
+                                          GlassTab(
+                                            label: l10n.statistics,
+                                            icon: Icon(
+                                              LucideIcons.chart_no_axes_column,
+                                              key: _tourStatisticsTabKey,
+                                            ),
+                                            activeIcon: const Icon(
+                                                LucideIcons.chart_no_axes_column),
                                           ),
-                                          activeIcon: const Icon(
-                                              LucideIcons.chart_no_axes_column),
-                                        ),
-                                        GlassTab(
-                                          label: l10n.nutrition,
-                                          icon: Icon(
-                                            LucideIcons.utensils,
-                                            key: _tourNutritionTabKey,
+                                          GlassTab(
+                                            label: l10n.nutrition,
+                                            icon: Icon(
+                                              LucideIcons.utensils,
+                                              key: _tourNutritionTabKey,
+                                            ),
+                                            activeIcon:
+                                                const Icon(LucideIcons.utensils),
                                           ),
-                                          activeIcon:
-                                              const Icon(LucideIcons.utensils),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                   SizedBox(width: spacing),
@@ -1380,7 +1400,6 @@ class _MainScreenState extends State<MainScreen>
               ),
             ),
           ),
-        ),
         // Speed Dial Menu Animation
         SpeedDialMenuOverlay(
           animation: _menuController,

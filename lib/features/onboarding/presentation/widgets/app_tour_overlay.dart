@@ -28,7 +28,7 @@ class AppTourOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final spotlightRect = targetRect?.inflate(8);
+    final spotlightRect = targetRect?.inflate(4);
 
     return Material(
       key: const Key('app_tour_overlay'),
