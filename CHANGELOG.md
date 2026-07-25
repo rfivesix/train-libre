@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.3] - 2026-07-25
 
+### Changed
+- **Default Theme Mode (Dark Mode):** Updated application default theme mode in `ThemeService` from `ThemeMode.system` to `ThemeMode.dark`. New installations and unconfigured app preference states now default directly to Dark Mode while preserving user customization in `AppearanceSettingsScreen`.
+
 ### Fixed
 - **Onboarding & Backup Unit System Transfer:** Added the missing `UnitSystemSlide` as a dedicated step in the `OnboardingScreen` flow (allowing users to choose between Metric `kg/cm/ml` and Imperial `lbs/in/fl oz` on initial setup). Fixed unit system preference transfer during backup import (`BackupManager` & `ICloudSyncService`) by explicitly synchronizing `unit_system` in `SharedPreferences` with database settings and invoking `UnitService.reload()`, ensuring imported imperial or metric settings immediately update the onboarding screens and application UI.
 - **Maestro Store Screenshot Automation Scripts:** Synchronized and updated both German (`iOS_store_screenshots_de.yaml`) and English (`iOS_store_screenshots_en.yaml`) Maestro UI automation flows. Integrated the onboarding unit system selection step (`UnitSystemSlide`) selecting Metric (`kg/cm/ml`) for both languages, removed obsolete Health permission popups, fixed Muscle Readiness card selector (`"Muskel-Bereitschaft"` / `"Muscle Readiness"`), and streamlined the complete automated screenshot capture flow across diary, nutrition, settings, measurements, recovery, AI meal capture, and live workout logging.

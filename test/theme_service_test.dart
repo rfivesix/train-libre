@@ -17,7 +17,7 @@ void main() {
       final service = ThemeService();
       await _waitForThemeServiceInit();
 
-      expect(service.themeMode, ThemeMode.system);
+      expect(service.themeMode, ThemeMode.dark);
       expect(service.visualStyle, 1);
       expect(service.isAiEnabled, false);
       expect(service.materialColorsEnabled, false);

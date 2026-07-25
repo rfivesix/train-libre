@@ -14,7 +14,7 @@ class ThemeService extends ChangeNotifier {
   static const _hapticsEnabledKey = 'haptics_enabled';
   static const _useColorfulMacroBadgesKey = 'use_colorful_macro_badges';
 
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.dark;
   int _visualStyle = 0; // 0 = Standard (Glas), 1 = Liquid
   bool _isAiEnabled = false;
   bool _materialColorsEnabled = false;
@@ -57,7 +57,7 @@ class ThemeService extends ChangeNotifier {
 
   Future<void> _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
-    final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.system.index;
+    final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.dark.index;
     _themeMode = ThemeMode.values[themeIndex];
     notifyListeners();
   }
