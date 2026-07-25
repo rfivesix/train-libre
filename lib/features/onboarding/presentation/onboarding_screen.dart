@@ -27,6 +27,7 @@ import '../../settings/presentation/pulse_settings_screen.dart';
 import '../../settings/presentation/sleep_settings_screen.dart';
 import '../../settings/presentation/steps_settings_screen.dart';
 import 'widgets/welcome_slide.dart';
+import 'widgets/unit_system_slide.dart';
 import 'widgets/profile_slide.dart';
 import 'widgets/adaptive_goal_slide.dart';
 import 'widgets/region_selection_slide.dart';
@@ -72,11 +73,12 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const int _regionSelectionPageIndex = 1;
-  static const int _profilePageIndex = 2;
-  static const int _measurementsPageIndex = 3;
-  static const int _adaptiveGoalPageIndex = 4;
-  static const int _pageCount = 7;
+  static const int _unitSystemPageIndex = 1;
+  static const int _regionSelectionPageIndex = 2;
+  static const int _profilePageIndex = 3;
+  static const int _measurementsPageIndex = 4;
+  static const int _adaptiveGoalPageIndex = 5;
+  static const int _pageCount = 8;
   static const int _lastPageIndex = _pageCount - 1;
 
   bool _isImportedMode = false;
@@ -150,7 +152,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     if (_isImportedMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _pageController.jumpToPage(_regionSelectionPageIndex);
+        _pageController.jumpToPage(_unitSystemPageIndex);
       });
     }
 
@@ -527,13 +529,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // Close old connection so SQLite releases the file lock
       DatabaseHelper.driftDb?.close();
 
+      await context.read<UnitService>().reload();
+      await _loadAdaptiveGoalSettings();
+
+      if (!mounted) return;
       setState(() {
         _isImportedMode = true;
         _requiresHardRestart = true;
       });
 
       _pageController.animateToPage(
-        _regionSelectionPageIndex,
+        _unitSystemPageIndex,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
@@ -629,6 +635,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     if (success) {
       if (!mounted) return;
+      await context.read<UnitService>().reload();
+      await _loadAdaptiveGoalSettings();
+      if (!mounted) return;
       setState(() {
         _isImportedMode = true;
         _requiresHardRestart = true;
@@ -637,7 +646,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.onboardingRestoreSuccess)));
       _pageController.animateToPage(
-        _regionSelectionPageIndex,
+        _unitSystemPageIndex,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
@@ -987,6 +996,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onRestore: _restoreFromBackup,
                     onRestoreICloud: _restoreFromICloud,
                     hasICloudBackup: _hasICloudBackup,
+                  ),
+                  UnitSystemSlide(
+                    selectedSystem: _unitService.unitSystem,
+                    onSelectSystem: (system) async {
+                      await context.read<UnitService>().setUnitSystem(system);
+                      setState(() {});
+                    },
                   ),
                   RegionSelectionSlide(
                     selectedCountry: _selectedOffCountry,

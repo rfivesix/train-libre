@@ -889,13 +889,13 @@ class BackupManager {
                   );
             }
 
+            final unitSystemVal = s['unitSystem']?.toString() ?? 'metric';
             await dbInst.into(dbInst.appSettings).insert(
                   db.AppSettingsCompanion(
                     userId: drift.Value(userId),
                     themeMode:
                         drift.Value(s['themeMode']?.toString() ?? 'system'),
-                    unitSystem:
-                        drift.Value(s['unitSystem']?.toString() ?? 'metric'),
+                    unitSystem: drift.Value(unitSystemVal),
                     targetCalories: drift.Value(
                       _asInt(s['targetCalories']) ?? 2500,
                     ),
@@ -910,6 +910,7 @@ class BackupManager {
                   ),
                   mode: drift.InsertMode.insertOrReplace,
                 );
+            await prefs.setString('unit_system', unitSystemVal);
           }
         }
         token?.throwIfCancelled();

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-beta.3] - 2026-07-25
+
+### Fixed
+- **Onboarding & Backup Unit System Transfer:** Added the missing `UnitSystemSlide` as a dedicated step in the `OnboardingScreen` flow (allowing users to choose between Metric `kg/cm/ml` and Imperial `lbs/in/fl oz` on initial setup). Fixed unit system preference transfer during backup import (`BackupManager` & `ICloudSyncService`) by explicitly synchronizing `unit_system` in `SharedPreferences` with database settings and invoking `UnitService.reload()`, ensuring imported imperial or metric settings immediately update the onboarding screens and application UI.
+
 ## [1.0.0-beta.2] - 2026-07-23
 
 ### Legal

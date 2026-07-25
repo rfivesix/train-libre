@@ -5,34 +5,45 @@ appId: com.rfivesix.trainlibre
 
 - tapOn: "0"
 - tapOn: "0"
-- tapOn: "Akzeptieren & Loslegen"
+- tapOn: "Akzeptieren & Loslegen\nAkzeptieren & Loslegen\nAkzeptieren & Loslegen"
 - tapOn: "Erlauben"
 - extendedWaitUntil:
-    visible: "Aus Backup wiederherstellen"
+    visible: "Aus Backup wiederherstellen\nAus Backup wiederherstellen\nAus Backup wiederherstellen"
     timeout: 60000
-- tapOn: "Aus Backup wiederherstellen"
+- tapOn: "Aus Backup wiederherstellen\nAus Backup wiederherstellen\nAus Backup wiederherstellen"
 - tapOn: "backup.json"
 - tapOn: "Öffnen"
-- extendedWaitUntil:
-    visible: "Vielleicht später" 
-    timeout: 60000
-- tapOn: 
-    text: "Vielleicht später"
-- tapOn: 
-    text: "Tagebuch"
-    optional: true
-    repeat: 2
-    delay: 10000
-- takeScreenshot: 01_diary
-- tapOn: 
-    text: "Ernährung\nErnährung"
-    optional: true
-    repeat: 2
-    delay: 10000
-- takeScreenshot: 02_nutrition
+- tapOn: "Vereinigte Staaten (US)"
+- tapOn: "Deutschland (DE)"
+- tapOn: "WEITER\nWEITER\nWEITER"
+- tapOn: "Jetzt herunterladen\nJetzt herunterladen\nJetzt herunterladen"
+- tapOn: "Fortfahren\nFortfahren\nFortfahren"
+- tapOn:
+    text: "„Train Libre“ darf Daten schreiben"
+    index: 1
+- tapOn: "Nicht erlauben"
+- tapOn: "Fortfahren\nFortfahren\nFortfahren"
+- tapOn:
+    text: "„Train Libre“ darf Daten lesen"
+    index: 1
+- tapOn: "Nicht erlauben"
+- tapOn: "Fortfahren\nFortfahren\nFortfahren"
+- tapOn:
+    text: "„Train Libre“ darf Daten lesen"
+    index: 1
+- tapOn: "Nicht erlauben"
+- tapOn: "Fortfahren\nFortfahren\nFortfahren"
+- tapOn:
+    text: "„Train Libre“ darf Daten lesen"
+    index: 1
+- tapOn: "Nicht erlauben"
+- tapOn: "LOSLEGEN\nLOSLEGEN\nLOSLEGEN"
+- tapOn: "Überspringen"
 - tapOn:
     point: 91%,13%
 - tapOn: "Einstellungen\nThema, Einheiten, Daten und mehr"
+- tapOn:
+    point: 81%,43%
 - scrollUntilVisible:
     element: "Datensicherung & Import\nBackups erstellen, wiederherstellen und Daten importieren."
 - tapOn: "Datensicherung & Import\nBackups erstellen, wiederherstellen und Daten importieren."
@@ -40,21 +51,30 @@ appId: com.rfivesix.trainlibre
 - tapOn: "Zurück"
 - tapOn: "Zurück"
 - tapOn: "Zurück"
-- tapOn:
-    text: "„Train Libre“ darf Daten lesen"
-    index: 1
-- tapOn: "Nicht erlauben"
-- tapOn: "Statistiken\nStatistiken"
+- tapOn: 
+    text: "Tagebuch"
+    optional: true
+    repeat: 2
+    delay: 10000
+- takeScreenshot: 01_diary
+- tapOn: 
+    text: "Ernährung"
+    optional: true
+    repeat: 2
+    delay: 10000
+- takeScreenshot: 02_nutrition
+- tapOn: "Statistiken"
 - scrollUntilVisible:
     element: "Körpermaße\nAlle Messwerte"
 - scroll
 - tapOn: "Körpermaße\nAlle Messwerte"
+- waitForAnimationToEnd
 - takeScreenshot: 04_measurements
 - tapOn: "Zurück"
 - scrollUntilVisible:
-    element: "Muskel-Bereitschaft\nAktuell\nMehrere Muskelgruppen sind noch in Erholung\nIn Erholung: 6  Bereit: 3  Frisch: 4"
+    element: "Muskel-Bereitschaft"
     direction: UP
-- tapOn: "Muskel-Bereitschaft\nAktuell\nMehrere Muskelgruppen sind noch in Erholung\nIn Erholung: 6  Bereit: 3  Frisch: 4"
+- tapOn: "Muskel-Bereitschaft"
 - takeScreenshot: 05_recovery
 - tapOn: "Zurück"
 - tapOn:

@@ -21,6 +21,10 @@ class UnitService extends ChangeNotifier {
 
   bool get isImperial => _unitSystem == UnitSystem.imperial;
 
+  Future<void> reload() async {
+    await _loadUnitSystem();
+  }
+
   Future<void> _loadUnitSystem() async {
     final prefs = await SharedPreferences.getInstance();
     final storedValue = prefs.getString(_unitSystemKey);

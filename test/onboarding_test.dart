@@ -32,9 +32,13 @@ void main() {
     await tester.tap(startButton);
     await tester.pumpAndSettle();
 
-    // 2. Region Selection Screen
+    // 2. Unit System Selection Screen
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
     expect(nextButton, findsOneWidget);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    // 3. Region Selection Screen
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
@@ -124,5 +128,40 @@ void main() {
     expect(find.byKey(const Key('onboarding_nutrition_page')), findsNothing);
     // Wait, let's verify which page we transitioned to. On page 4 it should be the AdaptiveGoalSlide
     expect(find.byKey(const Key('onboarding_measurements_page')), findsNothing);
+  });
+
+  testWidgets('OnboardingScreen presents UnitSystemSlide and updates unit system',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final unitService = UnitService();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChangeNotifierProvider<UnitService>.value(
+          value: unitService,
+          child: const OnboardingScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final startButton =
+        find.byKey(const Key('onboarding_continue_setup_button'));
+    await tester.tap(startButton);
+    await tester.pumpAndSettle();
+
+    // Verify UnitSystemSlide is displayed
+    final l10n = AppLocalizations.of(tester.element(find.byType(OnboardingScreen)))!;
+    expect(find.text(l10n.onboardingUnitSystemTitle), findsOneWidget);
+    expect(find.text(l10n.onboardingUnitImperial), findsOneWidget);
+
+    // Tap Imperial system option
+    await tester.tap(find.text(l10n.onboardingUnitImperial));
+    await tester.pumpAndSettle();
+
+    expect(unitService.isImperial, isTrue);
   });
 }

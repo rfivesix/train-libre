@@ -156,7 +156,9 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Navigate past region selection slide to profile slide
+      // Navigate past unit selection and region selection slides to profile slide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
@@ -228,7 +230,9 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Navigate past region selection slide to profile slide
+      // Navigate past unit selection and region selection slides to profile slide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
@@ -282,7 +286,9 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Navigate past region selection slide to profile slide
+      // Navigate past unit selection and region selection slides to profile slide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
@@ -362,7 +368,9 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Navigate past region selection slide to profile slide
+      // Navigate past unit selection and region selection slides to profile slide
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
       await tester.tap(nextButton);
       await tester.pumpAndSettle();
 

@@ -344,6 +344,13 @@ class ICloudSyncService {
           await prefs.setStringList(key, list.cast<String>());
         }
       }
+
+      if (prefs.getString('unit_system') == null) {
+        final settings = await db.select(db.appSettings).getSingleOrNull();
+        if (settings != null && settings.unitSystem.isNotEmpty) {
+          await prefs.setString('unit_system', settings.unitSystem);
+        }
+      }
     } catch (e) {
       // Table might not exist in older backups
       debugPrint('Failed to extract shared preferences from backup: $e');
