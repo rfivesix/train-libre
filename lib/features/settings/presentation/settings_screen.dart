@@ -9,7 +9,6 @@ import '../../feedback_report/presentation/feedback_report_screen.dart';
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
 import '../../../generated/app_localizations.dart';
-import '../../../services/app_tour_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../../services/off_catalog_country_service.dart';
@@ -247,11 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _restartAppTour() async {
-    await AppTourService.instance.requestRestartFromSettings();
-    if (!mounted) return;
-    Navigator.of(context).popUntil((route) => route.isFirst);
-  }
+
 
   bool _settingsChildMayHaveChanged(bool? result) {
     // iOS interactive back-swipe completes a route with a null result. These
@@ -342,16 +337,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                 ),
-                const Divider(height: 1),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.compass,
-                  title: l10n.settingsRestartAppTourTitle,
-                  subtitle: l10n.settingsRestartAppTourSubtitle,
-                  tileKey: const Key('settings_restart_app_tour_tile'),
-                  onTap: _restartAppTour,
-                  wrapInCard: false,
-                ),
+
                 const Divider(height: 1),
                 _buildNavigationCard(
                   context: context,

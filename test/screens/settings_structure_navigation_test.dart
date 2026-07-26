@@ -254,16 +254,14 @@ void main() {
           find.byKey(const Key('settings_section_health_tracking'));
       final diaryText = find.text('Additional Nutrient in Overview');
 
-      expect(restartTile, findsOneWidget);
+      expect(restartTile, findsNothing);
       expect(healthSection, findsOneWidget);
       expect(diaryText, findsOneWidget);
 
-      final restartTop = tester.getTopLeft(restartTile).dy;
       final healthTop = tester.getTopLeft(healthSection).dy;
       final diaryTop = tester.getTopLeft(diaryText).dy;
 
-      expect(diaryTop, lessThan(restartTop));
-      expect(restartTop, lessThan(healthTop));
+      expect(diaryTop, lessThan(healthTop));
     },
   );
 }
