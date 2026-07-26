@@ -29,7 +29,7 @@
 
 <br />
 
-Train Libre is an open-source, offline-first fitness app for logging workouts, calories, macros, bodyweight, and recovery — without ads, mandatory accounts, or analytics SDKs.
+Train Libre is an open-source, offline-first fitness app for logging workouts, calories, macros, bodyweight, and recovery — without ads, mandatory accounts, or commercial tracking.
 
 Designed for people who want serious tracking without social feeds, gamification, or subscription pressure, Train Libre prioritizes **privacy**, **local data ownership**, and **transparent analytics**.
 
@@ -130,7 +130,7 @@ Train Libre is built with Flutter and supports:
 
 ## Privacy & Philosophy
 
-- **No Ads. No Mandatory Account. No Analytics SDKs.**
+- **No Ads. No Mandatory Account. No Commercial Tracking (Optional Anonymous Telemetry).**
 - **Offline-First:** Your data stays local unless you explicitly choose otherwise.
 - **Open-Source Transparency:** Trust through public code and understandable data flows.
 - **User-Controlled AI:** Optional AI features require your own API key; no data is sent to providers without opt-in.

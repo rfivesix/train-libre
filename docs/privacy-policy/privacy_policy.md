@@ -30,7 +30,7 @@ Train Libre beruht auf dem Prinzip des „Privacy by Design“ und des „Privac
 * **Keine Benutzerkonten:** Für die Nutzung der App ist keine Registrierung und kein Erstellen eines Benutzerkontos erforderlich. Es werden keine E-Mail-Adressen, Passwörter oder Anmeldedaten auf externen Servern gespeichert.
 * **Local-First-Architektur:** Sämtliche von Ihnen eingegebenen Profileinstellungen, sportlichen Aktivitäten, Ernährungsdaten, Vitalwerte und Messungen werden ausschließlich in einer lokalen SQLite-Datenbank auf Ihrem eigenen Endgerät gespeichert.
 * **Kein zentraler Backend-Server:** Wir betreiben keine Cloud-Datenbanken und keine Anwendungsserver zur Speicherung oder Verarbeitung Ihrer Trainings- und Ernährungsdaten. Ihre Daten verbleiben in Ihrem physischen Besitz.
-* **Keine Tracking- oder Analyse-SDKs:** Train Libre verzichtet vollständig auf die Integration von Werbenetzwerken, verhaltensbasierten Analyse-Diensten oder Fehlerdiagnose-SDKs von Drittanbietern (wie beispielsweise Firebase Analytics, Google Analytics, Mixpanel, Sentry oder Crashlytics). Es findet keinerlei Profilbildung oder verhaltensbezogene Auswertung zu Marketingzwecken statt.
+* **Keine Tracking- oder Analyse-SDKs (Optionale anonyme Telemetrie):** Train Libre verzichtet auf Werbenetzwerke, verhaltensbasierte Werbe-SDKs und Profiling. Es steht eine rein optionale, anonyme Nutzungsstatistik (PostHog EU) zur Verfügung, die standardmäßig deaktiviert ist und keinerlei personenbezogene Daten (PII) oder persönliche Workout-/Ernährungsinhalte überträgt.
 
 ---
 
@@ -196,7 +196,7 @@ Train Libre is based on the principles of "privacy by design" and "privacy by de
 * **No User Accounts:** No registration or creation of a user account is required to use the app. No email addresses, passwords, or login credentials are stored on external servers.
 * **Local-First Architecture:** All profile settings, athletic activities, nutrition data, vital signs, and measurements entered by you are stored exclusively in a local SQLite database on your own end device.
 * **No Central Backend Server:** We do not operate any cloud databases or application servers to store or process your training and nutrition data. Your data remains in your physical possession.
-* **No Tracking or Analytics SDKs:** Train Libre completely dispenses with the integration of third-party advertising networks, behavior-based analysis services, or error diagnostics SDKs (such as Firebase Analytics, Google Analytics, Mixpanel, Sentry, or Crashlytics). No profiling or behavior-based evaluation for marketing purposes takes place.
+* **No Tracking or Analytics SDKs (Optional Anonymous Telemetry):** Train Libre dispenses with advertising networks, commercial tracking, and behavior profiling. A purely optional, anonymous usage statistics integration (PostHog EU) is disabled by default and captures zero personally identifiable information (PII) or personal workout/meal contents.
 
 ---
 
