@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.5] - 2026-07-26
 
+### Performance
+- **Food Search Rendering Optimization:** Optimized food item search rendering in `AddFoodScreen` (`add_food_screen.dart`) by replacing multiple `.where()` list traversals with a single-pass loop, reducing list traversal complexity from $O(3N)$ to $O(N)$ and eliminating intermediate array allocations (PR #535).
+
 ## [1.0.0-beta.4] - 2026-07-26
 
 ### Added
