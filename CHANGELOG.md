@@ -7,7 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-beta.5] - 2026-07-26
 
 ### Performance
+- **Nutrition Hub Recipes 120Hz Scroll Optimization:** Fixed micro-stuttering and GPU frame drops when scrolling past the "Meine Rezepte" ("My recipes") section on 120Hz ProMotion displays in `NutritionHubScreen` (`nutrition_hub_screen.dart`). Updated recipe card buttons to reuse `AppButton.primary` with `AppButtonSize.medium` (matching the Workout Hub routine card structure and primary lime styling) and isolated section cards and horizontal recipe items with `RepaintBoundary` wrappers to cache rasterized textures and eliminate GPU frame drops during scroll.
 - **Food Search Rendering Optimization:** Optimized food item search rendering in `AddFoodScreen` (`add_food_screen.dart`) by replacing multiple `.where()` list traversals with a single-pass loop, reducing list traversal complexity from $O(3N)$ to $O(N)$ and eliminating intermediate array allocations (PR #535).
+
 
 ## [1.0.0-beta.4] - 2026-07-26
 

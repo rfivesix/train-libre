@@ -182,86 +182,94 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                 AppSectionHeader(
                     isFirst: true,
                     title: l10n.adaptiveRecommendationCardTitle.toUpperCase()),
-                _buildGoalsAndRecommendationCard(
-                  context,
-                  recommendationState,
-                  targetCalories,
+                RepaintBoundary(
+                  child: _buildGoalsAndRecommendationCard(
+                    context,
+                    recommendationState,
+                    targetCalories,
+                  ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
                 AppSectionHeader(title: l10n.nutritionSectionMyMeals),
-                SizedBox(
-                  height: 150,
-                  child: meals.isEmpty
-                      ? Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildCreateMealCard(context, l10n),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: DesignConstants.spacingS,
-                                  vertical: DesignConstants.spacingM,
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      l10n.emptyStateNutritionRecipesCallout,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withValues(alpha: 0.6),
-                                            height: 1.3,
-                                          ),
-                                    ),
-                                  ],
+                RepaintBoundary(
+                  child: SizedBox(
+                    height: 150,
+                    child: meals.isEmpty
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildCreateMealCard(context, l10n),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: DesignConstants.spacingS,
+                                    vertical: DesignConstants.spacingM,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.emptyStateNutritionRecipesCallout,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.6),
+                                              height: 1.3,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        )
-                      : ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          clipBehavior: Clip.none,
-                          itemCount: meals.length + 1,
-                          itemBuilder: (context, index) {
-                            if (index == 0) {
-                              return _buildCreateMealCard(context, l10n);
-                            }
-                            return _buildMealCard(context, meals[index - 1]);
-                          },
-                        ),
+                            ],
+                          )
+                        : ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            clipBehavior: Clip.none,
+                            itemCount: meals.length + 1,
+                            itemBuilder: (context, index) {
+                              if (index == 0) {
+                                return _buildCreateMealCard(context, l10n);
+                              }
+                              return _buildMealCard(context, meals[index - 1]);
+                            },
+                          ),
+                  ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
                 AppSectionHeader(title: l10n.nutritionSectionToolsAndLibrary),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.pill,
-                  title: l10n.supplementTrackerTitle,
-                  subtitle: l10n.supplementTrackerDescription,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const SupplementHubScreen(),
-                      ),
-                    );
-                  },
+                RepaintBoundary(
+                  child: _buildNavigationCard(
+                    context: context,
+                    icon: LucideIcons.pill,
+                    title: l10n.supplementTrackerTitle,
+                    subtitle: l10n.supplementTrackerDescription,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SupplementHubScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.search,
-                  title: l10n.drawerFoodExplorer,
-                  subtitle: l10n.data_from_off_and_wger,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AddFoodScreen()),
-                    );
-                  },
+                RepaintBoundary(
+                  child: _buildNavigationCard(
+                    context: context,
+                    icon: LucideIcons.search,
+                    title: l10n.drawerFoodExplorer,
+                    subtitle: l10n.data_from_off_and_wger,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const AddFoodScreen()),
+                      );
+                    },
+                  ),
                 ),
                 const BottomContentSpacer(),
               ],
@@ -314,28 +322,30 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Widget _buildCreateMealCard(BuildContext context, AppLocalizations l10n) {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 32 - 12) / 2.5;
-    return SizedBox(
-      width: cardWidth,
-      child: Padding(
-        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: SummaryCard(
-          padding: EdgeInsets.zero,
-          child: InkWell(
-            onTap: _createMealAndOpenEditor,
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    LucideIcons.circle_plus,
-                    size: 40,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Text(l10n.mealsCreate, textAlign: TextAlign.center),
-                ],
+    return RepaintBoundary(
+      child: SizedBox(
+        width: cardWidth,
+        child: Padding(
+          padding: const EdgeInsets.only(right: DesignConstants.spacingM),
+          child: SummaryCard(
+            padding: EdgeInsets.zero,
+            child: InkWell(
+              onTap: _createMealAndOpenEditor,
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              child: Padding(
+                padding: DesignConstants.cardPadding,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      LucideIcons.circle_plus,
+                      size: 40,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    Text(l10n.mealsCreate, textAlign: TextAlign.center),
+                  ],
+                ),
               ),
             ),
           ),
@@ -348,44 +358,47 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 32 - 12) / 2;
     final l10n = AppLocalizations.of(context)!;
-    return SizedBox(
-      width: cardWidth,
-      child: Padding(
-        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: SummaryCard(
-          padding: EdgeInsets.zero,
-          child: InkWell(
-            onTap: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => MealScreen(meal: meal)))
-                .then((_) => _refreshData()),
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    meal['name'] as String,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  AppButton.secondary(
-                    onPressed: () => Navigator.of(context)
-                        .push(
-                          MaterialPageRoute(
-                            builder: (_) => MealScreen(meal: meal),
+
+    return RepaintBoundary(
+      child: SizedBox(
+        width: cardWidth,
+        child: Padding(
+          padding: const EdgeInsets.only(right: DesignConstants.spacingM),
+          child: SummaryCard(
+            padding: EdgeInsets.zero,
+            child: InkWell(
+              onTap: () => Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => MealScreen(meal: meal)))
+                  .then((_) => _refreshData()),
+              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              child: Padding(
+                padding: DesignConstants.cardPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      meal['name'] as String,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                        )
-                        .then((_) => _refreshData()),
-                    label: l10n.edit,
-                    tooltip: l10n.edit,
-                    size: AppButtonSize.small,
-                  ),
-                ],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    AppButton.primary(
+                      onPressed: () => Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder: (_) => MealScreen(meal: meal),
+                            ),
+                          )
+                          .then((_) => _refreshData()),
+                      label: l10n.edit,
+                      tooltip: l10n.edit,
+                      size: AppButtonSize.medium,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -420,3 +433,4 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     );
   }
 }
+
