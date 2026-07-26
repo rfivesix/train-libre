@@ -878,14 +878,19 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
 
     // CASE B: With query -> base items first, then OFF/user items (prioritized)
-    final baseHits = _foundFoodItems
-        .where((it) => it.source == FoodItemSource.base)
-        .toList();
-    final offHits =
-        _foundFoodItems.where((it) => it.source == FoodItemSource.off).toList();
-    final customHits = _foundFoodItems
-        .where((it) => it.source == FoodItemSource.user)
-        .toList();
+    // ⚡ Bolt: Single pass iteration to avoid O(3N) list allocations on every keystroke
+    final baseHits = <FoodItem>[];
+    final offHits = <FoodItem>[];
+    final customHits = <FoodItem>[];
+    for (final it in _foundFoodItems) {
+      if (it.source == FoodItemSource.base) {
+        baseHits.add(it);
+      } else if (it.source == FoodItemSource.off) {
+        offHits.add(it);
+      } else if (it.source == FoodItemSource.user) {
+        customHits.add(it);
+      }
+    }
 
     final listItems = <dynamic>[];
     if (customHits.isNotEmpty) {
