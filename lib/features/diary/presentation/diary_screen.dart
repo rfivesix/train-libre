@@ -947,109 +947,109 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
           SliverPadding(
             padding: finalPadding.copyWith(bottom: 0),
             sliver: SliverToBoxAdapter(
-              child: RepaintBoundary(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Selector<
-                      DiaryViewModel,
-                      ({
-                        DailyNutrition? dailyNutrition,
-                        DateTime selectedDate,
-                        String overviewExtraNutrient,
-                      })
-                    >(
-                      selector: (context, vm) => (
-                        dailyNutrition: showSkeleton
-                            ? DailyNutrition(
-                                targetCalories: 2000,
-                                targetProtein: 150,
-                                targetCarbs: 200,
-                                targetFat: 60,
-                              )
-                            : vm.dailyNutrition,
-                        selectedDate: vm.selectedDate,
-                        overviewExtraNutrient: vm.overviewExtraNutrient,
-                      ),
-                      builder: (context, data, child) {
-                        final dailyNutrition = data.dailyNutrition;
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (dailyNutrition != null &&
-                                data.selectedDate.isSameDate(DateTime.now()))
-                              RecommendationBanner(
-                                currentCalories: dailyNutrition.targetCalories,
-                              ),
-                            AppSectionHeader(title: l10n.today_overview_text),
-                            if (dailyNutrition != null)
-                              RepaintBoundary(
-                                key: _macroSummaryKey,
-                                child: NutritionSummaryWidget(
-                                  nutritionData: dailyNutrition,
-                                  l10n: l10n,
-                                  isExpandedView: false,
-                                  extraNutrient: data.overviewExtraNutrient,
-                                ),
-                              ),
-                          ],
-                        );
-                      },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Selector<
+                    DiaryViewModel,
+                    ({
+                      DailyNutrition? dailyNutrition,
+                      DateTime selectedDate,
+                      String overviewExtraNutrient,
+                    })
+                  >(
+                    selector: (context, vm) => (
+                      dailyNutrition: showSkeleton
+                          ? DailyNutrition(
+                              targetCalories: 2000,
+                              targetProtein: 150,
+                              targetCarbs: 200,
+                              targetFat: 60,
+                            )
+                          : vm.dailyNutrition,
+                      selectedDate: vm.selectedDate,
+                      overviewExtraNutrient: vm.overviewExtraNutrient,
                     ),
-                    const SizedBox(height: DesignConstants.spacingXS),
-                    Selector<
-                      DiaryViewModel,
-                      ({
-                        List<TrackedSupplement> trackedSupplements,
-                        DateTime selectedDate,
-                      })
-                    >(
-                      selector: (context, vm) => (
-                        trackedSupplements:
-                            (showSkeleton && vm.trackedSupplements.isEmpty)
-                            ? [
-                                TrackedSupplement(
-                                  supplement: Supplement(
-                                    name: 'Whey Protein',
-                                    defaultDose: 30,
-                                    dailyLimit: 100,
-                                    unit: 'g',
-                                  ),
-                                  totalDosedToday: 30,
+                    builder: (context, data, child) {
+                      final dailyNutrition = data.dailyNutrition;
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (dailyNutrition != null &&
+                              data.selectedDate.isSameDate(DateTime.now()))
+                            RecommendationBanner(
+                              currentCalories: dailyNutrition.targetCalories,
+                            ),
+                          AppSectionHeader(title: l10n.today_overview_text),
+                          if (dailyNutrition != null)
+                            RepaintBoundary(
+                              key: _macroSummaryKey,
+                              child: NutritionSummaryWidget(
+                                nutritionData: dailyNutrition,
+                                l10n: l10n,
+                                isExpandedView: false,
+                                extraNutrient: data.overviewExtraNutrient,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: DesignConstants.spacingXS),
+                  Selector<
+                    DiaryViewModel,
+                    ({
+                      List<TrackedSupplement> trackedSupplements,
+                      DateTime selectedDate,
+                    })
+                  >(
+                    selector: (context, vm) => (
+                      trackedSupplements:
+                          (showSkeleton && vm.trackedSupplements.isEmpty)
+                          ? [
+                              TrackedSupplement(
+                                supplement: Supplement(
+                                  name: 'Whey Protein',
+                                  defaultDose: 30,
+                                  dailyLimit: 100,
+                                  unit: 'g',
                                 ),
-                              ]
-                            : vm.trackedSupplements,
-                        selectedDate: vm.selectedDate,
-                      ),
-                      builder: (context, data, child) {
-                        return SupplementSummaryWidget(
-                          trackedSupplements: data.trackedSupplements,
-                          onTapSupplement: (ts) =>
-                              _showSupplementDetailSheet(context, ts),
-                        );
-                      },
+                                totalDosedToday: 30,
+                              ),
+                            ]
+                          : vm.trackedSupplements,
+                      selectedDate: vm.selectedDate,
                     ),
-                    if (stepsEnabled) const StepsSummaryCard(),
-                    if (sleepEnabled) const SleepSummaryCard(),
-                    if (pulseEnabled) const PulseSummaryCard(),
-                    // New section: insert workout summary here.
-                    if (hasWorkoutSummary || showSkeleton)
-                      Selector<DiaryViewModel, Map<String, dynamic>?>(
-                        selector: (context, vm) => showSkeleton
-                            ? {
-                                'duration': const Duration(minutes: 45),
-                                'volume': 10000.0,
-                                'sets': 15,
-                                'count': 1,
-                              }
-                            : vm.workoutSummary,
-                        builder: (context, workoutSummary, child) {
-                          if (workoutSummary == null) {
-                            return const SizedBox.shrink();
-                          }
-                          return TodaysWorkoutSummaryCard(
+                    builder: (context, data, child) {
+                      return SupplementSummaryWidget(
+                        trackedSupplements: data.trackedSupplements,
+                        onTapSupplement: (ts) =>
+                            _showSupplementDetailSheet(context, ts),
+                      );
+                    },
+                  ),
+                  if (stepsEnabled) const StepsSummaryCard(),
+                  if (sleepEnabled) const SleepSummaryCard(),
+                  if (pulseEnabled) const PulseSummaryCard(),
+                  // New section: insert workout summary here.
+                  if (hasWorkoutSummary || showSkeleton)
+                    Selector<DiaryViewModel, Map<String, dynamic>?>(
+                      selector: (context, vm) => showSkeleton
+                          ? {
+                              'duration': const Duration(minutes: 45),
+                              'volume': 10000.0,
+                              'sets': 15,
+                              'count': 1,
+                            }
+                          : vm.workoutSummary,
+                      builder: (context, workoutSummary, child) {
+                        if (workoutSummary == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return RepaintBoundary(
+                          child: TodaysWorkoutSummaryCard(
                             duration: workoutSummary['duration'] as Duration,
                             volume: workoutSummary['volume'] as double,
                             sets: workoutSummary['sets'] as int,
@@ -1062,11 +1062,11 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 ),
                               );
                             },
-                          );
-                        },
-                      ),
-                  ],
-                ),
+                          ),
+                        );
+                      },
+                    ),
+                ],
               ),
             ),
           ),
@@ -1091,17 +1091,15 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
               bottom: finalPadding.bottom,
             ),
             sliver: SliverToBoxAdapter(
-              child: RepaintBoundary(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: DesignConstants.spacingXL),
-                    AppSectionHeader(title: l10n.measurementWeightCapslock),
-                    const WeightChartCard(),
-                    const BottomContentSpacer(),
-                  ],
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: DesignConstants.spacingXL),
+                  AppSectionHeader(title: l10n.measurementWeightCapslock),
+                  const WeightChartCard(),
+                  const BottomContentSpacer(),
+                ],
               ),
             ),
           ),

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../generated/app_localizations.dart';
@@ -195,23 +194,18 @@ class _RecommendationBannerState extends State<RecommendationBanner>
         child: Padding(
           padding: const EdgeInsets.symmetric(
               vertical: DesignConstants.cardPaddingExternal),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            child: RepaintBoundary(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: bg.withValues(alpha: 0.75),
-                    borderRadius:
-                        BorderRadius.circular(DesignConstants.borderRadiusM),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.15)
-                          : Colors.black.withValues(alpha: 0.08),
-                      width: 1.0,
-                    ),
-                  ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: bg.withValues(alpha: isDark ? 0.85 : 0.95),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.black.withValues(alpha: 0.08),
+                width: 1.0,
+              ),
+            ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: DesignConstants.spacingL, vertical: 14.0),
@@ -286,9 +280,6 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                       ],
                     ),
                   ),
-                ),
-              ),
-            ),
           ),
         ),
       ),

@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Food Selection Accessibility Tooltips:** Added missing localized tooltips (`l10n.add_button`) to icon-only add buttons in `FoodExplorerScreen`, `GeneralFoodSelectionScreen`, and `FoodItemSearchTile` for enhanced screen reader navigation (PR #534).
 
 ### Performance
+- **Ernährungs-Screen 120Hz ProMotion Scroll Optimization:** Eliminated micro-stuttering and GPU frame drops on 120Hz ProMotion displays (e.g. iPhone 16 Pro) in `DiaryScreen`. Replaced offscreen live GPU `BackdropFilter` shader blur in `RecommendationBanner` with a high-performance translucent glass background container, and removed nested, oversized `RepaintBoundary` wrappers around the top overview column to eliminate screen-sized texture layer re-rasterization during scrolling.
 - **Sleep Aggregation Iterable Optimizations:** Optimized `SleepPeriodAggregationEngine` (`sleep_period_aggregations.dart`) by refactoring `_meanScore` and `_averageDuration` to process parameters as `Iterable` instead of `List`. Replaced chained `.map().whereType().toList().fold()` allocations with single-pass `for` loops, reducing iteration complexity to O(N) time and eliminating intermediate array allocations (PR #533).
 
 ## [1.0.0-beta.3] - 2026-07-25
