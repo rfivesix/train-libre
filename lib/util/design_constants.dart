@@ -30,7 +30,7 @@ class DesignConstants {
 
   // === TYPOGRAPHY ===
   /// Letter spacing used for uppercase section headers throughout the app.
-  static const double sectionHeaderLetterSpacing = 1.0;
+  static const double sectionHeaderLetterSpacing = 0.7;
 
   /// Standard font weight for section headers.
   static const FontWeight sectionHeaderFontWeight = FontWeight.bold;
