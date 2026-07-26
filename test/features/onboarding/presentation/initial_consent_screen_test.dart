@@ -22,7 +22,7 @@ void main() {
   });
 
   testWidgets(
-      'InitialConsentScreen button remains disabled until both checkboxes are checked',
+      'InitialConsentScreen button remains disabled until GDPR consent checkbox is checked',
       (
     tester,
   ) async {
@@ -36,23 +36,15 @@ void main() {
     final nextButton = find.byType(AppButton);
     expect(nextButton, findsOneWidget);
 
-    // Check if button is disabled
+    // Check if button is disabled initially
     var button = tester.widget<AppButton>(nextButton);
     expect(button.onPressed, isNull);
 
-    // Find and tap the privacy policy checkbox
+    // Find and tap the GDPR health data consent checkbox
     final checkboxes = find.byType(Checkbox);
-    expect(checkboxes, findsNWidgets(2));
+    expect(checkboxes, findsOneWidget);
 
     await tester.tap(checkboxes.first);
-    await tester.pumpAndSettle();
-
-    // Still disabled
-    button = tester.widget<AppButton>(nextButton);
-    expect(button.onPressed, isNull);
-
-    // Tap second checkbox (Terms of Service)
-    await tester.tap(checkboxes.last);
     await tester.pumpAndSettle();
 
     // Now enabled

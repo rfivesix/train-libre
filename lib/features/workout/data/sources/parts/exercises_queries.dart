@@ -38,19 +38,113 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     return sanitized.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
   }
 
+  static String _stripParenthesesAndClean(String input) {
+    if (input.isEmpty) return '';
+    final stripped = input.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
+    return stripped.isEmpty ? input.trim() : stripped;
+  }
+
+  static List<String> _expandTokensWithSynonyms(List<String> tokens) {
+    final Map<String, List<String>> synonyms = {
+      'beinstrecken': ['beinstrecker', 'leg', 'extension'],
+      'beinstrecker': ['beinstrecken', 'leg', 'extension'],
+      'wadendrücken': ['wadenheben', 'calf', 'raise'],
+      'wadenheben': ['wadendrücken', 'calf', 'raise'],
+      'bizepscurl': ['bizeps', 'curl', 'curls'],
+      'bizepscurls': ['bizeps', 'curl', 'curls'],
+      'trizepsdrücken': ['trizeps', 'seildrücken', 'extension'],
+      'schulterpresse': ['schulterdrücken', 'press'],
+      'brustpresse': ['brustpresse', 'press'],
+      'dips': ['dip'],
+      'dip': ['dips'],
+      'squat': ['squats', 'kniebeuge', 'kniebeugen'],
+      'squats': ['squat', 'kniebeuge', 'kniebeugen'],
+      'kniebeuge': ['squat', 'kniebeugen'],
+      'kniebeugen': ['squat', 'kniebeuge'],
+      'radfahren': ['fahrrad', 'cycling'],
+      'latzug': ['lat', 'pulldown'],
+      'abduktion': ['abduktoren', 'abductor'],
+      'adduktion': ['adduktoren', 'adductor'],
+      'hüftabduktion': ['abduktoren', 'abduktion'],
+      'hüftadduktion': ['adduktoren', 'adduktion'],
+      'kurzhantel': ['kh', 'dumbbell'],
+      'langhantel': ['lh', 'barbell'],
+      'kabelzug': ['kabel', 'cable'],
+    };
+
+    final Set<String> expanded = {...tokens};
+    for (final token in tokens) {
+      final t = token.toLowerCase();
+      if (synonyms.containsKey(t)) {
+        expanded.addAll(synonyms[t]!);
+      }
+    }
+    return expanded.toList();
+  }
+
   Future<List<Exercise>> searchExercises({
     String query = '',
     List<String> selectedCategories = const [],
   }) async {
-    final dbInstance = await database;
+    final rawQuery = query.trim();
+    if (rawQuery.isEmpty) {
+      return _executeSearchSql(
+        rawSearchQuery: '',
+        tokens: const [],
+        isOrSearch: false,
+        selectedCategories: selectedCategories,
+      );
+    }
 
-    final tokens = _tokenizeAndClean(query);
-    final rawSearchLower = query.trim().toLowerCase();
+    // Pass 1: Strict all-token match with raw query
+    final pass1Tokens = _tokenizeAndClean(rawQuery);
+    var results = await _executeSearchSql(
+      rawSearchQuery: rawQuery,
+      tokens: pass1Tokens,
+      isOrSearch: false,
+      selectedCategories: selectedCategories,
+    );
+
+    if (results.isNotEmpty) return results;
+
+    // Pass 2: Sanitized search (stripping parenthetical qualifiers e.g. (Maschine), (Langhantel))
+    final cleanedQuery = _stripParenthesesAndClean(rawQuery);
+    if (cleanedQuery != rawQuery) {
+      final pass2Tokens = _tokenizeAndClean(cleanedQuery);
+      results = await _executeSearchSql(
+        rawSearchQuery: cleanedQuery,
+        tokens: pass2Tokens,
+        isOrSearch: false,
+        selectedCategories: selectedCategories,
+      );
+
+      if (results.isNotEmpty) return results;
+    }
+
+    // Pass 3: Flexible OR search across tokens with synonym expansion
+    final pass3Tokens = _expandTokensWithSynonyms(pass1Tokens);
+    results = await _executeSearchSql(
+      rawSearchQuery: cleanedQuery,
+      tokens: pass3Tokens,
+      isOrSearch: true,
+      selectedCategories: selectedCategories,
+    );
+
+    return results;
+  }
+
+  Future<List<Exercise>> _executeSearchSql({
+    required String rawSearchQuery,
+    required List<String> tokens,
+    required bool isOrSearch,
+    required List<String> selectedCategories,
+  }) async {
+    final dbInstance = await database;
+    final rawSearchLower = rawSearchQuery.toLowerCase();
     final ninetyDaysAgo = DateTime.now()
         .subtract(const Duration(days: 90))
         .millisecondsSinceEpoch;
 
-    // Build SELECT expressions for scoring
     final String exactMatchExpr = tokens.isEmpty
         ? '0 AS is_exact_match'
         : '(CASE WHEN LOWER(COALESCE(t_de.name, t_en.name, t_any.name)) = ? '
@@ -61,7 +155,6 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         : '(CASE WHEN LOWER(COALESCE(t_de.name, t_en.name, t_any.name)) LIKE ? '
             'THEN 1 ELSE 0 END) AS is_prefix_match';
 
-    // Build WHERE clauses
     final whereClauses = <String>[
       "NOT (e.source = 'wger' AND "
           "EXISTS (SELECT 1 FROM exercises other_exercises "
@@ -69,10 +162,16 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     ];
 
     if (tokens.isNotEmpty) {
+      final tokenClauses = <String>[];
       for (final _ in tokens) {
-        whereClauses.add(
+        tokenClauses.add(
           '(t_de.name LIKE ? OR t_en.name LIKE ? OR t_any.name LIKE ?)',
         );
+      }
+      if (isOrSearch) {
+        whereClauses.add('(${tokenClauses.join(' OR ')})');
+      } else {
+        whereClauses.addAll(tokenClauses);
       }
     }
 
@@ -83,24 +182,22 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     }
 
     final whereSection = whereClauses.join(' AND ');
-
-    // Variable list MUST match ? positions in the SQL below
     final vars = <drift.Variable>[];
 
     // 1. history subquery
     vars.add(drift.Variable.withInt(ninetyDaysAgo));
 
-    // 2. exactMatchExpr (1 placeholder)
+    // 2. exactMatchExpr
     if (tokens.isNotEmpty) {
       vars.add(drift.Variable.withString(rawSearchLower));
     }
 
-    // 3. prefixMatchExpr (1 placeholder)
+    // 3. prefixMatchExpr
     if (tokens.isNotEmpty) {
       vars.add(drift.Variable.withString('$rawSearchLower%'));
     }
 
-    // 4. WHERE token clauses (3 per token: t_de, t_en, t_any)
+    // 4. WHERE token clauses
     for (final token in tokens) {
       vars.add(drift.Variable.withString('%$token%'));
       vars.add(drift.Variable.withString('%$token%'));
@@ -192,8 +289,12 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     }).toList();
   }
 
-  Future<Exercise?> getExerciseByName(String name) async {
+  /// Returns an [Exercise] only if an exact case-insensitive name match exists
+  /// in the database. Does NOT perform parenthetical stripping or fuzzy search fallbacks.
+  Future<Exercise?> getExactExerciseByName(String name) async {
     final dbInstance = await database;
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) return null;
 
     final sql = '''
       SELECT e.*,
@@ -201,8 +302,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
              t_en.name AS name_en,
              t_de.description AS desc_de,
              t_en.description AS desc_en,
-             COALESCE(t_en.name, t_de.name, t_any.name) AS display_name,
-             COALESCE(t_en.description, t_de.description) AS display_description
+             COALESCE(t_de.name, t_en.name, t_any.name) AS display_name,
+             COALESCE(t_de.description, t_en.description) AS display_description
       FROM exercises e
       LEFT JOIN exercise_translations t_en
         ON e.id = t_en.exercise_id AND t_en.language_code = 'en'
@@ -213,41 +314,113 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         FROM exercise_translations
         GROUP BY exercise_id
       ) t_any ON e.id = t_any.exercise_id
-      WHERE t_de.name = ? OR t_en.name = ? OR t_any.name = ?
+      WHERE LOWER(t_de.name) = LOWER(?) OR LOWER(t_en.name) = LOWER(?) OR LOWER(t_any.name) = LOWER(?)
     ''';
 
     final rows = await dbInstance.customSelect(
       sql,
       variables: [
-        drift.Variable.withString(name),
-        drift.Variable.withString(name),
-        drift.Variable.withString(name),
+        drift.Variable.withString(trimmedName),
+        drift.Variable.withString(trimmedName),
+        drift.Variable.withString(trimmedName),
       ],
       readsFrom: {dbInstance.exercises, dbInstance.exerciseTranslations},
     ).get();
 
-    if (rows.isEmpty) return null;
+    if (rows.isNotEmpty) {
+      final userRow = rows.where((r) => r.data['source'] == 'user').firstOrNull;
+      if (userRow != null) {
+        return _mapRowToExercise(dbInstance, userRow);
+      }
 
-    // Prefer custom/user exercises
-    final userRow = rows.where((r) => r.data['source'] == 'user').firstOrNull;
-    if (userRow != null) {
-      return _mapRowToExercise(dbInstance, userRow);
+      final firstRawExercise = dbInstance.exercises.map(rows.first.data);
+      final overrideRow = await (dbInstance.select(dbInstance.exercises)
+            ..where((tbl) =>
+                tbl.replacesExerciseId.equals(firstRawExercise.id) &
+                tbl.source.equals('user'))
+            ..limit(1))
+          .getSingleOrNull();
+
+      if (overrideRow != null) {
+        return _mapExerciseRowToModel(dbInstance, overrideRow);
+      }
+
+      return _mapRowToExercise(dbInstance, rows.first);
     }
 
-    // Check if the system exercise has an active override
-    final firstRawExercise = dbInstance.exercises.map(rows.first.data);
-    final overrideRow = await (dbInstance.select(dbInstance.exercises)
-          ..where((tbl) =>
-              tbl.replacesExerciseId.equals(firstRawExercise.id) &
-              tbl.source.equals('user'))
-          ..limit(1))
-        .getSingleOrNull();
+    return null;
+  }
 
-    if (overrideRow != null) {
-      return _mapExerciseRowToModel(dbInstance, overrideRow);
+  Future<Exercise?> getExerciseByName(String name) async {
+    final dbInstance = await database;
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) return null;
+
+    final cleanedName = _stripParenthesesAndClean(trimmedName);
+
+    final sql = '''
+      SELECT e.*,
+             t_de.name AS name_de,
+             t_en.name AS name_en,
+             t_de.description AS desc_de,
+             t_en.description AS desc_en,
+             COALESCE(t_de.name, t_en.name, t_any.name) AS display_name,
+             COALESCE(t_de.description, t_en.description) AS display_description
+      FROM exercises e
+      LEFT JOIN exercise_translations t_en
+        ON e.id = t_en.exercise_id AND t_en.language_code = 'en'
+      LEFT JOIN exercise_translations t_de
+        ON e.id = t_de.exercise_id AND t_de.language_code = 'de'
+      LEFT JOIN (
+        SELECT exercise_id, name, description, MIN(language_code)
+        FROM exercise_translations
+        GROUP BY exercise_id
+      ) t_any ON e.id = t_any.exercise_id
+      WHERE LOWER(t_de.name) = LOWER(?) OR LOWER(t_en.name) = LOWER(?) OR LOWER(t_any.name) = LOWER(?)
+         OR LOWER(t_de.name) = LOWER(?) OR LOWER(t_en.name) = LOWER(?) OR LOWER(t_any.name) = LOWER(?)
+    ''';
+
+    final rows = await dbInstance.customSelect(
+      sql,
+      variables: [
+        drift.Variable.withString(trimmedName),
+        drift.Variable.withString(trimmedName),
+        drift.Variable.withString(trimmedName),
+        drift.Variable.withString(cleanedName),
+        drift.Variable.withString(cleanedName),
+        drift.Variable.withString(cleanedName),
+      ],
+      readsFrom: {dbInstance.exercises, dbInstance.exerciseTranslations},
+    ).get();
+
+    if (rows.isNotEmpty) {
+      final userRow = rows.where((r) => r.data['source'] == 'user').firstOrNull;
+      if (userRow != null) {
+        return _mapRowToExercise(dbInstance, userRow);
+      }
+
+      final firstRawExercise = dbInstance.exercises.map(rows.first.data);
+      final overrideRow = await (dbInstance.select(dbInstance.exercises)
+            ..where((tbl) =>
+                tbl.replacesExerciseId.equals(firstRawExercise.id) &
+                tbl.source.equals('user'))
+            ..limit(1))
+          .getSingleOrNull();
+
+      if (overrideRow != null) {
+        return _mapExerciseRowToModel(dbInstance, overrideRow);
+      }
+
+      return _mapRowToExercise(dbInstance, rows.first);
     }
 
-    return _mapRowToExercise(dbInstance, rows.first);
+    // High-confidence fallback match via searchExercises
+    final searchMatches = await searchExercises(query: trimmedName);
+    if (searchMatches.isNotEmpty) {
+      return searchMatches.first;
+    }
+
+    return null;
   }
 
   Future<Exercise?> getExerciseByUuid(String exerciseUuid) async {

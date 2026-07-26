@@ -44,7 +44,13 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
         query: name,
       );
       if (matches.isNotEmpty && mounted) {
-        setState(() => _suggestions[name] = matches.take(3).toList());
+        setState(() {
+          _suggestions[name] = matches.take(4).toList();
+          // Auto pre-select top match if user hasn't manually chosen target yet
+          if (!_selection.containsKey(name)) {
+            _selection[name] = matches.first;
+          }
+        });
       }
     }
   }
@@ -142,8 +148,8 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                             tooltip: l10n.selectButton,
                           ),
                         ),
-                        if (picked == null && suggestions.isNotEmpty) ...[
-                          const Divider(height: 24),
+                        if (suggestions.isNotEmpty) ...[
+                          const Divider(height: 16),
                           Text(
                             l10n.mappingSuggestions,
                             style: theme.textTheme.labelSmall?.copyWith(
@@ -155,23 +161,45 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                             spacing: DesignConstants.spacingS,
                             runSpacing: DesignConstants.spacingS,
                             children: suggestions.map((s) {
+                              final isSelected = picked?.uuid == s.uuid;
                               return GlassPillButton(
-                                height: 28,
+                                height: 32,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: DesignConstants.spacingM,
                                 ),
                                 onTap: () {
                                   setState(() => _selection[src] = s);
                                 },
-                                child: Text(
-                                  s.getLocalizedName(context),
-                                  style: theme.textTheme.bodySmall,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isSelected) ...[
+                                      Icon(
+                                        LucideIcons.check,
+                                        size: 14,
+                                        color: colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 4),
+                                    ],
+                                    Text(
+                                      s.getLocalizedName(context),
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: isSelected
+                                            ? colorScheme.primary
+                                            : null,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
                               );
                             }).toList(),
                           ),
+                          const SizedBox(height: DesignConstants.spacingS),
                         ] else if (picked != null)
                           Align(
                             alignment: Alignment.centerRight,

@@ -258,31 +258,55 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
 
     if (isImperial == null) return;
 
-    setState(() => _isMigrationRunning = true);
-    final count = await ImportManager().importWorkoutFile(
-      isImperial: isImperial,
-      defaultWorkoutTitle: l10n.importedWorkout,
-      defaultExerciseName: l10n.unknownExercise,
-    );
-    if (!mounted) return;
-    setState(() => _isMigrationRunning = false);
+    int count = 0;
+    bool wasCanceled = false;
 
-    if (count > 0) {
-      final unknown =
-          await WorkoutLocalDataSource.instance.findUnknownExerciseNames();
-      if (mounted && unknown.isNotEmpty) {
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ExerciseMappingScreen(unknownNames: unknown),
-          ),
-        );
-      }
+    try {
+      final success = await LongRunningOperationOverlay.run(
+        context: context,
+        title: l10n.workoutImportButton,
+        initialStatus: l10n.workoutImportButton,
+        icon: LucideIcons.download,
+        operation: (token, updateProgress) async {
+          updateProgress(l10n.workoutImportButton, 0.2);
+          count = await ImportManager().importWorkoutFile(
+            isImperial: isImperial,
+            defaultWorkoutTitle: l10n.importedWorkout,
+            defaultExerciseName: l10n.unknownExercise,
+          );
+          updateProgress(l10n.workoutImportButton, 1.0);
+        },
+      );
+      if (!success) wasCanceled = true;
+    } catch (e) {
+      count = -1;
     }
+
+    if (!mounted || wasCanceled) return;
+
+    final unknown =
+        await WorkoutLocalDataSource.instance.findUnknownExerciseNames();
+
+    if (mounted && unknown.isNotEmpty) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ExerciseMappingScreen(unknownNames: unknown),
+        ),
+      );
+    }
+
     if (!mounted) return;
+
     if (count > 0) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.workoutImportSuccess(count))));
+    } else if (count == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("0 neue Workouts importiert (alle existierten bereits)."),
+        ),
+      );
     } else if (count == -1) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
