@@ -1,7 +1,7 @@
 # Privacy Policy for the App "Train Libre"
 
-**Version:** 1.4  
-**As of:** May 26, 2026  
+**Version:** 1.6  
+**As of:** July 27, 2026  
 
 This privacy policy informs you in accordance with Articles 13 and 14 of the General Data Protection Regulation (GDPR) about the processing of personal data and health-related data in the mobile application "Train Libre". 
 
@@ -32,7 +32,7 @@ Train Libre is based on the principles of "privacy by design" and "privacy by de
 * **No User Accounts:** No registration or creation of a user account is required to use the app. No email addresses, passwords, or login credentials are stored on external servers.
 * **Local-First Architecture:** All profile settings, athletic activities, nutrition data, vital signs, and measurements entered by you are stored exclusively in a local SQLite database on your own end device.
 * **No Central Backend Server:** We do not operate any cloud databases or application servers to store or process your training and nutrition data. Your data remains in your physical possession.
-* **No Tracking or Analytics SDKs:** Train Libre completely dispenses with the integration of third-party advertising networks, behavior-based analysis services, or error diagnostics SDKs (such as Firebase Analytics, Google Analytics, Mixpanel, Sentry, or Crashlytics). No profiling or behavior-based evaluation for marketing purposes takes place.
+* **No Tracking or Analytics SDKs (Optional Anonymous Telemetry):** Train Libre dispenses with advertising networks, commercial tracking, and behavior profiling. A purely optional, anonymous usage statistics integration (PostHog EU) is disabled by default and captures zero personally identifiable information (PII) or personal workout/meal contents.
 
 ---
 
@@ -141,11 +141,23 @@ The app offers functions to back up your data in order to prevent data loss in t
 3. **Automatic Backups:** You can enable automatic backups at configurable intervals. On Android, this feature uses the Storage Access Framework (SAF) to save directly to a target folder selected by you. Alternatively, the file is saved in the local app document directory. These backup files remain on your device unless you actively copy them to an external cloud storage location (e.g., iCloud Drive or Google Drive).
 4. **System Backups:** Please note that if system-wide device backups are enabled (e.g., via Apple iCloud or Google Drive Backup), Train Libre's application data will by default be uploaded to the respective cloud by the operating system. This is beyond our control and can be disabled for Train Libre in your device's system settings.
 
+### C. Optional Anonymous Telemetry
+
+Train Libre includes an optional, privacy-focused usage metrics integration powered by PostHog EU (`https://eu.i.posthog.com`).
+
+1. **Strict Opt-In Default:** Telemetry is disabled by default. No telemetry data or network requests are transmitted unless you explicitly opt in by toggling "Share anonymous usage statistics" to ON in Settings under Support & Info.
+2. **Zero Personally Identifiable Information (PII):** Telemetry captures zero personal identifiers, user names, email addresses, IP addresses, body weights, set reps, or food item titles. IP addresses are discarded upon ingestion.
+3. **Coarse Aggregated Buckets:** Event metrics are exclusively grouped into coarse, non-identifiable ranges (e.g., app version, OS platform, coarse workout duration buckets like `15-30min`, exercise count ranges like `4-7`, AI request latency buckets, and schema migration status).
+4. **Instant Revocation:** You can withdraw your consent and disable telemetry at any time in Settings, which immediately halts all event transmissions.
+5. **Legal Basis:** The processing of telemetry data is based exclusively on your explicit consent pursuant to Article 6(1)(a) of the GDPR.
+6. **Data Processor:** PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA) acts as data processor pursuant to Article 28 of the GDPR. A Data Processing Agreement (DPA) is in place.
+7. **Storage Location, Retention & US Transfer Safeguards:** Telemetry data is stored exclusively on EU-based infrastructure (AWS eu-central-1, Frankfurt, Germany) and retained for a maximum of 12 months, after which it is automatically deleted. While all primary storage remains strictly within the EU, technical support access by PostHog, Inc. may occur under the safeguards of the EU-US Data Privacy Framework (DPF).
+
 ---
 
 ## 7. Data Subject Rights
 
-As a data subject, you have extensive rights under the GDPR. Since Train Libre is a local-first app, you can exercise most of these rights directly and independently within the app without depending on our cooperation.
+As a data subject, you have extensive rights under the GDPR. Because Train Libre is a local-first app, you can exercise most of these rights directly and autonomously within the app, without relying on our involvement.
 
 * **Right of Access (Article 15 of the GDPR) & Data Portability (Article 20 of the GDPR):** You have the right to know what data is stored in the app. You can view your entire database yourself at any time and export it in a machine-readable format (JSON file) using the integrated backup export function. You can also export reports in standard formats (such as CSV).
 * **Right to Rectification (Article 16 of the GDPR):** You can correct or change all profile data, workouts, nutrition logs, body weights, and settings entered manually by you at any time directly in the app's user interfaces.
@@ -157,6 +169,7 @@ As a data subject, you have extensive rights under the GDPR. Since Train Libre i
   * All entered body measurements, supplement logbooks, and historical daily goals.
   * All locally cached heart rate and sleep analysis stages.
   * All API keys for AI providers stored in the operating system's secure storage.
+* **Telemetry Data Rights:** If you have opted in to anonymous telemetry, you may exercise your rights (access, erasure, objection) regarding the processed telemetry data by contacting the controller at feedback@schotte.me. Upon request, all your telemetry events will be deleted from PostHog's servers.
   
   After executing this function, the app is in its factory default state. Please note that data already exported to Apple Health or Google Health Connect cannot be deleted by this internal app function, as it is under the control of the operating system. However, you can delete this exported data at any time directly in the system's own health apps from Apple or Google.
 * **Right to Lodge a Complaint with a Supervisory Authority (Article 77 of the GDPR):** Without prejudice to internal app control options, you have the right to lodge a complaint with a competent data protection supervisory authority. This can be, for example, the supervisory authority of your habitual residence, your place of work, or the place of the alleged infringement (e.g., the Berlin Commissioner for Data Protection and Freedom of Information).

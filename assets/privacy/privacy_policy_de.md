@@ -1,5 +1,5 @@
-**Version:** 1.4  
-**Stand:** 26. Mai 2026  
+**Version:** 1.6  
+**Stand:** 27. Juli 2026  
 
 Diese Datenschutzerklärung informiert Sie gemäß Art. 13 und 14 der Datenschutz-Grundverordnung (DSGVO) über die Verarbeitung personenbezogener Daten und gesundheitsbezogener Daten in der mobilen Applikation „Train Libre“. 
 
@@ -30,7 +30,7 @@ Train Libre beruht auf dem Prinzip des „Privacy by Design“ und des „Privac
 * **Keine Benutzerkonten:** Für die Nutzung der App ist keine Registrierung und kein Erstellen eines Benutzerkontos erforderlich. Es werden keine E-Mail-Adressen, Passwörter oder Anmeldedaten auf externen Servern gespeichert.
 * **Local-First-Architektur:** Sämtliche von Ihnen eingegebenen Profileinstellungen, sportlichen Aktivitäten, Ernährungsdaten, Vitalwerte und Messungen werden ausschließlich in einer lokalen SQLite-Datenbank auf Ihrem eigenen Endgerät gespeichert.
 * **Kein zentraler Backend-Server:** Wir betreiben keine Cloud-Datenbanken und keine Anwendungsserver zur Speicherung oder Verarbeitung Ihrer Trainings- und Ernährungsdaten. Ihre Daten verbleiben in Ihrem physischen Besitz.
-* **Keine Tracking- oder Analyse-SDKs:** Train Libre verzichtet vollständig auf die Integration von Werbenetzwerken, verhaltensbasierten Analyse-Diensten oder Fehlerdiagnose-SDKs von Drittanbietern (wie beispielsweise Firebase Analytics, Google Analytics, Mixpanel, Sentry oder Crashlytics). Es findet keinerlei Profilbildung oder verhaltensbezogene Auswertung zu Marketingzwecken statt.
+* **Keine Tracking- oder Analyse-SDKs (Optionale anonyme Telemetrie):** Train Libre verzichtet auf Werbenetzwerke, verhaltensbasierte Werbe-SDKs und Profiling. Es steht eine rein optionale, anonyme Nutzungsstatistik (PostHog EU) zur Verfügung, die standardmäßig deaktiviert ist und keinerlei personenbezogene Daten (PII) oder persönliche Workout-/Ernährungsinhalte überträgt.
 
 ---
 
@@ -139,6 +139,18 @@ Die App bietet Ihnen Funktionen zur Sicherung Ihrer Daten, um Datenverlust bei G
 3. **Automatische Backups:** Sie können automatische Backups in konfigurierbaren Intervallen aktivieren. Unter Android nutzt diese Funktion das Storage Access Framework (SAF) zur direkten Ablage in einem von Ihnen ausgewählten Zielordner. Alternativ erfolgt die Ablage im lokalen App-Dokumentenverzeichnis. Diese Backup-Dateien verbleiben auf Ihrem Gerät, es sei denn, Sie kopieren sie aktiv an einen externen Cloud-Speicherort (z. B. iCloud Drive oder Google Drive).
 4. **System-Backups:** Bitte beachten Sie, dass bei aktivierten systemweiten Geräte-Backups (z. B. über Apple iCloud oder Google Drive Backup) die Anwendungsdaten von Train Libre standardmäßig vom Betriebssystem in die jeweilige Cloud hochgeladen werden. Dies liegt außerhalb unseres Einflussbereichs und kann in den Systemeinstellungen Ihres Geräts für Train Libre deaktiviert werden.
 
+### C. Optionale anonyme Telemetrie
+
+Train Libre bietet eine rein optionale, datenschutzfreundliche Nutzungsstatistik zur Verbesserung der App-Stabilität und Feature-Nutzung an, betrieben über PostHog EU (`https://eu.i.posthog.com`).
+
+1. **Strikter Opt-In-Standard:** Die Telemetrie ist standardmäßig vollständig deaktiviert. Es werden keinerlei Daten oder Netzwerkverbindungen aufgebaut, bevor Sie die Funktion nicht ausdrücklich in den Einstellungen unter *Support & Info* durch Aktivieren von „Anonyme Nutzungsstatistiken teilen“ einschalten.
+2. **Keine personenbezogenen Daten (Zero PII):** Es werden keinerlei persönliche Identifikatoren, Namen, E-Mail-Adressen, IP-Adressen, Körpergewichte, Übungs-Wiederholungen oder Mahlzeitennamen erfasst. IP-Adressen werden unmittelbar bei der Verarbeitung verworfen.
+3. **Grobe aggregierte Buckets:** Erfasste Metriken werden ausschließlich in grobe, nicht-identifizierbare Bereiche zusammengefasst (z. B. App-Version, Betriebssystem-Plattform, grobe Workout-Dauerbereiche wie `15-30min`, Übungsanzahl-Bereiche wie `4-7`, KI-Anfrage-Latenzbereiche sowie Schema-Migrationsstatus).
+4. **Jederzeitiger Widerruf:** Sie können Ihre Zustimmung jederzeit in den Einstellungen widerrufen, wodurch alle Übertragungen sofort gestoppt werden.
+5. **Rechtsgrundlage:** Die Verarbeitung von Telemetriedaten erfolgt ausschließlich auf Grundlage Ihrer ausdrücklichen Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO.
+6. **Auftragsverarbeiter:** Als Auftragsverarbeiter gemäß Art. 28 DSGVO fungiert die PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA). Ein Vertrag zur Auftragsverarbeitung (Data Processing Agreement, DPA) wurde geschlossen.
+7. **Speicherort, Speicherdauer & US-Zugriffe:** Telemetriedaten werden ausschließlich auf EU-basierten Servern (AWS eu-central-1, Frankfurt am Main, Deutschland) gespeichert und nach maximal 12 Monaten automatisch gelöscht. Während alle Daten in der EU verbleiben, erfolgen eventuelle Fernzugriffe für technischen Support durch PostHog, Inc. auf Grundlage geeigneter Garantien unter dem EU-US Data Privacy Framework (DPF).
+
 ---
 
 ## 7. Betroffenenrechte
@@ -157,4 +169,5 @@ Als betroffene Person stehen Ihnen im Rahmen der DSGVO weitreichende Rechte zu. 
   * Alle in der sicheren Betriebssystem-Ablage hinterlegten API-Schlüssel für KI-Anbieter.
   
   Nach Ausführung dieser Funktion befindet sich die App im Auslieferungszustand. Bitte beachten Sie, dass bereits an Apple Health oder Google Health Connect exportierte Daten durch diese appinterne Funktion nicht gelöscht werden können, da diese in der Hoheit des Betriebssystems liegen. Sie können diese exportierten Daten jedoch jederzeit direkt in den systemeigenen Health-Apps von Apple oder Google löschen.
+* **Rechte bezüglich Telemetriedaten:** Sofern Sie in die anonyme Telemetrie eingewilligt haben, können Sie Ihre Betroffenenrechte (Auskunft, Löschung, Widerspruch) bezüglich der verarbeiteten Telemetriedaten jederzeit per E-Mail an feedback@schotte.me ausüben. Auf Ihre Anfrage hin werden alle Ihre Telemetrie-Events unverzüglich von den PostHog-Servern gelöscht.
 * **Recht auf Beschwerde bei einer Aufsichtsbehörde (Art. 77 DSGVO):** Unbeschadet der appinternen Kontrollmöglichkeiten haben Sie das Recht, Beschwerde bei einer zuständigen Datenschutz-Aufsichtsbehörde einzulegen. Dies kann beispielsweise die Aufsichtsbehörde Ihres üblichen Aufenthaltsortes, Ihres Arbeitsplatzes oder des Sitzes des Verantwortlichen sein (z. B. die Berliner Beauftragte für Datenschutz und Informationsfreiheit).
