@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Accessibility & Theme Consistency
 - **Touch Target Standard Compliance:** Increased button touch target dimensions in `add_food_screen.dart` (search field action buttons) and `diary_screen.dart` (`_compactIconButton`) to meet the minimum 48x48 dp Material / Apple HIG accessibility standard.
+- **Animated Progress Bars:** Converted `GlassProgressBar` from a `StatelessWidget` to a `StatefulWidget` that uses `TweenAnimationBuilder` to smoothly tween both the fill bar width and the displayed numeric value whenever they change (350 ms, `easeOutCubic`). This means all macro bars (calories, water, protein, carbs, fat, sugar, fiber, salt, caffeine), supplement goal bars, and the steps card bar animate fluidly on every value update — including the atomic date-switch content swap.
 - **Cardio Metric Localization:** Extracted remaining hardcoded metric strings (`Distance`, `Duration`, `Pace`) in `exercise_detail_screen.dart` to `app_en.arb` (`exerciseMetricDistance`, `exerciseMetricDuration`, `exerciseMetricPace`) and `app_de.arb`.
 - **Theme ColorScheme Consistency:** Replaced direct `Colors.black` and `Colors.white` references with `Theme.of(context).colorScheme` tokens in `main_screen.dart` and `scanner_screen.dart`.
 

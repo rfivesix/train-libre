@@ -6,7 +6,10 @@ import '../../util/design_constants.dart';
 /// A progress bar widget with a glass background and a solid fill color.
 ///
 /// Displays a [label], [unit], current [value], and optional [target].
-class GlassProgressBar extends StatelessWidget {
+///
+/// When [value] or [target] change, the fill bar and the displayed numeric
+/// value animate smoothly to the new position instead of jumping instantly.
+class GlassProgressBar extends StatefulWidget {
   /// The descriptive label for the progress (e.g., 'Calories').
   final String label;
 
@@ -37,6 +40,85 @@ class GlassProgressBar extends StatelessWidget {
     required this.color,
     this.height = 54.0,
     this.borderRadius = DesignConstants.borderRadiusL,
+  });
+
+  @override
+  State<GlassProgressBar> createState() => _GlassProgressBarState();
+}
+
+class _GlassProgressBarState extends State<GlassProgressBar> {
+  // Track the value we are tweening FROM so we can hand it to
+  // TweenAnimationBuilder as the starting point on every change.
+  late double _previousValue;
+  late double _previousTarget;
+
+  @override
+  void initState() {
+    super.initState();
+    _previousValue = widget.value;
+    _previousTarget = widget.target;
+  }
+
+  @override
+  void didUpdateWidget(GlassProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Store the old rendered values so the tween starts from where the bar
+    // visually was, not from 0.
+    if (oldWidget.value != widget.value ||
+        oldWidget.target != widget.target) {
+      _previousValue = oldWidget.value;
+      _previousTarget = oldWidget.target;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      // Tween the raw value (not the clamped progress ratio) so the
+      // displayed text number also animates smoothly.
+      tween: Tween<double>(begin: _previousValue, end: widget.value),
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedValue, _) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: _previousTarget, end: widget.target),
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+          builder: (context, animatedTarget, _) {
+            return _GlassProgressBarPainter(
+              label: widget.label,
+              unit: widget.unit,
+              value: animatedValue,
+              target: animatedTarget,
+              color: widget.color,
+              height: widget.height,
+              borderRadius: widget.borderRadius,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Pure-display layer — receives already-tweened values and just renders.
+class _GlassProgressBarPainter extends StatelessWidget {
+  final String label;
+  final String unit;
+  final double value;
+  final double target;
+  final Color color;
+  final double height;
+  final double borderRadius;
+
+  const _GlassProgressBarPainter({
+    required this.label,
+    required this.unit,
+    required this.value,
+    required this.target,
+    required this.color,
+    required this.height,
+    required this.borderRadius,
   });
 
   @override

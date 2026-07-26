@@ -35,7 +35,11 @@ class StepsSummaryCard extends StatelessWidget {
       ),
       builder: (context, data, child) {
         final showSkeleton = data.showSkeleton;
-        if (data.isStepsWidgetLoading && !showSkeleton) {
+        final steps = showSkeleton ? 5000 : (data.stepsForSelectedDay ?? 0);
+
+        // While loading but skeleton is not shown AND there's no prior value to
+        // display yet, show the slim spinner card (same as before).
+        if (data.isStepsWidgetLoading && !showSkeleton && steps <= 0) {
           return Padding(
             padding:
                 const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
@@ -58,10 +62,19 @@ class StepsSummaryCard extends StatelessWidget {
           );
         }
 
-        final steps = showSkeleton ? 5000 : (data.stepsForSelectedDay ?? 0);
+        // No steps at all — hide the card entirely.
         if (steps <= 0) {
           return const SizedBox.shrink();
         }
+
+        // Keep GlassProgressBar permanently in the tree once we have a value so
+        // its StatefulWidget state survives across loading transitions and the
+        // TweenAnimationBuilder can smoothly animate from the old step count
+        // to the new one instead of jumping or resetting to zero.
+        final target = (data.targetSteps > 0
+                ? data.targetSteps
+                : StepsSyncService.defaultStepsGoal)
+            .toDouble();
 
         return RepaintBoundary(
           child: Padding(
@@ -82,10 +95,7 @@ class StepsSummaryCard extends StatelessWidget {
                 label: l10n.steps,
                 unit: 'steps',
                 value: (data.stepsForSelectedDay ?? 0).toDouble(),
-                target: (data.targetSteps > 0
-                        ? data.targetSteps
-                        : StepsSyncService.defaultStepsGoal)
-                    .toDouble(),
+                target: target,
                 color: theme.colorScheme.primary,
                 height: 54,
                 borderRadius: DesignConstants.borderRadiusL,
