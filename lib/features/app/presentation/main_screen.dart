@@ -210,6 +210,7 @@ class _MainScreenState extends State<MainScreen>
       // If we're not on the diary tab, we still want to trigger a background sync if due
       await _stepsRepository.refresh(force: false);
     }
+    _statsKey.currentState?.markDirty();
   }
 
   Future<void> _refreshDiaryForActiveDate({

@@ -208,7 +208,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     if (_isRolling != value) {
       _isRolling = value;
       notifyListeners();
-      loadHubAnalytics();
+      loadHubAnalytics(clearCache: true);
     }
   }
 
@@ -216,7 +216,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     _anchorDate = selection.anchorDate;
     _isRolling = selection.isRolling;
     notifyListeners();
-    loadHubAnalytics();
+    loadHubAnalytics(clearCache: true);
   }
 
   TimeframeBlock get activeBlockType => _activeBlockType;
@@ -227,7 +227,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     if (_anchorDate != date) {
       _anchorDate = date;
       notifyListeners();
-      loadHubAnalytics();
+      loadHubAnalytics(clearCache: true);
     }
   }
 
@@ -236,7 +236,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
       _activeBlockType = block;
       _isRolling = false;
       notifyListeners();
-      loadHubAnalytics();
+      loadHubAnalytics(clearCache: true);
     }
   }
 
@@ -278,7 +278,7 @@ class StatisticsHubViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
-    loadHubAnalytics();
+    loadHubAnalytics(clearCache: true);
   }
 
   SectionLoadState<StepsSectionData> _stepsState =
@@ -360,6 +360,31 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
   int get targetSteps =>
       _stepsState.data?.targetSteps ?? StepsSyncService.defaultStepsGoal;
+
+  bool get hasAnyData {
+    return _stepsState.hasData ||
+        _recoveryState.hasData ||
+        _sleepState.hasData ||
+        _pulseState.hasData ||
+        _consistencyState.hasData ||
+        _performanceState.hasData ||
+        _volumeMusclesState.hasData ||
+        _bodyNutritionState.hasData;
+  }
+
+  bool _isTimeframeChanging = false;
+  DateTime? _lastLoadedAt;
+  bool _isDirty = false;
+
+  void markDirty() {
+    _isDirty = true;
+  }
+
+  bool get isSkeletonizing {
+    if (_isLoadingColdStart) return true;
+    if (_isTimeframeChanging && isLoading) return true;
+    return !hasAnyData && isLoading;
+  }
 
   bool get isLoading {
     return _isLoadingColdStart ||
@@ -541,7 +566,37 @@ class StatisticsHubViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadHubAnalytics() async {
+  Future<void> loadHubAnalytics({
+    bool force = false,
+    bool clearCache = false,
+    Duration cacheTtl = const Duration(seconds: 30),
+  }) async {
+    final now = DateTime.now();
+    if (!force &&
+        !_isDirty &&
+        !clearCache &&
+        hasAnyData &&
+        _lastLoadedAt != null &&
+        now.difference(_lastLoadedAt!) < cacheTtl) {
+      return;
+    }
+
+    _isDirty = false;
+    if (clearCache) {
+      _isTimeframeChanging = true;
+      _stepsState = const SectionLoadState<StepsSectionData>();
+      _recoveryState = const SectionLoadState<RecoveryAnalyticsPayload>();
+      _sleepState = const SectionLoadState<SleepHubSummary>();
+      _pulseState = const SectionLoadState<PulseAnalysisSummary>();
+      _consistencyState = const SectionLoadState<ConsistencySectionData>();
+      _performanceState =
+          const SectionLoadState<PerformanceRecordsSectionData>();
+      _volumeMusclesState =
+          const SectionLoadState<VolumeMusclesSectionData>();
+      _bodyNutritionState =
+          const SectionLoadState<BodyNutritionAnalyticsResult>();
+    }
+
     final loadGeneration = ++_hubAnalyticsLoadGeneration;
     final selectedBlockType = _activeBlockType;
     final rangeContextFuture = _resolveHubRangeContext(
@@ -560,10 +615,11 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
     unawaited(_checkColdStart());
 
-    // Wait 350ms for the page slide transition and bottom bar animations to finish completely.
-    // This keeps the 120Hz transition perfectly fluid, while the spinners show instantly.
-    await Future.delayed(const Duration(milliseconds: 350));
-    if (loadGeneration != _hubAnalyticsLoadGeneration) return;
+    // Only delay 350ms for slide transition on initial cold load (when no data exists yet)
+    if (!hasAnyData) {
+      await Future.delayed(const Duration(milliseconds: 350));
+      if (loadGeneration != _hubAnalyticsLoadGeneration) return;
+    }
 
     // Load sections sequentially and yield to the event loop between each.
     // This spreads the CPU work across frames, keeping animations at 120Hz.
@@ -581,6 +637,8 @@ class StatisticsHubViewModel extends ChangeNotifier {
 
     if (_fetchHubAnalyticsOverride != null) {
       await _loadLegacyAggregateSections(loadGeneration);
+      _isTimeframeChanging = false;
+      _lastLoadedAt = DateTime.now();
       return;
     }
 
@@ -601,6 +659,9 @@ class StatisticsHubViewModel extends ChangeNotifier {
     if (loadGeneration != _hubAnalyticsLoadGeneration) return;
 
     await _loadBodyNutritionSection(loadGeneration);
+
+    _isTimeframeChanging = false;
+    _lastLoadedAt = DateTime.now();
   }
 
   bool _isCurrentStepsLoad(int generation) =>

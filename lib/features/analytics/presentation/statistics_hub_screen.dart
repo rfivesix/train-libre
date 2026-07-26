@@ -132,8 +132,12 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
     super.dispose();
   }
 
-  void refresh() {
-    _viewModel.loadHubAnalytics();
+  void refresh({bool force = false}) {
+    _viewModel.loadHubAnalytics(force: force);
+  }
+
+  void markDirty() {
+    _viewModel.markDirty();
   }
 
   @override
@@ -180,7 +184,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
-        physics: (viewModel.isActiveGap || viewModel.isLoading)
+        physics: (viewModel.isActiveGap || viewModel.isSkeletonizing)
             ? const NeverScrollableScrollPhysics()
             : null,
         slivers: [
@@ -320,7 +324,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                               child: contentColumn,
                             );
 
-                            if (viewModel.isActiveGap || viewModel.isLoading) {
+                            if (viewModel.isActiveGap || viewModel.isSkeletonizing) {
                               content = SizedBox(
                                 height: MediaQuery.of(context).size.height -
                                     appBarHeight -
@@ -337,7 +341,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
 
                             content = Skeletonizer(
                               enabled:
-                                  viewModel.isLoading || viewModel.isActiveGap,
+                                  viewModel.isSkeletonizing || viewModel.isActiveGap,
                               child: content,
                             );
 
