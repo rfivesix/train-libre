@@ -1467,9 +1467,9 @@ class _MainScreenState extends State<MainScreen>
             child: Consumer<ProfileService>(
               builder: (context, profileService, _) {
                 final hasImage = profileService.profileImagePath != null;
-                final isDark = Theme.of(context).brightness == Brightness.dark;
-                final bgCircleColor = isDark ? Colors.white : Colors.black;
-                final initialTextColor = isDark ? Colors.black : Colors.white;
+                final colorScheme = Theme.of(context).colorScheme;
+                final bgCircleColor = colorScheme.onSurface;
+                final initialTextColor = colorScheme.surface;
                 final initial = profileService.initialLetter;
 
                 return Center(

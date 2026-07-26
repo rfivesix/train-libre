@@ -1429,7 +1429,7 @@ class _DiaryDateNavigator extends StatelessWidget {
       icon: Icon(icon),
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints.tightFor(width: 36, height: 48),
+      constraints: const BoxConstraints.tightFor(width: 48, height: 48),
       onPressed: onPressed,
     );
   }

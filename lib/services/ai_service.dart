@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -611,7 +612,7 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
       ),
       temperature: 0.1,
     );
-    final repaired = _parseItemsFromContent(raw);
+    final repaired = await _parseItemsFromContent(raw);
     return AiMealCandidate(
       items: repaired
           .map(

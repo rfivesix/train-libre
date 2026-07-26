@@ -5561,6 +5561,24 @@ abstract class AppLocalizations {
   /// **'Est. 1RM'**
   String get exerciseMetricEst1RM;
 
+  /// No description provided for @exerciseMetricDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get exerciseMetricDistance;
+
+  /// No description provided for @exerciseMetricDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get exerciseMetricDuration;
+
+  /// No description provided for @exerciseMetricPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Pace'**
+  String get exerciseMetricPace;
+
   /// No description provided for @prBannerBestMaxWeight.
   ///
   /// In en, this message translates to:

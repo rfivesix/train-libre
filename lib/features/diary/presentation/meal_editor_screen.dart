@@ -95,11 +95,12 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
       await Future.delayed(const Duration(milliseconds: 150));
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
+      debugPrint('Error saving meal: $e');
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+      ).showSnackBar(SnackBar(content: Text(l10n.error)));
       setState(() => _saving = false);
     }
   }

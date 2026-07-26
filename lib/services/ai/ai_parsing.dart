@@ -1,8 +1,12 @@
 part of '../ai_service.dart';
 
 extension AiParsing on AiService {
-  /// Extracts the meal candidate (holistic context and items) from the AI response.
-  AiMealCandidate _parseMealCandidateFromContent(String content) {
+  /// Extracts the meal candidate (holistic context and items) from the AI response off the main thread.
+  Future<AiMealCandidate> _parseMealCandidateFromContent(String content) async {
+    return Isolate.run(() => _parseMealCandidateFromContentSync(content));
+  }
+
+  AiMealCandidate _parseMealCandidateFromContentSync(String content) {
     var cleaned = content.trim();
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');
@@ -105,8 +109,12 @@ extension AiParsing on AiService {
         'No valid JSON object or array found in response.');
   }
 
-  /// Extracts the JSON array from the AI response text.
-  List<AiSuggestedItem> _parseItemsFromContent(String content) {
+  /// Extracts the JSON array from the AI response text off the main thread.
+  Future<List<AiSuggestedItem>> _parseItemsFromContent(String content) async {
+    return Isolate.run(() => _parseItemsFromContentSync(content));
+  }
+
+  List<AiSuggestedItem> _parseItemsFromContentSync(String content) {
     var cleaned = content.trim();
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');

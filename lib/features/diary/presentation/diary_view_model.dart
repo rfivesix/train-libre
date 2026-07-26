@@ -205,10 +205,12 @@ class DiaryViewModel extends ChangeNotifier {
     _supplementLogsSubscription?.cancel();
     _workoutsSubscription?.cancel();
 
-    isLoading = true;
-    notifyListeners();
-
     // Re-establish reactive stream listeners for the new selected date
+    // NOTE: We intentionally do NOT set isLoading=true or call notifyListeners()
+    // here. The UI keeps the previous day's data fully rendered (stale-while-
+    // revalidate) while the new streams resolve. _executeCalculatedState() will
+    // call notifyListeners() exactly once when the complete new-date payload is
+    // ready, producing a single atomic swap with zero intermediate flicker.
     _goalsSubscription = _nutritionRepo.watchGoalsForDate(diaryDate).listen((
       goals,
     ) {

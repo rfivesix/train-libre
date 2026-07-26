@@ -342,7 +342,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   ? l10n.scannerPermissionPermanentlyDenied
                   : l10n.scannerPermissionRequired,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 24),
             AppButton.primary(

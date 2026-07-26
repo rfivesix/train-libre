@@ -3029,6 +3029,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get exerciseMetricEst1RM => 'EST（東部基準時。 1RM';
 
   @override
+  String get exerciseMetricDistance => '距離';
+
+  @override
+  String get exerciseMetricDuration => '時間';
+
+  @override
+  String get exerciseMetricPace => 'ペース';
+
+  @override
   String get prBannerBestMaxWeight => 'ベスト最大体重';
 
   @override

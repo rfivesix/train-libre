@@ -1168,7 +1168,9 @@ class BackupManager {
         await prefs.setString('auto_backup_last_error', e.toString());
         await prefs.remove('auto_backup_last_file_path');
         await prefs.setBool('auto_backup_last_used_fallback', false);
-      } catch (_) {}
+      } catch (err) {
+        debugPrint('Auto backup prefs error: $err');
+      }
       return false;
     }
   }
@@ -1211,7 +1213,9 @@ class BackupManager {
           }
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('_getWorkoutHeartRate cardio_samples error: $e');
+    }
 
     // 2. Fallback to overlapping pulse aggregates
     try {
@@ -1243,7 +1247,9 @@ class BackupManager {
           return {'min': min, 'max': max, 'avg': sum / totalCount};
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('_getWorkoutHeartRate pulse_hourly_aggregates error: $e');
+    }
 
     return null;
   }

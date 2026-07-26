@@ -3138,6 +3138,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get exerciseMetricEst1RM => 'Schätz. 1RM';
 
   @override
+  String get exerciseMetricDistance => 'Distanz';
+
+  @override
+  String get exerciseMetricDuration => 'Dauer';
+
+  @override
+  String get exerciseMetricPace => 'Tempo';
+
+  @override
   String get prBannerBestMaxWeight => 'Bestes Max. Gewicht';
 
   @override

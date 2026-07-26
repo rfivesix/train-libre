@@ -263,6 +263,7 @@ class OffProductsArchive extends Table with HybridId, MetaColumns {
       boolean().withDefault(const Constant(false))();
 }
 
+@TableIndex(name: 'idx_nutrition_consumed_at', columns: {#consumedAt})
 class NutritionLogs extends Table with HybridId, MetaColumns {
   TextColumn get userId => text().nullable()();
   TextColumn get productId => text().nullable().references(Products, #id)();
@@ -312,6 +313,7 @@ class SupplementLogs extends Table with HybridId, MetaColumns {
 }
 
 // --- Addition: FluidLogs (missing from target schema, but essential for FluidEntry) ---
+@TableIndex(name: 'idx_fluid_consumed_at', columns: {#consumedAt})
 class FluidLogs extends Table with HybridId, MetaColumns {
   DateTimeColumn get consumedAt => dateTime()();
   IntColumn get amountMl => integer()();

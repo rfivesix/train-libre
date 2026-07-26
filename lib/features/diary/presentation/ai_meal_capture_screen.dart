@@ -307,6 +307,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
+    } catch (e) {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.error),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     } finally {
       _stopAiWaitingHaptics();
       if (mounted) setState(() => _isAnalyzing = false);

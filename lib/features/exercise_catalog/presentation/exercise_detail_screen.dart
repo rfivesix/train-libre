@@ -570,15 +570,15 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 ? [
                     DropdownMenuItem(
                       value: ExerciseMetric.distance,
-                      child: Text('Distance'),
+                      child: Text(l10n.exerciseMetricDistance),
                     ),
                     DropdownMenuItem(
                       value: ExerciseMetric.duration,
-                      child: Text('Duration'),
+                      child: Text(l10n.exerciseMetricDuration),
                     ),
                     DropdownMenuItem(
                       value: ExerciseMetric.pace,
-                      child: Text('Pace'),
+                      child: Text(l10n.exerciseMetricPace),
                     ),
                   ]
                 : [

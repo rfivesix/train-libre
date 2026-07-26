@@ -59,7 +59,7 @@ class DataManagementScreen extends StatefulWidget {
 class _DataManagementScreenState extends State<DataManagementScreen> {
   // Loading states for the different actions
   bool _isCsvExportRunning = false;
-  bool _isMigrationRunning = false;
+  final bool _isMigrationRunning = false;
   bool _isLocalResetRunning = false;
   String? _autoBackupDir; // New
   String? _lastAutoBackupFilePath;
@@ -261,6 +261,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
     int count = 0;
     bool wasCanceled = false;
 
+    if (!mounted) return;
     try {
       final success = await LongRunningOperationOverlay.run(
         context: context,

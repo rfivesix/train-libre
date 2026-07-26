@@ -694,8 +694,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       if (_searchController.text.isNotEmpty) ...[
                         // Zustand A: Text ist da -> Zeige NUR das X zum Löschen
                         SizedBox(
-                          width: 44,
-                          height: 44,
+                          width: 48,
+                          height: 48,
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             tooltip: l10n.clearSearch,
@@ -713,8 +713,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       ] else ...[
                         // Zustand B: Feld ist leer -> Zeige NUR den Barcode-Scanner
                         SizedBox(
-                          width: 44,
-                          height: 44,
+                          width: 48,
+                          height: 48,
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             tooltip: l10n.scann_barcode_capslock,
