@@ -285,6 +285,17 @@ class _StatisticsHubScreenView extends StatelessWidget {
                                 const SizedBox(
                                     height: DesignConstants.spacingL),
                                 AppSectionHeader(
+                                    title: l10n.statisticsSectionBody),
+                                RepaintBoundary(
+                                  child: _buildBodyMetricsSection(
+                                      context, viewModel, l10n),
+                                ),
+                                const SizedBox(
+                                    height: DesignConstants.spacingS),
+                                _buildMeasurementsShortcutCard(context, l10n),
+                                const SizedBox(
+                                    height: DesignConstants.spacingL),
+                                AppSectionHeader(
                                     title: l10n.statisticsSectionTraining),
                                 RepaintBoundary(
                                   child: _buildConsistencySection(
@@ -302,17 +313,6 @@ class _StatisticsHubScreenView extends StatelessWidget {
                                   child: _buildMuscleVolumeSection(
                                       context, viewModel, l10n),
                                 ),
-                                const SizedBox(
-                                    height: DesignConstants.spacingL),
-                                AppSectionHeader(
-                                    title: l10n.statisticsSectionBody),
-                                RepaintBoundary(
-                                  child: _buildBodyMetricsSection(
-                                      context, viewModel, l10n),
-                                ),
-                                const SizedBox(
-                                    height: DesignConstants.spacingS),
-                                _buildMeasurementsShortcutCard(context, l10n),
                                 const BottomContentSpacer(),
                               ],
                             );
