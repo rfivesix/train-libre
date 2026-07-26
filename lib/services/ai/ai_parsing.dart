@@ -27,6 +27,7 @@ extension AiParsing on AiService {
                     grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                     confidence: (e['confidence'] as num?)?.toDouble(),
                     stateHint: e['stateHint'] as String?,
+                    catalogSearchTerm: e['catalogSearchTerm'] as String?,
                   ))
               .toList();
           return AiMealCandidate(
@@ -43,6 +44,7 @@ extension AiParsing on AiService {
                   grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                   confidence: (e['confidence'] as num?)?.toDouble(),
                   stateHint: e['stateHint'] as String?,
+                  catalogSearchTerm: e['catalogSearchTerm'] as String?,
                 ))
             .toList();
         return AiMealCandidate(items: items);
@@ -69,6 +71,7 @@ extension AiParsing on AiService {
                     grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                     confidence: (e['confidence'] as num?)?.toDouble(),
                     stateHint: e['stateHint'] as String?,
+                    catalogSearchTerm: e['catalogSearchTerm'] as String?,
                   ))
               .toList();
           return AiMealCandidate(
@@ -91,6 +94,7 @@ extension AiParsing on AiService {
                   grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                   confidence: (e['confidence'] as num?)?.toDouble(),
                   stateHint: e['stateHint'] as String?,
+                  catalogSearchTerm: e['catalogSearchTerm'] as String?,
                 ))
             .toList();
         return AiMealCandidate(items: items);

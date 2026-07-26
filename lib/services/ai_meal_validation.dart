@@ -26,7 +26,10 @@ class AiMealValidationEngine {
         matches.add(selected);
       }
     }
-    final fuzzy = await helper.fuzzyMatchForAi(item.name);
+    final fuzzy = await helper.fuzzyMatchForAi(
+      item.name,
+      catalogSearchTerm: item.catalogSearchTerm,
+    );
     for (final food in fuzzy) {
       if (!matches.any((existing) => existing.barcode == food.barcode)) {
         matches.add(food);

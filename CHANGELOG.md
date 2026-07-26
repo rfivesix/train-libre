@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.5] - 2026-07-26
 
+### Changed
+- **Automatic Multilingual AI Meal Recognition & Language Setting Cleanup:** Removed manual "Sprache für KI-Lebensmittelnamen" (`settingsAiFoodNameLanguage`) dropdown setting from `AiSettingsScreen` (`ai_settings_screen.dart`). Overhauled `AiMatchingLanguageService` to resolve `AiMatchingContext` automatically based on app UI locale (`appLanguage`) and active Open Food Facts catalog region (`catalogLanguage`). Updated AI system prompts in `ai_prompts.dart` to instruct AI models to output primary food component names in the app UI language while providing secondary `catalogSearchTerm` keywords in the catalog language when analyzing food in foreign catalog regions (e.g., German UI app used with French OFF catalog). Updated `ProductLocalDataSource.fuzzyMatchForAi` and `AiMealValidationEngine` to perform multi-lingual candidate lookups across base foods and regional OFF databases.
+
 ### Performance
 - **Nutrition Hub Recipes 120Hz Scroll Optimization:** Fixed micro-stuttering and GPU frame drops when scrolling past the "Meine Rezepte" ("My recipes") section on 120Hz ProMotion displays in `NutritionHubScreen` (`nutrition_hub_screen.dart`). Updated recipe card buttons to reuse `AppButton.primary` with `AppButtonSize.medium` (matching the Workout Hub routine card structure and primary lime styling) and isolated section cards and horizontal recipe items with `RepaintBoundary` wrappers to cache rasterized textures and eliminate GPU frame drops during scroll.
 - **Food Search Rendering Optimization:** Optimized food item search rendering in `AddFoodScreen` (`add_food_screen.dart`) by replacing multiple `.where()` list traversals with a single-pass loop, reducing list traversal complexity from $O(3N)$ to $O(N)$ and eliminating intermediate array allocations (PR #535).

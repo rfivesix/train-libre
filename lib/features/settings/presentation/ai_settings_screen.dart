@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../generated/app_localizations.dart';
-import '../../../services/ai_matching_language_service.dart';
 import '../../../services/ai_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../util/design_constants.dart';
@@ -41,7 +40,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _obscureKey = true;
   bool _hasKey = false;
   int _timeoutSeconds = 60;
-  AiMatchingLanguage _aiMatchingLanguage = AiMatchingLanguage.auto;
 
   @override
   void initState() {
@@ -64,7 +62,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     );
     final key = await AiService.instance.getApiKey(provider);
     final models = await AiService.instance.getModelOptions(provider);
-    final aiMatchLang = await AiMatchingLanguageService.readChoice();
     final resolvedModel = _resolveModelSelection(model, models, provider);
     final customBaseUrl = await AiService.instance.getCustomBaseUrl();
     final customModel = await AiService.instance.getCustomModel();
@@ -80,7 +77,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           provider,
         );
         _hasKey = key != null && key.isNotEmpty;
-        _aiMatchingLanguage = aiMatchLang;
         _timeoutSeconds = timeout;
         if (_hasKey) {
           // Show masked placeholder — never display the real key
@@ -435,50 +431,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ),
                         const SizedBox(height: 10),
                       ],
-                      // AI Matching Language
-                      PlatformAdaptiveDropdownFormField<AiMatchingLanguage>(
-                        initialValue: _aiMatchingLanguage,
-                        decoration: InputDecoration(
-                          labelText: l10n.settingsAiFoodNameLanguage,
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                        items: [
-                          DropdownMenuItem(
-                            value: AiMatchingLanguage.auto,
-                            child: Text(l10n.languageAuto),
-                          ),
-                          const DropdownMenuItem(
-                            value: AiMatchingLanguage.en,
-                            child: Text('English'),
-                          ),
-                          const DropdownMenuItem(
-                            value: AiMatchingLanguage.de,
-                            child: Text('Deutsch'),
-                          ),
-                          const DropdownMenuItem(
-                            value: AiMatchingLanguage.fr,
-                            child: Text('Français'),
-                          ),
-                          const DropdownMenuItem(
-                            value: AiMatchingLanguage.it,
-                            child: Text('Italiano'),
-                          ),
-                          const DropdownMenuItem(
-                            value: AiMatchingLanguage.ja,
-                            child: Text('日本語'),
-                          ),
-                        ],
-                        onChanged: (v) async {
-                          if (v == null) return;
-                          setState(() => _aiMatchingLanguage = v);
-                          await AiMatchingLanguageService.writeChoice(v);
-                        },
-                      ),
-                      const SizedBox(height: 10),
+
                       // Request Timeout Slider
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

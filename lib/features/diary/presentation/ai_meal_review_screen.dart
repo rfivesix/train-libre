@@ -333,17 +333,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     setState(() => _isRetrying = true);
     _startAiWaitingHaptics();
     try {
-      final aiMatchLang = await AiMatchingLanguageService.readChoice();
-      if (!mounted) return;
-      final languageCode = await AiMatchingLanguageService.resolveLanguageCode(
-        choice: aiMatchLang,
+      final matchingContext =
+          await AiMatchingLanguageService.resolveMatchingContext(
         context: context,
       );
+      if (!mounted) return;
       final candidate = await AiService.instance.retry(
         previousResults: _items.map((e) => e.suggestion).toList(),
         feedback: feedback,
         images: widget.originalImages.isNotEmpty ? widget.originalImages : null,
-        languageCode: languageCode,
+        matchingContext: matchingContext,
       );
       final orchestrator = AiRepairOrchestrator(
         validationEngine: AiMealValidationEngine(),
@@ -357,7 +356,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             validation: validation,
             images:
                 widget.originalImages.isNotEmpty ? widget.originalImages : null,
-            languageCode: languageCode,
+            matchingContext: matchingContext,
             mealContext: candidate.context,
           );
         },

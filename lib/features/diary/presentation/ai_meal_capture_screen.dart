@@ -229,17 +229,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     setState(() => _isAnalyzing = true);
     _startAiWaitingHaptics();
 
+    if (!mounted) return;
+    final matchingContext =
+        await AiMatchingLanguageService.resolveMatchingContext(
+      context: context,
+    );
+
     if (_images.isNotEmpty) {
       await _preProcessor.waitForCompletion(_images);
     }
-
-    // Resolve the AI matching language (decoupled from app UI locale)
-    final aiMatchLang = await AiMatchingLanguageService.readChoice();
     if (!mounted) return;
-    final languageCode = await AiMatchingLanguageService.resolveLanguageCode(
-      choice: aiMatchLang,
-      context: context,
-    );
 
     try {
       AiMealCandidate candidate;
@@ -249,17 +248,17 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         candidate = await AiService.instance.analyzeImages(
           _images,
           textHint: text.isNotEmpty ? text : null,
-          languageCode: languageCode,
+          matchingContext: matchingContext,
         );
       } else {
         candidate = await AiService.instance.analyzeText(
           text,
-          languageCode: languageCode,
+          matchingContext: matchingContext,
         );
       }
 
       final validationOutcome =
-          await _validateAndRepair(candidate, languageCode);
+          await _validateAndRepair(candidate, matchingContext);
 
       if (!mounted) return;
 
@@ -316,7 +315,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   Future<AiRepairOutcome> _validateAndRepair(
     AiMealCandidate candidate,
-    String languageCode,
+    AiMatchingContext matchingContext,
   ) {
     final engine = AiMealValidationEngine();
     final orchestrator = AiRepairOrchestrator(validationEngine: engine);
@@ -328,7 +327,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           candidate: candidate,
           validation: validation,
           images: _images.isNotEmpty ? _images : null,
-          languageCode: languageCode,
+          matchingContext: matchingContext,
           mealContext: candidate.context,
         );
       },

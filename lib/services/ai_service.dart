@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 
 import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
+import 'ai_matching_language_service.dart';
 
 part 'ai/ai_models.dart';
 part 'ai/ai_prompts.dart';
@@ -479,10 +480,15 @@ class AiService {
     List<File> images, {
     String? textHint,
     String? languageCode,
+    AiMatchingContext? matchingContext,
   }) async {
     final userContent =
         textHint ?? 'Analyze this meal and identify all food components.';
-    final prompt = _AiPrompts.buildSystemPrompt(languageCode: languageCode);
+    final prompt = _AiPrompts.buildSystemPrompt(
+      languageCode: languageCode,
+      appLanguage: matchingContext?.appLanguage,
+      catalogLanguage: matchingContext?.catalogLanguage,
+    );
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
@@ -498,8 +504,13 @@ class AiService {
   Future<AiMealCandidate> analyzeText(
     String description, {
     String? languageCode,
+    AiMatchingContext? matchingContext,
   }) async {
-    final prompt = _AiPrompts.buildSystemPrompt(languageCode: languageCode);
+    final prompt = _AiPrompts.buildSystemPrompt(
+      languageCode: languageCode,
+      appLanguage: matchingContext?.appLanguage,
+      catalogLanguage: matchingContext?.catalogLanguage,
+    );
 
     final raw = await _callSelectedProviderRaw(
       userContent: description,
@@ -516,6 +527,7 @@ class AiService {
     required String feedback,
     List<File>? images,
     String? languageCode,
+    AiMatchingContext? matchingContext,
   }) async {
     final previousJson = jsonEncode(
       previousResults.map((e) => e.toJson()).toList(),
@@ -528,7 +540,11 @@ User correction/feedback: $feedback
 
 Please provide an updated analysis incorporating the user's feedback. Return the corrected JSON object containing mealContext and items.''';
 
-    final prompt = _AiPrompts.buildSystemPrompt(languageCode: languageCode);
+    final prompt = _AiPrompts.buildSystemPrompt(
+      languageCode: languageCode,
+      appLanguage: matchingContext?.appLanguage,
+      catalogLanguage: matchingContext?.catalogLanguage,
+    );
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
@@ -563,6 +579,7 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     required AiValidationResult validation,
     List<File>? images,
     String? languageCode,
+    AiMatchingContext? matchingContext,
     AiMealContext? mealContext,
   }) async {
     final userContent = '''
@@ -584,6 +601,8 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
       images: images,
       systemPrompt: _AiPrompts.buildRepairPrompt(
         languageCode: languageCode,
+        appLanguage: matchingContext?.appLanguage,
+        catalogLanguage: matchingContext?.catalogLanguage,
         mealContext: mealContext,
       ),
       temperature: 0.1,

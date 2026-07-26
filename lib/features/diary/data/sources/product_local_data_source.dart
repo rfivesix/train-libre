@@ -596,9 +596,26 @@ class ProductLocalDataSource {
     return _enrichProductsWithOverrides(products);
   }
 
-  /// Fuzzy-matches an AI-detected food name against the products table.
-  Future<List<FoodItem>> fuzzyMatchForAi(String aiName) async {
+  /// Fuzzy-matches an AI-detected food name against the products table,
+  /// with optional [catalogSearchTerm] for multi-lingual catalog lookups.
+  Future<List<FoodItem>> fuzzyMatchForAi(
+    String aiName, {
+    String? catalogSearchTerm,
+  }) async {
     final candidates = await searchProducts(aiName);
+    if (catalogSearchTerm != null &&
+        catalogSearchTerm.trim().isNotEmpty &&
+        catalogSearchTerm.trim().toLowerCase() !=
+            aiName.trim().toLowerCase()) {
+      final catalogCandidates = await searchProducts(catalogSearchTerm.trim());
+      for (final extra in catalogCandidates) {
+        if (!candidates
+            .any((c) => c.barcode == extra.barcode && c.id == extra.id)) {
+          candidates.add(extra);
+        }
+      }
+    }
+
     if (candidates.isEmpty) return [];
 
     const int returnLimit = 5;
