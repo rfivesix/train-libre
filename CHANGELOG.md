@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.5] - 2026-07-26
 
+### Added
+- **Opt-in Anonymous Telemetry & F-Droid Cleanliness Architecture:** Implemented a privacy-first, opt-in `TelemetryService` using PostHog EU (`https://eu.i.posthog.com`) with zero PII capture. Added an abstract `TelemetryService` interface with `NoOpTelemetryService` (stub for F-Droid and disabled builds using `--dart-define=DISABLE_TELEMETRY=true`) and `PostHogTelemetryService`. Added a user-facing toggle switch ("Anonyme Nutzungsstatistiken teilen") in Settings under *Support & Info* next to Feedback (default `false`). Instrumented anonymous, coarse-bucketed events for app launches (`app_launched`), completed workouts (`workout_completed`), AI meal image scans (`ai_meal_scan_requested` / `ai_meal_scan_completed`), and database schema upgrades (`db_migration_status`).
+
 ### Changed
 - **Automatic Multilingual AI Meal Recognition & Language Setting Cleanup:** Removed manual "Sprache für KI-Lebensmittelnamen" (`settingsAiFoodNameLanguage`) dropdown setting from `AiSettingsScreen` (`ai_settings_screen.dart`). Overhauled `AiMatchingLanguageService` to resolve `AiMatchingContext` automatically based on app UI locale (`appLanguage`) and active Open Food Facts catalog region (`catalogLanguage`). Updated AI system prompts in `ai_prompts.dart` to instruct AI models to output primary food component names in the app UI language while providing secondary `catalogSearchTerm` keywords in the catalog language when analyzing food in foreign catalog regions (e.g., German UI app used with French OFF catalog). Updated `ProductLocalDataSource.fuzzyMatchForAi` and `AiMealValidationEngine` to perform multi-lingual candidate lookups across base foods and regional OFF databases.
 

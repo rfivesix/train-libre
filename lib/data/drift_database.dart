@@ -2,11 +2,13 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
+import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
+import '../services/telemetry/telemetry_service.dart';
 
 part 'drift_database.g.dart';
 
@@ -549,6 +551,7 @@ class AppDatabase extends _$AppDatabase {
           );
         },
         onUpgrade: (Migrator m, int from, int to) async {
+          try {
           if (from < 2) {
             await m.createTable(favorites);
             // Important: add the missing column.
@@ -960,6 +963,19 @@ class AppDatabase extends _$AppDatabase {
             await customStatement(
               'CREATE INDEX IF NOT EXISTS idx_archive_barcode ON off_products_archive (barcode);',
             );
+          }
+          unawaited(TelemetryService.instance.trackDbMigrationStatus(
+            fromVersion: from,
+            toVersion: to,
+            success: true,
+          ));
+          } catch (e) {
+            unawaited(TelemetryService.instance.trackDbMigrationStatus(
+              fromVersion: from,
+              toVersion: to,
+              success: false,
+            ));
+            rethrow;
           }
         },
       );

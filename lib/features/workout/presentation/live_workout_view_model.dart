@@ -14,6 +14,8 @@ import '../domain/log_workout_set_use_case.dart';
 import '../../../services/local_notification_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../util/time_util.dart';
+import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/telemetry/telemetry_buckets.dart';
 
 class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final IWorkoutRepository _repository;
@@ -850,7 +852,19 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         await _repository.updateSetLogs(setsToUpdate);
       }
 
+      final duration = _elapsedDuration;
+      final durationBucket = TelemetryBuckets.getDurationBucket(duration);
+      final exerciseCountBucket =
+          TelemetryBuckets.getExerciseCountBucket(_exercises.length);
+      final workoutType = title ?? _workoutLog?.routineName ?? 'custom';
+
       await _repository.finishWorkout(logId, title: title, notes: notes);
+
+      unawaited(TelemetryService.instance.trackWorkoutCompleted(
+        workoutType: workoutType,
+        durationBucket: durationBucket,
+        exerciseCountBucket: exerciseCountBucket,
+      ));
 
       _workoutLog = null;
       _setLogs.clear();

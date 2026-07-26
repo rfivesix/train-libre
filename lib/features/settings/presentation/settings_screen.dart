@@ -32,6 +32,7 @@ import '../../onboarding/presentation/initial_consent_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -61,6 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   bool hasStepsSettingsChanged = false;
   bool _isLocalResetRunning = false;
+  bool _isTelemetryOptedIn = false;
 
   @override
   void initState() {
@@ -74,6 +76,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadDiaryOverviewSettings();
     _loadOffCatalogSettings();
     _loadBaseFoodLanguage();
+    _loadTelemetryOptIn();
+  }
+
+  Future<void> _loadTelemetryOptIn() async {
+    final optedIn = await TelemetryService.instance.isOptedIn();
+    if (!mounted) return;
+    setState(() => _isTelemetryOptedIn = optedIn);
   }
 
   @override
@@ -560,20 +569,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: l10n.settingsSectionSupportAbout,
           ),
           SummaryCard(
-            child: _buildNavigationCard(
-              context: context,
-              icon: LucideIcons.message_square,
-              title: l10n.feedbackReportSettingsEntryTitle,
-              subtitle: l10n.feedbackReportSettingsEntrySubtitle,
-              tileKey: const Key('settings_feedback_entry'),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const FeedbackReportScreen(),
+            child: Column(
+              children: [
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.message_square,
+                  title: l10n.feedbackReportSettingsEntryTitle,
+                  subtitle: l10n.feedbackReportSettingsEntrySubtitle,
+                  tileKey: const Key('settings_feedback_entry'),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const FeedbackReportScreen(),
+                      ),
+                    );
+                  },
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
+                PlatformAdaptiveSwitchListTile(
+                  secondary: Icon(
+                    LucideIcons.chart_bar,
+                    size: 36,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                );
-              },
-              wrapInCard: false,
+                  title: const Text(
+                    'Anonyme Nutzungsstatistiken teilen',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: const Text(
+                    'Hilft bei der Verbesserung der App. Vollständig anonymisiert, ohne personenbezogene Daten.',
+                  ),
+                  value: _isTelemetryOptedIn,
+                  onChanged: (value) async {
+                    if (value) {
+                      await TelemetryService.instance.optIn();
+                    } else {
+                      await TelemetryService.instance.optOut();
+                    }
+                    if (!mounted) return;
+                    setState(() => _isTelemetryOptedIn = value);
+                  },
+                ),
+              ],
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),

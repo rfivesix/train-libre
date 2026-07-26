@@ -14,6 +14,9 @@ import '../../nutrition_recommendation/data/recommendation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'dart:io';
+import 'package:package_info_plus/package_info_plus.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A splash screen responsible for app-wide initialization.
 ///
@@ -172,6 +175,19 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       } catch (e) {
         debugPrint("Workout session restore failed: $e");
       }
+    }
+
+    try {
+      await TelemetryService.instance.init();
+      final packageInfo = await PackageInfo.fromPlatform();
+      unawaited(TelemetryService.instance.trackAppLaunched(
+        appVersion: packageInfo.version,
+        osVersion: Platform.operatingSystemVersion,
+        platform: Platform.operatingSystem,
+        locale: Platform.localeName,
+      ));
+    } catch (e) {
+      debugPrint("Telemetry startup tracking failed: $e");
     }
   }
 
