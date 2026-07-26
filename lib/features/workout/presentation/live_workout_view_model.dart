@@ -574,7 +574,26 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         exercise: exercise,
         setTemplates: templates,
         pauseSeconds: 0);
-    _exercises = [..._exercises, re];
+
+    // Insert directly after the lowest exercise that has at least 1 completed set
+    int lastCompletedIndex = -1;
+    for (int i = _exercises.length - 1; i >= 0; i--) {
+      final ex = _exercises[i];
+      final hasCompletedSet =
+          ex.setTemplates.any((t) => _setLogs[t.id]?.isCompleted == true);
+      if (hasCompletedSet) {
+        lastCompletedIndex = i;
+        break;
+      }
+    }
+
+    final newExercises = List<RoutineExercise>.from(_exercises);
+    if (lastCompletedIndex != -1) {
+      newExercises.insert(lastCompletedIndex + 1, re);
+    } else {
+      newExercises.add(re);
+    }
+    _exercises = newExercises;
     pauseTimes[tempReId] = 0;
 
     for (var t in templates) {
@@ -593,6 +612,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       _totalSets++;
     }
 
+    await _updateLogOrdersInDatabase();
     syncControllers();
     notifyListeners();
   }

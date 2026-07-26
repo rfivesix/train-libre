@@ -552,6 +552,64 @@ void main() {
       expect(manager.exercises.first.setTemplates.length, 3); // Default 3 sets
     });
 
+    test('addExercise inserts after lowest exercise with completed set', () async {
+      final log = await workoutDb.startWorkout(routineName: 'Session');
+      final exA = const model.Exercise(
+        id: 1,
+        nameDe: 'ExA',
+        nameEn: 'Exercise A',
+        descriptionDe: '',
+        descriptionEn: '',
+        categoryName: 'Strength',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      final exB = const model.Exercise(
+        id: 2,
+        nameDe: 'ExB',
+        nameEn: 'Exercise B',
+        descriptionDe: '',
+        descriptionEn: '',
+        categoryName: 'Strength',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      final exC = const model.Exercise(
+        id: 3,
+        nameDe: 'ExC',
+        nameEn: 'Exercise C',
+        descriptionDe: '',
+        descriptionEn: '',
+        categoryName: 'Strength',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+
+      final reA = RoutineExercise(
+        id: 10,
+        exercise: exA,
+        setTemplates: [SetTemplate(id: 101, setType: 'normal')],
+      );
+      final reB = RoutineExercise(
+        id: 20,
+        exercise: exB,
+        setTemplates: [SetTemplate(id: 201, setType: 'normal')],
+      );
+
+      await manager.startWorkout(log, [reA, reB]);
+
+      // Complete set for Exercise A only
+      await manager.updateSet(101, isCompleted: true);
+
+      await manager.addExercise(exC);
+
+      // Exercise C should be inserted at index 1 (after Exercise A)
+      expect(manager.exercises.length, 3);
+      expect(manager.exercises[0].exercise.nameEn, 'Exercise A');
+      expect(manager.exercises[1].exercise.nameEn, 'Exercise C');
+      expect(manager.exercises[2].exercise.nameEn, 'Exercise B');
+    });
+
     test('removeExercise removes exercise and its sets', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
