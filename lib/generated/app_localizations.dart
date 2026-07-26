@@ -8763,13 +8763,13 @@ abstract class AppLocalizations {
   /// No description provided for @welcome_privacy_body.
   ///
   /// In en, this message translates to:
-  /// **'By using Train Libre, you agree to the processing of your data as described in our Privacy Policy and Legal Notice.'**
+  /// **'To provide workout tracking and training insights, we process your fitness and activity data as described in our Privacy Policy.'**
   String get welcome_privacy_body;
 
   /// No description provided for @i_agree_to_privacy_policy.
   ///
   /// In en, this message translates to:
-  /// **'I have read and agree to the processing of my health data as described in the Privacy Policy.'**
+  /// **'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.'**
   String get i_agree_to_privacy_policy;
 
   /// No description provided for @acceptTermsPrompt.
@@ -8789,6 +8789,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Accept & Get Started'**
   String get accept_and_get_started;
+
+  /// No description provided for @by_tapping_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'By tapping \"Accept & Get Started\", you agree to our'**
+  String get by_tapping_accept;
+
+  /// No description provided for @and_acknowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'and acknowledge our'**
+  String get and_acknowledge;
 
   /// No description provided for @about_section.
   ///

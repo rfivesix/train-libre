@@ -4976,11 +4976,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcome_privacy_body =>
-      'By using Train Libre, you agree to the processing of your data as described in our Privacy Policy and Legal Notice.';
+      'To provide workout tracking and training insights, we process your fitness and activity data as described in our Privacy Policy.';
 
   @override
   String get i_agree_to_privacy_policy =>
-      'I have read and agree to the processing of my health data as described in the Privacy Policy.';
+      'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.';
 
   @override
   String get acceptTermsPrompt => 'I accept the Terms of Service';
@@ -4990,6 +4990,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accept_and_get_started => 'Accept & Get Started';
+
+  @override
+  String get by_tapping_accept =>
+      'By tapping \"Accept & Get Started\", you agree to our';
+
+  @override
+  String get and_acknowledge => 'and acknowledge our';
 
   @override
   String get about_section => 'About';

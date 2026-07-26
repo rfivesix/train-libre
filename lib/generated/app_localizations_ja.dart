@@ -4815,11 +4815,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get welcome_privacy_body =>
-      'Train Libre を使用すると、当社のプライバシー ポリシーと法的通知に記載されているとおりにデータが処理されることに同意したものとみなされます。';
+      'ワークアウトの記録や分析機能を提供するために、当社のプライバシーポリシーに記載されているとおり、お客様のフィットネスおよびアクティビティデータを処理します。';
 
   @override
   String get i_agree_to_privacy_policy =>
-      '私はプライバシー ポリシーに記載されているとおりに自分の健康データを処理することを読み、これに同意します。';
+      'ワークアウトの記録および分析のために、私のフィットネスおよび健康データが処理されることに明示的に同意します。同意は設定からいつでも撤回できます。';
 
   @override
   String get acceptTermsPrompt => '利用規約に同意します';
@@ -4829,6 +4829,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get accept_and_get_started => '同意して始めましょう';
+
+  @override
+  String get by_tapping_accept => '「同意して始めましょう」をタップすると、当社の';
+
+  @override
+  String get and_acknowledge => 'に同意し、';
 
   @override
   String get about_section => 'について';

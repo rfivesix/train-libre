@@ -5067,11 +5067,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get welcome_privacy_body =>
-      'En utilisant Train Libre, vous acceptez le traitement de vos données tel que décrit dans notre Politique de confidentialité et Mentions légales.';
+      'Pour fournir le suivi des entraînements et des analyses, nous traitons vos données de forme et d\'activité comme décrit dans notre politique de confidentialité.';
 
   @override
   String get i_agree_to_privacy_policy =>
-      'J\'ai lu et j\'accepte le traitement de mes données de santé tel que décrit dans la politique de confidentialité.';
+      'J\'accepte expressément le traitement de mes données de santé et de forme pour le suivi des entraînements et des analyses. Je peux retirer mon consentement à tout moment dans les paramètres.';
 
   @override
   String get acceptTermsPrompt => 'J\'accepte les conditions d\'utilisation';
@@ -5081,6 +5081,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get accept_and_get_started => 'Accepter et commencer';
+
+  @override
+  String get by_tapping_accept =>
+      'En appuyant sur « Accepter et commencer », vous acceptez nos';
+
+  @override
+  String get and_acknowledge => 'et prenez connaissance de notre';
 
   @override
   String get about_section => 'À propos';

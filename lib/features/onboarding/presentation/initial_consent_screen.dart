@@ -22,23 +22,25 @@ class InitialConsentScreen extends StatefulWidget {
 }
 
 class _InitialConsentScreenState extends State<InitialConsentScreen> {
-  bool _privacyAccepted = false;
-  bool _termsAccepted = false;
+  bool _healthDataAccepted = false;
   late TapGestureRecognizer _termsRecognizer;
+  late TapGestureRecognizer _legalRecognizer;
 
   @override
   void initState() {
     super.initState();
-    _termsRecognizer = TapGestureRecognizer()..onTap = _navigateToTerms;
+    _termsRecognizer = TapGestureRecognizer()..onTap = _navigateToLegal;
+    _legalRecognizer = TapGestureRecognizer()..onTap = _navigateToLegal;
   }
 
   @override
   void dispose() {
     _termsRecognizer.dispose();
+    _legalRecognizer.dispose();
     super.dispose();
   }
 
-  void _navigateToTerms() {
+  void _navigateToLegal() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const LegalScreen()),
     );
@@ -66,7 +68,7 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Blurred background with app icon or placeholder
+          // Blurred background with app icon
           Positioned.fill(
             child: Container(
               color: Colors.black,
@@ -114,62 +116,24 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                       style: theme.textTheme.bodyMedium,
                     ),
                     const SizedBox(height: DesignConstants.spacingL),
-                    // Links
+                    // Legal links button
                     Center(
                       child: TextButton(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const LegalScreen()),
-                        ),
+                        onPressed: _navigateToLegal,
                         child: Text(
                             '${l10n.legal_notice} & ${l10n.privacy_policy}'),
                       ),
                     ),
                     const Divider(),
+                    // Single explicit health data consent checkbox
                     CheckboxListTile(
-                      value: _privacyAccepted,
+                      value: _healthDataAccepted,
                       onChanged: (val) =>
-                          setState(() => _privacyAccepted = val ?? false),
+                          setState(() => _healthDataAccepted = val ?? false),
+                      checkColor: theme.colorScheme.onPrimary,
                       title: Text(
                         l10n.i_agree_to_privacy_policy,
                         style: theme.textTheme.bodySmall,
-                      ),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    CheckboxListTile(
-                      value: _termsAccepted,
-                      onChanged: (val) =>
-                          setState(() => _termsAccepted = val ?? false),
-                      title: Text.rich(
-                        TextSpan(
-                          text: l10n.acceptTermsPrompt
-                              .split(l10n.viewTermsInline)
-                              .first,
-                          style: theme.textTheme.bodySmall,
-                          children: [
-                            TextSpan(
-                              text: l10n.viewTermsInline,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                              ),
-                              recognizer: _termsRecognizer,
-                            ),
-                            TextSpan(
-                              text: l10n.acceptTermsPrompt
-                                          .split(l10n.viewTermsInline)
-                                          .length >
-                                      1
-                                  ? l10n.acceptTermsPrompt
-                                      .split(l10n.viewTermsInline)[1]
-                                  : '',
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
                       ),
                       controlAffinity: ListTileControlAffinity.leading,
                       contentPadding: EdgeInsets.zero,
@@ -178,12 +142,48 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: AppButton.primary(
-                        onPressed: (_privacyAccepted && _termsAccepted)
-                            ? _acceptAndProceed
-                            : null,
+                        onPressed: _healthDataAccepted ? _acceptAndProceed : null,
                         label: l10n.accept_and_get_started,
                         tooltip: l10n.accept_and_get_started,
                       ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    // Clickwrap legal text matching bodySmall style of checkbox text above
+                    Text.rich(
+                      TextSpan(
+                        text: '${l10n.by_tapping_accept} ',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: l10n.terms_of_service,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: _termsRecognizer,
+                          ),
+                          TextSpan(
+                            text: ' ${l10n.and_acknowledge} ',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          TextSpan(
+                            text: l10n.privacy_policy,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: _legalRecognizer,
+                          ),
+                          const TextSpan(text: '.'),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
