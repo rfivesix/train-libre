@@ -11,6 +11,7 @@ import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/legal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class InitialConsentScreen extends StatefulWidget {
   final Widget nextScreen;
@@ -23,6 +24,7 @@ class InitialConsentScreen extends StatefulWidget {
 
 class _InitialConsentScreenState extends State<InitialConsentScreen> {
   bool _healthDataAccepted = false;
+  bool _telemetryAccepted = false;
   late TapGestureRecognizer _termsRecognizer;
   late TapGestureRecognizer _legalRecognizer;
 
@@ -49,6 +51,11 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
   Future<void> _acceptAndProceed() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasAcceptedConsent', true);
+    if (_telemetryAccepted) {
+      await TelemetryService.instance.optIn();
+    } else {
+      await TelemetryService.instance.optOut();
+    }
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
@@ -125,18 +132,22 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                       ),
                     ),
                     const Divider(),
-                    // Single explicit health data consent checkbox
-                    CheckboxListTile(
+                    // Explicit health data consent tile
+                    _buildConsentTile(
                       value: _healthDataAccepted,
                       onChanged: (val) =>
-                          setState(() => _healthDataAccepted = val ?? false),
-                      checkColor: theme.colorScheme.onPrimary,
-                      title: Text(
-                        l10n.i_agree_to_privacy_policy,
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
+                          setState(() => _healthDataAccepted = val),
+                      text: l10n.i_agree_to_privacy_policy,
+                      theme: theme,
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    // Optional anonymous telemetry tile
+                    _buildConsentTile(
+                      value: _telemetryAccepted,
+                      onChanged: (val) =>
+                          setState(() => _telemetryAccepted = val),
+                      text: l10n.i_agree_to_optional_telemetry,
+                      theme: theme,
                     ),
                     const SizedBox(height: DesignConstants.spacingL),
                     SizedBox(
@@ -191,6 +202,45 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildConsentTile({
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required String text,
+    required ThemeData theme,
+  }) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: DesignConstants.spacingS,
+          horizontal: DesignConstants.spacingXS,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0, right: DesignConstants.spacingM),
+              child: Icon(
+                value ? LucideIcons.circle_check : LucideIcons.circle,
+                color: value
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                size: 22,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                text,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

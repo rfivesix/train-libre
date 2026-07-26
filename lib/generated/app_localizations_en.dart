@@ -4983,6 +4983,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.';
 
   @override
+  String get i_agree_to_optional_telemetry =>
+      '(Optional) I want to share anonymous usage statistics to help improve app stability and features (zero personal data).';
+
+  @override
   String get acceptTermsPrompt => 'I accept the Terms of Service';
 
   @override

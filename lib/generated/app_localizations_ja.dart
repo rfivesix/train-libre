@@ -4822,6 +4822,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'ワークアウトの記録および分析のために、私のフィットネスおよび健康データが処理されることに明示的に同意します。同意は設定からいつでも撤回できます。';
 
   @override
+  String get i_agree_to_optional_telemetry =>
+      '(任意) アプリの安定性と機能向上のため、匿用の利用統計を共有します（個人データは送信されません）。';
+
+  @override
   String get acceptTermsPrompt => '利用規約に同意します';
 
   @override

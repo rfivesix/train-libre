@@ -5026,6 +5026,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ich willige ausdrücklich in die Verarbeitung meiner Fitness- und Gesundheitsdaten für Workout-Tracking und Trainingsanalysen ein. Ich kann meine Einwilligung jederzeit in den Einstellungen widerrufen.';
 
   @override
+  String get i_agree_to_optional_telemetry =>
+      '(Optional) Ich möchte anonyme Nutzungsstatistiken teilen, um die App-Stabilität und Features zu verbessern (keine persönlichen Daten).';
+
+  @override
   String get acceptTermsPrompt => 'Ich akzeptiere die Nutzungsbedingungen';
 
   @override

@@ -8772,6 +8772,12 @@ abstract class AppLocalizations {
   /// **'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.'**
   String get i_agree_to_privacy_policy;
 
+  /// No description provided for @i_agree_to_optional_telemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'(Optional) I want to share anonymous usage statistics to help improve app stability and features (zero personal data).'**
+  String get i_agree_to_optional_telemetry;
+
   /// No description provided for @acceptTermsPrompt.
   ///
   /// In en, this message translates to:

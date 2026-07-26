@@ -2254,6 +2254,7 @@
   "welcome_privacy_title": "Benvenuto e privacy",
   "welcome_privacy_body": "Per fornire il monitoraggio degli allenamenti e le statistiche, trattiamo i tuoi dati di fitness e attività come descritto nella nostra Informativa sulla privacy.",
   "i_agree_to_privacy_policy": "Acconsento espressamente al trattamento dei miei dati di fitness e salute per il monitoraggio degli allenamenti e le statistiche. Posso revocare il mio consenso in qualsiasi momento nelle Impostazioni.",
+  "i_agree_to_optional_telemetry": "(Opzionale) Desidero condividere statistiche d'uso anonime per migliorare la stabilità e le funzionalità dell'app (zero dati personali).",
   "acceptTermsPrompt": "Accetto i Termini di servizio",
   "viewTermsInline": "Termini di servizio",
   "accept_and_get_started": "Accetta e inizia",

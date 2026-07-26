@@ -2251,6 +2251,7 @@
   "welcome_privacy_title": "Welcome & Privacy",
   "welcome_privacy_body": "To provide workout tracking and training insights, we process your fitness and activity data as described in our Privacy Policy.",
   "i_agree_to_privacy_policy": "I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.",
+  "i_agree_to_optional_telemetry": "(Optional) I want to share anonymous usage statistics to help improve app stability and features (zero personal data).",
   "acceptTermsPrompt": "I accept the Terms of Service",
   "viewTermsInline": "Terms of Service",
   "accept_and_get_started": "Accept & Get Started",
