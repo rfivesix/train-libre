@@ -2255,6 +2255,25 @@
   "welcome_privacy_body": "ワークアウトの記録や分析機能を提供するために、当社のプライバシーポリシーに記載されているとおり、お客様のフィットネスおよびアクティビティデータを処理します。",
   "i_agree_to_privacy_policy": "ワークアウトの記録および分析のために、私のフィットネスおよび健康データが処理されることに明示的に同意します。同意は設定からいつでも撤回できます。",
   "i_agree_to_optional_telemetry": "(任意) アプリの安定性と機能向上のため、匿用の利用統計を共有します（個人データは送信されません）。",
+  "welcome_back_updated_legal_title": "おかえりなさい & 利用規約改定のお知らせ",
+  "legal_update_body": "プライバシーポリシーおよび利用規約を更新しました（バージョン {version}）。Train Libre を引き続き利用するには、新しい利用規約に同意してください。既存のデータはデバイス内にそのまま保存されます。",
+  "@legal_update_body": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "i_agree_to_updated_privacy_policy": "更新されたプライバシーポリシー（v{version}）およびフィットネス・健康データの処理に同意します。",
+  "@i_agree_to_updated_privacy_policy": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accept_and_continue": "同意して続ける",
+  "by_tapping_accept_continue": "「同意して続ける」をタップすることで、更新された",
   "acceptTermsPrompt": "利用規約に同意します",
   "viewTermsInline": "利用規約",
   "accept_and_get_started": "同意して始めましょう",

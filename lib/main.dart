@@ -24,6 +24,8 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'features/onboarding/presentation/initial_consent_screen.dart';
+import 'features/onboarding/presentation/legal_update_consent_screen.dart';
+import 'features/app/presentation/legal_screen.dart';
 import 'core/infrastructure/icloud_sync_service.dart';
 
 import 'features/diary/domain/repositories/diary_repository.dart';
@@ -90,6 +92,10 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final hasAcceptedConsent = prefs.getBool('hasAcceptedConsent') ?? false;
+  final acceptedLegalVersion = prefs.getString('acceptedLegalVersion');
+
+  final isFreshInstall = !hasAcceptedConsent && acceptedLegalVersion == null;
+  final isLegalOutdated = acceptedLegalVersion != kCurrentLegalVersion;
 
   // Load previously settled glass quality to avoid warmup jank on cold starts
   final savedGlassQuality = prefs.getString('glass_quality');
@@ -163,11 +169,15 @@ void main() async {
           ChangeNotifierProvider.value(value: themeService),
         ],
         child: MyApp(
-          home: hasAcceptedConsent
-              ? const AppInitializerScreen(skipOffDatabase: true)
-              : InitialConsentScreen(
+          home: isFreshInstall
+              ? const InitialConsentScreen(
                   nextScreen:
-                      const AppInitializerScreen(skipOffDatabase: true)),
+                      AppInitializerScreen(skipOffDatabase: true))
+              : (isLegalOutdated
+                  ? const LegalUpdateConsentScreen(
+                      nextScreen:
+                          AppInitializerScreen(skipOffDatabase: true))
+                  : const AppInitializerScreen(skipOffDatabase: true)),
         ),
       ),
     ),

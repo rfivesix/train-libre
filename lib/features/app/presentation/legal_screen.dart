@@ -11,6 +11,9 @@ import '../../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 
+/// Single source of truth for the active Privacy Policy & Terms of Service version.
+const String kCurrentLegalVersion = '1.6';
+
 class LegalScreen extends StatefulWidget {
   const LegalScreen({super.key});
 

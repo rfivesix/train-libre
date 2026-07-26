@@ -5067,6 +5067,27 @@ class AppLocalizationsIt extends AppLocalizations {
       '(Opzionale) Desidero condividere statistiche d\'uso anonime per migliorare la stabilità e le funzionalità dell\'app (zero dati personali).';
 
   @override
+  String get welcome_back_updated_legal_title =>
+      'Bentornato & Politiche aggiornate';
+
+  @override
+  String legal_update_body(String version) {
+    return 'Abbiamo aggiornato la nostra Informativa sulla privacy e i Termini di servizio (Versione $version). Per continuare a utilizzare Train Libre, accetta i termini aggiornati. Tutti i tuoi dati rimangono salvati sul tuo dispositivo.';
+  }
+
+  @override
+  String i_agree_to_updated_privacy_policy(String version) {
+    return 'Acconsento espressamente all\'Informativa sulla privacy aggiornata (v$version) e al trattamento dei miei dati di salute.';
+  }
+
+  @override
+  String get accept_and_continue => 'Accetta e continua';
+
+  @override
+  String get by_tapping_accept_continue =>
+      'Toccando \"Accetta e continua\", accetti i';
+
+  @override
   String get acceptTermsPrompt => 'Accetto i Termini di servizio';
 
   @override

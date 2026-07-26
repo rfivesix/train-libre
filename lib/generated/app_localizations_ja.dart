@@ -4826,6 +4826,25 @@ class AppLocalizationsJa extends AppLocalizations {
       '(任意) アプリの安定性と機能向上のため、匿用の利用統計を共有します（個人データは送信されません）。';
 
   @override
+  String get welcome_back_updated_legal_title => 'おかえりなさい & 利用規約改定のお知らせ';
+
+  @override
+  String legal_update_body(String version) {
+    return 'プライバシーポリシーおよび利用規約を更新しました（バージョン $version）。Train Libre を引き続き利用するには、新しい利用規約に同意してください。既存のデータはデバイス内にそのまま保存されます。';
+  }
+
+  @override
+  String i_agree_to_updated_privacy_policy(String version) {
+    return '更新されたプライバシーポリシー（v$version）およびフィットネス・健康データの処理に同意します。';
+  }
+
+  @override
+  String get accept_and_continue => '同意して続ける';
+
+  @override
+  String get by_tapping_accept_continue => '「同意して続ける」をタップすることで、更新された';
+
+  @override
   String get acceptTermsPrompt => '利用規約に同意します';
 
   @override

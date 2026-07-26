@@ -2255,6 +2255,25 @@
   "welcome_privacy_body": "Pour fournir le suivi des entraînements et des analyses, nous traitons vos données de forme et d'activité comme décrit dans notre politique de confidentialité.",
   "i_agree_to_privacy_policy": "J'accepte expressément le traitement de mes données de santé et de forme pour le suivi des entraînements et des analyses. Je peux retirer mon consentement à tout moment dans les paramètres.",
   "i_agree_to_optional_telemetry": "(Optionnel) Je souhaite partager des statistiques d'utilisation anonymes pour améliorer la stabilité et les fonctionnalités (aucune donnée personnelle).",
+  "welcome_back_updated_legal_title": "Bon retour & Politiques mises à jour",
+  "legal_update_body": "Nous avons mis à jour notre politique de confidentialité et nos conditions d'utilisation (Version {version}). Pour continuer à utiliser Train Libre, veuillez accepter les conditions mises à jour. Vos données restent conservées sur votre appareil.",
+  "@legal_update_body": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "i_agree_to_updated_privacy_policy": "J'accepte expressément la politique de confidentialité mise à jour (v{version}) et le traitement de mes données de santé.",
+  "@i_agree_to_updated_privacy_policy": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accept_and_continue": "Accepter et continuer",
+  "by_tapping_accept_continue": "En appuyant sur \"Accepter et continuer\", vous acceptez les",
   "acceptTermsPrompt": "J'accepte les conditions d'utilisation",
   "viewTermsInline": "Conditions d'utilisation",
   "accept_and_get_started": "Accepter et commencer",

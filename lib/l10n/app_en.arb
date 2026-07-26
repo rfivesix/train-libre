@@ -2252,6 +2252,25 @@
   "welcome_privacy_body": "To provide workout tracking and training insights, we process your fitness and activity data as described in our Privacy Policy.",
   "i_agree_to_privacy_policy": "I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.",
   "i_agree_to_optional_telemetry": "(Optional) I want to share anonymous usage statistics to help improve app stability and features (zero personal data).",
+  "welcome_back_updated_legal_title": "Welcome Back & Updated Policies",
+  "legal_update_body": "We have updated our Privacy Policy and Terms of Service (Version {version}). To continue using Train Libre, please acknowledge the updated terms. All your existing data remains safely stored on your device.",
+  "@legal_update_body": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "i_agree_to_updated_privacy_policy": "I explicitly consent to the updated Privacy Policy (v{version}) and the processing of my fitness and health data.",
+  "@i_agree_to_updated_privacy_policy": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accept_and_continue": "Accept & Continue",
+  "by_tapping_accept_continue": "By tapping \"Accept & Continue\", you agree to the updated",
   "acceptTermsPrompt": "I accept the Terms of Service",
   "viewTermsInline": "Terms of Service",
   "accept_and_get_started": "Accept & Get Started",

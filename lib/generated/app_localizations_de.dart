@@ -5030,6 +5030,27 @@ class AppLocalizationsDe extends AppLocalizations {
       '(Optional) Ich möchte anonyme Nutzungsstatistiken teilen, um die App-Stabilität und Features zu verbessern (keine persönlichen Daten).';
 
   @override
+  String get welcome_back_updated_legal_title =>
+      'Willkommen zurück & Aktualisierte Richtlinien';
+
+  @override
+  String legal_update_body(String version) {
+    return 'Wir haben unsere Datenschutzerklärung und Nutzungsbedingungen aktualisiert (Version $version). Um Train Libre weiterhin zu nutzen, bestätige bitte die aktualisierten Datenschutz-Bestimmungen. Deine bisherigen Daten bleiben vollständig auf deinem Gerät erhalten.';
+  }
+
+  @override
+  String i_agree_to_updated_privacy_policy(String version) {
+    return 'Ich willige in die aktualisierte Datenschutzerklärung (v$version) und die Verarbeitung meiner Fitness- und Gesundheitsdaten ein.';
+  }
+
+  @override
+  String get accept_and_continue => 'Akzeptieren & Weiter';
+
+  @override
+  String get by_tapping_accept_continue =>
+      'Mit dem Tippen auf \"Akzeptieren & Weiter\" stimmst du den aktualisierten';
+
+  @override
   String get acceptTermsPrompt => 'Ich akzeptiere die Nutzungsbedingungen';
 
   @override

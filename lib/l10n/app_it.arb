@@ -2255,6 +2255,25 @@
   "welcome_privacy_body": "Per fornire il monitoraggio degli allenamenti e le statistiche, trattiamo i tuoi dati di fitness e attività come descritto nella nostra Informativa sulla privacy.",
   "i_agree_to_privacy_policy": "Acconsento espressamente al trattamento dei miei dati di fitness e salute per il monitoraggio degli allenamenti e le statistiche. Posso revocare il mio consenso in qualsiasi momento nelle Impostazioni.",
   "i_agree_to_optional_telemetry": "(Opzionale) Desidero condividere statistiche d'uso anonime per migliorare la stabilità e le funzionalità dell'app (zero dati personali).",
+  "welcome_back_updated_legal_title": "Bentornato & Politiche aggiornate",
+  "legal_update_body": "Abbiamo aggiornato la nostra Informativa sulla privacy e i Termini di servizio (Versione {version}). Per continuare a utilizzare Train Libre, accetta i termini aggiornati. Tutti i tuoi dati rimangono salvati sul tuo dispositivo.",
+  "@legal_update_body": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "i_agree_to_updated_privacy_policy": "Acconsento espressamente all'Informativa sulla privacy aggiornata (v{version}) e al trattamento dei miei dati di salute.",
+  "@i_agree_to_updated_privacy_policy": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accept_and_continue": "Accetta e continua",
+  "by_tapping_accept_continue": "Toccando \"Accetta e continua\", accetti i",
   "acceptTermsPrompt": "Accetto i Termini di servizio",
   "viewTermsInline": "Termini di servizio",
   "accept_and_get_started": "Accetta e inizia",

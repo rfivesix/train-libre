@@ -2254,6 +2254,25 @@
   "welcome_privacy_body": "Um Workout-Tracking und Trainingsanalysen bereitzustellen, verarbeiten wir deine Fitness- und Aktivitätsdaten wie in unserer Datenschutzerklärung beschrieben.",
   "i_agree_to_privacy_policy": "Ich willige ausdrücklich in die Verarbeitung meiner Fitness- und Gesundheitsdaten für Workout-Tracking und Trainingsanalysen ein. Ich kann meine Einwilligung jederzeit in den Einstellungen widerrufen.",
   "i_agree_to_optional_telemetry": "(Optional) Ich möchte anonyme Nutzungsstatistiken teilen, um die App-Stabilität und Features zu verbessern (keine persönlichen Daten).",
+  "welcome_back_updated_legal_title": "Willkommen zurück & Aktualisierte Richtlinien",
+  "legal_update_body": "Wir haben unsere Datenschutzerklärung und Nutzungsbedingungen aktualisiert (Version {version}). Um Train Libre weiterhin zu nutzen, bestätige bitte die aktualisierten Datenschutz-Bestimmungen. Deine bisherigen Daten bleiben vollständig auf deinem Gerät erhalten.",
+  "@legal_update_body": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "i_agree_to_updated_privacy_policy": "Ich willige in die aktualisierte Datenschutzerklärung (v{version}) und die Verarbeitung meiner Fitness- und Gesundheitsdaten ein.",
+  "@i_agree_to_updated_privacy_policy": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accept_and_continue": "Akzeptieren & Weiter",
+  "by_tapping_accept_continue": "Mit dem Tippen auf \"Akzeptieren & Weiter\" stimmst du den aktualisierten",
   "acceptTermsPrompt": "Ich akzeptiere die Nutzungsbedingungen",
   "viewTermsInline": "Nutzungsbedingungen",
   "accept_and_get_started": "Akzeptieren & Loslegen",

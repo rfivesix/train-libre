@@ -1,28 +1,31 @@
-// lib/screens/initial_consent_screen.dart
+// lib/features/onboarding/presentation/legal_update_consent_screen.dart
 
 import 'package:flutter/gestures.dart';
-import '../../../util/design_constants.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../generated/app_localizations.dart';
-import '../../../widgets/common/summary_card.dart';
-import '../../app/presentation/legal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../widgets/common/app_button.dart';
-import '../../../services/telemetry/telemetry_service.dart';
 
-class InitialConsentScreen extends StatefulWidget {
+import '../../../generated/app_localizations.dart';
+import '../../../util/design_constants.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/summary_card.dart';
+import '../../../services/telemetry/telemetry_service.dart';
+import '../../app/presentation/legal_screen.dart';
+
+/// Re-consent screen displayed when the Privacy Policy or Terms of Service
+/// have been updated to a new version (e.g. v1.6).
+class LegalUpdateConsentScreen extends StatefulWidget {
   final Widget nextScreen;
 
-  const InitialConsentScreen({super.key, required this.nextScreen});
+  const LegalUpdateConsentScreen({super.key, required this.nextScreen});
 
   @override
-  State<InitialConsentScreen> createState() => _InitialConsentScreenState();
+  State<LegalUpdateConsentScreen> createState() =>
+      _LegalUpdateConsentScreenState();
 }
 
-class _InitialConsentScreenState extends State<InitialConsentScreen> {
+class _LegalUpdateConsentScreenState extends State<LegalUpdateConsentScreen> {
   bool _healthDataAccepted = false;
   bool _telemetryAccepted = false;
   late TapGestureRecognizer _termsRecognizer;
@@ -33,6 +36,16 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
     super.initState();
     _termsRecognizer = TapGestureRecognizer()..onTap = _navigateToLegal;
     _legalRecognizer = TapGestureRecognizer()..onTap = _navigateToLegal;
+    _loadCurrentTelemetryState();
+  }
+
+  Future<void> _loadCurrentTelemetryState() async {
+    final isOptedIn = await TelemetryService.instance.isOptedIn();
+    if (mounted) {
+      setState(() {
+        _telemetryAccepted = isOptedIn;
+      });
+    }
   }
 
   @override
@@ -52,11 +65,13 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasAcceptedConsent', true);
     await prefs.setString('acceptedLegalVersion', kCurrentLegalVersion);
+
     if (_telemetryAccepted) {
       await TelemetryService.instance.optIn();
     } else {
       await TelemetryService.instance.optOut();
     }
+
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
@@ -112,14 +127,14 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                     ),
                     const SizedBox(height: DesignConstants.spacingL),
                     Text(
-                      l10n.welcome_privacy_title,
+                      l10n.welcome_back_updated_legal_title,
                       style: theme.textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
                     Text(
-                      l10n.welcome_privacy_body,
+                      l10n.legal_update_body(kCurrentLegalVersion),
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium,
                     ),
@@ -133,12 +148,13 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                       ),
                     ),
                     const Divider(),
-                    // Explicit health data consent tile
+                    // Mandatory updated privacy policy consent tile
                     _buildConsentTile(
                       value: _healthDataAccepted,
                       onChanged: (val) =>
                           setState(() => _healthDataAccepted = val),
-                      text: l10n.i_agree_to_privacy_policy,
+                      text: l10n.i_agree_to_updated_privacy_policy(
+                          kCurrentLegalVersion),
                       theme: theme,
                     ),
                     const SizedBox(height: DesignConstants.spacingS),
@@ -154,16 +170,17 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: AppButton.primary(
-                        onPressed: _healthDataAccepted ? _acceptAndProceed : null,
-                        label: l10n.accept_and_get_started,
-                        tooltip: l10n.accept_and_get_started,
+                        onPressed:
+                            _healthDataAccepted ? _acceptAndProceed : null,
+                        label: l10n.accept_and_continue,
+                        tooltip: l10n.accept_and_continue,
                       ),
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
-                    // Clickwrap legal text matching bodySmall style of checkbox text above
+                    // Clickwrap legal text
                     Text.rich(
                       TextSpan(
-                        text: '${l10n.by_tapping_accept} ',
+                        text: '${l10n.by_tapping_accept_continue} ',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -225,7 +242,8 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 2.0, right: DesignConstants.spacingM),
+              padding: const EdgeInsets.only(
+                  top: 2.0, right: DesignConstants.spacingM),
               child: Icon(
                 value ? LucideIcons.circle_check : LucideIcons.circle,
                 color: value

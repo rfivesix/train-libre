@@ -8778,6 +8778,36 @@ abstract class AppLocalizations {
   /// **'(Optional) I want to share anonymous usage statistics to help improve app stability and features (zero personal data).'**
   String get i_agree_to_optional_telemetry;
 
+  /// No description provided for @welcome_back_updated_legal_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back & Updated Policies'**
+  String get welcome_back_updated_legal_title;
+
+  /// No description provided for @legal_update_body.
+  ///
+  /// In en, this message translates to:
+  /// **'We have updated our Privacy Policy and Terms of Service (Version {version}). To continue using Train Libre, please acknowledge the updated terms. All your existing data remains safely stored on your device.'**
+  String legal_update_body(String version);
+
+  /// No description provided for @i_agree_to_updated_privacy_policy.
+  ///
+  /// In en, this message translates to:
+  /// **'I explicitly consent to the updated Privacy Policy (v{version}) and the processing of my fitness and health data.'**
+  String i_agree_to_updated_privacy_policy(String version);
+
+  /// No description provided for @accept_and_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept & Continue'**
+  String get accept_and_continue;
+
+  /// No description provided for @by_tapping_accept_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'By tapping \"Accept & Continue\", you agree to the updated'**
+  String get by_tapping_accept_continue;
+
   /// No description provided for @acceptTermsPrompt.
   ///
   /// In en, this message translates to:
