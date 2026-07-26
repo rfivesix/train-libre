@@ -365,6 +365,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final prefs = await SharedPreferences.getInstance();
     final unitService = _unitService;
 
+    // Explicitly persist selected unit system to SharedPreferences and Database
+    await unitService.setUnitSystem(unitService.unitSystem);
+
     final int calories = int.tryParse(_calController.text) ?? 2500;
     final int protein = int.tryParse(_protController.text) ?? 180;
     final int carbs = int.tryParse(_carbController.text) ?? 250;

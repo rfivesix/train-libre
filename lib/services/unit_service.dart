@@ -33,6 +33,11 @@ class UnitService extends ChangeNotifier {
         : storedValue == UnitSystem.imperial.name
             ? UnitSystem.imperial
             : UnitSystem.metric;
+
+    if (storedValue == null) {
+      await prefs.setString(_unitSystemKey, loadedSystem.name);
+    }
+
     if (_unitSystem == loadedSystem) return;
     _unitSystem = loadedSystem;
     notifyListeners();
@@ -48,11 +53,13 @@ class UnitService extends ChangeNotifier {
   }
 
   Future<void> setUnitSystem(UnitSystem value) async {
-    if (value == _unitSystem) return;
+    final bool isChanged = value != _unitSystem;
     _unitSystem = value;
-    notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_unitSystemKey, value.name);
+    if (isChanged) {
+      notifyListeners();
+    }
   }
 
   Future<void> toggleUnitSystem() {

@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../data/drift_database.dart' as db;
 import '../../../../data/database_helper.dart';
 import '../../domain/models/measurement.dart';
@@ -216,6 +217,9 @@ class ProfileLocalDataSource {
       }
     }
 
+    final prefs = await SharedPreferences.getInstance();
+    final currentUnitSystem = prefs.getString('unit_system') ?? 'metric';
+
     if (existingSettings != null) {
       // UPDATE
       await (dbInstance.update(dbInstance.appSettings)
@@ -228,6 +232,7 @@ class ProfileLocalDataSource {
           targetFat: drift.Value(fat),
           targetWater: drift.Value(water),
           targetSteps: drift.Value(steps),
+          unitSystem: drift.Value(currentUnitSystem),
           updatedAt: drift.Value(DateTime.now()),
         ),
       );
@@ -246,7 +251,7 @@ class ProfileLocalDataSource {
               targetWater: drift.Value(water),
               targetSteps: drift.Value(steps),
               themeMode: const drift.Value('system'), // Defaults
-              unitSystem: const drift.Value('metric'),
+              unitSystem: drift.Value(currentUnitSystem),
               updatedAt: drift.Value(DateTime.now()),
             ),
           );
