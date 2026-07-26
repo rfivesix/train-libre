@@ -9888,6 +9888,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data available'**
   String get statisticsActiveGapTitle;
+
+  /// No description provided for @reviewPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you like Train Libre?'**
+  String get reviewPromptTitle;
+
+  /// No description provided for @reviewPromptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feedback helps us continuously improve the app without ads or trackers.'**
+  String get reviewPromptSubtitle;
+
+  /// No description provided for @reviewPromptYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, I like it'**
+  String get reviewPromptYes;
+
+  /// No description provided for @reviewPromptNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No, not really'**
+  String get reviewPromptNo;
+
+  /// No description provided for @reviewPromptLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me later'**
+  String get reviewPromptLater;
 }
 
 class _AppLocalizationsDelegate

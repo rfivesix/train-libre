@@ -2543,5 +2543,10 @@
   "emptyStateDiaryColdStartCallToAction": "Registra qui la tua prima voce",
   "statisticsColdStartTitle": "Benvenuto nelle tue statistiche!",
   "statisticsColdStartSubtitle": "I tuoi progressi verranno visualizzati qui non appena registrerai i tuoi primi allenamenti, pasti o traccerai i tuoi passi e il sonno.",
-  "statisticsActiveGapTitle": "Nessun dato disponibile"
+  "statisticsActiveGapTitle": "Nessun dato disponibile",
+  "reviewPromptTitle": "Ti piace Train Libre?",
+  "reviewPromptSubtitle": "Il tuo feedback ci aiuta a migliorare l'app senza pubblicità o tracker.",
+  "reviewPromptYes": "Sì, mi piace",
+  "reviewPromptNo": "No, non proprio",
+  "reviewPromptLater": "Ricordamelo più tardi"
 }

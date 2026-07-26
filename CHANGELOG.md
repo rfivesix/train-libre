@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.4] - 2026-07-26
 
+### Changed
+- **App Store Rating Flow & 2-Step Glass Bottom Sheet:** Updated `AppReviewService` rating prompt threshold from 7 days of usage down to 3 days after initial app launch. Replaced unprompted background review trigger with an interactive 2-step `showGlassBottomMenu` dialog asking "Gefällt dir Train Libre?". Selecting "Ja, gefällt mir" triggers native `in_app_review` rating prompt and marks prompt as completed; selecting "Nein, nicht wirklich" dismisses the menu and marks prompt completed to prevent low ratings on the App Store; selecting "Erinnere mich später" snoozes the rating prompt for 7 days.
+
 ### Fixed
 - **Exercise Notes Localized Tooltips:** Replaced hardcoded German tooltip strings (`"Notizen bearbeiten"`) with localized strings (`l10n.exerciseNoteTitle`) across workout components (`LiveWorkoutScreen`, `EditRoutineExerciseCard`, `WorkoutExerciseLogCard`), ensuring correct accessibility labels for screen readers in all supported languages (PR #532).
 - **Food Selection Accessibility Tooltips:** Added missing localized tooltips (`l10n.add_button`) to icon-only add buttons in `FoodExplorerScreen`, `GeneralFoodSelectionScreen`, and `FoodItemSearchTile` for enhanced screen reader navigation (PR #534).

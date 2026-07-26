@@ -5643,4 +5643,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statisticsActiveGapTitle => 'No data available';
+
+  @override
+  String get reviewPromptTitle => 'Do you like Train Libre?';
+
+  @override
+  String get reviewPromptSubtitle =>
+      'Your feedback helps us continuously improve the app without ads or trackers.';
+
+  @override
+  String get reviewPromptYes => 'Yes, I like it';
+
+  @override
+  String get reviewPromptNo => 'No, not really';
+
+  @override
+  String get reviewPromptLater => 'Remind me later';
 }

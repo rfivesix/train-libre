@@ -2543,5 +2543,10 @@
   "emptyStateDiaryColdStartCallToAction": "Enregistrez votre première entrée ici",
   "statisticsColdStartTitle": "Bienvenue dans vos statistiques !",
   "statisticsColdStartSubtitle": "Vos progrès seront visualisés ici dès que vous aurez enregistré vos premiers entraînements, repas ou suivi vos pas et votre sommeil.",
-  "statisticsActiveGapTitle": "Aucune donnée disponible"
+  "statisticsActiveGapTitle": "Aucune donnée disponible",
+  "reviewPromptTitle": "Aimez-vous Train Libre ?",
+  "reviewPromptSubtitle": "Vos retours nous aident à améliorer l'application sans publicité ni traqueurs.",
+  "reviewPromptYes": "Oui, j'aime bien",
+  "reviewPromptNo": "Non, pas vraiment",
+  "reviewPromptLater": "Rappelez-moi plus tard"
 }

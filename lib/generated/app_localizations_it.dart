@@ -5730,4 +5730,20 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statisticsActiveGapTitle => 'Nessun dato disponibile';
+
+  @override
+  String get reviewPromptTitle => 'Ti piace Train Libre?';
+
+  @override
+  String get reviewPromptSubtitle =>
+      'Il tuo feedback ci aiuta a migliorare l\'app senza pubblicità o tracker.';
+
+  @override
+  String get reviewPromptYes => 'Sì, mi piace';
+
+  @override
+  String get reviewPromptNo => 'No, non proprio';
+
+  @override
+  String get reviewPromptLater => 'Ricordamelo più tardi';
 }

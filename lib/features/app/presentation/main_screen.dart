@@ -107,7 +107,7 @@ class _MainScreenState extends State<MainScreen>
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePendingAppTourEntry();
-      AppReviewService.instance.checkAndRequestReview();
+      AppReviewService.instance.checkAndRequestReview(context);
     });
   }
 
