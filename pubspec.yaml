@@ -64,7 +64,7 @@ dependencies:
     git:
       url: https://github.com/rfivesix/flutter_body_highlighter
       ref: main
-  liquid_glass_widgets: ^0.22.1
+  liquid_glass_widgets: ^0.24.1
   flutter_lucide: ^1.11.0
   in_app_review: ^2.0.12
   icloud_storage: ^2.0.3
