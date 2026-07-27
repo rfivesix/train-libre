@@ -51,17 +51,17 @@ RegularityMetrics calculateRegularityMetrics(
     );
   }
 
-  final bedtimes =
-      window.map((night) => night.bedtimeMinutes.toDouble()).toList();
-  final wakeTimes =
-      window.map((night) => night.wakeMinutes.toDouble()).toList();
+  // Optimization: use lazy MappedIterables instead of eager List allocations (.toList())
+  // This prevents unnecessary garbage collection pressure during reactive calculations.
+  final bedtimes = window.map((night) => night.bedtimeMinutes.toDouble());
+  final wakeTimes = window.map((night) => night.wakeMinutes.toDouble());
   final mids = window.map((night) {
     final wake = _unwrapWake(
       bedtimeMinutes: night.bedtimeMinutes,
       wakeMinutes: night.wakeMinutes,
     );
     return ((night.bedtimeMinutes + wake) / 2) % 1440;
-  }).toList();
+  });
 
   final bedSd = circularStandardDeviationMinutes(bedtimes);
   final wakeSd = circularStandardDeviationMinutes(wakeTimes);
@@ -79,7 +79,7 @@ RegularityMetrics calculateRegularityMetrics(
   );
 }
 
-double circularMeanMinutes(List<double> values) {
+double circularMeanMinutes(Iterable<double> values) {
   if (values.isEmpty) return 0;
   var sinSum = 0.0;
   var cosSum = 0.0;
@@ -94,7 +94,7 @@ double circularMeanMinutes(List<double> values) {
   return normalized;
 }
 
-double circularStandardDeviationMinutes(List<double> values) {
+double circularStandardDeviationMinutes(Iterable<double> values) {
   if (values.length <= 1) return 0;
   var sinSum = 0.0;
   var cosSum = 0.0;
