@@ -20,3 +20,7 @@
 ## 2024-05-18 - Workout Set Checkbox Accessibility
 **Learning:** High-frequency, primary interaction targets like the workout set completion checkbox are easily overlooked for accessibility labels because they are visually obvious. Without an ARIA-equivalent label, screen reader users navigating a complex table of workout sets are completely blocked from understanding the primary action for each row.
 **Action:** Always ensure that icon-only `IconButton` elements, especially those acting as custom checkboxes or toggles in lists/tables, include a dynamic `tooltip` that reflects their current state (e.g., using fallback keys like `undo` and `doneButtonLabel` if specific ones don't exist).
+
+## 2024-06-25 - Icon-only buttons lacking tooltip labels
+**Learning:** In Flutter, `IconButton` widgets often consist of purely visual `Icon` children. If they lack a `tooltip` parameter, screen readers cannot audibly describe their function, and visual users lose hover hints. This pattern of missing tooltips frequently occurs when copy-pasting icon action rows.
+**Action:** When adding or reviewing `IconButton`s, always enforce the inclusion of the `tooltip` parameter using localized strings (e.g., from `l10n` or `MaterialLocalizations.of(context)`).
