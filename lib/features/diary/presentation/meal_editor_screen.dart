@@ -155,6 +155,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
               title: Text(l10n.mealIngredientsTitle),
               subtitle: Text(l10n.mealEditorNoIngredientsYet),
               trailing: IconButton(
+                tooltip: l10n.add_button,
                 icon: const Icon(LucideIcons.plus),
                 onPressed: () {
                   // Later: open product picker

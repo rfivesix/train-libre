@@ -497,6 +497,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
+                                  tooltip: l10n.passwordLabel,
                                   icon: Icon(
                                     _obscureKey
                                         ? LucideIcons.eye_off
