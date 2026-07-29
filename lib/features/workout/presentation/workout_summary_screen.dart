@@ -659,15 +659,19 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     WorkoutLog log,
     Map<String, Exercise> exerciseDetails,
   ) {
-    final workingSets = log.sets
-        .where(
-            (s) => s.isCompleted == true && s.setType.toLowerCase() != 'warmup')
-        .toList();
-
+    final logExCounts = <String, int>{};
     final logExNames = <String>[];
-    for (final s in workingSets) {
-      if (!logExNames.contains(s.exerciseName)) {
-        logExNames.add(s.exerciseName);
+
+    for (final s in log.sets) {
+      if (s.isCompleted == true && s.setType.toLowerCase() != 'warmup') {
+        final name = s.exerciseName;
+        final currentCount = logExCounts[name];
+        if (currentCount != null) {
+          logExCounts[name] = currentCount + 1;
+        } else {
+          logExNames.add(name);
+          logExCounts[name] = 1;
+        }
       }
     }
 
@@ -689,9 +693,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         return true;
       }
 
-      final logSetsForEx =
-          workingSets.where((s) => s.exerciseName == logName).toList();
-      if (routineEx.setTemplates.length != logSetsForEx.length) {
+      if (routineEx.setTemplates.length != logExCounts[logName]) {
         return true;
       }
     }
