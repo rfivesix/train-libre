@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-beta.6] - 2026-07-31
 
 ### Changed
+- **iOS Liquid Glass Optics & Backdrop Vignette Architecture:** Overhauled application-wide glassmorphic styling and shadow hierarchy. Replaced hard artificial drop shadows (`glassShadow`) across floating buttons (`GlassFAB`, `RunningWorkoutOverlay`, rest timer bar) with clean background vignette gradients (`DesignConstants.bottomVignetteGradient`). Implemented soft, exponential fade-out vignettes for top (`GlobalAppBar`) and bottom navigation overlays (pure dark in Dark Mode, subtle off-white/cool grey tint in Light Mode), reaching 100% solid opacity right at the outer screen boundary while preserving translucency directly behind floating UI components. Refined glass shader parameters (`saturation: 0.70`, tuned `glassColor` opacities) for authentic iOS-style material desaturation and frosted contrast across light and dark themes.
 - **Liquid Glass Widgets Upgrade (v0.24.1):** Upgraded `liquid_glass_widgets` dependency from `0.22.1` to `0.24.1` (PR #536).
 - **Navigation Dock Capsule Radius Fix:** Updated `GlassTabBar.bottom` in `main_screen.dart` to use `GlassDefaults.capsuleRadius` for both `barBorderRadius` and `indicatorBorderRadius`, restoring smooth capsule indicator geometry in the bottom navigation dock.
 
