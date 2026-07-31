@@ -9,6 +9,9 @@ import '../domain/repositories/diary_repository.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import 'package:drift/drift.dart' as drift;
 import '../../../../data/drift_database.dart' as db;
+import '../../../../services/telemetry/telemetry_service.dart';
+import 'dart:async';
+
 
 /// Concrete implementation of [IDiaryRepository] implementing database transaction logic.
 class NutritionRepository implements IDiaryRepository {
@@ -110,8 +113,12 @@ class NutritionRepository implements IDiaryRepository {
       _localDataSource.insertFluidEntry(entry);
 
   @override
-  Future<int> insertFoodEntry(FoodEntry entry) =>
-      _localDataSource.insertFoodEntry(entry);
+  Future<int> insertFoodEntry(FoodEntry entry) async {
+    final id = await _localDataSource.insertFoodEntry(entry);
+    unawaited(TelemetryService.instance.incrementFoodLogCount(source: 'diary_entry'));
+    return id;
+  }
+
 
   @override
   Future<void> updateSupplementLog(SupplementLog log) =>

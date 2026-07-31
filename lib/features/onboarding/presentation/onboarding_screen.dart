@@ -1,7 +1,9 @@
 // lib/screens/onboarding_screen.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
+
 
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +52,8 @@ import '../../health_export/export_service.dart';
 import '../../health_export/adapters/apple_health/apple_health_export_adapter.dart';
 import '../../health_export/adapters/health_connect/health_connect_export_adapter.dart';
 import '../../health_export/models/export_models.dart';
+import 'package:uuid/uuid.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../widgets/common/app_button.dart';
 
 /// The initial setup flow for new users.
@@ -96,6 +100,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   String? _lastWarnedHeightValue;
   String? _lastWarnedWeightValue;
 
+  final String _onboardingSessionId = const Uuid().v4();
+  final Stopwatch _stepStopwatch = Stopwatch()..start();
+  final Stopwatch _totalStopwatch = Stopwatch()..start();
+  bool _onboardingCompletedSuccessfully = false;
+
+  static const List<String> _stepNames = [
+    'welcome',
+    'unit_system',
+    'region_selection',
+    'profile_basics',
+    'body_measurements',
+    'adaptive_goals',
+    'permissions_consent',
+    'completion',
+  ];
+
   OffCatalogCountry _selectedOffCountry = OffCatalogCountry.de;
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -103,6 +123,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _isGeneratingOnboardingRecommendation = false;
   bool _isCheckingDatabase = false;
   Future<void>? _onboardingRecommendationFuture;
+
 
   late final AdaptiveNutritionRecommendationService _recommendationService;
   late final DatabaseHelper _databaseHelper;
@@ -221,6 +242,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   void dispose() {
+    if (!_onboardingCompletedSuccessfully) {
+      TelemetryService.instance.trackOnboardingAbandoned(
+        lastStepIndex: _currentPage,
+        lastStepName: _stepNames[_currentPage.clamp(0, _stepNames.length - 1)],
+        sessionId: _onboardingSessionId,
+      );
+    }
     _pageController.dispose();
     _nameController.dispose();
     _heightController.dispose();
@@ -233,6 +261,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _waterController.dispose();
     super.dispose();
   }
+
 
   // --- LOGIC ---
 
@@ -479,7 +508,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool('hasSeenOnboarding', true);
     await AppTourService.instance.queuePostOnboardingOffer();
 
+    _onboardingCompletedSuccessfully = true;
+    unawaited(TelemetryService.instance.trackOnboardingCompleted(
+      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+      restoredFromBackup: _isImportedMode,
+      sessionId: _onboardingSessionId,
+    ));
+
     if (!mounted) return;
+
 
     if (_requiresHardRestart) {
       app_main.main();
@@ -984,6 +1021,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (i) {
+                  final durationSec = _stepStopwatch.elapsed.inSeconds;
+                  _stepStopwatch.reset();
+                  _stepStopwatch.start();
+
+                  TelemetryService.instance.trackOnboardingStep(
+                    stepIndex: i,
+                    stepName: _stepNames[i.clamp(0, _stepNames.length - 1)],
+                    durationSeconds: durationSec,
+                    sessionId: _onboardingSessionId,
+                  );
+
                   setState(() => _currentPage = i);
                   if (i == _adaptiveGoalPageIndex) {
                     _refreshOnboardingRecommendationPreview();
@@ -992,6 +1040,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     _runAutomatedPermissionSequence();
                   }
                 },
+
                 children: [
                   WelcomeSlide(
                     isRestoring: _isRestoring,

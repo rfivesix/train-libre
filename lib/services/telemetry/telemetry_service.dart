@@ -46,7 +46,7 @@ abstract class TelemetryService {
     Map<String, dynamic>? properties,
   });
 
-  /// Event 1: app_launched
+  /// Event 1: app_launched (DAU/MAU via isolated persistent device UUID)
   Future<void> trackAppLaunched({
     required String appVersion,
     required String osVersion,
@@ -55,20 +55,78 @@ abstract class TelemetryService {
     String? installSource,
   });
 
-  /// Event 2: workout_completed
+  /// Event 2: workout_completed (Aggregated counts and subfeature usage flags, ZERO PII)
   Future<void> trackWorkoutCompleted({
-    required String workoutType,
-    required String durationBucket,
-    required String exerciseCountBucket,
+    required String workoutType, // 'routine' or 'custom' ONLY (no custom titles)
+    required int exerciseCount,
+    required int setCount,
+    required int durationMinutes,
+    bool hasRestTimer = false,
+    int restTimerCount = 0,
+    bool hasRir = false,
+    int rirSetsCount = 0,
+    bool hasSupersets = false,
+    int supersetCount = 0,
+    bool hasWarmupSets = false,
+    bool hasDropSets = false,
+    bool hasFailureSets = false,
+    bool usedPlateCalculator = false,
+    bool hasWorkoutNotes = false,
   });
 
-  /// Event 3a: ai_meal_scan_requested
+  /// Event 3: screen_viewed
+  Future<void> trackScreenView({
+    required String screenName,
+  });
+
+  /// Event 4: feature_used
+  Future<void> trackFeatureUsed({
+    required String featureKey,
+    Map<String, dynamic>? extraProps,
+  });
+
+  /// Event 5: daily_food_logged counter increment & flush
+  Future<void> incrementFoodLogCount({
+    required String source,
+  });
+
+  Future<void> flushDailyFoodLog();
+
+  /// Event 6: setting_toggled
+  Future<void> trackSettingToggled({
+    required String settingKey,
+    required dynamic value,
+  });
+
+  /// Event 7a: onboarding_step_viewed
+  Future<void> trackOnboardingStep({
+    required int stepIndex,
+    required String stepName,
+    required int durationSeconds,
+    required String sessionId,
+  });
+
+  /// Event 7b: onboarding_completed
+  Future<void> trackOnboardingCompleted({
+    required int totalDurationSeconds,
+    required bool restoredFromBackup,
+    required String sessionId,
+  });
+
+  /// Event 7c: onboarding_abandoned
+  Future<void> trackOnboardingAbandoned({
+    required int lastStepIndex,
+    required String lastStepName,
+    required String sessionId,
+  });
+
+  /// Event 8a: ai_meal_scan_requested
   Future<void> trackAiMealScanRequested({
     required String requestId,
     required String provider,
   });
 
-  /// Event 3b: ai_meal_scan_completed
+  /// Event 8b: ai_meal_scan_completed
   Future<void> trackAiMealScanCompleted({
     required String requestId,
     required String provider,
@@ -77,10 +135,11 @@ abstract class TelemetryService {
     String? errorCode,
   });
 
-  /// Event 4: db_migration_status
+  /// Event 9: db_migration_status
   Future<void> trackDbMigrationStatus({
     required int fromVersion,
     required int toVersion,
     required bool success,
   });
 }
+

@@ -1,21 +1,29 @@
 // lib/services/telemetry/telemetry_service_posthog.dart
 
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import 'telemetry_service.dart';
 
 /// PostHog EU TelemetryService implementation with strict opt-in,
-/// IP anonymization, and no PII capture.
+/// IP anonymization, 2-ID strategy (DAU/MAU vs in-app events), and no PII capture.
 class PostHogTelemetryService implements TelemetryService {
   static const String _prefOptInKey = 'telemetry_opt_in';
+  static const String _prefDeviceIdKey = 'telemetry_persistent_device_id';
+  static const String _prefFoodLogCountKey = 'telemetry_daily_food_count';
+  static const String _prefFoodLogSourcesKey = 'telemetry_daily_food_sources';
+
   static const String _defaultApiKey = String.fromEnvironment('POSTHOG_API_KEY',
       defaultValue: 'phc_vmLGxjjWfVB58y7smThJX9mQte9Y97Kff62EmLDtNWTB');
   static const String _postHogEuHost = 'https://eu.i.posthog.com';
 
   bool _initialized = false;
   bool _optedIn = false;
+  String? _persistentDeviceId;
 
   @override
   Future<void> init() async {
@@ -24,6 +32,13 @@ class PostHogTelemetryService implements TelemetryService {
     try {
       final prefs = await SharedPreferences.getInstance();
       _optedIn = prefs.getBool(_prefOptInKey) ?? false;
+
+      // Ensure persistent device ID exists (generated locally, stored in prefs, never hardware derived)
+      _persistentDeviceId = prefs.getString(_prefDeviceIdKey);
+      if (_persistentDeviceId == null || _persistentDeviceId!.isEmpty) {
+        _persistentDeviceId = const Uuid().v4();
+        await prefs.setString(_prefDeviceIdKey, _persistentDeviceId!);
+      }
 
       final config = PostHogConfig(_defaultApiKey)
         ..host = _postHogEuHost
@@ -82,13 +97,21 @@ class PostHogTelemetryService implements TelemetryService {
   }) async {
     if (!_optedIn) return;
     try {
-      final Map<String, Object>? objectProps = properties == null
-          ? null
-          : Map<String, Object>.from(properties);
+      // Enforce strict zero-profiling, zero-geolocation privacy flags
+      final Map<String, Object> enrichedProps = {
+        r'$process_person_profile': false,
+        r'$ip': '0.0.0.0',
+        r'$geoip_disable': true,
+        if (properties != null)
+          ...properties.map((key, value) => MapEntry(key, value as Object)),
+      };
+
       await Posthog().capture(
         eventName: eventName,
-        properties: objectProps,
+        properties: enrichedProps,
       );
+
+
     } catch (e) {
       debugPrint('PostHogTelemetryService track error ($eventName): $e');
     }
@@ -102,25 +125,202 @@ class PostHogTelemetryService implements TelemetryService {
     required String locale,
     String? installSource,
   }) async {
-    await track('app_launched', properties: {
-      'app_version': appVersion,
-      'os_version': osVersion,
-      'platform': platform,
-      'locale': locale,
-      if (installSource != null) 'install_source': installSource,
-    });
+    if (!_optedIn) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _persistentDeviceId ??= prefs.getString(_prefDeviceIdKey);
+      if (_persistentDeviceId == null || _persistentDeviceId!.isEmpty) {
+        _persistentDeviceId = const Uuid().v4();
+        await prefs.setString(_prefDeviceIdKey, _persistentDeviceId!);
+      }
+
+      // Option B: Direct HTTP POST call to PostHog EU with isolated persistent device ID
+      // This allows PostHog to calculate DAU/MAU uniqueness without building Person Profiles
+      // and without contaminating the SDK state for in-app events.
+      final url = Uri.parse('$_postHogEuHost/capture/');
+      final body = jsonEncode({
+        'api_key': _defaultApiKey,
+        'event': 'app_launched',
+        'distinct_id': _persistentDeviceId,
+        'properties': {
+          r'$process_person_profile': false,
+          r'$ip': '0.0.0.0',
+          r'$geoip_disable': true,
+
+          'app_version': appVersion,
+          'os_version': osVersion,
+          'platform': platform,
+          'locale': locale,
+          if (installSource != null) 'install_source': installSource,
+        },
+      });
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (kDebugMode && response.statusCode != 200) {
+        debugPrint(
+            'trackAppLaunched PostHog response code: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('PostHogTelemetryService trackAppLaunched error: $e');
+    }
   }
 
   @override
   Future<void> trackWorkoutCompleted({
     required String workoutType,
-    required String durationBucket,
-    required String exerciseCountBucket,
+    required int exerciseCount,
+    required int setCount,
+    required int durationMinutes,
+    bool hasRestTimer = false,
+    int restTimerCount = 0,
+    bool hasRir = false,
+    int rirSetsCount = 0,
+    bool hasSupersets = false,
+    int supersetCount = 0,
+    bool hasWarmupSets = false,
+    bool hasDropSets = false,
+    bool hasFailureSets = false,
+    bool usedPlateCalculator = false,
+    bool hasWorkoutNotes = false,
   }) async {
+    // Force workoutType to enum 'routine' or 'custom' ONLY to prevent custom title leaks
+    final safeType = workoutType == 'routine' ? 'routine' : 'custom';
     await track('workout_completed', properties: {
-      'workout_type': workoutType,
-      'duration_bucket': durationBucket,
-      'exercise_count_bucket': exerciseCountBucket,
+      'workout_type': safeType,
+      'exercise_count': exerciseCount,
+      'set_count': setCount,
+      'duration_minutes': durationMinutes,
+      'has_rest_timer': hasRestTimer,
+      'rest_timer_count': restTimerCount,
+      'has_rir': hasRir,
+      'rir_sets_count': rirSetsCount,
+      'has_supersets': hasSupersets,
+      'superset_count': supersetCount,
+      'has_warmup_sets': hasWarmupSets,
+      'has_drop_sets': hasDropSets,
+      'has_failure_sets': hasFailureSets,
+      'used_plate_calculator': usedPlateCalculator,
+      'has_workout_notes': hasWorkoutNotes,
+    });
+  }
+
+  @override
+  Future<void> trackScreenView({
+    required String screenName,
+  }) async {
+    await track('screen_viewed', properties: {
+      'screen_name': screenName,
+    });
+  }
+
+  @override
+  Future<void> trackFeatureUsed({
+    required String featureKey,
+    Map<String, dynamic>? extraProps,
+  }) async {
+    await track('feature_used', properties: {
+      'feature_key': featureKey,
+      if (extraProps != null) ...extraProps,
+    });
+  }
+
+  @override
+  Future<void> incrementFoodLogCount({
+    required String source,
+  }) async {
+    if (!_optedIn) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final currentCount = prefs.getInt(_prefFoodLogCountKey) ?? 0;
+      final currentSources =
+          prefs.getStringList(_prefFoodLogSourcesKey) ?? <String>[];
+
+      await prefs.setInt(_prefFoodLogCountKey, currentCount + 1);
+      if (!currentSources.contains(source)) {
+        currentSources.add(source);
+        await prefs.setStringList(_prefFoodLogSourcesKey, currentSources);
+      }
+    } catch (e) {
+      debugPrint('incrementFoodLogCount error: $e');
+    }
+  }
+
+  @override
+  Future<void> flushDailyFoodLog() async {
+    if (!_optedIn) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final count = prefs.getInt(_prefFoodLogCountKey) ?? 0;
+      if (count > 0) {
+        final sources =
+            prefs.getStringList(_prefFoodLogSourcesKey) ?? <String>[];
+        await track('daily_food_logged', properties: {
+          'count': count,
+          'sources': sources,
+        });
+
+        await prefs.setInt(_prefFoodLogCountKey, 0);
+        await prefs.setStringList(_prefFoodLogSourcesKey, <String>[]);
+      }
+    } catch (e) {
+      debugPrint('flushDailyFoodLog error: $e');
+    }
+  }
+
+  @override
+  Future<void> trackSettingToggled({
+    required String settingKey,
+    required dynamic value,
+  }) async {
+    await track('setting_toggled', properties: {
+      'setting_key': settingKey,
+      'value': value,
+    });
+  }
+
+  @override
+  Future<void> trackOnboardingStep({
+    required int stepIndex,
+    required String stepName,
+    required int durationSeconds,
+    required String sessionId,
+  }) async {
+    await track('onboarding_step_viewed', properties: {
+      'step_index': stepIndex,
+      'step_name': stepName,
+      'duration_seconds': durationSeconds,
+      'session_id': sessionId,
+    });
+  }
+
+  @override
+  Future<void> trackOnboardingCompleted({
+    required int totalDurationSeconds,
+    required bool restoredFromBackup,
+    required String sessionId,
+  }) async {
+    await track('onboarding_completed', properties: {
+      'total_duration_seconds': totalDurationSeconds,
+      'restored_from_backup': restoredFromBackup,
+      'session_id': sessionId,
+    });
+  }
+
+  @override
+  Future<void> trackOnboardingAbandoned({
+    required int lastStepIndex,
+    required String lastStepName,
+    required String sessionId,
+  }) async {
+    await track('onboarding_abandoned', properties: {
+      'last_step_index': lastStepIndex,
+      'last_step_name': lastStepName,
+      'session_id': sessionId,
     });
   }
 

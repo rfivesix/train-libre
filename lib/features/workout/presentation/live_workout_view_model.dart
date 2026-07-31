@@ -15,7 +15,7 @@ import '../../../services/local_notification_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../util/time_util.dart';
 import '../../../services/telemetry/telemetry_service.dart';
-import '../../../services/telemetry/telemetry_buckets.dart';
+
 
 class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final IWorkoutRepository _repository;
@@ -853,18 +853,37 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       final duration = _elapsedDuration;
-      final durationBucket = TelemetryBuckets.getDurationBucket(duration);
-      final exerciseCountBucket =
-          TelemetryBuckets.getExerciseCountBucket(_exercises.length);
-      final workoutType = title ?? _workoutLog?.routineName ?? 'custom';
+      final workoutType = (_workoutLog?.routineId != null) ? 'routine' : 'custom';
+      final completedSets = _setLogs.values.where((s) => s.isCompleted == true).toList();
+      final totalSetCount = completedSets.length;
+
+      final rirSetsCount = completedSets.where((s) => s.rir != null || s.rpe != null).length;
+      final hasWarmupSets = completedSets.any((s) => s.setType.toLowerCase().contains('warm'));
+      final hasDropSets = completedSets.any((s) => s.setType.toLowerCase().contains('drop'));
+      final hasFailureSets = completedSets.any((s) => s.setType.toLowerCase().contains('fail'));
+
+      final supersetIds = completedSets.map((s) => s.supersetId).whereType<int>().toSet();
+
 
       await _repository.finishWorkout(logId, title: title, notes: notes);
 
       unawaited(TelemetryService.instance.trackWorkoutCompleted(
         workoutType: workoutType,
-        durationBucket: durationBucket,
-        exerciseCountBucket: exerciseCountBucket,
+        exerciseCount: _exercises.length,
+        setCount: totalSetCount,
+        durationMinutes: duration.inMinutes,
+        hasRestTimer: pauseTimes.isNotEmpty,
+        restTimerCount: pauseTimes.length,
+        hasRir: rirSetsCount > 0,
+        rirSetsCount: rirSetsCount,
+        hasSupersets: supersetIds.isNotEmpty,
+        supersetCount: supersetIds.length,
+        hasWarmupSets: hasWarmupSets,
+        hasDropSets: hasDropSets,
+        hasFailureSets: hasFailureSets,
+        hasWorkoutNotes: notes != null && notes.trim().isNotEmpty,
       ));
+
 
       _workoutLog = null;
       _setLogs.clear();

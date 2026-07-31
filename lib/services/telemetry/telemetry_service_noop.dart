@@ -38,8 +38,67 @@ class NoOpTelemetryService implements TelemetryService {
   @override
   Future<void> trackWorkoutCompleted({
     required String workoutType,
-    required String durationBucket,
-    required String exerciseCountBucket,
+    required int exerciseCount,
+    required int setCount,
+    required int durationMinutes,
+    bool hasRestTimer = false,
+    int restTimerCount = 0,
+    bool hasRir = false,
+    int rirSetsCount = 0,
+    bool hasSupersets = false,
+    int supersetCount = 0,
+    bool hasWarmupSets = false,
+    bool hasDropSets = false,
+    bool hasFailureSets = false,
+    bool usedPlateCalculator = false,
+    bool hasWorkoutNotes = false,
+  }) async {}
+
+  @override
+  Future<void> trackScreenView({
+    required String screenName,
+  }) async {}
+
+  @override
+  Future<void> trackFeatureUsed({
+    required String featureKey,
+    Map<String, dynamic>? extraProps,
+  }) async {}
+
+  @override
+  Future<void> incrementFoodLogCount({
+    required String source,
+  }) async {}
+
+  @override
+  Future<void> flushDailyFoodLog() async {}
+
+  @override
+  Future<void> trackSettingToggled({
+    required String settingKey,
+    required dynamic value,
+  }) async {}
+
+  @override
+  Future<void> trackOnboardingStep({
+    required int stepIndex,
+    required String stepName,
+    required int durationSeconds,
+    required String sessionId,
+  }) async {}
+
+  @override
+  Future<void> trackOnboardingCompleted({
+    required int totalDurationSeconds,
+    required bool restoredFromBackup,
+    required String sessionId,
+  }) async {}
+
+  @override
+  Future<void> trackOnboardingAbandoned({
+    required int lastStepIndex,
+    required String lastStepName,
+    required String sessionId,
   }) async {}
 
   @override

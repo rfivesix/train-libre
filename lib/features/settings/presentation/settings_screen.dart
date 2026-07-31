@@ -77,7 +77,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadOffCatalogSettings();
     _loadBaseFoodLanguage();
     _loadTelemetryOptIn();
+    unawaited(TelemetryService.instance.trackScreenView(screenName: 'settings_main'));
   }
+
 
   Future<void> _loadTelemetryOptIn() async {
     final optedIn = await TelemetryService.instance.isOptedIn();
@@ -341,11 +343,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   value: unitService.isImperial,
                   onChanged: (value) {
-                    unitService.setUnitSystem(
-                      value ? UnitSystem.imperial : UnitSystem.metric,
-                    );
+                    final newSystem = value ? UnitSystem.imperial : UnitSystem.metric;
+                    unitService.setUnitSystem(newSystem);
+                    unawaited(TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'unit_system',
+                      value: newSystem.name,
+                    ));
                   },
                 ),
+
 
                 const Divider(height: 1),
                 _buildNavigationCard(
@@ -607,9 +613,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     } else {
                       await TelemetryService.instance.optOut();
                     }
+                    unawaited(TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'telemetry_opt_in',
+                      value: value,
+                    ));
                     if (!mounted) return;
                     setState(() => _isTelemetryOptedIn = value);
                   },
+
                 ),
               ],
             ),

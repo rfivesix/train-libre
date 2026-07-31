@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../data/database_helper.dart';
+
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../diary/presentation/dialogs/fluid_dialog_content.dart';
 import '../../supplements/presentation/dialogs/log_supplement_menu.dart';
@@ -60,7 +63,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen>
-    with TickerProviderStateMixin, RouteAware {
+    with TickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   late PageController _pageController;
   int _currentIndex = 0;
   final GlobalKey<DiaryScreenState> _tagebuchKey =
@@ -96,9 +99,18 @@ class _MainScreenState extends State<MainScreen>
     return DateTime.now().dateOnly;
   }
 
+  static const List<String> _tabScreenNames = [
+    'diary_tab',
+    'workout_tab',
+    'analytics_tab',
+    'profile_tab',
+    'settings_tab',
+  ];
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _currentIndex = widget.initialTabIndex ?? 0;
     _pageController = PageController(initialPage: _currentIndex);
     _menuController = AnimationController(
@@ -108,7 +120,19 @@ class _MainScreenState extends State<MainScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePendingAppTourEntry();
       AppReviewService.instance.checkAndRequestReview(context);
+      if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
+        unawaited(TelemetryService.instance.trackScreenView(
+          screenName: _tabScreenNames[_currentIndex],
+        ));
+      }
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      unawaited(TelemetryService.instance.flushDailyFoodLog());
+    }
   }
 
   @override
@@ -133,6 +157,7 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
     }
@@ -146,12 +171,18 @@ class _MainScreenState extends State<MainScreen>
       return;
     }
     setState(() => _currentIndex = index);
+    if (index >= 0 && index < _tabScreenNames.length) {
+      unawaited(TelemetryService.instance.trackScreenView(
+        screenName: _tabScreenNames[index],
+      ));
+    }
     if (index == 2) {
       if (mounted && _currentIndex == 2) {
         _statsKey.currentState?.refresh();
       }
     }
   }
+
 
   final bool _isWarping = false;
 

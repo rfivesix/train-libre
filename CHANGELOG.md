@@ -7,7 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-beta.6] - 2026-07-31
 
 ### Changed
+- **Data-Minimizing & Zero-Profiling Telemetry Architecture (PostHog EU):** Overhauled `TelemetryService` and `PostHogTelemetryService` to enforce strict data minimization, zero profiling (`$process_person_profile: false`), and complete IP/location scrubbing (`$ip: '0.0.0.0'`, `$geoip_disable: true`). Implemented a **2-ID strategy** (Option B direct HTTP POST to PostHog EU for `app_launched` with persistent device UUID for accurate DAU/MAU counting without user profiling or in-app event correlation). Added ephemeral RAM session UUIDs for onboarding funnel tracking (`onboarding_step_viewed`, `onboarding_completed`, `onboarding_abandoned`), daily aggregated food logging counter (`daily_food_logged`), comprehensive screen view tracking (`screen_viewed`), feature usage triggers (`feature_used`), settings toggles (`setting_toggled`), and anonymized workout subfeature metrics (rest timer, RIR, supersets, warmup/drop/failure set flags, plate calculator).
 - **iOS Liquid Glass Optics & Backdrop Vignette Architecture:** Overhauled application-wide glassmorphic styling and shadow hierarchy. Replaced hard artificial drop shadows (`glassShadow`) across floating buttons (`GlassFAB`, `RunningWorkoutOverlay`, rest timer bar) with clean background vignette gradients (`DesignConstants.bottomVignetteGradient`). Implemented soft, exponential fade-out vignettes for top (`GlobalAppBar`) and bottom navigation overlays (pure dark in Dark Mode, subtle off-white/cool grey tint in Light Mode), reaching 100% solid opacity right at the outer screen boundary while preserving translucency directly behind floating UI components. Refined glass shader parameters (`saturation: 0.70`, tuned `glassColor` opacities) for authentic iOS-style material desaturation and frosted contrast across light and dark themes.
+
 - **Liquid Glass Widgets Upgrade (v0.24.1):** Upgraded `liquid_glass_widgets` dependency from `0.22.1` to `0.24.1` (PR #536).
 - **Navigation Dock Capsule Radius Fix:** Updated `GlassTabBar.bottom` in `main_screen.dart` to use `GlassDefaults.capsuleRadius` for both `barBorderRadius` and `indicatorBorderRadius`, restoring smooth capsule indicator geometry in the bottom navigation dock.
 
@@ -15,7 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Sleep & Workout Calculations Optimization:** Optimized regularity calculator, workout routine delta detection, and sleep chart bounds calculations to use lazy Iterables, single-pass O(N) loops, and HashMaps, significantly reducing garbage collection pressure and main thread jank (PR #537, PR #540, PR #542).
 
 ### Added
+- **Comprehensive English Telemetry Documentation (`TELEMETRY.md`):** Added a dedicated root documentation file detailing Train Libre's telemetry rationale, opt-in consent model, anti-profiling & 2-ID safeguards, zero-PII policies, and complete event schema catalog (`app_launched`, `onboarding_*`, `screen_viewed`, `feature_used`, `daily_food_logged`, `workout_completed`, `setting_toggled`).
 - **Accessibility Tooltips:** Added missing localized tooltips to interactive IconButtons across live workout, superset header, AI settings, and data management screens for improved screen reader support (PR #538, PR #539, PR #541).
+
 
 ## [1.0.0-beta.5] - 2026-07-26
 

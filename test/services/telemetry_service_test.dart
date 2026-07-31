@@ -1,0 +1,114 @@
+// test/services/telemetry_service_test.dart
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:train_libre/services/telemetry/telemetry_service.dart';
+import 'package:train_libre/services/telemetry/telemetry_service_noop.dart';
+import 'package:train_libre/services/telemetry/telemetry_service_posthog.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('TelemetryService Tests', () {
+    late TelemetryService postHogService;
+    late TelemetryService noOpService;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      postHogService = PostHogTelemetryService();
+      noOpService = const NoOpTelemetryService();
+    });
+
+    test('NoOpTelemetryService defaults to opted out and performs no-ops without throwing', () async {
+      expect(await noOpService.isOptedIn(), isFalse);
+
+      await noOpService.init();
+      await noOpService.optIn();
+      await noOpService.optOut();
+      await noOpService.trackScreenView(screenName: 'test_screen');
+      await noOpService.trackWorkoutCompleted(
+        workoutType: 'routine',
+        exerciseCount: 5,
+        setCount: 20,
+        durationMinutes: 45,
+        hasRestTimer: true,
+        restTimerCount: 15,
+        hasRir: true,
+        rirSetsCount: 10,
+        hasSupersets: true,
+        supersetCount: 2,
+        hasWarmupSets: true,
+        hasDropSets: false,
+        hasFailureSets: false,
+      );
+      await noOpService.incrementFoodLogCount(source: 'barcode_scan');
+      await noOpService.flushDailyFoodLog();
+    });
+
+    test('PostHogTelemetryService handles opt-in, persistent device ID and daily food logging state', () async {
+      final prefs = await SharedPreferences.getInstance();
+
+      expect(await postHogService.isOptedIn(), isFalse);
+
+      await postHogService.optIn();
+      expect(await postHogService.isOptedIn(), isTrue);
+      expect(prefs.getBool('telemetry_opt_in'), isTrue);
+
+      // Increment food log counter
+      await postHogService.incrementFoodLogCount(source: 'barcode_scan');
+      await postHogService.incrementFoodLogCount(source: 'manual_search');
+
+      expect(prefs.getInt('telemetry_daily_food_count'), 2);
+      expect(prefs.getStringList('telemetry_daily_food_sources'), containsAll(['barcode_scan', 'manual_search']));
+
+      // Flush daily food log
+      await postHogService.flushDailyFoodLog();
+
+      expect(prefs.getInt('telemetry_daily_food_count'), 0);
+      expect(prefs.getStringList('telemetry_daily_food_sources'), isEmpty);
+
+      // Opt out
+      await postHogService.optOut();
+      expect(await postHogService.isOptedIn(), isFalse);
+      expect(prefs.getBool('telemetry_opt_in'), isFalse);
+    });
+
+    test('PostHogTelemetryService tracks workout completed without PII', () async {
+      await postHogService.optIn();
+
+      await postHogService.trackWorkoutCompleted(
+        workoutType: 'My Custom Leg Day Workout Name', // Should be sanitized to 'custom'
+        exerciseCount: 6,
+        setCount: 24,
+        durationMinutes: 60,
+        hasRestTimer: true,
+        restTimerCount: 18,
+        hasRir: true,
+        rirSetsCount: 12,
+        hasSupersets: true,
+        supersetCount: 3,
+        hasWarmupSets: true,
+        hasDropSets: true,
+        hasFailureSets: false,
+      );
+    });
+
+    test('PostHogTelemetryService onboarding step and completion tracking', () async {
+      await postHogService.optIn();
+
+      const sessionId = 'test-session-uuid-1234';
+      await postHogService.trackOnboardingStep(
+        stepIndex: 0,
+        stepName: 'welcome',
+        durationSeconds: 15,
+        sessionId: sessionId,
+      );
+
+      await postHogService.trackOnboardingCompleted(
+        totalDurationSeconds: 120,
+        restoredFromBackup: false,
+        sessionId: sessionId,
+      );
+    });
+  });
+}
