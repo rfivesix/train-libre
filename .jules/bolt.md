@@ -19,3 +19,6 @@
 ## 2025-02-12 - Prevent Iterable Copying in Aggregations
 **Learning:** Utility functions (like `_averageDuration` or `_meanScore` in the Sleep module) typed as `List<T>` force callers to append `.toList()` to filter pipelines. Additionally, internally combining `whereType`, `where`, and `toList` creates multiple redundant loops and intermediate garbage arrays for simple sums.
 **Action:** Always type data parameters as `Iterable` rather than `List` when building aggregation helpers. Inside the function, use a single-pass `for (final item in items)` loop to check conditions and accumulate sums simultaneously. This guarantees O(1) memory and O(N) time for the calculation.
+## 2025-02-13 - Avoid eager List allocations for small local maps
+**Learning:** In Dart, chaining `.toList()` after `.map()` forces memory allocation and garbage collection. For short-lived operations where we only need to iterate over the data later, leaving it as an `Iterable` is significantly more memory-efficient. Additionally, calling `.length` on a lazy `MappedIterable` whose source is a `List` delegates to the underlying list, making it O(1) and perfectly safe.
+**Action:** When mapping over data arrays in reactive metrics calculations, refrain from appending `.toList()` unless random index access or mutations are actually needed.

@@ -175,10 +175,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.elasticOut,
       builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: child,
-        );
+        return Transform.scale(scale: value, child: child);
       },
       child: Tooltip(
         message: l10n.prBadgeTooltip,
@@ -192,11 +189,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                LucideIcons.trophy,
-                color: Colors.amber,
-                size: 14,
-              ),
+              const Icon(LucideIcons.trophy, color: Colors.amber, size: 14),
               const SizedBox(width: 4),
               Text(
                 label,
@@ -216,20 +209,23 @@ class LiveWorkoutSetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final log = context.select<LiveWorkoutViewModel, SetLog?>(
-            (vm) => vm.setLogs[templateId]) ??
+    final log =
+        context.select<LiveWorkoutViewModel, SetLog?>(
+          (vm) => vm.setLogs[templateId],
+        ) ??
         setLog;
     final bool isCompleted = log.isCompleted ?? false;
     final unitService = context.read<UnitService>();
 
     final isLightMode = Theme.of(context).brightness == Brightness.light;
-    final Color? textColor =
-        isCompleted ? (isLightMode ? Colors.black : Colors.white) : null;
+    final Color? textColor = isCompleted
+        ? (isLightMode ? Colors.black : Colors.white)
+        : null;
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
     final Color rowColor = isColoredRow
         ? (isLightMode
-            ? Colors.grey.withValues(alpha: 0.1)
-            : Colors.white.withValues(alpha: 0.1))
+              ? Colors.grey.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.1))
         : Colors.transparent;
 
     // Hint Logic
@@ -246,9 +242,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
       final double tWeight = template.targetWeight ?? 0.0;
       weightHint = tWeight > 0
           ? unitService
-              .convertDisplayValue(tWeight, UnitDimension.weight)
-              .toStringAsFixed(1)
-              .replaceAll('.0', '')
+                .convertDisplayValue(tWeight, UnitDimension.weight)
+                .toStringAsFixed(1)
+                .replaceAll('.0', '')
           : '0';
       repHint = (template.targetReps?.isNotEmpty == true)
           ? template.targetReps!
@@ -269,8 +265,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 style: TextStyle(
                   color: isCompleted
                       ? (log.setType == 'normal'
-                          ? (isLightMode ? Colors.black : Colors.white)
-                          : _getSetTypeColor(log.setType))
+                            ? (isLightMode ? Colors.black : Colors.white)
+                            : _getSetTypeColor(log.setType))
                       : _getSetTypeColor(log.setType),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -296,7 +292,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           if (lastSet.weightKg != null) {
                             final displayWeight = unitService
                                 .convertDisplayValue(
-                                    lastSet.weightKg!, UnitDimension.weight)
+                                  lastSet.weightKg!,
+                                  UnitDimension.weight,
+                                )
                                 .toStringAsFixed(1)
                                 .replaceAll('.0', '');
                             manager.weightControllers[templateId]?.text =
@@ -305,8 +303,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           }
                           // Apply reps
                           if (lastSet.reps != null) {
-                            manager.repsControllers[templateId]?.text =
-                                lastSet.reps.toString();
+                            manager.repsControllers[templateId]?.text = lastSet
+                                .reps
+                                .toString();
                             reps = lastSet.reps;
                           }
 
@@ -384,8 +383,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
               if (isCardio) {
                 if (val != manager.setLogs[templateId]?.distanceKm ||
                     clearValue) {
-                  manager.updateSet(templateId,
-                      distance: val, clearDistance: clearValue);
+                  manager.updateSet(
+                    templateId,
+                    distance: val,
+                    clearDistance: clearValue,
+                  );
                 }
               } else {
                 final metricValue = val == null
@@ -393,8 +395,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                     : unitService.convertToMetric(val, UnitDimension.weight);
                 if (metricValue != manager.setLogs[templateId]?.weightKg ||
                     clearValue) {
-                  manager.updateSet(templateId,
-                      weight: metricValue, clearWeight: clearValue);
+                  manager.updateSet(
+                    templateId,
+                    weight: metricValue,
+                    clearWeight: clearValue,
+                  );
                 }
               }
             },
@@ -431,11 +436,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 ? () async {
                     final currentSeconds =
                         manager.setLogs[templateId]?.durationSeconds ?? 0;
-                    final newDuration =
-                        await adaptive_pickers.showAdaptiveDurationPicker(
-                      context: context,
-                      initialDuration: Duration(seconds: currentSeconds),
-                    );
+                    final newDuration = await adaptive_pickers
+                        .showAdaptiveDurationPicker(
+                          context: context,
+                          initialDuration: Duration(seconds: currentSeconds),
+                        );
                     if (newDuration != null) {
                       final seconds = newDuration.inSeconds;
                       final clearDuration = seconds == 0;
@@ -444,8 +449,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           clearDuration) {
                         manager.repsControllers[templateId]?.text =
                             formatPauseDuration(seconds);
-                        manager.updateSet(templateId,
-                            duration: seconds, clearDuration: clearDuration);
+                        manager.updateSet(
+                          templateId,
+                          duration: seconds,
+                          clearDuration: clearDuration,
+                        );
                       }
                     }
                   }
@@ -456,8 +464,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 final clearDuration = seconds == null && text.isEmpty;
                 if (seconds != manager.setLogs[templateId]?.durationSeconds ||
                     clearDuration) {
-                  manager.updateSet(templateId,
-                      duration: seconds, clearDuration: clearDuration);
+                  manager.updateSet(
+                    templateId,
+                    duration: seconds,
+                    clearDuration: clearDuration,
+                  );
                 }
               } else {
                 final int? val;
@@ -479,8 +490,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 }
                 final clearValue = val == null && text.isEmpty;
                 if (val != manager.setLogs[templateId]?.reps || clearValue) {
-                  manager.updateSet(templateId,
-                      reps: val, clearReps: clearValue);
+                  manager.updateSet(
+                    templateId,
+                    reps: val,
+                    clearReps: clearValue,
+                  );
                 }
               }
             },
@@ -533,13 +547,16 @@ class LiveWorkoutSetRow extends StatelessWidget {
               SizedBox(
                 width: 48,
                 child: IconButton(
+                  tooltip: isCompleted ? l10n.undo : l10n.doneButtonLabel,
                   icon: Icon(
                     isCompleted ? LucideIcons.circle_check : LucideIcons.circle,
                     color: isCompleted ? Colors.green : Colors.grey,
                   ),
                   onPressed: () async {
-                    await manager.updateSet(templateId,
-                        isCompleted: !isCompleted);
+                    await manager.updateSet(
+                      templateId,
+                      isCompleted: !isCompleted,
+                    );
                     if (!isCompleted) {
                       final updatedSet = manager.setLogs[templateId];
                       if (updatedSet != null) {
@@ -557,9 +574,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           }
                         } else {
                           if (updatedSet.weightKg != null) {
-                            final displayWeight =
-                                unitService.convertDisplayValue(
-                                    updatedSet.weightKg!, UnitDimension.weight);
+                            final displayWeight = unitService
+                                .convertDisplayValue(
+                                  updatedSet.weightKg!,
+                                  UnitDimension.weight,
+                                );
                             manager.weightControllers[templateId]?.text =
                                 displayWeight
                                     .toStringAsFixed(2)
@@ -572,8 +591,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           }
                         }
                         if (updatedSet.rir != null) {
-                          manager.rirControllers[templateId]?.text =
-                              updatedSet.rir!.toString();
+                          manager.rirControllers[templateId]?.text = updatedSet
+                              .rir!
+                              .toString();
                         } else {
                           manager.rirControllers[templateId]?.text = '';
                         }
@@ -588,13 +608,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
       ],
     );
 
-    final currentSetE1rm = _calculateBrzyckiE1rm(
-      log,
-      requireCompleted: false,
-    );
+    final currentSetE1rm = _calculateBrzyckiE1rm(log, requireCompleted: false);
     final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
 
-    final bool hasPR = isCompleted &&
+    final bool hasPR =
+        isCompleted &&
         (log.isMaxWeightPR ||
             log.isMaxVolumePR ||
             log.isMaxEst1RMPR ||
@@ -635,8 +653,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     return Dismissible(
       key: ValueKey('set_$templateId'),
-      direction:
-          isCompleted ? DismissDirection.none : DismissDirection.endToStart,
+      direction: isCompleted
+          ? DismissDirection.none
+          : DismissDirection.endToStart,
       onDismissed: (_) => _removeSet(templateId),
       background: Container(
         color: DesignConstants.brandRedColor,
@@ -648,8 +667,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
         children: [
           Positioned.fill(
             child: Container(
-              color:
-                  isCompleted ? Colors.green.withValues(alpha: 0.3) : rowColor,
+              color: isCompleted
+                  ? Colors.green.withValues(alpha: 0.3)
+                  : rowColor,
             ),
           ),
           rowWithSubInfo,
