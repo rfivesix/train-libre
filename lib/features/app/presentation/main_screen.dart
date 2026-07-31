@@ -1292,9 +1292,8 @@ class _MainScreenState extends State<MainScreen>
                                         onTabSelected: _onNavigationTapped,
                                         barHeight: DesignConstants
                                             .bottomNavigationBarHeight,
-                                        barBorderRadius: DesignConstants
-                                                .bottomNavigationBarHeight /
-                                            2,
+                                        barBorderRadius: GlassDefaults.capsuleRadius,
+                                        indicatorBorderRadius: GlassDefaults.capsuleRadius,
                                         tabWidth: null,
                                         horizontalPadding: 0.0,
                                         verticalPadding: 0.0,
