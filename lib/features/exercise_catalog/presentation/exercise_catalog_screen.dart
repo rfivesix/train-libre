@@ -369,6 +369,21 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
               ),
             ),
           ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 160,
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: DesignConstants.bottomVignetteGradient(
+                    Theme.of(context).brightness == Brightness.dark,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
       floatingActionButton: GlassFab(

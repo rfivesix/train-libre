@@ -17,7 +17,7 @@ class EvaluateFoodSourceUseCase {
     items.sort((a, b) {
       int score(FoodItem item) {
         final name = item.name.toLowerCase();
-        final brand = item.brand?.trim().toLowerCase() ?? '';
+        final brand = item.brand.trim().toLowerCase();
         final fullName1 = brand.isEmpty ? name : '$brand $name';
         final fullName2 = brand.isEmpty ? name : '$name $brand';
 

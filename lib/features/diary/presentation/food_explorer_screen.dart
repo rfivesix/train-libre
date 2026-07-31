@@ -141,63 +141,90 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingL,
-              vertical: DesignConstants.spacingXL,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.addFoodTitle,
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 28,
-                  ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingL,
+                  vertical: DesignConstants.spacingXL,
                 ),
-                const SizedBox(height: DesignConstants.spacingL),
-                TabBar(
-                  controller: _tabController,
-                  isScrollable: false,
-                  indicator: const BoxDecoration(),
-                  splashFactory: NoSplash.splashFactory,
-                  overlayColor: WidgetStateProperty.all(Colors.transparent),
-                  dividerColor: Colors.transparent,
-                  // FIX: Dynamic color based on theme mode.
-                  labelColor: isLightMode ? Colors.black : Colors.white,
-                  unselectedLabelColor: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant,
-                  labelStyle: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.0,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.0,
-                  ),
-                  tabs: [
-                    Tab(text: l10n.tabSearch),
-                    Tab(text: l10n.tabFavorites),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.addFoodTitle,
+                      style: textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 28,
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingL),
+                    TabBar(
+                      controller: _tabController,
+                      isScrollable: false,
+                      indicator: const BoxDecoration(),
+                      splashFactory: NoSplash.splashFactory,
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                      dividerColor: Colors.transparent,
+                      // FIX: Dynamic color based on theme mode.
+                      labelColor: isLightMode ? Colors.black : Colors.white,
+                      unselectedLabelColor: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant,
+                      labelStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.0,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.0,
+                      ),
+                      tabs: [
+                        Tab(text: l10n.tabSearch),
+                        Tab(text: l10n.tabFavorites),
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [_buildSearchTab(l10n), _buildFavoritesTab(l10n)],
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Container(
+                height: 180,
+                decoration: BoxDecoration(
+                  gradient: DesignConstants.bottomVignetteGradient(
+                    Theme.of(context).brightness == Brightness.dark,
+                  ),
+                ),
+              ),
             ),
           ),
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [_buildSearchTab(l10n), _buildFavoritesTab(l10n)],
+          Positioned(
+            bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
+            left: 0,
+            right: 0,
+            child: const RepaintBoundary(
+              child: OffAttributionWidget(),
             ),
           ),
         ],
@@ -267,6 +294,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                 ? const Center(child: CircularProgressIndicator())
                 : _foundFoodItems.isNotEmpty
                     ? ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 96.0),
                         scrollCacheExtent:
                             const ScrollCacheExtent.pixels(1500.0),
                         itemCount: _foundFoodItems.length,
@@ -280,8 +308,6 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                         ),
                       ),
           ),
-          if (_foundFoodItems.any((item) => item.source == FoodItemSource.off))
-            const OffAttributionWidget(),
         ],
       ),
     );
@@ -308,15 +334,18 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
       children: [
         Expanded(
           child: ListView.builder(
+            padding: EdgeInsets.fromLTRB(
+              DesignConstants.cardPadding.left,
+              DesignConstants.cardPadding.top,
+              DesignConstants.cardPadding.right,
+              96.0,
+            ),
             scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
-            padding: DesignConstants.cardPadding,
             itemCount: _favoriteFoodItems.length,
             itemBuilder: (context, index) =>
                 _buildFoodListItem(_favoriteFoodItems[index]),
           ),
         ),
-        if (_favoriteFoodItems.any((item) => item.source == FoodItemSource.off))
-          const OffAttributionWidget(),
       ],
     );
   }

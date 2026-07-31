@@ -33,20 +33,7 @@ class RunningWorkoutOverlay extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8), // Tight gap above GlassBottomBar
       height: DesignConstants.workoutOverlayHeight,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ClipPath(
-              clipper: ShadowOuterClipper(borderRadius: radius),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(radius),
-                  boxShadow: DesignConstants.glassShadow,
-                ),
-              ),
-            ),
-          ),
-          GlassAdaptiveScope(
+      child: GlassAdaptiveScope(
             maxQuality: DesignConstants.defaultGlassQuality,
             child: RepaintBoundary(
               child: GlassContainer(
@@ -62,8 +49,6 @@ class RunningWorkoutOverlay extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
     );
   }
 }

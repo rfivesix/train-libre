@@ -143,8 +143,8 @@ class DesignConstants {
   /// Combines a white base layer so glass elements remain clearly distinct
   /// over solid backgrounds while maintaining desaturated iOS optics.
   static Color glassColor(bool isDark) => isDark
-      ? Colors.white.withValues(alpha: 0.12)
-      : Colors.white.withValues(alpha: 0.45);
+      ? Colors.white.withValues(alpha: 0.10)
+      : Colors.white.withValues(alpha: 0.35);
 
   /// Default platform-adaptive glass quality.
   /// Uses [GlassQuality.standard] on Android for optimal GPU subpass performance,

@@ -216,136 +216,156 @@ class _MealScreenState extends State<MealScreen> {
       ),
       floatingActionButton: fab,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: _loadingItems
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              // Apply top padding so list content clears the app bar.
-              padding: EdgeInsets.fromLTRB(16, 12 + topPadding, 16, 96),
-              children: [
-                // Name and notes section.
-                AppCardContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _editMode
-                          ? TextField(
-                              controller: _nameCtrl,
-                              textInputAction: TextInputAction.done,
-                              decoration: InputDecoration(
-                                labelText: l10n.mealNameLabel,
-                              ),
-                              onChanged: (_) => setState(() {}),
-                            )
-                          : Text(
-                              _nameCtrl.text.isNotEmpty
-                                  ? _nameCtrl.text
-                                  : l10n.unknown,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                      const SizedBox(height: 8),
-                      _editMode
-                          ? TextField(
-                              controller: _notesCtrl,
-                              maxLines: 3,
-                              decoration: InputDecoration(
-                                labelText: l10n.mealNotesLabel,
-                              ),
-                            )
-                          : Text(
-                              _notesCtrl.text.isNotEmpty
-                                  ? _notesCtrl.text
-                                  : l10n.noNotes,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                // === Nutrients (total sum) ===
-                AppSectionHeader(title: l10n.nutritionSectionLabel),
-                AppCardContainer(
-                  child: Skeletonizer(
-                    enabled: _editMode && _items.isEmpty,
-                    child: MacroBadgeRow(
-                      kcal: (_editMode && _items.isEmpty) ? 0 : (_items.isEmpty ? null : _totalKcal.round()),
-                      protein: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalP),
-                      carbs: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalC),
-                      fat: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalF),
-                      useBadges: Provider.of<ThemeService>(context)
-                          .useColorfulMacroBadges,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
+      body: Stack(
+        children: [
+          _loadingItems
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  // Apply top padding so list content clears the app bar.
+                  padding: EdgeInsets.fromLTRB(16, 12 + topPadding, 16, 96),
+                  children: [
+                    // Name and notes section.
+                    AppCardContainer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _editMode
+                              ? TextField(
+                                  controller: _nameCtrl,
+                                  textInputAction: TextInputAction.done,
+                                  decoration: InputDecoration(
+                                    labelText: l10n.mealNameLabel,
+                                  ),
+                                  onChanged: (_) => setState(() {}),
+                                )
+                              : Text(
+                                  _nameCtrl.text.isNotEmpty
+                                      ? _nameCtrl.text
+                                      : l10n.unknown,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                          const SizedBox(height: 8),
+                          _editMode
+                              ? TextField(
+                                  controller: _notesCtrl,
+                                  maxLines: 3,
+                                  decoration: InputDecoration(
+                                    labelText: l10n.mealNotesLabel,
+                                  ),
+                                )
+                              : Text(
+                                  _notesCtrl.text.isNotEmpty
+                                      ? _notesCtrl.text
+                                      : l10n.noNotes,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                        ],
                       ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // === Nutrients (total sum) ===
+                    AppSectionHeader(title: l10n.nutritionSectionLabel),
+                    AppCardContainer(
+                      child: Skeletonizer(
+                        enabled: _editMode && _items.isEmpty,
+                        child: MacroBadgeRow(
+                          kcal: (_editMode && _items.isEmpty) ? 0 : (_items.isEmpty ? null : _totalKcal.round()),
+                          protein: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalP),
+                          carbs: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalC),
+                          fat: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalF),
+                          useBadges: Provider.of<ThemeService>(context)
+                              .useColorfulMacroBadges,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // === Ingredients ===
+                    AppSectionHeader(title: l10n.ingredientsCapsLock),
+
+                    if (_items.isEmpty)
+                      if (_editMode)
+                        SizedBox(
+                          height: 480,
+                          child: ColdStartEmptyState(
+                            icon: LucideIcons.apple,
+                            title: l10n.mealIngredientsTitle,
+                            subtitle: l10n.emptyCategory,
+                            callToAction: l10n.mealAddIngredient,
+                            showArrow: true,
+                            customEndXOffset: 110.0,
+                            customTargetYOffset:
+                                110.0 + MediaQuery.paddingOf(context).bottom,
+                          ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Text(
+                            l10n.emptyCategory,
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                    else
+                      Column(
+                        children: List.generate(_items.length, (i) {
+                          final it = _items[i];
+                          return _IngredientCard(
+                            key: ValueKey('ing_$i'),
+                            item: it,
+                            editMode: _editMode,
+                            showPerIngredientMacros: !_editMode,
+                            onQtyChanged: (val) async {
+                              _items[i]['quantity_in_grams'] = val;
+                              await _recomputeTotals();
+                              if (mounted) setState(() {});
+                            },
+                            onDelete: () async {
+                              final ok = await showDeleteConfirmation(
+                                context,
+                                title: l10n.deleteConfirmTitle,
+                                content: l10n.deleteConfirmContent,
+                              );
+
+                              if (ok) {
+                                setState(() => _items.removeAt(i));
+                                await _recomputeTotals();
+                                if (mounted) setState(() {});
+                              }
+                            },
+                          );
+                        }),
+                      ),
+                  ],
+                ),
+          if (fab != null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 160,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: DesignConstants.bottomVignetteGradient(
+                      Theme.of(context).brightness == Brightness.dark,
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 18),
-
-                // === Ingredients ===
-                AppSectionHeader(title: l10n.ingredientsCapsLock),
-
-                if (_items.isEmpty)
-                  if (_editMode)
-                    SizedBox(
-                      height: 480,
-                      child: ColdStartEmptyState(
-                        icon: LucideIcons.apple,
-                        title: l10n.mealIngredientsTitle,
-                        subtitle: l10n.emptyCategory,
-                        callToAction: l10n.mealAddIngredient,
-                        showArrow: true,
-                        customEndXOffset: 110.0,
-                        customTargetYOffset:
-                            110.0 + MediaQuery.paddingOf(context).bottom,
-                      ),
-                    )
-                  else
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Text(
-                        l10n.emptyCategory,
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                else
-                  Column(
-                    children: List.generate(_items.length, (i) {
-                      final it = _items[i];
-                      return _IngredientCard(
-                        key: ValueKey('ing_$i'),
-                        item: it,
-                        editMode: _editMode,
-                        showPerIngredientMacros: !_editMode,
-                        onQtyChanged: (val) async {
-                          _items[i]['quantity_in_grams'] = val;
-                          await _recomputeTotals();
-                          if (mounted) setState(() {});
-                        },
-                        onDelete: () async {
-                          final ok = await showDeleteConfirmation(
-                            context,
-                            title: l10n.deleteConfirmTitle,
-                            content: l10n.deleteConfirmContent,
-                          );
-
-                          if (ok) {
-                            setState(() => _items.removeAt(i));
-                            await _recomputeTotals();
-                            if (mounted) setState(() {});
-                          }
-                        },
-                      );
-                    }),
-                  ),
-              ],
+              ),
             ),
+        ],
+      ),
     );
   }
 

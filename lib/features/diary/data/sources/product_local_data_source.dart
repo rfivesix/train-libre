@@ -708,7 +708,7 @@ class ProductLocalDataSource {
       final searchLower = aiName.trim().toLowerCase();
       int textScore(FoodItem item) {
         final name = item.getLocalizedName(null).toLowerCase();
-        final brand = item.brand?.toLowerCase() ?? '';
+        final brand = item.brand.toLowerCase();
         final fullName1 = brand.isEmpty ? name : '$brand $name';
         final fullName2 = brand.isEmpty ? name : '$name $brand';
 

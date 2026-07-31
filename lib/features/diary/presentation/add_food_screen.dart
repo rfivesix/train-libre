@@ -462,56 +462,96 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       // Use GlobalAppBar for consistent top-level navigation styling.
       appBar: GlobalAppBar(title: l10n.nutritionExplorerTitle),
 
-      body: Column(
+      body: Stack(
         children: [
-          // Spacer prevents content from rendering below the transparent app bar.
-          SizedBox(height: topPadding),
+          Column(
+            children: [
+              // Spacer prevents content from rendering below the transparent app bar.
+              SizedBox(height: topPadding),
 
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingL,
-              vertical: DesignConstants.spacingXS,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TabBar(
-                  controller: _tabController,
-                  isScrollable: false,
-                  indicator: const BoxDecoration(),
-                  splashFactory: NoSplash.splashFactory,
-                  overlayColor: WidgetStateProperty.all(Colors.transparent),
-                  labelPadding: EdgeInsets.zero,
-                  labelColor: isLightMode ? Colors.black : Colors.white,
-                  unselectedLabelColor:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
-                  labelStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                  tabs: [
-                    Tab(text: l10n.tabCatalogSearch),
-                    Tab(text: l10n.tabRecent),
-                    Tab(text: l10n.tabFavorites),
-                    Tab(text: l10n.tabMeals),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingL,
+                  vertical: DesignConstants.spacingXS,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TabBar(
+                      controller: _tabController,
+                      isScrollable: false,
+                      indicator: const BoxDecoration(),
+                      splashFactory: NoSplash.splashFactory,
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                      labelPadding: EdgeInsets.zero,
+                      labelColor: isLightMode ? Colors.black : Colors.white,
+                      unselectedLabelColor:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                      labelStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      tabs: [
+                        Tab(text: l10n.tabCatalogSearch),
+                        Tab(text: l10n.tabRecent),
+                        Tab(text: l10n.tabFavorites),
+                        Tab(text: l10n.tabMeals),
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildCatalogSearchTab(l10n),
+                    _buildRecentTab(l10n),
+                    _buildFavoritesTab(l10n),
+                    _buildMealsTab(l10n),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          // Soft bottom fade-out vignette shadow
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Container(
+                height: 180,
+                decoration: BoxDecoration(
+                  gradient: DesignConstants.bottomVignetteGradient(
+                    !isLightMode,
+                  ),
+                ),
+              ),
             ),
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildCatalogSearchTab(l10n),
-                _buildRecentTab(l10n),
-                _buildFavoritesTab(l10n),
-                _buildMealsTab(l10n),
-              ],
+          // OFF attribution — floats above the gradient, below the FAB
+          Positioned(
+            bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
+            left: 0,
+            right: 0,
+            child: RepaintBoundary(
+              child: OffAttributionWidget(
+                textStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.grey[600],
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      offset: const Offset(1, 1),
+                      blurRadius: 4.0,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -550,8 +590,6 @@ class _AddFoodScreenState extends State<AddFoodScreen>
           ),
         ),
         // const BottomContentSpacer(),
-        if (_favoriteFoodItems.any((item) => item.source == FoodItemSource.off))
-          const OffAttributionWidget(),
       ],
     );
   }
@@ -582,8 +620,6 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                 _buildFoodListItem(_recentFoodItems[index]),
           ),
         ),
-        if (_recentFoodItems.any((item) => item.source == FoodItemSource.off))
-          const OffAttributionWidget(),
         //const BottomContentSpacer(),
       ],
     );
@@ -904,7 +940,6 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     if (offHits.isNotEmpty) {
       listItems.add(l10n.searchSectionOther);
       listItems.addAll(offHits);
-      listItems.add(const OffAttributionWidget());
     }
 
     return Column(

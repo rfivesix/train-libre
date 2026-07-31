@@ -982,6 +982,23 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                 ),
 
                 if (_isEditMode)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 160,
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: DesignConstants.bottomVignetteGradient(
+                            Theme.of(context).brightness == Brightness.dark,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                if (_isEditMode)
                   OverlayPortal(
                     controller: _fabOverlayController,
                     overlayChildBuilder: (context) {

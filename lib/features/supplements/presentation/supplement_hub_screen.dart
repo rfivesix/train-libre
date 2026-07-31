@@ -185,30 +185,50 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.supplementTrackerTitle),
-      body: SeamlessLoadingOverlay(
-        isLoading: _isLoading,
-        isEmpty: _supplements.isEmpty,
-        extendBodyBehindAppBar: true,
-        child: RefreshIndicator(
-          onRefresh: _load,
-          child: ListView(
-            padding: DesignConstants.cardPadding.copyWith(
-              top: DesignConstants.cardPadding.top + topPadding,
+      body: Stack(
+        children: [
+          SeamlessLoadingOverlay(
+            isLoading: _isLoading,
+            isEmpty: _supplements.isEmpty,
+            extendBodyBehindAppBar: true,
+            child: RefreshIndicator(
+              onRefresh: _load,
+              child: ListView(
+                padding: DesignConstants.cardPadding.copyWith(
+                  top: DesignConstants.cardPadding.top + topPadding,
+                  bottom: DesignConstants.cardPadding.bottom + 80.0,
+                ),
+                children: [
+                  if (_supplements.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Text(
+                        l10n.emptySupplements,
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    ..._supplements.map((s) => _tile(s, l10n)),
+                ],
+              ),
             ),
-            children: [
-              if (_supplements.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: Text(
-                    l10n.emptySupplements,
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              else
-                ..._supplements.map((s) => _tile(s, l10n)),
-            ],
           ),
-        ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 160,
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: DesignConstants.bottomVignetteGradient(
+                    Theme.of(context).brightness == Brightness.dark,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: GlassFab(
         label: l10n.createSupplementTitle,
