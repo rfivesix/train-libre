@@ -712,6 +712,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                   LucideIcons
                                                                       .pencil,
                                                                 ),
+                                                                tooltip: l10n
+                                                                    .exerciseNoteTitle,
                                                                 onPressed:
                                                                     () {},
                                                               ),
@@ -743,6 +745,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                     LucideIcons
                                                                         .timer,
                                                                   ),
+                                                                  tooltip: l10n
+                                                                      .editPauseTime,
                                                                   onPressed:
                                                                       () {},
                                                                 ),
@@ -754,6 +758,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                   color: DesignConstants
                                                                       .brandRedColor,
                                                                 ),
+                                                                tooltip: l10n
+                                                                    .removeExercise,
                                                                 onPressed:
                                                                     () {},
                                                               ),
