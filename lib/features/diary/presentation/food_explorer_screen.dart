@@ -263,7 +263,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: _isLoadingSearch
+            child: (_isLoadingSearch && _foundFoodItems.isEmpty)
                 ? const Center(child: CircularProgressIndicator())
                 : _foundFoodItems.isNotEmpty
                     ? ListView.builder(

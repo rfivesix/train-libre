@@ -15,17 +15,27 @@ class EvaluateFoodSourceUseCase {
     final items = List<FoodItem>.from(candidates);
 
     items.sort((a, b) {
-      final aName = a.name.toLowerCase();
-      final bName = b.name.toLowerCase();
+      int score(FoodItem item) {
+        final name = item.name.toLowerCase();
+        final brand = item.brand?.trim().toLowerCase() ?? '';
+        final fullName1 = brand.isEmpty ? name : '$brand $name';
+        final fullName2 = brand.isEmpty ? name : '$name $brand';
 
-      int score(String name) {
-        if (name == searchLower) return 0;
-        if (name.startsWith(searchLower)) return 1;
+        if (name == searchLower ||
+            fullName1 == searchLower ||
+            fullName2 == searchLower) {
+          return 0;
+        }
+        if (name.startsWith(searchLower) ||
+            fullName1.startsWith(searchLower) ||
+            fullName2.startsWith(searchLower)) {
+          return 1;
+        }
         return 2;
       }
 
-      final sa = score(aName);
-      final sb = score(bName);
+      final sa = score(a);
+      final sb = score(b);
       if (sa != sb) return sa.compareTo(sb);
 
       int srcPri(FoodItemSource s) {
@@ -43,7 +53,7 @@ class EvaluateFoodSourceUseCase {
       final spb = srcPri(b.source);
       if (spa != spb) return spa.compareTo(spb);
 
-      return aName.length.compareTo(bName.length);
+      return a.name.length.compareTo(b.name.length);
     });
 
     return items.take(limit).toList();

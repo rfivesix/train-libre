@@ -912,7 +912,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         searchRow,
         const SizedBox(height: DesignConstants.spacingS),
         Expanded(
-          child: _isLoadingSearch
+          child: (_isLoadingSearch && listItems.isEmpty)
               ? const Center(child: CircularProgressIndicator())
               : (listItems.isEmpty
                   ? Center(

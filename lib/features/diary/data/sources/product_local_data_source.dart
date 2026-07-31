@@ -423,7 +423,8 @@ class ProductLocalDataSource {
               t.nameEn.like('%$term%') |
               t.nameFr.like('%$term%') |
               t.nameIt.like('%$term%') |
-              t.nameJa.like('%$term%'),
+              t.nameJa.like('%$term%') |
+              t.brand.like('%$term%'),
         );
 
       query = query
@@ -498,9 +499,17 @@ class ProductLocalDataSource {
 
     // Für die Relevanz-Gewichtung im ORDER BY übergeben wir den rohen Suchbegriff
     final rawSearchLower = keyword.trim().toLowerCase();
-    variables.add(Variable.withString(rawSearchLower)); // Für exakten Match
-    variables
-        .add(Variable.withString('$rawSearchLower%')); // Für Wortanfang-Match
+    variables.add(Variable.withString(rawSearchLower)); // Für exakten Match (Name)
+    variables.add(
+        Variable.withString(rawSearchLower)); // Für exakten Match (Marke + Name)
+    variables.add(
+        Variable.withString(rawSearchLower)); // Für exakten Match (Name + Marke)
+    variables.add(
+        Variable.withString('$rawSearchLower%')); // Für Wortanfang-Match (Name)
+    variables.add(Variable.withString(
+        '$rawSearchLower%')); // Für Wortanfang-Match (Marke + Name)
+    variables.add(Variable.withString(
+        '$rawSearchLower%')); // Für Wortanfang-Match (Name + Marke)
 
     final whereClauses = <String>["p.source IN ('user', 'base', 'off')"];
     for (final token in tokens) {
@@ -508,11 +517,19 @@ class ProductLocalDataSource {
       // Wenn das Token auf "er" endet (z.B. "eier"), erlauben wir auch den Match auf den Stamm ("ei")
       if (token.endsWith('er') && token.length > 3) {
         final stem = token.substring(0, token.length - 2);
-        whereClauses.add('(p.name LIKE ? OR p.name LIKE ?)');
+        whereClauses.add(
+          '((p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?)) OR '
+          '(p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?)))',
+        );
+        variables.add(Variable.withString('%$token%'));
         variables.add(Variable.withString('%$token%'));
         variables.add(Variable.withString('%$stem%'));
+        variables.add(Variable.withString('%$stem%'));
       } else {
-        whereClauses.add('p.name LIKE ?');
+        whereClauses.add(
+          '(p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?))',
+        );
+        variables.add(Variable.withString('%$token%'));
         variables.add(Variable.withString('%$token%'));
       }
     }
@@ -535,15 +552,25 @@ class ProductLocalDataSource {
       SELECT p.*,
              $historyScoreExpr,
              (CASE WHEN p.source = 'base' THEN 1 ELSE 0 END) AS is_base_food,
-             -- Text-Relevanz-Scores berechnen:
-             (CASE WHEN LOWER(p.name) = ? THEN 1 ELSE 0 END) AS is_exact_match,
-             (CASE WHEN LOWER(p.name) LIKE ? THEN 1 ELSE 0 END) AS is_prefix_match
+             -- Text-Relevanz-Scores berechnen (Name oder Marke + Name Kombinationen):
+             (CASE 
+               WHEN LOWER(p.name) = ? 
+                 OR LOWER(COALESCE(p.brand, '') || ' ' || p.name) = ? 
+                 OR LOWER(p.name || ' ' || COALESCE(p.brand, '')) = ? 
+               THEN 1 ELSE 0 
+              END) AS is_exact_match,
+             (CASE 
+               WHEN LOWER(p.name) LIKE ? 
+                 OR LOWER(COALESCE(p.brand, '') || ' ' || p.name) LIKE ? 
+                 OR LOWER(p.name || ' ' || COALESCE(p.brand, '')) LIKE ? 
+               THEN 1 ELSE 0 
+              END) AS is_prefix_match
       FROM products p
       LEFT JOIN RecentBarcodeLogs rbl ON rbl.barcode = p.barcode
       LEFT JOIN RecentIdLogs ril ON ril.id = p.id
       WHERE $whereSection
       -- DIE NEUE PRIORISIERUNG:
-      -- 1. Exakte Namens-Treffer müssen IMMER ganz nach oben (z.B. wenn ein Produkt exakt "Eier" oder "Ei" heißt)
+      -- 1. Exakte Namens- oder Marken-Treffer müssen IMMER ganz nach oben (z.B. wenn ein Produkt exakt "Eier" oder "Rewe Bio Magerquark" heißt)
       -- 2. Wortanfang-Treffer (z.B. "Eiercreme" bei Suche nach "Eier") kommen als nächstes
       -- 3. Erst danach greift die Unterscheidung zwischen Grundnahrungsmittel und OpenFoodFacts
       -- 4. Innerhalb der Blöcke entscheidet deine Historie
@@ -679,14 +706,27 @@ class ProductLocalDataSource {
 
       // Fallback to text matching
       final searchLower = aiName.trim().toLowerCase();
-      int textScore(String name) {
-        if (name == searchLower) return 0;
-        if (name.startsWith(searchLower)) return 1;
+      int textScore(FoodItem item) {
+        final name = item.getLocalizedName(null).toLowerCase();
+        final brand = item.brand?.toLowerCase() ?? '';
+        final fullName1 = brand.isEmpty ? name : '$brand $name';
+        final fullName2 = brand.isEmpty ? name : '$name $brand';
+
+        if (name == searchLower ||
+            fullName1 == searchLower ||
+            fullName2 == searchLower) {
+          return 0;
+        }
+        if (name.startsWith(searchLower) ||
+            fullName1.startsWith(searchLower) ||
+            fullName2.startsWith(searchLower)) {
+          return 1;
+        }
         return 2;
       }
 
-      final sa = textScore(aName);
-      final sb = textScore(bName);
+      final sa = textScore(a);
+      final sb = textScore(b);
       if (sa != sb) return sa.compareTo(sb);
 
       int srcPri(FoodItemSource s) {

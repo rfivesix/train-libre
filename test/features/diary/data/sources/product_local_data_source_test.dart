@@ -455,5 +455,28 @@ void main() {
       expect(eiResults[1].barcode, '888888'); // Eiercreme (prefix match)
       expect(eiResults[2].barcode, '101010'); // Hühnerei (substring match)
     });
+
+    test(
+        'searchProducts supports searching by brand name before or after product name',
+        () async {
+      await dataSource.insertProduct(testBaseItem1); // Brokkoli frisch (brand: Gartenfrisch)
+      await dataSource.insertProduct(testUserItem); // Apfel Elstar (brand: Bio)
+      await dataSource.insertProduct(testOffItem); // Apfelmus ungezuckert (brand: Kaufland Bio)
+
+      // 1. Search brand before product name: "Gartenfrisch Brokkoli"
+      final brandBefore = await dataSource.searchProducts('Gartenfrisch Brokkoli');
+      expect(brandBefore.isNotEmpty, isTrue);
+      expect(brandBefore[0].barcode, '111111'); // Brokkoli frisch
+
+      // 2. Search brand after product name: "Apfelmus Kaufland Bio"
+      final brandAfter = await dataSource.searchProducts('Apfelmus Kaufland Bio');
+      expect(brandAfter.isNotEmpty, isTrue);
+      expect(brandAfter[0].barcode, '555555'); // Apfelmus ungezuckert
+
+      // 3. Search standalone brand name: "Kaufland Bio"
+      final brandOnly = await dataSource.searchProducts('Kaufland Bio');
+      expect(brandOnly.isNotEmpty, isTrue);
+      expect(brandOnly[0].barcode, '555555');
+    });
   });
 }
