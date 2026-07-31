@@ -26,3 +26,7 @@
 ## 2025-02-13 - Avoid eager List allocations for small local maps
 **Learning:** In Dart, chaining `.toList()` after `.map()` forces memory allocation and garbage collection. For short-lived operations where we only need to iterate over the data later, leaving it as an `Iterable` is significantly more memory-efficient. Additionally, calling `.length` on a lazy `MappedIterable` whose source is a `List` delegates to the underlying list, making it O(1) and perfectly safe.
 **Action:** When mapping over data arrays in reactive metrics calculations, refrain from appending `.toList()` unless random index access or mutations are actually needed.
+
+## 2024-05-24 - [Avoid `.where().toList()` in UI bounds calculations]
+**Learning:** Using chained list operations like `.where((x) => x.cond).toList()` followed by multiple `.map().reduce()` passes on small to medium collections in Flutter UI components creates unnecessary intermediate arrays and puts strain on the GC, particularly on frequent renders like charts.
+**Action:** Replace functional array chaining (where/map/reduce toList pipelines) with standard single-pass `for` loops in hot UI paths that compute multiple bounds (min/max), maintaining readability while ensuring O(N) traversal and O(1) memory overhead.
