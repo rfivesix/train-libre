@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-beta.6] - 2026-07-31
+
+### Performance
+- **Sleep & Workout Calculations Optimization:** Optimized regularity calculator, workout routine delta detection, and sleep chart bounds calculations to use lazy Iterables, single-pass O(N) loops, and HashMaps, significantly reducing garbage collection pressure and main thread jank (PR #537, PR #540, PR #542).
+
+### Added
+- **Accessibility Tooltips:** Added missing localized tooltips to interactive IconButtons across live workout, superset header, AI settings, and data management screens for improved screen reader support (PR #538, PR #539, PR #541).
+
 ## [1.0.0-beta.5] - 2026-07-26
 
 ### Added
