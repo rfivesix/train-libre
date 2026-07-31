@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.6] - 2026-07-31
 
+### Changed
+- **Liquid Glass Widgets Upgrade (v0.24.1):** Upgraded `liquid_glass_widgets` dependency from `0.22.1` to `0.24.1` (PR #536).
+- **Navigation Dock Capsule Radius Fix:** Updated `GlassTabBar.bottom` in `main_screen.dart` to use `GlassDefaults.capsuleRadius` for both `barBorderRadius` and `indicatorBorderRadius`, restoring smooth capsule indicator geometry in the bottom navigation dock.
+
 ### Performance
 - **Sleep & Workout Calculations Optimization:** Optimized regularity calculator, workout routine delta detection, and sleep chart bounds calculations to use lazy Iterables, single-pass O(N) loops, and HashMaps, significantly reducing garbage collection pressure and main thread jank (PR #537, PR #540, PR #542).
 
