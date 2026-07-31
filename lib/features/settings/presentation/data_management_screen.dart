@@ -820,6 +820,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
                   decoration: InputDecoration(
                     labelText: l10n.passwordLabel,
                     suffixIcon: IconButton(
+                      tooltip: l10n.passwordLabel,
                       icon: Icon(
                         obscure ? LucideIcons.eye_off : LucideIcons.eye,
                       ),
