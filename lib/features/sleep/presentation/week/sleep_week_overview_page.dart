@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
-
 import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
@@ -451,8 +449,22 @@ class WeekWindowCard extends StatelessWidget {
   }
 
   _SleepWindowBounds _resolveBounds(List<SleepWindowSegment> windows) {
-    final dataWindows = windows.where((window) => window.hasData).toList();
-    if (dataWindows.isEmpty) {
+    int? earliestStart;
+    int? latestEnd;
+
+    for (final window in windows) {
+      if (window.hasData) {
+        if (earliestStart == null ||
+            window.displayStartMinutes < earliestStart) {
+          earliestStart = window.displayStartMinutes;
+        }
+        if (latestEnd == null || window.displayEndMinutes > latestEnd) {
+          latestEnd = window.displayEndMinutes;
+        }
+      }
+    }
+
+    if (earliestStart == null || latestEnd == null) {
       return _SleepWindowBounds(
         minMinutes: _fallbackMinMinutes,
         maxMinutes: _fallbackMaxMinutes,
@@ -462,12 +474,6 @@ class WeekWindowCard extends StatelessWidget {
         ),
       );
     }
-
-    final earliestStart = dataWindows
-        .map((window) => window.displayStartMinutes)
-        .reduce(math.min);
-    final latestEnd =
-        dataWindows.map((window) => window.displayEndMinutes).reduce(math.max);
 
     final flooredHour = (earliestStart ~/ 60) * 60;
     final minMinutes = earliestStart % 60 == 0 ? flooredHour - 60 : flooredHour;
