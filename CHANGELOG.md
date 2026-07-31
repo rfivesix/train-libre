@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Performance
 - **Sleep & Workout Calculations Optimization:** Optimized regularity calculator, workout routine delta detection, and sleep chart bounds calculations to use lazy Iterables, single-pass O(N) loops, and HashMaps, significantly reducing garbage collection pressure and main thread jank (PR #537, PR #540, PR #542).
 
+### Removed
+- **Repeat Onboarding Setting Removed:** Removed the "Anleitung erneut anzeigen" / "Onboarding wiederholen" option from `SettingsScreen` (`settings_screen.dart`).
+
 ### Added
 - **Global Liquid Glass Context Menu & Actionable Cards (`GlassActionableCard` & `GlassContextMenuOverlay`):** Added a global, highly accessible wrapper widget (`GlassActionableCard`) and iOS / WhatsApp-style context menu overlay (`GlassContextMenuOverlay`) for summary cards and item tiles across Train Libre. Supports long-press focused element elevation, 120Hz Liquid Glass backdrop blur, smooth micro-animations, haptic feedback (`HapticFeedbackService`), and semantic screen reader actions (`Semantics(customActions: ...)`). Integrated across Diary food & fluid tiles (`FoodEntryTile`, `FluidEntryTile`), Workout routines (`RoutinesScreen`), Workout History logs (`WorkoutHistoryScreen`), Supplement catalog (`SupplementHubScreen`), and Body measurement sessions (`MeasurementsScreen`). Eliminates shadow bleed artifacts and GPU blur shader re-compilation jank.
 - **Comprehensive English Telemetry Documentation (`TELEMETRY.md`):** Added a dedicated root documentation file detailing Train Libre's telemetry rationale, opt-in consent model, anti-profiling & 2-ID safeguards, zero-PII policies, and complete event schema catalog (`app_launched`, `onboarding_*`, `screen_viewed`, `feature_used`, `daily_food_logged`, `workout_completed`, `setting_toggled`).
