@@ -1154,6 +1154,20 @@ class _MainScreenState extends State<MainScreen>
             ),
           ),
         ),
+        // Soft bottom fade-out vignette shadow underneath bottom navigation & running workout overlay
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 200,
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: DesignConstants.bottomVignetteGradient(isDark),
+              ),
+            ),
+          ),
+        ),
         // Laufendes Workout Overlay
         if (isWorkoutRunning)
           Positioned(

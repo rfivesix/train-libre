@@ -111,23 +111,40 @@ class DesignConstants {
   /// Standard height for custom list tiles/interactive items inside glass menus.
   static const double glassTileHeight = 52.0;
 
-  /// Unified shadow for glassmorphic elements.
-  static List<BoxShadow> get glassShadow => [
-        BoxShadow(
-          blurRadius: 12,
-          offset: const Offset(0, 6),
-          color: Colors.black.withValues(alpha: 0.30),
-        ),
-      ];
+  /// Unified shadow for glassmorphic elements (disabled in favor of soft background vignettes).
+  static List<BoxShadow> get glassShadow => const [];
+
+  /// Global bottom vignette gradient that ramps up towards the bottom edge,
+  /// reaching 100% opacity right at the very bottom screen boundary.
+  static LinearGradient bottomVignetteGradient(bool isDark) {
+    final baseColor =
+        isDark ? Colors.black : const Color.fromARGB(255, 194, 194, 194);
+    return LinearGradient(
+      begin: Alignment.bottomCenter,
+      end: Alignment.topCenter,
+      colors: [
+        baseColor.withValues(
+            alpha: 1.00), // Solid opacity ONLY at the absolute bottom edge
+        baseColor.withValues(
+            alpha: 0.70), // Translucent behind the bottom navigation bar
+        baseColor.withValues(alpha: 0.35), // Subtle fade above the bar
+        baseColor.withValues(alpha: 0.08), // Soft entry
+        Colors.transparent, // Fully transparent upper area
+      ],
+      stops: const [0.0, 0.12, 0.30, 0.55, 1.0],
+    );
+  }
 
   /// Unified neutral background color tint for glassmorphic elements.
   static Color glassNeutralTint(bool isDark) =>
       (isDark ? Colors.white : Colors.white).withValues(alpha: 0.10);
 
   /// Unified base color tint for the glass shader.
+  /// Combines a white base layer so glass elements remain clearly distinct
+  /// over solid backgrounds while maintaining desaturated iOS optics.
   static Color glassColor(bool isDark) => isDark
       ? Colors.white.withValues(alpha: 0.12)
-      : Colors.white.withValues(alpha: 0.15);
+      : Colors.white.withValues(alpha: 0.45);
 
   /// Default platform-adaptive glass quality.
   /// Uses [GlassQuality.standard] on Android for optimal GPU subpass performance,
@@ -146,7 +163,7 @@ class DesignConstants {
         blur: 2.0,
         glassColor: glassColor(isDark),
         lightIntensity: isDark ? 0.55 : 0.80,
-        saturation: 1.20,
+        saturation: 0.70,
         ambientRim: 0.2,
       );
 

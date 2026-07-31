@@ -1212,6 +1212,22 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       ),
                     ),
 
+                    // Soft bottom fade-out vignette shadow underneath rest timer, FAB & attribution
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 180,
+                      child: IgnorePointer(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: DesignConstants.bottomVignetteGradient(
+                              Theme.of(context).brightness == Brightness.dark,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     // Layer 2 (Top): Floating/sticky Liquid Glass bar, FAB, and attribution
                     Align(
                       alignment: Alignment.bottomCenter,
