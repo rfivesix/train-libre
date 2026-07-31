@@ -230,7 +230,10 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                           )
                         : ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            clipBehavior: Clip.none,
+                            // Clip.hardEdge (statt Clip.none) erlaubt Flutter,
+                            // Compositing-Layer außerhalb des sichtbaren Bereichs
+                            // korrekt zu verwerfen und vermeidet Scroll-Jank.
+                            clipBehavior: Clip.hardEdge,
                             itemCount: meals.length + 1,
                             itemBuilder: (context, index) {
                               if (index == 0) {
@@ -359,46 +362,50 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     final cardWidth = (screenWidth - 32 - 12) / 2;
     final l10n = AppLocalizations.of(context)!;
 
-    return RepaintBoundary(
-      child: SizedBox(
-        width: cardWidth,
-        child: Padding(
-          padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-          child: SummaryCard(
-            padding: EdgeInsets.zero,
-            child: InkWell(
-              onTap: () => Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => MealScreen(meal: meal)))
-                  .then((_) => _refreshData()),
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-              child: Padding(
-                padding: DesignConstants.cardPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      meal['name'] as String,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+    // Kein RepaintBoundary pro Karte – die einzelne RepaintBoundary um den
+    // gesamten horizontalen Scroll-Bereich (im build-Methode) reicht aus.
+    // Per-Karte-Boundaries würden nur mehr Layer und mehr Compositing erzeugen.
+    // BoxShadow ist hier deaktiviert (disableShadow: true), da Schatten in
+    // horizontal scrollenden Listen teures Offscreen-Compositing verursachen.
+    return SizedBox(
+      width: cardWidth,
+      child: Padding(
+        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
+        child: SummaryCard(
+          padding: EdgeInsets.zero,
+          disableShadow: true,
+          child: InkWell(
+            onTap: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => MealScreen(meal: meal)))
+                .then((_) => _refreshData()),
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            child: Padding(
+              padding: DesignConstants.cardPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    meal['name'] as String,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  AppButton.primary(
+                    onPressed: () => Navigator.of(context)
+                        .push(
+                          MaterialPageRoute(
+                            builder: (_) => MealScreen(meal: meal),
                           ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    AppButton.primary(
-                      onPressed: () => Navigator.of(context)
-                          .push(
-                            MaterialPageRoute(
-                              builder: (_) => MealScreen(meal: meal),
-                            ),
-                          )
-                          .then((_) => _refreshData()),
-                      label: l10n.edit,
-                      tooltip: l10n.edit,
-                      size: AppButtonSize.medium,
-                    ),
-                  ],
-                ),
+                        )
+                        .then((_) => _refreshData()),
+                    label: l10n.edit,
+                    tooltip: l10n.edit,
+                    size: AppButtonSize.medium,
+                  ),
+                ],
               ),
             ),
           ),

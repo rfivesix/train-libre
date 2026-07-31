@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **OFF Attribution Widget als schwebendes Overlay:** `OffAttributionWidget` in `AddFoodScreen` aus den einzelnen Tabs (wo es einen schwarzen Balken erzeugte) entfernt und als einziges `Positioned`-Overlay über dem Gradient-Schatten platziert — analog zum `WgerAttributionWidget` im `live_workout_screen`. Text-Schatten für Lesbarkeit über dem Gradient ergänzt.
 
 ### Performance
+- **Nutrition Hub Meal-Card Scroll Jank Fixed:** Eliminated scroll stuttering in `NutritionHubScreen` when recipe/meal cards were visible. Root causes: (1) `clipBehavior: Clip.none` on the horizontal `ListView.builder` prevented Flutter from discarding compositing layers for off-screen cards – changed to `Clip.hardEdge`. (2) Per-card `RepaintBoundary` + `BoxShadow` (via `SummaryCard`) triggered expensive offscreen compositing on every frame during outer-list scrolling – removed per-card boundaries (a single boundary around the whole horizontal section suffices) and set `disableShadow: true` on meal cards inside the list.
 - **Sleep & Workout Calculations Optimization:** Optimized regularity calculator, workout routine delta detection, and sleep chart bounds calculations to use lazy Iterables, single-pass O(N) loops, and HashMaps, significantly reducing garbage collection pressure and main thread jank (PR #537, PR #540, PR #542).
 
 ### Removed
