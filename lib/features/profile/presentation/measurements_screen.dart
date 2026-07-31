@@ -17,7 +17,6 @@ import '../../../widgets/common/seamless_loading_overlay.dart';
 import 'widgets/measurement_chart_widget.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../util/l10n_ext.dart';
-import '../../../widgets/common/swipe_action_background.dart';
 import '../../../services/unit_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
@@ -406,37 +405,19 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.screenPaddingHorizontal,
       ),
-      child: Dismissible(
-        key: Key(
+      child: GlassActionableCard(
+        dismissibleKey: Key(
             'session_${session.id}_${session.timestamp.millisecondsSinceEpoch}'),
-        direction: DismissDirection.horizontal,
-        background: const SwipeActionBackground(
-          color: Colors.blueAccent,
-          icon: LucideIcons.pencil,
-          alignment: Alignment.centerLeft,
-        ),
-        secondaryBackground: const SwipeActionBackground(
-          color: DesignConstants.brandRedColor,
-          icon: LucideIcons.trash_2,
-          alignment: Alignment.centerRight,
-        ),
-        confirmDismiss: (direction) async {
-          if (direction == DismissDirection.startToEnd) {
-            _showMeasurementBottomMenu(existingSession: session);
-            return false;
-          }
-          return await showDeleteConfirmation(context);
+        onEdit: () => _showMeasurementBottomMenu(existingSession: session),
+        onDelete: () {
+          setState(() {
+            _sessions.removeWhere((s) =>
+                (s.id != null && s.id == session.id) ||
+                (s.id == null && s.timestamp == session.timestamp));
+          });
+          _deleteMeasurementSession(session);
         },
-        onDismissed: (direction) {
-          if (direction == DismissDirection.endToStart) {
-            setState(() {
-              _sessions.removeWhere((s) =>
-                  (s.id != null && s.id == session.id) ||
-                  (s.id == null && s.timestamp == session.timestamp));
-            });
-            _deleteMeasurementSession(session);
-          }
-        },
+        onTap: () => _showMeasurementBottomMenu(existingSession: session),
         child: SummaryCard(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

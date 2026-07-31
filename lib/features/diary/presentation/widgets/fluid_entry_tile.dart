@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
-import '../../../../widgets/common/swipe_action_background.dart';
-import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/models/fluid_entry.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/glass_actionable_card.dart';
 
 class FluidEntryTile extends StatelessWidget {
   final FluidEntry entry;
@@ -31,31 +28,11 @@ class FluidEntryTile extends StatelessWidget {
           )
         : '0';
 
-    return Dismissible(
-      key: Key('fluid_entry_${entry.id}'),
-      background: const SwipeActionBackground(
-        color: Colors.blueAccent,
-        icon: LucideIcons.pencil,
-        alignment: Alignment.centerLeft,
-      ),
-      secondaryBackground: const SwipeActionBackground(
-        color: DesignConstants.brandRedColor,
-        icon: LucideIcons.trash_2,
-        alignment: Alignment.centerRight,
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          onEdit(entry);
-          return false;
-        } else {
-          return await showDeleteConfirmation(context);
-        }
-      },
-      onDismissed: (direction) {
-        if (direction == DismissDirection.endToStart) {
-          onDelete(entry.id!);
-        }
-      },
+    return GlassActionableCard(
+      dismissibleKey: Key('fluid_entry_${entry.id}'),
+      onEdit: () => onEdit(entry),
+      onDelete: () => onDelete(entry.id!),
+      onTap: () => onEdit(entry),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(entry.name, style: theme.textTheme.titleMedium),
@@ -69,7 +46,6 @@ class FluidEntryTile extends StatelessWidget {
           '${entry.kcal ?? 0} ${l10n.unit_kcal}',
           style: theme.textTheme.labelLarge,
         ),
-        onTap: () => onEdit(entry),
       ),
     );
   }

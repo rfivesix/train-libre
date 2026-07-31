@@ -13,9 +13,9 @@ import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/glass_actionable_card.dart';
 
 /// A screen for managing the catalog of available supplements (Supplement Hub).
 class SupplementHubScreen extends StatefulWidget {
@@ -167,28 +167,11 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
 
     if (isBuiltin) return content;
 
-    return Dismissible(
-      key: Key('supp_${s.id}'),
-      direction: DismissDirection.horizontal,
-      background: const SwipeActionBackground(
-        color: Colors.blueAccent,
-        icon: LucideIcons.pencil,
-        alignment: Alignment.centerLeft,
-      ),
-      secondaryBackground: const SwipeActionBackground(
-        color: DesignConstants.brandRedColor,
-        icon: LucideIcons.trash_2,
-        alignment: Alignment.centerRight,
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          _navigateToEdit(s);
-          return false;
-        } else {
-          _delete(s);
-          return false;
-        }
-      },
+    return GlassActionableCard(
+      dismissibleKey: Key('supp_${s.id}'),
+      onEdit: () => _navigateToEdit(s),
+      onDelete: () => _delete(s),
+      confirmDelete: () async => false,
       child: content,
     );
   }

@@ -13,7 +13,6 @@ import '../../../util/time_util.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
 
@@ -104,26 +103,21 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                 (sum, set) => sum + (set.weightKg ?? 0) * (set.reps ?? 0),
               );
 
-              return Dismissible(
-                key: Key('log_${log.id}'),
-                direction: DismissDirection.endToStart,
-
-                // FIXED: Only `secondaryBackground` is needed here.
-                background: const SwipeActionBackground(
-                  color: DesignConstants.brandRedColor,
-                  icon: LucideIcons.trash_2,
-                  alignment: Alignment.centerRight,
-                ),
-                confirmDismiss: (direction) async {
-                  // New: helper (specific text needed here)
+              return GlassActionableCard(
+                dismissibleKey: Key('log_${log.id}'),
+                confirmDelete: () async {
                   return await showDeleteConfirmation(
                     context,
                     content: l10n.deleteWorkoutConfirmContent,
                   );
                 },
-                onDismissed: (direction) {
-                  _deleteLog(log.id!);
-                },
+                onDelete: () => _deleteLog(log.id!),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        WorkoutLogDetailScreen(logId: log.id!),
+                  ),
+                ),
                 child: SummaryCard(
                   child: ListTile(
                     title: Text(
@@ -195,12 +189,6 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                             ),
                           )
                         : null,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            WorkoutLogDetailScreen(logId: log.id!),
-                      ),
-                    ),
                   ),
                 ),
               );

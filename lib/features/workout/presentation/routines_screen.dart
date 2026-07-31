@@ -14,7 +14,6 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/swipe_action_background.dart';
 import '../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
@@ -221,35 +220,48 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 return _buildStartEmptyWorkoutCard(context, l10n);
               }
               final routine = routines[index - 1];
-              return Dismissible(
-                key: Key('routine_${routine.id}'),
-                direction: DismissDirection.endToStart,
-
-                // Same backgrounds as in Nutrition Screen
-                background: const SwipeActionBackground(
-                  color: DesignConstants.brandRedColor,
-                  icon: LucideIcons.trash_2,
-                  alignment: Alignment.centerRight,
-                ),
-
-                confirmDismiss: (direction) async {
+              return GlassActionableCard(
+                dismissibleKey: Key('routine_${routine.id}'),
+                onEdit: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => EditRoutineScreen(routine: routine),
+                    ),
+                  );
+                },
+                confirmDelete: () async {
                   return await showDeleteConfirmation(
                     context,
                     content: l10n.deleteRoutineConfirmContent(routine.name),
                   );
                 },
-
-                onDismissed: (direction) {
-                  if (direction == DismissDirection.endToStart) {
-                    setState(() {
-                      if (routine.id != null) {
-                        _dismissedRoutineIds.add(routine.id!);
-                      }
-                    });
-                    _performDeleteRoutine(routine);
-                  }
+                onDelete: () {
+                  setState(() {
+                    if (routine.id != null) {
+                      _dismissedRoutineIds.add(routine.id!);
+                    }
+                  });
+                  _performDeleteRoutine(routine);
                 },
-
+                additionalActions: [
+                  GlassContextAction(
+                    label: l10n.duplicate,
+                    icon: LucideIcons.copy,
+                    onTap: () => _duplicateRoutine(routine.id!),
+                  ),
+                  GlassContextAction(
+                    label: l10n.share,
+                    icon: DesignConstants.adaptiveShareIcon,
+                    onTap: () => _shareRoutine(routine),
+                  ),
+                ],
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => EditRoutineScreen(routine: routine),
+                    ),
+                  );
+                },
                 child: SummaryCard(
                   child: ListTile(
                     leading: AppButton.primary(
@@ -296,14 +308,6 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                         ),
                       ],
                     ),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              EditRoutineScreen(routine: routine),
-                        ),
-                      );
-                    },
                   ),
                 ),
               );

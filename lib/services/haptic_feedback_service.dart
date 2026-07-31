@@ -29,6 +29,14 @@ class HapticFeedbackService {
     await HapticFeedback.selectionClick();
   }
 
+  static Future<void> selectionClick() async {
+    await instance.selectionFeedback();
+  }
+
+  static Future<void> mediumImpact() async {
+    await instance.chartSelectionFeedback();
+  }
+
   Future<void> lightImpact() async {
     if (!_enabled) return;
     await HapticFeedback.lightImpact();

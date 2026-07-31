@@ -18,6 +18,8 @@ export 'platform_adaptive_pickers.dart';
 export 'platform_adaptive_dropdown.dart';
 export 'app_info_row.dart';
 export 'value_summary_card.dart';
+export 'glass_actionable_card.dart';
+export 'glass_context_menu_overlay.dart';
 
 // Empty States
 export 'empty_states/app_skeleton.dart';
