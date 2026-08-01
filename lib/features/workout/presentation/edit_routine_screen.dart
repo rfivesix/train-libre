@@ -19,7 +19,6 @@ import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../exercise_catalog/presentation/widgets/wger_attribution_widget.dart';
 import 'widgets/edit_routine_exercise_card.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
@@ -694,7 +693,6 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final double topPadding =
         MediaQuery.paddingOf(context).top + kToolbarHeight;
 
@@ -1012,27 +1010,6 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     },
                     child: const SizedBox.shrink(),
                   ),
-
-                // Layer 2 (Top): Wger attribution — pinned just below the FAB
-                Positioned(
-                  bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
-                  left: 0,
-                  right: 0,
-                  child: RepaintBoundary(
-                    child: WgerAttributionWidget(
-                      textStyle: textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            offset: const Offset(1, 1),
-                            blurRadius: 4.0,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
 
                 // --- Keyboard Done Accessory Bar ---
                 const _KeyboardDoneBar(),

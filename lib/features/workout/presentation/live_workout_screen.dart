@@ -19,7 +19,6 @@ import '../../../services/haptic_feedback_service.dart';
 import 'live_workout_view_model.dart';
 import '../domain/detect_personal_record_use_case.dart';
 import '../../../services/unit_service.dart';
-import '../../exercise_catalog/presentation/widgets/wger_attribution_widget.dart';
 import 'widgets/workout_summary_bar.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../exercise_catalog/presentation/exercise_detail_screen.dart';
@@ -1250,24 +1249,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                         l10n, colorScheme, manager);
                                     return bar ?? const SizedBox.shrink();
                                   },
-                                ),
-                                SizedBox(
-                                  height: 32.0,
-                                  child: Center(
-                                    child: WgerAttributionWidget(
-                                      textStyle: textTheme.bodySmall?.copyWith(
-                                        color: Colors.grey[600],
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black
-                                                .withValues(alpha: 0.5),
-                                            offset: const Offset(1, 1),
-                                            blurRadius: 4.0,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
                                 ),
                               ],
                             ),

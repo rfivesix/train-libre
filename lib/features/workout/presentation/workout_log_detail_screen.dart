@@ -27,7 +27,6 @@ import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
-import '../../exercise_catalog/presentation/widgets/wger_attribution_widget.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/workout_heart_rate_section.dart';
 import 'widgets/workout_exercise_log_card.dart';
@@ -1434,17 +1433,6 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 label: Text(l10n.addExerciseToWorkoutButton),
                               ),
                             ),
-
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                            child: WgerAttributionWidget(
-                              textStyle: textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),

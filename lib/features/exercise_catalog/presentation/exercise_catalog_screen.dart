@@ -11,7 +11,6 @@ import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import 'widgets/wger_attribution_widget.dart';
 import 'create_exercise_screen.dart';
 import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -348,26 +347,6 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                           ),
               ),
             ],
-          ),
-          // Wger attribution — pinned just above the safe area bottom
-          Positioned(
-            bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
-            left: 0,
-            right: 0,
-            child: RepaintBoundary(
-              child: WgerAttributionWidget(
-                textStyle: textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      offset: const Offset(1, 1),
-                      blurRadius: 4.0,
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ),
           Positioned(
             bottom: 0,

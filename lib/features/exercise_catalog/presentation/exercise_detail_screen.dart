@@ -13,7 +13,6 @@ import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 
 import '../../../widgets/common/common.dart';
-import 'widgets/wger_attribution_widget.dart';
 import '../../../services/unit_service.dart';
 import '../../profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:provider/provider.dart';
@@ -355,20 +354,6 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                     ),
                 ],
               ),
-            const SizedBox(height: DesignConstants.spacingXL),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  top: DesignConstants.spacingS,
-                  bottom: DesignConstants.spacingM,
-                ),
-                child: WgerAttributionWidget(
-                  textStyle: textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),

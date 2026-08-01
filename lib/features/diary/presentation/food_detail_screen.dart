@@ -11,7 +11,6 @@ import '../domain/models/tracked_food_item.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import 'widgets/off_attribution_widget.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:sqflite/sqflite.dart';
@@ -825,15 +824,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     ),
                   ),
                 ],
-
-                if (!_displayItem.barcode.startsWith('user_created_'))
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: DesignConstants.spacingXL,
-                      bottom: DesignConstants.spacingS,
-                    ),
-                    child: OffAttributionWidget(textStyle: textTheme.bodySmall),
-                  ),
               ],
             ),
           ),

@@ -10,7 +10,6 @@ import 'create_food_screen.dart';
 import 'food_detail_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/glass_fab.dart';
-import 'widgets/off_attribution_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart'; // Added
 import '../../../core/infrastructure/basis_data_manager.dart';
@@ -217,14 +216,6 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                   ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
-            left: 0,
-            right: 0,
-            child: const RepaintBoundary(
-              child: OffAttributionWidget(),
             ),
           ),
         ],

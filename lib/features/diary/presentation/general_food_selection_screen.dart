@@ -14,7 +14,6 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/app_section_header.dart';
-import 'widgets/off_attribution_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
@@ -499,7 +498,6 @@ class _GeneralFoodSelectionScreenState
                                   if (offHits.isNotEmpty) {
                                     listItems.add(l10n.searchSectionOther);
                                     listItems.addAll(offHits);
-                                    listItems.add(const OffAttributionWidget());
                                   }
 
                                   return ListView.builder(

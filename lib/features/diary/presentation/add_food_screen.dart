@@ -22,7 +22,6 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
-import 'widgets/off_attribution_widget.dart';
 import 'widgets/food_item_search_tile.dart';
 import 'widgets/meal_item_card.dart';
 import 'widgets/catalog_category_tile.dart';
@@ -530,26 +529,6 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   gradient: DesignConstants.bottomVignetteGradient(
                     !isLightMode,
                   ),
-                ),
-              ),
-            ),
-          ),
-          // OFF attribution — floats above the gradient, below the FAB
-          Positioned(
-            bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
-            left: 0,
-            right: 0,
-            child: RepaintBoundary(
-              child: OffAttributionWidget(
-                textStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      offset: const Offset(1, 1),
-                      blurRadius: 4.0,
-                    ),
-                  ],
                 ),
               ),
             ),
