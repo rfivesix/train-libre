@@ -93,11 +93,18 @@ class WorkoutHeartRateService {
       );
     }
 
-    final bpms = samples.map((sample) => sample.bpm).toList(growable: false);
-    final average = bpms.fold<double>(0, (sum, value) => sum + value) /
-        math.max(1, bpms.length);
-    final minBpm = bpms.reduce(math.min);
-    final maxBpm = bpms.reduce(math.max);
+    double sum = 0.0;
+    double minBpm = double.infinity;
+    double maxBpm = double.negativeInfinity;
+
+    for (final sample in samples) {
+      final bpm = sample.bpm;
+      sum += bpm;
+      if (bpm < minBpm) minBpm = bpm;
+      if (bpm > maxBpm) maxBpm = bpm;
+    }
+
+    final average = sum / math.max(1, samples.length);
 
     final quality = _classifyQuality(
       sampleCount: samples.length,

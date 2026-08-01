@@ -309,10 +309,14 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
           (widget.usesExternalData ? null : _dataPoints.first.value),
     );
 
-    double minVal =
-        _dataPoints.map((p) => _displayValue(p.value)).reduce(math.min);
-    double maxVal =
-        _dataPoints.map((p) => _displayValue(p.value)).reduce(math.max);
+    double minVal = double.infinity;
+    double maxVal = double.negativeInfinity;
+
+    for (final p in _dataPoints) {
+      final val = _displayValue(p.value);
+      if (val < minVal) minVal = val;
+      if (val > maxVal) maxVal = val;
+    }
     if (referenceLineValue != null) {
       minVal = math.min(minVal, referenceLineValue);
       maxVal = math.max(maxVal, referenceLineValue);
