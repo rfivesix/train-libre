@@ -30,8 +30,7 @@ class RunningWorkoutOverlay extends StatelessWidget {
     );
 
     final double radius = DesignConstants.workoutOverlayHeight / 2; // Half of height for perfect pill
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8), // Tight gap above GlassBottomBar
+    return SizedBox(
       height: DesignConstants.workoutOverlayHeight,
       child: GlassAdaptiveScope(
             maxQuality: DesignConstants.defaultGlassQuality,

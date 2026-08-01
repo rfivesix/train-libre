@@ -1001,7 +1001,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     controller: _fabOverlayController,
                     overlayChildBuilder: (context) {
                       return Positioned(
-                        bottom: 24.0 + MediaQuery.paddingOf(context).bottom,
+                        bottom: 12.0 + MediaQuery.paddingOf(context).bottom,
                         right: 16.0,
                         child: RepaintBoundary(
                           child: _EditRoutineFab(onPressed: _addExercises),

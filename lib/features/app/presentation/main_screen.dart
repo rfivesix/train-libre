@@ -1202,8 +1202,10 @@ class _MainScreenState extends State<MainScreen>
         // Laufendes Workout Overlay
         if (isWorkoutRunning)
           Positioned(
-            bottom: kNavBarHeight +
-                32, // pill clears nav bar top (96px) with 8px gap from internal margin
+            bottom: 8 +
+                8 +
+                DesignConstants.bottomNavigationBarHeight +
+                8, // 8px (Positioned bottom) + 8px (verticalPadding) + 64px (barHeight) + 8px (gap) = 88.0px
             left: 16,
             right: 16,
             child: RepaintBoundary(
@@ -1248,14 +1250,14 @@ class _MainScreenState extends State<MainScreen>
           ),
         // Bottom Nav Bar & FAB
         Positioned(
-          bottom: 12,
+          bottom: 8,
           left: 16,
           right: 16,
           child: RepaintBoundary(
             child: LayoutBuilder(
               builder: (context, constraints) {
                   final double horizontalPadding = 0.0;
-                  final double verticalPadding = 20.0;
+                  final double verticalPadding = 8.0;
                   final double spacing = 8.0;
                   final double extraButtonSize = DesignConstants.fabSize;
                   final double maxTabW = constraints.maxWidth -
