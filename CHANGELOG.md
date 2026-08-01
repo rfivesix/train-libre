@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.7] - 2026-08-01
 
+### Fixed
+- **Nutrition Hub Recipe Cards Visual Mismatch:** Fixed visual clipping, height mismatch (changed from 150px to 160px), missing drop shadows, and `clipBehavior` in `NutritionHubScreen` (`nutrition_hub_screen.dart`), restoring exact 1:1 visual parity with "Meine Pläne" cards in `WorkoutHubScreen`.
+
 ### Changed
 - **Main Navigation Dock & Floating Action Button (FAB) Lowering:** Adjusted the bottom position and vertical padding across all Floating Action Buttons (`GlassFab`). Fixed the total bottom offset of `_LiveWorkoutFab` in `LiveWorkoutScreen` (`live_workout_screen.dart`) to `92.0px` (`12.0px outer padding + 8.0px inner margin + 64.0px rest bar height + 8.0px gap`) when the rest timer bar is active, resolving an overlapping visual bug and restoring the exact 8.0px vertical gap above the rest bar. Lowered standalone custom FAB overlays (`EditRoutineScreen`) from `24px` to `12px` base bottom margin to sit lower and consistent across all product screens.
 - **Solid Saturated Brand Lime Rest Completion Banner:** Updated the rest completion banner in `LiveWorkoutScreen` (`live_workout_screen.dart`) to render 100% solid (0% transparency, `glassColor: DesignConstants.brandAccentColor`, `blur: 0.0`) in both Dark and Light modes, completely obscuring any background content behind the pill.

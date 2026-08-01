@@ -193,7 +193,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                 AppSectionHeader(title: l10n.nutritionSectionMyMeals),
                 RepaintBoundary(
                   child: SizedBox(
-                    height: 150,
+                    height: 160,
                     child: meals.isEmpty
                         ? Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -230,10 +230,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                           )
                         : ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            // Clip.hardEdge (statt Clip.none) erlaubt Flutter,
-                            // Compositing-Layer außerhalb des sichtbaren Bereichs
-                            // korrekt zu verwerfen und vermeidet Scroll-Jank.
-                            clipBehavior: Clip.hardEdge,
+                            clipBehavior: Clip.none,
                             itemCount: meals.length + 1,
                             itemBuilder: (context, index) {
                               if (index == 0) {
@@ -325,30 +322,27 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Widget _buildCreateMealCard(BuildContext context, AppLocalizations l10n) {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 32 - 12) / 2.5;
-    return RepaintBoundary(
-      child: SizedBox(
-        width: cardWidth,
-        child: Padding(
-          padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-          child: SummaryCard(
-            padding: EdgeInsets.zero,
-            child: InkWell(
-              onTap: _createMealAndOpenEditor,
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-              child: Padding(
-                padding: DesignConstants.cardPadding,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      LucideIcons.circle_plus,
-                      size: 40,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    Text(l10n.mealsCreate, textAlign: TextAlign.center),
-                  ],
-                ),
+    return SizedBox(
+      width: cardWidth,
+      child: Padding(
+        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
+        child: SummaryCard(
+          child: InkWell(
+            onTap: _createMealAndOpenEditor,
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            child: Padding(
+              padding: DesignConstants.cardPadding,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    LucideIcons.circle_plus,
+                    size: 40,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Text(l10n.mealsCreate, textAlign: TextAlign.center),
+                ],
               ),
             ),
           ),
@@ -362,18 +356,11 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     final cardWidth = (screenWidth - 32 - 12) / 2;
     final l10n = AppLocalizations.of(context)!;
 
-    // Kein RepaintBoundary pro Karte – die einzelne RepaintBoundary um den
-    // gesamten horizontalen Scroll-Bereich (im build-Methode) reicht aus.
-    // Per-Karte-Boundaries würden nur mehr Layer und mehr Compositing erzeugen.
-    // BoxShadow ist hier deaktiviert (disableShadow: true), da Schatten in
-    // horizontal scrollenden Listen teures Offscreen-Compositing verursachen.
     return SizedBox(
       width: cardWidth,
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: SummaryCard(
-          padding: EdgeInsets.zero,
-          disableShadow: true,
           child: InkWell(
             onTap: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => MealScreen(meal: meal)))
