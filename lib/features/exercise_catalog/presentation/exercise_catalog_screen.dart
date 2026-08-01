@@ -316,6 +316,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                   subtitle: Text(exercise.categoryName),
                                   trailing: widget.isSelectionMode
                                       ? IconButton(
+                                          tooltip: l10n.add_button,
                                           icon: Icon(
                                             LucideIcons.circle_plus,
                                             color: colorScheme.primary,
