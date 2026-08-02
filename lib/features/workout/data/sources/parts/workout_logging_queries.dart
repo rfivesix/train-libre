@@ -192,6 +192,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           logOrder: drift.Value(s.logOrder ?? 0),
           distance: drift.Value(s.distanceKm),
           durationSeconds: drift.Value(s.durationSeconds),
+          restTimeSeconds: drift.Value(s.restTimeSeconds),
         ));
       }
     }

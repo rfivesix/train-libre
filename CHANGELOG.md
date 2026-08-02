@@ -8,10 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-beta.8] - 2026-08-03
 
 ### Added
+- **Dedicated Media Audio Output for Workout Rest Timer:** Added `audioplayers` integration and `SoundService` (`sound_service.dart`) with a custom dual-tone timer chime (`assets/sounds/timer_done.wav`). Playing timer completion via `SoundService` routes the audio directly through active Bluetooth headphones / AirPods or media speakers (ducking background music), guaranteeing sound playback regardless of system notification channel mute states.
 - **Glass Bottom Sheet `headerTrailing` Action Support:** Extended `showGlassBottomMenu` (`glass_bottom_menu.dart`) to support a custom `headerTrailing` widget rendered top-right in the sheet header, identical to the date/time picker headers.
 - **Workout Rest Timer "Timer entfernen" Header Action:** Replaced the full-width bottom red button in `RoutinePauseTimeDialog` with a subtle top-right action ("Timer entfernen" / "Remove Timer") in the modal sheet header of `live_workout_screen.dart` and `edit_routine_screen.dart`, perfectly matching the date/time picker's "Heute" / "Jetzt" layout.
 
-### Changed
+### Fixed
+- **Workout Session Rest Timer Persistence in SQLite:** Fixed a critical issue in `workout_logging_queries.dart` (`updateSetLogs`) where `restTimeSeconds` was omitted from the `SetLogsCompanion` database query. When updating set logs during a workout, `rest_time_seconds` was left untouched in SQLite, causing rest timer values to reset to 0/default upon app restart.
 - **Exercise Catalog Category Filter Dropdown:** Replaced modal bottom sheet filter menu in `ExerciseCatalogScreen` (`exercise_catalog_screen.dart`) with the app's native glass context popup dropdown (`PlatformAdaptivePopupMenu`). Clicking the filter icon now opens an inline liquid glass dropdown menu directly below the filter button, displaying category items with active checkmarks for instant filtering without opening a full-screen bottom sheet.
 - **Supplement Quick Selection Sheet Layout:** Removed redundant leading pill icons (`LucideIcons.pill`) from the quick selection list tiles in `LogSupplementMenu` (`log_supplement_menu.dart`) for a cleaner, streamlined list view.
 

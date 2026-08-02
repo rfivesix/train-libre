@@ -181,22 +181,24 @@ class LocalNotificationService {
     final details = foreground
         ? NotificationDetails(
             android: AndroidNotificationDetails(
-              'rest_timer_foreground_channel_v3',
+              'rest_timer_foreground_v4',
               'Rest Timer (Foreground)',
               channelDescription:
                   'Alerts when the rest timer finishes while in the foreground.',
-              importance: Importance.defaultImportance,
-              priority: Priority.defaultPriority,
+              importance: Importance.max,
+              priority: Priority.high,
               playSound: true,
               enableVibration: hapticsEnabled,
             ),
             iOS: const DarwinNotificationDetails(
-              presentAlert: false,
+              presentAlert: true,
               presentSound: true,
               presentBadge: false,
+              presentBanner: true,
+              presentList: true,
             ),
             macOS: const DarwinNotificationDetails(
-              presentAlert: false,
+              presentAlert: true,
               presentSound: true,
               presentBadge: false,
             ),
