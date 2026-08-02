@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.8] - 2026-08-03
 
+### Changed
+- **Supplement Quick Selection Sheet Layout:** Removed redundant leading pill icons (`LucideIcons.pill`) from the quick selection list tiles in `LogSupplementMenu` (`log_supplement_menu.dart`) for a cleaner, streamlined list view.
+
 ### Fixed
 - **Glass Bottom Sheet Keyboard Max-Height Bound:** Corrected `maxAvailableHeight` calculation in `showGlassBottomMenu` (`glass_bottom_menu.dart`) and `_GlassPickerSheet` (`platform_adaptive_pickers.dart`) by subtracting `keyboardInset` (`viewInsets.bottom`). When the soft keyboard opens while editing complex forms (such as adding/editing fluid entries), the sheet height is now capped strictly below the top status bar / Dynamic Island, ensuring full scrollability without overflowing off-screen.
 - **Liquid Glass Bottom Sheet Keyboard Extension:** Overhauled the keyboard transition in `showGlassBottomMenu` (`glass_bottom_menu.dart`) and `_GlassPickerSheet` (`platform_adaptive_pickers.dart`). Replaced negative padding with a non-clipping `Stack` extension that positions an `AdaptiveGlass` backdrop (`bottom: -keyboardInset`). The real liquid glass effect, saturation tint, and backdrop filters now extend continuously down behind the iOS/Android keyboard without triggering Flutter framework assertions or breaking glass optics.
