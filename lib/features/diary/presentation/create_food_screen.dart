@@ -88,7 +88,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
   Future<void> _saveFoodItem() async {
     if (_formKey.currentState?.validate() ?? false) {
       final l10n = AppLocalizations.of(context)!;
-      final isLiquidOrFluid = widget.foodItemToEdit?.isLiquid == true ||
+      final isLiquidOrFluid =
+          widget.foodItemToEdit?.isLiquid == true ||
           widget.foodItemToEdit?.isFluid == true;
       final caffeineVal = double.tryParse(_caffeineController.text);
 
@@ -188,6 +189,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                 label: l10n.formFieldCalories,
                 isNumeric: true, // Fix
                 suffixIcon: IconButton(
+                  tooltip: l10n.adaptiveRecommendationRecalculateNowAction,
                   icon: const Icon(LucideIcons.refresh_cw, size: 20),
                   onPressed: _calculateCaloriesFromMacros,
                 ),
@@ -252,10 +254,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
       padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
       child: TextFormField(
         controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          suffixIcon: suffixIcon,
-        ),
+        decoration: InputDecoration(labelText: label, suffixIcon: suffixIcon),
         // FIX: Keyboard type is now controlled.
         keyboardType: isNumeric
             ? const TextInputType.numberWithOptions(decimal: true)

@@ -51,8 +51,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   bool _isWgerDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized =
-        await BasisDataManager.instance.isExerciseCatalogInitialized();
+    final initialized = await BasisDataManager.instance
+        .isExerciseCatalogInitialized();
     if (mounted) {
       setState(() {
         _isWgerDbInitialized = initialized;
@@ -69,8 +69,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     _searchController.addListener(_onSearchChanged);
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await BasisDataManager.instance
-          .promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+        context,
+      );
       await _checkDbStatus();
     });
   }
@@ -280,71 +281,73 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _foundExercises.isEmpty
-                        ? Center(
-                            child: Text(
-                              l10n.noExercisesFound,
-                              style: textTheme.titleMedium,
-                            ),
-                          )
-                        : ListView.builder(
-                            scrollCacheExtent:
-                                const ScrollCacheExtent.pixels(1500.0),
-                            padding: DesignConstants.cardPadding,
-                            itemCount: _foundExercises.length,
-                            itemBuilder: (context, index) {
-                              final exercise = _foundExercises[index];
-                              return SummaryCard(
-                                child: ListTile(
-                                  title: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          exercise.getLocalizedName(context),
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
+                    ? Center(
+                        child: Text(
+                          l10n.noExercisesFound,
+                          style: textTheme.titleMedium,
+                        ),
+                      )
+                    : ListView.builder(
+                        scrollCacheExtent: const ScrollCacheExtent.pixels(
+                          1500.0,
+                        ),
+                        padding: DesignConstants.cardPadding,
+                        itemCount: _foundExercises.length,
+                        itemBuilder: (context, index) {
+                          final exercise = _foundExercises[index];
+                          return SummaryCard(
+                            child: ListTile(
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      exercise.getLocalizedName(context),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                      if (exercise.source == 'user') ...[
-                                        const SizedBox(
-                                            width: DesignConstants.spacingS),
-                                        _buildSourceBadge(
-                                            context, exercise.source),
-                                      ],
-                                    ],
+                                    ),
                                   ),
-                                  subtitle: Text(exercise.categoryName),
-                                  trailing: widget.isSelectionMode
-                                      ? IconButton(
-                                          icon: Icon(
-                                            LucideIcons.circle_plus,
-                                            color: colorScheme.primary,
+                                  if (exercise.source == 'user') ...[
+                                    const SizedBox(
+                                      width: DesignConstants.spacingS,
+                                    ),
+                                    _buildSourceBadge(context, exercise.source),
+                                  ],
+                                ],
+                              ),
+                              subtitle: Text(exercise.categoryName),
+                              trailing: widget.isSelectionMode
+                                  ? IconButton(
+                                      tooltip: l10n.selectButton,
+                                      icon: Icon(
+                                        LucideIcons.circle_plus,
+                                        color: colorScheme.primary,
+                                      ),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(exercise),
+                                    )
+                                  : const Icon(LucideIcons.chevron_right),
+                              onTap: () {
+                                if (widget.onExerciseSelected != null) {
+                                  widget.onExerciseSelected!(exercise);
+                                } else if (widget.isSelectionMode) {
+                                  Navigator.of(context).pop(exercise);
+                                } else {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ExerciseDetailScreen(
+                                            exercise: exercise,
+                                            repository: _repository,
                                           ),
-                                          onPressed: () => Navigator.of(context)
-                                              .pop(exercise),
-                                        )
-                                      : const Icon(
-                                          LucideIcons.chevron_right,
-                                        ),
-                                  onTap: () {
-                                    if (widget.onExerciseSelected != null) {
-                                      widget.onExerciseSelected!(exercise);
-                                    } else if (widget.isSelectionMode) {
-                                      Navigator.of(context).pop(exercise);
-                                    } else {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ExerciseDetailScreen(
-                                                  exercise: exercise,
-                                                  repository: _repository),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                ),
-                              );
-                            },
-                          ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
           ),
@@ -370,16 +373,16 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         onPressed: () {
           Navigator.of(context)
               .push(
-            MaterialPageRoute(
-              builder: (context) =>
-                  CreateExerciseScreen(repository: _repository),
-            ),
-          )
+                MaterialPageRoute(
+                  builder: (context) =>
+                      CreateExerciseScreen(repository: _repository),
+                ),
+              )
               .then((wasCreated) {
-            if (wasCreated == true) {
-              _runFilter(_searchController.text);
-            }
-          });
+                if (wasCreated == true) {
+                  _runFilter(_searchController.text);
+                }
+              });
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -394,12 +397,13 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final fillColor = hasFilter
         ? colorScheme.primary
         : (theme.inputDecorationTheme.fillColor ??
-            (theme.brightness == Brightness.dark
-                ? const Color(0xFF1C1C1C)
-                : const Color(0xFFF3F3F3)));
+              (theme.brightness == Brightness.dark
+                  ? const Color(0xFF1C1C1C)
+                  : const Color(0xFFF3F3F3)));
 
-    final iconColor =
-        hasFilter ? colorScheme.onPrimary : colorScheme.onSurfaceVariant;
+    final iconColor = hasFilter
+        ? colorScheme.onPrimary
+        : colorScheme.onSurfaceVariant;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -410,11 +414,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
       ),
       child: IconButton(
-        icon: Icon(
-          LucideIcons.list_filter,
-          color: iconColor,
-          size: 22,
-        ),
+        icon: Icon(LucideIcons.list_filter, color: iconColor, size: 22),
         onPressed: () => _showFilterDialog(context, l10n),
         tooltip: l10n.filterByCategory,
         padding: EdgeInsets.zero,
@@ -429,7 +429,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingS, vertical: 3),
+        horizontal: DesignConstants.spacingS,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),

@@ -92,15 +92,13 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
       final categories = await _repository.getAllCategories();
       final dbMuscles = await _repository.getAllMuscleGroups();
 
-      final mergedMuscles = <String>{
-        ..._defaultMuscles,
-        ...dbMuscles,
-      }.toList();
+      final mergedMuscles = <String>{..._defaultMuscles, ...dbMuscles}.toList();
 
       if (mounted) {
         setState(() {
-          _allCategories =
-              categories.isNotEmpty ? categories : _defaultCategories;
+          _allCategories = categories.isNotEmpty
+              ? categories
+              : _defaultCategories;
           _allMuscleGroups = mergedMuscles;
 
           _allCategories.sort();
@@ -202,14 +200,14 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
             )
           else
             IconButton(
+              tooltip: l10n.buttonSave,
               icon: const Icon(LucideIcons.check),
               onPressed: _isValid ? _saveExercise : null,
               color: _isValid
                   ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.38),
+                  : Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.38),
             ),
         ],
       ),
