@@ -110,80 +110,89 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
     const double r = 24;
+    final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
+    final maxAvailableHeight = media.size.height - topPadding - 16 - keyboardInset;
 
     Widget contentColumn() {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: DesignConstants.spacingS),
-          Container(
-            width: 44,
-            height: 5,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(100),
-            ),
-          ),
-          if (title != null) ...[
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingL),
-              child: Text(
-                title!,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-          if (contentBuilder != null) ...[
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxAvailableHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             const SizedBox(height: DesignConstants.spacingS),
-            Padding(
-              padding: EdgeInsets.only(
-                  left: DesignConstants.spacingM,
-                  right: DesignConstants.spacingM,
-                  bottom: applySafeAreaBottom ? bottomInset : 0),
-              child: contentBuilder!(
-                context,
-                () => Navigator.of(context).maybePop(),
+            Container(
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(100),
               ),
             ),
-          ] else if (actions.isNotEmpty) ...[
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 420),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(8, 12, 8, 8 + (applySafeAreaBottom ? bottomInset : 0)),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(actions.length, (i) {
-                      final a = actions[i];
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: DesignConstants.spacingS),
-                        child: _GlassTile(
-                          icon: a.icon,
-                          customIcon: a.customIcon, // <--- Pass new value
-                          title: a.label,
-                          subtitle: a.subtitle,
-                          onTap: () {
-                            HapticFeedbackService.instance.selectionFeedback();
-                            Navigator.of(context).maybePop();
-                            WidgetsBinding.instance.addPostFrameCallback(
-                              (_) => a.onTap(),
-                            );
-                          },
-                        ),
-                      );
-                    }),
+            if (title != null) ...[
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingL),
+                child: Text(
+                  title!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-            ),
+            ],
+            if (contentBuilder != null) ...[
+              const SizedBox(height: DesignConstants.spacingS),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        left: DesignConstants.spacingM,
+                        right: DesignConstants.spacingM,
+                        bottom: applySafeAreaBottom ? bottomInset : 0),
+                    child: contentBuilder!(
+                      context,
+                      () => Navigator.of(context).maybePop(),
+                    ),
+                  ),
+                ),
+              ),
+            ] else if (actions.isNotEmpty) ...[
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 420),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(8, 12, 8, 8 + (applySafeAreaBottom ? bottomInset : 0)),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(actions.length, (i) {
+                        final a = actions[i];
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                              bottom: DesignConstants.spacingS),
+                          child: _GlassTile(
+                            icon: a.icon,
+                            customIcon: a.customIcon, // <--- Pass new value
+                            title: a.label,
+                            subtitle: a.subtitle,
+                            onTap: () {
+                              HapticFeedbackService.instance.selectionFeedback();
+                              Navigator.of(context).maybePop();
+                              WidgetsBinding.instance.addPostFrameCallback(
+                                (_) => a.onTap(),
+                              );
+                            },
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       );
     }
 
@@ -258,7 +267,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+          constraints: BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
           child: Stack(
             clipBehavior: Clip.none,
             children: [

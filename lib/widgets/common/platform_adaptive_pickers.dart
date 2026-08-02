@@ -360,8 +360,9 @@ class _GlassPickerSheet extends StatelessWidget {
         ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
         : theme.colorScheme.surface.withValues(alpha: 0.82);
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
-
     const double r = 24;
+    final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
+    final maxAvailableHeight = media.size.height - topPadding - 16 - keyboardInset;
 
     return SafeArea(
       top: false,
@@ -369,7 +370,7 @@ class _GlassPickerSheet extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+          constraints: BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
