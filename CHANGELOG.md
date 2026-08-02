@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.0.0-beta.8] - 2026-08-03
 
 ### Changed
+- **Exercise Catalog Category Filter Dropdown:** Replaced modal bottom sheet filter menu in `ExerciseCatalogScreen` (`exercise_catalog_screen.dart`) with the app's native glass context popup dropdown (`PlatformAdaptivePopupMenu`). Clicking the filter icon now opens an inline liquid glass dropdown menu directly below the filter button, displaying category items with active checkmarks for instant filtering without opening a full-screen bottom sheet.
 - **Supplement Quick Selection Sheet Layout:** Removed redundant leading pill icons (`LucideIcons.pill`) from the quick selection list tiles in `LogSupplementMenu` (`log_supplement_menu.dart`) for a cleaner, streamlined list view.
 
 ### Fixed
