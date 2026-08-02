@@ -22,12 +22,21 @@ void main() {
       );
     });
 
-    test('defaults initial diary date to today when no date is provided', () {
+    test('defaults initial diary date to today when no date is provided at or after 03:00', () {
       final today = DateTime(2026, 5, 4, 9);
 
       expect(
         resolveDiaryInitialDate(now: today),
         DateTime(2026, 5, 4),
+      );
+    });
+
+    test('defaults initial diary date to yesterday when no date is provided before 03:00', () {
+      final earlyMorning = DateTime(2026, 5, 4, 2, 45);
+
+      expect(
+        resolveDiaryInitialDate(now: earlyMorning),
+        DateTime(2026, 5, 3),
       );
     });
 
