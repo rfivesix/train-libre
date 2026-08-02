@@ -37,18 +37,30 @@ class SleepHeartRateDelta {
 }
 
 NightlyHeartRateMetrics calculateNightlyHeartRateMetrics({
-  required List<HeartRateSample> sleepWindowSamples,
+  required Iterable<HeartRateSample> sleepWindowSamples,
   int minimumSampleCount = 5,
 }) {
-  if (sleepWindowSamples.length < minimumSampleCount) {
+  final bpms = <double>[];
+  var sum = 0.0;
+
+  // BOLT OPTIMIZATION: Replaced chained .map().toList() and .fold() with a
+  // single-pass manual loop to avoid intermediate array allocations and O(2N) traversal.
+  for (final sample in sleepWindowSamples) {
+    final bpm = sample.bpm;
+    bpms.add(bpm);
+    sum += bpm;
+  }
+
+  if (bpms.length < minimumSampleCount) {
     return const NightlyHeartRateMetrics(
       sleepHrAvg: null,
       sleepHrMin: null,
       coverageSufficient: false,
     );
   }
-  final bpms = sleepWindowSamples.map((sample) => sample.bpm).toList()..sort();
-  final avg = bpms.fold<double>(0, (sum, bpm) => sum + bpm) / bpms.length;
+
+  bpms.sort();
+  final avg = sum / bpms.length;
   final p5Index = ((bpms.length - 1) * 0.05).floor();
   return NightlyHeartRateMetrics(
     sleepHrAvg: avg,
@@ -58,10 +70,18 @@ NightlyHeartRateMetrics calculateNightlyHeartRateMetrics({
 }
 
 SleepHeartRateBaseline calculateSleepHeartRateBaseline(
-  List<double> nightlyAverageHeartRates,
+  Iterable<double> nightlyAverageHeartRates,
 ) {
-  final valid =
-      nightlyAverageHeartRates.where((value) => value.isFinite).toList();
+  final valid = <double>[];
+
+  // BOLT OPTIMIZATION: Replaced .where().toList() with a standard for-loop
+  // to prevent unnecessary Iterable allocations and GC overhead.
+  for (final value in nightlyAverageHeartRates) {
+    if (value.isFinite) {
+      valid.add(value);
+    }
+  }
+
   if (valid.length < 10) {
     return SleepHeartRateBaseline(
       baselineSleepHr: null,
@@ -70,10 +90,12 @@ SleepHeartRateBaseline calculateSleepHeartRateBaseline(
     );
   }
   final windowStart = valid.length <= 30 ? 0 : valid.length - 30;
+  // BOLT OPTIMIZATION: .sublist() already creates a fresh array, so we can sort
+  // it in-place instead of creating another copy with List.from(window)..sort().
   final window = valid.sublist(windowStart);
-  final sortedWindow = List<double>.from(window)..sort();
+  window.sort();
   return SleepHeartRateBaseline(
-    baselineSleepHr: _median(sortedWindow),
+    baselineSleepHr: _median(window),
     isEstablished: true,
     validNights: valid.length,
   );
