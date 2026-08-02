@@ -116,6 +116,18 @@ abstract class AppLocalizations {
   /// **'Select Time'**
   String get selectTimeTitle;
 
+  /// No description provided for @removeTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Timer'**
+  String get removeTimer;
+
+  /// No description provided for @noTimerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No Timer'**
+  String get noTimerLabel;
+
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:

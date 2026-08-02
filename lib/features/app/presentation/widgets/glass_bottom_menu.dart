@@ -40,6 +40,7 @@ class GlassMenuAction {
 Future<T?> showGlassBottomMenu<T>({
   required BuildContext context,
   String? title,
+  Widget? headerTrailing,
   List<GlassMenuAction>? actions,
   Widget Function(BuildContext, VoidCallback)? contentBuilder,
   bool isDismissible = true,
@@ -74,6 +75,7 @@ Future<T?> showGlassBottomMenu<T>({
         padding: EdgeInsets.only(bottom: kb),
         child: _GlassBottomMenuSheet(
           title: title,
+          headerTrailing: headerTrailing,
           actions: actions ?? const <GlassMenuAction>[],
           contentBuilder: contentBuilder,
           applySafeAreaBottom: applySafeAreaBottom,
@@ -86,12 +88,14 @@ Future<T?> showGlassBottomMenu<T>({
 class _GlassBottomMenuSheet extends StatelessWidget {
   const _GlassBottomMenuSheet({
     this.title,
+    this.headerTrailing,
     this.contentBuilder,
     this.actions = const <GlassMenuAction>[],
     this.applySafeAreaBottom = true,
   });
 
   final String? title;
+  final Widget? headerTrailing;
   final Widget Function(BuildContext, VoidCallback)? contentBuilder;
   final List<GlassMenuAction> actions;
   final bool applySafeAreaBottom;
@@ -133,12 +137,28 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: DesignConstants.spacingL),
-                child: Text(
-                  title!,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (headerTrailing != null) const SizedBox(width: 80),
+                    Expanded(
+                      child: Text(
+                        title!,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (headerTrailing != null)
+                      SizedBox(
+                        width: 100,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: headerTrailing,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],

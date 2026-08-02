@@ -15,6 +15,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get selectTimeTitle => '時間を選択';
 
   @override
+  String get removeTimer => 'タイマーを削除';
+
+  @override
+  String get noTimerLabel => 'タイマーなし';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override

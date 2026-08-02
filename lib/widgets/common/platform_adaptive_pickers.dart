@@ -859,21 +859,53 @@ Future<Duration?> showAdaptiveDurationPicker({
         child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (title != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: DesignConstants.spacingL),
-                  child: Center(
-                    child: Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingL,
+                  bottom: DesignConstants.spacingS,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 80),
+                    Expanded(
+                      child: Text(
+                        title ?? l10n?.restTimerLabel ?? 'Timer',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  ),
-                )
-              else
-                const SizedBox(height: DesignConstants.spacingL),
+                    SizedBox(
+                      width: 100,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: () {
+                            HapticFeedbackService.instance.selectionFeedback();
+                            Navigator.pop(ctx, Duration.zero);
+                          },
+                          child: Text(
+                            l10n?.removeTimer ?? 'Timer entfernen',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               SizedBox(
                 height: 200,
                 child: CupertinoTheme(
