@@ -766,7 +766,6 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
             try {
               unawaited(HapticFeedbackService.instance.vibrate());
               unawaited(SoundService.instance.playTimerDoneSound());
-              unawaited(SystemSound.play(SystemSoundType.alert));
               unawaited(LocalNotificationService.instance
                   .showRestTimerDoneNotification(foreground: true));
             } catch (_) {}

@@ -23,7 +23,7 @@ class SoundService {
             audioFocus: AndroidAudioFocus.gainTransientMayDuck,
           ),
           iOS: AudioContextIOS(
-            category: AVAudioSessionCategory.ambient,
+            category: AVAudioSessionCategory.playback,
             options: const {
               AVAudioSessionOptions.mixWithOthers,
               AVAudioSessionOptions.duckOthers,
@@ -33,7 +33,7 @@ class SoundService {
       );
       _initialized = true;
     } catch (e) {
-      debugPrint('SoundService audio context initialization warning: $e');
+      debugPrint('SoundService audio context initialization info: $e');
     }
   }
 
@@ -42,7 +42,7 @@ class SoundService {
     try {
       await _ensureInitialized();
       await _player.stop();
-      await _player.play(AssetSource('sounds/timer_done.wav'));
+      await _player.play(AssetSource('sounds/timer_done.mp3'));
     } catch (e) {
       debugPrint('SoundService playTimerDoneSound error: $e');
     }
