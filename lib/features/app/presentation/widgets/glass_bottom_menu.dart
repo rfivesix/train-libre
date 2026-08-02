@@ -98,12 +98,11 @@ class _GlassBottomMenuSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ... (this part stays exactly identical to the current file) ...
-    // ...
     final media = MediaQuery.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bottomInset = media.viewPadding.bottom;
+    final keyboardInset = media.viewInsets.bottom;
 
     final Color neutralTint = isDark
         ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
@@ -111,7 +110,6 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
     const double r = 24;
-    const EdgeInsets outerMargin = EdgeInsets.zero;
 
     Widget contentColumn() {
       return Column(
@@ -157,7 +155,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               constraints: const BoxConstraints(maxHeight: 420),
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(8, 12, 8, 8 + bottomInset),
+                  padding: EdgeInsets.fromLTRB(8, 12, 8, 8 + (applySafeAreaBottom ? bottomInset : 0)),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: List.generate(actions.length, (i) {
@@ -259,11 +257,43 @@ class _GlassBottomMenuSheet extends StatelessWidget {
       bottom: false,
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: outerMargin,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: liquidCard(),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              if (keyboardInset > 0)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: -keyboardInset,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                    child: RepaintBoundary(
+                      child: AdaptiveGlass(
+                        settings: LiquidGlassSettings(
+                          thickness: 0,
+                          blur: 8,
+                          glassColor: effectiveGlass,
+                          lightIntensity: 0,
+                          saturation: 1.20,
+                        ),
+                        shape: const LiquidVerticalRoundedSuperellipse(
+                          topRadius: r,
+                          bottomRadius: 0,
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: neutralTint,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              liquidCard(),
+            ],
           ),
         ),
       ),

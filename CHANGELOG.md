@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
+## [1.0.0-beta.8] - 2026-08-03
+
+### Fixed
+- **Liquid Glass Bottom Sheet Keyboard Extension:** Overhauled the keyboard transition in `showGlassBottomMenu` (`glass_bottom_menu.dart`) and `_GlassPickerSheet` (`platform_adaptive_pickers.dart`). Replaced negative padding with a non-clipping `Stack` extension that positions an `AdaptiveGlass` backdrop (`bottom: -keyboardInset`). The real liquid glass effect, saturation tint, and backdrop filters now extend continuously down behind the iOS/Android keyboard without triggering Flutter framework assertions or breaking glass optics.
+
 ## [1.0.0-beta.7] - 2026-08-01
 
 ### Fixed
