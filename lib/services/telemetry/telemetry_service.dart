@@ -40,6 +40,9 @@ abstract class TelemetryService {
   /// Returns true if telemetry is currently opted in.
   Future<bool> isOptedIn();
 
+  /// Resets and clears all local persistent telemetry IDs and cached data.
+  Future<void> resetLocalData();
+
   /// Low-level track call for custom anonymous events.
   Future<void> track(
     String eventName, {

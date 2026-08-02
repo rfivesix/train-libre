@@ -19,7 +19,7 @@ We collect aggregate usage statistics for three primary reasons:
 
 * **Disabled by Default:** Telemetry is strictly **OFF** when Train Libre is first installed.
 * **No Pre-Consent Tracking:** Zero telemetry events (including `app_launched`) are transmitted before a user explicitly opts in via the onboarding setup screen or Settings.
-* **Instant Revocation:** Users can turn off telemetry at any time in Settings (*Support & Info -> Anonyme Nutzungsstatistiken teilen*). Toggling the switch off immediately disables the PostHog SDK (`Posthog().disable()`) and halts all network transmissions.
+* **Instant Revocation & Data Deletion:** Users can turn off telemetry at any time in Settings (*Support & Info -> Anonyme Nutzungsstatistiken teilen*). Toggling the switch off immediately disables the PostHog SDK (`Posthog().disable()`). In addition, users can tap **"Telemetrie-Daten löschen"** directly in Settings (discreet `AppLinkRow` below the telemetry card). Triggering deletion issues `$delete_person` deletion requests to PostHog EU servers for all associated IDs before erasing local device UUIDs, clearing cached counters, and resetting PostHog SDK state (`Posthog().reset()`).
 * **F-Droid Build Cleanliness:** F-Droid and offline-only builds compiled with `--dart-define=DISABLE_TELEMETRY=true` completely strip the PostHog SDK binary footprint. A zero-overhead `NoOpTelemetryService` stub replaces the telemetry pipeline entirely.
 
 ---
@@ -28,23 +28,26 @@ We collect aggregate usage statistics for three primary reasons:
 
 To ensure that collecting aggregate statistics cannot be abused to profile individual users, Train Libre enforces strict architectural safeguards:
 
-### A. The 2-ID Strategy (Isolating DAU/MAU from In-App Activity)
+### A. The 2-ID Strategy & Per-Launch In-App ID Rotation
 Traditional analytics SDKs link every screen view and action back to a single persistent user profile timeline. Train Libre decouples device launch metrics from in-app behavior:
 
 | Event Category | Target Event | `distinct_id` | `$process_person_profile` | Isolation Safeguard |
 | :--- | :--- | :--- | :--- | :--- |
-| **App Launch (DAU/MAU)** | `app_launched` | Locally generated, random **Device UUID** (stored in `SharedPreferences`, NEVER derived from hardware IDFV or Android ID) | `false` | Sent via direct HTTP POST to PostHog EU API. PostHog counts unique active devices without linking app launch events to any in-app activity or screen views. |
+| **App Launch (DAU/MAU)** | `app_launched` | Locally generated, random **Device UUID** (stored in `SharedPreferences`, NEVER derived from hardware IDFV or Android ID) | `false` | Sent via direct HTTP POST to PostHog EU API ONLY when opted in. PostHog counts unique active devices without linking app launch events to any in-app activity or screen views. |
 | **Onboarding Funnel** | `onboarding_step_viewed`, `onboarding_completed`, `onboarding_abandoned` | **Ephemeral RAM UUID** (`onboarding_session_id`) | `false` | Generated in RAM at onboarding start and discarded immediately when onboarding finishes or exits. |
-| **In-App Actions & Screens** | `screen_viewed`, `feature_used`, `workout_completed`, `setting_toggled`, `daily_food_logged` | **Ephemeral SDK ID** (reset after launch) | `false` | Decoupled from `app_launched` device UUID. Events appear as un-linked aggregate data points. |
+| **In-App Actions & Screens** | `screen_viewed`, `feature_used`, `workout_completed`, `setting_toggled`, `daily_food_logged` | **Ephemeral SDK ID** (rotated on every app launch) | `false` | Decoupled from `app_launched` device UUID. A fresh random session ID is generated on every app startup (`Posthog().identify(userId: ephemeralId)`), ensuring events across different app launches cannot be linked to the same device. |
 
-### B. Person Profile Suppression
+### B. Rageclick & Autocapture Suppression
+All native `$rageclick` and `$autocapture` events are completely intercepted and dropped in `PostHogConfig.beforeSend` (`return null`). No raw UI element text, touch coordinates, or view hierarchies are ever captured or transmitted.
+
+### C. Person Profile Suppression
 Every telemetry payload sent to PostHog includes:
 ```json
 "$process_person_profile": false
 ```
 This instructs PostHog's backend **never to construct or update Person Profiles**, identity graphs, or user timelines.
 
-### C. IP & Geolocation Scrubbing
+### D. IP & Geolocation Scrubbing
 To prevent PostHog from deriving user cities, regions, or postal codes (ZIP codes) from network request IP addresses, all payloads include:
 ```json
 "$ip": "0.0.0.0",
@@ -52,7 +55,7 @@ To prevent PostHog from deriving user cities, regions, or postal codes (ZIP code
 ```
 PostHog records all location properties as `(none)` / `Unknown`.
 
-### D. Daily Aggregated Counters (`daily_food_logged`)
+### E. Daily Aggregated Counters (`daily_food_logged`)
 Rather than firing an event every single time a food entry is logged (which creates event spam and inflates infrastructure costs), Train Libre increments a local counter in `SharedPreferences`. When the app transitions to the background (`AppLifecycleState.paused`), a single aggregated `daily_food_logged` event is flushed (e.g., `count: 12`).
 
 ---

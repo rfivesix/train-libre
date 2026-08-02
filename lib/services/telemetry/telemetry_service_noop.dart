@@ -21,6 +21,9 @@ class NoOpTelemetryService implements TelemetryService {
   Future<bool> isOptedIn() async => false;
 
   @override
+  Future<void> resetLocalData() async {}
+
+  @override
   Future<void> track(
     String eventName, {
     Map<String, dynamic>? properties,

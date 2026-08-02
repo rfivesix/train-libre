@@ -43,9 +43,23 @@ class PostHogTelemetryService implements TelemetryService {
       final config = PostHogConfig(_defaultApiKey)
         ..host = _postHogEuHost
         ..captureApplicationLifecycleEvents = false
-        ..debug = kDebugMode;
+        ..debug = kDebugMode
+        ..beforeSend = [
+          (event) {
+            if (event.event == r'$rageclick' ||
+                event.event == r'$autocapture' ||
+                event.event.startsWith(r'$rage')) {
+              return null;
+            }
+            return event;
+          },
+        ];
 
       await Posthog().setup(config);
+
+      // Rotate in-app SDK distinct_id on every app launch for privacy
+      final ephemeralSessionId = const Uuid().v4();
+      await Posthog().identify(userId: ephemeralSessionId);
 
       if (_optedIn) {
         await Posthog().enable();
@@ -56,6 +70,69 @@ class PostHogTelemetryService implements TelemetryService {
       _initialized = true;
     } catch (e) {
       debugPrint('PostHogTelemetryService init error: $e');
+    }
+  }
+
+  @override
+  Future<void> resetLocalData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _persistentDeviceId ??= prefs.getString(_prefDeviceIdKey);
+
+      // Send deletion requests to PostHog EU server for the persistent device ID
+      // and active SDK distinct ID before wiping locally
+      if (_persistentDeviceId != null && _persistentDeviceId!.isNotEmpty) {
+        try {
+          final url = Uri.parse('$_postHogEuHost/capture/');
+          final body = jsonEncode({
+            'api_key': _defaultApiKey,
+            'event': r'$delete_person',
+            'distinct_id': _persistentDeviceId,
+            'properties': {
+              r'$process_person_profile': false,
+              r'$ip': '0.0.0.0',
+              r'$geoip_disable': true,
+              r'$delete_person': true,
+            },
+          });
+          await http.post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: body,
+          );
+        } catch (e) {
+          debugPrint('PostHog delete_person HTTP error: $e');
+        }
+      }
+
+      try {
+        await Posthog().capture(
+          eventName: r'$delete_person',
+          properties: {
+            r'$process_person_profile': false,
+            r'$ip': '0.0.0.0',
+            r'$geoip_disable': true,
+            r'$delete_person': true,
+          },
+        );
+      } catch (e) {
+        debugPrint('PostHog capture delete_person error: $e');
+      }
+
+      // Clear local SharedPreferences storage
+      await prefs.remove(_prefDeviceIdKey);
+      await prefs.remove(_prefFoodLogCountKey);
+      await prefs.remove(_prefFoodLogSourcesKey);
+
+      // Re-generate fresh persistent device ID and reset PostHog SDK identity
+      _persistentDeviceId = const Uuid().v4();
+      await prefs.setString(_prefDeviceIdKey, _persistentDeviceId!);
+
+      await Posthog().reset();
+      final ephemeralSessionId = const Uuid().v4();
+      await Posthog().identify(userId: ephemeralSessionId);
+    } catch (e) {
+      debugPrint('PostHogTelemetryService resetLocalData error: $e');
     }
   }
 
