@@ -80,30 +80,35 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                       children: actions.asMap().entries.map((entry) {
                         final index = entry.key;
                         final action = entry.value;
+                        final int actionCount = actions.length;
+                        final int reverseIndex = actionCount - 1 - index;
+
                         final curved = CurvedAnimation(
                           parent: animation,
                           curve: Interval(
-                            (index * 0.12).clamp(0.0, 0.95),
+                            (reverseIndex * 0.08).clamp(0.0, 0.7),
                             1.0,
                             curve: Curves.easeOutBack,
                           ),
                         );
                         final tv = _safe01(curved.value);
 
-                        // Sprout coordinate system calculations
-                        final int actionCount = actions.length;
-                        final double yFinal =
-                            140.0 + (actionCount - 1 - index) * 76.0;
-                        final double yFab = 64.0;
-                        final double offsetY = yFinal - yFab;
-                        final double offsetX =
-                            0.0; // Perfectly aligned with FAB
+                        // Sprout coordinate system:
+                        // FAB center is at bottom 48.0 (bottom 16.0 + 32.0).
+                        // Column bottom is at 86.0. Bottom item (reverseIndex=0) center is at bottom 120.0 (86.0 + 6.0 + 28.0).
+                        // Distance from FAB center to Item 0 center = 120.0 - 48.0 = 72.0px.
+                        // Each item row is 68.0px tall (56.0 button + 12.0 vertical padding).
+                        final double offsetY = 72.0 + reverseIndex * 68.0;
 
                         // Staggered label fade & slide
                         final double labelTv =
-                            ((tv - 0.65) / 0.35).clamp(0.0, 1.0);
+                            ((tv - 0.4) / 0.6).clamp(0.0, 1.0);
                         final double labelOpacity = labelTv;
-                        final double labelOffsetX = (1.0 - labelTv) * -16.0;
+                        final double labelOffsetX = (1.0 - labelTv) * -20.0;
+
+                        // Scale button from 0.1 -> 1.0 as it emerges out of the FAB
+                        final double btnScale =
+                            (0.1 + 0.9 * tv).clamp(0.0, 1.25);
 
                         // Liquid stretch parameters — scale from fabSize to match FAB appearance
                         final double stretch = _getStretch(tv);
@@ -113,8 +118,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                             DesignConstants.fabSize * (1.0 + stretch);
 
                         return Transform.translate(
-                          offset:
-                              Offset((1 - tv) * offsetX, (1 - tv) * offsetY),
+                          offset: Offset(0.0, (1 - tv) * offsetY),
                           child: Opacity(
                             opacity: tv,
                             child: Padding(
@@ -143,92 +147,99 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                   ),
                                   const SizedBox(
                                       width: DesignConstants.spacingL),
-                                  SizedBox(
-                                    // Fixed container prevents layout jumps during stretch animation
-                                    width: DesignConstants.fabSize,
-                                    height: DesignConstants.fabSize,
-                                    child: Center(
-                                      child: SizedBox(
-                                        width: btnWidth,
-                                        height: btnHeight,
-                                        child: Stack(
-                                          children: [
-                                            // Shadow layer — identical to FAB shadow
-                                            Positioned.fill(
-                                              child: ClipPath(
-                                                clipper: ShadowOuterClipper(
-                                                  borderRadius: rLiquid,
-                                                  isOval: true,
-                                                ),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            rLiquid),
-                                                    boxShadow: DesignConstants
-                                                        .glassShadow,
+                                  Transform.scale(
+                                    scale: btnScale,
+                                    child: SizedBox(
+                                      // Fixed container prevents layout jumps during stretch animation
+                                      width: DesignConstants.fabSize,
+                                      height: DesignConstants.fabSize,
+                                      child: Center(
+                                        child: SizedBox(
+                                          width: btnWidth,
+                                          height: btnHeight,
+                                          child: Stack(
+                                            children: [
+                                              // Shadow layer — identical to FAB shadow
+                                              Positioned.fill(
+                                                child: ClipPath(
+                                                  clipper: ShadowOuterClipper(
+                                                    borderRadius: rLiquid,
+                                                    isOval: true,
+                                                  ),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              rLiquid),
+                                                      boxShadow: DesignConstants
+                                                          .glassShadow,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                            // Premium glass layer — identical pattern to the FAB
-                                            GlassAdaptiveScope(
-                                              maxQuality: DesignConstants.defaultGlassQuality,
-                                              child: AdaptiveGlass(
-                                                shape: const LiquidOval(),
-                                                settings: DesignConstants
-                                                    .liquidGlassSettings(
-                                                        isDarkLocal),
-                                                quality: DesignConstants.defaultGlassQuality,
-                                                useOwnLayer: true,
-                                                isInteractive: false,
-                                                child: Material(
-                                                  color: Colors.transparent,
-                                                  child: InkWell(
-                                                    customBorder:
-                                                        const CircleBorder(),
-                                                    onTap: () {
-                                                      onActionTap(
-                                                          action['action']);
-                                                    },
-                                                    child: SizedBox(
-                                                      width: btnWidth,
-                                                      height: btnHeight,
-                                                      child: Center(
-                                                        child: action[
-                                                                    'gradient'] ==
-                                                                true
-                                                            ? ShaderMask(
-                                                                blendMode:
-                                                                    BlendMode
-                                                                        .srcIn,
-                                                                shaderCallback:
-                                                                    (bounds) =>
-                                                                        DesignConstants
-                                                                            .createAiGradientShader(
-                                                                  bounds,
-                                                                ),
-                                                                child: Icon(
-                                                                  action['icon'],
+                                              // Premium glass layer — identical pattern to the FAB
+                                              GlassAdaptiveScope(
+                                                maxQuality: DesignConstants
+                                                    .defaultGlassQuality,
+                                                child: AdaptiveGlass(
+                                                  shape: const LiquidOval(),
+                                                  settings: DesignConstants
+                                                      .liquidGlassSettings(
+                                                          isDarkLocal),
+                                                  quality: DesignConstants
+                                                      .defaultGlassQuality,
+                                                  useOwnLayer: true,
+                                                  isInteractive: false,
+                                                  child: Material(
+                                                    color: Colors.transparent,
+                                                    child: InkWell(
+                                                      customBorder:
+                                                          const CircleBorder(),
+                                                      onTap: () {
+                                                        onActionTap(
+                                                            action['action']);
+                                                      },
+                                                      child: SizedBox(
+                                                        width: btnWidth,
+                                                        height: btnHeight,
+                                                        child: Center(
+                                                          child: action[
+                                                                      'gradient'] ==
+                                                                  true
+                                                              ? ShaderMask(
+                                                                  blendMode:
+                                                                      BlendMode
+                                                                          .srcIn,
+                                                                  shaderCallback:
+                                                                      (bounds) =>
+                                                                          DesignConstants
+                                                                              .createAiGradientShader(
+                                                                    bounds,
+                                                                  ),
+                                                                  child: Icon(
+                                                                    action[
+                                                                        'icon'],
+                                                                    size: 28,
+                                                                  ),
+                                                                )
+                                                              : Icon(
+                                                                  action[
+                                                                      'icon'],
                                                                   size: 28,
+                                                                  color: isDarkLocal
+                                                                      ? Colors
+                                                                          .white
+                                                                      : Colors
+                                                                          .black,
                                                                 ),
-                                                              )
-                                                            : Icon(
-                                                                action['icon'],
-                                                                size: 28,
-                                                                color: isDarkLocal
-                                                                    ? Colors
-                                                                        .white
-                                                                    : Colors
-                                                                        .black,
-                                                              ),
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
