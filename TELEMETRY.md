@@ -76,10 +76,13 @@ Train Libre enforces a strict zero-PII (Personally Identifiable Information) pol
 
 ### 1. App Launch & Uniqueness
 * **`app_launched`** (Sent via Direct HTTP POST with `persistent_device_uuid`):
+  * `$geoip_country_code` (PostHog native metadata string: e.g., `"DE"`, `"US"`)
+  * `$locale` (PostHog native metadata string: e.g., `"de_DE"`, `"en_US"`)
   * `app_version` (string: e.g., `"1.0.0-beta.6"`)
   * `os_version` (string: e.g., `"iOS 17.5"`)
   * `platform` (string: `"ios"`, `"android"`, `"macos"`)
   * `locale` (string: e.g., `"de_DE"`, `"en_US"`)
+  * `country` (string: 2-letter ISO code e.g., `"DE"`, `"US"`)
   * `install_source` (optional string)
 
 ### 2. Onboarding Funnel
@@ -138,7 +141,26 @@ Train Libre enforces a strict zero-PII (Personally Identifiable Information) pol
   * `setting_key` (string: e.g., `"unit_system"`, `"telemetry_opt_in"`, `"dark_mode_option"`, `"icloud_sync_enabled"`, `"ai_provider_selected"`, `"apple_health_export_enabled"`, `"pulse_tracking_enabled"`)
   * `value` (dynamic)
 
-### 8. System & AI Stability
+### 8. System, Algorithm & Voluntary Feedback
+* **`recommendation_generated`** (Anonymized TDEE metrics, ZERO PII):
+  * `weight_log_count` (int: number of weight entries in Bayesian window)
+  * `intake_logged_days` (int: number of logged nutrition days in window)
+  * `window_days` (int: e.g., `14` or `28`)
+  * `effective_sample_size` (double: e.g., `3.5`)
+  * `has_slope` (bool)
+  * `has_intake` (bool)
+  * `confidence` (string enum: `"notEnoughData"`, `"low"`, `"medium"`, `"high"`)
+  * `confidence_score_bucket` (string enum: `"0.00-0.25"`, `"0.25-0.50"`, `"0.50-0.75"`, `"0.75-1.00"`)
+  * `warning_level` (string enum: `"none"`, `"moderate"`, `"high"`)
+  * `quality_flags` (list of strings: e.g., `["bayesian_recursive_filter", "bayesian_intake_unavailable"]`)
+  * `is_prior_only` (bool)
+
+* **`feedback_report_submitted`** (Voluntary Diagnostic Feedback, ZERO PII):
+  * `included_sections` (list of strings: e.g., `["adaptive_nutrition", "backup_restore", "user_note"]`)
+  * `has_user_note` (bool)
+  * `user_note_length` (int)
+  * `submission_method` (string: `"posthog_direct"`, `"email"`, `"copied"`, `"shared"`, `"saved_file"`)
+
 * **`ai_meal_scan_requested`**: `request_id`, `provider`
 * **`ai_meal_scan_completed`**: `request_id`, `provider`, `latency_bucket`, `success`, `error_code`
 * **`db_migration_status`**: `from_version`, `to_version`, `success`

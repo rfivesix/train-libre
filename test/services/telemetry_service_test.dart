@@ -123,5 +123,40 @@ void main() {
       expect(prefs.getInt('telemetry_daily_food_count'), null);
       expect(prefs.getString('telemetry_persistent_device_id'), isNotNull);
     });
+
+    test('PostHogTelemetryService tracks app launched with country and locale', () async {
+      await postHogService.optIn();
+      await postHogService.trackAppLaunched(
+        appVersion: '1.0.0',
+        osVersion: 'iOS 17.5',
+        platform: 'ios',
+        locale: 'de_DE',
+        country: 'DE',
+      );
+    });
+
+    test('PostHogTelemetryService tracks recommendation generated and feedback report submitted', () async {
+      await postHogService.optIn();
+      await postHogService.trackRecommendationGenerated(
+        weightLogCount: 12,
+        intakeLoggedDays: 14,
+        windowDays: 14,
+        effectiveSampleSize: 3.5,
+        hasSlope: true,
+        hasIntake: true,
+        confidence: 'high',
+        confidenceScoreBucket: '0.75-1.00',
+        warningLevel: 'none',
+        qualityFlags: ['bayesian_recursive_filter'],
+        isPriorOnly: false,
+      );
+
+      await postHogService.trackFeedbackReportSubmitted(
+        includedSections: ['adaptive_nutrition', 'backup_restore'],
+        hasUserNote: false,
+        userNoteLength: 0,
+        submissionMethod: 'posthog_direct',
+      );
+    });
   });
 }

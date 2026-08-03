@@ -1,8 +1,10 @@
 // lib/services/telemetry/telemetry_service_posthog.dart
 
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -51,6 +53,11 @@ class PostHogTelemetryService implements TelemetryService {
                 event.event.startsWith(r'$rage')) {
               return null;
             }
+            // Enforce strict zero-geolocation and zero-person-profiling on all SDK events
+            final props = event.properties ??= <String, Object>{};
+            props[r'$ip'] = '0.0.0.0';
+            props[r'$geoip_disable'] = true;
+            props[r'$process_person_profile'] = false;
             return event;
           },
         ];
@@ -89,6 +96,7 @@ class PostHogTelemetryService implements TelemetryService {
             'event': r'$delete_person',
             'distinct_id': _persistentDeviceId,
             'properties': {
+              'token': _defaultApiKey,
               r'$process_person_profile': false,
               r'$ip': '0.0.0.0',
               r'$geoip_disable': true,
@@ -194,12 +202,44 @@ class PostHogTelemetryService implements TelemetryService {
     }
   }
 
+  bool _isEmulator() {
+    if (kIsWeb) return false;
+    try {
+      final tempPath = Directory.systemTemp.path;
+      if (tempPath.contains('CoreSimulator') ||
+          tempPath.contains('Simulator') ||
+          tempPath.contains('simulator')) {
+        return true;
+      }
+      final osVersion = Platform.operatingSystemVersion.toLowerCase();
+      if (osVersion.contains('simulator') ||
+          osVersion.contains('emulator') ||
+          osVersion.contains('sdk') ||
+          osVersion.contains('gphone') ||
+          osVersion.contains('goldfish') ||
+          osVersion.contains('ranchu') ||
+          osVersion.contains('vbox86') ||
+          osVersion.contains('x86')) {
+        return true;
+      }
+      final env = Platform.environment;
+      for (final key in env.keys) {
+        if (key.toUpperCase().contains('SIMULATOR') ||
+            key.toUpperCase().contains('EMULATOR')) {
+          return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
   @override
   Future<void> trackAppLaunched({
     required String appVersion,
     required String osVersion,
     required String platform,
     required String locale,
+    required String country,
     String? installSource,
   }) async {
     if (!_optedIn) return;
@@ -211,6 +251,23 @@ class PostHogTelemetryService implements TelemetryService {
         await prefs.setString(_prefDeviceIdKey, _persistentDeviceId!);
       }
 
+      PackageInfo? packageInfo;
+      try {
+        packageInfo = await PackageInfo.fromPlatform();
+      } catch (_) {}
+
+      final appBuild = packageInfo != null
+          ? (int.tryParse(packageInfo.buildNumber) ?? packageInfo.buildNumber)
+          : null;
+      final isEmulator = _isEmulator();
+      final timeZone = DateTime.now().timeZoneName;
+      final osName = platform == 'ios'
+          ? 'iOS'
+          : (platform == 'android' ? 'Android' : platform);
+      final deviceManufacturer = platform == 'ios' ? 'Apple' : 'Android';
+      final deviceModel = platform == 'ios' ? 'arm64' : 'Mobile';
+      final deviceName = platform == 'ios' ? 'iPhone' : 'Mobile Device';
+
       // Option B: Direct HTTP POST call to PostHog EU with isolated persistent device ID
       // This allows PostHog to calculate DAU/MAU uniqueness without building Person Profiles
       // and without contaminating the SDK state for in-app events.
@@ -220,14 +277,40 @@ class PostHogTelemetryService implements TelemetryService {
         'event': 'app_launched',
         'distinct_id': _persistentDeviceId,
         'properties': {
+          'token': _defaultApiKey,
           r'$process_person_profile': false,
           r'$ip': '0.0.0.0',
           r'$geoip_disable': true,
+
+          // PostHog Native Feature / Metadata fields for GeoIP & Locale
+          r'$geoip_country_code': country,
+          r'$locale': locale,
+
+          // Full standard environment & device metadata matching SDK events
+          if (appBuild != null) r'$app_build': appBuild,
+          r'$app_name': 'Train Libre',
+          r'$app_version': appVersion,
+          r'$app_namespace': 'com.rfivesix.trainlibre',
+          r'$device_manufacturer': deviceManufacturer,
+          r'$device_model': deviceModel,
+          r'$device_name': deviceName,
+          r'$device_type': 'Mobile',
+          r'$is_emulator': isEmulator,
+          r'$is_sideloaded': false,
+          r'$is_testflight': false,
+          r'$lib': 'posthog-flutter',
+          r'$lib_version': '5.34.2',
+          r'$os': osName,
+          r'$os_name': osName,
+          r'$os_version': osVersion,
+          r'$sent_at': DateTime.now().toUtc().toIso8601String(),
+          r'$timezone': timeZone,
 
           'app_version': appVersion,
           'os_version': osVersion,
           'platform': platform,
           'locale': locale,
+          'country': country,
           if (installSource != null) 'install_source': installSource,
         },
       });
@@ -439,6 +522,53 @@ class PostHogTelemetryService implements TelemetryService {
       'from_version': fromVersion,
       'to_version': toVersion,
       'success': success,
+    });
+  }
+
+  @override
+  Future<void> trackRecommendationGenerated({
+    required int weightLogCount,
+    required int intakeLoggedDays,
+    required int windowDays,
+    required double effectiveSampleSize,
+    required bool hasSlope,
+    required bool hasIntake,
+    required String confidence,
+    required String confidenceScoreBucket,
+    required String warningLevel,
+    required List<String> qualityFlags,
+    required bool isPriorOnly,
+  }) async {
+    await track('recommendation_generated', properties: {
+      'weight_log_count': weightLogCount,
+      'intake_logged_days': intakeLoggedDays,
+      'window_days': windowDays,
+      'effective_sample_size':
+          double.parse(effectiveSampleSize.toStringAsFixed(1)),
+      'has_slope': hasSlope,
+      'has_intake': hasIntake,
+      'confidence': confidence,
+      'confidence_score_bucket': confidenceScoreBucket,
+      'warning_level': warningLevel,
+      'quality_flags': qualityFlags,
+      'is_prior_only': isPriorOnly,
+    });
+  }
+
+  @override
+  Future<void> trackFeedbackReportSubmitted({
+    required List<String> includedSections,
+    required bool hasUserNote,
+    required int userNoteLength,
+    required String submissionMethod,
+    Map<String, dynamic>? diagnosticsSummary,
+  }) async {
+    await track('feedback_report_submitted', properties: {
+      'included_sections': includedSections,
+      'has_user_note': hasUserNote,
+      'user_note_length': userNoteLength,
+      'submission_method': submissionMethod,
+      if (diagnosticsSummary != null) ...diagnosticsSummary,
     });
   }
 }

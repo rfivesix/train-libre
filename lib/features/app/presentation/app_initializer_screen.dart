@@ -180,11 +180,18 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     try {
       await TelemetryService.instance.init();
       final packageInfo = await PackageInfo.fromPlatform();
+      final localeStr = Platform.localeName;
+      final parts = localeStr.split(RegExp(r'[_-]'));
+      final countryCode = (parts.length > 1 && parts[1].length == 2)
+          ? parts[1].toUpperCase()
+          : (localeStr.length == 2 ? localeStr.toUpperCase() : 'UNKNOWN');
+
       unawaited(TelemetryService.instance.trackAppLaunched(
         appVersion: packageInfo.version,
         osVersion: Platform.operatingSystemVersion,
         platform: Platform.operatingSystem,
-        locale: Platform.localeName,
+        locale: localeStr,
+        country: countryCode,
       ));
     } catch (e) {
       debugPrint("Telemetry startup tracking failed: $e");

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/onboarding/presentation/initial_consent_screen.dart';
 import 'package:train_libre/widgets/common/app_button.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Widget _wrap(Widget child) {
@@ -33,22 +34,20 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final nextButton = find.byType(AppButton);
-    expect(nextButton, findsOneWidget);
+    final nextButtonFinder = find.byType(AppButton);
+    expect(nextButtonFinder, findsAtLeastNWidgets(1));
 
     // Check if button is disabled initially
-    var button = tester.widget<AppButton>(nextButton);
+    var button = tester.widgetList<AppButton>(nextButtonFinder).first;
     expect(button.onPressed, isNull);
 
-    // Find and tap the GDPR health data consent checkbox
-    final checkboxes = find.byType(Checkbox);
-    expect(checkboxes, findsOneWidget);
-
-    await tester.tap(checkboxes.first);
+    // Find and tap the GDPR health data consent tile (circle icon)
+    final consentIcon = find.byIcon(LucideIcons.circle).first;
+    await tester.tap(consentIcon);
     await tester.pumpAndSettle();
 
     // Now enabled
-    button = tester.widget<AppButton>(nextButton);
+    button = tester.widgetList<AppButton>(nextButtonFinder).first;
     expect(button.onPressed, isNotNull);
   });
 }

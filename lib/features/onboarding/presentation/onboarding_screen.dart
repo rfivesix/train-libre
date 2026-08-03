@@ -870,17 +870,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       );
     } else {
       if (_isImportedMode) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('hasSeenOnboarding', true);
-        await AppTourService.instance.queuePostOnboardingOffer();
-
-        if (!mounted) return;
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const MainScreen()),
-          (route) => false,
-        );
+        await _runAutomatedPermissionSequence();
       } else {
-        _finishOnboarding();
+        await _finishOnboarding();
       }
     }
   }
@@ -993,6 +985,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool('hasSeenOnboarding', true);
     await AppTourService.instance.queuePostOnboardingOffer();
 
+    _onboardingCompletedSuccessfully = true;
+    unawaited(TelemetryService.instance.trackOnboardingCompleted(
+      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+      restoredFromBackup: _isImportedMode,
+      sessionId: _onboardingSessionId,
+    ));
+
     if (mounted) {
       app_main.main();
     }
@@ -1003,43 +1002,48 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            LinearProgressIndicator(
-              value: (_currentPage + 1) / _pageCount,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                theme.colorScheme.primary,
+    return PopScope(
+      canPop: _currentPage == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentPage > 0) {
+          _prevPage();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              LinearProgressIndicator(
+                value: (_currentPage + 1) / _pageCount,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
+                minHeight: 4,
               ),
-              minHeight: 4,
-            ),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (i) {
-                  final durationSec = _stepStopwatch.elapsed.inSeconds;
-                  _stepStopwatch.reset();
-                  _stepStopwatch.start();
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (i) {
+                    final durationSec = _stepStopwatch.elapsed.inSeconds;
+                    _stepStopwatch.reset();
+                    _stepStopwatch.start();
 
-                  TelemetryService.instance.trackOnboardingStep(
-                    stepIndex: i,
-                    stepName: _stepNames[i.clamp(0, _stepNames.length - 1)],
-                    durationSeconds: durationSec,
-                    sessionId: _onboardingSessionId,
-                  );
+                    TelemetryService.instance.trackOnboardingStep(
+                      stepIndex: i,
+                      stepName: _stepNames[i.clamp(0, _stepNames.length - 1)],
+                      durationSeconds: durationSec,
+                      sessionId: _onboardingSessionId,
+                    );
 
-                  setState(() => _currentPage = i);
-                  if (i == _adaptiveGoalPageIndex) {
-                    _refreshOnboardingRecommendationPreview();
-                  }
-                  if (i == _lastPageIndex && _isImportedMode) {
-                    _runAutomatedPermissionSequence();
-                  }
-                },
+                    setState(() => _currentPage = i);
+                    if (i == _adaptiveGoalPageIndex) {
+                      _refreshOnboardingRecommendationPreview();
+                    }
+                  },
 
                 children: [
                   WelcomeSlide(
@@ -1184,8 +1188,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Future<void> _openBodyFatHelperEntryPoint() async {
     await showBodyFatGuidanceSheet(context);

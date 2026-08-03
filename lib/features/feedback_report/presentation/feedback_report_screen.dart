@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
@@ -137,6 +139,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       }
     }
 
+    _trackReportSubmission('copied');
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -169,6 +172,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       }
     }
 
+    _trackReportSubmission('saved_file');
     if (!mounted) return;
     setState(() => _savedFilePath = savedPath);
 
@@ -208,6 +212,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       }
     }
 
+    _trackReportSubmission('shared');
     if (!mounted) return;
     final wasShared = status == ShareResultStatus.success;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -249,6 +254,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       }
     }
 
+    _trackReportSubmission('email');
     if (!mounted) return;
     if (!opened) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -257,6 +263,99 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
         ),
       );
     }
+  }
+
+  List<String> get _activeIncludedSections => [
+        if (_includeAdaptiveDiagnostics) 'adaptive_nutrition',
+        if (_includeBackupRestoreDiagnostics) 'backup_restore',
+        if (_includeUserNote && _noteController.text.trim().isNotEmpty)
+          'user_note',
+      ];
+
+  Map<String, dynamic> _buildDiagnosticsSummary(String? reportText) {
+    if (reportText == null || reportText.isEmpty) return {};
+    final summary = <String, dynamic>{};
+    final noteText = _noteController.text.trim();
+    if (_includeUserNote && noteText.isNotEmpty) {
+      summary['user_note'] = noteText;
+    }
+    final lines = reportText.split('\n');
+    for (final rawLine in lines) {
+      var line = rawLine.trim();
+      if (line.startsWith('- ')) {
+        line = line.substring(2).trim();
+      }
+      final colonIndex = line.indexOf(':');
+      if (colonIndex > 0) {
+        final key = line.substring(0, colonIndex).trim();
+        final valueStr = line.substring(colonIndex + 1).trim();
+
+        if (key.startsWith('feature_') ||
+            key.contains('goal_') ||
+            key.contains('target_') ||
+            key.contains('due_') ||
+            key.contains('recommendation') ||
+            key.contains('calories') ||
+            key.contains('protein') ||
+            key.contains('carbs') ||
+            key.contains('fat') ||
+            key.contains('weight') ||
+            key.contains('maintenance') ||
+            key.contains('confidence') ||
+            key.contains('warning') ||
+            key.contains('input_') ||
+            key.contains('posterior_') ||
+            key.contains('prior_') ||
+            key.contains('phase_') ||
+            key.contains('backup_') ||
+            key.contains('estimator_')) {
+          final safeKey =
+              'diag_${key.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')}';
+          final numValue = double.tryParse(valueStr);
+          if (numValue != null) {
+            summary[safeKey] = numValue;
+          } else if (valueStr == 'yes' || valueStr == 'true') {
+            summary[safeKey] = true;
+          } else if (valueStr == 'no' || valueStr == 'false') {
+            summary[safeKey] = false;
+          } else {
+            summary[safeKey] = valueStr;
+          }
+        }
+      }
+    }
+    return summary;
+  }
+
+  void _trackReportSubmission(String submissionMethod) {
+    final noteText = _noteController.text.trim();
+    final summary = _buildDiagnosticsSummary(_previewText);
+    unawaited(TelemetryService.instance.trackFeedbackReportSubmitted(
+      includedSections: _activeIncludedSections,
+      hasUserNote: _includeUserNote && noteText.isNotEmpty,
+      userNoteLength: _includeUserNote ? noteText.length : 0,
+      submissionMethod: submissionMethod,
+      diagnosticsSummary: summary,
+    ));
+  }
+
+  Future<void> _sendAnonymousReportToPostHog() async {
+    final previewText = _previewText;
+    if (previewText == null) return;
+
+    _trackReportSubmission('posthog_direct');
+
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          l10n.localeName.startsWith('de')
+              ? 'Diagnosebericht direkt an Entwickler gesendet. Vielen Dank!'
+              : 'Diagnostic report sent directly to developer. Thank you!',
+        ),
+      ),
+    );
   }
 
   @override
@@ -373,6 +472,21 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
               ),
             ),
             const SizedBox(height: DesignConstants.spacingL),
+            SizedBox(
+              width: double.infinity,
+              child: AppButton.primary(
+                key: const Key('feedback_report_action_send_posthog'),
+                onPressed: _sendAnonymousReportToPostHog,
+                label: l10n.localeName.startsWith('de')
+                    ? 'Direkt an Entwickler senden'
+                    : 'Send directly to developer',
+                tooltip: l10n.localeName.startsWith('de')
+                    ? 'Direkt an Entwickler senden'
+                    : 'Send directly to developer',
+                icon: LucideIcons.send,
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
             Wrap(
               spacing: 8,
               runSpacing: 8,

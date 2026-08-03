@@ -55,6 +55,7 @@ abstract class TelemetryService {
     required String osVersion,
     required String platform,
     required String locale,
+    required String country,
     String? installSource,
   });
 
@@ -143,6 +144,30 @@ abstract class TelemetryService {
     required int fromVersion,
     required int toVersion,
     required bool success,
+  });
+
+  /// Event 10: recommendation_generated (TDEE confidence, quality flags & log counts, ZERO PII)
+  Future<void> trackRecommendationGenerated({
+    required int weightLogCount,
+    required int intakeLoggedDays,
+    required int windowDays,
+    required double effectiveSampleSize,
+    required bool hasSlope,
+    required bool hasIntake,
+    required String confidence,
+    required String confidenceScoreBucket,
+    required String warningLevel,
+    required List<String> qualityFlags,
+    required bool isPriorOnly,
+  });
+
+  /// Event 11: feedback_report_submitted (Voluntary diagnostic report submission, ZERO PII)
+  Future<void> trackFeedbackReportSubmitted({
+    required List<String> includedSections,
+    required bool hasUserNote,
+    required int userNoteLength,
+    required String submissionMethod,
+    Map<String, dynamic>? diagnosticsSummary,
   });
 }
 

@@ -35,6 +35,7 @@ class NoOpTelemetryService implements TelemetryService {
     required String osVersion,
     required String platform,
     required String locale,
+    required String country,
     String? installSource,
   }) async {}
 
@@ -124,5 +125,29 @@ class NoOpTelemetryService implements TelemetryService {
     required int fromVersion,
     required int toVersion,
     required bool success,
+  }) async {}
+
+  @override
+  Future<void> trackRecommendationGenerated({
+    required int weightLogCount,
+    required int intakeLoggedDays,
+    required int windowDays,
+    required double effectiveSampleSize,
+    required bool hasSlope,
+    required bool hasIntake,
+    required String confidence,
+    required String confidenceScoreBucket,
+    required String warningLevel,
+    required List<String> qualityFlags,
+    required bool isPriorOnly,
+  }) async {}
+
+  @override
+  Future<void> trackFeedbackReportSubmitted({
+    required List<String> includedSections,
+    required bool hasUserNote,
+    required int userNoteLength,
+    required String submissionMethod,
+    Map<String, dynamic>? diagnosticsSummary,
   }) async {}
 }
