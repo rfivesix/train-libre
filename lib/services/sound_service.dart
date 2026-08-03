@@ -26,7 +26,6 @@ class SoundService {
             category: AVAudioSessionCategory.playback,
             options: const {
               AVAudioSessionOptions.mixWithOthers,
-              AVAudioSessionOptions.duckOthers,
             },
           ),
         ),

@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Dependency Updates:** Bumped `drift` to `2.34.3` and `posthog_flutter` to `5.34.2` (PR #547).
 - **Single-Pass Min/Max Bound Calculations:** Refactored bounds calculation in `MeasurementChartWidget`, `BodyNutritionNormalizedTrendChart`, `PulseAnalysisEngine`, and `WorkoutHeartRateService` to use single-pass `for` loops instead of chained `where/map/reduce` pipelines, reducing GC pressure (PR #544).
 - **Sleep Metrics & Regularity Index Performance:** Optimized array processing in `heart_rate_metrics.dart` and `sleep_regularity_index.dart` by filtering valid sleep data before sorting and using single-pass loops (PR #546).
+### Fixed
+- **Timer Sound Persistent Audio Ducking:** Removed `AVAudioSessionOptions.duckOthers` in `SoundService` (`sound_service.dart`) to prevent iOS from keeping background music and system audio volume permanently lowered after the workout rest timer chime completes.
 
 
 
