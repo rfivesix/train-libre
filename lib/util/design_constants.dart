@@ -118,7 +118,7 @@ class DesignConstants {
   /// reaching 100% opacity right at the very bottom screen boundary.
   static LinearGradient bottomVignetteGradient(bool isDark) {
     final baseColor =
-        isDark ? Colors.black : const Color.fromARGB(255, 194, 194, 194);
+        isDark ? Colors.black : const Color(0xFFF2F2F2);
     return LinearGradient(
       begin: Alignment.bottomCenter,
       end: Alignment.topCenter,

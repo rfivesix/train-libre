@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Voluntary Diagnostic Feedback Telemetry & User Note Payload (`feedback_report_submitted`):** Added a friendly "Direkt an Entwickler senden" action button in `FeedbackReportScreen` allowing users to voluntarily transmit diagnostic report metadata (TDEE estimator parameters, log counts, backup stats) and user notes (`user_note`) directly to the developer.
 
 ### Changed
+- **Light Mode Background Color:** Updated `scaffoldBackgroundColor` in light theme (`main.dart`), translucent glass tint in `GlobalAppBar` (`global_app_bar.dart`), and `bottomVignetteGradient` in `DesignConstants` (`design_constants.dart`) to match `#F2F2F2` (`Color(0xFFF2F2F2)`).
 - **Dependency Updates:** Bumped `drift` to `2.34.3` and `posthog_flutter` to `5.34.2` (PR #547).
 - **Single-Pass Min/Max Bound Calculations:** Refactored bounds calculation in `MeasurementChartWidget`, `BodyNutritionNormalizedTrendChart`, `PulseAnalysisEngine`, and `WorkoutHeartRateService` to use single-pass `for` loops instead of chained `where/map/reduce` pipelines, reducing GC pressure (PR #544).
 - **Sleep Metrics & Regularity Index Performance:** Optimized array processing in `heart_rate_metrics.dart` and `sleep_regularity_index.dart` by filtering valid sleep data before sorting and using single-pass loops (PR #546).

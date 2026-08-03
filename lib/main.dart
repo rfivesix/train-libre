@@ -345,7 +345,7 @@ class _MyAppState extends State<MyApp> {
             ),
           ],
           primaryColor: lightScheme.primary, // Accent in Material 2 contexts
-          scaffoldBackgroundColor: Colors.white,
+          scaffoldBackgroundColor: const Color(0xFFF2F2F2),
           canvasColor: Colors.white,
           cardColor: cardLight,
 
