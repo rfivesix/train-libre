@@ -1099,6 +1099,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get deleteExerciseButton => 'Übung löschen';
 
   @override
+  String get deleteCustomExerciseTitle => 'Eigene Übung löschen';
+
+  @override
+  String deleteCustomExerciseBody(String name) {
+    return '\'$name\' wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.';
+  }
+
+  @override
+  String get deleteCustomExerciseWithLogsWarning =>
+      'Diese Übung erscheint in deiner Workout-History. Deine Log-Einträge bleiben erhalten, aber der Übungs-Link wird entfernt.';
+
+  @override
+  String get deleteCustomExerciseWithRoutinesWarning =>
+      'Diese Übung wird in einer oder mehreren Routinen verwendet. Sie wird dort entfernt.';
+
+  @override
+  String get deleteCustomExerciseSuccess => 'Übung gelöscht.';
+
+  @override
   String get restOverLabel => 'Pause vorbei';
 
   @override

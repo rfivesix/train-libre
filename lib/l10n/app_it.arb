@@ -430,6 +430,17 @@
   "doneButtonLabel": "Fatto",
   "setRestTimeButton": "Imposta il tempo di riposo",
   "deleteExerciseButton": "Elimina esercizio",
+  "deleteCustomExerciseTitle": "Elimina esercizio personalizzato",
+  "deleteCustomExerciseBody": "'{name}' verrà eliminato definitivamente. Questa azione è irreversibile.",
+  "@deleteCustomExerciseBody": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deleteCustomExerciseWithLogsWarning": "Questo esercizio è presente nella cronologia degli allenamenti. Le voci del diario verranno mantenute, ma il collegamento all'esercizio verrà rimosso.",
+  "deleteCustomExerciseWithRoutinesWarning": "Questo esercizio è utilizzato in una o più routine. Verrà rimosso da quelle routine.",
+  "deleteCustomExerciseSuccess": "Esercizio eliminato.",
+
   "restOverLabel": "La pausa è finita",
   "workoutRunningLabel": "L’allenamento è attivo…",
   "continueButton": "Continuare",

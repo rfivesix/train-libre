@@ -429,6 +429,17 @@
   "doneButtonLabel": "Done",
   "setRestTimeButton": "Set rest time",
   "deleteExerciseButton": "Delete exercise",
+  "deleteCustomExerciseTitle": "Delete Custom Exercise",
+  "deleteCustomExerciseBody": "This will permanently delete \"{name}\". This cannot be undone.",
+  "@deleteCustomExerciseBody": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deleteCustomExerciseWithLogsWarning": "This exercise appears in your workout history. Your log entries will be kept, but the exercise link will be removed.",
+  "deleteCustomExerciseWithRoutinesWarning": "This exercise is used in one or more routines. It will be removed from those routines.",
+  "deleteCustomExerciseSuccess": "Exercise deleted.",
+
   "restOverLabel": "Pause is over",
   "workoutRunningLabel": "Workout is active …",
   "continueButton": "Continue",

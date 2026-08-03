@@ -46,6 +46,11 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
   }
 
   @override
+  Future<bool> deleteCustomExercise(int localId) {
+    return _localDataSource.deleteCustomExercise(localId);
+  }
+
+  @override
   Future<List<Exercise>> getCustomExercises() {
     return _localDataSource.getCustomExercises();
   }

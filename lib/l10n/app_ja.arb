@@ -430,6 +430,17 @@
   "doneButtonLabel": "終わり",
   "setRestTimeButton": "休憩時間を設定する",
   "deleteExerciseButton": "練習の削除",
+  "deleteCustomExerciseTitle": "カスタムエクササイズを削除",
+  "deleteCustomExerciseBody": "「{name}」を完全に削除します。この操作は元に戻せません。",
+  "@deleteCustomExerciseBody": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deleteCustomExerciseWithLogsWarning": "このエクササイズはトレーニング履歴に記録されています。ログデータは保持されますが、エクササイズへのリンクは削除されます。",
+  "deleteCustomExerciseWithRoutinesWarning": "このエクササイズは1つ以上のルーティンで使用されています。それらのルーティンから削除されます。",
+  "deleteCustomExerciseSuccess": "エクササイズを削除しました。",
+
   "restOverLabel": "一時停止が終わりました",
   "workoutRunningLabel": "トレーニングはアクティブです…",
   "continueButton": "続く",

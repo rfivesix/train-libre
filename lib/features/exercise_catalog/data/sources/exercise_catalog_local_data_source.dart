@@ -45,6 +45,10 @@ class ExerciseCatalogLocalDataSource {
     return _workoutDbHelper.updateCustomExercise(exercise);
   }
 
+  Future<bool> deleteCustomExercise(int localId) {
+    return _workoutDbHelper.deleteCustomExercise(localId);
+  }
+
   Future<List<Exercise>> getCustomExercises() async {
     final list = await _workoutDbHelper.getCustomExercises();
     return list.cast<Exercise>();

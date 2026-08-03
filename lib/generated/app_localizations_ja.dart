@@ -1083,6 +1083,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deleteExerciseButton => '練習の削除';
 
   @override
+  String get deleteCustomExerciseTitle => 'カスタムエクササイズを削除';
+
+  @override
+  String deleteCustomExerciseBody(String name) {
+    return '「$name」を完全に削除します。この操作は元に戻せません。';
+  }
+
+  @override
+  String get deleteCustomExerciseWithLogsWarning =>
+      'このエクササイズはトレーニング履歴に記録されています。ログデータは保持されますが、エクササイズへのリンクは削除されます。';
+
+  @override
+  String get deleteCustomExerciseWithRoutinesWarning =>
+      'このエクササイズは1つ以上のルーティンで使用されています。それらのルーティンから削除されます。';
+
+  @override
+  String get deleteCustomExerciseSuccess => 'エクササイズを削除しました。';
+
+  @override
   String get restOverLabel => '一時停止が終わりました';
 
   @override

@@ -1922,6 +1922,36 @@ abstract class AppLocalizations {
   /// **'Delete exercise'**
   String get deleteExerciseButton;
 
+  /// No description provided for @deleteCustomExerciseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Custom Exercise'**
+  String get deleteCustomExerciseTitle;
+
+  /// No description provided for @deleteCustomExerciseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete \"{name}\". This cannot be undone.'**
+  String deleteCustomExerciseBody(String name);
+
+  /// No description provided for @deleteCustomExerciseWithLogsWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This exercise appears in your workout history. Your log entries will be kept, but the exercise link will be removed.'**
+  String get deleteCustomExerciseWithLogsWarning;
+
+  /// No description provided for @deleteCustomExerciseWithRoutinesWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This exercise is used in one or more routines. It will be removed from those routines.'**
+  String get deleteCustomExerciseWithRoutinesWarning;
+
+  /// No description provided for @deleteCustomExerciseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise deleted.'**
+  String get deleteCustomExerciseSuccess;
+
   /// No description provided for @restOverLabel.
   ///
   /// In en, this message translates to:

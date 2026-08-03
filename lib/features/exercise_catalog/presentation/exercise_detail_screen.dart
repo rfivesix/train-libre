@@ -211,6 +211,132 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
+  void _showDeleteConfirmMenu(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+
+    final exerciseName = _currentExercise.getLocalizedName(context);
+
+    showGlassBottomMenu(
+      context: context,
+      title: l10n.deleteCustomExerciseTitle,
+      contentBuilder: (ctx, close) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS,
+                  vertical: DesignConstants.spacingS),
+              child: Text(
+                l10n.deleteCustomExerciseBody(exerciseName),
+                textAlign: TextAlign.center,
+                style: textTheme.bodyMedium,
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
+            Container(
+              padding: const EdgeInsets.all(DesignConstants.spacingM),
+              decoration: BoxDecoration(
+                color: colorScheme.errorContainer.withValues(alpha: 0.25),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(LucideIcons.history,
+                          size: 16, color: colorScheme.error),
+                      const SizedBox(width: DesignConstants.spacingS),
+                      Expanded(
+                        child: Text(
+                          l10n.deleteCustomExerciseWithLogsWarning,
+                          style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onErrorContainer),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(LucideIcons.dumbbell,
+                          size: 16, color: colorScheme.error),
+                      const SizedBox(width: DesignConstants.spacingS),
+                      Expanded(
+                        child: Text(
+                          l10n.deleteCustomExerciseWithRoutinesWarning,
+                          style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onErrorContainer),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingXL),
+            Row(
+              children: [
+                Expanded(
+                  child: AppButton.secondary(
+                    onPressed: () => close(),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
+                  ),
+                ),
+                const SizedBox(width: DesignConstants.spacingM),
+                Expanded(
+                  child: AppButton.danger(
+                    onPressed: () async {
+                      close();
+                      await _deleteExercise();
+                    },
+                    label: l10n.delete,
+                    tooltip: l10n.delete,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteExercise() async {
+    final localId = _currentExercise.id;
+    if (localId == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await _repository.deleteCustomExercise(localId);
+
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.deleteCustomExerciseSuccess)),
+      );
+      Navigator.of(context).pop('deleted');
+    } catch (e) {
+      debugPrint('Error deleting exercise: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${l10n.error}: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -225,6 +351,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       appBar: GlobalAppBar(
         title: _currentExercise.getLocalizedName(context),
         actions: [
+          if (_currentExercise.source == 'user')
+            IconButton(
+              tooltip: l10n.delete,
+              icon: const Icon(LucideIcons.trash_2),
+              onPressed: () => _showDeleteConfirmMenu(context),
+            ),
           IconButton(
             tooltip: l10n.edit,
             icon: const Icon(LucideIcons.pencil),

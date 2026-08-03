@@ -1103,6 +1103,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deleteExerciseButton => 'Supprimer l\'exercice';
 
   @override
+  String get deleteCustomExerciseTitle => 'Supprimer l\'exercice personnalisé';
+
+  @override
+  String deleteCustomExerciseBody(String name) {
+    return '« $name » sera supprimé définitivement. Cette action est irréversible.';
+  }
+
+  @override
+  String get deleteCustomExerciseWithLogsWarning =>
+      'Cet exercice apparaît dans votre historique d\'entraînements. Vos entrées de journal seront conservées, mais le lien vers l\'exercice sera supprimé.';
+
+  @override
+  String get deleteCustomExerciseWithRoutinesWarning =>
+      'Cet exercice est utilisé dans une ou plusieurs routines. Il sera supprimé de ces routines.';
+
+  @override
+  String get deleteCustomExerciseSuccess => 'Exercice supprimé.';
+
+  @override
   String get restOverLabel => 'La pause est terminée';
 
   @override

@@ -272,7 +272,11 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                   exercise: exercise,
                                                   repository: _repository),
                                         ),
-                                      );
+                                      ).then((result) {
+                                        if (result == 'deleted') {
+                                          _runFilter(_searchController.text);
+                                        }
+                                      });
                                     }
                                   },
                                 ),

@@ -560,6 +560,61 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     return result;
   }
 
+  /// Deletes a custom (source == 'user') exercise by its [localId].
+  ///
+  /// Within a single transaction:
+  /// 1. Resolves the UUID from [localId].
+  /// 2. Nulls out `exercise_id` in all `set_logs` that reference this exercise,
+  ///    preserving `exercise_name_snapshot` so workout history remains intact.
+  /// 3. Deletes all `routine_exercises` rows that reference this exercise.
+  /// 4. Deletes the exercise row itself (translations cascade via FK).
+  ///
+  /// Returns `true` if any set-log rows were affected (i.e. the exercise
+  /// appeared in workout history), so the UI can display a relevant warning.
+  ///
+  /// Throws if the exercise is not found or is not a user-owned exercise.
+  Future<bool> deleteCustomExercise(int localId) async {
+    final dbInstance = await database;
+
+    return await dbInstance.transaction(() async {
+      // 1. Resolve UUID
+      final exerciseRow = await (dbInstance.select(dbInstance.exercises)
+            ..where((tbl) => tbl.localId.equals(localId))
+            ..limit(1))
+          .getSingleOrNull();
+
+      if (exerciseRow == null) {
+        throw Exception('Exercise not found (localId=$localId)');
+      }
+      if (exerciseRow.source != 'user') {
+        throw Exception(
+            'Cannot delete non-user exercise (source=${exerciseRow.source})');
+      }
+
+      final exerciseUuid = exerciseRow.id;
+
+      // 2. Null out exercise_id in set_logs (keep name snapshot intact)
+      final affectedRows = await dbInstance.customUpdate(
+        'UPDATE set_logs SET exercise_id = NULL WHERE exercise_id = ?',
+        variables: [drift.Variable.withString(exerciseUuid)],
+        updates: {dbInstance.setLogs},
+      );
+      final hadLogs = affectedRows > 0;
+
+      // 3. Remove routine_exercises referencing this exercise
+      await (dbInstance.delete(dbInstance.routineExercises)
+            ..where((tbl) => tbl.exerciseId.equals(exerciseUuid)))
+          .go();
+
+      // 4. Delete the exercise itself (translations cascade via FK)
+      await (dbInstance.delete(dbInstance.exercises)
+            ..where((tbl) => tbl.localId.equals(localId)))
+          .go();
+
+      return hadLogs;
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------

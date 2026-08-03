@@ -430,6 +430,17 @@
   "doneButtonLabel": "Fertig",
   "setRestTimeButton": "Pause einstellen",
   "deleteExerciseButton": "Übung löschen",
+  "deleteCustomExerciseTitle": "Eigene Übung löschen",
+  "deleteCustomExerciseBody": "'{name}' wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+  "@deleteCustomExerciseBody": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deleteCustomExerciseWithLogsWarning": "Diese Übung erscheint in deiner Workout-History. Deine Log-Einträge bleiben erhalten, aber der Übungs-Link wird entfernt.",
+  "deleteCustomExerciseWithRoutinesWarning": "Diese Übung wird in einer oder mehreren Routinen verwendet. Sie wird dort entfernt.",
+  "deleteCustomExerciseSuccess": "Übung gelöscht.",
+
   "restOverLabel": "Pause vorbei",
   "workoutRunningLabel": "Workout läuft …",
   "continueButton": "Weiter",
