@@ -30,3 +30,6 @@
 ## 2024-05-24 - [Avoid `.where().toList()` in UI bounds calculations]
 **Learning:** Using chained list operations like `.where((x) => x.cond).toList()` followed by multiple `.map().reduce()` passes on small to medium collections in Flutter UI components creates unnecessary intermediate arrays and puts strain on the GC, particularly on frequent renders like charts.
 **Action:** Replace functional array chaining (where/map/reduce toList pipelines) with standard single-pass `for` loops in hot UI paths that compute multiple bounds (min/max), maintaining readability while ensuring O(N) traversal and O(1) memory overhead.
+## 2025-02-13 - Optimize Array Filtering before Sorting
+**Learning:** Found instances where arrays were being sorted (O(N log N)) *before* filtering out invalid elements, which also required allocating an intermediate copy of the full list (`.toList()`).
+**Action:** When filtering and sorting data, apply the filter condition *first* in a `for` loop to accumulate valid items into a new list, then sort only that list. This reduces sorting complexity from O(N log N) to O(V log V) (where V is the subset of valid items) and prevents redundant allocations.

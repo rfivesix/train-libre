@@ -53,9 +53,16 @@ SleepRegularityIndexResult calculateSleepRegularityIndex({
   int minimumValidDays = 5,
   int stableValidDays = 7,
 }) {
-  final sorted = List<DailySleepWakeState>.from(dailyStates)
-    ..sort((a, b) => a.day.compareTo(b.day));
-  final valid = sorted.where((state) => state.hasSleepData).toList();
+  // Optimization: Filter for valid items before sorting to reduce elements
+  // from N to V (valid items), dropping sorting complexity from O(N log N)
+  // to O(V log V) and avoiding an intermediate `.toList()` allocation.
+  final valid = <DailySleepWakeState>[];
+  for (final state in dailyStates) {
+    if (state.hasSleepData) {
+      valid.add(state);
+    }
+  }
+  valid.sort((a, b) => a.day.compareTo(b.day));
   final validDays = valid.length;
   if (validDays < minimumValidDays || valid.length < 2) {
     return SleepRegularityIndexResult(
