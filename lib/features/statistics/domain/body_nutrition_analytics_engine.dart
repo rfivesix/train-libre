@@ -184,8 +184,16 @@ class BodyNutritionAnalyticsEngine {
 
   static List<DailyValuePoint> normalizedSeries(List<DailyValuePoint> points) {
     if (points.isEmpty) return const [];
-    final minValue = points.map((p) => p.value).reduce(math.min);
-    final maxValue = points.map((p) => p.value).reduce(math.max);
+
+    double minValue = double.infinity;
+    double maxValue = double.negativeInfinity;
+
+    for (final p in points) {
+      final val = p.value;
+      if (val < minValue) minValue = val;
+      if (val > maxValue) maxValue = val;
+    }
+
     final span = (maxValue - minValue).abs();
     if (span < 0.0001) {
       return points
