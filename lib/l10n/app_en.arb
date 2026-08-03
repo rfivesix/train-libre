@@ -2297,6 +2297,8 @@
   "muscleTriceps": "Triceps",
   "muscleQuads": "Quadriceps",
   "muscleHamstrings": "Hamstrings",
+  "muscleLegs": "Legs",
+  "muscleArms": "Arms",
   "muscleGlutes": "Glutes",
   "muscleCalves": "Calves",
   "muscleLowerBack": "Lower Back",
@@ -2708,5 +2710,15 @@
   "reviewPromptSubtitle": "Your feedback helps us continuously improve the app without ads or trackers.",
   "reviewPromptYes": "Yes, I like it",
   "reviewPromptNo": "No, not really",
-  "reviewPromptLater": "Remind me later"
+  "reviewPromptLater": "Remind me later",
+  "updateAvailableTitle": "Update Available",
+  "statusReady": "Ready",
+  "statusRequired": "Required",
+  "updatesAvailableBody": "New updates are available for your local catalogs. Would you like to update now?",
+  "exerciseCatalogWger": "Exercise Catalog (wger)",
+  "nutritionCatalogOff": "Nutrition Catalog (OFF)",
+  "workoutImportZeroNew": "0 new workouts imported (all already existed).",
+  "telemetryDeleteDialogTitle": "Delete Telemetry Data?",
+  "telemetryDeleteDialogBody": "Do you really want to delete your past telemetry data?\n\nThe following will happen:\n• All device UUIDs, session IDs, and local counters stored on this device will be reset.\n• A deletion request ($delete_person) will be sent to PostHog servers in the EU to remove your data there.\n• The telemetry SDK will be fully reset.",
+  "telemetryDeleteConfirmButton": "Delete data now"
 }

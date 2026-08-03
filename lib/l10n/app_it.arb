@@ -2300,6 +2300,8 @@
   "muscleTriceps": "Tricipiti",
   "muscleQuads": "Quadricipiti",
   "muscleHamstrings": "Femorali",
+  "muscleLegs": "Gambe",
+  "muscleArms": "Braccia",
   "muscleGlutes": "Glutei",
   "muscleCalves": "Polpacci",
   "muscleLowerBack": "Bassa schiena",
@@ -2575,5 +2577,15 @@
   "reviewPromptSubtitle": "Il tuo feedback ci aiuta a migliorare l'app senza pubblicità o tracker.",
   "reviewPromptYes": "Sì, mi piace",
   "reviewPromptNo": "No, non proprio",
-  "reviewPromptLater": "Ricordamelo più tardi"
+  "reviewPromptLater": "Ricordamelo più tardi",
+  "updateAvailableTitle": "Aggiornamento disponibile",
+  "statusReady": "Pronto",
+  "statusRequired": "Richiesto",
+  "updatesAvailableBody": "Sono disponibili nuovi aggiornamenti per i tuoi cataloghi locali. Vuoi aggiornare ora?",
+  "exerciseCatalogWger": "Catalogo esercizi (wger)",
+  "nutritionCatalogOff": "Catalogo nutrizionale (OFF)",
+  "workoutImportZeroNew": "0 nuovi allenamenti importati (tutti esistevano già).",
+  "telemetryDeleteDialogTitle": "Eliminare i dati di telemetria?",
+  "telemetryDeleteDialogBody": "Vuoi davvero eliminare i tuoi dati di telemetria precedenti?\n\nAccadrà quanto segue:\n• Tutti gli UUID del dispositivo, gli ID sessione e i contatori locali memorizzati su questo dispositivo verranno ripristinati.\n• Verrà inviata una richiesta di eliminazione ($delete_person) ai server PostHog nell'UE per rimuovere i tuoi dati da lì.\n• L'SDK di telemetria verrà completamente ripristinato.",
+  "telemetryDeleteConfirmButton": "Elimina i dati ora"
 }

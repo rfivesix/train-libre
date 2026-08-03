@@ -325,10 +325,10 @@ class _ICloudSyncCardState extends State<ICloudSyncCard> {
                       await Clipboard.setData(
                           ClipboardData(text: _nativeDiagnosticLog!));
                       if (context.mounted) {
+                        final l10n = AppLocalizations.of(context)!;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content:
-                                const Text('Raw logs copied to clipboard!'),
+                            content: Text(l10n.icloudSyncErrorCopied),
                             backgroundColor: theme.colorScheme.secondary,
                             duration: const Duration(seconds: 2),
                           ),

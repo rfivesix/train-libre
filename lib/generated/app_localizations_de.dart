@@ -5133,6 +5133,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get muscleHamstrings => 'Oberschenkelrückseite';
 
   @override
+  String get muscleLegs => 'Beine';
+
+  @override
+  String get muscleArms => 'Arme';
+
+  @override
   String get muscleGlutes => 'Gesäß';
 
   @override
@@ -5142,7 +5148,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get muscleLowerBack => 'Unterer Rücken';
 
   @override
-  String get muscleAbs => 'Bauchmuskeln';
+  String get muscleAbs => 'Bauch';
 
   @override
   String get muscleAdductors => 'Adduktoren';
@@ -5754,4 +5760,37 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get reviewPromptLater => 'Erinnere mich später';
+
+  @override
+  String get updateAvailableTitle => 'Update verfügbar';
+
+  @override
+  String get statusReady => 'Bereit';
+
+  @override
+  String get statusRequired => 'Erforderlich';
+
+  @override
+  String get updatesAvailableBody =>
+      'Neue Updates für deine lokalen Kataloge sind verfügbar. Möchtest du sie jetzt aktualisieren?';
+
+  @override
+  String get exerciseCatalogWger => 'Übungskatalog (wger)';
+
+  @override
+  String get nutritionCatalogOff => 'Nährwertkatalog (OFF)';
+
+  @override
+  String get workoutImportZeroNew =>
+      '0 neue Workouts importiert (alle existierten bereits).';
+
+  @override
+  String get telemetryDeleteDialogTitle => 'Telemetrie-Daten löschen?';
+
+  @override
+  String get telemetryDeleteDialogBody =>
+      'Möchtest du deine bisherigen Telemetrie-Daten wirklich löschen?\n\nFolgendes passiert dabei:\n• Alle auf diesem Gerät gespeicherten Geräte-UUIDs, Session-IDs und lokalen Zähler werden zurückgesetzt.\n• Es wird ein Löschauftrag (\$delete_person) an die PostHog-Server in der EU gesendet, um deine bisherigen Daten dort zu entfernen.\n• Das Telemetrie-SDK wird vollständig zurückgesetzt.';
+
+  @override
+  String get telemetryDeleteConfirmButton => 'Daten jetzt löschen';
 }

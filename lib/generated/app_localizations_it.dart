@@ -5171,6 +5171,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get muscleHamstrings => 'Femorali';
 
   @override
+  String get muscleLegs => 'Gambe';
+
+  @override
+  String get muscleArms => 'Braccia';
+
+  @override
   String get muscleGlutes => 'Glutei';
 
   @override
@@ -5793,4 +5799,37 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get reviewPromptLater => 'Ricordamelo più tardi';
+
+  @override
+  String get updateAvailableTitle => 'Aggiornamento disponibile';
+
+  @override
+  String get statusReady => 'Pronto';
+
+  @override
+  String get statusRequired => 'Richiesto';
+
+  @override
+  String get updatesAvailableBody =>
+      'Sono disponibili nuovi aggiornamenti per i tuoi cataloghi locali. Vuoi aggiornare ora?';
+
+  @override
+  String get exerciseCatalogWger => 'Catalogo esercizi (wger)';
+
+  @override
+  String get nutritionCatalogOff => 'Catalogo nutrizionale (OFF)';
+
+  @override
+  String get workoutImportZeroNew =>
+      '0 nuovi allenamenti importati (tutti esistevano già).';
+
+  @override
+  String get telemetryDeleteDialogTitle => 'Eliminare i dati di telemetria?';
+
+  @override
+  String get telemetryDeleteDialogBody =>
+      'Vuoi davvero eliminare i tuoi dati di telemetria precedenti?\n\nAccadrà quanto segue:\n• Tutti gli UUID del dispositivo, gli ID sessione e i contatori locali memorizzati su questo dispositivo verranno ripristinati.\n• Verrà inviata una richiesta di eliminazione (\$delete_person) ai server PostHog nell\'UE per rimuovere i tuoi dati da lì.\n• L\'SDK di telemetria verrà completamente ripristinato.';
+
+  @override
+  String get telemetryDeleteConfirmButton => 'Elimina i dati ora';
 }

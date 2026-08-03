@@ -2300,6 +2300,8 @@
   "muscleTriceps": "Triceps",
   "muscleQuads": "Quadriceps",
   "muscleHamstrings": "Ischio-jambiers",
+  "muscleLegs": "Jambes",
+  "muscleArms": "Bras",
   "muscleGlutes": "Fessiers",
   "muscleCalves": "Mollets",
   "muscleLowerBack": "Bas du dos",
@@ -2575,5 +2577,15 @@
   "reviewPromptSubtitle": "Vos retours nous aident à améliorer l'application sans publicité ni traqueurs.",
   "reviewPromptYes": "Oui, j'aime bien",
   "reviewPromptNo": "Non, pas vraiment",
-  "reviewPromptLater": "Rappelez-moi plus tard"
+  "reviewPromptLater": "Rappelez-moi plus tard",
+  "updateAvailableTitle": "Mise à jour disponible",
+  "statusReady": "Prêt",
+  "statusRequired": "Requis",
+  "updatesAvailableBody": "De nouvelles mises à jour sont disponibles pour vos catalogues locaux. Souhaitez-vous les mettre à jour maintenant ?",
+  "exerciseCatalogWger": "Catalogue d'exercices (wger)",
+  "nutritionCatalogOff": "Catalogue de nutrition (OFF)",
+  "workoutImportZeroNew": "0 nouvel entraînement importé (tous existaient déjà).",
+  "telemetryDeleteDialogTitle": "Supprimer les données de télémétrie ?",
+  "telemetryDeleteDialogBody": "Voulez-vous vraiment supprimer vos données de télémétrie passées ?\n\nCe qui suit va se produire :\n• Tous les UUID d'appareil, ID de session et compteurs locaux enregistrés sur cet appareil seront réinitialisés.\n• Une demande de suppression ($delete_person) sera envoyée aux serveurs PostHog dans l'UE pour y supprimer vos données.\n• Le SDK de télémétrie sera entièrement réinitialisé.",
+  "telemetryDeleteConfirmButton": "Supprimer les données maintenant"
 }

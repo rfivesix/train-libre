@@ -8964,6 +8964,18 @@ abstract class AppLocalizations {
   /// **'Hamstrings'**
   String get muscleHamstrings;
 
+  /// No description provided for @muscleLegs.
+  ///
+  /// In en, this message translates to:
+  /// **'Legs'**
+  String get muscleLegs;
+
+  /// No description provided for @muscleArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms'**
+  String get muscleArms;
+
   /// No description provided for @muscleGlutes.
   ///
   /// In en, this message translates to:
@@ -9996,6 +10008,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remind me later'**
   String get reviewPromptLater;
+
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Available'**
+  String get updateAvailableTitle;
+
+  /// No description provided for @statusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get statusReady;
+
+  /// No description provided for @statusRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get statusRequired;
+
+  /// No description provided for @updatesAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'New updates are available for your local catalogs. Would you like to update now?'**
+  String get updatesAvailableBody;
+
+  /// No description provided for @exerciseCatalogWger.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise Catalog (wger)'**
+  String get exerciseCatalogWger;
+
+  /// No description provided for @nutritionCatalogOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition Catalog (OFF)'**
+  String get nutritionCatalogOff;
+
+  /// No description provided for @workoutImportZeroNew.
+  ///
+  /// In en, this message translates to:
+  /// **'0 new workouts imported (all already existed).'**
+  String get workoutImportZeroNew;
+
+  /// No description provided for @telemetryDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Telemetry Data?'**
+  String get telemetryDeleteDialogTitle;
+
+  /// No description provided for @telemetryDeleteDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you really want to delete your past telemetry data?\n\nThe following will happen:\n• All device UUIDs, session IDs, and local counters stored on this device will be reset.\n• A deletion request (\$delete_person) will be sent to PostHog servers in the EU to remove your data there.\n• The telemetry SDK will be fully reset.'**
+  String get telemetryDeleteDialogBody;
+
+  /// No description provided for @telemetryDeleteConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete data now'**
+  String get telemetryDeleteConfirmButton;
 }
 
 class _AppLocalizationsDelegate

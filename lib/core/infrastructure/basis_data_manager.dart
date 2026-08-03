@@ -272,16 +272,16 @@ class BasisDataManager {
 
     final shouldDownload = await showGlassBottomMenu<bool>(
       context: context,
-      title: isMissingEither ? l10n.offDownloadTitle : "Update Available",
+      title: isMissingEither ? l10n.offDownloadTitle : l10n.updateAvailableTitle,
       isDismissible: true,
       enableDrag: true,
       contentBuilder: (ctx, close) {
         final wgerStatus = wgerInitialized
-            ? (wgerUpdateAvailable ? "Update Available" : "Ready")
-            : "Required";
+            ? (wgerUpdateAvailable ? l10n.updateAvailableTitle : l10n.statusReady)
+            : l10n.statusRequired;
         final offStatus = offInitialized
-            ? (offUpdateAvailable ? "Update Available" : "Ready")
-            : "Required";
+            ? (offUpdateAvailable ? l10n.updateAvailableTitle : l10n.statusReady)
+            : l10n.statusRequired;
 
         final wgerSizeText =
             wgerSize != null ? '${wgerSize.toStringAsFixed(1)} MB' : '1.4 MB';
@@ -295,7 +295,7 @@ class BasisDataManager {
             Text(
               isMissingEither
                   ? l10n.offDownloadBody
-                  : "New updates are available for your local catalogs. Would you like to update now?",
+                  : l10n.updatesAvailableBody,
               textAlign: TextAlign.center,
               style: Theme.of(ctx).textTheme.bodyMedium,
             ),
@@ -304,14 +304,14 @@ class BasisDataManager {
               children: [
                 const Icon(LucideIcons.dumbbell, size: 24),
                 const SizedBox(width: DesignConstants.spacingM),
-                const Expanded(
-                  child: Text("Exercise Catalog (wger)",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: Text(l10n.exerciseCatalogWger,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
                 Text(
                   "$wgerStatus ($wgerSizeText)",
                   style: TextStyle(
-                    color: wgerStatus == "Ready" ? Colors.green : Colors.orange,
+                    color: wgerStatus == l10n.statusReady ? Colors.green : Colors.orange,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -322,14 +322,14 @@ class BasisDataManager {
               children: [
                 const Icon(LucideIcons.database, size: 24),
                 const SizedBox(width: DesignConstants.spacingM),
-                const Expanded(
-                  child: Text("Nutrition Catalog (OFF)",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: Text(l10n.nutritionCatalogOff,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
                 Text(
                   "$offStatus ($offSizeText)",
                   style: TextStyle(
-                    color: offStatus == "Ready" ? Colors.green : Colors.orange,
+                    color: offStatus == l10n.statusReady ? Colors.green : Colors.orange,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

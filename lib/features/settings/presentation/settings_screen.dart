@@ -741,21 +741,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<bool> _showTelemetryDeletionConfirmation() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showGlassBottomMenu<bool>(
       context: context,
-      title: 'Telemetrie-Daten löschen?',
+      title: l10n.telemetryDeleteDialogTitle,
       contentBuilder: (ctx, close) {
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Möchtest du deine bisherigen Telemetrie-Daten wirklich löschen?\n\n'
-              'Folgendes passiert dabei:\n'
-              '• Alle auf diesem Gerät gespeicherten Geräte-UUIDs, Session-IDs und lokalen Zähler werden zurückgesetzt.\n'
-              '• Es wird ein Löschauftrag (\$delete_person) an die PostHog-Server in der EU gesendet, um deine bisherigen Daten dort zu entfernen.\n'
-              '• Das Telemetrie-SDK wird vollständig zurückgesetzt.',
-              style: TextStyle(height: 1.4),
+            Text(
+              l10n.telemetryDeleteDialogBody,
+              style: const TextStyle(height: 1.4),
             ),
             const SizedBox(height: DesignConstants.spacingL),
             Row(
@@ -763,15 +760,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(ctx).pop(false),
-                    child: const Text('Abbrechen'),
+                    child: Text(l10n.cancel),
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                   child: AppButton.danger(
                     onPressed: () => Navigator.of(ctx).pop(true),
-                    label: 'Daten jetzt löschen',
-                    tooltip: 'Telemetrie-Daten löschen',
+                    label: l10n.telemetryDeleteConfirmButton,
+                    tooltip: l10n.telemetryDeleteDialogTitle,
                   ),
                 ),
               ],

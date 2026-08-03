@@ -304,8 +304,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       ).showSnackBar(SnackBar(content: Text(l10n.workoutImportSuccess(count))));
     } else if (count == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("0 neue Workouts importiert (alle existierten bereits)."),
+        SnackBar(
+          content: Text(l10n.workoutImportZeroNew),
         ),
       );
     } else if (count == -1) {

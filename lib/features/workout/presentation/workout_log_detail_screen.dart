@@ -661,9 +661,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       debugPrint("Error saving changes: $e");
       debugPrint(stackTrace.toString());
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Error saving changes: $e"),
+            content: Text("${l10n.error}: $e"),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

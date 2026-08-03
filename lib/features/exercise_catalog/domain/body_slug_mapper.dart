@@ -246,8 +246,10 @@ class BodySlugMapper {
         return l10n.muscleQuads;
       case 'hamstrings':
         return l10n.muscleHamstrings;
-      case 'glutes':
-        return l10n.muscleGlutes;
+      case 'legs':
+        return l10n.muscleLegs;
+      case 'arms':
+        return l10n.muscleArms;
       case 'calves':
         return l10n.muscleCalves;
       case 'lower back':

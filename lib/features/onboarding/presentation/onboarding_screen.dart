@@ -993,7 +993,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ));
 
     if (mounted) {
-      app_main.main();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+        (route) => false,
+      );
     }
   }
 

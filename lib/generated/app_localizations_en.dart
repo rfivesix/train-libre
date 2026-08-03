@@ -5089,6 +5089,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get muscleHamstrings => 'Hamstrings';
 
   @override
+  String get muscleLegs => 'Legs';
+
+  @override
+  String get muscleArms => 'Arms';
+
+  @override
   String get muscleGlutes => 'Glutes';
 
   @override
@@ -5706,4 +5712,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reviewPromptLater => 'Remind me later';
+
+  @override
+  String get updateAvailableTitle => 'Update Available';
+
+  @override
+  String get statusReady => 'Ready';
+
+  @override
+  String get statusRequired => 'Required';
+
+  @override
+  String get updatesAvailableBody =>
+      'New updates are available for your local catalogs. Would you like to update now?';
+
+  @override
+  String get exerciseCatalogWger => 'Exercise Catalog (wger)';
+
+  @override
+  String get nutritionCatalogOff => 'Nutrition Catalog (OFF)';
+
+  @override
+  String get workoutImportZeroNew =>
+      '0 new workouts imported (all already existed).';
+
+  @override
+  String get telemetryDeleteDialogTitle => 'Delete Telemetry Data?';
+
+  @override
+  String get telemetryDeleteDialogBody =>
+      'Do you really want to delete your past telemetry data?\n\nThe following will happen:\n• All device UUIDs, session IDs, and local counters stored on this device will be reset.\n• A deletion request (\$delete_person) will be sent to PostHog servers in the EU to remove your data there.\n• The telemetry SDK will be fully reset.';
+
+  @override
+  String get telemetryDeleteConfirmButton => 'Delete data now';
 }

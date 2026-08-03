@@ -16,6 +16,7 @@ import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../domain/body_slug_mapper.dart';
 
 /// A searchable list of all available exercises in the database.
 class ExerciseCatalogScreen extends StatefulWidget {
@@ -239,7 +240,12 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                       ],
                                     ],
                                   ),
-                                  subtitle: Text(exercise.categoryName),
+                                  subtitle: Text(
+                                    BodySlugMapper.localize(
+                                      context,
+                                      exercise.categoryName,
+                                    ),
+                                  ),
                                   trailing: widget.isSelectionMode
                                       ? IconButton(
                                           tooltip: l10n.add_button,
@@ -349,7 +355,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         final isSelected = _selectedCategories.contains(category);
         return PlatformAdaptivePopupMenuItem<String>(
           value: category,
-          label: category,
+          label: BodySlugMapper.localize(context, category),
           icon: isSelected ? LucideIcons.check : null,
         );
       }).toList(),

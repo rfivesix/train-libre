@@ -4925,6 +4925,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get muscleHamstrings => 'ハムストリングス';
 
   @override
+  String get muscleLegs => '脚';
+
+  @override
+  String get muscleArms => '腕';
+
+  @override
   String get muscleGlutes => '臀部';
 
   @override
@@ -5523,4 +5529,35 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get reviewPromptLater => '後で通知';
+
+  @override
+  String get updateAvailableTitle => 'アップデート利用可能';
+
+  @override
+  String get statusReady => '準備完了';
+
+  @override
+  String get statusRequired => '必須';
+
+  @override
+  String get updatesAvailableBody => 'ローカルカタログの新しいアップデートが利用可能です。今すぐアップデートしますか？';
+
+  @override
+  String get exerciseCatalogWger => 'エクササイズカタログ (wger)';
+
+  @override
+  String get nutritionCatalogOff => '栄養カタログ (OFF)';
+
+  @override
+  String get workoutImportZeroNew => '0件の新しいワークアウトがインポートされました（すべて既に存在しています）。';
+
+  @override
+  String get telemetryDeleteDialogTitle => 'テレメトリデータを削除しますか？';
+
+  @override
+  String get telemetryDeleteDialogBody =>
+      '過去のテレメトリデータを本当に削除しますか？\n\n以下の処理が行われます：\n• このデバイスに保存されているすべてのデバイスUUID、セッションID、ローカルカウンターがリセットされます。\n• EUのPostHogサーバーに削除リクエスト（\$delete_person）が送信され、そこからデータが削除されます。\n• テレメトリSDKが完全にリセットされます。';
+
+  @override
+  String get telemetryDeleteConfirmButton => '今すぐデータを削除';
 }

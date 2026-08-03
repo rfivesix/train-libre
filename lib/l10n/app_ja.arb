@@ -2300,6 +2300,8 @@
   "muscleTriceps": "上腕三頭筋",
   "muscleQuads": "大腿四頭筋",
   "muscleHamstrings": "ハムストリングス",
+  "muscleLegs": "脚",
+  "muscleArms": "腕",
   "muscleGlutes": "臀部",
   "muscleCalves": "ふくらはぎ",
   "muscleLowerBack": "腰",
@@ -2575,5 +2577,15 @@
   "reviewPromptSubtitle": "フィードバックは広告やトラッカーなしでのアプリ改善に役立ちます。",
   "reviewPromptYes": "はい、気に入っています",
   "reviewPromptNo": "いいえ、あまり",
-  "reviewPromptLater": "後で通知"
+  "reviewPromptLater": "後で通知",
+  "updateAvailableTitle": "アップデート利用可能",
+  "statusReady": "準備完了",
+  "statusRequired": "必須",
+  "updatesAvailableBody": "ローカルカタログの新しいアップデートが利用可能です。今すぐアップデートしますか？",
+  "exerciseCatalogWger": "エクササイズカタログ (wger)",
+  "nutritionCatalogOff": "栄養カタログ (OFF)",
+  "workoutImportZeroNew": "0件の新しいワークアウトがインポートされました（すべて既に存在しています）。",
+  "telemetryDeleteDialogTitle": "テレメトリデータを削除しますか？",
+  "telemetryDeleteDialogBody": "過去のテレメトリデータを本当に削除しますか？\n\n以下の処理が行われます：\n• このデバイスに保存されているすべてのデバイスUUID、セッションID、ローカルカウンターがリセットされます。\n• EUのPostHogサーバーに削除リクエスト（$delete_person）が送信され、そこからデータが削除されます。\n• テレメトリSDKが完全にリセットされます。",
+  "telemetryDeleteConfirmButton": "今すぐデータを削除"
 }
