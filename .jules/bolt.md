@@ -30,7 +30,11 @@
 ## 2024-05-24 - [Avoid `.where().toList()` in UI bounds calculations]
 **Learning:** Using chained list operations like `.where((x) => x.cond).toList()` followed by multiple `.map().reduce()` passes on small to medium collections in Flutter UI components creates unnecessary intermediate arrays and puts strain on the GC, particularly on frequent renders like charts.
 **Action:** Replace functional array chaining (where/map/reduce toList pipelines) with standard single-pass `for` loops in hot UI paths that compute multiple bounds (min/max), maintaining readability while ensuring O(N) traversal and O(1) memory overhead.
-
 ## 2024-05-24 - Remove redundant Iterable allocations when finding min/max bounds in Flutter
 **Learning:** Chaining `.map().reduce(math.min)` and `.reduce(math.max)` allocates temporary lists (via `.toList()`) and traverses the collection multiple times. In a framework like Flutter where data is heavily parsed for UI charts (`fl_chart`), this creates unnecessary GC pressure and redundant O(N) passes.
 **Action:** Always compute boundaries (min, max, average) in a single-pass `for` loop directly accessing the underlying class attributes without mapping/reducing over intermediate iterables.
+
+## 2025-02-14 - Optimize Sorting by Filtering First
+**Learning:** Found instances where arrays were completely sorted (O(N log N)) and *then* filtered for valid elements using `.where().toList()`. This wastes CPU cycles on sorting invalid elements that will just be discarded anyway.
+**Action:** Always filter data in a single O(N) pass to collect valid elements first, and then sort only the valid subset. This drops the sorting complexity to O(V log V) (where V <= N) and avoids allocating arrays for discarded data.
+
