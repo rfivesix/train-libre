@@ -4,10 +4,12 @@ import '../../util/design_constants.dart';
 
 /// A background widget used for [Dismissible] swipe actions.
 ///
-/// Provides a consistent look with outer rounded clipped corners matching summary cards/tiles,
-/// while keeping inner edges flat so the background sits seamlessly underneath swiping cards.
+/// Clips only the *outer* corners (the far edge away from the sliding card)
+/// so the colour sits flush behind the card at its inner edge.
+/// Shadow bleed from the sliding card is prevented separately by [ClipRect]
+/// in [GlassActionableCard].
 class SwipeActionBackground extends StatelessWidget {
-  /// The background color (e.g., [Theme.of(context).colorScheme.error] for delete).
+  /// The background color (e.g., [DesignConstants.brandRedColor] for delete).
   final Color color;
 
   /// The icon representing the action.
@@ -19,7 +21,7 @@ class SwipeActionBackground extends StatelessWidget {
   /// Optional custom corner radius. Defaults to [DesignConstants.borderRadiusL].
   final BorderRadius? borderRadius;
 
-  /// Optional vertical/horizontal margin matching the target card/tile. Defaults to [EdgeInsets.zero].
+  /// Optional vertical/horizontal margin matching the target card/tile.
   final EdgeInsetsGeometry margin;
 
   const SwipeActionBackground({
@@ -36,27 +38,30 @@ class SwipeActionBackground extends StatelessWidget {
     final baseRadius =
         borderRadius ?? BorderRadius.circular(DesignConstants.borderRadiusL);
 
-    // Only round outer corners in the direction of the action alignment
-    // so the inner edge sits flat and seamless underneath the swiping card.
-    final BorderRadius clippedRadius;
-    if (alignment == Alignment.centerRight || alignment.x > 0) {
-      clippedRadius = BorderRadius.only(
+    // Only round the OUTER corners – the visible far edge.
+    // The inner edge stays flat so the colour fills all the way to where the
+    // sliding card's rounded corner is (preventing a dark gap).
+    final BorderRadius outerRadius;
+    if (alignment.x > 0) {
+      // Right-aligned (delete / red): outer corners are on the right.
+      outerRadius = BorderRadius.only(
         topRight: baseRadius.topRight,
         bottomRight: baseRadius.bottomRight,
       );
-    } else if (alignment == Alignment.centerLeft || alignment.x < 0) {
-      clippedRadius = BorderRadius.only(
+    } else if (alignment.x < 0) {
+      // Left-aligned (edit / blue): outer corners are on the left.
+      outerRadius = BorderRadius.only(
         topLeft: baseRadius.topLeft,
         bottomLeft: baseRadius.bottomLeft,
       );
     } else {
-      clippedRadius = baseRadius;
+      outerRadius = baseRadius;
     }
 
     return Padding(
       padding: margin,
       child: ClipRRect(
-        borderRadius: clippedRadius,
+        borderRadius: outerRadius,
         child: Container(
           color: color,
           alignment: alignment,
@@ -69,7 +74,3 @@ class SwipeActionBackground extends StatelessWidget {
     );
   }
 }
-
-
-
-
