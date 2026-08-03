@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0-beta.9] - 2026-08-04
 
+### Changed
+- **Dependency Updates:** Bumped `drift` to `2.34.3` and `posthog_flutter` to `5.34.2` (PR #547).
+
+
 ## [1.0.0-beta.8] - 2026-08-03
 
 ### Added
