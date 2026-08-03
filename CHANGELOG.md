@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Sleep Metrics & Regularity Index Performance:** Optimized array processing in `heart_rate_metrics.dart` and `sleep_regularity_index.dart` by filtering valid sleep data before sorting and using single-pass loops (PR #546).
 ### Fixed
 - **Timer Sound Persistent Audio Ducking:** Removed `AVAudioSessionOptions.duckOthers` in `SoundService` (`sound_service.dart`) to prevent iOS from keeping background music and system audio volume permanently lowered after the workout rest timer chime completes.
-
+- **Supplement Bottom Menu Log Cards Height & Stack Alignment:** Refactored supplement log entries in `diary_screen.dart` to use `GlassActionableCard` with `SummaryCard`, enabling the seamless `Stack` background layer. Increased vertical padding to `16.0px` and synchronized margins, making entry cards comfortably taller while completely eliminating gaps and cut-offs when swiping.
 
 
 ## [1.0.0-beta.8] - 2026-08-03

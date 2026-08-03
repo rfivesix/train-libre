@@ -4,6 +4,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
 import '../common/swipe_action_background.dart';
+import '../common/summary_card.dart';
 import '../common/glass_context_menu_overlay.dart';
 import '../../features/app/presentation/widgets/glass_bottom_menu.dart';
 
@@ -51,6 +52,9 @@ class GlassActionableCard extends StatefulWidget {
   /// Optional custom corner radius. Defaults to [DesignConstants.borderRadiusL].
   final BorderRadius? borderRadius;
 
+  /// Optional custom margin for swipe background. Defaults to 6.0 vertical for [SummaryCard] and zero otherwise.
+  final EdgeInsetsGeometry? margin;
+
   const GlassActionableCard({
     super.key,
     required this.child,
@@ -65,6 +69,7 @@ class GlassActionableCard extends StatefulWidget {
     this.enableSwipe = true,
     this.enableContextMenu = true,
     this.borderRadius,
+    this.margin,
   });
 
   @override
@@ -156,48 +161,117 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
 
     // Add Dismissible for swipe actions if enabled
     if (widget.enableSwipe && (widget.onEdit != null || widget.onDelete != null)) {
-      content = Dismissible(
-        key: effectiveKey,
-        direction: (widget.onEdit != null && widget.onDelete != null)
-            ? DismissDirection.horizontal
-            : (widget.onEdit != null ? DismissDirection.startToEnd : DismissDirection.endToStart),
-        background: widget.onEdit != null
-            ? const SwipeActionBackground(
-                color: Colors.blueAccent,
-                icon: LucideIcons.pencil,
-                alignment: Alignment.centerLeft,
-              )
-            : Container(),
-        secondaryBackground: widget.onDelete != null
-            ? const SwipeActionBackground(
-                color: DesignConstants.brandRedColor,
-                icon: LucideIcons.trash_2,
-                alignment: Alignment.centerRight,
-              )
-            : Container(),
-        confirmDismiss: (direction) async {
-          if (direction == DismissDirection.startToEnd) {
-            // Edit action on swipe right
-            if (widget.onEdit != null) {
-              widget.onEdit!();
-            }
-            return false;
+      final effectiveRadius =
+          widget.borderRadius ?? BorderRadius.circular(DesignConstants.borderRadiusL);
+
+      final bool isOpaqueCard = widget.child is SummaryCard;
+
+      final EdgeInsetsGeometry effectiveMargin = widget.margin ?? EdgeInsets.zero;
+
+      Future<bool?> handleConfirmDismiss(DismissDirection direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          if (widget.onEdit != null) {
+            widget.onEdit!();
+          }
+          return false;
+        } else {
+          if (widget.confirmDelete != null) {
+            return await widget.confirmDelete!();
           } else {
-            // Delete action on swipe left
-            if (widget.confirmDelete != null) {
-              return await widget.confirmDelete!();
-            } else {
-              return await showDeleteConfirmation(context);
-            }
+            return await showDeleteConfirmation(context);
           }
-        },
-        onDismissed: (direction) {
-          if (direction == DismissDirection.endToStart && widget.onDelete != null) {
-            widget.onDelete!();
-          }
-        },
-        child: content,
-      );
+        }
+      }
+
+      void handleOnDismissed(DismissDirection direction) {
+        if (direction == DismissDirection.endToStart && widget.onDelete != null) {
+          widget.onDelete!();
+        }
+      }
+
+      if (isOpaqueCard) {
+        // For opaque cards (like SummaryCard), position the solid background layer in a Stack
+        // underneath Dismissible so solid color extends continuously under swiping card corners with zero gaps.
+        final Widget backgroundLayer = Padding(
+          padding: effectiveMargin,
+          child: ClipRRect(
+            borderRadius: effectiveRadius,
+            child: Row(
+              children: [
+                if (widget.onEdit != null)
+                  Expanded(
+                    child: Container(
+                      color: Colors.blueAccent,
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: const Icon(LucideIcons.pencil, color: Colors.white),
+                    ),
+                  ),
+                if (widget.onDelete != null)
+                  Expanded(
+                    child: Container(
+                      color: DesignConstants.brandRedColor,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: const Icon(LucideIcons.trash_2, color: Colors.white),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+
+        content = Stack(
+          children: [
+            Positioned.fill(child: backgroundLayer),
+            Dismissible(
+              key: effectiveKey,
+              direction: (widget.onEdit != null && widget.onDelete != null)
+                  ? DismissDirection.horizontal
+                  : (widget.onEdit != null
+                      ? DismissDirection.startToEnd
+                      : DismissDirection.endToStart),
+              background: const SizedBox.expand(),
+              secondaryBackground: const SizedBox.expand(),
+              confirmDismiss: handleConfirmDismiss,
+              onDismissed: handleOnDismissed,
+              child: content,
+            ),
+          ],
+        );
+      } else {
+        // For transparent tiles (like FoodEntryTile), use standard Dismissible background
+        // so no color shines through when idle.
+        content = Dismissible(
+          key: effectiveKey,
+          direction: (widget.onEdit != null && widget.onDelete != null)
+              ? DismissDirection.horizontal
+              : (widget.onEdit != null
+                  ? DismissDirection.startToEnd
+                  : DismissDirection.endToStart),
+          background: widget.onEdit != null
+              ? SwipeActionBackground(
+                  color: Colors.blueAccent,
+                  icon: LucideIcons.pencil,
+                  alignment: Alignment.centerLeft,
+                  borderRadius: effectiveRadius,
+                  margin: effectiveMargin,
+                )
+              : Container(),
+          secondaryBackground: widget.onDelete != null
+              ? SwipeActionBackground(
+                  color: DesignConstants.brandRedColor,
+                  icon: LucideIcons.trash_2,
+                  alignment: Alignment.centerRight,
+                  borderRadius: effectiveRadius,
+                  margin: effectiveMargin,
+                )
+              : Container(),
+          confirmDismiss: handleConfirmDismiss,
+          onDismissed: handleOnDismissed,
+          child: content,
+        );
+      }
     }
 
     // Wrap with Accessibility Semantics

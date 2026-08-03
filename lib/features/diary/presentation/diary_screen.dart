@@ -28,7 +28,6 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/swipe_action_background.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'widgets/nutrition_summary_widget.dart';
 import '../../supplements/presentation/widgets/supplement_summary_widget.dart';
@@ -239,32 +238,22 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                           final doseStr =
                               '${log.dose.toStringAsFixed(1).replaceAll('.0', '')} ${log.unit}';
 
-                          return Dismissible(
-                            key: Key('supplement_log_${log.id}'),
-                            background: const SwipeActionBackground(
-                              color: Colors.blueAccent,
-                              icon: LucideIcons.pencil,
-                              alignment: Alignment.centerLeft,
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: DesignConstants.spacingXS,
                             ),
-                            secondaryBackground: const SwipeActionBackground(
-                              color: DesignConstants.brandRedColor,
-                              icon: LucideIcons.trash,
-                              alignment: Alignment.centerRight,
-                            ),
-                            confirmDismiss: (direction) async {
-                              if (direction == DismissDirection.startToEnd) {
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
-                                  _editSupplementLog(
-                                    context,
-                                    vm,
-                                    supplement,
-                                    log,
-                                  );
-                                });
-                                return false;
-                              } else {
+                            child: GlassActionableCard(
+                              dismissibleKey: Key('supplement_log_${log.id}'),
+                              onEdit: () {
+                                _editSupplementLog(
+                                  context,
+                                  vm,
+                                  supplement,
+                                  log,
+                                );
+                              },
+                              onDelete: () => vm.deleteSupplement(log.id!),
+                              confirmDelete: () async {
                                 return await showDeleteConfirmation(
                                   context,
                                   title: AppLocalizations.of(
@@ -274,21 +263,14 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                     context,
                                   )!.deleteSupplementLogConfirm,
                                 );
-                              }
-                            },
-                            onDismissed: (direction) {
-                              if (direction == DismissDirection.endToStart) {
-                                vm.deleteSupplement(log.id!);
-                              }
-                            },
-                            child: SummaryCard(
-                              margin: const EdgeInsets.symmetric(
-                                vertical: DesignConstants.spacingXS,
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: DesignConstants.spacingM,
-                                vertical: DesignConstants.spacingM,
-                              ),
+                              },
+                              margin: EdgeInsets.zero,
+                              child: SummaryCard(
+                                margin: EdgeInsets.zero,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: DesignConstants.spacingM,
+                                  vertical: 16.0,
+                                ),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -327,7 +309,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 ],
                               ),
                             ),
-                          );
+                          ),
+                        );
                         },
                       ),
                     ),
