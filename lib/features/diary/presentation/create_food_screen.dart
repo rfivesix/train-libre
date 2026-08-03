@@ -188,6 +188,7 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
                 label: l10n.formFieldCalories,
                 isNumeric: true, // Fix
                 suffixIcon: IconButton(
+                  tooltip: l10n.adaptiveRecommendationRecalculateNowAction,
                   icon: const Icon(LucideIcons.refresh_cw, size: 20),
                   onPressed: _calculateCaloriesFromMacros,
                 ),

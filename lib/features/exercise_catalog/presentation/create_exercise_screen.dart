@@ -202,6 +202,7 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
             )
           else
             IconButton(
+              tooltip: l10n.buttonSave,
               icon: const Icon(LucideIcons.check),
               onPressed: _isValid ? _saveExercise : null,
               color: _isValid
