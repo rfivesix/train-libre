@@ -40,6 +40,7 @@ class GlassMenuAction {
 Future<T?> showGlassBottomMenu<T>({
   required BuildContext context,
   String? title,
+  Widget? headerTrailing,
   List<GlassMenuAction>? actions,
   Widget Function(BuildContext, VoidCallback)? contentBuilder,
   bool isDismissible = true,
@@ -74,6 +75,7 @@ Future<T?> showGlassBottomMenu<T>({
         padding: EdgeInsets.only(bottom: kb),
         child: _GlassBottomMenuSheet(
           title: title,
+          headerTrailing: headerTrailing,
           actions: actions ?? const <GlassMenuAction>[],
           contentBuilder: contentBuilder,
           applySafeAreaBottom: applySafeAreaBottom,
@@ -86,24 +88,25 @@ Future<T?> showGlassBottomMenu<T>({
 class _GlassBottomMenuSheet extends StatelessWidget {
   const _GlassBottomMenuSheet({
     this.title,
+    this.headerTrailing,
     this.contentBuilder,
     this.actions = const <GlassMenuAction>[],
     this.applySafeAreaBottom = true,
   });
 
   final String? title;
+  final Widget? headerTrailing;
   final Widget Function(BuildContext, VoidCallback)? contentBuilder;
   final List<GlassMenuAction> actions;
   final bool applySafeAreaBottom;
 
   @override
   Widget build(BuildContext context) {
-    // ... (this part stays exactly identical to the current file) ...
-    // ...
     final media = MediaQuery.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bottomInset = media.viewPadding.bottom;
+    final keyboardInset = media.viewInsets.bottom;
 
     final Color neutralTint = isDark
         ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
@@ -111,81 +114,105 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
     const double r = 24;
-    const EdgeInsets outerMargin = EdgeInsets.zero;
+    final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
+    final maxAvailableHeight = media.size.height - topPadding - 16 - keyboardInset;
 
     Widget contentColumn() {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: DesignConstants.spacingS),
-          Container(
-            width: 44,
-            height: 5,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(100),
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxAvailableHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: DesignConstants.spacingS),
+            Container(
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(100),
+              ),
             ),
-          ),
-          if (title != null) ...[
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingL),
-              child: Text(
-                title!,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+            if (title != null) ...[
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingL),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (headerTrailing != null) const SizedBox(width: 80),
+                    Expanded(
+                      child: Text(
+                        title!,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (headerTrailing != null)
+                      SizedBox(
+                        width: 100,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: headerTrailing,
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            ),
-          ],
-          if (contentBuilder != null) ...[
-            const SizedBox(height: DesignConstants.spacingS),
-            Padding(
-              padding: EdgeInsets.only(
-                  left: DesignConstants.spacingM,
-                  right: DesignConstants.spacingM,
-                  bottom: applySafeAreaBottom ? bottomInset : 0),
-              child: contentBuilder!(
-                context,
-                () => Navigator.of(context).maybePop(),
-              ),
-            ),
-          ] else if (actions.isNotEmpty) ...[
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 420),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(8, 12, 8, 8 + bottomInset),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(actions.length, (i) {
-                      final a = actions[i];
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: DesignConstants.spacingS),
-                        child: _GlassTile(
-                          icon: a.icon,
-                          customIcon: a.customIcon, // <--- Pass new value
-                          title: a.label,
-                          subtitle: a.subtitle,
-                          onTap: () {
-                            HapticFeedbackService.instance.selectionFeedback();
-                            Navigator.of(context).maybePop();
-                            WidgetsBinding.instance.addPostFrameCallback(
-                              (_) => a.onTap(),
-                            );
-                          },
-                        ),
-                      );
-                    }),
+            ],
+            if (contentBuilder != null) ...[
+              const SizedBox(height: DesignConstants.spacingS),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        left: DesignConstants.spacingM,
+                        right: DesignConstants.spacingM,
+                        bottom: applySafeAreaBottom ? bottomInset : 0),
+                    child: contentBuilder!(
+                      context,
+                      () => Navigator.of(context).maybePop(),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ] else if (actions.isNotEmpty) ...[
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 420),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(8, 12, 8, 8 + (applySafeAreaBottom ? bottomInset : 0)),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(actions.length, (i) {
+                        final a = actions[i];
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                              bottom: DesignConstants.spacingS),
+                          child: _GlassTile(
+                            icon: a.icon,
+                            customIcon: a.customIcon, // <--- Pass new value
+                            title: a.label,
+                            subtitle: a.subtitle,
+                            onTap: () {
+                              HapticFeedbackService.instance.selectionFeedback();
+                              Navigator.of(context).maybePop();
+                              WidgetsBinding.instance.addPostFrameCallback(
+                                (_) => a.onTap(),
+                              );
+                            },
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       );
     }
 
@@ -259,11 +286,43 @@ class _GlassBottomMenuSheet extends StatelessWidget {
       bottom: false,
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: outerMargin,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: liquidCard(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              if (keyboardInset > 0)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: -keyboardInset,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                    child: RepaintBoundary(
+                      child: AdaptiveGlass(
+                        settings: LiquidGlassSettings(
+                          thickness: 0,
+                          blur: 8,
+                          glassColor: effectiveGlass,
+                          lightIntensity: 0,
+                          saturation: 1.20,
+                        ),
+                        shape: const LiquidVerticalRoundedSuperellipse(
+                          topRadius: r,
+                          bottomRadius: 0,
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: neutralTint,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              liquidCard(),
+            ],
           ),
         ),
       ),

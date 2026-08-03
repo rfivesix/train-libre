@@ -618,6 +618,26 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     final result = await showGlassBottomMenu<({bool saved, int? value})>(
       context: context,
       title: l10n.editPauseTimeTitle,
+      headerTrailing: (re.pauseSeconds != null && re.pauseSeconds! > 0)
+          ? TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () {
+                HapticFeedbackService.instance.selectionFeedback();
+                Navigator.of(context).pop((saved: true, value: null));
+              },
+              child: Text(
+                l10n.removeTimer,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.amber,
+                ),
+              ),
+            )
+          : null,
       contentBuilder: (ctx, close) {
         return RoutinePauseTimeDialog(
           initialPauseSeconds: re.pauseSeconds,

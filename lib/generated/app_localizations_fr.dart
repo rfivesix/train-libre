@@ -15,6 +15,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get selectTimeTitle => 'Choisir une heure';
 
   @override
+  String get removeTimer => 'Supprimer le minuteur';
+
+  @override
+  String get noTimerLabel => 'Aucun minuteur';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override

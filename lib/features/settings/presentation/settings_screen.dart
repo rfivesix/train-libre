@@ -601,10 +601,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (!mounted) return;
                     setState(() => _isTelemetryOptedIn = value);
                   },
-
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          AppLinkRow(
+            key: const Key('settings_reset_telemetry_data'),
+            title: 'Telemetrie-Daten löschen',
+            subtitle: 'Löscht alle gespeicherten IDs lokal und auf dem PostHog-Server',
+            trailingIcon: LucideIcons.trash_2,
+            onTap: () async {
+              final confirmed = await _showTelemetryDeletionConfirmation();
+              if (!confirmed) return;
+              await TelemetryService.instance.resetLocalData();
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Telemetrie-IDs & Daten wurden lokal und vom Server gelöscht.',
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(
@@ -719,6 +738,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     }
+  }
+
+  Future<bool> _showTelemetryDeletionConfirmation() async {
+    final confirmed = await showGlassBottomMenu<bool>(
+      context: context,
+      title: 'Telemetrie-Daten löschen?',
+      contentBuilder: (ctx, close) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Möchtest du deine bisherigen Telemetrie-Daten wirklich löschen?\n\n'
+              'Folgendes passiert dabei:\n'
+              '• Alle auf diesem Gerät gespeicherten Geräte-UUIDs, Session-IDs und lokalen Zähler werden zurückgesetzt.\n'
+              '• Es wird ein Löschauftrag (\$delete_person) an die PostHog-Server in der EU gesendet, um deine bisherigen Daten dort zu entfernen.\n'
+              '• Das Telemetrie-SDK wird vollständig zurückgesetzt.',
+              style: TextStyle(height: 1.4),
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: const Text('Abbrechen'),
+                  ),
+                ),
+                const SizedBox(width: DesignConstants.spacingM),
+                Expanded(
+                  child: AppButton.danger(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    label: 'Daten jetzt löschen',
+                    tooltip: 'Telemetrie-Daten löschen',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+    return confirmed ?? false;
   }
 
   Future<bool> _showLocalDataDeletionConfirmation(

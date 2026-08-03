@@ -2,6 +2,8 @@
   "@@locale": "en",
   "selectDateTitle": "Select Date",
   "selectTimeTitle": "Select Time",
+  "removeTimer": "Remove Timer",
+  "noTimerLabel": "No Timer",
   "appTitle": "Train Libre",
   "bannerText": "Recommendation / Current Workout",
   "calories": "Calories",

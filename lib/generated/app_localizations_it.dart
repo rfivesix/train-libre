@@ -9,10 +9,16 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
-  String get selectDateTitle => 'Seleziona data';
+  String get selectDateTitle => 'Seleziona Data';
 
   @override
-  String get selectTimeTitle => 'Seleziona ora';
+  String get selectTimeTitle => 'Seleziona Ora';
+
+  @override
+  String get removeTimer => 'Rimuovi timer';
+
+  @override
+  String get noTimerLabel => 'Nessun timer';
 
   @override
   String get appTitle => 'Train Libre';

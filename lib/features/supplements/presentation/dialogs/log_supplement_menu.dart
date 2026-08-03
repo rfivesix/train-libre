@@ -98,8 +98,6 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(LucideIcons.pill),
-                      const SizedBox(width: DesignConstants.spacingM),
                       Expanded(child: Text(localizeSupplementName(s, l10n))),
                       const Icon(LucideIcons.chevron_right),
                     ],

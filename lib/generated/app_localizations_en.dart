@@ -15,6 +15,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectTimeTitle => 'Select Time';
 
   @override
+  String get removeTimer => 'Remove Timer';
+
+  @override
+  String get noTimerLabel => 'No Timer';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override

@@ -13,6 +13,7 @@ import '../domain/detect_personal_record_use_case.dart';
 import '../domain/log_workout_set_use_case.dart';
 import '../../../services/local_notification_service.dart';
 import '../../../services/haptic_feedback_service.dart';
+import '../../../services/sound_service.dart';
 import '../../../util/time_util.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 
@@ -228,7 +229,16 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           );
 
       final syntheticReId = DateTime.now().millisecondsSinceEpoch + i;
-      final pauseSec = block.first.restTimeSeconds ?? 0;
+      int pauseSec = 0;
+      for (final s in block) {
+        if (s.restTimeSeconds != null && s.restTimeSeconds! > 0) {
+          pauseSec = s.restTimeSeconds!;
+          break;
+        }
+      }
+      if (pauseSec == 0 && block.isNotEmpty) {
+        pauseSec = block.first.restTimeSeconds ?? 0;
+      }
 
       final List<SetTemplate> templates = [];
       for (int j = 0; j < block.length; j++) {
@@ -683,15 +693,21 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     pauseTimes[routineExerciseId] = seconds;
     await _repository.updatePauseTime(routineExerciseId, seconds);
 
-    final exercise = _exercises.firstWhere((e) => e.id == routineExerciseId);
-    for (var t in exercise.setTemplates) {
-      if (_setLogs.containsKey(t.id)) {
-        final log = _setLogs[t.id]!;
-        if (log.isCompleted != true) {
+    final idx = _exercises.indexWhere((e) => e.id == routineExerciseId);
+    if (idx != -1) {
+      _exercises[idx] = _exercises[idx].copyWith(pauseSeconds: seconds);
+
+      final setsToUpdate = <SetLog>[];
+      for (var t in _exercises[idx].setTemplates) {
+        if (_setLogs.containsKey(t.id)) {
+          final log = _setLogs[t.id]!;
           final updatedLog = log.copyWith(restTimeSeconds: seconds);
           _setLogs[t.id!] = updatedLog;
-          await _repository.updateSetLogs([updatedLog]);
+          setsToUpdate.add(updatedLog);
         }
+      }
+      if (setsToUpdate.isNotEmpty) {
+        await _repository.updateSetLogs(setsToUpdate);
       }
     }
     notifyListeners();
@@ -749,6 +765,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           if (_isAppInForeground) {
             try {
               unawaited(HapticFeedbackService.instance.vibrate());
+              unawaited(SoundService.instance.playTimerDoneSound());
+              unawaited(LocalNotificationService.instance
+                  .showRestTimerDoneNotification(foreground: true));
             } catch (_) {}
           }
           

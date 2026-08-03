@@ -22,8 +22,16 @@ import 'diary_health_sync_coordinator.dart';
 import '../../workout/domain/models/workout_log.dart';
 
 DateTime normalizeDiaryDate(DateTime date) => date.dateOnly;
+
 DateTime resolveDiaryInitialDate({DateTime? initialDate, DateTime? now}) {
-  return (initialDate ?? now ?? DateTime.now()).dateOnly;
+  if (initialDate != null) {
+    return initialDate.dateOnly;
+  }
+  final referenceTime = now ?? DateTime.now();
+  final baseDate = referenceTime.hour < 3
+      ? referenceTime.subtract(const Duration(days: 1))
+      : referenceTime;
+  return baseDate.dateOnly;
 }
 
 class DiaryLoadCoordinator {
@@ -162,7 +170,7 @@ class DiaryViewModel extends ChangeNotifier {
        _supplementRepo = supplementRepo,
        _workoutRepo = workoutRepo,
        selectedDateNotifier = ValueNotifier(
-         (initialDate ?? DateTime.now()).dateOnly,
+         resolveDiaryInitialDate(initialDate: initialDate),
        ) {
     healthSyncCoordinator.addListener(notifyListeners);
     _extraNutrientSubscription = _prefsRepo

@@ -174,11 +174,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<StatisticsHubViewModel>();
     final l10n = AppLocalizations.of(context)!;
-    final appBarHeight = MediaQuery.of(context).padding.top;
-    final finalPadding = DesignConstants.cardPadding.copyWith(
-      top: DesignConstants.cardPadding.top + appBarHeight + 16,
+    final appBarHeight = MediaQuery.paddingOf(context).top; // + kToolbarHeight omitted: same as DiaryScreen/WorkoutHubScreen
+    final finalPadding = EdgeInsets.only(
+      top: appBarHeight + DesignConstants.cardPadding.top,
       left: 0,
       right: 0,
+      bottom: DesignConstants.cardPadding.bottom,
     );
 
     return Scaffold(

@@ -110,5 +110,18 @@ void main() {
         sessionId: sessionId,
       );
     });
+
+    test('PostHogTelemetryService resetLocalData clears persistent device ID and counters', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await postHogService.optIn();
+
+      await postHogService.incrementFoodLogCount(source: 'barcode_scan');
+      expect(prefs.getInt('telemetry_daily_food_count'), 1);
+
+      await postHogService.resetLocalData();
+
+      expect(prefs.getInt('telemetry_daily_food_count'), null);
+      expect(prefs.getString('telemetry_persistent_device_id'), isNotNull);
+    });
   });
 }

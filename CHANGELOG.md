@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-beta.9] - 2026-08-04
+
+### Changed
+- **Dependency Updates:** Bumped `drift` to `2.34.3` and `posthog_flutter` to `5.34.2` (PR #547).
+
+
+## [1.0.0-beta.8] - 2026-08-03
+
+### Added
+- **PostHog Telemetry Server/Local Data Deletion & Discreet UI:** Added a discreet `AppLinkRow` action ("Telemetrie-Daten löschen") in Settings outside the main card (`settings_screen.dart`), allowing users to trigger a server-side `$delete_person` deletion request to PostHog EU servers for associated IDs while erasing all locally persisted device UUIDs, cached food counters, and resetting PostHog SDK state (`Posthog().reset()`). Configured `PostHogConfig.beforeSend` to drop all `$rageclick` and `$autocapture` events completely. Enforced per-launch rotation of in-app SDK session distinct IDs (`Posthog().identify(userId: ephemeralSessionId)`), ensuring in-app events across different app launches cannot be linked to the same device. Confirmed 100% opt-in requirement for all events including `app_launched`.
+- **Cross-Platform Workout Rest Timer Audio Output:** Configured `SoundService` (`sound_service.dart`) to play the custom audio asset (`assets/sounds/timer_done.mp3`) via `AudioPlayer` on all mobile platforms (iOS and Android), bypassing mobile-ignored `SystemSound.play` and routing audio directly through headphones, AirPods, or media speakers.
+- **Glass Bottom Sheet `headerTrailing` Action Support:** Extended `showGlassBottomMenu` (`glass_bottom_menu.dart`) to support a custom `headerTrailing` widget rendered top-right in the sheet header, identical to the date/time picker headers.
+- **Workout Rest Timer "Timer entfernen" Header Action:** Replaced the full-width bottom red button in `RoutinePauseTimeDialog` with a subtle top-right action ("Timer entfernen" / "Remove Timer") in the modal sheet header of `live_workout_screen.dart` and `edit_routine_screen.dart`, perfectly matching the date/time picker's "Heute" / "Jetzt" layout.
+
+### Fixed
+- **iOS Audio Category & Native Plugin Rebuild Fix:** Resolved `AVAudioSessionCategory` assertion in `SoundService` by configuring `AVAudioSessionCategory.playback` with `mixWithOthers` and `duckOthers`. Handled `MissingPluginException` gracefully when a full app restart/rebuild is pending for native plugin compilation.
+- **Diary Initial Date Night Cutoff:** Updated `resolveDiaryInitialDate` (`diary_view_model.dart`) so that opening the diary before 03:00 AM automatically defaults the selected date to yesterday instead of today.
+- **Workout Session Rest Timer Persistence in SQLite:** Fixed a critical issue in `workout_logging_queries.dart` (`updateSetLogs`) where `restTimeSeconds` was omitted from the `SetLogsCompanion` database query. When updating set logs during a workout, `rest_time_seconds` was left untouched in SQLite, causing rest timer values to reset to 0/default upon app restart.
+- **Exercise Catalog Category Filter Dropdown:** Replaced modal bottom sheet filter menu in `ExerciseCatalogScreen` (`exercise_catalog_screen.dart`) with the app's native glass context popup dropdown (`PlatformAdaptivePopupMenu`). Clicking the filter icon now opens an inline liquid glass dropdown menu directly below the filter button, displaying category items with active checkmarks for instant filtering without opening a full-screen bottom sheet.
+- **Supplement Quick Selection Sheet Layout:** Removed redundant leading pill icons (`LucideIcons.pill`) from the quick selection list tiles in `LogSupplementMenu` (`log_supplement_menu.dart`) for a cleaner, streamlined list view.
+
+### Fixed
+- **Statistics Screen Timeframe Slider Top Alignment:** Fixed the root cause of excessive space between the app bar and the `TimeRangeFilter` slider on `StatisticsHubScreen` (`statistics_hub_screen.dart`). The `appBarHeight` was incorrectly calculated as `MediaQuery.paddingOf(context).top + kToolbarHeight`, adding an extra 56px of padding that does not exist in sibling screens. Corrected to `MediaQuery.paddingOf(context).top` only, matching `DiaryScreen` and `WorkoutHubScreen`.
+- **Glass Bottom Sheet Keyboard Max-Height Bound:** Corrected `maxAvailableHeight` calculation in `showGlassBottomMenu` (`glass_bottom_menu.dart`) and `_GlassPickerSheet` (`platform_adaptive_pickers.dart`) by subtracting `keyboardInset` (`viewInsets.bottom`). When the soft keyboard opens while editing complex forms (such as adding/editing fluid entries), the sheet height is now capped strictly below the top status bar / Dynamic Island, ensuring full scrollability without overflowing off-screen.
+- **Liquid Glass Bottom Sheet Keyboard Extension:** Overhauled the keyboard transition in `showGlassBottomMenu` (`glass_bottom_menu.dart`) and `_GlassPickerSheet` (`platform_adaptive_pickers.dart`). Replaced negative padding with a non-clipping `Stack` extension that positions an `AdaptiveGlass` backdrop (`bottom: -keyboardInset`). The real liquid glass effect, saturation tint, and backdrop filters now extend continuously down behind the iOS/Android keyboard without triggering Flutter framework assertions or breaking glass optics.
 
 ## [1.0.0-beta.7] - 2026-08-01
 

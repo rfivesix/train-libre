@@ -698,11 +698,20 @@ class _SeriesScale {
     required int fractionDigits,
     double minVariance = 0.0,
   }) {
-    final finiteValues = series
-        .map((point) => point.value)
-        .where((value) => value.isFinite)
-        .toList(growable: false);
-    if (finiteValues.isEmpty) {
+    bool hasData = false;
+    double min = double.infinity;
+    double max = double.negativeInfinity;
+
+    for (final point in series) {
+      final value = point.value;
+      if (value.isFinite) {
+        hasData = true;
+        if (value < min) min = value;
+        if (value > max) max = value;
+      }
+    }
+
+    if (!hasData) {
       return _SeriesScale(
         min: 0,
         max: 1,
@@ -710,9 +719,6 @@ class _SeriesScale {
         fractionDigits: fractionDigits,
       );
     }
-
-    double min = finiteValues.reduce(math.min);
-    double max = finiteValues.reduce(math.max);
     final span = max - min;
     if (span < minVariance) {
       final mid = (min + max) / 2;

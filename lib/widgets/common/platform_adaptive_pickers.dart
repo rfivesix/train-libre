@@ -354,105 +354,139 @@ class _GlassPickerSheet extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final bottomInset = media.viewPadding.bottom;
 
+    final keyboardInset = media.viewInsets.bottom;
+
     final Color neutralTint = isDark
         ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
         : theme.colorScheme.surface.withValues(alpha: 0.82);
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
-
     const double r = 24;
-    const EdgeInsets outerMargin = EdgeInsets.zero;
+    final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
+    final maxAvailableHeight = media.size.height - topPadding - 16 - keyboardInset;
 
     return SafeArea(
       top: false,
       bottom: false,
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: outerMargin,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(r)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.18),
-                          blurRadius: 30,
-                          spreadRadius: 4,
-                          offset: const Offset(0, 14),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              if (keyboardInset > 0)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: -keyboardInset,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                    child: RepaintBoundary(
+                      child: AdaptiveGlass(
+                        settings: LiquidGlassSettings(
+                          thickness: 0,
+                          blur: 8,
+                          glassColor: effectiveGlass,
+                          lightIntensity: 0,
+                          saturation: 1.20,
                         ),
-                      ],
+                        shape: const LiquidVerticalRoundedSuperellipse(
+                          topRadius: r,
+                          bottomRadius: 0,
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: neutralTint,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                RepaintBoundary(
-                  child: AdaptiveGlass(
-                    settings: LiquidGlassSettings(
-                      thickness: 0,
-                      blur: 8,
-                      glassColor: effectiveGlass,
-                      lightIntensity: 0,
-                      saturation: 1.20,
+              Stack(
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(r)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 30,
+                            spreadRadius: 4,
+                            offset: const Offset(0, 14),
+                          ),
+                        ],
+                      ),
                     ),
-                    shape: const LiquidVerticalRoundedSuperellipse(
-                      topRadius: r,
-                      bottomRadius: 0,
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: neutralTint,
-                              borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(r)),
+                  ),
+                  RepaintBoundary(
+                    child: AdaptiveGlass(
+                      settings: LiquidGlassSettings(
+                        thickness: 0,
+                        blur: 8,
+                        glassColor: effectiveGlass,
+                        lightIntensity: 0,
+                        saturation: 1.20,
+                      ),
+                      shape: const LiquidVerticalRoundedSuperellipse(
+                        topRadius: r,
+                        bottomRadius: 0,
+                      ),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: neutralTint,
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(r)),
+                              ),
                             ),
                           ),
-                        ),
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: GlassBorderPainter(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.15)
-                                  : theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.08),
-                              radius: r,
-                              strokeWidth: 1.5,
-                              bottomPadding: bottomInset,
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: GlassBorderPainter(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.15)
+                                    : theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.08),
+                                radius: r,
+                                strokeWidth: 1.5,
+                                bottomPadding: bottomInset,
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(bottom: bottomInset),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SizedBox(height: DesignConstants.spacingS),
-                              Center(
-                                child: Container(
-                                  width: 44,
-                                  height: 5,
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.3),
-                                    borderRadius: BorderRadius.circular(100),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: bottomInset),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox(height: DesignConstants.spacingS),
+                                Center(
+                                  child: Container(
+                                    width: 44,
+                                    height: 5,
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.3),
+                                      borderRadius: BorderRadius.circular(100),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              child,
-                            ],
+                                child,
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -821,30 +855,57 @@ Future<Duration?> showAdaptiveDurationPicker({
     backgroundColor: Colors.transparent,
     barrierColor: barrierColor,
     builder: (ctx) {
-      final kb = MediaQuery.of(ctx).viewInsets.bottom;
-      return AnimatedPadding(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.only(bottom: kb),
-        child: _GlassPickerSheet(
-          child: Column(
+      return _GlassPickerSheet(
+        child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (title != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: DesignConstants.spacingL),
-                  child: Center(
-                    child: Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingL,
+                  bottom: DesignConstants.spacingS,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 80),
+                    Expanded(
+                      child: Text(
+                        title ?? l10n?.restTimerLabel ?? 'Timer',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  ),
-                )
-              else
-                const SizedBox(height: DesignConstants.spacingL),
+                    SizedBox(
+                      width: 100,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: () {
+                            HapticFeedbackService.instance.selectionFeedback();
+                            Navigator.pop(ctx, Duration.zero);
+                          },
+                          child: Text(
+                            l10n?.removeTimer ?? 'Timer entfernen',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               SizedBox(
                 height: 200,
                 child: CupertinoTheme(
@@ -895,10 +956,9 @@ Future<Duration?> showAdaptiveDurationPicker({
               ),
             ],
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
 
   return selected;
 }
@@ -985,13 +1045,8 @@ Future<double?> showAdaptiveTargetRatePicker({
     backgroundColor: Colors.transparent,
     barrierColor: barrierColor,
     builder: (ctx) {
-      final kb = MediaQuery.of(ctx).viewInsets.bottom;
-      return AnimatedPadding(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.only(bottom: kb),
-        child: _GlassPickerSheet(
-          child: Column(
+      return _GlassPickerSheet(
+        child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
@@ -1072,10 +1127,9 @@ Future<double?> showAdaptiveTargetRatePicker({
               ),
             ],
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
 
   return result;
 }

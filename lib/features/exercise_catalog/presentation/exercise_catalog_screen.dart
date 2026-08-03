@@ -8,7 +8,7 @@ import '../../../generated/app_localizations.dart';
 import '../domain/models/exercise.dart';
 import 'exercise_detail_screen.dart';
 import '../../../util/design_constants.dart';
-import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'create_exercise_screen.dart';
@@ -16,7 +16,6 @@ import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
-import '../../../widgets/common/app_button.dart';
 
 /// A searchable list of all available exercises in the database.
 class ExerciseCatalogScreen extends StatefulWidget {
@@ -45,7 +44,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   bool _isLoading = true;
   final _searchController = TextEditingController();
   List<String> _allCategories = [];
-  List<String> _selectedCategories = [];
+  final List<String> _selectedCategories = [];
   Timer? _searchDebounce;
 
   bool _isWgerDbInitialized = false;
@@ -110,79 +109,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     }
   }
 
-  void _showFilterDialog(BuildContext context, AppLocalizations l10n) {
-    showGlassBottomMenu(
-      context: context,
-      title: l10n.filterByCategory,
-      contentBuilder: (ctx, close) {
-        List<String> tempSelected = List.from(_selectedCategories);
 
-        return StatefulBuilder(
-          builder: (context, setStateSB) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 400),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _allCategories.length,
-                    itemBuilder: (context, index) {
-                      final category = _allCategories[index];
-                      final isSelected = tempSelected.contains(category);
-                      return CheckboxListTile(
-                        title: Text(category),
-                        value: isSelected,
-                        activeColor: Theme.of(context).colorScheme.primary,
-                        checkColor: Theme.of(context).colorScheme.onPrimary,
-                        onChanged: (bool? value) {
-                          setStateSB(() {
-                            if (value == true) {
-                              tempSelected.add(category);
-                            } else {
-                              tempSelected.remove(category);
-                            }
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: DesignConstants.spacingL),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppButton.secondary(
-                        onPressed: () {
-                          close();
-                        },
-                        label: l10n.cancel,
-                        tooltip: l10n.cancel,
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: AppButton.primary(
-                        onPressed: () {
-                          setState(() {
-                            _selectedCategories = tempSelected;
-                          });
-                          _runFilter(_searchController.text);
-                          close();
-                        },
-                        label: l10n.doneButtonLabel,
-                        tooltip: l10n.doneButtonLabel,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -315,6 +242,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                   subtitle: Text(exercise.categoryName),
                                   trailing: widget.isSelectionMode
                                       ? IconButton(
+                                          tooltip: l10n.add_button,
                                           icon: Icon(
                                             LucideIcons.circle_plus,
                                             color: colorScheme.primary,
@@ -401,25 +329,40 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final iconColor =
         hasFilter ? colorScheme.onPrimary : colorScheme.onSurfaceVariant;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      height: 48,
-      width: 48,
-      decoration: BoxDecoration(
-        color: fillColor,
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-      ),
-      child: IconButton(
-        icon: Icon(
-          LucideIcons.list_filter,
-          color: iconColor,
-          size: 22,
+    return PlatformAdaptivePopupMenu<String>(
+      icon: Container(
+        height: 48,
+        width: 48,
+        decoration: BoxDecoration(
+          color: fillColor,
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         ),
-        onPressed: () => _showFilterDialog(context, l10n),
-        tooltip: l10n.filterByCategory,
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(),
+        child: Center(
+          child: Icon(
+            LucideIcons.list_filter,
+            color: iconColor,
+            size: 22,
+          ),
+        ),
       ),
+      items: _allCategories.map((category) {
+        final isSelected = _selectedCategories.contains(category);
+        return PlatformAdaptivePopupMenuItem<String>(
+          value: category,
+          label: category,
+          icon: isSelected ? LucideIcons.check : null,
+        );
+      }).toList(),
+      onSelected: (value) {
+        setState(() {
+          if (_selectedCategories.contains(value)) {
+            _selectedCategories.remove(value);
+          } else {
+            _selectedCategories.add(value);
+          }
+        });
+        _runFilter(_searchController.text);
+      },
     );
   }
 
