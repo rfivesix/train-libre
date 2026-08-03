@@ -1403,14 +1403,13 @@ class _MainScreenState extends State<MainScreen>
                                   AnimatedBuilder(
                                     animation: _menuController,
                                     builder: (context, child) {
-                                      final double v = _menuController.value;
-                                      return Transform.scale(
-                                        scale: 1.0 - v,
-                                        child: Opacity(
-                                          opacity: (1.0 - v).clamp(0.0, 1.0),
-                                          child: child,
-                                        ),
-                                      );
+                                      if (_menuController.value > 0.0) {
+                                        return SizedBox(
+                                          width: extraButtonSize,
+                                          height: DesignConstants.fabSize,
+                                        );
+                                      }
+                                      return child!;
                                     },
                                     child: AdaptiveGlass(
                                       shape: const LiquidOval(),

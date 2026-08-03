@@ -71,7 +71,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  bottom: 102.0,
+                  bottom: 86.0,
                   right: 16.0,
                   child: Material(
                     color: Colors.transparent,
@@ -244,13 +244,11 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                 ),
                 // Active Rotating FAB on top of the blur filter
                 Positioned(
-                  bottom: 32.0,
+                  bottom: 16.0,
                   right: 16.0,
                   child: IgnorePointer(
                     ignoring: v == 0.0,
-                    child: Opacity(
-                      opacity: v,
-                      child: Stack(
+                    child: Stack(
                         children: [
                           ClipPath(
                             clipper: ShadowOuterClipper(
@@ -312,7 +310,6 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
