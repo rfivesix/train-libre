@@ -274,18 +274,20 @@ class AdaptiveNutritionRecommendationService {
     );
     final previousRecommendation = latestSnapshot?.recommendation;
 
-    final result = _bayesianEngine.generate(
-      input: input,
-      goal: goal,
-      targetRateKgPerWeek: targetRateKgPerWeek,
-      generatedAt: effectiveNow,
-      algorithmVersion: algorithmVersion,
-      dueWeekKey: dueWeekKey,
-      recursiveState: latestRecursiveState,
-      previousRecommendation: previousRecommendation,
-      phaseContext: BayesianObservationPhaseContext.fromTrackingState(
-        trackingState: phaseTrackingState,
-        asOfDay: phaseAnchorDay,
+    final result = await compute(
+      _generateBayesianRecommendationIsolate,
+      _BayesianGenerateParams(
+        engine: _bayesianEngine,
+        input: input,
+        goal: goal,
+        targetRateKgPerWeek: targetRateKgPerWeek,
+        generatedAt: effectiveNow,
+        algorithmVersion: algorithmVersion,
+        dueWeekKey: dueWeekKey,
+        recursiveState: latestRecursiveState,
+        previousRecommendation: previousRecommendation,
+        phaseTrackingState: phaseTrackingState,
+        phaseAnchorDay: phaseAnchorDay,
       ),
     );
 
@@ -397,18 +399,20 @@ class AdaptiveNutritionRecommendationService {
       phase: goal.canonicalDietPhase,
       asOfDay: onboardingPhaseAnchorDay,
     );
-    final result = _bayesianEngine.generate(
-      input: input,
-      goal: goal,
-      targetRateKgPerWeek: targetRateKgPerWeek,
-      generatedAt: effectiveNow,
-      algorithmVersion: algorithmVersion,
-      dueWeekKey: dueWeekKey,
-      recursiveState: null,
-      previousRecommendation: null,
-      phaseContext: BayesianObservationPhaseContext.fromTrackingState(
-        trackingState: onboardingPhaseState,
-        asOfDay: onboardingPhaseAnchorDay,
+    final result = await compute(
+      _generateBayesianRecommendationIsolate,
+      _BayesianGenerateParams(
+        engine: _bayesianEngine,
+        input: input,
+        goal: goal,
+        targetRateKgPerWeek: targetRateKgPerWeek,
+        generatedAt: effectiveNow,
+        algorithmVersion: algorithmVersion,
+        dueWeekKey: dueWeekKey,
+        recursiveState: null,
+        previousRecommendation: null,
+        phaseTrackingState: onboardingPhaseState,
+        phaseAnchorDay: onboardingPhaseAnchorDay,
       ),
     );
 
@@ -674,3 +678,51 @@ class _VirtualProfile {
     required this.gender,
   });
 }
+
+class _BayesianGenerateParams {
+  final BayesianNutritionRecommendationEngine engine;
+  final RecommendationGenerationInput input;
+  final BodyweightGoal goal;
+  final double targetRateKgPerWeek;
+  final DateTime generatedAt;
+  final String algorithmVersion;
+  final String dueWeekKey;
+  final BayesianEstimatorState? recursiveState;
+  final NutritionRecommendation? previousRecommendation;
+  final AdaptiveDietPhaseTrackingState phaseTrackingState;
+  final DateTime phaseAnchorDay;
+
+  const _BayesianGenerateParams({
+    required this.engine,
+    required this.input,
+    required this.goal,
+    required this.targetRateKgPerWeek,
+    required this.generatedAt,
+    required this.algorithmVersion,
+    required this.dueWeekKey,
+    required this.recursiveState,
+    required this.previousRecommendation,
+    required this.phaseTrackingState,
+    required this.phaseAnchorDay,
+  });
+}
+
+BayesianNutritionRecommendationResult _generateBayesianRecommendationIsolate(
+  _BayesianGenerateParams params,
+) {
+  return params.engine.generate(
+    input: params.input,
+    goal: params.goal,
+    targetRateKgPerWeek: params.targetRateKgPerWeek,
+    generatedAt: params.generatedAt,
+    algorithmVersion: params.algorithmVersion,
+    dueWeekKey: params.dueWeekKey,
+    recursiveState: params.recursiveState,
+    previousRecommendation: params.previousRecommendation,
+    phaseContext: BayesianObservationPhaseContext.fromTrackingState(
+      trackingState: params.phaseTrackingState,
+      asOfDay: params.phaseAnchorDay,
+    ),
+  );
+}
+

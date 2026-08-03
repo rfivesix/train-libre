@@ -615,7 +615,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final confirmed = await _showTelemetryDeletionConfirmation();
               if (!confirmed) return;
               await TelemetryService.instance.resetLocalData();
-              if (!mounted) return;
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text(

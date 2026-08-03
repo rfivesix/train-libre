@@ -35,24 +35,43 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Load data only the first time.
-    _hubDataFuture ??= _loadHubData();
+    if (_hubDataFuture == null) {
+      // Instant load of cached state first for 120 FPS navigation
+      _hubDataFuture = _loadHubData(refreshIfDue: false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkBackgroundRecommendationDue();
+      });
+    }
+  }
+
+  Future<void> _checkBackgroundRecommendationDue() async {
+    if (!mounted) return;
+    final state = await _recommendationService.loadState(refreshIfDue: false);
+    if (state.isAdaptiveRecommendationDueNow) {
+      // Offloaded to background Isolate via compute()
+      await _recommendationService.refreshRecommendationIfDue();
+      if (mounted) {
+        setState(() {
+          _hubDataFuture = _loadHubData(refreshIfDue: false);
+        });
+      }
+    }
   }
 
   Future<void> _refreshData() async {
     // Called by RefreshIndicator to reload data.
     setState(() {
-      _hubDataFuture = _loadHubData();
+      _hubDataFuture = _loadHubData(refreshIfDue: true);
     });
   }
 
-  Future<Map<String, dynamic>> _loadHubData() async {
+  Future<Map<String, dynamic>> _loadHubData({bool refreshIfDue = false}) async {
     final today = DateTime.now();
     final goals = await DatabaseHelper.instance.getGoalsForDate(today);
     final targetCalories = goals?.targetCalories ?? 2500;
     final meals = await DatabaseHelper.instance.getMeals();
     final recommendationState =
-        await _recommendationService.loadState(refreshIfDue: true);
+        await _recommendationService.loadState(refreshIfDue: refreshIfDue);
 
     return {
       'meals': meals,
