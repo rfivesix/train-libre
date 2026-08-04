@@ -29,3 +29,6 @@
 ## 2024-05-14 - Add tooltips to IconButtons for accessibility
 **Learning:** Flutter's `MaterialLocalizations` does not provide built-in getters for password visibility toggles (e.g., 'show/hide password').
 **Action:** Custom `.arb` localization strings or existing related field labels (like `passwordLabel`) must be reused for these tooltips instead.
+## 2026-08-04 - [Add missing tooltip to onboarding back button]
+**Learning:** Even specialized `IconButton` variants like `IconButton.filledTonal` require explicit tooltips for accessibility.
+**Action:** Always verify `tooltip` parameter when using any `IconButton` variant, especially for navigation arrows.
