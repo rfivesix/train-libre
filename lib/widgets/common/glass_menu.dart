@@ -1,3 +1,4 @@
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import '../../util/design_constants.dart';
 
@@ -153,19 +154,27 @@ class _GlassMenuState extends State<GlassMenu>
   }
 
   Widget _buildGlassIcon(IconData icon) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
+    final squircleRadius = SmoothBorderRadius(
+      cornerRadius: 20,
+      cornerSmoothing: 0.6,
+    );
+    final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
+    final clipper = ShapeBorderClipper(shape: squircle);
+
+    return ClipPath(
+      clipper: clipper,
       child: Container(
         width: 76,
         height: 76,
-        decoration: BoxDecoration(
+        decoration: ShapeDecoration(
           color: Colors.white.withValues(alpha: 0.25),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.3),
-            width: 1.5,
+          shape: squircle.copyWith(
+            side: BorderSide(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
           ),
-          boxShadow: [
+          shadows: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.5),
               blurRadius: 12,

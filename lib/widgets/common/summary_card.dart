@@ -1,3 +1,4 @@
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import '../../util/design_constants.dart';
 
@@ -34,13 +35,22 @@ class SummaryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
+    // True Apple-style squircle using the figma_squircle package.
+    // smoothness: 0.6 matches iOS system cards exactly.
+    // Unlike Flutter's ContinuousRectangleBorder, this superellipse
+    // stays tight to the corner instead of creeping along the edge.
+    final squircleRadius = SmoothBorderRadius(
+      cornerRadius: DesignConstants.borderRadiusL,
+      cornerSmoothing: 0.6,
+    );
+    final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
+    final clipper = ShapeBorderClipper(shape: squircle);
 
     final card = Padding(
       padding: margin,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: radius,
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
           boxShadow: disableShadow
               ? null
               : [
@@ -51,18 +61,19 @@ class SummaryCard extends StatelessWidget {
                   ),
                 ],
         ),
-        child: ClipRRect(
-          borderRadius: radius,
+        child: ClipPath(
+          clipper: clipper,
           child: Container(
             padding: padding,
-            decoration: BoxDecoration(
+            decoration: ShapeDecoration(
               color: isDark
                   ? DesignConstants.summaryCardDarkMode
                   : cs.surface.withValues(alpha: 0.95),
-              borderRadius: radius,
-              border: Border.all(
-                color: cs.onSurface.withValues(alpha: 0.08),
-                width: 1,
+              shape: squircle.copyWith(
+                side: BorderSide(
+                  color: cs.onSurface.withValues(alpha: 0.08),
+                  width: 1,
+                ),
               ),
             ),
             child: Material(

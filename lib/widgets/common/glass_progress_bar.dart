@@ -1,4 +1,5 @@
 // lib/widgets/glass_progress_bar.dart
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 
 import '../../util/design_constants.dart';
@@ -130,7 +131,13 @@ class _GlassProgressBarPainter extends StatelessWidget {
     final hasTarget = target > 0;
     final rawProgress = hasTarget ? (value / target) : 0.0;
     final progress = rawProgress.clamp(0.0, 1.0);
-    final radius = BorderRadius.circular(borderRadius);
+
+    final squircleRadius = SmoothBorderRadius(
+      cornerRadius: borderRadius,
+      cornerSmoothing: 0.6,
+    );
+    final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
+    final clipper = ShapeBorderClipper(shape: squircle);
 
     // Crisp, minimal text shadow for edge definition, only if bar has progress
     final textShadows = value > 0
@@ -150,9 +157,9 @@ class _GlassProgressBarPainter extends StatelessWidget {
     final bool isLowContrast = isDark ? (luminance > 0.5) : (luminance < 0.5);
 
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: [
+      decoration: ShapeDecoration(
+        shape: squircle,
+        shadows: [
           BoxShadow(
             blurRadius: 7,
             offset: const Offset(0, 2),
@@ -160,21 +167,19 @@ class _GlassProgressBarPainter extends StatelessWidget {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: radius,
+      child: ClipPath(
+        clipper: clipper,
         child: Container(
           height: height,
-          decoration: BoxDecoration(
+          decoration: ShapeDecoration(
             color: isDark
                 ? const Color(0xFF2A2A2A)
                 : cs.surface.withValues(alpha: 0.95),
-            borderRadius: radius,
-          ),
-          foregroundDecoration: BoxDecoration(
-            borderRadius: radius,
-            border: Border.all(
-              color: cs.onSurface.withValues(alpha: 0.08),
-              width: 1,
+            shape: squircle.copyWith(
+              side: BorderSide(
+                color: cs.onSurface.withValues(alpha: 0.08),
+                width: 1,
+              ),
             ),
           ),
           child: LayoutBuilder(
@@ -239,7 +244,12 @@ class _GlassProgressBarPainter extends StatelessWidget {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            ColoredBox(color: color),
+                            DecoratedBox(
+                              decoration: ShapeDecoration(
+                                color: color,
+                                shape: squircle,
+                              ),
+                            ),
                             if ((isLowContrast || isDark) && value > 0)
                               Positioned.fill(
                                 child: DecoratedBox(

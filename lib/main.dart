@@ -54,20 +54,20 @@ void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
       WidgetsFlutterBinding.ensureInitialized();
-      
+
       final database = db.AppDatabase();
       DatabaseHelper.setDriftDb(database);
-      
+
       await LocalNotificationService.instance.initialize();
-      
+
       final service = AdaptiveNutritionRecommendationService(
         databaseHelper: DatabaseHelper.instance,
       );
-      
+
       // Attempt to generate/refresh if due, which will also notify the user
       // via the stream in LocalNotificationService.
       await service.refreshRecommendationIfDue();
-      
+
       return Future.value(true);
     } catch (e) {
       debugPrint("Background task error: $e");
@@ -128,7 +128,8 @@ void main() async {
     LiquidGlassWidgets.wrap(
       adaptiveQuality: true,
       adaptiveConfig: GlassAdaptiveScopeConfig(
-        initialQuality: initialGlassQuality ?? DesignConstants.defaultGlassQuality,
+        initialQuality:
+            initialGlassQuality ?? DesignConstants.defaultGlassQuality,
         maxQuality: DesignConstants.defaultGlassQuality,
         allowStepUp: true,
         onQualityChanged: (_, to) => prefs.setString('glass_quality', to.name),
@@ -171,12 +172,10 @@ void main() async {
         child: MyApp(
           home: isFreshInstall
               ? const InitialConsentScreen(
-                  nextScreen:
-                      AppInitializerScreen(skipOffDatabase: true))
+                  nextScreen: AppInitializerScreen(skipOffDatabase: true))
               : (isLegalOutdated
                   ? const LegalUpdateConsentScreen(
-                      nextScreen:
-                          AppInitializerScreen(skipOffDatabase: true))
+                      nextScreen: AppInitializerScreen(skipOffDatabase: true))
                   : const AppInitializerScreen(skipOffDatabase: true)),
         ),
       ),
@@ -187,7 +186,7 @@ void main() async {
   Workmanager().initialize(
     callbackDispatcher,
   );
-  
+
   Workmanager().registerPeriodicTask(
     "1",
     "tdeeCalculationTask",
