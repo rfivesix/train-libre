@@ -38,3 +38,6 @@
 **Learning:** Found instances where arrays were completely sorted (O(N log N)) and *then* filtered for valid elements using `.where().toList()`. This wastes CPU cycles on sorting invalid elements that will just be discarded anyway.
 **Action:** Always filter data in a single O(N) pass to collect valid elements first, and then sort only the valid subset. This drops the sorting complexity to O(V log V) (where V <= N) and avoids allocating arrays for discarded data.
 
+## 2025-02-14 - Removed functional iteration overhead in _buildRollingMidSleepSdByNight
+**Learning:** Found deeply nested iterative loops computing sleep regularity utilizing `.where(...).toList()`, followed by `.map(...).toList()` and then `.reduce(...)` to compute mean and variance on arrays. This allocates multiple intermediate Lists (up to 4 allocations per loop) and traverses elements 5 times per pass, triggering unnecessary GC overhead in an already loop-heavy pipeline.
+**Action:** When computing statistical bounds like variance and mean inside nested loops, avoid functional chaining and `reduce`. Use traditional single-pass `for` loops to perform filtering and summation in O(N) traversal while maintaining an O(1) allocation overhead.
