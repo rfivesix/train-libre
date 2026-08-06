@@ -47,13 +47,19 @@ Every telemetry payload sent to PostHog includes:
 ```
 This instructs PostHog's backend **never to construct or update Person Profiles**, identity graphs, or user timelines.
 
-### D. IP & Geolocation Scrubbing
-To prevent PostHog from deriving user cities, regions, or postal codes (ZIP codes) from network request IP addresses, all payloads include:
+### D. Zero IP Logging & Country/World Map Analytics
+To prevent PostHog from deriving user cities, regions, or postal codes (ZIP codes) from network request IP addresses, all payloads strictly enforce zero IP logging:
 ```json
-"$ip": "0.0.0.0",
-"$geoip_disable": true
+"$ip": "0.0.0.0"
 ```
-PostHog records all location properties as `(none)` / `Unknown`.
+To enable PostHog World Map visualizations and country breakdown insights without logging IP addresses, Train Libre resolves the user's system region/locale on the client side and attaches standard PostHog GeoIP country and continent metadata:
+```json
+"$geoip_country_code": "DE",
+"$geoip_country_name": "Germany",
+"$geoip_continent_code": "EU",
+"$geoip_continent_name": "Europe",
+"$locale": "de_DE"
+```
 
 ### E. Daily Aggregated Counters (`daily_food_logged`)
 Rather than firing an event every single time a food entry is logged (which creates event spam and inflates infrastructure costs), Train Libre increments a local counter in `SharedPreferences`. When the app transitions to the background (`AppLifecycleState.paused`), a single aggregated `daily_food_logged` event is flushed (e.g., `count: 12`).

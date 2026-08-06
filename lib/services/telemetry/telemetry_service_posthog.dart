@@ -1,5 +1,6 @@
 // lib/services/telemetry/telemetry_service_posthog.dart
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -26,6 +27,7 @@ class PostHogTelemetryService implements TelemetryService {
   bool _initialized = false;
   bool _optedIn = false;
   String? _persistentDeviceId;
+  CountryMetadata? _cachedCountryMetadata;
 
   @override
   Future<void> init() async {
@@ -42,6 +44,11 @@ class PostHogTelemetryService implements TelemetryService {
         await prefs.setString(_prefDeviceIdKey, _persistentDeviceId!);
       }
 
+      final (localeStr, countryCode) =
+          TelemetryService.resolveSystemLocaleAndCountry();
+      _cachedCountryMetadata =
+          TelemetryService.getCountryMetadata(countryCode);
+
       final config = PostHogConfig(_defaultApiKey)
         ..host = _postHogEuHost
         ..captureApplicationLifecycleEvents = false
@@ -53,11 +60,19 @@ class PostHogTelemetryService implements TelemetryService {
                 event.event.startsWith(r'$rage')) {
               return null;
             }
-            // Enforce strict zero-geolocation and zero-person-profiling on all SDK events
             final props = event.properties ??= <String, Object>{};
             props[r'$ip'] = '0.0.0.0';
-            props[r'$geoip_disable'] = true;
             props[r'$process_person_profile'] = false;
+
+            final meta = _cachedCountryMetadata;
+            if (meta != null) {
+              props[r'$geoip_country_code'] ??= meta.countryCode;
+              props[r'$geoip_country_name'] ??= meta.countryName;
+              props[r'$geoip_continent_code'] ??= meta.continentCode;
+              props[r'$geoip_continent_name'] ??= meta.continentName;
+              props['country'] ??= meta.countryCode;
+              props['country_code'] ??= meta.countryCode;
+            }
             return event;
           },
         ];
@@ -70,6 +85,7 @@ class PostHogTelemetryService implements TelemetryService {
 
       if (_optedIn) {
         await Posthog().enable();
+        unawaited(flushDailyFoodLog());
       } else {
         await Posthog().disable();
       }
@@ -99,7 +115,6 @@ class PostHogTelemetryService implements TelemetryService {
               'token': _defaultApiKey,
               r'$process_person_profile': false,
               r'$ip': '0.0.0.0',
-              r'$geoip_disable': true,
               r'$delete_person': true,
             },
           });
@@ -119,7 +134,6 @@ class PostHogTelemetryService implements TelemetryService {
           properties: {
             r'$process_person_profile': false,
             r'$ip': '0.0.0.0',
-            r'$geoip_disable': true,
             r'$delete_person': true,
           },
         );
@@ -182,11 +196,18 @@ class PostHogTelemetryService implements TelemetryService {
   }) async {
     if (!_optedIn) return;
     try {
-      // Enforce strict zero-profiling, zero-geolocation privacy flags
+      final meta = _cachedCountryMetadata;
       final Map<String, Object> enrichedProps = {
         r'$process_person_profile': false,
         r'$ip': '0.0.0.0',
-        r'$geoip_disable': true,
+        if (meta != null) ...{
+          r'$geoip_country_code': meta.countryCode,
+          r'$geoip_country_name': meta.countryName,
+          r'$geoip_continent_code': meta.continentCode,
+          r'$geoip_continent_name': meta.continentName,
+          'country': meta.countryCode,
+          'country_code': meta.countryCode,
+        },
         if (properties != null)
           ...properties.map((key, value) => MapEntry(key, value as Object)),
       };
@@ -268,6 +289,9 @@ class PostHogTelemetryService implements TelemetryService {
       final deviceModel = platform == 'ios' ? 'arm64' : 'Mobile';
       final deviceName = platform == 'ios' ? 'iPhone' : 'Mobile Device';
 
+      final meta = TelemetryService.getCountryMetadata(country);
+      _cachedCountryMetadata = meta;
+
       // Option B: Direct HTTP POST call to PostHog EU with isolated persistent device ID
       // This allows PostHog to calculate DAU/MAU uniqueness without building Person Profiles
       // and without contaminating the SDK state for in-app events.
@@ -280,11 +304,15 @@ class PostHogTelemetryService implements TelemetryService {
           'token': _defaultApiKey,
           r'$process_person_profile': false,
           r'$ip': '0.0.0.0',
-          r'$geoip_disable': true,
 
           // PostHog Native Feature / Metadata fields for GeoIP & Locale
-          r'$geoip_country_code': country,
+          r'$geoip_country_code': meta.countryCode,
+          r'$geoip_country_name': meta.countryName,
+          r'$geoip_continent_code': meta.continentCode,
+          r'$geoip_continent_name': meta.continentName,
           r'$locale': locale,
+          'country': meta.countryCode,
+          'country_code': meta.countryCode,
 
           // Full standard environment & device metadata matching SDK events
           if (appBuild != null) r'$app_build': appBuild,

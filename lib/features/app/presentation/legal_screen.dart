@@ -3,6 +3,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
@@ -22,6 +24,12 @@ class LegalScreen extends StatefulWidget {
 }
 
 class _LegalScreenState extends State<LegalScreen> {
+  @override
+  void initState() {
+    super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: 'legal_privacy'));
+  }
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;

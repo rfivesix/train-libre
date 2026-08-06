@@ -57,6 +57,8 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           backupRestoreDiagnosticsProvider: BackupRestoreDiagnosticsProvider(),
         );
     _actions = widget.actions ?? FeedbackReportActions();
+    unawaited(TelemetryService.instance.trackScreenView(
+        screenName: 'feedback_report'));
   }
 
   @override

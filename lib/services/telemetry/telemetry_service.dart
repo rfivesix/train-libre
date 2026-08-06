@@ -1,7 +1,25 @@
 // lib/services/telemetry/telemetry_service.dart
 
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'telemetry_service_noop.dart';
 import 'telemetry_service_posthog.dart';
+
+/// Class containing country and continent metadata for PostHog GeoIP mapping.
+class CountryMetadata {
+  final String countryCode;
+  final String countryName;
+  final String continentCode;
+  final String continentName;
+
+  const CountryMetadata({
+    required this.countryCode,
+    required this.countryName,
+    required this.continentCode,
+    required this.continentName,
+  });
+}
 
 /// Abstract TelemetryService defining the contract for tracking anonymous,
 /// privacy-friendly usage metrics.
@@ -26,6 +44,311 @@ abstract class TelemetryService {
       return const NoOpTelemetryService();
     }
     return PostHogTelemetryService();
+  }
+
+  /// Resolves the current system locale string (e.g. 'de_DE') and 2-letter ISO country code (e.g. 'DE').
+  static (String locale, String country) resolveSystemLocaleAndCountry() {
+    String localeStr = 'de_DE';
+    try {
+      localeStr = Platform.localeName;
+    } catch (_) {}
+
+    String? countryCode;
+
+    // 1. Try PlatformDispatcher locales
+    try {
+      final locales = ui.PlatformDispatcher.instance.locales;
+      for (final l in locales) {
+        if (l.countryCode != null &&
+            l.countryCode!.isNotEmpty &&
+            l.countryCode!.length == 2) {
+          countryCode = l.countryCode!.toUpperCase();
+          break;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Parse Platform.localeName with Regex
+    if (countryCode == null || countryCode.isEmpty) {
+      final match =
+          RegExp(r'[_-]([a-zA-Z]{2})(?:[._@-]|$)').firstMatch(localeStr);
+      if (match != null) {
+        final code = match.group(1)!.toUpperCase();
+        if (code != 'HANS' &&
+            code != 'HANT' &&
+            code != 'LATN' &&
+            code != 'CYRL') {
+          countryCode = code;
+        }
+      }
+    }
+
+    // 3. Language fallback map
+    if (countryCode == null || countryCode.isEmpty || countryCode.length != 2) {
+      final lang = localeStr.split(RegExp(r'[_-]')).first.toLowerCase();
+      const languageToCountry = <String, String>{
+        'de': 'DE',
+        'en': 'US',
+        'fr': 'FR',
+        'it': 'IT',
+        'es': 'ES',
+        'ja': 'JP',
+        'nl': 'NL',
+        'pl': 'PL',
+        'pt': 'PT',
+        'ru': 'RU',
+        'zh': 'CN',
+        'uk': 'UA',
+        'cs': 'CZ',
+        'da': 'DK',
+        'fi': 'FI',
+        'sv': 'SE',
+        'nb': 'NO',
+        'nn': 'NO',
+        'no': 'NO',
+        'tr': 'TR',
+        'ko': 'KR',
+      };
+      countryCode = languageToCountry[lang] ?? 'DE';
+    }
+
+    return (localeStr, countryCode);
+  }
+
+  /// Maps an ISO 3166-1 alpha-2 country code to full PostHog GeoIP country & continent metadata.
+  static CountryMetadata getCountryMetadata(String rawCountryCode) {
+    final code = rawCountryCode.trim().toUpperCase();
+    switch (code) {
+      case 'DE':
+        return const CountryMetadata(
+            countryCode: 'DE',
+            countryName: 'Germany',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'US':
+        return const CountryMetadata(
+            countryCode: 'US',
+            countryName: 'United States',
+            continentCode: 'NA',
+            continentName: 'North America');
+      case 'GB':
+        return const CountryMetadata(
+            countryCode: 'GB',
+            countryName: 'United Kingdom',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'AT':
+        return const CountryMetadata(
+            countryCode: 'AT',
+            countryName: 'Austria',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'CH':
+        return const CountryMetadata(
+            countryCode: 'CH',
+            countryName: 'Switzerland',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'FR':
+        return const CountryMetadata(
+            countryCode: 'FR',
+            countryName: 'France',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'IT':
+        return const CountryMetadata(
+            countryCode: 'IT',
+            countryName: 'Italy',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'ES':
+        return const CountryMetadata(
+            countryCode: 'ES',
+            countryName: 'Spain',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'NL':
+        return const CountryMetadata(
+            countryCode: 'NL',
+            countryName: 'Netherlands',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'BE':
+        return const CountryMetadata(
+            countryCode: 'BE',
+            countryName: 'Belgium',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'PL':
+        return const CountryMetadata(
+            countryCode: 'PL',
+            countryName: 'Poland',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'CZ':
+        return const CountryMetadata(
+            countryCode: 'CZ',
+            countryName: 'Czechia',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'DK':
+        return const CountryMetadata(
+            countryCode: 'DK',
+            countryName: 'Denmark',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'SE':
+        return const CountryMetadata(
+            countryCode: 'SE',
+            countryName: 'Sweden',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'NO':
+        return const CountryMetadata(
+            countryCode: 'NO',
+            countryName: 'Norway',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'FI':
+        return const CountryMetadata(
+            countryCode: 'FI',
+            countryName: 'Finland',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'PT':
+        return const CountryMetadata(
+            countryCode: 'PT',
+            countryName: 'Portugal',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'GR':
+        return const CountryMetadata(
+            countryCode: 'GR',
+            countryName: 'Greece',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'IE':
+        return const CountryMetadata(
+            countryCode: 'IE',
+            countryName: 'Ireland',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'HU':
+        return const CountryMetadata(
+            countryCode: 'HU',
+            countryName: 'Hungary',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'RO':
+        return const CountryMetadata(
+            countryCode: 'RO',
+            countryName: 'Romania',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'UA':
+        return const CountryMetadata(
+            countryCode: 'UA',
+            countryName: 'Ukraine',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      case 'CA':
+        return const CountryMetadata(
+            countryCode: 'CA',
+            countryName: 'Canada',
+            continentCode: 'NA',
+            continentName: 'North America');
+      case 'MX':
+        return const CountryMetadata(
+            countryCode: 'MX',
+            countryName: 'Mexico',
+            continentCode: 'NA',
+            continentName: 'North America');
+      case 'JP':
+        return const CountryMetadata(
+            countryCode: 'JP',
+            countryName: 'Japan',
+            continentCode: 'AS',
+            continentName: 'Asia');
+      case 'CN':
+        return const CountryMetadata(
+            countryCode: 'CN',
+            countryName: 'China',
+            continentCode: 'AS',
+            continentName: 'Asia');
+      case 'KR':
+        return const CountryMetadata(
+            countryCode: 'KR',
+            countryName: 'South Korea',
+            continentCode: 'AS',
+            continentName: 'Asia');
+      case 'IN':
+        return const CountryMetadata(
+            countryCode: 'IN',
+            countryName: 'India',
+            continentCode: 'AS',
+            continentName: 'Asia');
+      case 'SG':
+        return const CountryMetadata(
+            countryCode: 'SG',
+            countryName: 'Singapore',
+            continentCode: 'AS',
+            continentName: 'Asia');
+      case 'AU':
+        return const CountryMetadata(
+            countryCode: 'AU',
+            countryName: 'Australia',
+            continentCode: 'OC',
+            continentName: 'Oceania');
+      case 'NZ':
+        return const CountryMetadata(
+            countryCode: 'NZ',
+            countryName: 'New Zealand',
+            continentCode: 'OC',
+            continentName: 'Oceania');
+      case 'BR':
+        return const CountryMetadata(
+            countryCode: 'BR',
+            countryName: 'Brazil',
+            continentCode: 'SA',
+            continentName: 'South America');
+      case 'AR':
+        return const CountryMetadata(
+            countryCode: 'AR',
+            countryName: 'Argentina',
+            continentCode: 'SA',
+            continentName: 'South America');
+      case 'ZA':
+        return const CountryMetadata(
+            countryCode: 'ZA',
+            countryName: 'South Africa',
+            continentCode: 'AF',
+            continentName: 'Africa');
+      case 'EG':
+        return const CountryMetadata(
+            countryCode: 'EG',
+            countryName: 'Egypt',
+            continentCode: 'AF',
+            continentName: 'Africa');
+      case 'IL':
+        return const CountryMetadata(
+            countryCode: 'IL',
+            countryName: 'Israel',
+            continentCode: 'AS',
+            continentName: 'Asia');
+      case 'TR':
+        return const CountryMetadata(
+            countryCode: 'TR',
+            countryName: 'Turkey',
+            continentCode: 'EU',
+            continentName: 'Europe');
+      default:
+        return CountryMetadata(
+          countryCode: code.isNotEmpty ? code : 'DE',
+          countryName: code.isNotEmpty ? code : 'Germany',
+          continentCode: 'EU',
+          continentName: 'Europe',
+        );
+    }
   }
 
   /// Initializes telemetry configuration and restores opt-in status.

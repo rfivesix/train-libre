@@ -124,6 +124,25 @@ void main() {
       expect(prefs.getString('telemetry_persistent_device_id'), isNotNull);
     });
 
+    test('TelemetryService resolves system locale and country metadata accurately', () {
+      final (locale, country) = TelemetryService.resolveSystemLocaleAndCountry();
+      expect(locale, isNotEmpty);
+      expect(country, isNotEmpty);
+      expect(country.length, 2);
+
+      final metaDE = TelemetryService.getCountryMetadata('DE');
+      expect(metaDE.countryCode, 'DE');
+      expect(metaDE.countryName, 'Germany');
+      expect(metaDE.continentCode, 'EU');
+      expect(metaDE.continentName, 'Europe');
+
+      final metaUS = TelemetryService.getCountryMetadata('US');
+      expect(metaUS.countryCode, 'US');
+      expect(metaUS.countryName, 'United States');
+      expect(metaUS.continentCode, 'NA');
+      expect(metaUS.continentName, 'North America');
+    });
+
     test('PostHogTelemetryService tracks app launched with country and locale', () async {
       await postHogService.optIn();
       await postHogService.trackAppLaunched(
