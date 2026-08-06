@@ -117,7 +117,7 @@ class DesignConstants {
   /// Global bottom vignette gradient that ramps up towards the bottom edge,
   /// reaching 100% opacity right at the very bottom screen boundary.
   static LinearGradient bottomVignetteGradient(bool isDark) {
-    final baseColor = isDark ? Colors.black : const Color(0xFFF2F2F2);
+    final baseColor = isDark ? Colors.black : const Color(0xFFF2F2F7);
     return LinearGradient(
       begin: Alignment.bottomCenter,
       end: Alignment.topCenter,

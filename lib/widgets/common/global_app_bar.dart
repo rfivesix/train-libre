@@ -69,7 +69,7 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
     // Color for the translucent glass
     final Color glassColor = isDark
         ? Colors.black.withValues(alpha: 0.50)
-        : const Color(0xFFF2F2F2).withValues(alpha: 0.70);
+        : const Color(0xFFF2F2F7).withValues(alpha: 0.70);
 
     // Final structure with static blur (blur sigma preserved at 14 as requested)
     return Stack(
@@ -85,7 +85,7 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
                   colors: [
                     isDark
                         ? Colors.black.withValues(alpha: 0.25)
-                        : const Color(0xFFF2F2F2).withValues(alpha: 0.50),
+                        : const Color(0xFFF2F2F7).withValues(alpha: 0.50),
                     Colors.transparent,
                   ],
                 ),

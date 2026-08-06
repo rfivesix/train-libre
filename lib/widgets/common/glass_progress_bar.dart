@@ -32,6 +32,9 @@ class GlassProgressBar extends StatefulWidget {
   /// The corner radius for the bar.
   final double borderRadius;
 
+  /// Whether to disable the drop shadow.
+  final bool disableShadow;
+
   const GlassProgressBar({
     super.key,
     required this.label,
@@ -41,6 +44,7 @@ class GlassProgressBar extends StatefulWidget {
     required this.color,
     this.height = 54.0,
     this.borderRadius = DesignConstants.borderRadiusL,
+    this.disableShadow = false,
   });
 
   @override
@@ -94,6 +98,7 @@ class _GlassProgressBarState extends State<GlassProgressBar> {
               color: widget.color,
               height: widget.height,
               borderRadius: widget.borderRadius,
+              disableShadow: widget.disableShadow,
             );
           },
         );
@@ -111,6 +116,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
   final Color color;
   final double height;
   final double borderRadius;
+  final bool disableShadow;
 
   const _GlassProgressBarPainter({
     required this.label,
@@ -120,6 +126,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
     required this.color,
     required this.height,
     required this.borderRadius,
+    required this.disableShadow,
   });
 
   @override
@@ -157,15 +164,17 @@ class _GlassProgressBarPainter extends StatelessWidget {
     final bool isLowContrast = isDark ? (luminance > 0.5) : (luminance < 0.5);
 
     return Container(
-      decoration: ShapeDecoration(
-        shape: squircle,
-        shadows: [
-          BoxShadow(
-            blurRadius: 7,
-            offset: const Offset(0, 2),
-            color: cs.shadow.withValues(alpha: isDark ? 0.2 : 0.06),
-          ),
-        ],
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        boxShadow: (disableShadow || !isDark)
+            ? null
+            : [
+                BoxShadow(
+                  blurRadius: 7,
+                  offset: const Offset(0, 2),
+                  color: cs.shadow.withValues(alpha: 0.2),
+                ),
+              ],
       ),
       child: ClipPath(
         clipper: clipper,
@@ -174,12 +183,14 @@ class _GlassProgressBarPainter extends StatelessWidget {
           decoration: ShapeDecoration(
             color: isDark
                 ? const Color(0xFF2A2A2A)
-                : cs.surface.withValues(alpha: 0.95),
+                : Colors.white,
             shape: squircle.copyWith(
-              side: BorderSide(
-                color: cs.onSurface.withValues(alpha: 0.08),
-                width: 1,
-              ),
+              side: isDark
+                  ? BorderSide(
+                      color: cs.onSurface.withValues(alpha: 0.08),
+                      width: 1,
+                    )
+                  : BorderSide.none,
             ),
           ),
           child: LayoutBuilder(
@@ -245,9 +256,8 @@ class _GlassProgressBarPainter extends StatelessWidget {
                           fit: StackFit.expand,
                           children: [
                             DecoratedBox(
-                              decoration: ShapeDecoration(
+                              decoration: BoxDecoration(
                                 color: color,
-                                shape: squircle,
                               ),
                             ),
                             if ((isLowContrast || isDark) && value > 0)

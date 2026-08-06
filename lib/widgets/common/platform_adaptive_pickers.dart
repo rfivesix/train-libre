@@ -358,7 +358,7 @@ class _GlassPickerSheet extends StatelessWidget {
 
     final Color neutralTint = isDark
         ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
-        : theme.colorScheme.surface.withValues(alpha: 0.82);
+        : const Color(0xFFF2F2F7).withValues(alpha: 0.92);
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
     const double r = 24;
     final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;

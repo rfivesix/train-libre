@@ -51,13 +51,13 @@ class SummaryCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-          boxShadow: disableShadow
+          boxShadow: (disableShadow || !isDark)
               ? null
               : [
                   BoxShadow(
                     blurRadius: 9,
                     offset: const Offset(0, 3),
-                    color: cs.shadow.withValues(alpha: isDark ? 0.2 : 0.08),
+                    color: cs.shadow.withValues(alpha: 0.2),
                   ),
                 ],
         ),
@@ -68,12 +68,14 @@ class SummaryCard extends StatelessWidget {
             decoration: ShapeDecoration(
               color: isDark
                   ? DesignConstants.summaryCardDarkMode
-                  : cs.surface.withValues(alpha: 0.95),
+                  : Colors.white,
               shape: squircle.copyWith(
-                side: BorderSide(
-                  color: cs.onSurface.withValues(alpha: 0.08),
-                  width: 1,
-                ),
+                side: isDark
+                    ? BorderSide(
+                        color: cs.onSurface.withValues(alpha: 0.08),
+                        width: 1,
+                      )
+                    : BorderSide.none,
               ),
             ),
             child: Material(

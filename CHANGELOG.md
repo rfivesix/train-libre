@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0-beta.10] - 2026-08-06
+
 ## [1.0.0-beta.9] - 2026-08-04
 
 ### Added
@@ -17,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - **Apple-Style Squircle Corners:** Replaced standard circular `BorderRadius` with true Apple-style superellipse squircles using the `figma_squircle` package (`SmoothRectangleBorder` / `SmoothBorderRadius` with `cornerSmoothing: 0.6`) across common UI components including `SummaryCard`, `GlassProgressBar`, `FrostedContainer`, and `GlassMenu`. Unlike Flutter's built-in `ContinuousRectangleBorder`, this implements the exact iOS superellipse algorithm that keeps curves natural and tight to corner regions.
-- **Light Mode Background Color:** Updated `scaffoldBackgroundColor` in light theme (`main.dart`), translucent glass tint in `GlobalAppBar` (`global_app_bar.dart`), and `bottomVignetteGradient` in `DesignConstants` (`design_constants.dart`) to match `#F2F2F2` (`Color(0xFFF2F2F2)`).
+- **iOS-Style Light Mode Refinement (Apple Health Match):** Overhauled light theme color palette to match iOS `systemGroupedBackground` (`#F2F2F7` / `Color(0xFFF2F2F7)`). Removed drop shadows and borders on `SummaryCard` and `GlassProgressBar` in light mode for flat, clean white card containers (`#FFFFFF`) on `#F2F2F7`. Configured `GlassProgressBar` (`glass_progress_bar.dart`) with the exact 1:1 Apple superellipse squircle parameters (`SmoothRectangleBorder` / `SmoothBorderRadius(cornerRadius: borderRadius, cornerSmoothing: 0.6)`) and outer container layout matching `SummaryCard`. Harmonized `GlobalAppBar` tint, `bottomVignetteGradient`, `GlassBottomMenu`, and adaptive pickers to seamlessly transition into `#F2F2F7`.
 - **Dependency Updates:** Bumped `drift` to `2.34.3` and `posthog_flutter` to `5.34.2` (PR #547).
 - **Single-Pass Min/Max Bound Calculations:** Refactored bounds calculation in `MeasurementChartWidget`, `BodyNutritionNormalizedTrendChart`, `PulseAnalysisEngine`, and `WorkoutHeartRateService` to use single-pass `for` loops instead of chained `where/map/reduce` pipelines, reducing GC pressure (PR #544).
 - **Sleep Metrics & Regularity Index Performance:** Optimized array processing in `heart_rate_metrics.dart` and `sleep_regularity_index.dart` by filtering valid sleep data before sorting and using single-pass loops (PR #546).
