@@ -164,7 +164,7 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
             filled: true,
             fillColor: Theme.of(context).brightness == Brightness.dark
                 ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
+                : Colors.white,
           ),
           items: _internalTypes
               .map(

@@ -1362,7 +1362,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(r),
-                      boxShadow: DesignConstants.glassShadow,
+                      boxShadow: DesignConstants.glassShadow(isDark),
                     ),
                   ),
                 ),

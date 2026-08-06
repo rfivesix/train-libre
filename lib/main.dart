@@ -276,7 +276,7 @@ class _MyAppState extends State<MyApp> {
     );
 
     const cardDark = Color(0xFF171717);
-    const cardLight = Color(0xFFF3F3F3);
+    const cardLight = Colors.white;
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -365,8 +365,13 @@ class _MyAppState extends State<MyApp> {
 
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFFF3F3F3),
+            fillColor: Colors.white,
             border: OutlineInputBorder(
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,

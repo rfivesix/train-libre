@@ -1289,7 +1289,7 @@ class _MainScreenState extends State<MainScreen>
                                         DesignConstants
                                                 .bottomNavigationBarHeight /
                                             2),
-                                    boxShadow: DesignConstants.glassShadow,
+                                    boxShadow: DesignConstants.glassShadow(isDark),
                                   ),
                                 ),
                               ),
@@ -1305,7 +1305,7 @@ class _MainScreenState extends State<MainScreen>
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(
                                         DesignConstants.fabSize / 2),
-                                    boxShadow: DesignConstants.glassShadow,
+                                    boxShadow: DesignConstants.glassShadow(isDark),
                                   ),
                                 ),
                               ),

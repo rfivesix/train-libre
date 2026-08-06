@@ -57,7 +57,7 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
             filled: true,
             fillColor: brightness == Brightness.dark
                 ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
+                : Colors.white,
             border: OutlineInputBorder(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusM),

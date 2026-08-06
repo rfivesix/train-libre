@@ -98,7 +98,7 @@ class _GlassPillButtonState extends State<GlassPillButton>
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(effectiveRadius),
-                boxShadow: DesignConstants.glassShadow,
+                boxShadow: DesignConstants.glassShadow(isDark),
               ),
             ),
           ),

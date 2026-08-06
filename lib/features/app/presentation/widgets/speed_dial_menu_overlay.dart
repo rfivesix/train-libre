@@ -172,7 +172,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                                           BorderRadius.circular(
                                                               rLiquid),
                                                       boxShadow: DesignConstants
-                                                          .glassShadow,
+                                                          .glassShadow(isDarkLocal),
                                                     ),
                                                   ),
                                                 ),
@@ -271,7 +271,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(
                                     DesignConstants.fabSize / 2),
-                                boxShadow: DesignConstants.glassShadow,
+                                boxShadow: DesignConstants.glassShadow(isDarkLocal),
                               ),
                             ),
                           ),
