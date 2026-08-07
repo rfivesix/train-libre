@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -158,7 +159,13 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                         // Navigation
                         InkWell(
                           key: const Key('time-range-prev'),
-                          onTap: widget.onPrevious,
+                          onTap: widget.onPrevious != null
+                              ? () {
+                                  HapticFeedbackService.instance
+                                      .selectionFeedback();
+                                  widget.onPrevious!();
+                                }
+                              : null,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Center(
@@ -175,7 +182,13 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
 
                         if (widget.displayDate != null)
                           InkWell(
-                            onTap: widget.onTapDateDisplay,
+                            onTap: widget.onTapDateDisplay != null
+                                ? () {
+                                    HapticFeedbackService.instance
+                                        .selectionFeedback();
+                                    widget.onTapDateDisplay!();
+                                  }
+                                : null,
                             child: Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 4),
@@ -193,7 +206,13 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
 
                         InkWell(
                           key: const Key('time-range-next'),
-                          onTap: widget.nextEnabled ? widget.onNext : null,
+                          onTap: widget.nextEnabled && widget.onNext != null
+                              ? () {
+                                  HapticFeedbackService.instance
+                                      .selectionFeedback();
+                                  widget.onNext!();
+                                }
+                              : null,
                           borderRadius: const BorderRadius.horizontal(
                               right: Radius.circular(100)),
                           child: Padding(
@@ -222,7 +241,10 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                 child: ChoiceChip(
                   label: Text(range),
                   selected: false,
-                  onSelected: (_) => widget.onSelected(index),
+                  onSelected: (_) {
+                    HapticFeedbackService.instance.selectionFeedback();
+                    widget.onSelected(index);
+                  },
                   padding: EdgeInsets.zero,
                 ),
               );

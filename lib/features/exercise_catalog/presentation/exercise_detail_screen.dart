@@ -20,6 +20,7 @@ import '../../../services/profile_service.dart';
 import 'create_exercise_screen.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../services/haptic_feedback_service.dart';
 import '../../../widgets/common/app_button.dart';
 
 enum ExerciseMetric { maxWeight, volume, est1rm, distance, duration, pace }
@@ -750,7 +751,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     final theme = Theme.of(context);
     final isSelected = _selectedRange == key;
     return GestureDetector(
-      onTap: () => setState(() => _selectedRange = key),
+      onTap: () {
+        if (!isSelected) {
+          HapticFeedbackService.instance.selectionFeedback();
+          setState(() => _selectedRange = key);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
         decoration: BoxDecoration(

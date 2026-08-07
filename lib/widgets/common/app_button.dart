@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
 
 enum AppButtonVariant { primary, secondary, danger }
@@ -63,20 +64,16 @@ class _AppButtonState extends State<AppButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
-  late final Animation<double> _opacityAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 120),
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    _opacityAnimation = Tween<double>(begin: 1.0, end: 0.82).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
   }
 
@@ -87,7 +84,14 @@ class _AppButtonState extends State<AppButton>
   }
 
   void _handleTapDown(TapDownDetails _) {
-    if (widget.onPressed != null && !widget.isLoading) _controller.forward();
+    if (widget.onPressed != null && !widget.isLoading) {
+      _controller.forward();
+      if (widget.variant == AppButtonVariant.danger) {
+        HapticFeedbackService.instance.chartSelectionFeedback();
+      } else {
+        HapticFeedbackService.instance.lightImpact();
+      }
+    }
   }
 
   void _handleTapUp(TapUpDetails _) {
@@ -181,7 +185,7 @@ class _AppButtonState extends State<AppButton>
         break;
     }
 
-    const double radius = 12.0;
+    const double radius = 14.0;
 
     // ── Build the button label/icon row ─────────────────────────────────────
     Widget labelRow = Row(
@@ -252,8 +256,7 @@ class _AppButtonState extends State<AppButton>
               ? primaryColor
               : widget.variant == AppButtonVariant.danger
                   ? DesignConstants.brandRedColor
-                  : DesignConstants.glassNeutralTint(
-                      isDark), // Secondary bleibt transluzent
+                  : primaryColor.withValues(alpha: isDark ? 0.18 : 0.12),
           borderRadius: BorderRadius.circular(radius),
         ),
         foregroundDecoration: BoxDecoration(
@@ -298,7 +301,7 @@ class _AppButtonState extends State<AppButton>
           animation: _controller,
           builder: (context, child) => Transform.scale(
             scale: _scaleAnimation.value,
-            child: Opacity(opacity: _opacityAnimation.value, child: child),
+            child: child,
           ),
           child: buttonContent,
         ),
