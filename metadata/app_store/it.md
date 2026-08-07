@@ -1,59 +1,66 @@
 # App Store Metadata - it
 
 ## Name (App Title (max 30 chars))
-Train Libre
+Train Libre – Palestra & Kcal
 
 ## Subtitle (Subtitle (max 30 chars))
-Private Gym & Macro Log
+Allenamenti, macro e peso
 
 ## Keywords (Keywords (max 100 chars, comma-separated))
 palestra,calorie,tdee,macros,fitness,allenamento,muscoli,offline,privato,salute,recupero,scheda
 
 ## Promotional Text (Promotional Text (max 170 chars))
-Traccia allenamenti, calorie, TDEE e recupero muscolare senza pubblicità o tracciamento dati. 100% offline e privato.
+Traccia allenamenti, calorie e macro offline. Senza pubblicità, senza account, senza tracciamento commerciale. Statistiche opzionali, disattivate di default.
 
 ## Description (Full App Store Description)
-Train Libre è un diario d'allenamento e nutrizione privato e open-source, progettato per chi desidera un tracciamento rigoroso senza rinunciare al controllo dei propri dati. Sviluppato per funzionare al 100% offline, non richiede account cloud, non include feed social, pubblicità né algoritmi di gamification o SDK di tracciamento dati.
+Train Libre è un diario di allenamento e nutrizione privato e open-source, pensato per chi vuole un tracciamento rigoroso senza rinunciare al controllo dei propri dati. È progettata offline-first: nessun account, nessun feed social, nessuna gamification, nessuna pubblicità, nessun tracciamento commerciale né vendita di dati.
 
-Traccia i tuoi allenamenti, calorie, peso corporeo e il recupero muscolare in un'unica applicazione essenziale con archiviazione locale sicura e integrazione opzionale con Apple Salute.
+Traccia allenamenti, calorie, peso corporeo e recupero muscolare in un'unica app essenziale, con archiviazione locale sicura e integrazione opzionale con Apple Salute.
 
 PERCHÉ TRAIN LIBRE È DIVERSO:
-• 100% Offline-First: Nessun account cloud obbligatorio. I tuoi dati risiedono esclusivamente nel sandbox del tuo dispositivo.
-• Privacy assoluta: Nessuna telemetria in background, script di tracciamento o profilazione remota.
-• Tracciamento palestra strutturato: Creato per il sovraccarico progressivo e il monitoraggio costante, non per creare dipendenza da ricompense virtuali.
-• Analisi trasparenti: Comprendi i tuoi progressi fisici a lungo termine attraverso calcoli chiari e matematici.
+• Offline-first: nessun account e nessuna connessione di rete necessari. I tuoi dati di allenamento e nutrizione restano nel sandbox del tuo dispositivo.
+• Privacy by design: nessuna pubblicità, nessun tracker pubblicitario, nessuna registrazione di sessione, nessun profilo utente. Le statistiche d'uso anonime sono opzionali e disattivate di default: non contengono dati sanitari, non registrano mai il tuo indirizzo IP e si cancellano dai nostri server con un tocco.
+• Tracciamento palestra strutturato: creato per il sovraccarico progressivo e il monitoraggio costante, non per creare dipendenza.
+• Analisi trasparenti: comprendi i tuoi progressi fisici a lungo termine attraverso calcoli chiari e matematici.
 
 CARATTERISTICHE PRINCIPALI:
 
 1. TRACCIAMENTO AVANZATO DEGLI ALLENAMENTI
 • Registra gli allenamenti serie per serie: riscaldamento, serie effettive, serie a cedimento e dropset.
-• Traccia metriche precise: ripetizioni, carico e RPE / RIR (scala dello sforzo percepito / ripetizioni in riserva).
-• Crea schede d'allenamento riutilizzabili, esercizi personalizzati e consulta lo storico completo delle sessioni.
+• Traccia metriche precise: ripetizioni, carico e RPE / RIR (sforzo percepito / ripetizioni in riserva).
+• Crea schede riutilizzabili, aggiungi esercizi personalizzati e consulta lo storico completo delle sessioni.
 
 2. NUTRIZIONE SCIENTIFICA E CALCOLO TDEE
 • Registra pasti, calorie, macronutrienti, idratazione, caffeina, creatina e integratori personalizzati.
-• Algoritmo TDEE Adattivo: Calcola il tuo reale fabbisogno calorico giornaliero di mantenimento (TDEE) basandosi su un filtro bayesiano di Kalman aggiornato con le tue pesate e i tuoi apporti nutrizionali reali.
+• Algoritmo TDEE adattivo: un filtro bayesiano di Kalman calcola il tuo reale fabbisogno calorico di mantenimento partendo dalle tue pesate e dai tuoi apporti reali.
 
 3. MONITORAGGIO DEL RECUPERO FISICO
-• Mappa termica di recupero muscolare: Monitora lo stato di prontezza muscolare in base al volume localizzato, all'intensità dello sforzo e al carico recente.
-• Statistiche dettagliate su record personali (PR), volume totale sollevato, costanza negli allenamenti e misurazioni corporee.
+• Mappa termica del recupero muscolare: monitora la prontezza dei muscoli in base al volume localizzato, all'intensità e al carico recente.
+• Statistiche dettagliate su record personali (PR), volume totale sollevato, costanza, misurazioni corporee e parametri fisici.
 
 4. SINCRONIZZAZIONE NATIVA CON APPLE SALUTE
-• Integrazione opzionale per leggere i dati fisici (Passi, Sonno, Frequenza cardiaca) e integrarli nel tracciamento locale del recupero.
+• Integrazione opzionale per leggere i dati fisici (passi, sonno, frequenza cardiaca) e integrarli nel tracciamento locale del recupero.
 • Completamente locale, sicuro e sotto il tuo diretto controllo.
 
-5. FOTO-RICONOSCIMENTO PASTI CON IA (Opzionale - BYOK)
-• Chiave API Personale (BYOK): Tracciamento fotografico dei pasti opzionale tramite intelligenza artificiale generativa utilizzando la tua chiave API. Disattivato di default.
-• Abbinamento contestuale: Utilizza un sistema di ricerca locale intelligente combinato con Open Food Facts per identificare accuratamente gli alimenti ed evitare allucinazioni.
-• 100% Trasparente: Ogni suggerimento dell'IA è completamente revisionabile e modificabile prima del salvataggio.
+5. RICONOSCIMENTO PASTI CON IA (opzionale — BYOK)
+• Chiave API personale (BYOK): riconoscimento dei pasti tramite IA che funziona con la tua chiave. Disattivato di default.
+• Abbinamento contestuale: un sistema di ricerca locale "Top-N alternative" combinato con Open Food Facts identifica accuratamente gli alimenti ed evita allucinazioni.
+• 100% trasparente: ogni suggerimento dell'IA è completamente revisionabile e modificabile prima del salvataggio.
 
-DISCLAIMER:
+AVVERTENZA:
 Train Libre non è un'applicazione medica. Le stime sul recupero muscolare, il tracciamento del sonno e i parametri fisici sono destinati esclusivamente al monitoraggio sportivo personale. Non costituiscono e non sostituiscono in alcun modo diagnosi o trattamenti medici professionali.
 
 OPEN SOURCE E DATI APERTI:
-Sviluppato in modo trasparente utilizzando i database aperti e fidati di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile per garantire la massima trasparenza e la verifica della privacy.
+Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
+Versione 1.0.0 — il nostro aggiornamento più grande finora:
+
+• Interfaccia completamente ridisegnata secondo le Human Interface Guidelines di Apple, con modalità chiara e scura perfezionate.
+• Il riconoscimento dei pasti con IA (con la tua chiave API) ora funziona automaticamente nella tua lingua.
+• Molto più veloce: scorrimento fluido a 120 Hz, importazioni molto più rapide e query del database ottimizzate.
+• Novità: importa il tuo storico da Hevy tramite CSV, più una sezione statistiche ampliata con monitoraggio della costanza.
+• Le statistiche d'uso anonime sono strettamente facoltative, disattivate di default e non memorizzano mai il tuo indirizzo IP.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

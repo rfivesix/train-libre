@@ -70,8 +70,9 @@ def parse_markdown(md_path: Path) -> dict:
                 current_lines = []
             
             header = line[3:].strip()
-            # Remove any trailing parenthetical hints e.g. "## Name (Title max 30 chars)"
-            clean_header = re.sub(r"\s*\(.*?\)", "", header).strip()
+            # Strip the trailing parenthetical hint, e.g. "## Name (App Title (max 30 chars))".
+            # Must be greedy and anchored: the hint itself contains nested parentheses.
+            clean_header = re.sub(r"\s*\(.*\)$", "", header).strip()
             current_key = SECTION_MAP.get(clean_header, clean_header.lower().replace(" ", "_"))
         elif current_key is not None:
             current_lines.append(line)

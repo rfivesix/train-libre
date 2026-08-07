@@ -1,59 +1,66 @@
 # App Store Metadata - de-DE
 
 ## Name (App Title (max 30 chars))
-Train Libre
+Train Libre – Kalorien & Gym
 
 ## Subtitle (Subtitle (max 30 chars))
-Offline Kalorien & Gym Log
+Abnehmen & Training, offline
 
 ## Keywords (Keywords (max 100 chars, comma-separated))
 kalorienzähler,kalorientracker,abnehm app,ernährungstracker,trainingstagebuch,offline,datenschutz
 
 ## Promotional Text (Promotional Text (max 170 chars))
-Dein privater Workout- & Nährstoff-Tracker. 100% offline, ohne Werbung, ohne Cloud-Zwang und ohne Daten-Tracking. Behalte die volle Kontrolle über deine Daten.
+Workouts, Kalorien und Makros offline tracken. Ohne Werbung, ohne Konto, ohne kommerzielles Tracking. Nutzungsstatistiken sind optional und standardmäßig aus.
 
 ## Description (Full App Store Description)
-Train Libre ist ein privater, quelloffener (Open-Source) Workout- und Ernährungstracker für Menschen, die die volle Kontrolle über ihre Daten behalten wollen. Die App funktioniert zu 100 % offline – ohne Social Feeds, ohne Gamification, ohne Werbung und absolut frei von Analyse-SDKs oder Datenspionage.
+Train Libre ist ein privater, quelloffener (Open-Source) Workout- und Ernährungstracker für alle, die die volle Kontrolle über ihre Daten behalten wollen. Die App ist Offline-First: ohne Konto, ohne Social Feeds, ohne Gamification, ohne Werbung und ohne kommerzielles Tracking oder Datenverkauf.
 
-Tracke deine Workouts, Kalorien, dein Körpergewicht und deine Muskelregeneration in einer fokussierten Anwendung mit sicherem lokalen Speicher und optionaler Apple Health-Integration.
+Tracke deine Workouts, Kalorien, dein Körpergewicht und deine Muskelregeneration in einer fokussierten App – mit sicherem lokalem Speicher und optionaler Apple-Health-Integration.
 
 WARUM TRAIN LIBRE ANDERS IST:
-• 100 % Offline-First: Kein Zwang zu Cloud-Konten. Deine Daten leben ausschließlich in der geschützten Sandbox deines Geräts.
-• Absoluter Datenschutz: Keine Hintergrund-Telemetrie, keine Tracking-Skripte oder remote Profilerstellung.
-• Strukturiertes Krafttraining: Entwickelt für progressive Überlastung und präzise Protokollierung, nicht für süchtig machende Gamification-Mechanismen.
+• Offline-First: Kein Konto und keine Internetverbindung nötig. Deine Trainings- und Ernährungsdaten bleiben in der geschützten Sandbox deines Geräts.
+• Datenschutz by Design: Keine Werbung, keine Werbe-Tracker, keine Session-Aufzeichnung, keine Nutzerprofile. Anonyme Nutzungsstatistiken sind optional und standardmäßig aus – sie enthalten keine Gesundheitsdaten, speichern niemals deine IP-Adresse und lassen sich mit einem Tipp von unseren Servern löschen.
+• Strukturiertes Krafttraining: Entwickelt für progressive Überlastung und präzise Protokollierung – nicht für süchtig machende Gamification.
 • Transparente Analysen: Verstehe deine körperlichen Trends langfristig durch klare, mathematisch fundierte Einblicke.
 
 KERN-FEATURES:
 
 1. ERWEITERTES TRAININGSTAGEBUCH
-• Protokolliere deine Workouts Satz für Satz, einschließlich Aufwärmsätzen, Arbeitssätzen, Aufwärmsätzen bis zum Muskelversagen und Dropsets.
-• Erfasse präzise Metriken: Wiederholungen, Gewicht und RPE / RIR (Rate of Perceived Exertion / Reps in Reserve).
-• Erstelle wiederverwendbare Routinen, eigene Übungen und analysiere deine vergangenen Trainingseinheiten.
+• Protokolliere deine Workouts Satz für Satz – inklusive Aufwärmsätzen, Arbeitssätzen, Sätzen bis zum Muskelversagen und Dropsets.
+• Erfasse präzise Metriken: Wiederholungen, Gewicht und RPE / RIR (subjektive Anstrengung / Wiederholungen in Reserve).
+• Erstelle wiederverwendbare Routinen und eigene Übungen und analysiere deine gesamte Trainingshistorie.
 
 2. WISSENSCHAFTLICH FUNDIERTE ERNÄHRUNG & TDEE
-• Tracke Mahlzeiten, Kalorien, Makronährstoffe, Flüssigkeitszufuhr, Koffein, Kreatin und individuelle Supplemente.
-• Adaptiver Energieverbrauch: Nutzt einen mathematischen, auf Kalman-Filtern basierenden Bayesian-TDEE-Schätzer, der deinen tatsächlichen Erhaltungskalorienbedarf dynamisch anhand deines realen Körpergewichts und deiner Ernährungsdaten berechnet.
+• Tracke Mahlzeiten, Kalorien, Makronährstoffe, Flüssigkeitszufuhr, Koffein, Kreatin und eigene Supplemente.
+• Adaptiver Energieverbrauch: Ein auf Kalman-Filtern basierender Bayesian-TDEE-Schätzer berechnet deinen tatsächlichen Erhaltungsbedarf dynamisch aus deinem realen Körpergewicht und deinen Ernährungsdaten.
 
 3. REGENERATIONS-TRACKING
-• Visuelle Muskel-Heatmap: Überwache die Bereitschaft deiner Muskelgruppen basierend auf dem lokalen Trainingsvolumen, der Intensität und der jüngsten Belastung.
-• Umfassende Statistiken für Bestleistungen (PRs), Gesamtvolumen, Kontinuität, Körpermaße und Vitalwerte.
+• Visuelle Muskel-Heatmap: Überwache die Bereitschaft deiner Muskelgruppen anhand von Trainingsvolumen, Intensität und jüngster Belastung.
+• Umfassende Statistiken zu Bestleistungen (PRs), Gesamtvolumen, Kontinuität, Körpermaßen und Vitalwerten.
 
 4. NATIVE HEALTH-SYNCHRONISATION
-• Optionale Integration zum Auslesen physischer Metriken (Schritte, Schlaf, Puls), um dein lokales Regenerations-Tracking zu füttern.
-• Vollständig lokal, sicher und nutzergesteuert.
+• Optionale Integration zum Auslesen physischer Metriken (Schritte, Schlaf, Puls), die in dein lokales Regenerations-Tracking einfließen.
+• Vollständig lokal, sicher und von dir gesteuert.
 
 5. KI-MAHLZEITEN-ERFASSUNG (Optional)
-• Bring Your Own Key (BYOK): Optionale KI-Erkennung von Mahlzeiten, die über deinen eigenen API-Schlüssel läuft. Standardmäßig deaktiviert.
-• Intelligenter Abgleich: Verwendet ein lokales "Top-N Fuzzy Alternatives"-Abgleichsystem in Kombination mit Open Food Facts, um deine Mahlzeit präzise zuzuordnen und Halluzinationen strikt zu verhindern.
-• 100 % Transparent: Jeder KI-Vorschlag ist vor dem Speichern vollständig überprüfbar, korrigierbar und anpassbar.
+• Bring Your Own Key (BYOK): Optionale KI-Erkennung von Mahlzeiten über deinen eigenen API-Schlüssel. Standardmäßig deaktiviert.
+• Intelligenter Abgleich: Ein lokales „Top-N Fuzzy Alternatives"-System in Kombination mit Open Food Facts ordnet deine Mahlzeit präzise zu und verhindert Halluzinationen zuverlässig.
+• 100 % transparent: Jeder KI-Vorschlag ist vor dem Speichern vollständig überprüfbar und anpassbar.
 
-RECHTLICHER HINWEIS (DISCLAIMER):
-Train Libre ist keine medizinische Anwendung. Die algorithmische Regenerations-Auswertung, das Schlaf-Tracking und physische Vitalparameter dienen ausschließlich der persönlichen sportlichen Orientierung und Trainingssteuerung. Sie stellen keine professionelle medizinische Diagnose oder Behandlung dar und ersetzen diese nicht.
+RECHTLICHER HINWEIS:
+Train Libre ist keine medizinische Anwendung. Die algorithmische Regenerations-Auswertung, das Schlaf-Tracking und physische Vitalparameter dienen ausschließlich der persönlichen sportlichen Orientierung und Trainingssteuerung. Sie stellen keine medizinische Diagnose oder Behandlung dar und ersetzen diese nicht.
 
 OPEN SOURCE & OFFENE DATEN:
-Transparent aufgebaut unter Verwendung vertrauenswürdiger Community-Kataloge von Open Food Facts und der wger-Trainingsdatenbank. Der vollständige Quellcode ist öffentlich einsehbar, um maximale Transparenz und die Überprüfbarkeit des Datenschutzes zu garantieren.
+Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und der wger-Übungsdatenbank. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
 
 ## Release Notes (What's New / Release Notes in this version)
+Version 1.0.0 – unser bisher größtes Update:
+
+• Komplett überarbeitete Oberfläche nach Apples Human Interface Guidelines, mit fein abgestimmtem Hell- und Dunkelmodus.
+• Die optionale KI-Mahlzeitenerfassung (mit eigenem API-Schlüssel) funktioniert jetzt automatisch in deiner Sprache.
+• Spürbar schneller: flüssiges 120-Hz-Scrolling, deutlich schnellere Importe und optimierte Datenbankabfragen.
+• Neu: Trainingshistorie aus Hevy per CSV importieren – plus erweiterter Statistikbereich mit Kontinuitäts-Tracking.
+• Anonyme Nutzungsstatistiken sind strikt opt-in, standardmäßig aus und speichern niemals deine IP-Adresse.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/

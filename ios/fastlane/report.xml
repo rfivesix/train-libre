@@ -5,12 +5,12 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000505">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000359">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: bundle exec fastlane deliver download_metadata --force --metadata_path '/Users/richardgeorgschotte/Projekte/train-libre/ios/fastlane/metadata' --app_identifier 'com.rfivesix.trainlibre' --username 'accounts.richard@schotte.me' --team_id 'QUXZN5283U'" time="5.975087">
+      <testcase classname="fastlane.lanes" name="1: bundle exec fastlane deliver download_metadata --force --metadata_path '/Users/richardgeorgschotte/Projekte/train-libre/ios/fastlane/metadata' --app_identifier 'com.rfivesix.trainlibre' --username 'accounts.richard@schotte.me' --team_id 'QUXZN5283U'" time="5.526253">
         
       </testcase>
     
