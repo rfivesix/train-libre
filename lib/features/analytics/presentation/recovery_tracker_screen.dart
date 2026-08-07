@@ -20,6 +20,8 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class RecoveryTrackerScreen extends StatefulWidget {
   const RecoveryTrackerScreen({super.key});
@@ -52,6 +54,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.recoveryTracker));
     _loadRecovery();
   }
 

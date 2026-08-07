@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/drift_database.dart';
+import '../../services/telemetry/telemetry_service.dart';
 
 /// The filename used for the iCloud backup snapshot.
 const _kICloudBackupFileName = 'icloud_backup.sqlite';
@@ -148,6 +149,8 @@ class ICloudSyncService {
 
       await _setLastSyncTimestamp(DateTime.now());
 
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
       return true;
     } catch (e, st) {
       debugPrint('iCloud backup: failed with error: $e');

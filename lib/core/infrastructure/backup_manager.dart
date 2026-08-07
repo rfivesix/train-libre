@@ -1,5 +1,7 @@
 // lib/core/infrastructure/backup_manager.dart
 
+import 'dart:async';
+import '../../services/telemetry/telemetry_service.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -423,7 +425,12 @@ class BackupManager {
       ),
     );
     if (await file.exists()) await file.delete();
-    return res.status == ShareResultStatus.success;
+    final shared = res.status == ShareResultStatus.success;
+    if (shared) {
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.jsonBackupCreated));
+    }
+    return shared;
   }
 
   Future<bool> importFullBackupAuto(
@@ -1006,6 +1013,8 @@ class BackupManager {
       onProgress?.call('done', 1.0);
     }
     debugPrint("Backup import succeeded.");
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.jsonBackupRestored));
     return true;
   }
 
@@ -1376,7 +1385,12 @@ class BackupManager {
       ),
     );
     await file.delete();
-    return res.status == ShareResultStatus.success;
+    final exported = res.status == ShareResultStatus.success;
+    if (exported) {
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.csvExported));
+    }
+    return exported;
   }
 
   Future<bool> exportWorkoutsAsCsv() async {
@@ -1437,7 +1451,12 @@ class BackupManager {
       ),
     );
     await file.delete();
-    return res.status == ShareResultStatus.success;
+    final exported = res.status == ShareResultStatus.success;
+    if (exported) {
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.csvExported));
+    }
+    return exported;
   }
 
   Future<bool> exportMeasurementsAsCsv() async {
@@ -1635,7 +1654,12 @@ class BackupManager {
       final file = File(f.path);
       if (await file.exists()) await file.delete();
     }
-    return res.status == ShareResultStatus.success;
+    final exported = res.status == ShareResultStatus.success;
+    if (exported) {
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.csvExported));
+    }
+    return exported;
   }
 
   static Future<Directory> resolveWritableBackupDirectory({

@@ -76,7 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadOffCatalogSettings();
     _loadBaseFoodLanguage();
     _loadTelemetryOptIn();
-    unawaited(TelemetryService.instance.trackScreenView(screenName: 'settings_main'));
+    unawaited(TelemetryService.instance.trackScreenView(screenName: ScreenName.settingsMain));
   }
 
 

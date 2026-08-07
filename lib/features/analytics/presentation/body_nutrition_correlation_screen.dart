@@ -17,6 +17,8 @@ import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import 'package:skeletonizer/skeletonizer.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class BodyNutritionCorrelationScreen extends StatefulWidget {
   final int initialRangeIndex;
@@ -51,6 +53,8 @@ class _BodyNutritionCorrelationScreenState
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.bodyNutritionCorrelation));
     final index = widget.initialRangeIndex.clamp(0, 4);
     _activeBlock = _validBlocks[index];
     _load();

@@ -177,5 +177,80 @@ void main() {
         submissionMethod: 'posthog_direct',
       );
     });
+
+    test(
+        'concurrent food log increments are not lost to interleaved read-modify-write',
+        () async {
+      await postHogService.optIn();
+
+      // Mirrors logging a saved meal / confirming an AI meal scan: every item is
+      // inserted in a tight loop and each insert fires an unawaited increment.
+      await Future.wait([
+        for (var i = 0; i < 25; i++)
+          postHogService.incrementFoodLogCount(
+            source: FoodLogSource.manualSearch,
+          ),
+      ]);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getInt('telemetry_daily_food_count'), 25);
+    });
+
+    test('food log sources are recorded distinctly and sanitized', () async {
+      await postHogService.optIn();
+
+      await postHogService.incrementFoodLogCount(
+        source: FoodLogSource.barcodeScan,
+      );
+      await postHogService.incrementFoodLogCount(
+        source: FoodLogSource.aiCapture,
+      );
+      await postHogService.incrementFoodLogCount(
+        source: FoodLogSource.barcodeScan,
+      );
+      // An unknown source must never reach PostHog verbatim.
+      await postHogService.incrementFoodLogCount(source: 'Arme + Schultern');
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getInt('telemetry_daily_food_count'), 4);
+      expect(
+        prefs.getStringList('telemetry_daily_food_sources'),
+        [
+          FoodLogSource.barcodeScan,
+          FoodLogSource.aiCapture,
+          FoodLogSource.manualSearch,
+        ],
+      );
+    });
+
+    test('food log counter stays untouched while opted out', () async {
+      await postHogService.optOut();
+      await postHogService.incrementFoodLogCount(
+        source: FoodLogSource.manualSearch,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getInt('telemetry_daily_food_count'), isNull);
+    });
+
+    test('FoodLogSource.sanitize falls back to manual search', () {
+      expect(FoodLogSource.sanitize(null), FoodLogSource.manualSearch);
+      expect(FoodLogSource.sanitize(''), FoodLogSource.manualSearch);
+      expect(FoodLogSource.sanitize('diary_entry'), FoodLogSource.manualSearch);
+      expect(
+        FoodLogSource.sanitize(FoodLogSource.aiCapture),
+        FoodLogSource.aiCapture,
+      );
+    });
+
+    test('screen and feature catalogs contain no user-authored text', () {
+      final identifierPattern = RegExp(r'^[a-z][a-z0-9_]*$');
+      for (final key in FeatureKey.all) {
+        expect(identifierPattern.hasMatch(key), isTrue, reason: key);
+      }
+      for (final source in FoodLogSource.all) {
+        expect(identifierPattern.hasMatch(source), isTrue, reason: source);
+      }
+    });
   });
 }

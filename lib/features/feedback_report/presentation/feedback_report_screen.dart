@@ -58,7 +58,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
         );
     _actions = widget.actions ?? FeedbackReportActions();
     unawaited(TelemetryService.instance.trackScreenView(
-        screenName: 'feedback_report'));
+        screenName: ScreenName.feedbackReport));
   }
 
   @override

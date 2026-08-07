@@ -20,6 +20,7 @@ import '../../sleep/data/sleep_day_repository.dart';
 import '../../pulse/domain/pulse_models.dart';
 import 'diary_health_sync_coordinator.dart';
 import '../../workout/domain/models/workout_log.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 DateTime normalizeDiaryDate(DateTime date) => date.dateOnly;
 
@@ -414,8 +415,12 @@ class DiaryViewModel extends ChangeNotifier {
     return await _nutritionRepo.insertFluidEntry(entry);
   }
 
-  Future<int> insertFoodEntry(FoodEntry entry) async {
-    return await _nutritionRepo.insertFoodEntry(entry);
+  Future<int> insertFoodEntry(
+    FoodEntry entry, {
+    String telemetrySource = FoodLogSource.manualSearch,
+  }) async {
+    return await _nutritionRepo.insertFoodEntry(entry,
+        telemetrySource: telemetrySource);
   }
 
   Future<void> logCaffeineDose(

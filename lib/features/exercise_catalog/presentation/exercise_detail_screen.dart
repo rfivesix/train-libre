@@ -22,6 +22,8 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 enum ExerciseMetric { maxWeight, volume, est1rm, distance, duration, pace }
 
@@ -67,6 +69,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.exerciseDetail));
     _loadData();
   }
 

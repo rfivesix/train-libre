@@ -26,6 +26,8 @@ import 'widgets/food_item_search_tile.dart';
 import 'widgets/meal_item_card.dart';
 import 'widgets/catalog_category_tile.dart';
 import 'widgets/confirm_log_meal_bottom_sheet.dart';
+import 'add_food_navigation_result.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import 'package:provider/provider.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
@@ -260,6 +262,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.addFoodSearch));
     _tabController = TabController(
       length: 4,
       vsync: this,
@@ -645,8 +649,11 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
       // If the product was found...
       if (foodItem != null) {
-        // ...close AddFoodScreen and return the found item.
-        Navigator.of(context).pop(foodItem);
+        unawaited(TelemetryService.instance
+            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        // ...close AddFoodScreen and return the found item, tagged so the
+        // logging screen can attribute the entry to the scanner.
+        Navigator.of(context).pop(ScannedFoodItem(foodItem));
       } else {
         // Otherwise, show a short info message.
         if (mounted) {
@@ -1079,6 +1086,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   quantityInGrams: qty,
                   mealType: mealType,
                 ),
+                telemetrySource: FoodLogSource.meal,
               );
 
               final fi = products[bc];

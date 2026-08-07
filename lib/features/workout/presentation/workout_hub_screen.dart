@@ -18,6 +18,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'live_workout_view_model.dart';
 import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// The central management screen for all workout-related activities.
 ///
@@ -103,6 +105,8 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     final newLog = await WorkoutLocalDataSource.instance.startWorkout(
       routineName: routine.name,
     );
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.routineStarted));
     if (mounted) {
       HapticFeedbackService.instance.confirmationFeedback();
       Navigator.of(context).push(

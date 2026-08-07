@@ -5,6 +5,8 @@ import '../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 enum MealType { breakfast, lunch, dinner, snack }
 
@@ -74,6 +76,8 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.mealEditor));
     _nameCtrl = TextEditingController(text: widget.initialName ?? '');
     _type = widget.initialType;
     _nameCtrl.addListener(() => setState(() {})); // Update button state

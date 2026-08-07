@@ -10,6 +10,7 @@ import '../features/supplements/domain/models/supplement_log.dart';
 import '../features/analytics/domain/models/chart_data_point.dart';
 
 import '../features/diary/data/sources/diary_local_data_source.dart';
+import '../services/telemetry/telemetry_service.dart';
 import '../features/diary/data/sources/meal_local_data_source.dart';
 import '../features/profile/data/sources/profile_local_data_source.dart';
 import '../features/supplements/data/sources/supplement_local_data_source.dart';
@@ -195,8 +196,12 @@ class DatabaseHelper {
       StepsLocalDataSource(dbInstance);
 
   // Proxies
-  Future<int> insertFoodEntry(FoodEntry entry) =>
-      diaryLocalDataSource.insertFoodEntry(entry);
+  Future<int> insertFoodEntry(
+    FoodEntry entry, {
+    String telemetrySource = FoodLogSource.manualSearch,
+  }) =>
+      diaryLocalDataSource.insertFoodEntry(entry,
+          telemetrySource: telemetrySource);
   Future<int> insertFluidEntry(FluidEntry entry) =>
       diaryLocalDataSource.insertFluidEntry(entry);
   Future<void> deleteFluidEntryByLinkedFoodId(int id) =>

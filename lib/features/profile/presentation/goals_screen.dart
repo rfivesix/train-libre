@@ -13,6 +13,8 @@ import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/domain/goal_models.dart';
 import '../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
 import '../../../data/database_helper.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 
 
@@ -59,6 +61,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.goalEditor));
     _recommendationService = widget.recommendationService ??
         AdaptiveNutritionRecommendationService(
             databaseHelper: DatabaseHelper.instance);

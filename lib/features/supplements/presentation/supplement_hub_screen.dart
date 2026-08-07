@@ -16,6 +16,8 @@ import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/glass_actionable_card.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for managing the catalog of available supplements (Supplement Hub).
 class SupplementHubScreen extends StatefulWidget {
@@ -38,6 +40,8 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.supplementsOverview));
     _load();
   }
 

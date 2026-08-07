@@ -21,6 +21,151 @@ class CountryMetadata {
   });
 }
 
+/// The surface a food entry was logged from, reported in the `sources` list of
+/// the aggregated `daily_food_logged` event.
+///
+/// Values are a closed set so the event can never carry free-form text.
+abstract class FoodLogSource {
+  /// Picked from search, favourites or the recents list and logged individually.
+  static const String manualSearch = 'manual_search';
+
+  /// Resolved by scanning a product barcode.
+  static const String barcodeScan = 'barcode_scan';
+
+  /// Recognised by the AI meal scanner and confirmed in the review screen.
+  static const String aiCapture = 'ai_capture';
+
+  /// Logged in bulk as part of a saved meal or recipe.
+  static const String meal = 'meal';
+
+  static const Set<String> all = {manualSearch, barcodeScan, aiCapture, meal};
+
+  /// Normalizes an arbitrary string to a known source, falling back to
+  /// [manualSearch] so an unexpected caller can never leak text into telemetry.
+  static String sanitize(String? raw) =>
+      all.contains(raw) ? raw! : manualSearch;
+}
+
+/// Closed set of `feature_key` values for the `feature_used` event.
+///
+/// Using constants rather than string literals at the call sites keeps the
+/// values in lockstep with the catalog in TELEMETRY.md and makes it impossible
+/// to accidentally send user-authored text as a feature key.
+abstract class FeatureKey {
+  // Workout
+  static const String routineCreated = 'routine_created';
+  static const String routineStarted = 'routine_started';
+
+  /// Sharing is text/image based. The catalog previously named this
+  /// `routine_shared_qr`, but the app has no QR sharing — only the share sheet
+  /// in [ShareService], so the key reflects what actually happens.
+  static const String routineShared = 'routine_shared';
+  static const String workoutImported = 'workout_imported';
+  static const String customExerciseCreated = 'custom_exercise_created';
+
+  // Nutrition
+  static const String barcodeScanned = 'barcode_scanned';
+  static const String customFoodCreated = 'custom_food_created';
+  static const String recipeCreated = 'recipe_created';
+  static const String supplementLogged = 'supplement_logged';
+
+  // Body & health
+  static const String bodyMeasurementLogged = 'body_measurement_logged';
+  static const String appleHealthExported = 'apple_health_exported';
+  static const String healthConnectExported = 'health_connect_exported';
+
+  // Data management
+  static const String jsonBackupCreated = 'json_backup_created';
+  static const String jsonBackupRestored = 'json_backup_restored';
+  static const String icloudSyncTriggered = 'icloud_sync_triggered';
+  static const String csvExported = 'csv_exported';
+
+  // Onboarding & guidance
+  static const String appTourStarted = 'app_tour_started';
+  static const String appTourCompleted = 'app_tour_completed';
+
+  static const Set<String> all = {
+    routineCreated,
+    routineStarted,
+    routineShared,
+    workoutImported,
+    customExerciseCreated,
+    barcodeScanned,
+    customFoodCreated,
+    recipeCreated,
+    supplementLogged,
+    bodyMeasurementLogged,
+    appleHealthExported,
+    healthConnectExported,
+    jsonBackupCreated,
+    jsonBackupRestored,
+    icloudSyncTriggered,
+    csvExported,
+    appTourStarted,
+    appTourCompleted,
+  };
+}
+
+/// Closed set of `screen_name` values for the `screen_viewed` event.
+abstract class ScreenName {
+  // Tabs
+  static const String workoutTab = 'workout_tab';
+  static const String diaryTab = 'diary_tab';
+  static const String analyticsTab = 'analytics_tab';
+  static const String profileTab = 'profile_tab';
+
+  // Workout
+  static const String liveWorkout = 'live_workout';
+  static const String routineEditor = 'routine_editor';
+  static const String routineList = 'routine_list';
+  static const String workoutSummary = 'workout_summary';
+  static const String workoutHistory = 'workout_history';
+  static const String workoutDetail = 'workout_detail';
+  static const String exerciseCatalog = 'exercise_catalog';
+  static const String exerciseDetail = 'exercise_detail';
+  static const String createExercise = 'create_exercise';
+
+  // Diary
+  static const String diaryDayView = 'diary_day_view';
+  static const String nutritionHub = 'nutrition_hub';
+  static const String mealList = 'meal_list';
+  static const String addFoodSearch = 'add_food_search';
+  static const String foodDetail = 'food_detail';
+  static const String createFood = 'create_food';
+  static const String aiMealCapture = 'ai_meal_capture';
+  static const String aiMealReview = 'ai_meal_review';
+  static const String barcodeScanner = 'barcode_scanner';
+  static const String mealEditor = 'meal_editor';
+  static const String foodExplorer = 'food_explorer';
+
+  // Analytics
+  static const String statisticsHub = 'statistics_hub';
+  static const String muscleGroupAnalytics = 'muscle_group_analytics';
+  static const String prDashboard = 'pr_dashboard';
+  static const String consistencyTracker = 'consistency_tracker';
+  static const String bodyNutritionCorrelation = 'body_nutrition_correlation';
+  static const String recoveryTracker = 'recovery_tracker';
+
+  // Health & utilities
+  static const String bodyMeasurements = 'body_measurements';
+  static const String goalEditor = 'goal_editor';
+  static const String pulseOverview = 'pulse_overview';
+  static const String sleepOverview = 'sleep_overview';
+  static const String stepsOverview = 'steps_overview';
+  static const String supplementsOverview = 'supplements_overview';
+  static const String settingsMain = 'settings_main';
+  static const String settingsTab = 'settings_tab';
+  static const String aiSettings = 'ai_settings';
+
+  /// Backup, CSV export, import and local-data deletion all live on one screen
+  /// ([DataManagementScreen]), so the catalog's separate `export_data`,
+  /// `import_data` and `cloud_backup` names had no screen to attach to.
+  static const String dataManagement = 'data_management';
+  static const String aboutApp = 'about_app';
+  static const String legalPrivacy = 'legal_privacy';
+  static const String feedbackReport = 'feedback_report';
+}
+
 /// Abstract TelemetryService defining the contract for tracking anonymous,
 /// privacy-friendly usage metrics.
 abstract class TelemetryService {

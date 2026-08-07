@@ -15,6 +15,8 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen displaying a list of all previously completed workout sessions.
 ///
@@ -32,6 +34,8 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.workoutHistory));
     _logsStream = Provider.of<IWorkoutRepository>(context, listen: false)
         .watchFullWorkoutLogs();
   }

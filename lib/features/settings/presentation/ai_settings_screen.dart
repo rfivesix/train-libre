@@ -14,6 +14,8 @@ import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -44,6 +46,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.aiSettings));
     _loadSettings();
   }
 

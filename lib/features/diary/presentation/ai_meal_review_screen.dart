@@ -26,6 +26,8 @@ import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
+import 'dart:async';
 
 /// Review screen for AI-suggested food items.
 ///
@@ -70,6 +72,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.aiMealReview));
     _selectedMealType = widget.initialMealType ??
         MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
     _selectedTimestamp = (widget.initialDate ?? DateTime.now()).withCurrentTime;
@@ -429,7 +433,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           timestamp: _selectedTimestamp,
           mealType: _selectedMealType,
         );
-        await db.insertFoodEntry(entry);
+        await db.insertFoodEntry(entry,
+            telemetrySource: FoodLogSource.aiCapture);
       }
       saved = true;
     } catch (error) {

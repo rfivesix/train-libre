@@ -28,7 +28,7 @@ class _LegalScreenState extends State<LegalScreen> {
   void initState() {
     super.initState();
     unawaited(TelemetryService.instance
-        .trackScreenView(screenName: 'legal_privacy'));
+        .trackScreenView(screenName: ScreenName.legalPrivacy));
   }
   @override
   Widget build(BuildContext context) {

@@ -38,6 +38,7 @@ import 'widgets/exercise_notes_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A detailed view for a single completed [WorkoutLog].
 ///
@@ -84,6 +85,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.workoutDetail));
     _notesController = TextEditingController();
     _loadDetails();
     _setLogsSubscription = context

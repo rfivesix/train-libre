@@ -49,6 +49,7 @@ import '../../../core/infrastructure/share_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
 ///
@@ -725,7 +726,10 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       quantityInGrams: quantity,
       mealType: resultMealType,
     );
-    final newFoodEntryId = await vm.insertFoodEntry(newFoodEntry);
+    final newFoodEntryId = await vm.insertFoodEntry(
+      newFoodEntry,
+      telemetrySource: addFoodResult.source,
+    );
 
     if (!mounted) return;
 
@@ -1274,6 +1278,8 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.diaryDayView));
     _checkNotifier();
   }
 

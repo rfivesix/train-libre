@@ -22,6 +22,8 @@ import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../statistics/domain/timeframe_block.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class MuscleGroupAnalyticsScreen extends StatefulWidget {
   const MuscleGroupAnalyticsScreen({super.key});
@@ -60,6 +62,8 @@ class _MuscleGroupAnalyticsScreenState
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.muscleGroupAnalytics));
     _loadData();
   }
 

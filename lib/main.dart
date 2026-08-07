@@ -48,6 +48,7 @@ import 'features/supplements/data/sources/supplement_local_data_source.dart';
 import 'package:workmanager/workmanager.dart';
 import 'features/nutrition_recommendation/data/recommendation_service.dart';
 import 'services/local_notification_service.dart';
+import 'services/telemetry/telemetry_service.dart';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -262,6 +263,11 @@ class _MyAppState extends State<MyApp> {
   /// Silently snapshot and upload the database to iCloud when the app is
   /// backgrounded. Only runs if the user has enabled iCloud sync.
   Future<void> _onAppPause() async {
+    // Flush the aggregated food-log counter here rather than only from
+    // MainScreen, so entries still get reported when the app is backgrounded
+    // from onboarding or any other screen outside the tab shell.
+    unawaited(TelemetryService.instance.flushDailyFoodLog());
+
     final db = DatabaseHelper.driftDb;
     if (db == null) return;
     // Fire-and-forget — we intentionally do not await so the UI is never

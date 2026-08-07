@@ -25,6 +25,7 @@ import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for creating or modifying a [Routine].
 ///
@@ -170,6 +171,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.routineEditor));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _fabOverlayController.show();
@@ -378,6 +381,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       final newRoutine = await WorkoutLocalDataSource.instance.createRoutine(
         _nameController.text.trim(),
       );
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.routineCreated));
       currentRoutineId = newRoutine.id;
       if (mounted) {
         setState(() {

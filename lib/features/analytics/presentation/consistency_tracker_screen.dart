@@ -19,6 +19,8 @@ import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../statistics/domain/timeframe_block.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 enum _ConsistencyMetric { volume, duration, frequency }
 
@@ -65,6 +67,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.consistencyTracker));
     _loadData();
   }
 

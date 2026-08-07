@@ -22,6 +22,8 @@ import '../widgets/sleep_score_card.dart';
 import '../widgets/sleep_timeline_card.dart';
 import 'sleep_day_view_model.dart' hide SleepPeriodScope;
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'dart:async';
+import '../../../../services/telemetry/telemetry_service.dart';
 
 
 class SleepDayOverviewPage extends StatefulWidget {
@@ -68,6 +70,8 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.sleepOverview));
     _anchorDay = _normalizeDate(
       widget._selectedDay ?? widget._viewModel?.selectedDay ?? DateTime.now(),
     );

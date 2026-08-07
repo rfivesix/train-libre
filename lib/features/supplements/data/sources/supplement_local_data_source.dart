@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:drift/drift.dart' as drift;
+import '../../../../services/telemetry/telemetry_service.dart';
 import '../../../../data/drift_database.dart' as db;
 import '../../../../data/database_helper.dart';
 import '../../domain/models/supplement.dart';
@@ -328,6 +330,8 @@ class SupplementLocalDataSource {
   }
 
   Future<void> insertSupplementLog(SupplementLog log) async {
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.supplementLogged));
     String? sourceNutritionLogUuid;
     if (log.sourceFoodEntryId != null) {
       final nutritionRow = await (dbInstance.select(dbInstance.nutritionLogs)

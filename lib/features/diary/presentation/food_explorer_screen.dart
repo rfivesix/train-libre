@@ -14,6 +14,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart'; // Added
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for exploring and managing the food database independently of tracking.
 ///
@@ -53,6 +54,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.foodExplorer));
     _tabController = TabController(length: 2, vsync: this);
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {

@@ -10,6 +10,8 @@ import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../domain/body_slug_mapper.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for creating custom exercises.
 class CreateExerciseScreen extends StatefulWidget {
@@ -75,6 +77,8 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.createExercise));
     _loadData();
     _nameController.addListener(() => setState(() {}));
   }
@@ -157,6 +161,8 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
         await _repository.updateCustomExercise(exercise);
       } else {
         await _repository.insertExercise(exercise);
+        unawaited(TelemetryService.instance
+            .trackFeatureUsed(featureKey: FeatureKey.customExerciseCreated));
       }
 
       if (mounted) {

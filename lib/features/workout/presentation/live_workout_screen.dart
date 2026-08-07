@@ -35,6 +35,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 String _formatPauseTime(int? seconds) => formatPauseDuration(seconds);
 
@@ -81,6 +82,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.liveWorkout));
     _prAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),

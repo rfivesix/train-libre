@@ -17,6 +17,7 @@ import '../../../widgets/common/app_section_header.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A lightweight, general-purpose food picker that returns a [FoodItem].
 ///
@@ -113,6 +114,8 @@ class _GeneralFoodSelectionScreenState
       if (!mounted) return;
 
       if (foodItem != null) {
+        unawaited(TelemetryService.instance
+            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
         Navigator.of(context).pop(foodItem);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
