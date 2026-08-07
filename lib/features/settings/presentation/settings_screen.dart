@@ -942,63 +942,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showOverviewExtraNutrientPicker(
-      BuildContext context, AppLocalizations l10n) async {
-    final selected = await showGlassBottomMenu<String>(
-      context: context,
-      title: l10n.settingsOverviewExtraNutrientTitle,
-      contentBuilder: (sheetContext, closeSheet) {
-        final options = [
-          {'key': 'fiber', 'label': l10n.fiber, 'icon': LucideIcons.wheat},
-          {'key': 'sugar', 'label': l10n.sugar, 'icon': LucideIcons.candy},
-          {'key': 'salt', 'label': l10n.salt, 'icon': LucideIcons.cooking_pot},
-        ];
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: options.map((opt) {
-            final key = opt['key'] as String;
-            final label = opt['label'] as String;
-            final icon = opt['icon'] as IconData;
-            final isSelected = _overviewExtraNutrient == key;
-
-            return ListTile(
-              leading: Icon(
-                icon,
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              title: Text(
-                label,
-                style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              trailing: isSelected
-                  ? Icon(
-                      LucideIcons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
-                  : null,
-              onTap: () {
-                closeSheet();
-                Navigator.of(sheetContext).pop(key);
-              },
-            );
-          }).toList(),
-        );
-      },
-    );
-
-    if (selected != null && selected != _overviewExtraNutrient) {
-      await UserPreferencesRepository.instance
-          .setOverviewExtraNutrient(selected);
-      if (!mounted) return;
-      setState(() => _overviewExtraNutrient = selected);
-      hasStepsSettingsChanged = true;
-    }
-  }
 }
 
 class _OffCatalogRegionPickerContent extends StatefulWidget {

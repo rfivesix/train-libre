@@ -714,7 +714,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (_searchController.text.isNotEmpty) ...[
-                        // Zustand A: Text ist da -> Zeige NUR das X zum Löschen
+                        // State A: Text present -> Show clear button
                         SizedBox(
                           width: 48,
                           height: 48,
@@ -733,7 +733,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           ),
                         ),
                       ] else ...[
-                        // Zustand B: Feld ist leer -> Zeige NUR den Barcode-Scanner
+                        // State B: Empty field -> Show barcode scanner
                         SizedBox(
                           width: 48,
                           height: 48,
@@ -751,10 +751,10 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       ],
                       const SizedBox(
                           width: DesignConstants
-                              .spacingXS), // Minimaler Abstand zum Kapselrand
+                              .spacingXS), // Minimal spacing to capsule border
                     ],
                   ),
-                  // Symmetrisches Padding für links und rechts im Gehäuse
+                  // Symmetric horizontal padding inside container
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: DesignConstants.spacingM,
                       vertical: DesignConstants.spacingM),
@@ -762,7 +762,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               ),
             ),
           ),
-          // 2. Action Tile (Nur für KI, falls aktiviert)
+          // 2. Action Tile (AI meal capture, if enabled)
           if (Provider.of<ThemeService>(context).isAiEnabled) ...[
             const SizedBox(width: DesignConstants.spacingM),
             Container(
@@ -771,7 +771,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(DesignConstants
-                    .borderRadiusM), // Behält die eckigeren Ecken
+                    .borderRadiusM), // Matches medium border radius
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,

@@ -119,11 +119,11 @@ class _AppButtonState extends State<AppButton>
       case AppButtonVariant.primary:
         foregroundColor = theme.colorScheme.onPrimary;
         glassSettings = LiquidGlassSettings(
-          thickness: 18, // Dünneres Glas = weniger graue Brechung
-          blur: 1.5, // Etwas weniger Weichzeichner für klarere Farben
-          glassColor: primaryColor.withValues(alpha: 0.35), // Schön transparent
-          lightIntensity: isDark ? 0.85 : 0.95, // Keine graue Suppe mehr
-          saturation: 1.60, // Sättigung hochgeschraubt für sattes Grün
+          thickness: 18, // Thinner glass = reduced gray refraction
+          blur: 1.5, // Subtle blur for sharper colors
+          glassColor: primaryColor.withValues(alpha: 0.35), // Transparent glass base
+          lightIntensity: isDark ? 0.85 : 0.95, // High light intensity for clarity
+          saturation: 1.60, // Enhanced saturation for vibrant tint
           ambientRim: 0.15,
         );
         glowColor = Colors.white.withValues(alpha: isDark ? 0.15 : 0.10);
