@@ -847,10 +847,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     if (_workoutLog != null) {
       final logId = _workoutLog!.id!;
-      final incompleteSetIds = _setLogs.values
-          .where((s) => s.isCompleted == false && s.id != null)
-          .map((s) => s.id!)
-          .toList();
+      // BOLT OPTIMIZATION: Replaced chained .where().map().toList() with a single-pass loop
+      final incompleteSetIds = <int>[];
+      for (final s in _setLogs.values) {
+        if (s.isCompleted == false && s.id != null) {
+          incompleteSetIds.add(s.id!);
+        }
+      }
 
       if (incompleteSetIds.isNotEmpty) {
         await _repository.deleteSetLogs(incompleteSetIds);
@@ -873,15 +876,32 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       final duration = _elapsedDuration;
       final workoutType = (_workoutLog?.routineId != null) ? 'routine' : 'custom';
-      final completedSets = _setLogs.values.where((s) => s.isCompleted == true).toList();
-      final totalSetCount = completedSets.length;
+      // BOLT OPTIMIZATION: Replaced multiple .where(), .any(), .map() passes with a single loop
+      int totalSetCount = 0;
+      int rirSetsCount = 0;
+      bool hasWarmupSets = false;
+      bool hasDropSets = false;
+      bool hasFailureSets = false;
+      final supersetIds = <int>{};
 
-      final rirSetsCount = completedSets.where((s) => s.rir != null || s.rpe != null).length;
-      final hasWarmupSets = completedSets.any((s) => s.setType.toLowerCase().contains('warm'));
-      final hasDropSets = completedSets.any((s) => s.setType.toLowerCase().contains('drop'));
-      final hasFailureSets = completedSets.any((s) => s.setType.toLowerCase().contains('fail'));
+      for (final s in _setLogs.values) {
+        if (s.isCompleted == true) {
+          totalSetCount++;
 
-      final supersetIds = completedSets.map((s) => s.supersetId).whereType<int>().toSet();
+          if (s.rir != null || s.rpe != null) {
+            rirSetsCount++;
+          }
+
+          final type = s.setType.toLowerCase();
+          if (!hasWarmupSets && type.contains('warm')) hasWarmupSets = true;
+          if (!hasDropSets && type.contains('drop')) hasDropSets = true;
+          if (!hasFailureSets && type.contains('fail')) hasFailureSets = true;
+
+          if (s.supersetId != null) {
+            supersetIds.add(s.supersetId!);
+          }
+        }
+      }
 
 
       await _repository.finishWorkout(logId, title: title, notes: notes);
