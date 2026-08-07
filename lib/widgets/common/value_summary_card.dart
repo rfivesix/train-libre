@@ -32,7 +32,7 @@ class ValueSummaryCard extends StatelessWidget {
     this.subtitle,
     this.onTap,
     this.disableShadow = false,
-    this.useSecondarySurface = true,
+    this.useSecondarySurface = false,
     this.backgroundColor,
   });
 
