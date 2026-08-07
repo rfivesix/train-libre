@@ -58,13 +58,15 @@ class FrostedContainer extends StatelessWidget {
           padding: padding,
           decoration: ShapeDecoration(
             color: isDark
-                ? const Color(0xFF2A2A2A)
+                ? DesignConstants.summaryCardDarkMode
                 : cs.surface.withValues(alpha: 0.95),
             shape: squircle.copyWith(
-              side: BorderSide(
-                color: cs.onSurface.withValues(alpha: 0.08),
-                width: 1,
-              ),
+              side: isDark
+                  ? BorderSide.none
+                  : BorderSide(
+                      color: cs.onSurface.withValues(alpha: 0.08),
+                      width: 1,
+                    ),
             ),
             shadows: [
               BoxShadow(

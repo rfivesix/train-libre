@@ -275,7 +275,7 @@ class _MyAppState extends State<MyApp> {
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
 
-    const cardDark = Color(0xFF171717);
+    const cardDark = Color(0xFF1C1C1E);
     const cardLight = Colors.white;
 
     return DynamicColorBuilder(

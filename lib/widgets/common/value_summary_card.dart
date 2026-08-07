@@ -18,6 +18,12 @@ class ValueSummaryCard extends StatelessWidget {
   /// Whether to disable the drop shadow.
   final bool disableShadow;
 
+  /// Whether to use the secondary surface color (tertiarySystemGroupedBackground) for contrast inside parent cards.
+  final bool useSecondarySurface;
+
+  /// Optional custom background color override.
+  final Color? backgroundColor;
+
   const ValueSummaryCard({
     super.key,
     required this.label,
@@ -26,6 +32,8 @@ class ValueSummaryCard extends StatelessWidget {
     this.subtitle,
     this.onTap,
     this.disableShadow = false,
+    this.useSecondarySurface = true,
+    this.backgroundColor,
   });
 
   @override
@@ -36,6 +44,8 @@ class ValueSummaryCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       onTap: onTap,
       disableShadow: disableShadow,
+      useSecondarySurface: useSecondarySurface,
+      backgroundColor: backgroundColor,
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.spacingM,
         vertical: DesignConstants.spacingS,

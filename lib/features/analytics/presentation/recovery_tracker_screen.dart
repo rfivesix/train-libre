@@ -171,8 +171,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
     // Blend: card surface + color tint as a single background
     final surfaceBase = isDark
-        ? DesignConstants.summaryCardDarkMode
-        : theme.colorScheme.surface.withValues(alpha: 0.95);
+        ? DesignConstants.summaryCardSecondaryDarkMode
+        : DesignConstants.summaryCardSecondaryLightMode;
 
     return Expanded(
       child: Container(

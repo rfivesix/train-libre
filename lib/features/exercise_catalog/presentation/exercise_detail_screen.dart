@@ -552,6 +552,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         value: value,
         subtitle: subtitle,
         valueColor: valueColor,
+        useSecondarySurface: false,
       );
     }).toList();
 

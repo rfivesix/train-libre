@@ -92,7 +92,9 @@ class DesignConstants {
   );
 
   // === COLORS ===
-  static const Color summaryCardDarkMode = Color(0xFF2A2A2A);
+  static const Color summaryCardDarkMode = Color(0xFF1C1C1E);
+  static const Color summaryCardSecondaryDarkMode = Color(0xFF2C2C2E);
+  static const Color summaryCardSecondaryLightMode = Color(0xFFF2F2F7);
 
   // === GLASSMORPHISM ===
   // Glassmorphic Component Sizes (Apple HIG Aligned)

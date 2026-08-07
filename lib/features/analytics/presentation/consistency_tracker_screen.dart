@@ -566,8 +566,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                           getTooltipColor: (_) {
                             final isDark = Theme.of(context).brightness == Brightness.dark;
                             return isDark
-                                ? const Color(0xFF2A2A2A)
-                                : Theme.of(context).colorScheme.surface.withValues(alpha: 0.95);
+                                ? DesignConstants.summaryCardDarkMode
+                                : DesignConstants.summaryCardSecondaryLightMode;
                           },
                           tooltipBorder: BorderSide(
                             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),

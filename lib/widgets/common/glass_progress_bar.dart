@@ -166,13 +166,13 @@ class _GlassProgressBarPainter extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: (disableShadow || !isDark)
+        boxShadow: (disableShadow || isDark)
             ? null
             : [
                 BoxShadow(
-                  blurRadius: 7,
+                  blurRadius: 8,
                   offset: const Offset(0, 2),
-                  color: cs.shadow.withValues(alpha: 0.2),
+                  color: cs.shadow.withValues(alpha: 0.05),
                 ),
               ],
       ),
@@ -182,15 +182,10 @@ class _GlassProgressBarPainter extends StatelessWidget {
           height: height,
           decoration: ShapeDecoration(
             color: isDark
-                ? const Color(0xFF2A2A2A)
+                ? DesignConstants.summaryCardDarkMode
                 : Colors.white,
             shape: squircle.copyWith(
-              side: isDark
-                  ? BorderSide(
-                      color: cs.onSurface.withValues(alpha: 0.08),
-                      width: 1,
-                    )
-                  : BorderSide.none,
+              side: BorderSide.none,
             ),
           ),
           child: LayoutBuilder(
