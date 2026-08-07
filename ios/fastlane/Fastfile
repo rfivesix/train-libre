@@ -59,4 +59,29 @@ platform :ios do
       force: true
     )
   end
+
+  desc "Download store metadata from App Store Connect"
+  lane :download_metadata do
+    meta_dir = File.expand_path("../metadata", __FILE__)
+    UI.message("Downloading metadata to: #{meta_dir}")
+
+    sh("bundle exec fastlane deliver download_metadata --force --metadata_path '#{meta_dir}' --app_identifier 'com.rfivesix.trainlibre' --username 'accounts.richard@schotte.me' --team_id 'QUXZN5283U'")
+  end
+
+  desc "Upload store metadata to App Store Connect"
+  lane :upload_metadata do
+    meta_dir = File.expand_path("../metadata", __FILE__)
+    UI.message("Uploading metadata from: #{meta_dir}")
+
+    deliver(
+      app_identifier: "com.rfivesix.trainlibre",
+      username: "accounts.richard@schotte.me",
+      app: "6767055511",
+      team_id: "QUXZN5283U",
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      metadata_path: meta_dir,
+      force: true
+    )
+  end
 end
