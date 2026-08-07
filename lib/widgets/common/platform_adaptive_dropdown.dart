@@ -154,7 +154,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
         // In Light Mode inside white cards (0xFFFFFFFF), input controls need subtle background tinting
         // and border outlining so they don't appear as invisible "white-on-white".
         final containerFillColor = isDark
-            ? Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF1C1C1C)
+            ? Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E)
             : const Color(0xFFF2F2F7);
 
         final borderColor = isDark

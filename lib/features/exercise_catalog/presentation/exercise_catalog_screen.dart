@@ -336,7 +336,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         ? colorScheme.primary
         : (theme.inputDecorationTheme.fillColor ??
             (theme.brightness == Brightness.dark
-                ? const Color(0xFF1C1C1C)
+                ? const Color(0xFF2C2C2E)
                 : const Color(0xFFF3F3F3)));
 
     final iconColor =

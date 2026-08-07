@@ -1,7 +1,7 @@
 # Informativa sulla privacy per l'applicazione mobile «Train Libre» e il sito web
 
-**Versione 1.6**  
-**Aggiornato al: 27 luglio 2026**
+**Versione 1.7**  
+**Aggiornato al: 7 agosto 2026**
 
 Questa informativa sulla privacy vi informa, ai sensi degli articoli 13 e 14 del Regolamento generale sulla protezione dei dati (GDPR), sul trattamento dei dati personali e dei dati relativi alla salute nell'applicazione mobile "Train Libre" e durante la visita a questo sito web.
 
@@ -32,7 +32,7 @@ Train Libre si basa sui principi di "privacy by design" e "privacy by default" (
 * **Nessun account utente:** Non è richiesta alcuna registrazione. Nessun indirizzo email, password o credenziale viene memorizzato su server remoti.
 * **Architettura Local-First:** Tutti i dati di profilo, allenamenti, pasti, misurazioni e parametri vitali sono memorizzati esclusivamente in un database SQLite locale sul dispositivo.
 * **Nessun server centrale:** Non gestiamo cloud per raccogliere o elaborare le tue informazioni giornaliere. I tuoi dati rimangono in tuo possesso fisico.
-* **Nessun tracciamento commerciale (Telemetria anonima opzionale):** Train Libre rinuncia a reti pubblicitarie, tracciamento commerciale e profilazione comportamentale. Un'integrazione di statistiche d'uso puramente anonima (PostHog EU) è disattivata di default e non raccoglie alcuna informazione personale identificabile (PII) né contenuti personali di allenamento o alimentazione.
+* **Nessun tracciamento commerciale (Statistiche d'uso pseudonimizzate opzionali):** Train Libre rinuncia a reti pubblicitarie, tracciamento commerciale e profilazione comportamentale. È disponibile una rilevazione d'uso puramente opzionale (PostHog EU), disattivata di default, che prima del vostro consenso non stabilisce alcuna connessione e non trasmette né i vostri nomi e contenuti né misure corporee o valori nutrizionali. Per i dettagli si veda il punto 6 C.
 * **Hosting web & Cookie (Visita del sito):** Quando accedi a questo sito, il tuo browser si connette ai server del nostro provider di hosting (GitHub Pages / GitHub Inc., 88 Colin P. Kelly Jr St, San Francisco, CA 94107, USA) per motivi tecnici. Vengono registrati log tecnici standard (IP, user-agent, timestamp) per fornire la pagina, sulla base del nostro legittimo interesse (Art. 6(1)(f) GDPR). Questo sito non utilizza cookie o script di tracciamento.
 
 ---
@@ -109,16 +109,35 @@ Il sistema operativo isola l'applicazione in una sandbox, impedendo ad altre app
 4. **Backup di sistema:** Inclusi nei backup cloud del sistema operativo (iCloud / Google Drive) se attivi.
 5. **Backup iCloud (solo iOS):** Opzionale, gestito dall'ID Apple dell'utente.
 
-### C. Telemetria anonima opzionale
-Train Libre include un'integrazione opzionale per metriche d'uso orientata alla privacy, gestita tramite PostHog EU (https://eu.i.posthog.com).
+### C. Statistiche d'uso pseudonimizzate opzionali
 
-1. **Opt-In strettamente predefinito:** La telemetria è disattivata di default. Nessun dato o richiesta di rete viene trasmesso a meno che non si attivi esplicitamente l'opzione "Condividi statistiche d'uso anonime" nelle Impostazioni sotto Supporto e Info.
-2. **Zero dati personali identificabili (Zero PII):** La telemetria non raccoglie alcun identificatore personale, nome, indirizzo e-mail, indirizzo IP, peso corporeo, ripetizioni o nomi di alimenti. Gli indirizzi IP vengono scartati immediatamente al momento dell'acquisizione.
-3. **Intervalli aggregati approssimativi:** Le metriche degli eventi vengono raggruppate esclusivamente in intervalli approssimativi non identificabili (ad es. versione dell'app, piattaforma SO, intervalli di durata dell'allenamento come 15-30 min, numero di esercizi come 4-7, latenza richieste IA e stato migrazione database).
-4. **Revoca immediata:** Puoi revocare il consenso e disattivare la telemetria in qualsiasi momento nelle Impostazioni, interrompendo immediatamente ogni trasmissione.
-5. **Base giuridica:** Il trattamento dei dati di telemetria si basa esclusivamente sul tuo consenso esplicito ai sensi dell'Articolo 6(1)(a) del GDPR.
-6. **Responsabile del trattamento:** PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA) agisce in qualità di responsabile del trattamento ai sensi dell'Articolo 28 del GDPR. È stato stipulato un accordo sul trattamento dei dati (DPA).
-7. **Luogo di conservazione, durata e garanzie sui trasferimenti:** I dati di telemetria sono conservati esclusivamente su infrastrutture nell'UE (AWS eu-central-1, Francoforte, Germania) per un massimo di 12 mesi, trascorsi i quali vengono cancellati automaticamente. Sebbene l'archiviazione principale rimanga nell'UE, eventuali accessi di supporto tecnico da parte di PostHog, Inc. avvengono sotto le garanzie del EU-US Data Privacy Framework (DPF).
+Train Libre offre una rilevazione d'uso puramente opzionale e rispettosa della privacy, finalizzata a migliorare la stabilità dell'app e l'utilizzo delle funzionalità, gestita tramite PostHog EU (https://eu.i.posthog.com). Nell'app la funzione è denominata «Condividi statistiche d'uso anonime». Poiché PostHog associa identificativi tecnici agli eventi trasmessi, si tratta giuridicamente di dati pseudonimizzati; per i dati tecnici di utilizzo non è possibile garantire un anonimato completo.
+
+1. **Opt-in rigoroso per impostazione predefinita:** La telemetria è completamente disattivata per impostazione predefinita. Finché non prestate espressamente il consenso, la libreria di telemetria non viene nemmeno inizializzata. Non viene trasmesso alcun evento e non viene stabilita alcuna connessione di rete verso PostHog — nemmeno una richiesta tecnica di configurazione. Soltanto quando attivate «Condividi statistiche d'uso anonime» nelle Impostazioni, alla voce Supporto e Info, l'app contatta PostHog per la prima volta. Un identificativo casuale del dispositivo viene sì generato localmente già al primo avvio, affinché il conteggio dei dispositivi attivi funzioni a partire dal vostro consenso; tale generazione avviene esclusivamente sul vostro dispositivo e senza alcuna trasmissione.
+2. **Ambito degli eventi rilevati:** Se avete prestato il consenso, vengono rilevate esclusivamente le seguenti categorie:
+
+   - Avvii dell'app (per determinare il numero di dispositivi attivi)
+   - Schermate aperte, identificate esclusivamente tramite identificativi tecnici tratti da un elenco fissato nel codice sorgente (ad esempio diary_tab, live_workout)
+   - Funzioni attivate, parimenti tramite identificativi fissi (ad esempio routine_created, barcode_scanned)
+   - Un contatore aggregato delle voci alimentari registrate (il numero nonché la modalità di inserimento, ad esempio ricerca, scansione del codice a barre o riconoscimento tramite IA)
+   - Indicatori delle sessioni di allenamento concluse: numero di esercizi, serie e timer di recupero, durata in minuti nonché indicazioni sì/no sulle funzioni di allenamento utilizzate. Il tipo di sessione viene trasmesso esclusivamente come «routine» o «custom», mai come nome
+   - Progressione nell'onboarding (numero del passaggio, denominazione del passaggio, tempo di permanenza)
+   - Impostazioni modificate (identificativo dell'impostazione e nuovo valore)
+   - Stato delle richieste IA per il riconoscimento dei pasti (fornitore selezionato, esito positivo o codice di errore, tempo di risposta in intervalli ampi quali «2-5s»)
+   - Stato delle migrazioni del database (versione di partenza e di destinazione, esito)
+   - Indicatori della stima calorica adattiva: numero di voci di peso e alimentazione considerate, ampiezza della finestra di osservazione, livello di confidenza e indicatori di qualità — ma nessun valore di peso, calorico o di obiettivo
+   - Dati tecnici di contesto: versione dell'app, build, sistema operativo e relativa versione, piattaforma, fuso orario nonché un'indicazione sul fatto che l'app sia eseguita in un emulatore
+
+   Contatori quali il numero di esercizi o di serie e la durata dell'allenamento vengono trasmessi come valori numerici esatti e non come intervalli. Tali valori vengono trasmessi senza nome, indirizzo e-mail o identificativo del dispositivo del produttore. L'identificazione di singoli utenti non è né intenzionale né tecnicamente prevista.
+
+3. **Nessun contenuto e nessun valore sanitario:** Non vengono raccolti nomi, indirizzi e-mail, identificativi di account o identificativi del dispositivo del produttore, né alcun contenuto da voi inserito — in particolare nessun titolo di scheda di allenamento, nome di esercizio o di alimento, nome di ricetta, nota o testo libero. Parimenti non vengono trasmessi misure corporee, pesi, valori calorici o nutrizionali. Tutti gli eventi vengono inviati con $ip: 0.0.0.0; gli indirizzi IP non vengono memorizzati come dati dell'evento e la risoluzione della posizione basata sull'IP è espressamente disattivata mediante $geoip_disable.
+4. **Paese e lingua:** Per analizzare la diffusione geografica dell'app vengono trasmessi il vostro paese, il vostro continente e la vostra impostazione di lingua (ad esempio «DE», «Europa», «de_DE»). Tali indicazioni vengono derivate sul vostro dispositivo dalle impostazioni di sistema e non dal vostro indirizzo IP. Non avviene alcuna risoluzione a livello di città, regione, codice postale o coordinate; essa è disattivata lato server.
+5. **Rapporto diagnostico volontario:** Nella sezione Feedback potete inviare attivamente un rapporto diagnostico allo sviluppatore. Prima dell'invio il rapporto vi viene mostrato integralmente in un'anteprima e selezionate singolarmente le sezioni da includere. Se lo trasmettete via e-mail, tramite il menu di condivisione, gli appunti o l'esportazione su file, esso giunge direttamente allo sviluppatore sotto il vostro controllo e non tramite PostHog. Per l'invio diretto a PostHog offerto in aggiunta vale invariato il punto 3: la vostra nota in testo libero, il vostro peso corporeo nonché i vostri valori calorici e di macronutrienti non vengono trasmessi, bensì esclusivamente indicatori tecnici quali il numero di voci, i livelli di confidenza, gli indicatori di qualità e lo stato dei vostri backup. L'invio diretto presuppone un consenso attivo ai sensi del punto 1; se le statistiche d'uso sono disattivate, l'app ve lo segnala anziché comunicare un invio.
+6. **Revoca e cancellazione:** Potete revocare il consenso in qualsiasi momento nelle Impostazioni, interrompendo immediatamente ogni trasmissione. Tramite il pulsante «Elimina dati di telemetria» nelle Impostazioni potete inoltre richiedere la cancellazione presso PostHog dei dati collegati al vostro identificativo di telemetria; contestualmente vengono reimpostati tutti gli identificativi memorizzati localmente. La cancellazione può essere soggetta a eccezioni di natura tecnica, ad esempio per le copie di backup. In alternativa è sufficiente una semplice e-mail a feedback@schotte.me.
+7. **Base giuridica:** Il trattamento dei dati di telemetria avviene esclusivamente sulla base del vostro consenso esplicito ai sensi dell'art. 6, par. 1, lett. a) GDPR.
+8. **Responsabile del trattamento:** PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA) opera quale responsabile del trattamento ai sensi dell'art. 28 GDPR. È stato stipulato un accordo sul trattamento dei dati (Data Processing Agreement, DPA).
+9. **Luogo di conservazione, durata e trasferimenti verso paesi terzi:** Il progetto PostHog EU utilizzato impiega quale infrastruttura di hosting primaria server situati a Francoforte sul Meno, Germania (AWS eu-central-1). I dati di telemetria vengono cancellati automaticamente dopo un massimo di 12 mesi. A seconda dei processi di supporto, sicurezza e sub-responsabilità del trattamento, accessi o trattamenti possono avvenire anche al di fuori dell'UE. Per tali trasferimenti valgono le garanzie adeguate concordate nell'accordo sul trattamento dei dati, integrate dalla certificazione ai sensi dell'EU-US Data Privacy Framework (DPF).
+10. **Trasparenza completa:** Il catalogo completo di tutti gli eventi e delle caratteristiche trasmesse per ciascuno di essi è consultabile pubblicamente nel repository del codice sorgente, nel file TELEMETRY.md. Le build F-Droid e offline vengono compilate senza la libreria di telemetria e non ne contengono il codice.
 
 ---
 

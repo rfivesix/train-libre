@@ -18,7 +18,7 @@ We collect aggregate usage statistics for three primary reasons:
 ## 2. Strict Opt-In Consent Architecture
 
 * **Disabled by Default:** Telemetry is strictly **OFF** when Train Libre is first installed.
-* **No Pre-Consent Tracking:** Zero telemetry events (including `app_launched`) are transmitted before a user explicitly opts in via the onboarding setup screen or Settings.
+* **No Pre-Consent Connection:** The PostHog SDK is not even *initialized* before consent. `Posthog().setup()` is deferred out of `init()` and into `optIn()`, because the native SDK's `PostHogRemoteConfig.preloadRemoteConfig()` runs unconditionally at setup — it is gated only by a testing flag and ignores the opt-out state — so merely setting the SDK up would open a connection to PostHog EU and expose the device's IP address. An install that never opts in performs zero network activity toward PostHog and sends zero events, `app_launched` included. A local device UUID is still generated on first launch so DAU counting can start the moment a user does opt in; generating it involves no transmission.
 * **Instant Revocation & Data Deletion:** Users can turn off telemetry at any time in Settings (*Support & Info -> Anonyme Nutzungsstatistiken teilen*). Toggling the switch off immediately disables the PostHog SDK (`Posthog().disable()`). In addition, users can tap **"Telemetrie-Daten löschen"** directly in Settings (discreet `AppLinkRow` below the telemetry card). Triggering deletion issues `$delete_person` deletion requests to PostHog EU servers for all associated IDs before erasing local device UUIDs, clearing cached counters, and resetting PostHog SDK state (`Posthog().reset()`).
 * **F-Droid Build Cleanliness:** F-Droid and offline-only builds compiled with `--dart-define=DISABLE_TELEMETRY=true` completely strip the PostHog SDK binary footprint. A zero-overhead `NoOpTelemetryService` stub replaces the telemetry pipeline entirely.
 
@@ -199,11 +199,16 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
   * `quality_flags` (list of strings: e.g., `["bayesian_recursive_filter", "bayesian_intake_unavailable"]`)
   * `is_prior_only` (bool)
 
-* **`feedback_report_submitted`** (Voluntary Diagnostic Feedback, ZERO PII):
+* **`feedback_report_submitted`** (Voluntary Diagnostic Feedback):
   * `included_sections` (list of strings: e.g., `["adaptive_nutrition", "backup_restore", "user_note"]`)
   * `has_user_note` (bool)
-  * `user_note_length` (int)
+  * `user_note_length` (int — the length only; the note text itself is never transmitted)
   * `submission_method` (string: `"posthog_direct"`, `"email"`, `"copied"`, `"shared"`, `"saved_file"`)
+  * `diag_*` — diagnostic state parsed from the report preview: counters (`diag_input_weight_log_count`, `diag_input_intake_logged_days`, `diag_input_window_days`), confidence and warning levels, quality flags, estimator/phase/prior state strings, backup status and due-date keys.
+
+  **Excluded by `_isSensitiveDiagnosticKey`:** any key carrying a body measurement or a nutrition quantity — `diag_latest_logged_weight_kg`, `diag_input_weight_reference_kg`, `diag_*_kcal`, `diag_*_protein_g` / `_carbs_g` / `_fat_g`, `diag_*maintenance*`, `diag_target_rate_kg_per_week` and anything else matching `weight` / `_kg` / `kcal` / `calorie` / `protein` / `carbs` / `fat` / `maintenance` (pure `*_count` and `*_days` keys are kept, since a count reveals no measured value). The user-authored note is never added to the map at all.
+
+  The full report — including weight, calorie and macro figures and the note verbatim — is still available through the **email, share, copy and file-export** actions. Those go directly to the developer under the user's own control and do not pass through PostHog. Direct submission additionally requires telemetry to be switched on; if it is off the app says so instead of reporting a delivery that did not happen.
 
 * **`ai_meal_scan_requested`**: `request_id`, `provider`
 * **`ai_meal_scan_completed`**: `request_id`, `provider`, `latency_bucket`, `success`, `error_code`

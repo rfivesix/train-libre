@@ -590,7 +590,7 @@ class _MyAppState extends State<MyApp> {
 
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFF1C1C1C),
+            fillColor: const Color(0xFF2C2C2E),
             border: OutlineInputBorder(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusM),

@@ -274,13 +274,32 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           'user_note',
       ];
 
+  /// Diagnostic keys whose values are body measurements or nutrition
+  /// quantities. They are never attached to the telemetry event.
+  ///
+  /// The report the user sends through email, share or file export still
+  /// contains the full detail — those channels are under the user's own control
+  /// and go to the developer directly. The PostHog event only carries the
+  /// counters, confidence levels and state flags needed to reproduce a bug.
+  static bool _isSensitiveDiagnosticKey(String key) {
+    // Pure counters keep their signal without revealing a measured value.
+    if (key.endsWith('_count') || key.endsWith('_days')) return false;
+    return key.contains('weight') ||
+        key.contains('_kg') ||
+        key.contains('kcal') ||
+        key.contains('calorie') ||
+        key.contains('protein') ||
+        key.contains('carbs') ||
+        key.contains('fat') ||
+        key.contains('maintenance');
+  }
+
   Map<String, dynamic> _buildDiagnosticsSummary(String? reportText) {
     if (reportText == null || reportText.isEmpty) return {};
     final summary = <String, dynamic>{};
-    final noteText = _noteController.text.trim();
-    if (_includeUserNote && noteText.isNotEmpty) {
-      summary['user_note'] = noteText;
-    }
+    // The free-text note is deliberately NOT included. It is unconstrained user
+    // input that can contain names, diagnoses or contact details; only its
+    // length is reported, via `userNoteLength`.
     final lines = reportText.split('\n');
     for (final rawLine in lines) {
       var line = rawLine.trim();
@@ -292,7 +311,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
         final key = line.substring(0, colonIndex).trim();
         final valueStr = line.substring(colonIndex + 1).trim();
 
-        if (key.startsWith('feature_') ||
+        final isDiagnosticKey = key.startsWith('feature_') ||
             key.contains('goal_') ||
             key.contains('target_') ||
             key.contains('due_') ||
@@ -310,7 +329,9 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
             key.contains('prior_') ||
             key.contains('phase_') ||
             key.contains('backup_') ||
-            key.contains('estimator_')) {
+            key.contains('estimator_');
+
+        if (isDiagnosticKey && !_isSensitiveDiagnosticKey(key)) {
           final safeKey =
               'diag_${key.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')}';
           final numValue = double.tryParse(valueStr);
@@ -345,14 +366,37 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
     final previewText = _previewText;
     if (previewText == null) return;
 
-    _trackReportSubmission('posthog_direct');
+    // Direct submission rides on the telemetry pipeline, which drops everything
+    // while the user is opted out. Reporting success in that case would claim a
+    // delivery that never happened, so check first and point at the channels
+    // that do work.
+    final canSubmit = await TelemetryService.instance.isOptedIn();
 
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
+    final isGerman = l10n.localeName.startsWith('de');
+
+    if (!canSubmit) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isGerman
+                ? 'Direktversand benötigt die anonyme Nutzungsstatistik. '
+                    'Aktiviere sie in den Einstellungen oder nutze E-Mail bzw. Teilen.'
+                : 'Direct submission requires anonymous usage statistics. '
+                    'Enable it in Settings, or use email or share instead.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    _trackReportSubmission('posthog_direct');
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          l10n.localeName.startsWith('de')
+          isGerman
               ? 'Diagnosebericht direkt an Entwickler gesendet. Vielen Dank!'
               : 'Diagnostic report sent directly to developer. Thank you!',
         ),

@@ -50,6 +50,10 @@ class PostHogTelemetryService implements TelemetryService {
   };
 
   bool _initialized = false;
+
+  /// Whether `Posthog().setup()` has run. Stays false for the entire lifetime of
+  /// an install that never opts in, so the SDK never opens a connection.
+  bool _sdkConfigured = false;
   bool _optedIn = false;
   String? _persistentDeviceId;
   CountryMetadata? _cachedCountryMetadata;
@@ -95,6 +99,30 @@ class PostHogTelemetryService implements TelemetryService {
       final (_, countryCode) = TelemetryService.resolveSystemLocaleAndCountry();
       _cachedCountryMetadata = TelemetryService.getCountryMetadata(countryCode);
 
+      _initialized = true;
+
+      // The SDK is deliberately NOT touched for users who have not opted in.
+      // `Posthog().setup()` unconditionally triggers the native SDK's remote
+      // config fetch — `PostHogRemoteConfig.preloadRemoteConfig()` is gated only
+      // by a testing flag and ignores the opt-out state entirely — so merely
+      // setting it up would open a connection to PostHog EU and expose the
+      // device's IP address before any consent was given. Setup is deferred to
+      // [optIn].
+      if (_optedIn) {
+        await _configureSdk();
+        unawaited(flushDailyFoodLog());
+      }
+    } catch (e) {
+      debugPrint('PostHogTelemetryService init error: $e');
+    }
+  }
+
+  /// Performs the one-time PostHog SDK setup. Only ever called once the user has
+  /// opted in; the native SDK ignores a second `setup()` call, so the flag also
+  /// guards an opt-out/opt-in cycle within the same app session.
+  Future<void> _configureSdk() async {
+    if (_sdkConfigured) return;
+    try {
       final config = PostHogConfig(_defaultApiKey)
         ..host = _postHogEuHost
         ..captureApplicationLifecycleEvents = false
@@ -136,6 +164,7 @@ class PostHogTelemetryService implements TelemetryService {
       config.rageClickConfig.enabled = false;
 
       await Posthog().setup(config);
+      _sdkConfigured = true;
 
       // Rotate the in-app SDK distinct_id on every app launch for privacy.
       // `reset()` discards the stored anonymous ID and the native SDK mints a
@@ -143,17 +172,9 @@ class PostHogTelemetryService implements TelemetryService {
       // makes PostHog create a person profile complete with IP-derived city,
       // postal code and coordinates.
       await Posthog().reset();
-
-      if (_optedIn) {
-        await Posthog().enable();
-        unawaited(flushDailyFoodLog());
-      } else {
-        await Posthog().disable();
-      }
-
-      _initialized = true;
+      await Posthog().enable();
     } catch (e) {
-      debugPrint('PostHogTelemetryService init error: $e');
+      debugPrint('PostHogTelemetryService _configureSdk error: $e');
     }
   }
 
@@ -192,17 +213,21 @@ class PostHogTelemetryService implements TelemetryService {
         }
       }
 
-      try {
-        await Posthog().capture(
-          eventName: r'$delete_person',
-          properties: {
-            r'$ip': '0.0.0.0',
-            r'$geoip_disable': true,
-            r'$delete_person': true,
-          },
-        );
-      } catch (e) {
-        debugPrint('PostHog capture delete_person error: $e');
+      // Only meaningful when the SDK was ever configured; an install that never
+      // opted in has no SDK-side events to erase.
+      if (_sdkConfigured) {
+        try {
+          await Posthog().capture(
+            eventName: r'$delete_person',
+            properties: {
+              r'$ip': '0.0.0.0',
+              r'$geoip_disable': true,
+              r'$delete_person': true,
+            },
+          );
+        } catch (e) {
+          debugPrint('PostHog capture delete_person error: $e');
+        }
       }
 
       // Clear local SharedPreferences storage
@@ -215,7 +240,9 @@ class PostHogTelemetryService implements TelemetryService {
       await prefs.setString(_prefDeviceIdKey, _persistentDeviceId!);
 
       // Discards the stored anonymous ID; the native SDK mints a fresh one.
-      await Posthog().reset();
+      if (_sdkConfigured) {
+        await Posthog().reset();
+      }
     } catch (e) {
       debugPrint('PostHogTelemetryService resetLocalData error: $e');
     }
@@ -227,7 +254,11 @@ class PostHogTelemetryService implements TelemetryService {
       _optedIn = true;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefOptInKey, true);
-      await Posthog().enable();
+      // First contact with PostHog happens here, never earlier.
+      await _configureSdk();
+      if (_sdkConfigured) {
+        await Posthog().enable();
+      }
     } catch (e) {
       debugPrint('PostHogTelemetryService optIn error: $e');
     }
@@ -239,7 +270,9 @@ class PostHogTelemetryService implements TelemetryService {
       _optedIn = false;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefOptInKey, false);
-      await Posthog().disable();
+      if (_sdkConfigured) {
+        await Posthog().disable();
+      }
     } catch (e) {
       debugPrint('PostHogTelemetryService optOut error: $e');
     }
@@ -257,7 +290,7 @@ class PostHogTelemetryService implements TelemetryService {
     String eventName, {
     Map<String, dynamic>? properties,
   }) async {
-    if (!_optedIn) return;
+    if (!_optedIn || !_sdkConfigured) return;
     try {
       // Privacy properties are applied centrally in `beforeSend`, so every
       // Dart-captured event gets them regardless of which helper produced it.
@@ -534,7 +567,9 @@ class PostHogTelemetryService implements TelemetryService {
       });
       // The app is usually on its way to the background at this point, so hand
       // the batch to the network instead of leaving it in the SDK queue.
-      await Posthog().flush();
+      if (_sdkConfigured) {
+        await Posthog().flush();
+      }
     });
   }
 

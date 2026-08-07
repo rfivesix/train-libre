@@ -1,5 +1,7 @@
 // test/services/telemetry_service_test.dart
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/services/telemetry/telemetry_service.dart';
@@ -241,6 +243,50 @@ void main() {
         FoodLogSource.sanitize(FoodLogSource.aiCapture),
         FoodLogSource.aiCapture,
       );
+    });
+
+    test('init does not touch the PostHog SDK while opted out', () async {
+      // Posthog().setup() unconditionally triggers the native remote-config
+      // fetch, which ignores the opt-out state — so setup itself would open a
+      // connection to PostHog EU before any consent exists. In the test
+      // environment every SDK call raises MissingPluginException, which the
+      // service logs; the absence of those logs is what proves nothing was
+      // called. Captured here so a regression is visible rather than silent.
+      final logs = <String>[];
+      await runZoned(
+        () async {
+          SharedPreferences.setMockInitialValues({});
+          final service = PostHogTelemetryService();
+          await service.init();
+          expect(await service.isOptedIn(), isFalse);
+          // Events must be dropped, not queued.
+          await service.trackScreenView(screenName: 'diary_tab');
+          await service.trackFeatureUsed(featureKey: 'routine_created');
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) => logs.add(line),
+        ),
+      );
+
+      expect(
+        logs.where((l) => l.contains('MissingPluginException')),
+        isEmpty,
+        reason: 'no PostHog SDK call may happen before opt-in, but got: $logs',
+      );
+    });
+
+    test('a persistent device ID is created without contacting PostHog',
+        () async {
+      final service = PostHogTelemetryService();
+      await service.init();
+
+      // The ID is generated locally so DAU counting works the moment a user
+      // opts in; generating it must not imply any transmission.
+      final prefs = await SharedPreferences.getInstance();
+      final deviceId = prefs.getString('telemetry_persistent_device_id');
+      expect(deviceId, isNotNull);
+      expect(deviceId, isNotEmpty);
+      expect(await service.isOptedIn(), isFalse);
     });
 
     test('screen and feature catalogs contain no user-authored text', () {
