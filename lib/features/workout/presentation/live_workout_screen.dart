@@ -1252,7 +1252,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: 180,
+                      height: DesignConstants.bottomVignetteHeight,
                       child: IgnorePointer(
                         child: Container(
                           decoration: BoxDecoration(

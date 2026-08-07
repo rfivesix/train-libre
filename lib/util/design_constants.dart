@@ -124,8 +124,26 @@ class DesignConstants {
           ),
         ];
 
+  /// Shared height for the bottom fade-out vignette painted behind the
+  /// floating glass nav bar / FAB / overlays. Single source of truth so the
+  /// container height and [bottomVignetteGradient]'s stops can be tuned
+  /// together — the stops are relative to *this* height, not the screen.
+  ///
+  /// Sized relative to the bar itself (1.75x [bottomNavigationBarHeight])
+  /// so the fade becomes visible roughly half a bar-height above the bar's
+  /// top edge, and is fully transparent by about one bar-height above it —
+  /// a short, close scrim rather than one that reaches far up the screen.
+  static const double bottomVignetteHeight = bottomNavigationBarHeight * 1.75;
+
   /// Global bottom vignette gradient that ramps up towards the bottom edge,
   /// reaching 100% opacity right at the very bottom screen boundary.
+  ///
+  /// The tail uses closely-spaced stops with small alpha steps so the onset
+  /// is imperceptible. The final stop is [baseColor] at alpha 0 rather than
+  /// [Colors.transparent] — the latter is `#00000000` (black), so
+  /// interpolating a light-grey/white stop into it drags the intermediate
+  /// RGB values towards black as alpha fades out, producing a visible dark
+  /// seam right before the gradient disappears.
   static LinearGradient bottomVignetteGradient(bool isDark) {
     final baseColor = isDark ? Colors.black : const Color(0xFFF2F2F7);
     return LinearGradient(
@@ -133,12 +151,14 @@ class DesignConstants {
       end: Alignment.topCenter,
       colors: [
         baseColor.withValues(alpha: 1.00),
-        baseColor.withValues(alpha: 0.70),
-        baseColor.withValues(alpha: 0.35),
-        baseColor.withValues(alpha: 0.08),
-        Colors.transparent,
+        baseColor.withValues(alpha: 0.78),
+        baseColor.withValues(alpha: 0.55),
+        baseColor.withValues(alpha: 0.34),
+        baseColor.withValues(alpha: 0.18),
+        baseColor.withValues(alpha: 0.07),
+        baseColor.withValues(alpha: 0.0),
       ],
-      stops: const [0.0, 0.12, 0.30, 0.55, 1.0],
+      stops: const [0.0, 0.18, 0.36, 0.54, 0.72, 0.88, 1.0],
     );
   }
 

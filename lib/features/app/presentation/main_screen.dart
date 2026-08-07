@@ -1190,7 +1190,7 @@ class _MainScreenState extends State<MainScreen>
           bottom: 0,
           left: 0,
           right: 0,
-          height: 200,
+          height: DesignConstants.bottomVignetteHeight,
           child: IgnorePointer(
             child: Container(
               decoration: BoxDecoration(

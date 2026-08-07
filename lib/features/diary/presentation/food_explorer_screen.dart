@@ -209,7 +209,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
             right: 0,
             child: IgnorePointer(
               child: Container(
-                height: 180,
+                height: DesignConstants.bottomVignetteHeight,
                 decoration: BoxDecoration(
                   gradient: DesignConstants.bottomVignetteGradient(
                     Theme.of(context).brightness == Brightness.dark,

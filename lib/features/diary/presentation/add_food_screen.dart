@@ -524,7 +524,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
             right: 0,
             child: IgnorePointer(
               child: Container(
-                height: 180,
+                height: DesignConstants.bottomVignetteHeight,
                 decoration: BoxDecoration(
                   gradient: DesignConstants.bottomVignetteGradient(
                     !isLightMode,

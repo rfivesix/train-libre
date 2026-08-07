@@ -1004,7 +1004,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    height: 160,
+                    height: DesignConstants.bottomVignetteHeight,
                     child: IgnorePointer(
                       child: Container(
                         decoration: BoxDecoration(
