@@ -54,13 +54,21 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and the wger exercise database. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Version 1.0.0 — our biggest update yet:
+iCloud Backup & Restore: Your data now backs up automatically to iCloud and restores in one tap when you get a new device or reinstall the app.
 
-• Completely redesigned interface following Apple's Human Interface Guidelines, with refined light and dark modes.
-• Optional AI meal capture (bring your own API key) now works automatically in your own language.
-• Much faster throughout: smooth 120Hz scrolling, dramatically quicker imports, and optimized database queries.
-• New: import your training history from Hevy via CSV, plus an expanded statistics hub with consistency tracking.
-• Anonymous usage analytics are strictly opt-in, off by default, and never store your IP address.
+Visual refresh: A cleaner look throughout, with refined glass effects, smoother dark/light mode surfaces, and fixed contrast issues that made some text and buttons hard to see.
+
+Big performance boost: Smoother scrolling and faster navigation across Diary, Statistics, and Workout screens, especially on newer high-refresh-rate displays.
+
+Full Imperial unit support: Pounds, inches, and miles now work correctly everywhere in the app, not just in some screens.
+
+Cardio tracking: New personal records for distance, duration, and pace, kept separate from your strength stats so your analytics stay accurate.
+
+More reliable data saving: Fixed bugs where edited workout history, rest timers, and personal records could fail to save.
+
+Faster, more reliable imports: CSV workout imports are now dramatically faster and skip duplicates automatically.
+
+Security improvements: Hardened backup import/export to better protect your data.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

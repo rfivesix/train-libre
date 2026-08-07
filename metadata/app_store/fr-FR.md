@@ -54,13 +54,21 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et de la base d'exercices wger. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Version 1.0.0 — notre plus grosse mise à jour à ce jour :
+Sauvegarde et restauration iCloud : vos données sont désormais sauvegardées automatiquement sur iCloud et se restaurent en un geste, sur un nouvel appareil ou après une réinstallation.
 
-• Interface entièrement repensée selon les Human Interface Guidelines d'Apple, avec des modes clair et sombre affinés.
-• La saisie de repas par IA (avec votre propre clé API) fonctionne désormais automatiquement dans votre langue.
-• Nettement plus rapide : défilement fluide à 120 Hz, imports bien plus rapides et requêtes de base de données optimisées.
-• Nouveau : importez votre historique depuis Hevy via CSV, et profitez d'un espace statistiques enrichi avec suivi de régularité.
-• Les statistiques d'usage anonymes sont strictement optionnelles, désactivées par défaut, et n'enregistrent jamais votre adresse IP.
+Refonte visuelle : une interface plus épurée, avec des effets de verre affinés, des surfaces plus harmonieuses en mode clair et sombre, et des problèmes de contraste corrigés qui rendaient certains textes et boutons difficiles à lire.
+
+Gros gain de performance : défilement plus fluide et navigation plus rapide dans le Journal, les Statistiques et les Entraînements, en particulier sur les écrans à taux de rafraîchissement élevé.
+
+Prise en charge complète des unités impériales : livres, pouces et miles fonctionnent désormais correctement partout dans l'application, et plus seulement sur certains écrans.
+
+Suivi cardio : nouveaux records personnels de distance, de durée et d'allure, séparés de vos statistiques de force pour que vos analyses restent justes.
+
+Enregistrement plus fiable : correction de bugs qui empêchaient l'enregistrement de l'historique modifié, des minuteurs de repos et des records personnels.
+
+Imports plus rapides et plus fiables : l'import CSV de séances est nettement plus rapide et ignore automatiquement les doublons.
+
+Améliorations de sécurité : import et export des sauvegardes renforcés pour mieux protéger vos données.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

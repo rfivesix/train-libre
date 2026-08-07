@@ -54,13 +54,21 @@ OPEN SOURCE & OFFENE DATEN:
 Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und der wger-Übungsdatenbank. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
 
 ## Release Notes (What's New / Release Notes in this version)
-Version 1.0.0 – unser bisher größtes Update:
+iCloud-Backup & Wiederherstellung: Deine Daten werden jetzt automatisch in iCloud gesichert und lassen sich mit einem Tipp wiederherstellen – bei einem neuen Gerät oder nach einer Neuinstallation.
 
-• Komplett überarbeitete Oberfläche nach Apples Human Interface Guidelines, mit fein abgestimmtem Hell- und Dunkelmodus.
-• Die optionale KI-Mahlzeitenerfassung (mit eigenem API-Schlüssel) funktioniert jetzt automatisch in deiner Sprache.
-• Spürbar schneller: flüssiges 120-Hz-Scrolling, deutlich schnellere Importe und optimierte Datenbankabfragen.
-• Neu: Trainingshistorie aus Hevy per CSV importieren – plus erweiterter Statistikbereich mit Kontinuitäts-Tracking.
-• Anonyme Nutzungsstatistiken sind strikt opt-in, standardmäßig aus und speichern niemals deine IP-Adresse.
+Frisches Design: Ein aufgeräumteres Erscheinungsbild mit feineren Glaseffekten, harmonischeren Flächen im Hell- und Dunkelmodus und behobenen Kontrastproblemen, durch die Texte und Buttons teils schlecht lesbar waren.
+
+Deutlich mehr Tempo: Flüssigeres Scrollen und schnellere Navigation in Tagebuch, Statistiken und Workouts – besonders auf Displays mit hoher Bildwiederholrate.
+
+Vollständige Unterstützung imperialer Einheiten: Pfund, Zoll und Meilen funktionieren jetzt überall in der App korrekt, nicht nur auf einzelnen Screens.
+
+Cardio-Tracking: Neue Bestleistungen für Distanz, Dauer und Pace – getrennt von deinen Kraftwerten, damit deine Auswertungen korrekt bleiben.
+
+Zuverlässigeres Speichern: Fehler behoben, durch die bearbeitete Trainingshistorie, Pausen-Timer und Bestleistungen nicht gespeichert werden konnten.
+
+Schnellere, zuverlässigere Importe: CSV-Trainingsimporte laufen jetzt deutlich schneller und überspringen Duplikate automatisch.
+
+Mehr Sicherheit: Import und Export von Backups wurden gehärtet, um deine Daten besser zu schützen.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/
