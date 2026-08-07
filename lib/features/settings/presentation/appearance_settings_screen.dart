@@ -93,18 +93,6 @@ class AppearanceSettingsScreen extends StatelessWidget {
                   value: themeService.hapticsEnabled,
                   onChanged: (value) => themeService.setHapticsEnabled(value),
                 ),
-                const Divider(height: 1),
-                PlatformAdaptiveSwitchListTile(
-                  secondary: const Icon(LucideIcons.layers),
-                  title: Text(
-                    l10n.settingsColorfulMacroBadgesTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(l10n.settingsColorfulMacroBadgesSubtitle),
-                  value: themeService.useColorfulMacroBadges,
-                  onChanged: (value) =>
-                      themeService.setUseColorfulMacroBadges(value),
-                ),
               ],
             ),
           ),

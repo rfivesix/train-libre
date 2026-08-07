@@ -26,12 +26,16 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
   final Widget icon;
   final List<PlatformAdaptivePopupMenuItem<T>> items;
   final ValueChanged<T> onSelected;
+  final T? selectedValue;
+  final double menuWidth;
 
   const PlatformAdaptivePopupMenu({
     super.key,
     required this.icon,
     required this.items,
     required this.onSelected,
+    this.selectedValue,
+    this.menuWidth = 260.0,
   });
 
   @override
@@ -51,7 +55,7 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
       settings: menuSettings,
       quality: DesignConstants.defaultGlassQuality,
       child: GlassMenu(
-        menuWidth: 200,
+        menuWidth: menuWidth,
         settings: menuSettings,
         triggerBuilder: (context, toggle) => GestureDetector(
           onTap: toggle,
@@ -59,9 +63,18 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
           child: icon,
         ),
         items: items.map((item) {
+          final isSelected = selectedValue != null && item.value == selectedValue;
           return GlassMenuItem(
             title: item.label,
             icon: item.icon != null ? Icon(item.icon, size: 20) : null,
+            isSelected: isSelected,
+            trailing: isSelected
+                ? Icon(
+                    LucideIcons.check,
+                    size: 18,
+                    color: isDark ? Colors.white : Colors.black87,
+                  )
+                : null,
             isDestructive: item.isDestructive,
             onTap: () {
               onSelected(item.value);
@@ -137,9 +150,54 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
 
         final selectedText =
             selectedItem != null ? _getItemText(selectedItem.child) : '';
-        final effectiveDecoration =
-            (decoration ?? const InputDecoration()).copyWith(
-          errorText: state.errorText ?? errorText,
+        // Container background and border for proper contrast across Light & Dark modes:
+        // In Light Mode inside white cards (0xFFFFFFFF), input controls need subtle background tinting
+        // and border outlining so they don't appear as invisible "white-on-white".
+        final containerFillColor = isDark
+            ? Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF1C1C1C)
+            : const Color(0xFFF2F2F7);
+
+        final borderColor = isDark
+            ? Colors.white.withValues(alpha: 0.15)
+            : Colors.black.withValues(alpha: 0.12);
+
+        final defaultDecoration = InputDecoration(
+          filled: true,
+          fillColor: containerFillColor,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingM,
+            vertical: DesignConstants.spacingS + 2,
+          ),
+        );
+
+        final mergedDecoration = defaultDecoration.copyWith(
+          labelText: decoration?.labelText,
+          hintText: decoration?.hintText,
+          helperText: decoration?.helperText,
+          prefixIcon: decoration?.prefixIcon,
+          suffixIcon: decoration?.suffixIcon,
+          errorText: state.errorText ?? decoration?.errorText ?? errorText,
+          fillColor: decoration?.fillColor ?? containerFillColor,
+          filled: decoration?.filled ?? true,
+          contentPadding: decoration?.contentPadding,
+          border: decoration?.border != null && decoration?.border != const OutlineInputBorder()
+              ? decoration?.border
+              : defaultDecoration.border,
+          enabledBorder: decoration?.enabledBorder != null && decoration?.enabledBorder != const OutlineInputBorder()
+              ? decoration?.enabledBorder
+              : defaultDecoration.enabledBorder,
         );
 
         return LayoutBuilder(
@@ -158,7 +216,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
                     onTap: onChanged == null ? null : toggle,
                     behavior: HitTestBehavior.opaque,
                     child: InputDecorator(
-                      decoration: effectiveDecoration,
+                      decoration: mergedDecoration,
                       isEmpty: selectedText.isEmpty,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

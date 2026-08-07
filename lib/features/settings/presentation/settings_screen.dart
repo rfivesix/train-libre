@@ -308,47 +308,92 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   wrapInCard: false,
                 ),
                 const Divider(height: 1),
-                ListTile(
-                  leading: Icon(
-                    LucideIcons.sparkles,
-                    size: 36,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: Text(
-                    l10n.settingsOverviewExtraNutrientTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    _getExtraNutrientLabel(l10n, _overviewExtraNutrient),
-                  ),
-                  trailing: const Icon(LucideIcons.chevron_right),
-                  onTap: () => _showOverviewExtraNutrientPicker(context, l10n),
-                ),
-                const Divider(height: 1),
-                PlatformAdaptiveSwitchListTile(
-                  secondary: Icon(
-                    LucideIcons.ruler_dimension_line,
-                    size: 36,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: const Text(
-                    'Unit System',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    unitService.isMetric
-                        ? 'Metric (kg, cm, ml)'
-                        : 'Imperial (lbs, in, fl oz)',
-                  ),
-                  value: unitService.isImperial,
-                  onChanged: (value) {
-                    final newSystem = value ? UnitSystem.imperial : UnitSystem.metric;
-                    unitService.setUnitSystem(newSystem);
+                PlatformAdaptivePopupMenu<String>(
+                  selectedValue: _overviewExtraNutrient,
+                  onSelected: (value) async {
+                    if (value == _overviewExtraNutrient) return;
+                    setState(() {
+                      _overviewExtraNutrient = value;
+                    });
+                    await UserPreferencesRepository.instance
+                        .setOverviewExtraNutrient(value);
                     unawaited(TelemetryService.instance.trackSettingToggled(
-                      settingKey: 'unit_system',
-                      value: newSystem.name,
+                      settingKey: 'overview_extra_nutrient',
+                      value: value,
                     ));
                   },
+                  items: [
+                    PlatformAdaptivePopupMenuItem(
+                      value: 'fiber',
+                      label: l10n.fiber,
+                      icon: LucideIcons.wheat,
+                    ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: 'sugar',
+                      label: l10n.sugar,
+                      icon: LucideIcons.candy,
+                    ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: 'salt',
+                      label: l10n.salt,
+                      icon: LucideIcons.cooking_pot,
+                    ),
+                  ],
+                  icon: ListTile(
+                    contentPadding: DesignConstants.screenPadding,
+                    leading: Icon(
+                      LucideIcons.sparkles,
+                      size: 36,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      l10n.settingsOverviewExtraNutrientTitle,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      _getExtraNutrientLabel(l10n, _overviewExtraNutrient),
+                    ),
+                    trailing: const Icon(LucideIcons.chevron_right),
+                  ),
+                ),
+                const Divider(height: 1),
+                PlatformAdaptivePopupMenu<UnitSystem>(
+                  selectedValue: unitService.unitSystem,
+                  onSelected: (value) {
+                    unitService.setUnitSystem(value);
+                    unawaited(TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'unit_system',
+                      value: value.name,
+                    ));
+                  },
+                  items: [
+                    PlatformAdaptivePopupMenuItem(
+                      value: UnitSystem.metric,
+                      label: 'Metric (kg, cm, ml)',
+                    ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: UnitSystem.imperial,
+                      label: 'Imperial (lbs, in, fl oz)',
+                    ),
+                  ],
+                  icon: ListTile(
+                    contentPadding: DesignConstants.screenPadding,
+                    leading: Icon(
+                      LucideIcons.ruler_dimension_line,
+                      size: 36,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: const Text(
+                      'Unit System',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      unitService.isMetric
+                          ? 'Metric (kg, cm, ml)'
+                          : 'Imperial (lbs, in, fl oz)',
+                    ),
+                    trailing: const Icon(LucideIcons.chevron_right),
+                  ),
                 ),
               ],
             ),
