@@ -261,7 +261,7 @@ class _AppButtonState extends State<AppButton>
         ),
         foregroundDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius),
-          border: Border.all(color: rimColor, width: 1.1),
+          border: Border.all(color: rimColor, width: 0.5),
         ),
         child: labelRow,
       );

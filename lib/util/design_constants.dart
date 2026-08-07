@@ -169,7 +169,7 @@ class DesignConstants {
         glassColor: glassColor(isDark),
         lightIntensity: isDark ? 0.55 : 0.80,
         saturation: 0.70,
-        ambientRim: 0.2,
+        ambientRim: 0.08,
       );
 
   /// The primary brand color for Train Libre, sourced from the app icon.
