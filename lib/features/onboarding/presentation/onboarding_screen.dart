@@ -1166,6 +1166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Row(
                   children: [
                     IconButton.filledTonal(
+                      tooltip: MaterialLocalizations.of(context).previousPageTooltip,
                       onPressed: _isCheckingDatabase ? null : _prevPage,
                       icon: const Icon(LucideIcons.arrow_left),
                     ),
