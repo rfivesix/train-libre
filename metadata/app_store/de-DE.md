@@ -19,7 +19,7 @@ Tracke deine Workouts, Kalorien, dein Körpergewicht und deine Muskelregeneratio
 
 WARUM TRAIN LIBRE ANDERS IST:
 • Offline-First: Kein Konto und keine Internetverbindung nötig. Deine Trainings- und Ernährungsdaten bleiben in der geschützten Sandbox deines Geräts.
-• Datenschutz by Design: Keine Werbung, keine Werbe-Tracker, keine Session-Aufzeichnung, keine Nutzerprofile. Anonyme Nutzungsstatistiken sind optional und standardmäßig aus – sie enthalten keine Gesundheitsdaten, speichern niemals deine IP-Adresse und lassen sich mit einem Tipp von unseren Servern löschen.
+• Datenschutz by Design: Keine Werbung, keine Werbe-Tracker, keine Session-Aufzeichnung, keine Nutzerprofile. Nutzungsstatistiken sind optional und standardmäßig aus – sie enthalten keine Gesundheitsdaten, speichern niemals deine IP-Adresse und lassen sich jederzeit deaktivieren und löschen.
 • Strukturiertes Krafttraining: Entwickelt für progressive Überlastung und präzise Protokollierung – nicht für süchtig machende Gamification.
 • Transparente Analysen: Verstehe deine körperlichen Trends langfristig durch klare, mathematisch fundierte Einblicke.
 
@@ -69,6 +69,8 @@ Zuverlässigeres Speichern: Fehler behoben, durch die bearbeitete Trainingshisto
 Schnellere, zuverlässigere Importe: CSV-Trainingsimporte laufen jetzt deutlich schneller und überspringen Duplikate automatisch.
 
 Mehr Sicherheit: Import und Export von Backups wurden gehärtet, um deine Daten besser zu schützen.
+
+Optionale Nutzungsstatistik: Du kannst Train Libre jetzt mit Nutzungsstatistiken unterstützen. Standardmäßig aus, enthält keine Gesundheitsdaten und lässt sich jederzeit in den Einstellungen deaktivieren und löschen.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/

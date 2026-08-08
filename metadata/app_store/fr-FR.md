@@ -19,7 +19,7 @@ Suivez vos entraînements, vos calories, votre poids et la récupération de vos
 
 POURQUOI TRAIN LIBRE EST DIFFÉRENT :
 • Hors ligne d'abord : aucun compte ni connexion réseau nécessaire. Vos données d'entraînement et de nutrition restent dans le bac à sable (sandbox) de votre appareil.
-• Confidentialité dès la conception : aucune publicité, aucun traceur publicitaire, aucun enregistrement de session, aucun profil utilisateur. Les statistiques d'usage anonymes sont optionnelles et désactivées par défaut : elles ne contiennent aucune donnée de santé, n'enregistrent jamais votre adresse IP, et s'effacent de nos serveurs en un seul geste.
+• Confidentialité dès la conception : aucune publicité, aucun traceur publicitaire, aucun enregistrement de session, aucun profil utilisateur. Les statistiques d'usage sont optionnelles et désactivées par défaut : elles ne contiennent aucune donnée de santé, n'enregistrent jamais votre adresse IP, et peuvent être désactivées et supprimées à tout moment.
 • Suivi de musculation structuré : conçu pour la surcharge progressive et le suivi précis de vos performances, pas pour créer une dépendance.
 • Analyses transparentes : comprenez vos tendances physiques sur le long terme grâce à des calculs clairs et mathématiques.
 
@@ -69,6 +69,8 @@ Enregistrement plus fiable : correction de bugs qui empêchaient l'enregistremen
 Imports plus rapides et plus fiables : l'import CSV de séances est nettement plus rapide et ignore automatiquement les doublons.
 
 Améliorations de sécurité : import et export des sauvegardes renforcés pour mieux protéger vos données.
+
+Statistiques d'utilisation optionnelles : vous pouvez désormais aider à améliorer Train Libre en partageant des statistiques d'utilisation. Désactivées par défaut, elles ne contiennent aucune donnée de santé et peuvent être désactivées et supprimées à tout moment dans les Réglages.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

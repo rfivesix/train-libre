@@ -19,7 +19,7 @@ Traccia allenamenti, calorie, peso corporeo e recupero muscolare in un'unica app
 
 PERCHÉ TRAIN LIBRE È DIVERSO:
 • Offline-first: nessun account e nessuna connessione di rete necessari. I tuoi dati di allenamento e nutrizione restano nel sandbox del tuo dispositivo.
-• Privacy by design: nessuna pubblicità, nessun tracker pubblicitario, nessuna registrazione di sessione, nessun profilo utente. Le statistiche d'uso anonime sono opzionali e disattivate di default: non contengono dati sanitari, non registrano mai il tuo indirizzo IP e si cancellano dai nostri server con un tocco.
+• Privacy by design: nessuna pubblicità, nessun tracker pubblicitario, nessuna registrazione di sessione, nessun profilo utente. Le statistiche d'uso sono opzionali e disattivate di default: non contengono dati sanitari, non registrano mai il tuo indirizzo IP e possono essere disattivate ed eliminate in qualsiasi momento.
 • Tracciamento palestra strutturato: creato per il sovraccarico progressivo e il monitoraggio costante, non per creare dipendenza.
 • Analisi trasparenti: comprendi i tuoi progressi fisici a lungo termine attraverso calcoli chiari e matematici.
 
@@ -69,6 +69,8 @@ Salvataggio più affidabile: risolti bug per cui lo storico modificato, i timer 
 Importazioni più rapide e affidabili: l'importazione CSV degli allenamenti è ora molto più veloce e salta automaticamente i duplicati.
 
 Miglioramenti di sicurezza: import ed export dei backup rafforzati per proteggere meglio i tuoi dati.
+
+Statistiche d'uso opzionali: ora puoi aiutare a migliorare Train Libre condividendo statistiche d'uso. Disattivate di default, non contengono dati sanitari e possono essere disattivate ed eliminate in qualsiasi momento nelle Impostazioni.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

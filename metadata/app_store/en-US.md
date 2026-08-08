@@ -19,7 +19,7 @@ Track your workouts, calories, bodyweight, and muscle recovery in one focused ap
 
 WHY TRAIN LIBRE IS DIFFERENT:
 • Offline-First: No account and no network connection required. Your training and nutrition data stays in your device's sandbox.
-• Privacy by Design: No ads, no ad trackers, no session recording, no user profiles. Anonymous usage statistics are optional and off by default — they contain no health data, never log your IP address, and can be erased from our servers with a single tap.
+• Privacy by Design: No ads, no ad trackers, no session recording, no user profiles. Usage statistics are optional and off by default — they never contain health data or your IP address, and you can turn them off and request erasure at any time.
 • Structured Gym Tracking: Built for progressive overload and rigorous logging, not addictive engagement hooks.
 • Transparent Analytics: Understand your long-term physical trends through clear, math-based insights.
 
@@ -69,6 +69,8 @@ More reliable data saving: Fixed bugs where edited workout history, rest timers,
 Faster, more reliable imports: CSV workout imports are now dramatically faster and skip duplicates automatically.
 
 Security improvements: Hardened backup import/export to better protect your data.
+
+Optional usage statistics: You can now help improve Train Libre by sharing usage statistics. Off by default, contains no health data, and can be turned off and erased at any time in Settings.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
