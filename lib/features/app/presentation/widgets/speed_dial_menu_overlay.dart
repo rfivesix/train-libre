@@ -181,6 +181,8 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                               GlassAdaptiveScope(
                                                 maxQuality: DesignConstants
                                                     .defaultGlassQuality,
+                                                minQuality: DesignConstants
+                                                    .minGlassQuality,
                                                 child: AdaptiveGlass(
                                                   shape: const LiquidOval(),
                                                   settings: DesignConstants
@@ -277,6 +279,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                           ),
                           GlassAdaptiveScope(
                             maxQuality: DesignConstants.defaultGlassQuality,
+                            minQuality: DesignConstants.minGlassQuality,
                             child: AdaptiveGlass(
                               shape: const LiquidOval(),
                               settings: DesignConstants.liquidGlassSettings(

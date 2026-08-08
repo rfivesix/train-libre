@@ -132,6 +132,7 @@ void main() async {
         initialQuality:
             initialGlassQuality ?? DesignConstants.defaultGlassQuality,
         maxQuality: DesignConstants.defaultGlassQuality,
+        minQuality: DesignConstants.minGlassQuality,
         allowStepUp: true,
         onQualityChanged: (_, to) => prefs.setString('glass_quality', to.name),
       ),

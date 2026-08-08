@@ -1326,6 +1326,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               ),
               GlassAdaptiveScope(
                 maxQuality: DesignConstants.defaultGlassQuality,
+                minQuality: DesignConstants.minGlassQuality,
                 child: GlassContainer(
                   useOwnLayer: true,
                   height: DesignConstants.workoutOverlayHeight,
@@ -1452,6 +1453,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         height: DesignConstants.workoutOverlayHeight,
         child: GlassAdaptiveScope(
           maxQuality: DesignConstants.defaultGlassQuality,
+          minQuality: DesignConstants.minGlassQuality,
           child: GlassContainer(
             useOwnLayer: true,
             height: DesignConstants.workoutOverlayHeight,

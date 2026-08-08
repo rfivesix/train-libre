@@ -181,6 +181,21 @@ class DesignConstants {
     return GlassQuality.premium;
   }
 
+  /// Floor for the adaptive glass quality scope.
+  ///
+  /// On iOS/macOS the adaptive downgrade logic is disabled by pinning the
+  /// floor to [defaultGlassQuality] (premium) — Apple GPUs render the premium
+  /// shader without trouble, and a runtime step-down only causes a visible
+  /// quality change. On Android the scope may degrade all the way down to
+  /// [GlassQuality.minimal] when frames run over budget.
+  static GlassQuality get minGlassQuality {
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return defaultGlassQuality;
+    }
+    return GlassQuality.minimal;
+  }
+
   /// Unified settings for liquid glassmorphic rendering.
   ///
   /// Tuned to match real iOS *system UI* glass (UITabBar / navigation

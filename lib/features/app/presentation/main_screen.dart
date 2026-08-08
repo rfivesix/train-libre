@@ -1334,6 +1334,7 @@ class _MainScreenState extends State<MainScreen>
                             ),
                             child: GlassAdaptiveScope(
                               maxQuality: DesignConstants.defaultGlassQuality,
+                              minQuality: DesignConstants.minGlassQuality,
                               child: Row(
                                 children: [
                                   Expanded(

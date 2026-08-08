@@ -91,6 +91,7 @@ class _GlassFabState extends State<GlassFab>
 
     final Widget content = GlassAdaptiveScope(
       maxQuality: DesignConstants.defaultGlassQuality,
+      minQuality: DesignConstants.minGlassQuality,
       child: RepaintBoundary(
         child: GlassContainer(
           useOwnLayer: true,

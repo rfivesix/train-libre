@@ -34,6 +34,7 @@ class RunningWorkoutOverlay extends StatelessWidget {
       height: DesignConstants.workoutOverlayHeight,
       child: GlassAdaptiveScope(
             maxQuality: DesignConstants.defaultGlassQuality,
+            minQuality: DesignConstants.minGlassQuality,
             child: RepaintBoundary(
               child: GlassContainer(
                 useOwnLayer: true,
