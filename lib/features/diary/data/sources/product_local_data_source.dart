@@ -231,13 +231,18 @@ class ProductLocalDataSource {
           ..where((tbl) => tbl.barcode.equals(item.barcode)))
         .write(_mapModelToCompanion(item));
 
-    final existingOverride = await (dbInstance.select(dbInstance.userFoodOverrides)
-          ..where((tbl) => tbl.barcode.equals(item.barcode)))
-        .getSingleOrNull();
+    final existingOverride =
+        await (dbInstance.select(dbInstance.userFoodOverrides)
+              ..where((tbl) => tbl.barcode.equals(item.barcode)))
+            .getSingleOrNull();
 
     final overrideCompanion = db.UserFoodOverridesCompanion(
-      localId: existingOverride != null ? Value(existingOverride.localId) : const Value.absent(),
-      id: existingOverride != null ? Value(existingOverride.id) : const Value.absent(),
+      localId: existingOverride != null
+          ? Value(existingOverride.localId)
+          : const Value.absent(),
+      id: existingOverride != null
+          ? Value(existingOverride.id)
+          : const Value.absent(),
       barcode: Value(item.barcode),
       name: Value(item.name),
       brand: Value(item.brand),
@@ -287,7 +292,8 @@ class ProductLocalDataSource {
   }
 
   /// Retrieves a map of [localId] to [FoodItem]s matching the provided [archiveLocalIds].
-  Future<Map<int, FoodItem>> getProductsByArchiveIds(List<int> archiveLocalIds) async {
+  Future<Map<int, FoodItem>> getProductsByArchiveIds(
+      List<int> archiveLocalIds) async {
     if (archiveLocalIds.isEmpty) return {};
     final stopwatch = Stopwatch()..start();
     final dbInstance = await database;
@@ -296,9 +302,35 @@ class ProductLocalDataSource {
           ..where((tbl) => tbl.localId.isIn(archiveLocalIds)))
         .get();
 
-    final result = {
-      for (final row in rows) row.localId: _mapArchiveRowToFoodItem(row)
-    };
+    final barcodesSet = <String>{};
+    for (final r in rows) {
+      if (r.barcode.isNotEmpty) barcodesSet.add(r.barcode);
+    }
+
+    final products = barcodesSet.isEmpty
+        ? <db.Product>[]
+        : await (dbInstance.select(dbInstance.products)
+              ..where((tbl) => tbl.barcode.isIn(barcodesSet)))
+            .get();
+
+    final productMap = {for (final p in products) p.barcode: p};
+
+    final result = <int, FoodItem>{};
+    for (final row in rows) {
+      var item = _mapArchiveRowToFoodItem(row);
+      final prod = productMap[item.barcode];
+      if (prod != null) {
+        item = item.copyWithNames(
+          nameDe: prod.nameDe ?? item.nameDe,
+          nameEn: prod.nameEn ?? item.nameEn,
+          nameFr: prod.nameFr ?? item.nameFr,
+          nameIt: prod.nameIt ?? item.nameIt,
+          nameJa: prod.nameJa ?? item.nameJa,
+        );
+      }
+      result[row.localId] = item;
+    }
+
     PerfDebugTimer.logDuration(
       area: 'db',
       label: 'getProductsByArchiveIds',
@@ -391,7 +423,8 @@ class ProductLocalDataSource {
               t.nameEn.like('%$term%') |
               t.nameFr.like('%$term%') |
               t.nameIt.like('%$term%') |
-              t.nameJa.like('%$term%'),
+              t.nameJa.like('%$term%') |
+              t.brand.like('%$term%'),
         );
 
       query = query
@@ -454,59 +487,49 @@ class ProductLocalDataSource {
     final dbInstance = await database;
     const int limit = 50;
 
-    // 1. Fetch nutrition logs from the last 30 days first to compute recency score in Dart
-    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-    final recentLogs = await (dbInstance.select(dbInstance.nutritionLogs)
-          ..where((tbl) => tbl.consumedAt.isBiggerOrEqualValue(thirtyDaysAgo)))
-        .get();
-
-    final barcodeCounts = <String, int>{};
-    final productIdCounts = <String, int>{};
-    for (final log in recentLogs) {
-      if (log.legacyBarcode != null && log.legacyBarcode!.isNotEmpty) {
-        barcodeCounts[log.legacyBarcode!] =
-            (barcodeCounts[log.legacyBarcode!] ?? 0) + 1;
-      }
-      if (log.productId != null && log.productId!.isNotEmpty) {
-        productIdCounts[log.productId!] =
-            (productIdCounts[log.productId!] ?? 0) + 1;
-      }
-    }
-
     final variables = <Variable>[];
-    final caseClauses = <String>[];
 
-    // Build the dynamic CASE WHEN statement for history priority score
-    for (final entry in productIdCounts.entries) {
-      caseClauses.add('WHEN p.id = ? THEN ${entry.value * 10}');
-      variables.add(Variable.withString(entry.key));
-    }
-    for (final entry in barcodeCounts.entries) {
-      caseClauses.add('WHEN p.barcode = ? THEN ${entry.value * 10}');
-      variables.add(Variable.withString(entry.key));
-    }
+    // Calculate frequency score in SQL using CTEs to avoid O(NxM) correlated subqueries
+    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
+    final String historyScoreExpr =
+        'COALESCE(rbl.score, 0) + COALESCE(ril.score, 0) AS history_priority_score';
+    // Must be the first variables because they match the FIRST two `?` in the CTEs!
+    variables.add(Variable.withDateTime(thirtyDaysAgo));
+    variables.add(Variable.withDateTime(thirtyDaysAgo));
 
-    final String historyScoreExpr = caseClauses.isEmpty
-        ? '0 AS history_priority_score'
-        : 'CASE ${caseClauses.join(' ')} ELSE 0 END AS history_priority_score';
-
-    // Für die Relevanz-Gewichtung im ORDER BY übergeben wir den rohen Suchbegriff
+    // Pass raw search term for relevance scoring in ORDER BY
     final rawSearchLower = keyword.trim().toLowerCase();
-    variables.add(Variable.withString(rawSearchLower)); // Für exakten Match
-    variables
-        .add(Variable.withString('$rawSearchLower%')); // Für Wortanfang-Match
+    variables.add(Variable.withString(rawSearchLower)); // Exact match (Name)
+    variables.add(
+        Variable.withString(rawSearchLower)); // Exact match (Brand + Name)
+    variables.add(
+        Variable.withString(rawSearchLower)); // Exact match (Name + Brand)
+    variables.add(
+        Variable.withString('$rawSearchLower%')); // Prefix match (Name)
+    variables.add(Variable.withString(
+        '$rawSearchLower%')); // Prefix match (Brand + Name)
+    variables.add(Variable.withString(
+        '$rawSearchLower%')); // Prefix match (Name + Brand)
 
     final whereClauses = <String>["p.source IN ('user', 'base', 'off')"];
     for (final token in tokens) {
-      // WICHTIGER KNIEFALL FÜR DEN DEUTSCHEN PLURAL:
-      // Wenn das Token auf "er" endet (z.B. "eier"), erlauben wir auch den Match auf den Stamm ("ei")
+      // German plural stemming fallback:
+      // If token ends with "er" (e.g. "eier"), allow matching on the stem ("ei") as well.
       if (token.endsWith('er') && token.length > 3) {
         final stem = token.substring(0, token.length - 2);
-        whereClauses.add('(p.name LIKE ? OR p.name LIKE ?)');
+        whereClauses.add(
+          '((p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?)) OR '
+          '(p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?)))',
+        );
+        variables.add(Variable.withString('%$token%'));
         variables.add(Variable.withString('%$token%'));
         variables.add(Variable.withString('%$stem%'));
+        variables.add(Variable.withString('%$stem%'));
       } else {
-        whereClauses.add('p.name LIKE ?');
+        whereClauses.add(
+          '(p.name LIKE ? OR (p.brand IS NOT NULL AND p.brand LIKE ?))',
+        );
+        variables.add(Variable.withString('%$token%'));
         variables.add(Variable.withString('%$token%'));
       }
     }
@@ -514,16 +537,40 @@ class ProductLocalDataSource {
     final whereSection = whereClauses.join(' AND ');
 
     final query = '''
+      WITH RecentBarcodeLogs AS (
+          SELECT legacy_barcode AS barcode, COUNT(*) * 10 AS score
+          FROM nutrition_logs
+          WHERE consumed_at >= ? AND legacy_barcode IS NOT NULL AND legacy_barcode != ''
+          GROUP BY legacy_barcode
+      ),
+      RecentIdLogs AS (
+          SELECT product_id AS id, COUNT(*) * 10 AS score
+          FROM nutrition_logs
+          WHERE consumed_at >= ? AND product_id IS NOT NULL AND product_id != ''
+          GROUP BY product_id
+      )
       SELECT p.*,
              $historyScoreExpr,
              (CASE WHEN p.source = 'base' THEN 1 ELSE 0 END) AS is_base_food,
-             -- Text-Relevanz-Scores berechnen:
-             (CASE WHEN LOWER(p.name) = ? THEN 1 ELSE 0 END) AS is_exact_match,
-             (CASE WHEN LOWER(p.name) LIKE ? THEN 1 ELSE 0 END) AS is_prefix_match
+             -- Text-Relevanz-Scores berechnen (Name oder Marke + Name Kombinationen):
+             (CASE 
+               WHEN LOWER(p.name) = ? 
+                 OR LOWER(COALESCE(p.brand, '') || ' ' || p.name) = ? 
+                 OR LOWER(p.name || ' ' || COALESCE(p.brand, '')) = ? 
+               THEN 1 ELSE 0 
+              END) AS is_exact_match,
+             (CASE 
+               WHEN LOWER(p.name) LIKE ? 
+                 OR LOWER(COALESCE(p.brand, '') || ' ' || p.name) LIKE ? 
+                 OR LOWER(p.name || ' ' || COALESCE(p.brand, '')) LIKE ? 
+               THEN 1 ELSE 0 
+              END) AS is_prefix_match
       FROM products p
+      LEFT JOIN RecentBarcodeLogs rbl ON rbl.barcode = p.barcode
+      LEFT JOIN RecentIdLogs ril ON ril.id = p.id
       WHERE $whereSection
       -- DIE NEUE PRIORISIERUNG:
-      -- 1. Exakte Namens-Treffer müssen IMMER ganz nach oben (z.B. wenn ein Produkt exakt "Eier" oder "Ei" heißt)
+      -- 1. Exakte Namens- oder Marken-Treffer müssen IMMER ganz nach oben (z.B. wenn ein Produkt exakt "Eier" oder "Rewe Bio Magerquark" heißt)
       -- 2. Wortanfang-Treffer (z.B. "Eiercreme" bei Suche nach "Eier") kommen als nächstes
       -- 3. Erst danach greift die Unterscheidung zwischen Grundnahrungsmittel und OpenFoodFacts
       -- 4. Innerhalb der Blöcke entscheidet deine Historie
@@ -576,9 +623,26 @@ class ProductLocalDataSource {
     return _enrichProductsWithOverrides(products);
   }
 
-  /// Fuzzy-matches an AI-detected food name against the products table.
-  Future<List<FoodItem>> fuzzyMatchForAi(String aiName) async {
+  /// Fuzzy-matches an AI-detected food name against the products table,
+  /// with optional [catalogSearchTerm] for multi-lingual catalog lookups.
+  Future<List<FoodItem>> fuzzyMatchForAi(
+    String aiName, {
+    String? catalogSearchTerm,
+  }) async {
     final candidates = await searchProducts(aiName);
+    if (catalogSearchTerm != null &&
+        catalogSearchTerm.trim().isNotEmpty &&
+        catalogSearchTerm.trim().toLowerCase() !=
+            aiName.trim().toLowerCase()) {
+      final catalogCandidates = await searchProducts(catalogSearchTerm.trim());
+      for (final extra in catalogCandidates) {
+        if (!candidates
+            .any((c) => c.barcode == extra.barcode && c.id == extra.id)) {
+          candidates.add(extra);
+        }
+      }
+    }
+
     if (candidates.isEmpty) return [];
 
     const int returnLimit = 5;
@@ -642,14 +706,27 @@ class ProductLocalDataSource {
 
       // Fallback to text matching
       final searchLower = aiName.trim().toLowerCase();
-      int textScore(String name) {
-        if (name == searchLower) return 0;
-        if (name.startsWith(searchLower)) return 1;
+      int textScore(FoodItem item) {
+        final name = item.getLocalizedName(null).toLowerCase();
+        final brand = item.brand.toLowerCase();
+        final fullName1 = brand.isEmpty ? name : '$brand $name';
+        final fullName2 = brand.isEmpty ? name : '$name $brand';
+
+        if (name == searchLower ||
+            fullName1 == searchLower ||
+            fullName2 == searchLower) {
+          return 0;
+        }
+        if (name.startsWith(searchLower) ||
+            fullName1.startsWith(searchLower) ||
+            fullName2.startsWith(searchLower)) {
+          return 1;
+        }
         return 2;
       }
 
-      final sa = textScore(aName);
-      final sb = textScore(bName);
+      final sa = textScore(a);
+      final sb = textScore(b);
       if (sa != sb) return sa.compareTo(sb);
 
       int srcPri(FoodItemSource s) {

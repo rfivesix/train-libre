@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '../../../data/database_helper.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
+import '../../../services/base_food_language_service.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../../supplements/domain/models/supplement.dart';
@@ -21,6 +23,9 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/macro_badge_row.dart';
 import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../util/design_constants.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A comprehensive screen for viewing and editing a meal and its ingredients.
 ///
@@ -212,118 +217,156 @@ class _MealScreenState extends State<MealScreen> {
       ),
       floatingActionButton: fab,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: _loadingItems
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              // Apply top padding so list content clears the app bar.
-              padding: EdgeInsets.fromLTRB(16, 12 + topPadding, 16, 96),
-              children: [
-                // Name and notes section.
-                AppCardContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _editMode
-                          ? TextField(
-                              controller: _nameCtrl,
-                              textInputAction: TextInputAction.done,
-                              decoration: InputDecoration(
-                                labelText: l10n.mealNameLabel,
-                              ),
-                              onChanged: (_) => setState(() {}),
-                            )
-                          : Text(
-                              _nameCtrl.text.isNotEmpty
-                                  ? _nameCtrl.text
-                                  : l10n.unknown,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                      const SizedBox(height: 8),
-                      _editMode
-                          ? TextField(
-                              controller: _notesCtrl,
-                              maxLines: 3,
-                              decoration: InputDecoration(
-                                labelText: l10n.mealNotesLabel,
-                              ),
-                            )
-                          : Text(
-                              _notesCtrl.text.isNotEmpty
-                                  ? _notesCtrl.text
-                                  : l10n.noNotes,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                // === Nutrients (total sum) ===
-                AppSectionHeader(title: l10n.nutritionSectionLabel),
-                AppCardContainer(
-                  child: MacroBadgeRow(
-                    kcal: _items.isEmpty ? null : _totalKcal.round(),
-                    protein: _items.isEmpty ? null : _totalP,
-                    carbs: _items.isEmpty ? null : _totalC,
-                    fat: _items.isEmpty ? null : _totalF,
-                    useBadges: Provider.of<ThemeService>(context)
-                        .useColorfulMacroBadges,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
+      body: Stack(
+        children: [
+          _loadingItems
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  // Apply top padding so list content clears the app bar.
+                  padding: EdgeInsets.fromLTRB(16, 12 + topPadding, 16, 96),
+                  children: [
+                    // Name and notes section.
+                    AppCardContainer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _editMode
+                              ? TextField(
+                                  controller: _nameCtrl,
+                                  textInputAction: TextInputAction.done,
+                                  decoration: InputDecoration(
+                                    labelText: l10n.mealNameLabel,
+                                  ),
+                                  onChanged: (_) => setState(() {}),
+                                )
+                              : Text(
+                                  _nameCtrl.text.isNotEmpty
+                                      ? _nameCtrl.text
+                                      : l10n.unknown,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                          const SizedBox(height: 8),
+                          _editMode
+                              ? TextField(
+                                  controller: _notesCtrl,
+                                  maxLines: 3,
+                                  decoration: InputDecoration(
+                                    labelText: l10n.mealNotesLabel,
+                                  ),
+                                )
+                              : Text(
+                                  _notesCtrl.text.isNotEmpty
+                                      ? _notesCtrl.text
+                                      : l10n.noNotes,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 18),
+                    const SizedBox(height: 18),
 
-                // === Ingredients ===
-                AppSectionHeader(title: l10n.ingredientsCapsLock),
-
-                if (_items.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Text(
-                      l10n.emptyCategory,
-                      textAlign: TextAlign.center,
+                    // === Nutrients (total sum) ===
+                    AppSectionHeader(title: l10n.nutritionSectionLabel),
+                    AppCardContainer(
+                      child: Skeletonizer(
+                        enabled: _editMode && _items.isEmpty,
+                        child: MacroBadgeRow(
+                          kcal: (_editMode && _items.isEmpty) ? 0 : (_items.isEmpty ? null : _totalKcal.round()),
+                          protein: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalP),
+                          carbs: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalC),
+                          fat: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalF),
+                          useBadges: Provider.of<ThemeService>(context)
+                              .useColorfulMacroBadges,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
                     ),
-                  )
-                else
-                  Column(
-                    children: List.generate(_items.length, (i) {
-                      final it = _items[i];
-                      return _IngredientCard(
-                        key: ValueKey('ing_$i'),
-                        item: it,
-                        editMode: _editMode,
-                        showPerIngredientMacros: !_editMode,
-                        onQtyChanged: (val) async {
-                          _items[i]['quantity_in_grams'] = val;
-                          await _recomputeTotals();
-                          if (mounted) setState(() {});
-                        },
-                        onDelete: () async {
-                          final ok = await showDeleteConfirmation(
-                            context,
-                            title: l10n.deleteConfirmTitle,
-                            content: l10n.deleteConfirmContent,
+
+                    const SizedBox(height: 18),
+
+                    // === Ingredients ===
+                    AppSectionHeader(title: l10n.ingredientsCapsLock),
+
+                    if (_items.isEmpty)
+                      if (_editMode)
+                        SizedBox(
+                          height: 480,
+                          child: ColdStartEmptyState(
+                            icon: LucideIcons.apple,
+                            title: l10n.mealIngredientsTitle,
+                            subtitle: l10n.emptyCategory,
+                            callToAction: l10n.mealAddIngredient,
+                            showArrow: true,
+                            customEndXOffset: 110.0,
+                            customTargetYOffset:
+                                110.0 + MediaQuery.paddingOf(context).bottom,
+                          ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Text(
+                            l10n.emptyCategory,
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                    else
+                      Column(
+                        children: List.generate(_items.length, (i) {
+                          final it = _items[i];
+                          return _IngredientCard(
+                            key: ValueKey('ing_$i'),
+                            item: it,
+                            editMode: _editMode,
+                            showPerIngredientMacros: !_editMode,
+                            onQtyChanged: (val) async {
+                              _items[i]['quantity_in_grams'] = val;
+                              await _recomputeTotals();
+                              if (mounted) setState(() {});
+                            },
+                            onDelete: () async {
+                              final ok = await showDeleteConfirmation(
+                                context,
+                                title: l10n.deleteConfirmTitle,
+                                content: l10n.deleteConfirmContent,
+                              );
+
+                              if (ok) {
+                                setState(() => _items.removeAt(i));
+                                await _recomputeTotals();
+                                if (mounted) setState(() {});
+                              }
+                            },
                           );
-
-                          if (ok) {
-                            setState(() => _items.removeAt(i));
-                            await _recomputeTotals();
-                            if (mounted) setState(() {});
-                          }
-                        },
-                      );
-                    }),
+                        }),
+                      ),
+                  ],
+                ),
+          if (fab != null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: DesignConstants.bottomVignetteHeight,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: DesignConstants.bottomVignetteGradient(
+                      Theme.of(context).brightness == Brightness.dark,
+                    ),
                   ),
-              ],
+                ),
+              ),
             ),
+        ],
+      ),
     );
   }
 
@@ -415,23 +458,25 @@ class _MealScreenState extends State<MealScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       closeQty();
                       Navigator.of(qtyCtx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final val = int.tryParse(qtyCtrl.text);
                       closeQty();
                       Navigator.of(qtyCtx).pop(val);
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],
@@ -540,8 +585,21 @@ class _MealScreenState extends State<MealScreen> {
                           final it = _items[i];
                           final bc = it['barcode'] as String;
                           final fi = products[bc];
-                          final displayName =
-                              (fi?.name.isNotEmpty ?? false) ? fi!.name : bc;
+                          final displayName = fi != null
+                              ? (() {
+                                  final themeService =
+                                      Provider.of<ThemeService>(context);
+                                  final baseFoodLang = BaseFoodLanguageService
+                                      .resolveLanguageCode(
+                                    choice: themeService.baseFoodLanguage,
+                                    context: context,
+                                  );
+                                  return fi.source == FoodItemSource.base
+                                      ? fi.getLocalizedName(context,
+                                          languageCode: baseFoodLang)
+                                      : fi.getLocalizedName(context);
+                                })()
+                              : bc;
                           final unit = (fi?.isLiquid == true)
                               ? l10n.unit_milliliters
                               : l10n.unit_grams;
@@ -580,22 +638,24 @@ class _MealScreenState extends State<MealScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton(
+                          child: AppButton.secondary(
                             onPressed: () {
                               close();
                               Navigator.of(ctx).pop(false);
                             },
-                            child: Text(l10n.cancel),
+                            label: l10n.cancel,
+                            tooltip: l10n.cancel,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: FilledButton(
+                          child: AppButton.primary(
                             onPressed: () {
                               close();
                               Navigator.of(ctx).pop(true);
                             },
-                            child: Text(l10n.save),
+                            label: l10n.save,
+                            tooltip: l10n.save,
                           ),
                         ),
                       ],
@@ -624,6 +684,7 @@ class _MealScreenState extends State<MealScreen> {
           quantityInGrams: qty,
           mealType: selectedMealType,
         ),
+        telemetrySource: FoodLogSource.meal,
       );
 
       final fi = await ProductLocalDataSource.instance.getProductByBarcode(bc);
@@ -713,7 +774,17 @@ class _IngredientCard extends StatelessWidget {
     final themeService = Provider.of<ThemeService>(context);
 
     Widget buildCard(FoodItem? fi) {
-      final name = (fi?.name.isNotEmpty ?? false) ? fi!.name : bc;
+      final name = fi != null
+          ? (() {
+              final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+                choice: themeService.baseFoodLanguage,
+                context: context,
+              );
+              return fi.source == FoodItemSource.base
+                  ? fi.getLocalizedName(context, languageCode: baseFoodLang)
+                  : fi.getLocalizedName(context);
+            })()
+          : bc;
       final unit =
           (fi?.isLiquid == true) ? l10n.unit_milliliters : l10n.unit_grams;
 
@@ -827,7 +898,7 @@ class _IngredientCard extends StatelessWidget {
       direction: DismissDirection.endToStart,
       background: const SizedBox.shrink(),
       secondaryBackground: const SwipeActionBackground(
-        color: Colors.redAccent,
+        color: DesignConstants.brandRedColor,
         icon: LucideIcons.trash_2,
         alignment: Alignment.centerRight,
       ),

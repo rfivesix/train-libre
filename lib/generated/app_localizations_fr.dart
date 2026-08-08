@@ -15,6 +15,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get selectTimeTitle => 'Choisir une heure';
 
   @override
+  String get removeTimer => 'Supprimer le minuteur';
+
+  @override
+  String get noTimerLabel => 'Aucun minuteur';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override
@@ -40,6 +46,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get daily => 'Tous les jours';
+
+  @override
+  String get nowLabel => 'Now';
 
   @override
   String get today => 'Aujourd\'hui';
@@ -431,13 +440,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setLabel => 'Ensemble';
 
   @override
-  String get kgLabel => 'Poids (kg)';
+  String kgLabel(String unit) {
+    return 'Weight ($unit)';
+  }
 
   @override
   String get repsLabel => 'Représentants';
 
   @override
-  String get cardioDistanceLabel => 'Distance (km)';
+  String cardioDistanceLabel(String unit) {
+    return 'Distance ($unit)';
+  }
 
   @override
   String get cardioTimeLabel => 'Temps';
@@ -610,6 +623,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get filter30Days => '30 jours';
+
+  @override
+  String get filter30DaysShort => '30j';
+
+  @override
+  String get filter90DaysShort => '90j';
+
+  @override
+  String get filter180DaysShort => '180j';
+
+  @override
+  String get filter7DaysShort => '7j';
+
+  @override
+  String get filter1MonthShort => '1M';
+
+  @override
+  String get filter3MonthsShort => '3M';
+
+  @override
+  String get filter6MonthsShort => '6M';
+
+  @override
+  String get filter1YearShort => '1A';
+
+  @override
+  String get filterMax => 'MAX';
 
   @override
   String get filterAll => 'Tous';
@@ -941,6 +981,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get titleEditRoutine => 'Modifier la routine';
 
   @override
+  String get editRoutine => 'Modifier la routine';
+
+  @override
   String get validatorPleaseEnterRoutineName =>
       'Veuillez saisir un nom pour la routine.';
 
@@ -986,9 +1029,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get fabAddExercise => 'Ajouter un exercice';
-
-  @override
-  String get kgLabelShort => 'kilos';
 
   @override
   String get drawerExerciseCatalog => 'Catalogue d\'exercices';
@@ -1061,6 +1101,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deleteExerciseButton => 'Supprimer l\'exercice';
+
+  @override
+  String get deleteCustomExerciseTitle => 'Supprimer l\'exercice personnalisé';
+
+  @override
+  String deleteCustomExerciseBody(String name) {
+    return '« $name » sera supprimé définitivement. Cette action est irréversible.';
+  }
+
+  @override
+  String get deleteCustomExerciseWithLogsWarning =>
+      'Cet exercice apparaît dans votre historique d\'entraînements. Vos entrées de journal seront conservées, mais le lien vers l\'exercice sera supprimé.';
+
+  @override
+  String get deleteCustomExerciseWithRoutinesWarning =>
+      'Cet exercice est utilisé dans une ou plusieurs routines. Il sera supprimé de ces routines.';
+
+  @override
+  String get deleteCustomExerciseSuccess => 'Exercice supprimé.';
 
   @override
   String get restOverLabel => 'La pause est terminée';
@@ -1226,6 +1285,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get workoutSectionMyPlans => 'Mes projets';
+
+  @override
+  String get emptyStateWorkoutRoutinesCallout =>
+      'Créez votre première routine pour suivre vos entraînements en salle de manière structurée.';
 
   @override
   String get workoutSectionHistoryLibrary => 'Histoire et bibliothèque';
@@ -1725,8 +1788,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get autoBackupCopyPath => 'Copier le chemin';
 
   @override
-  String get autoBackupRunNow =>
-      'Vérifiez et exécutez la sauvegarde automatique maintenant';
+  String get autoBackupRunNow => 'Vérifier & exécuter la sauvegarde auto';
+
+  @override
+  String get icloudAutoBackupTitle => 'Sauvegarde Auto iCloud';
+
+  @override
+  String get icloudAutoBackupDescription =>
+      'Synchronise automatiquement votre base de données sur iCloud Drive lorsque l\'application est en arrière-plan. Vos données peuvent être restaurées sur un nouvel appareil ou après une réinstallation.';
+
+  @override
+  String get icloudBackupNow => 'Sauvegarder sur iCloud maintenant';
+
+  @override
+  String get icloudBackupUploading => 'Téléchargement…';
+
+  @override
+  String get icloudBackupSuccess => 'Sauvegarde téléchargée avec succès.';
+
+  @override
+  String get icloudBackupFailed =>
+      'Échec de la sauvegarde. Vérifiez votre connexion iCloud.';
 
   @override
   String get autoBackupRequestAccessSubtitle =>
@@ -1960,16 +2042,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nutritionExplorerTitle => 'Explorateur de nutrition';
 
   @override
-  String get myMeals => 'Mes repas';
+  String get myMeals => 'Mes recettes';
 
   @override
-  String get myMealsCL => 'MES REPAS';
+  String get myMealsCL => 'MES RECETTES';
 
   @override
-  String get nutritionSectionTodayInFocus => 'Aujourd\'hui en bref';
+  String get nutritionSectionTodayInFocus => 'Aujourd’hui à l’honneur';
 
   @override
-  String get nutritionSectionMyMeals => 'Mes repas';
+  String get nutritionSectionMyMeals => 'Mes recettes';
+
+  @override
+  String get emptyStateNutritionRecipesCallout =>
+      'Créez votre première recette pour enregistrer rapidement vos repas fréquents.';
 
   @override
   String get nutritionSectionToolsAndLibrary => 'Outils et bibliothèque';
@@ -2000,6 +2086,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Êtes-vous sûr de vouloir supprimer ce supplément ? Toutes les données historiques seront perdues.\n\nAstuce : Vous pouvez simplement supprimer le suivi en modifiant le supplément à la place.';
 
   @override
+  String get editSupplementLogTitle => 'Modifier l\'entrée';
+
+  @override
+  String get deleteSupplementLogConfirm =>
+      'Voulez-vous vraiment supprimer cette entrée ?';
+
+  @override
   String get fieldRequired => 'Requis';
 
   @override
@@ -2015,7 +2108,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabCatalogSearch => 'Catalogue';
 
   @override
-  String get tabMeals => 'Repas';
+  String get tabMeals => 'Recettes';
 
   @override
   String get emptyCategory => 'Aucune entrée';
@@ -2027,43 +2120,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get searchSectionOther => 'Autres résultats';
 
   @override
-  String get mealsComingSoonTitle => 'Repas (à venir)';
+  String get mealsComingSoonTitle => 'Recettes (à venir)';
 
   @override
   String get mealsComingSoonBody =>
-      'Bientôt, vous pourrez créer vos propres repas à partir de plusieurs aliments.';
+      'Bientôt, vous pourrez créer vos propres recettes à partir de plusieurs aliments.';
 
   @override
-  String get mealsEmptyTitle => 'Aucun modèle de repas enregistré';
+  String get mealsEmptyTitle => 'Aucun modèle de recette enregistré';
 
   @override
   String get mealsEmptyBody =>
-      'Créez des repas pour enregistrer rapidement plusieurs aliments à la fois.';
+      'Créez des recettes pour enregistrer rapidement plusieurs aliments à la fois.';
 
   @override
   String get mealsEmptyBodyWithShortcut =>
-      'Dans le journal, utilisez l\'option « Enregistrer comme repas » sous votre petit-déjeuner ou votre dîner pour enregistrer les combinaisons alimentaires courantes comme modèle rapide.';
+      'Dans le journal, utilisez l\'option « Enregistrer comme recette » sous votre petit-déjeuner ou votre dîner pour enregistrer les combinaisons alimentaires courantes comme modèle rapide.';
 
   @override
-  String get mealsCreateManually => 'Créer un repas manuellement';
+  String get mealsCreateManually => 'Créer une recette manuellement';
 
   @override
-  String get saveMealTemplateShortcut => 'Enregistrer comme repas';
+  String get saveMealTemplateShortcut => 'Enregistrer comme recette';
 
   @override
-  String get mealsCreate => 'Créer un repas';
+  String get mealsCreate => 'Créer une recette';
 
   @override
-  String get mealsEdit => 'Modifier le repas';
+  String get mealsEdit => 'Modifier la recette';
 
   @override
-  String get mealsDelete => 'Supprimer le repas';
+  String get mealsDelete => 'Supprimer la recette';
 
   @override
   String get mealsAddToDiary => 'Ajouter de la nourriture';
 
   @override
-  String get mealNameLabel => 'Nom du repas';
+  String get mealNameLabel => 'Nom de la recette';
 
   @override
   String get mealNotesLabel => 'Remarques';
@@ -2078,23 +2171,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mealIngredientAmountLabel => 'Montant';
 
   @override
-  String get mealDeleteConfirmTitle => 'Supprimer le repas';
+  String get mealDeleteConfirmTitle => 'Supprimer la recette';
 
   @override
   String mealDeleteConfirmBody(Object name) {
-    return 'Êtes-vous sûr de vouloir supprimer le repas « $name » ? Tous ses ingrédients seront également supprimés.';
+    return 'Êtes-vous sûr de vouloir supprimer la recette « $name » ? Tous ses ingrédients seront également supprimés.';
   }
 
   @override
   String mealAddedToDiary(Object name) {
-    return 'Le repas \'$name\' a été ajouté à votre agenda.';
+    return 'La recette \'$name\' a été ajoutée à votre agenda.';
   }
 
   @override
-  String get mealSaved => 'Repas sauvé.';
+  String get mealSaved => 'Recette sauvée.';
 
   @override
-  String get mealDeleted => 'Repas supprimé.';
+  String get mealDeleted => 'Recette supprimée.';
 
   @override
   String get confirm => 'Confirmer';
@@ -2103,13 +2196,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addMealToDiaryTitle => 'Ajouter au journal';
 
   @override
-  String get mealTypeLabel => 'Repas';
+  String get mealTypeLabel => 'Recette';
 
   @override
   String get amountLabel => 'Montant';
 
   @override
-  String get mealAddedToDiarySuccess => 'Repas ajouté au journal';
+  String get mealAddedToDiarySuccess => 'Recette ajoutée au journal';
 
   @override
   String get error => 'Erreur';
@@ -2321,6 +2414,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get adaptiveRatePerWeekLabel => 'Taux cible hebdomadaire';
+
+  @override
+  String get customTargetRateOption => 'Personnalisé';
+
+  @override
+  String get customTargetRateDialogTitle => 'Définir l\'objectif personnalisé';
 
   @override
   String get onboardingNameTitle => 'Quel est ton nom?';
@@ -3093,6 +3192,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get exerciseMetricEst1RM => 'HNE. 1RM';
 
   @override
+  String get exerciseMetricDistance => 'Distance';
+
+  @override
+  String get exerciseMetricDuration => 'Durée';
+
+  @override
+  String get exerciseMetricPace => 'Allure';
+
+  @override
   String get prBannerBestMaxWeight => 'Meilleur poids maximum';
 
   @override
@@ -3175,8 +3283,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get analyticsRecentRecords => 'Enregistrements récents';
 
   @override
-  String analyticsPerfWithReps(String weight, int reps) {
-    return '$weight kg x $reps';
+  String analyticsPerfWithReps(String weight, int reps, Object unit) {
+    return '$weight $unit x $reps';
   }
 
   @override
@@ -3202,8 +3310,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Il n’y a pas encore de tendance claire en matière de relations publiques dans cette fenêtre.';
 
   @override
-  String analyticsE1rmProgress(String previous, String recent) {
-    return 'e1RM $previous -> $recent kg';
+  String analyticsE1rmProgress(String previous, String recent, Object unit) {
+    return 'e1RM $previous -> $recent $unit';
   }
 
   @override
@@ -3267,6 +3375,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'semaines avec au moins 2 séances';
 
   @override
+  String get analyticsInTimeframe => 'Dans la période';
+
+  @override
+  String get analyticsVsPriorPeriod => 'vs période précédente';
+
+  @override
   String get analyticsCalendarExplainer =>
       'L\'intensité des couleurs reflète les séances quotidiennes, ce qui en fait une véritable carte de cohérence.';
 
@@ -3324,7 +3438,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les ensembles durs équivalents utilisent une pondération primaire x1,0 et secondaire x0,3. La fréquence ne compte que les jours atteignant >= 1,0 ensembles équivalents.';
 
   @override
-  String get analyticsWeeklySetsByMuscle => 'Séries hebdomadaires par muscle';
+  String get analyticsWeeklySetsByMuscle => 'Ø Séries hebdomadaires par muscle';
 
   @override
   String get analyticsFrequencyByMuscle => 'Fréquence par muscle';
@@ -3353,7 +3467,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String analyticsWeekTotalEquivalentSets(String value) {
-    return 'Total de la semaine : $value ensembles équivalents';
+    return 'Ø $value séries équivalentes par semaine';
   }
 
   @override
@@ -3361,18 +3475,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'La fréquence ne compte que les jours où le muscle a atteint >= 1,0 séries équivalentes.';
 
   @override
-  String liveWorkoutE1rmCurrentSet(String value) {
-    return 'e1RM $value kg';
+  String liveWorkoutE1rmCurrentSet(String value, Object unit) {
+    return 'e1RM $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmBestSession(String value) {
-    return 'Meilleur e1RM cette session : $value kg';
+  String liveWorkoutE1rmBestSession(String value, Object unit) {
+    return 'Meilleur e1RM cette session : $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmVsLastSession(String delta) {
-    return 'vs dernière séance : $delta kg';
+  String liveWorkoutE1rmVsLastSession(String delta, Object unit) {
+    return 'vs dernière séance : $delta $unit';
   }
 
   @override
@@ -3416,22 +3530,28 @@ class AppLocalizationsFr extends AppLocalizations {
       'Poids et calories au fil du temps';
 
   @override
-  String get analyticsBodyNutritionTrendContextHint =>
-      'Le graphique met à l\'échelle chaque série pour s\'adapter au même espace ; les info-bulles affichent les valeurs brutes en kg et en kcal.';
+  String analyticsBodyNutritionTrendContextHint(Object unit) {
+    return 'Le graphique met à l\'échelle chaque série pour s\'adapter au même espace ; les info-bulles affichent les valeurs brutes en $unit et en kcal.';
+  }
 
   @override
-  String get analyticsBodyNutritionNormalizedHint =>
-      'Le graphique met à l\'échelle le poids et les calories pour s\'adapter au même espace ; les info-bulles affichent les valeurs brutes en kg et en kcal.';
+  String analyticsBodyNutritionNormalizedHint(Object unit) {
+    return 'Le graphique met à l\'échelle le poids et les calories pour s\'adapter au même espace ; les info-bulles affichent les valeurs brutes en $unit et en kcal.';
+  }
 
   @override
-  String get analyticsBodyNutritionTotalWeightLabel => 'Poids total (kg)';
+  String analyticsBodyNutritionTotalWeightLabel(Object unit) {
+    return 'Poids total ($unit)';
+  }
 
   @override
   String get analyticsBodyNutritionTotalCaloriesLabel =>
       'Calories totales (kcal)';
 
   @override
-  String get analyticsWeightTrendLabel => 'Poids (kg)';
+  String analyticsWeightTrendLabel(String unit) {
+    return 'Poids ($unit)';
+  }
 
   @override
   String get analyticsCaloriesTrendLabel => 'Calories (kcal)';
@@ -3558,6 +3678,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get onboardingRestoreFailed =>
       'L\'importation a échoué. Veuillez vérifier le fichier et réessayer.';
+
+  @override
+  String get onboardingRestoreFromICloud => 'Restaurer depuis iCloud';
+
+  @override
+  String get onboardingRestoreICloudSuccess =>
+      'La sauvegarde iCloud a été restaurée avec succès !';
+
+  @override
+  String get onboardingRestoreICloudFailed =>
+      'La restauration iCloud a échoué. Vérifiez votre connexion et réessayez.';
 
   @override
   String get finishWorkoutTitleLabel => 'Titre de l\'entraînement';
@@ -3687,7 +3818,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Autorisations accordées. Si aucune veille n\'apparaît encore, exécutez une importation manuelle ci-dessous.';
 
   @override
-  String get sleepNoPermissionTitle => 'Aucune autorisation';
+  String get sleepDataStatusSubtitleIos =>
+      'Connexion active. Si des données manquent (0 sessions importées), vérifiez manuellement les autorisations de lecture dans l\'application Apple Health.';
 
   @override
   String get sleepNoPermissionSubtitle =>
@@ -4091,8 +4223,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adaptiveGoalGain => 'Prendre du poids';
 
   @override
-  String adaptiveRatePerWeek(String value) {
-    return '$value kg/semaine';
+  String adaptiveRatePerWeek(String value, Object unit) {
+    return '$value $unit/semaine';
   }
 
   @override
@@ -4407,6 +4539,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'Qualité des données';
 
   @override
+  String get adaptiveRecommendationEnergyDensityLabel =>
+      'Densité énergétique effective';
+
+  @override
+  String adaptiveRecommendationEnergyDensityValue(int value) {
+    return '$value kcal/kg';
+  }
+
+  @override
+  String get adaptiveRecommendationEnergyDensityExplanation =>
+      'Valeur dynamique basée sur le poids et le ratio de perte d’eau';
+
+  @override
   String get adaptiveRecommendationRecalculateNowAction =>
       'Recalculer maintenant';
 
@@ -4417,8 +4562,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adaptiveRecommendationApplying => 'Candidature...';
 
   @override
-  String get adaptiveRecommendationApplyAction =>
-      'Appliquer la recommandation aux objectifs actifs';
+  String get adaptiveRecommendationApplyAction => 'Appliquer la recommandation';
 
   @override
   String get adaptiveRecommendationWarningCalorieFloor =>
@@ -4498,6 +4642,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsShowSugarInDiaryOverviewSubtitle =>
       'Affiche le sucre dans la section supérieure d\'aperçu quotidien';
+
+  @override
+  String get settingsOverviewExtraNutrientTitle =>
+      'Nutriment supplémentaire dans l\'aperçu';
+
+  @override
+  String get settingsOverviewExtraNutrientSubtitle =>
+      'Ajoutez un troisième nutriment à l\'aperçu quotidien';
 
   @override
   String get settingsSectionHealthTracking => 'Santé et suivi';
@@ -4949,11 +5101,36 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get welcome_privacy_body =>
-      'En utilisant Train Libre, vous acceptez le traitement de vos données tel que décrit dans notre Politique de confidentialité et Mentions légales.';
+      'Pour fournir le suivi des entraînements et des analyses, nous traitons vos données de forme et d\'activité comme décrit dans notre politique de confidentialité.';
 
   @override
   String get i_agree_to_privacy_policy =>
-      'J\'ai lu et j\'accepte le traitement de mes données de santé tel que décrit dans la politique de confidentialité.';
+      'J\'accepte expressément le traitement de mes données de santé et de forme pour le suivi des entraînements et des analyses. Je peux retirer mon consentement à tout moment dans les paramètres.';
+
+  @override
+  String get i_agree_to_optional_telemetry =>
+      '(Optionnel) Je souhaite partager des statistiques d\'utilisation anonymes pour améliorer la stabilité et les fonctionnalités (aucune donnée personnelle).';
+
+  @override
+  String get welcome_back_updated_legal_title =>
+      'Bon retour & Politiques mises à jour';
+
+  @override
+  String legal_update_body(String version) {
+    return 'Nous avons mis à jour notre politique de confidentialité et nos conditions d\'utilisation (Version $version). Pour continuer à utiliser Train Libre, veuillez accepter les conditions mises à jour. Vos données restent conservées sur votre appareil.';
+  }
+
+  @override
+  String i_agree_to_updated_privacy_policy(String version) {
+    return 'J\'accepte expressément la politique de confidentialité mise à jour (v$version) et le traitement de mes données de santé.';
+  }
+
+  @override
+  String get accept_and_continue => 'Accepter et continuer';
+
+  @override
+  String get by_tapping_accept_continue =>
+      'En appuyant sur \"Accepter et continuer\", vous acceptez les';
 
   @override
   String get acceptTermsPrompt => 'J\'accepte les conditions d\'utilisation';
@@ -4963,6 +5140,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get accept_and_get_started => 'Accepter et commencer';
+
+  @override
+  String get by_tapping_accept =>
+      'En appuyant sur « Accepter et commencer », vous acceptez nos';
+
+  @override
+  String get and_acknowledge => 'et prenez connaissance de notre';
 
   @override
   String get about_section => 'À propos';
@@ -4995,7 +5179,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get legal_document_last_updated_value => '20 mai 2026';
 
   @override
-  String get muscleChest => 'Poitrine';
+  String get muscleChest => 'Pectoraux';
 
   @override
   String get muscleBack => 'Dos';
@@ -5016,13 +5200,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get muscleHamstrings => 'Ischio-jambiers';
 
   @override
+  String get muscleLegs => 'Jambes';
+
+  @override
+  String get muscleArms => 'Bras';
+
+  @override
   String get muscleGlutes => 'Fessiers';
 
   @override
-  String get muscleCalves => 'Veaux';
+  String get muscleCalves => 'Mollets';
 
   @override
-  String get muscleLowerBack => 'Lombes';
+  String get muscleLowerBack => 'Bas du dos';
 
   @override
   String get muscleAbs => 'Abdos';
@@ -5561,4 +5751,119 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get onboardingRegionSettingsHint =>
       'Vous pouvez modifier cela à tout moment plus tard dans Paramètres → Nutrition → Région de la base de données.';
+
+  @override
+  String get clearSearch => 'Effacer la recherche';
+
+  @override
+  String rollingDaysLabel(int days) {
+    return 'Les $days derniers jours (glissant)';
+  }
+
+  @override
+  String get muscleTraps => 'Trapèzes';
+
+  @override
+  String get muscleObliques => 'Obliques';
+
+  @override
+  String get icloudSyncErrorTitle => 'Échec de la synchronisation iCloud';
+
+  @override
+  String get icloudSyncErrorHelp =>
+      'Veuillez vous assurer que iCloud Drive est activé dans les réglages système d\'iOS sous Réglages -> [Votre Nom] -> iCloud -> iCloud Drive.';
+
+  @override
+  String get icloudSyncErrorCopyLog =>
+      'Copier le journal technique des erreurs';
+
+  @override
+  String get icloudSyncErrorClose => 'Fermer';
+
+  @override
+  String get icloudSyncErrorCopied =>
+      'Journal des erreurs copié dans le presse-papiers !';
+
+  @override
+  String icloudLastSynced(String date) {
+    return 'Dernière synchronisation : $date';
+  }
+
+  @override
+  String get icloudNeverSynced => 'Jamais synchronisé';
+
+  @override
+  String get emptyStateDiaryColdStartTitle => 'Bienvenue dans votre Journal !';
+
+  @override
+  String get emptyStateDiaryColdStartSubtitle =>
+      'Gardez une trace de votre alimentation et de votre hydratation ici.';
+
+  @override
+  String get emptyStateActiveGapOverlay =>
+      'Aucune donnée disponible pour cette période';
+
+  @override
+  String get emptyStateDiaryColdStartCallToAction =>
+      'Enregistrez votre première entrée ici';
+
+  @override
+  String get statisticsColdStartTitle => 'Bienvenue dans vos statistiques !';
+
+  @override
+  String get statisticsColdStartSubtitle =>
+      'Vos progrès seront visualisés ici dès que vous aurez enregistré vos premiers entraînements, repas ou suivi vos pas et votre sommeil.';
+
+  @override
+  String get statisticsActiveGapTitle => 'Aucune donnée disponible';
+
+  @override
+  String get reviewPromptTitle => 'Aimez-vous Train Libre ?';
+
+  @override
+  String get reviewPromptSubtitle =>
+      'Vos retours nous aident à améliorer l\'application sans publicité ni traqueurs.';
+
+  @override
+  String get reviewPromptYes => 'Oui, j\'aime bien';
+
+  @override
+  String get reviewPromptNo => 'Non, pas vraiment';
+
+  @override
+  String get reviewPromptLater => 'Rappelez-moi plus tard';
+
+  @override
+  String get updateAvailableTitle => 'Mise à jour disponible';
+
+  @override
+  String get statusReady => 'Prêt';
+
+  @override
+  String get statusRequired => 'Requis';
+
+  @override
+  String get updatesAvailableBody =>
+      'De nouvelles mises à jour sont disponibles pour vos catalogues locaux. Souhaitez-vous les mettre à jour maintenant ?';
+
+  @override
+  String get exerciseCatalogWger => 'Catalogue d\'exercices (wger)';
+
+  @override
+  String get nutritionCatalogOff => 'Catalogue de nutrition (OFF)';
+
+  @override
+  String get workoutImportZeroNew =>
+      '0 nouvel entraînement importé (tous existaient déjà).';
+
+  @override
+  String get telemetryDeleteDialogTitle =>
+      'Supprimer les données de télémétrie ?';
+
+  @override
+  String get telemetryDeleteDialogBody =>
+      'Voulez-vous vraiment supprimer vos données de télémétrie passées ?\n\nCe qui suit va se produire :\n• Tous les UUID d\'appareil, ID de session et compteurs locaux enregistrés sur cet appareil seront réinitialisés.\n• Une demande de suppression (\$delete_person) sera envoyée aux serveurs PostHog dans l\'UE pour y supprimer vos données.\n• Le SDK de télémétrie sera entièrement réinitialisé.';
+
+  @override
+  String get telemetryDeleteConfirmButton => 'Supprimer les données maintenant';
 }

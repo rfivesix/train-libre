@@ -20,10 +20,19 @@ import '../../sleep/data/sleep_day_repository.dart';
 import '../../pulse/domain/pulse_models.dart';
 import 'diary_health_sync_coordinator.dart';
 import '../../workout/domain/models/workout_log.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 DateTime normalizeDiaryDate(DateTime date) => date.dateOnly;
+
 DateTime resolveDiaryInitialDate({DateTime? initialDate, DateTime? now}) {
-  return (initialDate ?? now ?? DateTime.now()).dateOnly;
+  if (initialDate != null) {
+    return initialDate.dateOnly;
+  }
+  final referenceTime = now ?? DateTime.now();
+  final baseDate = referenceTime.hour < 3
+      ? referenceTime.subtract(const Duration(days: 1))
+      : referenceTime;
+  return baseDate.dateOnly;
 }
 
 class DiaryLoadCoordinator {
@@ -99,6 +108,7 @@ class DiaryViewModel extends ChangeNotifier {
   StreamSubscription<List<Supplement>>? _supplementsSubscription;
   StreamSubscription<List<SupplementLog>>? _supplementLogsSubscription;
   StreamSubscription<List<WorkoutLog>>? _workoutsSubscription;
+  StreamSubscription<String>? _extraNutrientSubscription;
 
   Timer? _updateDebounceTimer;
   bool _isCalculating = false;
@@ -118,6 +128,20 @@ class DiaryViewModel extends ChangeNotifier {
   List<TrackedSupplement> trackedSupplements = [];
   Map<String, dynamic>? workoutSummary;
   bool showSugarInOverview = false;
+  String overviewExtraNutrient = 'fiber';
+
+  bool? hasEverLoggedData;
+  bool hasWeightMeasurementForSelectedDate = false;
+
+  bool get hasDataForSelectedDate =>
+      fluidEntries.isNotEmpty ||
+      entriesByMeal.values.any((m) => m.isNotEmpty) ||
+      _activeSupplementLogs.isNotEmpty ||
+      _activeWorkouts.isNotEmpty ||
+      (stepsForSelectedDay != null && stepsForSelectedDay! > 0) ||
+      (sleepOverview != null && (sleepOverview!.totalSleepMinutes ?? 0) > 0) ||
+      (pulseSummary != null && pulseSummary!.sampleCount > 0) ||
+      hasWeightMeasurementForSelectedDate;
 
   int targetSteps = StepsSyncService.defaultStepsGoal;
 
@@ -143,17 +167,28 @@ class DiaryViewModel extends ChangeNotifier {
     required SupplementRepository supplementRepo,
     required IWorkoutRepository workoutRepo,
     DateTime? initialDate,
-  })  : _nutritionRepo = nutritionRepo,
-        _supplementRepo = supplementRepo,
-        _workoutRepo = workoutRepo,
-        selectedDateNotifier =
-            ValueNotifier((initialDate ?? DateTime.now()).dateOnly) {
+  }) : _nutritionRepo = nutritionRepo,
+       _supplementRepo = supplementRepo,
+       _workoutRepo = workoutRepo,
+       selectedDateNotifier = ValueNotifier(
+         resolveDiaryInitialDate(initialDate: initialDate),
+       ) {
     healthSyncCoordinator.addListener(notifyListeners);
+    _extraNutrientSubscription = _prefsRepo
+        .watchOverviewExtraNutrient()
+        .listen((nutrient) {
+      if (overviewExtraNutrient != nutrient) {
+        overviewExtraNutrient = nutrient;
+        showSugarInOverview = nutrient == 'sugar';
+        _updateCalculatedState();
+      }
+    });
     setSelectedDate(selectedDate);
   }
 
   @override
   void dispose() {
+    _extraNutrientSubscription?.cancel();
     _updateDebounceTimer?.cancel();
     _goalsSubscription?.cancel();
     _entriesSubscription?.cancel();
@@ -167,8 +202,6 @@ class DiaryViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-
-
   void setSelectedDate(DateTime date) {
     final diaryDate = normalizeDiaryDate(date);
     selectedDateNotifier.value = diaryDate;
@@ -181,48 +214,62 @@ class DiaryViewModel extends ChangeNotifier {
     _supplementLogsSubscription?.cancel();
     _workoutsSubscription?.cancel();
 
-    isLoading = true;
-    notifyListeners();
-
     // Re-establish reactive stream listeners for the new selected date
-    _goalsSubscription = _nutritionRepo.watchGoalsForDate(diaryDate).listen((goals) {
+    // NOTE: We intentionally do NOT set isLoading=true or call notifyListeners()
+    // here. The UI keeps the previous day's data fully rendered (stale-while-
+    // revalidate) while the new streams resolve. _executeCalculatedState() will
+    // call notifyListeners() exactly once when the complete new-date payload is
+    // ready, producing a single atomic swap with zero intermediate flicker.
+    _goalsSubscription = _nutritionRepo.watchGoalsForDate(diaryDate).listen((
+      goals,
+    ) {
       _activeGoals = goals;
       _updateCalculatedState();
     });
 
-    _entriesSubscription = _nutritionRepo.watchEntriesForDate(diaryDate).listen((entries) {
-      _activeEntries = entries;
-      _updateCalculatedState();
-    });
+    _entriesSubscription = _nutritionRepo.watchEntriesForDate(diaryDate).listen(
+      (entries) {
+        _activeEntries = entries;
+        _updateCalculatedState();
+      },
+    );
 
-    _fluidsSubscription = _nutritionRepo.watchFluidEntriesForDate(diaryDate).listen((fluids) {
-      _activeFluids = fluids;
-      _updateCalculatedState();
-    });
+    _fluidsSubscription = _nutritionRepo
+        .watchFluidEntriesForDate(diaryDate)
+        .listen((fluids) {
+          _activeFluids = fluids;
+          _updateCalculatedState();
+        });
 
-    _supplementsSubscription = _supplementRepo.watchSupplementsForDate(diaryDate).listen((supps) {
-      _activeSupplements = supps;
-      _updateCalculatedState();
-    });
+    _supplementsSubscription = _supplementRepo
+        .watchSupplementsForDate(diaryDate)
+        .listen((supps) {
+          _activeSupplements = supps;
+          _updateCalculatedState();
+        });
 
-    _supplementLogsSubscription = _supplementRepo.watchSupplementLogsForDate(diaryDate).listen((logs) {
-      _activeSupplementLogs = logs;
-      _updateCalculatedState();
-    });
+    _supplementLogsSubscription = _supplementRepo
+        .watchSupplementLogsForDate(diaryDate)
+        .listen((logs) {
+          _activeSupplementLogs = logs;
+          _updateCalculatedState();
+        });
 
     _workoutsSubscription = _workoutRepo
         .watchWorkoutLogsForDateRange(diaryDate, diaryDate)
         .listen((workouts) {
-      _activeWorkouts = workouts;
-      _updateCalculatedState();
-    });
+          _activeWorkouts = workouts;
+          _updateCalculatedState();
+        });
 
     // Delegate all health data loading and background sync
-    unawaited(healthSyncCoordinator.loadAndSyncHealthData(
-      date: diaryDate,
-      forceStepsRefresh: false,
-      isCurrentLoad: (d) => d.isSameDate(diaryDate),
-    ));
+    unawaited(
+      healthSyncCoordinator.loadAndSyncHealthData(
+        date: diaryDate,
+        forceStepsRefresh: false,
+        isCurrentLoad: (d) => d.isSameDate(diaryDate),
+      ),
+    );
   }
 
   Future<void> syncHealthData({bool forceStepsRefresh = false}) async {
@@ -262,24 +309,40 @@ class DiaryViewModel extends ChangeNotifier {
 
     try {
       final targetSugar = await _prefsRepo.getTargetSugar() ?? 50;
+      final targetFiber = await _prefsRepo.getTargetFiber() ?? 30;
+      final targetSalt = await _prefsRepo.getTargetSalt() ?? 6;
       final targetCaffeine = await _prefsRepo.getTargetCaffeine() ?? 400;
-      showSugarInOverview = await _prefsRepo.getShowSugarInDiaryOverview();
+      overviewExtraNutrient = await _prefsRepo.getOverviewExtraNutrient();
+      showSugarInOverview = overviewExtraNutrient == 'sugar';
 
-      final archivedEntries = _activeEntries.where((e) => e.archiveLocalId != null).toList();
-      final legacyEntries = _activeEntries.where((e) => e.archiveLocalId == null).toList();
+      // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
+      final Set<int> archiveIdsSet = {};
+      final Set<String> barcodesSet = {};
+
+      for (final entry in _activeEntries) {
+        if (entry.archiveLocalId != null) {
+          archiveIdsSet.add(entry.archiveLocalId!);
+        } else {
+          barcodesSet.add(entry.barcode);
+        }
+      }
 
       final Map<int, FoodItem> archiveProductsMap = {};
       final Map<String, FoodItem> legacyProductsMap = {};
 
-      if (archivedEntries.isNotEmpty) {
-        final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
-        final archivedProducts = await _nutritionRepo.getProductsByArchiveIds(archiveIds);
+      if (archiveIdsSet.isNotEmpty) {
+        final archiveIds = archiveIdsSet.toList();
+        final archivedProducts = await _nutritionRepo.getProductsByArchiveIds(
+          archiveIds,
+        );
         archiveProductsMap.addAll(archivedProducts);
       }
 
-      if (legacyEntries.isNotEmpty) {
-        final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
-        final legacyProducts = await _nutritionRepo.getProductsByBarcodes(barcodes);
+      if (barcodesSet.isNotEmpty) {
+        final barcodes = barcodesSet.toList();
+        final legacyProducts = await _nutritionRepo.getProductsByBarcodes(
+          barcodes,
+        );
         for (final p in legacyProducts) {
           legacyProductsMap[p.barcode] = p;
         }
@@ -290,6 +353,8 @@ class DiaryViewModel extends ChangeNotifier {
       final state = _calculateUseCase.execute(
         goals: _activeGoals,
         targetSugar: targetSugar,
+        targetFiber: targetFiber,
+        targetSalt: targetSalt,
         targetCaffeine: targetCaffeine,
         foodEntries: _activeEntries,
         fluidEntries: _activeFluids,
@@ -306,7 +371,12 @@ class DiaryViewModel extends ChangeNotifier {
       fluidEntries = _activeFluids;
       trackedSupplements = state.trackedSupplements;
       workoutSummary = state.workoutSummary;
-      targetSteps = _activeGoals?.targetSteps ?? StepsSyncService.defaultStepsGoal;
+      targetSteps =
+          _activeGoals?.targetSteps ?? StepsSyncService.defaultStepsGoal;
+
+      hasEverLoggedData = await _nutritionRepo.hasAnyDiaryEntries();
+      hasWeightMeasurementForSelectedDate = await _nutritionRepo
+          .hasWeightMeasurementForDate(selectedDate);
 
       isLoading = false;
       notifyListeners();
@@ -345,8 +415,12 @@ class DiaryViewModel extends ChangeNotifier {
     return await _nutritionRepo.insertFluidEntry(entry);
   }
 
-  Future<int> insertFoodEntry(FoodEntry entry) async {
-    return await _nutritionRepo.insertFoodEntry(entry);
+  Future<int> insertFoodEntry(
+    FoodEntry entry, {
+    String telemetrySource = FoodLogSource.manualSearch,
+  }) async {
+    return await _nutritionRepo.insertFoodEntry(entry,
+        telemetrySource: telemetrySource);
   }
 
   Future<void> logCaffeineDose(
@@ -367,19 +441,18 @@ class DiaryViewModel extends ChangeNotifier {
 
     final supplements = await _supplementRepo.getAllSupplements();
     Supplement? caffeineSupplement;
-    try {
-      caffeineSupplement = supplements.firstWhere(
-        (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
-      );
-    } catch (e) {
-      return;
+    for (final s in supplements) {
+      if ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine') {
+        caffeineSupplement = s;
+        break;
+      }
     }
 
-    if (caffeineSupplement.id == null) return;
+    if (caffeineSupplement?.id == null) return;
 
     await _supplementRepo.insertSupplementLog(
       SupplementLog(
-        supplementId: caffeineSupplement.id!,
+        supplementId: caffeineSupplement!.id!,
         dose: doseMg,
         unit: 'mg',
         timestamp: timestamp,
@@ -387,6 +460,53 @@ class DiaryViewModel extends ChangeNotifier {
         sourceFluidEntryId: fluidEntryId,
       ),
     );
+  }
+
+  List<SupplementLog> supplementLogsForSupplement(int supplementId) {
+    final result = <SupplementLog>[];
+    for (final log in _activeSupplementLogs) {
+      if (log.supplementId == supplementId) {
+        result.add(log);
+      }
+    }
+    result.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    return result;
+  }
+
+  Future<void> updateSupplementAmount(
+    int logId,
+    double newAmount, {
+    DateTime? newTimestamp,
+  }) async {
+    final idx = _activeSupplementLogs.indexWhere((log) => log.id == logId);
+    if (idx != -1) {
+      final oldLog = _activeSupplementLogs[idx];
+      final newLog = SupplementLog(
+        id: oldLog.id,
+        supplementId: oldLog.supplementId,
+        dose: newAmount,
+        unit: oldLog.unit,
+        timestamp: newTimestamp ?? oldLog.timestamp,
+        sourceFoodEntryId: oldLog.sourceFoodEntryId,
+        sourceFluidEntryId: oldLog.sourceFluidEntryId,
+      );
+      // Optimistic update
+      _activeSupplementLogs[idx] = newLog;
+      _updateCalculatedState();
+
+      await _supplementRepo.updateSupplementLog(newLog);
+    }
+  }
+
+  Future<void> deleteSupplement(int logId) async {
+    final idx = _activeSupplementLogs.indexWhere((log) => log.id == logId);
+    if (idx != -1) {
+      // Optimistic update
+      _activeSupplementLogs.removeAt(idx);
+      _updateCalculatedState();
+
+      await _supplementRepo.deleteSupplementLog(logId);
+    }
   }
 
   void pickDate(DateTime newDate) {

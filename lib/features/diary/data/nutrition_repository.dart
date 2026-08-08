@@ -6,6 +6,12 @@ import '../domain/models/fluid_entry.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/repositories/diary_repository.dart';
+import '../../supplements/domain/models/supplement_log.dart';
+import 'package:drift/drift.dart' as drift;
+import '../../../../data/drift_database.dart' as db;
+import '../../../../services/telemetry/telemetry_service.dart';
+import 'dart:async';
+
 
 /// Concrete implementation of [IDiaryRepository] implementing database transaction logic.
 class NutritionRepository implements IDiaryRepository {
@@ -38,6 +44,12 @@ class NutritionRepository implements IDiaryRepository {
   @override
   Stream<List<FluidEntry>> watchFluidEntriesForDate(DateTime date) =>
       _localDataSource.watchFluidEntriesForDate(date);
+
+  @override
+  Future<bool> hasAnyDiaryEntries() => _localDataSource.hasAnyDiaryEntries();
+
+  @override
+  Future<bool> hasWeightMeasurementForDate(DateTime date) => _localDataSource.hasWeightMeasurementForDate(date);
 
   @override
   @Deprecated('Use watchGoalsForDate instead')
@@ -101,6 +113,24 @@ class NutritionRepository implements IDiaryRepository {
       _localDataSource.insertFluidEntry(entry);
 
   @override
-  Future<int> insertFoodEntry(FoodEntry entry) =>
-      _localDataSource.insertFoodEntry(entry);
+  Future<int> insertFoodEntry(
+    FoodEntry entry, {
+    String telemetrySource = FoodLogSource.manualSearch,
+  }) =>
+      _localDataSource.insertFoodEntry(entry, telemetrySource: telemetrySource);
+
+
+  @override
+  Future<void> updateSupplementLog(SupplementLog log) =>
+      _localDataSource.supplementDbHelper.updateSupplementLog(
+        db.SupplementLogsCompanion(
+          localId: drift.Value(log.id!),
+          amount: drift.Value(log.dose),
+          takenAt: drift.Value(log.timestamp),
+        ),
+      );
+
+  @override
+  Future<void> deleteSupplementLog(int id) =>
+      _localDataSource.supplementDbHelper.deleteSupplementLog(id);
 }

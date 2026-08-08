@@ -147,12 +147,13 @@ class SleepDayRepository implements SleepDayDataRepository {
     );
     if (analyses.isEmpty) return null;
 
-    final sortedAnalysesRecords = List<SleepNightlyAnalysisRecord>.from(analyses)
-      ..sort((a, b) {
-        if (a.score != null && b.score == null) return -1;
-        if (b.score != null && a.score == null) return 1;
-        return b.analyzedAt.compareTo(a.analyzedAt);
-      });
+    final sortedAnalysesRecords =
+        List<SleepNightlyAnalysisRecord>.from(analyses)
+          ..sort((a, b) {
+            if (a.score != null && b.score == null) return -1;
+            if (b.score != null && a.score == null) return 1;
+            return b.analyzedAt.compareTo(a.analyzedAt);
+          });
 
     final primaryRecord = sortedAnalysesRecords.first;
     final allSessions = <SleepSession>[];
@@ -287,7 +288,8 @@ class SleepDayRepository implements SleepDayDataRepository {
       baseline: baseline,
     );
 
-    final deepDuration = _sumStageDuration(allSegments, CanonicalSleepStage.deep);
+    final deepDuration =
+        _sumStageDuration(allSegments, CanonicalSleepStage.deep);
     final lightDuration = _sumStageDuration(
       allSegments,
       CanonicalSleepStage.light,

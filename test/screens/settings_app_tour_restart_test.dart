@@ -7,7 +7,6 @@ import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
 import 'package:train_libre/util/cancellation_token.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/features/settings/presentation/settings_screen.dart';
-import 'package:train_libre/services/app_tour_service.dart';
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -96,7 +95,7 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  testWidgets('settings restart app tour requests a pending tour start', (
+  testWidgets('settings screen does not contain app tour restart tile', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(900, 2200));
@@ -117,16 +116,6 @@ void main() {
     await tester.pumpAndSettle();
 
     final restartTile = find.byKey(const Key('settings_restart_app_tour_tile'));
-    await tester.scrollUntilVisible(
-      restartTile,
-      300,
-      scrollable: find.byType(Scrollable),
-    );
-
-    await tester.tap(restartTile);
-    await tester.pumpAndSettle();
-
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getBool(AppTourService.pendingStartKey), isTrue);
+    expect(restartTile, findsNothing);
   });
 }

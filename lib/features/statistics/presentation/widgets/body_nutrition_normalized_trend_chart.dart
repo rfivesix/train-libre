@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../../../services/haptic_feedback_service.dart';
 
 import '../../../../generated/app_localizations.dart';
+import '../../../../util/design_constants.dart';
 import '../../../analytics/presentation/widgets/analytics_chart_defaults.dart';
 import '../../domain/analytics_state.dart';
 import '../../domain/body_nutrition_analytics_models.dart';
@@ -22,12 +23,14 @@ class BodyNutritionNormalizedTrendChart extends StatefulWidget {
     required this.weightSeries,
     required this.calorieSeries,
     this.compact = false,
+    this.edgeToEdge = false,
   });
 
   final DateTimeRange? range;
   final List<DailyValuePoint> weightSeries;
   final List<DailyValuePoint> calorieSeries;
   final bool compact;
+  final bool edgeToEdge;
 
   @override
   State<BodyNutritionNormalizedTrendChart> createState() =>
@@ -37,6 +40,7 @@ class BodyNutritionNormalizedTrendChart extends StatefulWidget {
 class _BodyNutritionNormalizedTrendChartState
     extends State<BodyNutritionNormalizedTrendChart> {
   int? _lastVibratedIndex;
+  List<LineBarSpot>? _activeTooltipSpots;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +147,8 @@ class _BodyNutritionNormalizedTrendChartState
 
     final series = [
       _ChartSeries(
-        label: l10n.analyticsWeightTrendLabel,
+        label: l10n.analyticsWeightTrendLabel(
+            context.read<UnitService>().suffixFor(UnitDimension.weight)),
         color: Theme.of(context).colorScheme.primary,
         scale: weightScale,
         points: weightPoints,
@@ -161,11 +166,12 @@ class _BodyNutritionNormalizedTrendChartState
     final xLabelPositions = _xLabelPositions(spanDays);
 
     final chartData = LineChartData(
-      clipData: const FlClipData.none(),
+      clipData: const FlClipData.all(),
       minX: 0,
       maxX: maxX,
       minY: -0.06,
       maxY: 1.06,
+      baselineY: -0.06,
       gridData: compact
           ? AnalyticsChartDefaults.noGrid
           : FlGridData(
@@ -181,6 +187,11 @@ class _BodyNutritionNormalizedTrendChartState
         touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
           if (event is FlPanEndEvent || event is FlTapUpEvent) {
             _lastVibratedIndex = null;
+            if (_activeTooltipSpots != null) {
+              setState(() {
+                _activeTooltipSpots = null;
+              });
+            }
             return;
           }
           final spots = response?.lineBarSpots;
@@ -192,68 +203,19 @@ class _BodyNutritionNormalizedTrendChartState
                 HapticFeedback.lightImpact();
               }
             }
+            if (_activeTooltipSpots != spots) {
+              setState(() {
+                _activeTooltipSpots = spots;
+              });
+            }
           }
         },
         touchTooltipData: LineTouchTooltipData(
-          fitInsideHorizontally: true,
-          fitInsideVertically: true,
-          tooltipBorderRadius: BorderRadius.circular(16),
-          tooltipPadding: const EdgeInsets.symmetric(horizontal: 14,
-            vertical: 10,
+          getTooltipItems: (touchedSpots) => List<LineTooltipItem?>.filled(
+            touchedSpots.length,
+            null,
+            growable: false,
           ),
-          tooltipMargin: 12,
-          maxContentWidth: 200,
-          getTooltipColor: (_) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            return isDark
-                ? const Color(0xFF2A2A2A)
-                : Theme.of(context).colorScheme.surface.withValues(alpha: 0.95);
-          },
-          tooltipBorder: BorderSide(
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
-          ),
-          getTooltipItems: (touchedSpots) {
-            return touchedSpots.map((touchedSpot) {
-              final seriesIndex = touchedSpot.barIndex;
-              if (seriesIndex < 0 || seriesIndex >= series.length) {
-                return null;
-              }
-              final selectedSeries = series[seriesIndex];
-              final pointIndex = touchedSpot.spotIndex;
-              if (pointIndex < 0 ||
-                  pointIndex >= selectedSeries.points.length) {
-                return null;
-              }
-
-              final point = selectedSeries.points[pointIndex];
-              final date = DateFormat.MMMd().format(point.day);
-              final valueText = selectedSeries.scale.formatRaw(point.rawValue);
-              final baseStyle = Theme.of(context).textTheme.bodySmall!;
-
-              return LineTooltipItem(
-                '$date\n',
-                baseStyle.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.7),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 11,
-                ),
-                children: [
-                  TextSpan(
-                    text: '${selectedSeries.label}: $valueText',
-                    style: baseStyle.copyWith(
-                      color: selectedSeries.color,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              );
-            }).toList(growable: false);
-          },
         ),
       ),
       titlesData: compact
@@ -264,8 +226,8 @@ class _BodyNutritionNormalizedTrendChartState
               ),
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 52, // increased reserved size
+                  showTitles: !widget.edgeToEdge,
+                  reservedSize: 52,
                   interval: 0.5,
                   getTitlesWidget: (value, meta) {
                     if (!_isPrimaryTick(value)) {
@@ -274,19 +236,15 @@ class _BodyNutritionNormalizedTrendChartState
                     return SideTitleWidget(
                       meta: meta,
                       space: 8,
-                      child: _axisTitle(
-                        context,
-                        value,
-                        weightScale,
-                      ),
+                      child: _axisTitle(context, value, weightScale),
                     );
                   },
                 ),
               ),
               rightTitles: AxisTitles(
                 sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 56, // increased reserved size
+                  showTitles: !widget.edgeToEdge,
+                  reservedSize: 56,
                   interval: 0.5,
                   getTitlesWidget: (value, meta) {
                     if (!_isPrimaryTick(value)) {
@@ -308,7 +266,8 @@ class _BodyNutritionNormalizedTrendChartState
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: 42, // increased reserved size
+                  reservedSize: 42,
+                  interval: 1,
                   getTitlesWidget: (value, meta) {
                     final rounded = value.round();
                     if (!xLabelPositions.contains(rounded)) {
@@ -320,21 +279,24 @@ class _BodyNutritionNormalizedTrendChartState
                     return SideTitleWidget(
                       meta: meta,
                       space: 8,
-                      child: SizedBox(
-                        width: 60,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: isStartLabel
-                              ? Alignment.centerLeft
-                              : isEndLabel
-                                  ? Alignment.centerRight
-                                  : Alignment.center,
-                          child: AnalyticsChartDefaults.tickLabel(
-                            context,
-                            DateFormat('dd.MM').format(
-                                day), // Changed to a concise format to avoid overlap
-                          ),
-                        ),
+                      fitInside: SideTitleFitInsideData.fromTitleMeta(
+                        meta,
+                        enabled: widget.edgeToEdge,
+                        distanceFromEdge: 16.0,
+                      ),
+                      child: Text(
+                        DateFormat('dd.MM').format(day),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.6),
+                            ),
+                        textAlign: isStartLabel
+                            ? TextAlign.left
+                            : isEndLabel
+                                ? TextAlign.right
+                                : TextAlign.center,
                       ),
                     );
                   },
@@ -347,10 +309,13 @@ class _BodyNutritionNormalizedTrendChartState
               spots: seriesConfig.points
                   .map((point) => point.spot)
                   .toList(growable: false),
-              barWidth: compact ? 2.6 : 3.2,
+              barWidth: compact ? 3.2 : 4.0,
               isStrokeCapRound: true,
               color: seriesConfig.color,
-              belowBarData: seriesConfig.label == l10n.analyticsWeightTrendLabel
+              belowBarData: seriesConfig.label ==
+                      l10n.analyticsWeightTrendLabel(context
+                          .read<UnitService>()
+                          .suffixFor(UnitDimension.weight))
                   ? BarAreaData(
                       show: true,
                       gradient: LinearGradient(
@@ -405,7 +370,66 @@ class _BodyNutritionNormalizedTrendChartState
           .toList(growable: false),
     );
 
-    return LineChart(chartData);
+    final chartWidget = LineChart(chartData);
+
+    if (widget.edgeToEdge) {
+      const double totalHeight = 250.0;
+      const double minY = -0.06;
+      const double maxY = 1.06;
+      const double yRange = maxY - minY;
+      const double leftInset = 16.0;
+      const double rightInset = 16.0;
+
+      double yToTop(double y) => (maxY - y) / yRange * (totalHeight - 42.0);
+
+      // Ticks to label
+      final leftTicks = [1.0, 0.5, 0.0];
+      final rightTicks = [1.0, 0.5, 0.0];
+
+      return SizedBox(
+        width: double.infinity,
+        height: totalHeight,
+        child: OverflowBox(
+          maxWidth: MediaQuery.of(context).size.width,
+          minWidth: MediaQuery.of(context).size.width,
+          maxHeight: totalHeight,
+          minHeight: totalHeight,
+          child: Stack(
+            children: [
+              chartWidget,
+              // Left Y-axis labels drawn on top
+              for (final tick in leftTicks)
+                Positioned(
+                  top: yToTop(tick) - 8,
+                  left: leftInset,
+                  child: _axisTitle(context, tick, weightScale),
+                ),
+              // Right Y-axis labels drawn on top
+              for (final tick in rightTicks)
+                Positioned(
+                  top: yToTop(tick) - 8,
+                  right: rightInset,
+                  child:
+                      _axisTitle(context, tick, calorieScale, alignRight: true),
+                ),
+              if (_activeTooltipSpots != null &&
+                  _activeTooltipSpots!.isNotEmpty)
+                _buildTooltipOverlay(
+                  context: context,
+                  series: series,
+                  touchedSpots: _activeTooltipSpots!,
+                  chartWidth: MediaQuery.of(context).size.width,
+                  totalHeight: totalHeight,
+                  plotHeight: totalHeight - 42.0,
+                  maxX: maxX,
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return chartWidget;
   }
 
   List<_ChartPoint> _buildPoints({
@@ -497,16 +521,133 @@ class _BodyNutritionNormalizedTrendChartState
     _SeriesScale scale, {
     bool alignRight = false,
   }) {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: alignRight ? Alignment.centerRight : Alignment.centerLeft,
-      child: Text(
-        scale.formatTick(normalizedValue),
-        maxLines: 1,
-        softWrap: false,
-        textAlign: alignRight ? TextAlign.right : TextAlign.left,
-        style: Theme.of(context).textTheme.bodySmall,
+    final theme = Theme.of(context);
+    final bgColor = theme.scaffoldBackgroundColor;
+    // Build a hard (blurRadius: 0) multi-directional shadow that follows the
+    // text shape instead of producing a rectangular block.
+    final hardShadows = [
+      for (final dx in <double>[-2, -1, 0, 1, 2])
+        for (final dy in <double>[-2, -1, 0, 1, 2])
+          if (dx != 0 || dy != 0)
+            Shadow(color: bgColor, offset: Offset(dx, dy), blurRadius: 0),
+    ];
+    return Text(
+      scale.formatTick(normalizedValue),
+      maxLines: 1,
+      softWrap: false,
+      textAlign: alignRight ? TextAlign.right : TextAlign.left,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+        shadows: hardShadows,
       ),
+    );
+  }
+
+  Widget _buildTooltipOverlay({
+    required BuildContext context,
+    required List<_ChartSeries> series,
+    required List<LineBarSpot> touchedSpots,
+    required double chartWidth,
+    required double totalHeight,
+    required double plotHeight,
+    required double maxX,
+  }) {
+    final firstSpot = touchedSpots.first;
+    final seriesIndex = firstSpot.barIndex;
+    if (seriesIndex < 0 || seriesIndex >= series.length) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedSeries = series[seriesIndex];
+    final pointIndex = firstSpot.spotIndex;
+    if (pointIndex < 0 || pointIndex >= selectedSeries.points.length) {
+      return const SizedBox.shrink();
+    }
+
+    final point = selectedSeries.points[pointIndex];
+    final tooltipWidth = 192.0;
+    final tooltipHeight = 74.0 + (touchedSpots.length - 1) * 20.0;
+    final xCenter = (firstSpot.x / maxX) * chartWidth;
+    final left = (xCenter - tooltipWidth / 2)
+        .clamp(12.0, chartWidth - tooltipWidth - 12.0);
+    final top = ((1 - point.spot.y) * plotHeight - tooltipHeight - 12.0)
+        .clamp(8.0, totalHeight - tooltipHeight - 48.0);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseStyle = Theme.of(context).textTheme.bodySmall!;
+    final dateText = DateFormat.MMMd().format(point.day);
+
+    return Positioned(
+      left: left,
+      top: top,
+      child: IgnorePointer(
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: tooltipWidth,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? DesignConstants.summaryCardDarkMode
+                  : DesignConstants.summaryCardSecondaryLightMode,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.08),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dateText,
+                  style: baseStyle.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                for (final spot in touchedSpots)
+                  _buildTooltipRow(context, series, spot),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTooltipRow(
+    BuildContext context,
+    List<_ChartSeries> series,
+    LineBarSpot touchedSpot,
+  ) {
+    final seriesIndex = touchedSpot.barIndex;
+    if (seriesIndex < 0 || seriesIndex >= series.length) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedSeries = series[seriesIndex];
+    final pointIndex = touchedSpot.spotIndex;
+    if (pointIndex < 0 || pointIndex >= selectedSeries.points.length) {
+      return const SizedBox.shrink();
+    }
+
+    final point = selectedSeries.points[pointIndex];
+    return Text(
+      '${selectedSeries.label}: ${selectedSeries.scale.formatRaw(point.rawValue)}',
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: selectedSeries.color,
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+          ),
     );
   }
 }
@@ -555,11 +696,20 @@ class _SeriesScale {
     required int fractionDigits,
     double minVariance = 0.0,
   }) {
-    final finiteValues = series
-        .map((point) => point.value)
-        .where((value) => value.isFinite)
-        .toList(growable: false);
-    if (finiteValues.isEmpty) {
+    bool hasData = false;
+    double min = double.infinity;
+    double max = double.negativeInfinity;
+
+    for (final point in series) {
+      final value = point.value;
+      if (value.isFinite) {
+        hasData = true;
+        if (value < min) min = value;
+        if (value > max) max = value;
+      }
+    }
+
+    if (!hasData) {
       return _SeriesScale(
         min: 0,
         max: 1,
@@ -567,9 +717,6 @@ class _SeriesScale {
         fractionDigits: fractionDigits,
       );
     }
-
-    double min = finiteValues.reduce(math.min);
-    double max = finiteValues.reduce(math.max);
     final span = max - min;
     if (span < minVariance) {
       final mid = (min + max) / 2;

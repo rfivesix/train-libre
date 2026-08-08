@@ -1,5 +1,5 @@
-**Version:** 1.4  
-**Stand:** 26. Mai 2026  
+**Version:** 1.7  
+**Stand:** 7. August 2026  
 
 Diese Datenschutzerklärung informiert Sie gemäß Art. 13 und 14 der Datenschutz-Grundverordnung (DSGVO) über die Verarbeitung personenbezogener Daten und gesundheitsbezogener Daten in der mobilen Applikation „Train Libre“. 
 
@@ -30,7 +30,7 @@ Train Libre beruht auf dem Prinzip des „Privacy by Design“ und des „Privac
 * **Keine Benutzerkonten:** Für die Nutzung der App ist keine Registrierung und kein Erstellen eines Benutzerkontos erforderlich. Es werden keine E-Mail-Adressen, Passwörter oder Anmeldedaten auf externen Servern gespeichert.
 * **Local-First-Architektur:** Sämtliche von Ihnen eingegebenen Profileinstellungen, sportlichen Aktivitäten, Ernährungsdaten, Vitalwerte und Messungen werden ausschließlich in einer lokalen SQLite-Datenbank auf Ihrem eigenen Endgerät gespeichert.
 * **Kein zentraler Backend-Server:** Wir betreiben keine Cloud-Datenbanken und keine Anwendungsserver zur Speicherung oder Verarbeitung Ihrer Trainings- und Ernährungsdaten. Ihre Daten verbleiben in Ihrem physischen Besitz.
-* **Keine Tracking- oder Analyse-SDKs:** Train Libre verzichtet vollständig auf die Integration von Werbenetzwerken, verhaltensbasierten Analyse-Diensten oder Fehlerdiagnose-SDKs von Drittanbietern (wie beispielsweise Firebase Analytics, Google Analytics, Mixpanel, Sentry oder Crashlytics). Es findet keinerlei Profilbildung oder verhaltensbezogene Auswertung zu Marketingzwecken statt.
+* **Kein kommerzielles Tracking (Optionale pseudonymisierte Nutzungsstatistik):** Train Libre verzichtet auf Werbenetzwerke, verhaltensbasierte Werbe-SDKs und Profiling. Es steht eine rein optionale Nutzungsstatistik (PostHog EU) zur Verfügung, die standardmäßig deaktiviert ist, vor Ihrer Einwilligung keinerlei Verbindung aufbaut und weder Ihre Namen und Inhalte noch Körpermaße oder Nährwertangaben überträgt. Näheres unter Ziffer 6 C.
 
 ---
 
@@ -139,6 +139,36 @@ Die App bietet Ihnen Funktionen zur Sicherung Ihrer Daten, um Datenverlust bei G
 3. **Automatische Backups:** Sie können automatische Backups in konfigurierbaren Intervallen aktivieren. Unter Android nutzt diese Funktion das Storage Access Framework (SAF) zur direkten Ablage in einem von Ihnen ausgewählten Zielordner. Alternativ erfolgt die Ablage im lokalen App-Dokumentenverzeichnis. Diese Backup-Dateien verbleiben auf Ihrem Gerät, es sei denn, Sie kopieren sie aktiv an einen externen Cloud-Speicherort (z. B. iCloud Drive oder Google Drive).
 4. **System-Backups:** Bitte beachten Sie, dass bei aktivierten systemweiten Geräte-Backups (z. B. über Apple iCloud oder Google Drive Backup) die Anwendungsdaten von Train Libre standardmäßig vom Betriebssystem in die jeweilige Cloud hochgeladen werden. Dies liegt außerhalb unseres Einflussbereichs und kann in den Systemeinstellungen Ihres Geräts für Train Libre deaktiviert werden.
 
+### C. Optionale pseudonymisierte Nutzungsstatistik
+
+Train Libre bietet eine rein optionale, datenschutzfreundliche Nutzungsstatistik zur Verbesserung der App-Stabilität und Feature-Nutzung an, betrieben über PostHog EU (https://eu.i.posthog.com). Die Funktion heißt in der App „Anonyme Nutzungsstatistiken teilen“. Da PostHog den übermittelten Ereignissen technische Kennungen zuordnet, handelt es sich rechtlich um pseudonymisierte Daten; eine vollständige Anonymität kann bei technischen Nutzungsdaten nicht garantiert werden.
+
+1. **Strikter Opt-In-Standard:** Die Telemetrie ist standardmäßig vollständig deaktiviert. Solange Sie nicht ausdrücklich einwilligen, wird die Telemetrie-Bibliothek nicht einmal initialisiert. Es werden keine Ereignisse übertragen und keine Netzwerkverbindung zu PostHog aufgebaut — auch keine technische Konfigurationsabfrage. Erst wenn Sie in den Einstellungen unter Support & Info „Anonyme Nutzungsstatistiken teilen“ aktivieren, nimmt die App erstmals Kontakt zu PostHog auf. Eine zufällige Gerätekennung wird zwar bereits beim ersten Start lokal erzeugt, damit die Zählung aktiver Geräte ab Ihrer Einwilligung funktioniert; diese Erzeugung erfolgt ausschließlich auf Ihrem Gerät und ohne jede Übertragung.
+2. **Umfang der erfassten Ereignisse:** Sofern Sie eingewilligt haben, werden ausschließlich die folgenden Kategorien erfasst:
+
+   - App-Start (zur Ermittlung der Anzahl aktiver Geräte)
+   - Aufgerufene Bildschirme, ausschließlich anhand technischer Bezeichner aus einer im Quellcode festgelegten Liste (z. B. diary_tab, live_workout)
+   - Ausgelöste Funktionen, ebenfalls anhand fester Bezeichner (z. B. routine_created, barcode_scanned)
+   - Ein zusammengefasster Zähler protokollierter Ernährungseinträge (Anzahl sowie die Erfassungsart, etwa Suche, Barcode-Scan oder KI-Erkennung)
+   - Kennzahlen abgeschlossener Trainingseinheiten: Anzahl der Übungen, Sätze und Pausentimer, Dauer in Minuten sowie Ja/Nein-Angaben zu genutzten Trainingsfunktionen. Die Art der Einheit wird ausschließlich als „routine“ oder „custom“ übermittelt, niemals als Name
+   - Fortschritt im Onboarding (Schrittnummer, Schrittbezeichnung, Verweildauer)
+   - Geänderte Einstellungen (Bezeichner der Einstellung und neuer Wert)
+   - Status von KI-Anfragen zur Mahlzeitenerkennung (gewählter Anbieter, Erfolg oder Fehlercode, Antwortzeit in groben Bereichen wie „2-5s“)
+   - Status von Datenbankmigrationen (Ausgangs- und Zielversion, Erfolg)
+   - Kennzahlen der adaptiven Kalorienschätzung: Anzahl der einbezogenen Gewichts- und Ernährungseinträge, Länge des Betrachtungszeitraums, Konfidenzstufe und Qualitätshinweise — jedoch keine Gewichts-, Kalorien- oder Zielwerte
+   - Technische Rahmendaten: App-Version, App-Build, Betriebssystem und dessen Version, Plattform, Zeitzone sowie ein Hinweis, ob die App in einem Emulator läuft
+
+   Zähler wie Übungs- oder Satzanzahl und die Trainingsdauer werden als exakte Zahlenwerte übertragen, nicht als Bereiche. Diese Werte werden ohne Namen, E-Mail-Adresse oder Herstellerkennung Ihres Geräts übermittelt. Eine Identifizierung einzelner Nutzer ist nicht beabsichtigt und technisch nicht vorgesehen.
+
+3. **Keine Inhalte und keine Gesundheitswerte:** Es werden keine Namen, E-Mail-Adressen, Konto- oder Herstellergerätekennungen und keine von Ihnen eingegebenen Inhalte erfasst — insbesondere keine Titel von Trainingsplänen, Übungs- oder Lebensmittelnamen, Rezeptnamen und keine Notizen oder Freitexte. Es werden ebenso keine Körpermaße, Gewichte, Kalorien- oder Nährwertangaben übertragen. Alle Ereignisse werden mit $ip: 0.0.0.0 übermittelt; IP-Adressen werden nicht als Ereignisdaten gespeichert und die IP-basierte Standortauswertung ist mittels $geoip_disable ausdrücklich abgeschaltet.
+4. **Land und Sprache:** Zur Auswertung der geografischen Verbreitung der App werden Ihr Land, Ihr Kontinent und Ihre Spracheinstellung übermittelt (z. B. „DE“, „Europa“, „de_DE“). Diese Angaben werden auf Ihrem Gerät aus den Systemeinstellungen abgeleitet, nicht aus Ihrer IP-Adresse. Eine Auflösung auf Stadt, Region, Postleitzahl oder Koordinaten findet nicht statt und ist serverseitig deaktiviert.
+5. **Freiwilliger Diagnosebericht:** Im Bereich Feedback können Sie aktiv einen Diagnosebericht an den Entwickler senden. Der Bericht wird Ihnen vor dem Absenden vollständig in einer Vorschau angezeigt, und Sie wählen die enthaltenen Abschnitte einzeln aus. Wenn Sie den Bericht per E-Mail, Teilen-Funktion, Zwischenablage oder Dateiexport übermitteln, geht er unter Ihrer eigenen Kontrolle direkt an den Entwickler und nicht über PostHog. Für die zusätzlich angebotene Direktübermittlung an PostHog gilt Ziffer 3 unverändert: Ihre Freitextnotiz, Ihr Körpergewicht sowie Ihre Kalorien- und Makronährstoffwerte werden dabei nicht übertragen, sondern ausschließlich technische Kennzahlen wie Anzahl der Einträge, Konfidenzstufen, Qualitätshinweise und der Status Ihrer Datensicherungen. Die Direktübermittlung setzt eine aktive Einwilligung nach Ziffer 1 voraus; ist die Nutzungsstatistik ausgeschaltet, weist die App darauf hin, statt einen Versand zu melden.
+6. **Widerruf und Löschung:** Sie können Ihre Einwilligung jederzeit in den Einstellungen widerrufen, wodurch alle Übertragungen sofort eingestellt werden. Über die Schaltfläche „Telemetrie-Daten löschen“ in den Einstellungen können Sie zudem die Löschung der mit Ihrer Telemetrie-Kennung verknüpften Daten bei PostHog anfordern; gleichzeitig werden alle lokal gespeicherten Kennungen zurückgesetzt. Die Löschung kann technisch bedingten Ausnahmen unterliegen, etwa bei Sicherungskopien. Alternativ genügt eine formlose E-Mail an feedback@schotte.me.
+7. **Rechtsgrundlage:** Die Verarbeitung von Telemetriedaten erfolgt ausschließlich auf Grundlage Ihrer ausdrücklichen Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO.
+8. **Auftragsverarbeiter:** Als Auftragsverarbeiter gemäß Art. 28 DSGVO fungiert die PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA). Ein Vertrag zur Auftragsverarbeitung (Data Processing Agreement, DPA) wurde geschlossen.
+9. **Speicherort, Speicherdauer & Drittlandbezug:** Das genutzte PostHog-EU-Projekt verwendet als primäre Hosting-Infrastruktur Server in Frankfurt am Main, Deutschland (AWS eu-central-1). Telemetriedaten werden nach maximal 12 Monaten automatisch gelöscht. Je nach Support-, Sicherheits- und Unterauftragsverarbeitungsprozessen können Zugriffe oder Verarbeitungen auch außerhalb der EU stattfinden. Für solche Übermittlungen gelten die im Auftragsverarbeitungsvertrag vereinbarten geeigneten Garantien, ergänzt durch die Zertifizierung unter dem EU-US Data Privacy Framework (DPF).
+10. **Vollständige Transparenz:** Der vollständige Katalog aller Ereignisse und der jeweils übertragenen Merkmale ist im Quellcode-Repository in der Datei TELEMETRY.md öffentlich einsehbar. F-Droid- und Offline-Builds werden ohne die Telemetrie-Bibliothek kompiliert und enthalten den Code nicht.
+
 ---
 
 ## 7. Betroffenenrechte
@@ -157,14 +187,15 @@ Als betroffene Person stehen Ihnen im Rahmen der DSGVO weitreichende Rechte zu. 
   * Alle in der sicheren Betriebssystem-Ablage hinterlegten API-Schlüssel für KI-Anbieter.
   
   Nach Ausführung dieser Funktion befindet sich die App im Auslieferungszustand. Bitte beachten Sie, dass bereits an Apple Health oder Google Health Connect exportierte Daten durch diese appinterne Funktion nicht gelöscht werden können, da diese in der Hoheit des Betriebssystems liegen. Sie können diese exportierten Daten jedoch jederzeit direkt in den systemeigenen Health-Apps von Apple oder Google löschen.
+* **Rechte bezüglich Telemetriedaten:** Sofern Sie in die Nutzungsstatistik eingewilligt haben, können Sie Ihre Betroffenenrechte (Auskunft, Löschung, Widerspruch) bezüglich der verarbeiteten Telemetriedaten jederzeit selbst über die Schaltfläche „Telemetrie-Daten löschen“ in den Einstellungen oder per E-Mail an feedback@schotte.me ausüben. Auf Ihre Anfrage hin wird die Löschung der mit Ihrer Telemetrie-Kennung verknüpften Daten bei PostHog veranlasst; sie kann technisch bedingten Ausnahmen unterliegen, etwa bei Sicherungskopien.
 * **Recht auf Beschwerde bei einer Aufsichtsbehörde (Art. 77 DSGVO):** Unbeschadet der appinternen Kontrollmöglichkeiten haben Sie das Recht, Beschwerde bei einer zuständigen Datenschutz-Aufsichtsbehörde einzulegen. Dies kann beispielsweise die Aufsichtsbehörde Ihres üblichen Aufenthaltsortes, Ihres Arbeitsplatzes oder des Sitzes des Verantwortlichen sein (z. B. die Berliner Beauftragte für Datenschutz und Informationsfreiheit).
 
 ---
 
 # Privacy Policy for the App "Train Libre"
 
-**Version:** 1.4  
-**As of:** May 26, 2026  
+**Version:** 1.7  
+**As of:** August 7, 2026  
 
 This privacy policy informs you in accordance with Articles 13 and 14 of the General Data Protection Regulation (GDPR) about the processing of personal data and health-related data in the mobile application "Train Libre". 
 
@@ -195,7 +226,7 @@ Train Libre is based on the principles of "privacy by design" and "privacy by de
 * **No User Accounts:** No registration or creation of a user account is required to use the app. No email addresses, passwords, or login credentials are stored on external servers.
 * **Local-First Architecture:** All profile settings, athletic activities, nutrition data, vital signs, and measurements entered by you are stored exclusively in a local SQLite database on your own end device.
 * **No Central Backend Server:** We do not operate any cloud databases or application servers to store or process your training and nutrition data. Your data remains in your physical possession.
-* **No Tracking or Analytics SDKs:** Train Libre completely dispenses with the integration of third-party advertising networks, behavior-based analysis services, or error diagnostics SDKs (such as Firebase Analytics, Google Analytics, Mixpanel, Sentry, or Crashlytics). No profiling or behavior-based evaluation for marketing purposes takes place.
+* **No Commercial Tracking (Optional Pseudonymised Usage Statistics):** Train Libre dispenses with advertising networks, commercial tracking, and behaviour profiling. A purely optional usage statistics integration (PostHog EU) is disabled by default, establishes no connection whatsoever before you consent, and transmits neither your names and content nor body measurements or nutritional values. See section 6 C for details.
 
 ---
 
@@ -304,11 +335,41 @@ The app offers functions to back up your data in order to prevent data loss in t
 3. **Automatic Backups:** You can enable automatic backups at configurable intervals. On Android, this feature uses the Storage Access Framework (SAF) to save directly to a target folder selected by you. Alternatively, the file is saved in the local app document directory. These backup files remain on your device unless you actively copy them to an external cloud storage location (e.g., iCloud Drive or Google Drive).
 4. **System Backups:** Please note that if system-wide device backups are enabled (e.g., via Apple iCloud or Google Drive Backup), Train Libre's application data will by default be uploaded to the respective cloud by the operating system. This is beyond our control and can be disabled for Train Libre in your device's system settings.
 
+### C. Optional Pseudonymised Usage Statistics
+
+Train Libre includes an optional, privacy-focused usage metrics integration powered by PostHog EU (https://eu.i.posthog.com). The feature is labelled "Share anonymous usage statistics" in the app. Because PostHog assigns technical identifiers to the transmitted events, the data is legally pseudonymised; complete anonymity cannot be guaranteed for technical usage data.
+
+1. **Strict Opt-In Default:** Telemetry is disabled by default. Until you explicitly consent, the telemetry library is not even initialised. No events are transmitted and no network connection to PostHog is established — not even a technical configuration request. Only when you enable "Share anonymous usage statistics" in Settings under Support & Info does the app contact PostHog for the first time. A random device identifier is generated locally on first launch so that active-device counting works from the moment you consent; this generation happens entirely on your device and involves no transmission.
+2. **Scope of Collected Events:** If you have opted in, only the following categories are recorded:
+
+   - App launches (to determine the number of active devices)
+   - Screens opened, identified solely by technical identifiers from a list fixed in the source code (e.g. diary_tab, live_workout)
+   - Features triggered, likewise by fixed identifiers (e.g. routine_created, barcode_scanned)
+   - An aggregated counter of logged food entries (the count and the entry method, such as search, barcode scan or AI recognition)
+   - Metrics for completed workouts: number of exercises, sets and rest timers, duration in minutes, and yes/no flags for training features used. The session type is transmitted exclusively as "routine" or "custom", never as a name
+   - Onboarding progress (step index, step name, time spent)
+   - Settings changed (the setting's identifier and its new value)
+   - Status of AI meal recognition requests (selected provider, success or error code, response time in coarse ranges such as "2-5s")
+   - Database migration status (source and target version, success)
+   - Metrics for the adaptive calorie estimation: the number of weight and nutrition entries considered, the length of the evaluation window, the confidence level and quality indicators — but no weight, calorie or target values
+   - Technical context: app version, app build, operating system and its version, platform, time zone, and whether the app is running in an emulator
+
+   Counters such as exercise or set counts and workout duration are transmitted as exact numbers rather than ranges. These values are sent without any name, email address or manufacturer device identifier. Identifying individual users is neither intended nor technically provided for.
+
+3. **No Content and No Health Values:** No names, email addresses, account identifiers or manufacturer device identifiers are collected, and none of the content you enter — in particular no routine titles, exercise or food names, recipe names, notes or free text. Likewise no body measurements, weights, calorie or nutritional values are transmitted. All events are sent with $ip: 0.0.0.0; IP addresses are not stored as event data, and IP-based location resolution is explicitly switched off via $geoip_disable.
+4. **Country and Language:** To analyse the geographic distribution of the app, your country, continent and language setting are transmitted (e.g. "DE", "Europe", "de_DE"). These values are derived on your device from your system settings, not from your IP address. No resolution to city, region, postal code or coordinates takes place; it is disabled server-side.
+5. **Voluntary Diagnostic Report:** In the Feedback section you can actively send a diagnostic report to the developer. The report is shown to you in full in a preview before sending, and you select the included sections individually. If you submit it via email, the share sheet, the clipboard or file export, it goes directly to the developer under your own control and not through PostHog. For the additionally offered direct submission to PostHog, section 3 applies unchanged: your free-text note, your body weight and your calorie and macronutrient values are not transmitted — only technical metrics such as entry counts, confidence levels, quality indicators and the status of your backups. Direct submission requires active consent under section 1; if usage statistics are switched off, the app says so rather than reporting a delivery.
+6. **Withdrawal and Erasure:** You may withdraw your consent at any time in Settings, which immediately halts all transmissions. The "Delete telemetry data" action in Settings additionally lets you request erasure of the data associated with your telemetry identifier from PostHog, while resetting all locally stored identifiers. Erasure may be subject to technical exceptions, for example backup copies. Alternatively, an informal email to feedback@schotte.me is sufficient.
+7. **Legal Basis:** The processing of telemetry data is based exclusively on your explicit consent pursuant to Article 6(1)(a) GDPR.
+8. **Data Processor:** PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA) acts as data processor pursuant to Article 28 GDPR. A Data Processing Agreement (DPA) is in place.
+9. **Storage Location, Retention & Third-Country Transfers:** The PostHog EU project in use runs its primary hosting infrastructure on servers in Frankfurt am Main, Germany (AWS eu-central-1). Telemetry data is automatically deleted after a maximum of 12 months. Depending on support, security and sub-processing operations, access or processing may also take place outside the EU. Such transfers are covered by the appropriate safeguards agreed in the Data Processing Agreement, supplemented by certification under the EU-US Data Privacy Framework (DPF).
+10. **Full Transparency:** The complete catalogue of all events and the properties transmitted with each is publicly documented in the source repository in TELEMETRY.md. F-Droid and offline builds are compiled without the telemetry library and do not contain the code.
+
 ---
 
 ## 7. Data Subject Rights
 
-As a data subject, you have extensive rights under the GDPR. Since Train Libre is a local-first app, you can exercise most of these rights directly and independently within the app without depending on our cooperation.
+As a data subject, you have extensive rights under the GDPR. Because Train Libre is a local-first app, you can exercise most of these rights directly and autonomously within the app, without relying on our involvement.
 
 * **Right of Access (Article 15 of the GDPR) & Data Portability (Article 20 of the GDPR):** You have the right to know what data is stored in the app. You can view your entire database yourself at any time and export it in a machine-readable format (JSON file) using the integrated backup export function. You can also export reports in standard formats (such as CSV).
 * **Right to Rectification (Article 16 of the GDPR):** You can correct or change all profile data, workouts, nutrition logs, body weights, and settings entered manually by you at any time directly in the app's user interfaces.
@@ -320,6 +381,7 @@ As a data subject, you have extensive rights under the GDPR. Since Train Libre i
   * All entered body measurements, supplement logbooks, and historical daily goals.
   * All locally cached heart rate and sleep analysis stages.
   * All API keys for AI providers stored in the operating system's secure storage.
+* **Telemetry Data Rights:** If you have opted in to usage statistics, you may exercise your rights (access, erasure, objection) regarding the processed telemetry data yourself at any time via the "Delete telemetry data" action in Settings, or by contacting the controller at feedback@schotte.me. Upon request, erasure of the data associated with your telemetry identifier is initiated at PostHog; it may be subject to technical exceptions, for example backup copies.
   
   After executing this function, the app is in its factory default state. Please note that data already exported to Apple Health or Google Health Connect cannot be deleted by this internal app function, as it is under the control of the operating system. However, you can delete this exported data at any time directly in the system's own health apps from Apple or Google.
 * **Right to Lodge a Complaint with a Supervisory Authority (Article 77 of the GDPR):** Without prejudice to internal app control options, you have the right to lodge a complaint with a competent data protection supervisory authority. This can be, for example, the supervisory authority of your habitual residence, your place of work, or the place of the alleged infringement (e.g., the Berlin Commissioner for Data Protection and Freedom of Information).

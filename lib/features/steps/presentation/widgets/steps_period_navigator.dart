@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
-
 import '../../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -22,7 +21,8 @@ class StepsPeriodNavigator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: DesignConstants.spacingS, bottom: DesignConstants.spacingS),
+      padding: const EdgeInsets.only(
+          top: DesignConstants.spacingS, bottom: DesignConstants.spacingS),
       child: Row(
         children: [
           IconButton(

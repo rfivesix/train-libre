@@ -8,7 +8,8 @@ import 'package:train_libre/generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 void main() {
-  testWidgets('OnboardingScreen flow validation and physiological bounds check', (WidgetTester tester) async {
+  testWidgets('OnboardingScreen flow validation and physiological bounds check',
+      (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(
@@ -25,14 +26,19 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Welcome Screen
-    final startButton = find.byKey(const Key('onboarding_continue_setup_button'));
+    final startButton =
+        find.byKey(const Key('onboarding_continue_setup_button'));
     expect(startButton, findsOneWidget);
     await tester.tap(startButton);
     await tester.pumpAndSettle();
 
-    // 2. Region Selection Screen
+    // 2. Unit System Selection Screen
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
     expect(nextButton, findsOneWidget);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    // 3. Region Selection Screen
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
@@ -41,7 +47,8 @@ void main() {
     expect(find.text('This field cannot be empty.'), findsNothing);
 
     // Enter name to pass the initial name check
-    await tester.enterText(find.byKey(const Key('onboarding_name_text_field')), 'John Doe');
+    await tester.enterText(
+        find.byKey(const Key('onboarding_name_text_field')), 'John Doe');
     await tester.pumpAndSettle();
 
     // Tap Next with Height, DOB, Sex empty
@@ -49,7 +56,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify error messages appear under empty fields
-    expect(find.text('This field cannot be empty.'), findsNWidgets(3));
+    expect(find.text('This field cannot be empty.'), findsNWidgets(2));
 
     // Choose Sex/Gender 'Male'
     final genderDropdown = find.byKey(const Key('onboarding_gender_dropdown'));
@@ -74,14 +81,16 @@ void main() {
     await tester.pumpAndSettle();
 
     // Enter Height out of physiological bounds (> 250 cm / in)
-    await tester.enterText(find.byKey(const Key('onboarding_height_text_field')), '419');
+    await tester.enterText(
+        find.byKey(const Key('onboarding_height_text_field')), '419');
     await tester.pumpAndSettle();
 
     // Tap Next -> should show physiological warning intercept
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    final warningTextFinder = find.textContaining('expected physiological range');
+    final warningTextFinder =
+        find.textContaining('expected physiological range');
     expect(warningTextFinder, findsOneWidget);
 
     // Tap Next again -> should bypass warning and advance to Measurements page
@@ -119,5 +128,40 @@ void main() {
     expect(find.byKey(const Key('onboarding_nutrition_page')), findsNothing);
     // Wait, let's verify which page we transitioned to. On page 4 it should be the AdaptiveGoalSlide
     expect(find.byKey(const Key('onboarding_measurements_page')), findsNothing);
+  });
+
+  testWidgets('OnboardingScreen presents UnitSystemSlide and updates unit system',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final unitService = UnitService();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChangeNotifierProvider<UnitService>.value(
+          value: unitService,
+          child: const OnboardingScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final startButton =
+        find.byKey(const Key('onboarding_continue_setup_button'));
+    await tester.tap(startButton);
+    await tester.pumpAndSettle();
+
+    // Verify UnitSystemSlide is displayed
+    final l10n = AppLocalizations.of(tester.element(find.byType(OnboardingScreen)))!;
+    expect(find.text(l10n.onboardingUnitSystemTitle), findsOneWidget);
+    expect(find.text(l10n.onboardingUnitImperial), findsOneWidget);
+
+    // Tap Imperial system option
+    await tester.tap(find.text(l10n.onboardingUnitImperial));
+    await tester.pumpAndSettle();
+
+    expect(unitService.isImperial, isTrue);
   });
 }

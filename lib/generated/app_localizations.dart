@@ -116,6 +116,18 @@ abstract class AppLocalizations {
   /// **'Select Time'**
   String get selectTimeTitle;
 
+  /// No description provided for @removeTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Timer'**
+  String get removeTimer;
+
+  /// No description provided for @noTimerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No Timer'**
+  String get noTimerLabel;
+
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
@@ -169,6 +181,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily'**
   String get daily;
+
+  /// No description provided for @nowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get nowLabel;
 
   /// No description provided for @today.
   ///
@@ -899,8 +917,8 @@ abstract class AppLocalizations {
   /// No description provided for @kgLabel.
   ///
   /// In en, this message translates to:
-  /// **'Weight (kg)'**
-  String get kgLabel;
+  /// **'Weight ({unit})'**
+  String kgLabel(String unit);
 
   /// No description provided for @repsLabel.
   ///
@@ -911,8 +929,8 @@ abstract class AppLocalizations {
   /// No description provided for @cardioDistanceLabel.
   ///
   /// In en, this message translates to:
-  /// **'Distance (km)'**
-  String get cardioDistanceLabel;
+  /// **'Distance ({unit})'**
+  String cardioDistanceLabel(String unit);
 
   /// No description provided for @cardioTimeLabel.
   ///
@@ -1213,6 +1231,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'30 Days'**
   String get filter30Days;
+
+  /// No description provided for @filter30DaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'30D'**
+  String get filter30DaysShort;
+
+  /// No description provided for @filter90DaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'90D'**
+  String get filter90DaysShort;
+
+  /// No description provided for @filter180DaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'180D'**
+  String get filter180DaysShort;
+
+  /// No description provided for @filter7DaysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'7D'**
+  String get filter7DaysShort;
+
+  /// No description provided for @filter1MonthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'1M'**
+  String get filter1MonthShort;
+
+  /// No description provided for @filter3MonthsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'3M'**
+  String get filter3MonthsShort;
+
+  /// No description provided for @filter6MonthsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'6M'**
+  String get filter6MonthsShort;
+
+  /// No description provided for @filter1YearShort.
+  ///
+  /// In en, this message translates to:
+  /// **'1Y'**
+  String get filter1YearShort;
+
+  /// No description provided for @filterMax.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX'**
+  String get filterMax;
 
   /// No description provided for @filterAll.
   ///
@@ -1646,6 +1718,12 @@ abstract class AppLocalizations {
   /// **'Edit Routine'**
   String get titleEditRoutine;
 
+  /// No description provided for @editRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Routine'**
+  String get editRoutine;
+
   /// No description provided for @validatorPleaseEnterRoutineName.
   ///
   /// In en, this message translates to:
@@ -1717,12 +1795,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Exercise'**
   String get fabAddExercise;
-
-  /// No description provided for @kgLabelShort.
-  ///
-  /// In en, this message translates to:
-  /// **'kg'**
-  String get kgLabelShort;
 
   /// No description provided for @drawerExerciseCatalog.
   ///
@@ -1849,6 +1921,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete exercise'**
   String get deleteExerciseButton;
+
+  /// No description provided for @deleteCustomExerciseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Custom Exercise'**
+  String get deleteCustomExerciseTitle;
+
+  /// No description provided for @deleteCustomExerciseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete \"{name}\". This cannot be undone.'**
+  String deleteCustomExerciseBody(String name);
+
+  /// No description provided for @deleteCustomExerciseWithLogsWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This exercise appears in your workout history. Your log entries will be kept, but the exercise link will be removed.'**
+  String get deleteCustomExerciseWithLogsWarning;
+
+  /// No description provided for @deleteCustomExerciseWithRoutinesWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This exercise is used in one or more routines. It will be removed from those routines.'**
+  String get deleteCustomExerciseWithRoutinesWarning;
+
+  /// No description provided for @deleteCustomExerciseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise deleted.'**
+  String get deleteCustomExerciseSuccess;
 
   /// No description provided for @restOverLabel.
   ///
@@ -2173,6 +2275,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My plans'**
   String get workoutSectionMyPlans;
+
+  /// No description provided for @emptyStateWorkoutRoutinesCallout.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first routine to track your workouts in the gym in a structured way.'**
+  String get emptyStateWorkoutRoutinesCallout;
 
   /// No description provided for @workoutSectionHistoryLibrary.
   ///
@@ -3068,6 +3176,42 @@ abstract class AppLocalizations {
   /// **'Check & Run Auto-Backup Now'**
   String get autoBackupRunNow;
 
+  /// No description provided for @icloudAutoBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud Auto-Backup'**
+  String get icloudAutoBackupTitle;
+
+  /// No description provided for @icloudAutoBackupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically syncs your database to iCloud Drive whenever the app goes into the background. Your data can be restored on a new device or after reinstalling.'**
+  String get icloudAutoBackupDescription;
+
+  /// No description provided for @icloudBackupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup to iCloud Now'**
+  String get icloudBackupNow;
+
+  /// No description provided for @icloudBackupUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get icloudBackupUploading;
+
+  /// No description provided for @icloudBackupSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup uploaded successfully.'**
+  String get icloudBackupSuccess;
+
+  /// No description provided for @icloudBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed. Check your iCloud connection.'**
+  String get icloudBackupFailed;
+
   /// No description provided for @autoBackupRequestAccessSubtitle.
   ///
   /// In en, this message translates to:
@@ -3503,13 +3647,13 @@ abstract class AppLocalizations {
   /// No description provided for @myMeals.
   ///
   /// In en, this message translates to:
-  /// **'My Meals'**
+  /// **'My Recipes'**
   String get myMeals;
 
   /// No description provided for @myMealsCL.
   ///
   /// In en, this message translates to:
-  /// **'MY MEALS'**
+  /// **'MY RECIPES'**
   String get myMealsCL;
 
   /// No description provided for @nutritionSectionTodayInFocus.
@@ -3521,8 +3665,14 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionSectionMyMeals.
   ///
   /// In en, this message translates to:
-  /// **'My meals'**
+  /// **'My recipes'**
   String get nutritionSectionMyMeals;
+
+  /// No description provided for @emptyStateNutritionRecipesCallout.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first recipe to quickly log your frequent meals.'**
+  String get emptyStateNutritionRecipesCallout;
 
   /// No description provided for @nutritionSectionToolsAndLibrary.
   ///
@@ -3578,6 +3728,18 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to delete this supplement? All historical data will be lost.\n\nTip: You can simply untrack it by editing the supplement instead.'**
   String get deleteSupplementConfirm;
 
+  /// No description provided for @editSupplementLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Log Entry'**
+  String get editSupplementLogTitle;
+
+  /// No description provided for @deleteSupplementLogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this log entry?'**
+  String get deleteSupplementLogConfirm;
+
   /// No description provided for @fieldRequired.
   ///
   /// In en, this message translates to:
@@ -3611,7 +3773,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabMeals.
   ///
   /// In en, this message translates to:
-  /// **'Meals'**
+  /// **'Recipes'**
   String get tabMeals;
 
   /// No description provided for @emptyCategory.
@@ -3635,61 +3797,61 @@ abstract class AppLocalizations {
   /// No description provided for @mealsComingSoonTitle.
   ///
   /// In en, this message translates to:
-  /// **'Meals (coming soon)'**
+  /// **'Recipes (coming soon)'**
   String get mealsComingSoonTitle;
 
   /// No description provided for @mealsComingSoonBody.
   ///
   /// In en, this message translates to:
-  /// **'Soon you will be able to create your own meals from multiple foods.'**
+  /// **'Soon you will be able to create your own recipes from multiple foods.'**
   String get mealsComingSoonBody;
 
   /// No description provided for @mealsEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No meal templates saved'**
+  /// **'No recipe templates saved'**
   String get mealsEmptyTitle;
 
   /// No description provided for @mealsEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Create meals to quickly log multiple foods at once.'**
+  /// **'Create recipes to quickly log multiple foods at once.'**
   String get mealsEmptyBody;
 
   /// No description provided for @mealsEmptyBodyWithShortcut.
   ///
   /// In en, this message translates to:
-  /// **'In the diary, use the “Save as meal” option below your Breakfast or Dinner to save common food combinations as a quick template.'**
+  /// **'In the diary, use the “Save as recipe” option below your Breakfast or Dinner to save common food combinations as a quick template.'**
   String get mealsEmptyBodyWithShortcut;
 
   /// No description provided for @mealsCreateManually.
   ///
   /// In en, this message translates to:
-  /// **'Create meal manually'**
+  /// **'Create recipe manually'**
   String get mealsCreateManually;
 
   /// No description provided for @saveMealTemplateShortcut.
   ///
   /// In en, this message translates to:
-  /// **'Save as meal'**
+  /// **'Save as recipe'**
   String get saveMealTemplateShortcut;
 
   /// No description provided for @mealsCreate.
   ///
   /// In en, this message translates to:
-  /// **'Create meal'**
+  /// **'Create recipe'**
   String get mealsCreate;
 
   /// No description provided for @mealsEdit.
   ///
   /// In en, this message translates to:
-  /// **'Edit meal'**
+  /// **'Edit recipe'**
   String get mealsEdit;
 
   /// No description provided for @mealsDelete.
   ///
   /// In en, this message translates to:
-  /// **'Delete meal'**
+  /// **'Delete recipe'**
   String get mealsDelete;
 
   /// No description provided for @mealsAddToDiary.
@@ -3701,7 +3863,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealNameLabel.
   ///
   /// In en, this message translates to:
-  /// **'Meal name'**
+  /// **'Recipe name'**
   String get mealNameLabel;
 
   /// No description provided for @mealNotesLabel.
@@ -3731,31 +3893,31 @@ abstract class AppLocalizations {
   /// No description provided for @mealDeleteConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete meal'**
+  /// **'Delete recipe'**
   String get mealDeleteConfirmTitle;
 
   /// No description provided for @mealDeleteConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete the meal \'{name}\'? All its ingredients will also be removed.'**
+  /// **'Are you sure you want to delete the recipe \'{name}\'? All its ingredients will also be removed.'**
   String mealDeleteConfirmBody(Object name);
 
   /// No description provided for @mealAddedToDiary.
   ///
   /// In en, this message translates to:
-  /// **'Meal \'{name}\' has been added to your diary.'**
+  /// **'Recipe \'{name}\' has been added to your diary.'**
   String mealAddedToDiary(Object name);
 
   /// No description provided for @mealSaved.
   ///
   /// In en, this message translates to:
-  /// **'Meal saved.'**
+  /// **'Recipe saved.'**
   String get mealSaved;
 
   /// No description provided for @mealDeleted.
   ///
   /// In en, this message translates to:
-  /// **'Meal deleted.'**
+  /// **'Recipe deleted.'**
   String get mealDeleted;
 
   /// No description provided for @confirm.
@@ -3773,7 +3935,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealTypeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Meal'**
+  /// **'Recipe'**
   String get mealTypeLabel;
 
   /// No description provided for @amountLabel.
@@ -3785,7 +3947,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealAddedToDiarySuccess.
   ///
   /// In en, this message translates to:
-  /// **'Meal added to diary'**
+  /// **'Recipe added to diary'**
   String get mealAddedToDiarySuccess;
 
   /// No description provided for @error.
@@ -4159,6 +4321,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Weekly Target Rate'**
   String get adaptiveRatePerWeekLabel;
+
+  /// No description provided for @customTargetRateOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get customTargetRateOption;
+
+  /// No description provided for @customTargetRateDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Custom Target Rate'**
+  String get customTargetRateDialogTitle;
 
   /// No description provided for @onboardingNameTitle.
   ///
@@ -5429,6 +5603,24 @@ abstract class AppLocalizations {
   /// **'Est. 1RM'**
   String get exerciseMetricEst1RM;
 
+  /// No description provided for @exerciseMetricDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get exerciseMetricDistance;
+
+  /// No description provided for @exerciseMetricDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get exerciseMetricDuration;
+
+  /// No description provided for @exerciseMetricPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Pace'**
+  String get exerciseMetricPace;
+
   /// No description provided for @prBannerBestMaxWeight.
   ///
   /// In en, this message translates to:
@@ -5594,8 +5786,8 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsPerfWithReps.
   ///
   /// In en, this message translates to:
-  /// **'{weight} kg x {reps}'**
-  String analyticsPerfWithReps(String weight, int reps);
+  /// **'{weight} {unit} x {reps}'**
+  String analyticsPerfWithReps(String weight, int reps, Object unit);
 
   /// No description provided for @analyticsKgThisWeek.
   ///
@@ -5642,8 +5834,8 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsE1rmProgress.
   ///
   /// In en, this message translates to:
-  /// **'e1RM {previous} -> {recent} kg'**
-  String analyticsE1rmProgress(String previous, String recent);
+  /// **'e1RM {previous} -> {recent} {unit}'**
+  String analyticsE1rmProgress(String previous, String recent, Object unit);
 
   /// No description provided for @analyticsUnitKg.
   ///
@@ -5759,6 +5951,18 @@ abstract class AppLocalizations {
   /// **'weeks with at least 2 sessions'**
   String get analyticsWeeksAtLeast2Workouts;
 
+  /// No description provided for @analyticsInTimeframe.
+  ///
+  /// In en, this message translates to:
+  /// **'In timeframe'**
+  String get analyticsInTimeframe;
+
+  /// No description provided for @analyticsVsPriorPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'vs prior period'**
+  String get analyticsVsPriorPeriod;
+
   /// No description provided for @analyticsCalendarExplainer.
   ///
   /// In en, this message translates to:
@@ -5858,7 +6062,7 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsWeeklySetsByMuscle.
   ///
   /// In en, this message translates to:
-  /// **'Weekly Sets by Muscle'**
+  /// **'Ø Weekly Sets by Muscle'**
   String get analyticsWeeklySetsByMuscle;
 
   /// No description provided for @analyticsFrequencyByMuscle.
@@ -5906,7 +6110,7 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsWeekTotalEquivalentSets.
   ///
   /// In en, this message translates to:
-  /// **'Week total: {value} equivalent sets'**
+  /// **'Ø {value} equivalent sets per week'**
   String analyticsWeekTotalEquivalentSets(String value);
 
   /// No description provided for @analyticsFrequencyRuleFooter.
@@ -5918,20 +6122,20 @@ abstract class AppLocalizations {
   /// No description provided for @liveWorkoutE1rmCurrentSet.
   ///
   /// In en, this message translates to:
-  /// **'e1RM {value} kg'**
-  String liveWorkoutE1rmCurrentSet(String value);
+  /// **'e1RM {value} {unit}'**
+  String liveWorkoutE1rmCurrentSet(String value, Object unit);
 
   /// No description provided for @liveWorkoutE1rmBestSession.
   ///
   /// In en, this message translates to:
-  /// **'Best e1RM this session: {value} kg'**
-  String liveWorkoutE1rmBestSession(String value);
+  /// **'Best e1RM this session: {value} {unit}'**
+  String liveWorkoutE1rmBestSession(String value, Object unit);
 
   /// No description provided for @liveWorkoutE1rmVsLastSession.
   ///
   /// In en, this message translates to:
-  /// **'vs last session: {delta} kg'**
-  String liveWorkoutE1rmVsLastSession(String delta);
+  /// **'vs last session: {delta} {unit}'**
+  String liveWorkoutE1rmVsLastSession(String delta, Object unit);
 
   /// No description provided for @bodyNutritionCorrelationTitle.
   ///
@@ -6014,20 +6218,20 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsBodyNutritionTrendContextHint.
   ///
   /// In en, this message translates to:
-  /// **'The chart scales each series to fit the same space; tooltips show raw kg and kcal values.'**
-  String get analyticsBodyNutritionTrendContextHint;
+  /// **'The chart scales each series to fit the same space; tooltips show raw {unit} and kcal values.'**
+  String analyticsBodyNutritionTrendContextHint(Object unit);
 
   /// No description provided for @analyticsBodyNutritionNormalizedHint.
   ///
   /// In en, this message translates to:
-  /// **'The chart scales weight and calories to fit the same space; tooltips show raw kg and kcal values.'**
-  String get analyticsBodyNutritionNormalizedHint;
+  /// **'The chart scales weight and calories to fit the same space; tooltips show raw {unit} and kcal values.'**
+  String analyticsBodyNutritionNormalizedHint(Object unit);
 
   /// No description provided for @analyticsBodyNutritionTotalWeightLabel.
   ///
   /// In en, this message translates to:
-  /// **'Total weight (kg)'**
-  String get analyticsBodyNutritionTotalWeightLabel;
+  /// **'Total weight ({unit})'**
+  String analyticsBodyNutritionTotalWeightLabel(Object unit);
 
   /// No description provided for @analyticsBodyNutritionTotalCaloriesLabel.
   ///
@@ -6038,8 +6242,8 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsWeightTrendLabel.
   ///
   /// In en, this message translates to:
-  /// **'Weight (kg)'**
-  String get analyticsWeightTrendLabel;
+  /// **'Weight ({unit})'**
+  String analyticsWeightTrendLabel(String unit);
 
   /// No description provided for @analyticsCaloriesTrendLabel.
   ///
@@ -6244,6 +6448,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import failed. Please check the file and try again.'**
   String get onboardingRestoreFailed;
+
+  /// No description provided for @onboardingRestoreFromICloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from iCloud'**
+  String get onboardingRestoreFromICloud;
+
+  /// No description provided for @onboardingRestoreICloudSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud backup restored successfully!'**
+  String get onboardingRestoreICloudSuccess;
+
+  /// No description provided for @onboardingRestoreICloudFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud restore failed. Check your connection and try again.'**
+  String get onboardingRestoreICloudFailed;
 
   /// No description provided for @finishWorkoutTitleLabel.
   ///
@@ -6461,11 +6683,11 @@ abstract class AppLocalizations {
   /// **'Permissions granted. If no sleep appears yet, run a manual import below.'**
   String get sleepDataStatusSubtitle;
 
-  /// No description provided for @sleepNoPermissionTitle.
+  /// No description provided for @sleepDataStatusSubtitleIos.
   ///
   /// In en, this message translates to:
-  /// **'No permission'**
-  String get sleepNoPermissionTitle;
+  /// **'Connection active. If data is missing (0 sessions imported), manually verify the read permissions in the Apple Health app.'**
+  String get sleepDataStatusSubtitleIos;
 
   /// No description provided for @sleepNoPermissionSubtitle.
   ///
@@ -7142,8 +7364,8 @@ abstract class AppLocalizations {
   /// No description provided for @adaptiveRatePerWeek.
   ///
   /// In en, this message translates to:
-  /// **'{value} kg/week'**
-  String adaptiveRatePerWeek(String value);
+  /// **'{value} {unit}/week'**
+  String adaptiveRatePerWeek(String value, Object unit);
 
   /// No description provided for @adaptivePriorActivityLabel.
   ///
@@ -7632,6 +7854,24 @@ abstract class AppLocalizations {
   /// **'Data quality'**
   String get adaptiveRecommendationDataQualityLabel;
 
+  /// No description provided for @adaptiveRecommendationEnergyDensityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective energy density'**
+  String get adaptiveRecommendationEnergyDensityLabel;
+
+  /// No description provided for @adaptiveRecommendationEnergyDensityValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} kcal/kg'**
+  String adaptiveRecommendationEnergyDensityValue(int value);
+
+  /// No description provided for @adaptiveRecommendationEnergyDensityExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Dynamic value based on weight and water-loss ratio'**
+  String get adaptiveRecommendationEnergyDensityExplanation;
+
   /// No description provided for @adaptiveRecommendationRecalculateNowAction.
   ///
   /// In en, this message translates to:
@@ -7653,7 +7893,7 @@ abstract class AppLocalizations {
   /// No description provided for @adaptiveRecommendationApplyAction.
   ///
   /// In en, this message translates to:
-  /// **'Apply recommendation to active goals'**
+  /// **'Apply recommendation'**
   String get adaptiveRecommendationApplyAction;
 
   /// No description provided for @adaptiveRecommendationWarningCalorieFloor.
@@ -7781,6 +8021,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shows sugar in the top daily overview section'**
   String get settingsShowSugarInDiaryOverviewSubtitle;
+
+  /// No description provided for @settingsOverviewExtraNutrientTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional Nutrient in Overview'**
+  String get settingsOverviewExtraNutrientTitle;
+
+  /// No description provided for @settingsOverviewExtraNutrientSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a third nutrient tile to the daily overview section'**
+  String get settingsOverviewExtraNutrientSubtitle;
 
   /// No description provided for @settingsSectionHealthTracking.
   ///
@@ -8571,14 +8823,50 @@ abstract class AppLocalizations {
   /// No description provided for @welcome_privacy_body.
   ///
   /// In en, this message translates to:
-  /// **'By using Train Libre, you agree to the processing of your data as described in our Privacy Policy and Legal Notice.'**
+  /// **'To provide workout tracking and training insights, we process your fitness and activity data as described in our Privacy Policy.'**
   String get welcome_privacy_body;
 
   /// No description provided for @i_agree_to_privacy_policy.
   ///
   /// In en, this message translates to:
-  /// **'I have read and agree to the processing of my health data as described in the Privacy Policy.'**
+  /// **'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.'**
   String get i_agree_to_privacy_policy;
+
+  /// No description provided for @i_agree_to_optional_telemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'(Optional) I want to share anonymous usage statistics to help improve app stability and features (zero personal data).'**
+  String get i_agree_to_optional_telemetry;
+
+  /// No description provided for @welcome_back_updated_legal_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back & Updated Policies'**
+  String get welcome_back_updated_legal_title;
+
+  /// No description provided for @legal_update_body.
+  ///
+  /// In en, this message translates to:
+  /// **'We have updated our Privacy Policy and Terms of Service (Version {version}). To continue using Train Libre, please acknowledge the updated terms. All your existing data remains safely stored on your device.'**
+  String legal_update_body(String version);
+
+  /// No description provided for @i_agree_to_updated_privacy_policy.
+  ///
+  /// In en, this message translates to:
+  /// **'I explicitly consent to the updated Privacy Policy (v{version}) and the processing of my fitness and health data.'**
+  String i_agree_to_updated_privacy_policy(String version);
+
+  /// No description provided for @accept_and_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept & Continue'**
+  String get accept_and_continue;
+
+  /// No description provided for @by_tapping_accept_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'By tapping \"Accept & Continue\", you agree to the updated'**
+  String get by_tapping_accept_continue;
 
   /// No description provided for @acceptTermsPrompt.
   ///
@@ -8597,6 +8885,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Accept & Get Started'**
   String get accept_and_get_started;
+
+  /// No description provided for @by_tapping_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'By tapping \"Accept & Get Started\", you agree to our'**
+  String get by_tapping_accept;
+
+  /// No description provided for @and_acknowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'and acknowledge our'**
+  String get and_acknowledge;
 
   /// No description provided for @about_section.
   ///
@@ -8685,7 +8985,7 @@ abstract class AppLocalizations {
   /// No description provided for @muscleQuads.
   ///
   /// In en, this message translates to:
-  /// **'Quads'**
+  /// **'Quadriceps'**
   String get muscleQuads;
 
   /// No description provided for @muscleHamstrings.
@@ -8693,6 +8993,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hamstrings'**
   String get muscleHamstrings;
+
+  /// No description provided for @muscleLegs.
+  ///
+  /// In en, this message translates to:
+  /// **'Legs'**
+  String get muscleLegs;
+
+  /// No description provided for @muscleArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms'**
+  String get muscleArms;
 
   /// No description provided for @muscleGlutes.
   ///
@@ -9588,6 +9900,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can change this at any time later in Settings → Nutrition → Database Region.'**
   String get onboardingRegionSettingsHint;
+
+  /// No description provided for @clearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearch;
+
+  /// No description provided for @rollingDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {days} days (rolling)'**
+  String rollingDaysLabel(int days);
+
+  /// No description provided for @muscleTraps.
+  ///
+  /// In en, this message translates to:
+  /// **'Traps'**
+  String get muscleTraps;
+
+  /// No description provided for @muscleObliques.
+  ///
+  /// In en, this message translates to:
+  /// **'Obliques'**
+  String get muscleObliques;
+
+  /// No description provided for @icloudSyncErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'iCloud Sync Failed'**
+  String get icloudSyncErrorTitle;
+
+  /// No description provided for @icloudSyncErrorHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Please ensure that iCloud Drive is enabled in your iOS System Settings under Settings -> [Your Name] -> iCloud -> iCloud Drive.'**
+  String get icloudSyncErrorHelp;
+
+  /// No description provided for @icloudSyncErrorCopyLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Technical Error Log'**
+  String get icloudSyncErrorCopyLog;
+
+  /// No description provided for @icloudSyncErrorClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get icloudSyncErrorClose;
+
+  /// No description provided for @icloudSyncErrorCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Error log copied to clipboard!'**
+  String get icloudSyncErrorCopied;
+
+  /// No description provided for @icloudLastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced: {date}'**
+  String icloudLastSynced(String date);
+
+  /// No description provided for @icloudNeverSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Never synced'**
+  String get icloudNeverSynced;
+
+  /// No description provided for @emptyStateDiaryColdStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your Diary!'**
+  String get emptyStateDiaryColdStartTitle;
+
+  /// No description provided for @emptyStateDiaryColdStartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep track of your nutrition and hydration here.'**
+  String get emptyStateDiaryColdStartSubtitle;
+
+  /// No description provided for @emptyStateActiveGapOverlay.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available for this period'**
+  String get emptyStateActiveGapOverlay;
+
+  /// No description provided for @emptyStateDiaryColdStartCallToAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Log your first entry here'**
+  String get emptyStateDiaryColdStartCallToAction;
+
+  /// No description provided for @statisticsColdStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your Analytics!'**
+  String get statisticsColdStartTitle;
+
+  /// No description provided for @statisticsColdStartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress will be visualized here as soon as you log your first workouts, meals, or track your steps and sleep.'**
+  String get statisticsColdStartSubtitle;
+
+  /// No description provided for @statisticsActiveGapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get statisticsActiveGapTitle;
+
+  /// No description provided for @reviewPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you like Train Libre?'**
+  String get reviewPromptTitle;
+
+  /// No description provided for @reviewPromptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feedback helps us continuously improve the app without ads or trackers.'**
+  String get reviewPromptSubtitle;
+
+  /// No description provided for @reviewPromptYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, I like it'**
+  String get reviewPromptYes;
+
+  /// No description provided for @reviewPromptNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No, not really'**
+  String get reviewPromptNo;
+
+  /// No description provided for @reviewPromptLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me later'**
+  String get reviewPromptLater;
+
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Available'**
+  String get updateAvailableTitle;
+
+  /// No description provided for @statusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get statusReady;
+
+  /// No description provided for @statusRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get statusRequired;
+
+  /// No description provided for @updatesAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'New updates are available for your local catalogs. Would you like to update now?'**
+  String get updatesAvailableBody;
+
+  /// No description provided for @exerciseCatalogWger.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise Catalog (wger)'**
+  String get exerciseCatalogWger;
+
+  /// No description provided for @nutritionCatalogOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition Catalog (OFF)'**
+  String get nutritionCatalogOff;
+
+  /// No description provided for @workoutImportZeroNew.
+  ///
+  /// In en, this message translates to:
+  /// **'0 new workouts imported (all already existed).'**
+  String get workoutImportZeroNew;
+
+  /// No description provided for @telemetryDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Telemetry Data?'**
+  String get telemetryDeleteDialogTitle;
+
+  /// No description provided for @telemetryDeleteDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you really want to delete your past telemetry data?\n\nThe following will happen:\n• All device UUIDs, session IDs, and local counters stored on this device will be reset.\n• A deletion request (\$delete_person) will be sent to PostHog servers in the EU to remove your data there.\n• The telemetry SDK will be fully reset.'**
+  String get telemetryDeleteDialogBody;
+
+  /// No description provided for @telemetryDeleteConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete data now'**
+  String get telemetryDeleteConfirmButton;
 }
 
 class _AppLocalizationsDelegate

@@ -10,6 +10,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/glass_pill_button.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen for mapping unknown exercise names to known database [Exercise] objects.
 class ExerciseMappingScreen extends StatefulWidget {
@@ -43,7 +44,13 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
         query: name,
       );
       if (matches.isNotEmpty && mounted) {
-        setState(() => _suggestions[name] = matches.take(3).toList());
+        setState(() {
+          _suggestions[name] = matches.take(4).toList();
+          // Auto pre-select top match if user hasn't manually chosen target yet
+          if (!_selection.containsKey(name)) {
+            _selection[name] = matches.first;
+          }
+        });
       }
     }
   }
@@ -99,7 +106,8 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
           children: [
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.only(top: DesignConstants.spacingS,
+                padding: const EdgeInsets.only(
+                  top: DesignConstants.spacingS,
                   bottom: DesignConstants.spacingL,
                 ),
                 itemCount: widget.unknownNames.length,
@@ -140,8 +148,8 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                             tooltip: l10n.selectButton,
                           ),
                         ),
-                        if (picked == null && suggestions.isNotEmpty) ...[
-                          const Divider(height: 24),
+                        if (suggestions.isNotEmpty) ...[
+                          const Divider(height: 16),
                           Text(
                             l10n.mappingSuggestions,
                             style: theme.textTheme.labelSmall?.copyWith(
@@ -153,22 +161,45 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                             spacing: DesignConstants.spacingS,
                             runSpacing: DesignConstants.spacingS,
                             children: suggestions.map((s) {
+                              final isSelected = picked?.uuid == s.uuid;
                               return GlassPillButton(
-                                height: 28,
-                                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                                height: 32,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: DesignConstants.spacingM,
                                 ),
                                 onTap: () {
                                   setState(() => _selection[src] = s);
                                 },
-                                child: Text(
-                                  s.getLocalizedName(context),
-                                  style: theme.textTheme.bodySmall,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isSelected) ...[
+                                      Icon(
+                                        LucideIcons.check,
+                                        size: 14,
+                                        color: colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 4),
+                                    ],
+                                    Text(
+                                      s.getLocalizedName(context),
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: isSelected
+                                            ? colorScheme.primary
+                                            : null,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
                               );
                             }).toList(),
                           ),
+                          const SizedBox(height: DesignConstants.spacingS),
                         ] else if (picked != null)
                           Align(
                             alignment: Alignment.centerRight,
@@ -188,22 +219,16 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
             SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM,
+                padding: const EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingM,
                 ),
                 child: SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
+                  child: AppButton.primary(
                     onPressed: _applying ? null : _apply,
-                    icon: _applying
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(LucideIcons.check),
-                    label: Text(
-                      _applying ? l10n.applyingChanges : l10n.applyMapping,
-                    ),
+                    label: _applying ? l10n.applyingChanges : l10n.applyMapping,
+                    tooltip:
+                        _applying ? l10n.applyingChanges : l10n.applyMapping,
                   ),
                 ),
               ),

@@ -94,7 +94,7 @@ class AnalyticsCardBase {
     required SectionLoadState<T> state,
     required Widget child,
   }) {
-    if (!state.hasData || (!state.isLoading && !state.hasError)) {
+    if (!state.hasData || !state.hasError) {
       return child;
     }
     return Stack(
@@ -103,17 +103,11 @@ class AnalyticsCardBase {
         Positioned(
           top: 10,
           right: 10,
-          child: state.isLoading
-              ? const SizedBox(
-                  height: 14,
-                  width: 14,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Icon(
-                  LucideIcons.triangle_alert,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.error,
-                ),
+          child: Icon(
+            LucideIcons.triangle_alert,
+            size: 16,
+            color: Theme.of(context).colorScheme.error,
+          ),
         ),
       ],
     );
@@ -138,7 +132,8 @@ class AnalyticsCardBase {
         ),
         if (chipText != null && chipText.isNotEmpty)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingS,
               vertical: 3,
             ),
             decoration: BoxDecoration(
@@ -197,7 +192,8 @@ class AnalyticsCardBase {
   static Widget buildRangeChip(BuildContext context, String label) {
     final chipColor = Theme.of(context).colorScheme.primary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS,
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingS,
         vertical: 3,
       ),
       decoration: BoxDecoration(

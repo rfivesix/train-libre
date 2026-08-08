@@ -341,7 +341,7 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     final last = overlapping
         .map((bucket) => bucket.lastSampleUtc)
         .reduce((a, b) => a.isAfter(b) ? a : b);
-    final chartSamples = _chartSamplesFromBuckets(overlapping);
+    final chartSamples = _chartSamplesFromBuckets(window, overlapping);
 
     PerfDebugTimer.logDuration(
       area: 'statistics',
@@ -373,8 +373,35 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
   }
 
   List<PulseSamplePoint> _chartSamplesFromBuckets(
+    PulseAnalysisWindow window,
     List<PulseAggregateBucket> buckets,
   ) {
+    if (window.duration.inHours > 24) {
+      final points = <PulseSamplePoint>[];
+      final bucketsByDay = <DateTime, List<PulseAggregateBucket>>{};
+
+      for (final bucket in buckets) {
+        final localDate = bucket.bucketStartUtc.toLocal();
+        final dayKey = DateTime(localDate.year, localDate.month, localDate.day);
+        bucketsByDay.putIfAbsent(dayKey, () => []).add(bucket);
+      }
+
+      final sortedDays = bucketsByDay.keys.toList()..sort();
+      for (final dayKey in sortedDays) {
+        final dayBuckets = bucketsByDay[dayKey]!;
+        final restingBpm = _restingFromAggregateBuckets(dayBuckets);
+
+        points.add(
+          PulseSamplePoint(
+            sampledAtUtc:
+                DateTime(dayKey.year, dayKey.month, dayKey.day, 12).toUtc(),
+            bpm: restingBpm,
+          ),
+        );
+      }
+      return points;
+    }
+
     if (buckets.length <= PulseAggregateStore.maxChartPoints) {
       return buckets
           .map(

@@ -27,6 +27,8 @@ class CalculateDailyNutritionUseCase {
   DailyNutritionState execute({
     required DailyGoal? goals,
     required int targetSugar,
+    required int targetFiber,
+    required int targetSalt,
     required int targetCaffeine,
     required List<FoodEntry> foodEntries,
     required List<FluidEntry> fluidEntries,
@@ -50,71 +52,39 @@ class CalculateDailyNutritionUseCase {
       targetFat: targetFat,
       targetWater: targetWater,
       targetSugar: targetSugar,
+      targetFiber: targetFiber,
+      targetSalt: targetSalt,
       targetCaffeine: targetCaffeine,
     );
 
     // Workout Summary
-    final completedLogs =
-        workoutLogs.where((log) => log.endTime != null).toList();
     Map<String, dynamic>? workoutSummary;
-    if (completedLogs.isNotEmpty) {
-      Duration totalDuration = Duration.zero;
-      double totalVolume = 0.0;
-      int totalSets = 0;
-      for (final log in completedLogs) {
-        totalDuration += log.endTime!.difference(log.startTime);
-        totalSets += log.sets.length;
-        for (final set in log.sets) {
-          totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
-        }
+    Duration totalDuration = Duration.zero;
+    double totalVolume = 0.0;
+    int totalSets = 0;
+    int completedCount = 0;
+
+    for (final log in workoutLogs) {
+      if (log.endTime == null) continue;
+      completedCount++;
+      totalDuration += log.endTime!.difference(log.startTime);
+      totalSets += log.sets.length;
+      for (final set in log.sets) {
+        totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
       }
+    }
+
+    if (completedCount > 0) {
       workoutSummary = {
         'duration': totalDuration,
         'volume': totalVolume,
         'sets': totalSets,
-        'count': completedLogs.length,
+        'count': completedCount,
       };
     }
 
-    // Removed foodProducts list conversion, maps are passed as parameters
-
-    // Fluids
-    summary.water =
-        fluidEntries.fold<int>(0, (sum, entry) => sum + entry.quantityInMl);
-    for (final entry in fluidEntries) {
-      final isLinked = entry.linkedFoodEntryId != null;
-      final isDuplicateOfFood = foodEntries.any((food) {
-        final foodItem = food.archiveLocalId != null
-            ? foodProductsByArchiveLocalId[food.archiveLocalId!]
-            : foodProductsByBarcode[food.barcode];
-        final isFluidFood = foodItem != null &&
-            (foodItem.isFluid || (foodItem.isLiquid ?? false));
-        if (!isFluidFood) return false;
-
-        // Match by linked ID
-        if (entry.linkedFoodEntryId == food.id) return true;
-
-        // Defensive match: same day/time and similar quantity
-        final timeDiff =
-            entry.timestamp.difference(food.timestamp).inSeconds.abs();
-        if (timeDiff < 2 && entry.quantityInMl == food.quantityInGrams) {
-          return true;
-        }
-        return false;
-      });
-
-      if (isLinked || isDuplicateOfFood) {
-        continue;
-      }
-
-      summary.calories += entry.kcal ?? 0;
-      final factor = entry.quantityInMl / 100.0;
-      summary.sugar += (entry.sugarPer100ml ?? 0) * factor;
-      summary.carbs += ((entry.carbsPer100ml ?? 0) * factor).round();
-    }
-
-    // Food
-
+    // Food and cache properties for O(1) quantity matching
+    final Map<int, List<int>> fluidFoodSignatures = {};
     final Map<String, List<TrackedFoodItem>> groupedEntries = {
       'mealtypeBreakfast': [],
       'mealtypeLunch': [],
@@ -127,18 +97,60 @@ class CalculateDailyNutritionUseCase {
           ? foodProductsByArchiveLocalId[entry.archiveLocalId!]
           : foodProductsByBarcode[entry.barcode];
       if (foodItem != null) {
-        summary.calories +=
-            (foodItem.calories / 100 * entry.quantityInGrams).round();
-        summary.protein +=
-            (foodItem.protein / 100 * entry.quantityInGrams).round();
-        summary.carbs += (foodItem.carbs / 100 * entry.quantityInGrams).round();
-        summary.fat += (foodItem.fat / 100 * entry.quantityInGrams).round();
-        summary.sugar +=
-            (foodItem.sugar ?? 0) * (entry.quantityInGrams / 100.0);
+        if (foodItem.isFluid || (foodItem.isLiquid ?? false)) {
+          final qty = entry.quantityInGrams;
+          final ms = entry.timestamp.millisecondsSinceEpoch;
+          if (fluidFoodSignatures.containsKey(qty)) {
+            fluidFoodSignatures[qty]!.add(ms);
+          } else {
+            fluidFoodSignatures[qty] = [ms];
+          }
+        }
+
+        final ratio = entry.quantityInGrams / 100.0;
+        summary.calories += (foodItem.calories * ratio).round();
+        summary.protein += (foodItem.protein * ratio).round();
+        summary.carbs += (foodItem.carbs * ratio).round();
+        summary.fat += (foodItem.fat * ratio).round();
+        summary.sugar += (foodItem.sugar ?? 0) * ratio;
+        summary.fiber += (foodItem.fiber ?? 0) * ratio;
+        summary.salt += (foodItem.salt ?? 0) * ratio;
 
         final trackedItem = TrackedFoodItem(entry: entry, item: foodItem);
         groupedEntries[entry.mealType]?.add(trackedItem);
       }
+    }
+
+    // Fluids
+    for (final entry in fluidEntries) {
+      summary.water += entry.quantityInMl;
+
+      // Short-circuit: skip evaluating duplicate logic if entry is already explicitly linked
+      if (entry.linkedFoodEntryId != null) {
+        continue;
+      }
+
+      bool isDuplicateOfFood = false;
+      final matchingMsList = fluidFoodSignatures[entry.quantityInMl];
+      if (matchingMsList != null) {
+        final entryMs = entry.timestamp.millisecondsSinceEpoch;
+        for (final ms in matchingMsList) {
+          // Defensive match: same day/time and similar quantity (< 2 seconds)
+          if ((entryMs - ms).abs() < 2000) {
+            isDuplicateOfFood = true;
+            break;
+          }
+        }
+      }
+
+      if (isDuplicateOfFood) {
+        continue;
+      }
+
+      summary.calories += entry.kcal ?? 0;
+      final factor = entry.quantityInMl / 100.0;
+      summary.sugar += (entry.sugarPer100ml ?? 0) * factor;
+      summary.carbs += ((entry.carbsPer100ml ?? 0) * factor).round();
     }
 
     for (var meal in groupedEntries.values) {
@@ -155,47 +167,76 @@ class CalculateDailyNutritionUseCase {
       );
     }
 
+    final double targetCaffeineDouble = targetCaffeine.toDouble();
+    final Set<int> trackedSuppIds = {};
+    final List<TrackedSupplement> trackedSupps = [];
+
+    for (final s in supplementsForDate) {
+      final hasLog = todaysDoses.containsKey(s.id);
+      if (s.isTracked || hasLog) {
+        var supplementToUse = s;
+        if ((s.code == 'caffeine' || s.name.toLowerCase() == 'caffeine') &&
+            s.dailyGoal == null &&
+            s.dailyLimit == null) {
+          supplementToUse = Supplement(
+            id: s.id,
+            code: s.code,
+            name: s.name,
+            defaultDose: s.defaultDose,
+            unit: s.unit,
+            dailyLimit: targetCaffeineDouble,
+            notes: s.notes,
+            isBuiltin: s.isBuiltin,
+            isTracked: s.isTracked,
+          );
+        }
+        trackedSupps.add(
+          TrackedSupplement(
+            supplement: supplementToUse,
+            totalDosedToday: todaysDoses[s.id] ?? 0.0,
+          ),
+        );
+        if (s.id != null) {
+          trackedSuppIds.add(s.id!);
+        }
+      }
+    }
+
     Supplement? caffeineSupplement;
-    try {
-      caffeineSupplement = allSupplements.firstWhere(
-        (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
-      );
-    } catch (e) {
-      caffeineSupplement = null;
+    for (final s in allSupplements) {
+      if (caffeineSupplement == null &&
+          ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine')) {
+        caffeineSupplement = s;
+      }
+
+      if (s.id != null &&
+          todaysDoses.containsKey(s.id) &&
+          !trackedSuppIds.contains(s.id)) {
+        var supplementToUse = s;
+        if ((s.code == 'caffeine' || s.name.toLowerCase() == 'caffeine') &&
+            s.dailyGoal == null &&
+            s.dailyLimit == null) {
+          supplementToUse = Supplement(
+            id: s.id,
+            code: s.code,
+            name: s.name,
+            defaultDose: s.defaultDose,
+            unit: s.unit,
+            dailyLimit: targetCaffeineDouble,
+            notes: s.notes,
+            isBuiltin: s.isBuiltin,
+            isTracked: s.isTracked,
+          );
+        }
+        trackedSupps.add(
+          TrackedSupplement(supplement: supplementToUse, totalDosedToday: todaysDoses[s.id]!),
+        );
+        trackedSuppIds.add(s.id!);
+      }
     }
 
     if (caffeineSupplement != null && caffeineSupplement.id != null) {
       summary.caffeine = todaysDoses[caffeineSupplement.id] ?? 0.0;
-    }
-
-    final Map<int, Supplement> byId = {
-      for (final s in allSupplements)
-        if (s.id != null) s.id!: s,
-    };
-
-    final List<TrackedSupplement> trackedSupps = [];
-    for (final s in supplementsForDate) {
-      final hasLog = todaysDoses.containsKey(s.id);
-      if (s.isTracked || hasLog) {
-        trackedSupps.add(
-          TrackedSupplement(
-            supplement: s,
-            totalDosedToday: todaysDoses[s.id] ?? 0.0,
-          ),
-        );
-      }
-    }
-    for (final id in todaysDoses.keys) {
-      if (!trackedSupps.any((ts) => ts.supplement.id == id)) {
-        if (byId.containsKey(id)) {
-          trackedSupps.add(
-            TrackedSupplement(
-              supplement: byId[id]!,
-              totalDosedToday: todaysDoses[id]!,
-            ),
-          );
-        }
-      }
     }
 
     return DailyNutritionState(

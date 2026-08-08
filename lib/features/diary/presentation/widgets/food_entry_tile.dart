@@ -3,14 +3,11 @@ import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/theme_service.dart';
 import '../../../../services/base_food_language_service.dart';
-import '../../../../widgets/common/swipe_action_background.dart';
-import '../../../../widgets/common/summary_card.dart';
-import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/models/tracked_food_item.dart';
 import '../../domain/models/food_item.dart';
 import '../food_detail_screen.dart';
 import '../diary_view_model.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/glass_actionable_card.dart';
 
 class FoodEntryTile extends StatelessWidget {
   final TrackedFoodItem trackedItem;
@@ -34,67 +31,44 @@ class FoodEntryTile extends StatelessWidget {
       context: context,
     );
 
-    return Dismissible(
-      key: Key('food_hub_entry_${trackedItem.entry.id}'),
-      background: const SwipeActionBackground(
-        color: Colors.blueAccent,
-        icon: LucideIcons.pencil,
-        alignment: Alignment.centerLeft,
-      ),
-      secondaryBackground: const SwipeActionBackground(
-        color: Colors.redAccent,
-        icon: LucideIcons.trash_2,
-        alignment: Alignment.centerRight,
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          onEdit(trackedItem);
-          return false;
-        } else {
-          return await showDeleteConfirmation(context);
-        }
+    return GlassActionableCard(
+      dismissibleKey: Key('food_hub_entry_${trackedItem.entry.id}'),
+      onEdit: () => onEdit(trackedItem),
+      onDelete: () => onDelete(trackedItem.entry.id!),
+      onTap: () {
+        Navigator.of(context)
+            .push(
+          MaterialPageRoute(
+            builder: (context) => FoodDetailScreen(trackedItem: trackedItem),
+          ),
+        )
+            .then((_) {
+          if (!context.mounted) return;
+          context
+              .read<DiaryViewModel>()
+              .loadDataForDate(context.read<DiaryViewModel>().selectedDate);
+        });
       },
-      onDismissed: (direction) {
-        if (direction == DismissDirection.endToStart) {
-          onDelete(trackedItem.entry.id!);
-        }
-      },
-      child: SummaryCard(
-        child: ListTile(
-          title: Text(
-            trackedItem.item.source == FoodItemSource.base
-                ? trackedItem.item.getLocalizedName(
-                    context,
-                    languageCode: baseFoodLang,
-                  )
-                : trackedItem.item.getLocalizedName(context),
-            style: theme.textTheme.titleMedium,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(
+          trackedItem.item.source == FoodItemSource.base
+              ? trackedItem.item.getLocalizedName(
+                  context,
+                  languageCode: baseFoodLang,
+                )
+              : trackedItem.item.getLocalizedName(context),
+          style: theme.textTheme.titleMedium,
+        ),
+        subtitle: Text(
+          '${trackedItem.entry.quantityInGrams}${l10n.unit_grams}',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.textTheme.bodySmall?.color,
           ),
-          subtitle: Text(
-            '${trackedItem.entry.quantityInGrams}${l10n.unit_grams}',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodySmall?.color,
-            ),
-          ),
-          trailing: Text(
-            '${trackedItem.calculatedCalories} ${l10n.unit_kcal}',
-            style: theme.textTheme.labelLarge,
-          ),
-          onTap: () {
-            Navigator.of(context)
-                .push(
-              MaterialPageRoute(
-                builder: (context) =>
-                    FoodDetailScreen(trackedItem: trackedItem),
-              ),
-            )
-                .then((_) {
-              if (!context.mounted) return;
-              context
-                  .read<DiaryViewModel>()
-                  .loadDataForDate(context.read<DiaryViewModel>().selectedDate);
-            });
-          },
+        ),
+        trailing: Text(
+          '${trackedItem.calculatedCalories} ${l10n.unit_kcal}',
+          style: theme.textTheme.labelLarge,
         ),
       ),
     );

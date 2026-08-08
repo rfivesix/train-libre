@@ -1,3 +1,4 @@
+import '../../../services/unit_service.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -16,19 +17,24 @@ import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/models/tracked_food_item.dart';
 import '../../supplements/domain/models/tracked_supplement.dart';
+import '../../supplements/domain/models/supplement.dart';
+import '../../supplements/domain/models/supplement_log.dart';
+import '../../supplements/presentation/dialogs/log_supplement_menu.dart';
 import 'add_food_screen.dart';
 import 'add_food_navigation_result.dart';
-import '../../supplements/presentation/supplement_track_screen.dart';
+import '../../supplements/presentation/supplement_hub_screen.dart';
 import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
+import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'widgets/nutrition_summary_widget.dart';
 import '../../supplements/presentation/widgets/supplement_summary_widget.dart';
 import '../../../widgets/common/macro_badge_row.dart';
 import 'diary_view_model.dart';
 import '../../../services/theme_service.dart';
+import '../../../services/base_food_language_service.dart';
 import '../../workout/presentation/workout_history_screen.dart';
 import '../../workout/presentation/widgets/todays_workout_summary_card.dart';
 import 'widgets/weight_chart_card.dart';
@@ -41,6 +47,9 @@ import 'widgets/recommendation_banner.dart';
 import 'meal_screen.dart';
 import '../../../core/infrastructure/share_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// The central hub for tracking and viewing daily nutritional and activity data.
 ///
@@ -77,50 +86,33 @@ class _DiaryScreenContent extends StatefulWidget {
 class DiaryScreenState extends State<_DiaryScreenContent> {
   final GlobalKey _macroSummaryKey = GlobalKey();
   final ShareService _shareService = const ShareService();
+  final ScrollController _scrollController = ScrollController();
 
   DiaryViewModel get viewModel => context.read<DiaryViewModel>();
   ValueNotifier<DateTime> get selectedDateNotifier =>
       viewModel.selectedDateNotifier;
 
-  Future<void> showShareMenu() async {
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> shareAsText() async {
     final l10n = AppLocalizations.of(context)!;
-    await showGlassBottomMenu<void>(
-      context: context,
-      title: l10n.share,
-      actions: [
-        GlassMenuAction(
-          icon: LucideIcons.image,
-          label: l10n.shareAsImage,
-          onTap: () async {
-            try {
-              await _shareService.shareWidgetAsImage(_macroSummaryKey);
-            } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.shareFailed)),
-                );
-              }
-            }
-          },
-        ),
-        GlassMenuAction(
-          icon: LucideIcons.text_initial,
-          label: l10n.shareAsTextOrCopy,
-          onTap: () async {
-            try {
-              await _shareService.shareDailyLogAsText(viewModel.selectedDate,
-                  l10n: l10n);
-            } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.shareFailed)),
-                );
-              }
-            }
-          },
-        ),
-      ],
-    );
+    try {
+      await _shareService.shareDailyLogAsText(
+        viewModel.selectedDate,
+        l10n: l10n,
+        unitService: context.read<UnitService>(),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
+      }
+    }
   }
 
   void setSelectedDate(DateTime date) {
@@ -128,14 +120,17 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   }
 
   Future<void> syncHealthData({bool forceStepsRefresh = false}) async {
-    await context
-        .read<DiaryViewModel>()
-        .syncHealthData(forceStepsRefresh: forceStepsRefresh);
+    await context.read<DiaryViewModel>().syncHealthData(
+      forceStepsRefresh: forceStepsRefresh,
+    );
   }
 
   @Deprecated('Use setSelectedDate or syncHealthData instead')
-  Future<void> loadDataForDate(DateTime date,
-      {bool queueIfInFlight = false, bool forceStepsRefresh = false}) async {
+  Future<void> loadDataForDate(
+    DateTime date, {
+    bool queueIfInFlight = false,
+    bool forceStepsRefresh = false,
+  }) async {
     setSelectedDate(date);
     if (forceStepsRefresh) {
       await syncHealthData(forceStepsRefresh: true);
@@ -150,6 +145,250 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   Future<void> _deleteFluidEntry(int id) async {
     final viewModel = context.read<DiaryViewModel>();
     await viewModel.deleteFluidEntry(id);
+  }
+
+  void _showSupplementDetailSheet(
+    BuildContext context,
+    TrackedSupplement trackedSupplement,
+  ) {
+    final supplement = trackedSupplement.supplement;
+    final vm = context.read<DiaryViewModel>();
+    showGlassBottomMenu(
+      context: context,
+      title: null,
+      contentBuilder: (sheetContext, closeSheet) {
+        return ChangeNotifierProvider.value(
+          value: vm,
+          child: Consumer<DiaryViewModel>(
+            builder: (context, vm, child) {
+              final currentTracked = vm.trackedSupplements.firstWhere(
+                (ts) => ts.supplement.id == supplement.id,
+                orElse: () => TrackedSupplement(
+                  supplement: supplement,
+                  totalDosedToday: 0.0,
+                ),
+              );
+
+              final logs = vm.supplementLogsForSupplement(supplement.id!);
+              final isGerman =
+                  Localizations.localeOf(context).languageCode == 'de';
+              final timeSuffix = isGerman ? ' Uhr' : '';
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 64.0),
+                        child: Text(
+                          supplement.getLocalizedName(context),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        child: Text(
+                          '${currentTracked.totalDosedToday.toStringAsFixed(1).replaceAll('.0', '')} ${supplement.unit}',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  const Divider(),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  if (logs.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: DesignConstants.spacingXL,
+                      ),
+                      child: Center(
+                        child: Text(
+                          AppLocalizations.of(context)!.emptySupplementLogs,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.5),
+                              ),
+                        ),
+                      ),
+                    )
+                  else
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 280),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: logs.length,
+                        itemBuilder: (context, index) {
+                          final log = logs[index];
+                          final timeStr =
+                              DateFormat.Hm().format(log.timestamp) +
+                              timeSuffix;
+                          final doseStr =
+                              '${log.dose.toStringAsFixed(1).replaceAll('.0', '')} ${log.unit}';
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: DesignConstants.spacingXS,
+                            ),
+                            child: GlassActionableCard(
+                              dismissibleKey: Key('supplement_log_${log.id}'),
+                              onEdit: () {
+                                _editSupplementLog(
+                                  context,
+                                  vm,
+                                  supplement,
+                                  log,
+                                );
+                              },
+                              onDelete: () => vm.deleteSupplement(log.id!),
+                              confirmDelete: () async {
+                                return await showDeleteConfirmation(
+                                  context,
+                                  title: AppLocalizations.of(
+                                    context,
+                                  )!.deleteConfirmTitle,
+                                  content: AppLocalizations.of(
+                                    context,
+                                  )!.deleteSupplementLogConfirm,
+                                );
+                              },
+                              margin: EdgeInsets.zero,
+                              child: SummaryCard(
+                                margin: EdgeInsets.zero,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: DesignConstants.spacingM,
+                                  vertical: 16.0,
+                                ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.clock,
+                                        size: 16,
+                                        color: Colors.grey,
+                                      ),
+                                      const SizedBox(
+                                        width: DesignConstants.spacingS,
+                                      ),
+                                      Text(
+                                        timeStr,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    doseStr,
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                        },
+                      ),
+                    ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppButton.secondary(
+                          onPressed: () {
+                            closeSheet();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const SupplementHubScreen(),
+                              ),
+                            );
+                          },
+                          label: AppLocalizations.of(
+                            context,
+                          )!.manageSupplementsTitle,
+                          tooltip: AppLocalizations.of(
+                            context,
+                          )!.manageSupplementsTitle,
+                        ),
+                      ),
+                      const SizedBox(width: DesignConstants.spacingM),
+                      Expanded(
+                        child: AppButton.primary(
+                          onPressed: closeSheet,
+                          label: AppLocalizations.of(context)!.cancel,
+                          tooltip: AppLocalizations.of(context)!.cancel,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _editSupplementLog(
+    BuildContext context,
+    DiaryViewModel vm,
+    Supplement supplement,
+    SupplementLog log,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showGlassBottomMenu<(double, DateTime)?>(
+      context: context,
+      title: l10n.editSupplementLogTitle,
+      contentBuilder: (ctx, close) {
+        return LogSupplementDoseBody(
+          supplement: supplement,
+          initialDose: log.dose,
+          initialTimestamp: log.timestamp,
+          primaryLabel: l10n.save,
+          onCancel: close,
+          onSubmit: (dose, ts) {
+            close();
+            Navigator.of(ctx).pop((dose, ts));
+          },
+        );
+      },
+    );
+
+    if (result != null) {
+      await vm.updateSupplementAmount(
+        log.id!,
+        result.$1,
+        newTimestamp: result.$2,
+      );
+    }
   }
 
   Future<void> _editFluidEntry(FluidEntry entry) async {
@@ -196,14 +435,15 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: close,
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () async {
                       final vm = viewModel;
                       final state = key.currentState;
@@ -247,12 +487,13 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         close();
                       } catch (e) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.error)),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(l10n.error)));
                       }
                     },
-                    child: Text(l10n.save),
+                    label: l10n.save,
+                    tooltip: l10n.save,
                   ),
                 ),
               ],
@@ -268,81 +509,85 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final GlobalKey<QuantityDialogContentState> dialogStateKey = GlobalKey();
     final vm = viewModel;
 
-    final result = await showGlassBottomMenu<
-        ({
-          int quantity,
-          DateTime timestamp,
-          String mealType,
-          bool isLiquid,
-          double? sugarPer100ml,
-          double? caffeinePer100ml,
-        })?>(
-      context: context,
-      title: trackedItem.item.getLocalizedName(context),
-      contentBuilder: (ctx, close) {
-        final linkedFluid = vm.fluidEntries
-            .where((f) => f.linkedFoodEntryId == trackedItem.entry.id)
-            .firstOrNull;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Dialog content, now used as bottom-sheet content
-            QuantityDialogContent(
-              key: dialogStateKey,
-              item: trackedItem.item,
-              initialQuantity: trackedItem.entry.quantityInGrams,
-              initialTimestamp: trackedItem.entry.timestamp,
-              initialMealType: trackedItem.entry.mealType,
-              initialIsLiquid: linkedFluid != null ? true : null,
-              initialSugar: linkedFluid?.sugarPer100ml,
-              initialCaffeine: linkedFluid?.caffeinePer100ml,
-            ),
-            const SizedBox(height: DesignConstants.spacingM),
-            Row(
+    final result =
+        await showGlassBottomMenu<
+          ({
+            int quantity,
+            DateTime timestamp,
+            String mealType,
+            bool isLiquid,
+            double? sugarPer100ml,
+            double? caffeinePer100ml,
+          })?
+        >(
+          context: context,
+          title: trackedItem.item.getLocalizedName(context),
+          contentBuilder: (ctx, close) {
+            final linkedFluid = vm.fluidEntries
+                .where((f) => f.linkedFoodEntryId == trackedItem.entry.id)
+                .firstOrNull;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: close,
-                    child: Text(l10n.cancel),
-                  ),
+                // Dialog content, now used as bottom-sheet content
+                QuantityDialogContent(
+                  key: dialogStateKey,
+                  item: trackedItem.item,
+                  initialQuantity: trackedItem.entry.quantityInGrams,
+                  initialTimestamp: trackedItem.entry.timestamp,
+                  initialMealType: trackedItem.entry.mealType,
+                  initialIsLiquid: linkedFluid != null ? true : null,
+                  initialSugar: linkedFluid?.sugarPer100ml,
+                  initialCaffeine: linkedFluid?.caffeinePer100ml,
                 ),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () {
-                      final state = dialogStateKey.currentState;
-                      if (state != null) {
-                        final quantity = int.tryParse(state.quantityText);
-                        final caffeine = double.tryParse(
-                          state.caffeineText.replaceAll(',', '.'),
-                        );
-                        final sugar = double.tryParse(
-                          state.sugarText.replaceAll(',', '.'),
-                        );
+                const SizedBox(height: DesignConstants.spacingM),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton.secondary(
+                        onPressed: close,
+                        label: l10n.cancel,
+                        tooltip: l10n.cancel,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingM),
+                    Expanded(
+                      child: AppButton.primary(
+                        onPressed: () {
+                          final state = dialogStateKey.currentState;
+                          if (state != null) {
+                            final quantity = int.tryParse(state.quantityText);
+                            final caffeine = double.tryParse(
+                              state.caffeineText.replaceAll(',', '.'),
+                            );
+                            final sugar = double.tryParse(
+                              state.sugarText.replaceAll(',', '.'),
+                            );
 
-                        if (quantity != null && quantity > 0) {
-                          close();
-                          // Return the correct anonymous tuple here.
-                          Navigator.of(ctx).pop((
-                            quantity: quantity,
-                            timestamp: state.selectedDateTime,
-                            mealType: state.selectedMealType,
-                            isLiquid: state.isLiquid,
-                            sugarPer100ml: sugar,
-                            caffeinePer100ml: caffeine,
-                          ));
-                        }
-                      }
-                    },
-                    child: Text(l10n.save),
-                  ),
+                            if (quantity != null && quantity > 0) {
+                              close();
+                              // Return the correct anonymous tuple here.
+                              Navigator.of(ctx).pop((
+                                quantity: quantity,
+                                timestamp: state.selectedDateTime,
+                                mealType: state.selectedMealType,
+                                isLiquid: state.isLiquid,
+                                sugarPer100ml: sugar,
+                                caffeinePer100ml: caffeine,
+                              ));
+                            }
+                          }
+                        },
+                        label: l10n.save,
+                        tooltip: l10n.save,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
+            );
+          },
         );
-      },
-    );
 
     // Continue processing the result data.
     if (result != null) {
@@ -358,9 +603,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
       // 1. Delete FluidEntry if linked.
       if (trackedItem.entry.id != null) {
-        await vm.deleteFluidEntryByLinkedFoodId(
-          trackedItem.entry.id!,
-        );
+        await vm.deleteFluidEntryByLinkedFoodId(trackedItem.entry.id!);
       }
       // 2. Recreate FluidEntry if it is now liquid.
       if (result.isLiquid) {
@@ -412,18 +655,11 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
     if (!mounted) return;
 
-    final meal = <String, dynamic>{
-      'id': newMealId,
-      'name': '',
-      'notes': '',
-    };
+    final meal = <String, dynamic>{'id': newMealId, 'name': '', 'notes': ''};
 
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => MealScreen(
-          meal: meal,
-          prefillItems: prefill,
-        ),
+        builder: (_) => MealScreen(meal: meal, prefillItems: prefill),
       ),
     );
 
@@ -434,9 +670,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       final savedItems = await DatabaseHelper.instance.getMealItems(newMealId);
       final meals = await DatabaseHelper.instance.getMeals();
       final created = meals.cast<Map<String, dynamic>?>().firstWhere(
-            (m) => m?['id'] == newMealId,
-            orElse: () => null,
-          );
+        (m) => m?['id'] == newMealId,
+        orElse: () => null,
+      );
       if (created != null &&
           (created['name'] as String).isEmpty &&
           savedItems.isEmpty) {
@@ -492,6 +728,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     );
     final newFoodEntryId = await vm.insertFoodEntry(
       newFoodEntry,
+      telemetrySource: addFoodResult.source,
     );
 
     if (!mounted) return;
@@ -524,14 +761,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
   // In lib/screens/diary_screen.dart
 
   Future<
-      ({
-        int quantity,
-        DateTime timestamp,
-        String mealType,
-        bool isLiquid,
-        double? sugarPer100ml,
-        double? caffeinePer100ml,
-      })?> _showQuantityMenu(
+    ({
+      int quantity,
+      DateTime timestamp,
+      String mealType,
+      bool isLiquid,
+      double? sugarPer100ml,
+      double? caffeinePer100ml,
+    })?
+  >
+  _showQuantityMenu(
     FoodItem item,
     String mealType, {
     DateTime? initialDate, // <--- New parameter
@@ -541,7 +780,16 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
     return showGlassBottomMenu(
       context: context,
-      title: item.name,
+      title: () {
+        final themeService = Provider.of<ThemeService>(context, listen: false);
+        final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+          choice: themeService.baseFoodLanguage,
+          context: context,
+        );
+        return item.source == FoodItemSource.base
+            ? item.getLocalizedName(context, languageCode: baseFoodLang)
+            : item.getLocalizedName(context);
+      }(),
       contentBuilder: (ctx, close) {
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -558,17 +806,18 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final state = dialogStateKey.currentState;
                       if (state != null) {
@@ -594,7 +843,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         }
                       }
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],
@@ -624,22 +874,29 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading =
-        context.select<DiaryViewModel, bool>((vm) => vm.isLoading);
-    final stepsEnabled =
-        context.select<DiaryViewModel, bool>((vm) => vm.stepsTrackingEnabled);
-    final sleepEnabled =
-        context.select<DiaryViewModel, bool>((vm) => vm.sleepTrackingEnabled);
-    final pulseEnabled =
-        context.select<DiaryViewModel, bool>((vm) => vm.pulseTrackingEnabled);
-    final hasWorkoutSummary =
-        context.select<DiaryViewModel, bool>((vm) => vm.workoutSummary != null);
+    final isLoading = context.select<DiaryViewModel, bool>(
+      (vm) => vm.isLoading,
+    );
+    final stepsEnabled = context.select<DiaryViewModel, bool>(
+      (vm) => vm.stepsTrackingEnabled,
+    );
+    final sleepEnabled = context.select<DiaryViewModel, bool>(
+      (vm) => vm.sleepTrackingEnabled,
+    );
+    final pulseEnabled = context.select<DiaryViewModel, bool>(
+      (vm) => vm.pulseTrackingEnabled,
+    );
+    final hasWorkoutSummary = context.select<DiaryViewModel, bool>(
+      (vm) => vm.workoutSummary != null,
+    );
     final l10n = AppLocalizations.of(context)!;
-    final double appBarHeight = MediaQuery.paddingOf(context).top; // + kToolbarHeight;
+    final double appBarHeight = MediaQuery.paddingOf(
+      context,
+    ).top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
-    const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
+    const EdgeInsets basePadding = DesignConstants
+        .cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(
@@ -647,150 +904,207 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       top: basePadding.top + appBarHeight,
     );
 
-    return isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : RefreshIndicator(
-            onRefresh: () => syncHealthData(forceStepsRefresh: true),
-            child: CustomScrollView(
-              slivers: [
-                SliverPadding(
-                  padding: finalPadding.copyWith(bottom: 0),
-                  sliver: SliverToBoxAdapter(
-                    child: RepaintBoundary(
-                      child: Column(
+    final hasEverLoggedData = context.select<DiaryViewModel, bool?>(
+      (vm) => vm.hasEverLoggedData,
+    );
+    final hasDataForSelectedDate = context.select<DiaryViewModel, bool>(
+      (vm) => vm.hasDataForSelectedDate,
+    );
+
+    if (hasEverLoggedData == false) {
+      return Padding(
+        padding: EdgeInsets.only(top: appBarHeight + basePadding.top),
+        child: ColdStartEmptyState(
+          icon: LucideIcons.notebook_pen,
+          title: l10n.emptyStateDiaryColdStartTitle,
+          subtitle: l10n.emptyStateDiaryColdStartSubtitle,
+          callToAction: l10n.emptyStateDiaryColdStartCallToAction,
+        ),
+      );
+    }
+
+    final bool showSkeleton =
+        !hasDataForSelectedDate || isLoading || hasEverLoggedData == null;
+
+    Widget content = Skeletonizer(
+      enabled: showSkeleton,
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverPadding(
+            padding: finalPadding.copyWith(bottom: 0),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Selector<
+                    DiaryViewModel,
+                    ({
+                      DailyNutrition? dailyNutrition,
+                      DateTime selectedDate,
+                      String overviewExtraNutrient,
+                    })
+                  >(
+                    selector: (context, vm) => (
+                      dailyNutrition: showSkeleton
+                          ? DailyNutrition(
+                              targetCalories: 2000,
+                              targetProtein: 150,
+                              targetCarbs: 200,
+                              targetFat: 60,
+                            )
+                          : vm.dailyNutrition,
+                      selectedDate: vm.selectedDate,
+                      overviewExtraNutrient: vm.overviewExtraNutrient,
+                    ),
+                    builder: (context, data, child) {
+                      final dailyNutrition = data.dailyNutrition;
+                      return Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Selector<
-                              DiaryViewModel,
-                              ({
-                                DailyNutrition? dailyNutrition,
-                                DateTime selectedDate,
-                                bool showSugarInOverview
-                              })>(
-                            selector: (context, vm) => (
-                              dailyNutrition: vm.dailyNutrition,
-                              selectedDate: vm.selectedDate,
-                              showSugarInOverview: vm.showSugarInOverview,
+                          if (dailyNutrition != null &&
+                              data.selectedDate.isSameDate(DateTime.now()))
+                            RecommendationBanner(
+                              currentCalories: dailyNutrition.targetCalories,
                             ),
-                            builder: (context, data, child) {
-                              final dailyNutrition = data.dailyNutrition;
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  if (dailyNutrition != null &&
-                                      data.selectedDate.isSameDate(DateTime.now()))
-                                    RecommendationBanner(
-                                      currentCalories: dailyNutrition.targetCalories,
-                                    ),
-                                  AppSectionHeader(title: l10n.today_overview_text),
-                                  if (dailyNutrition != null)
-                                    RepaintBoundary(
-                                      key: _macroSummaryKey,
-                                      child: NutritionSummaryWidget(
-                                        nutritionData: dailyNutrition,
-                                        l10n: l10n,
-                                        isExpandedView: false,
-                                        showSugarInOverview: data.showSugarInOverview,
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
-                          ),
-                          const SizedBox(height: DesignConstants.spacingXS),
-                          Selector<
-                              DiaryViewModel,
-                              ({
-                                List<TrackedSupplement> trackedSupplements,
-                                DateTime selectedDate
-                              })>(
-                            selector: (context, vm) => (
-                              trackedSupplements: vm.trackedSupplements,
-                              selectedDate: vm.selectedDate,
+                          AppSectionHeader(title: l10n.today_overview_text),
+                          if (dailyNutrition != null)
+                            RepaintBoundary(
+                              key: _macroSummaryKey,
+                              child: NutritionSummaryWidget(
+                                nutritionData: dailyNutrition,
+                                l10n: l10n,
+                                isExpandedView: false,
+                                extraNutrient: data.overviewExtraNutrient,
+                              ),
                             ),
-                            builder: (context, data, child) {
-                              return SupplementSummaryWidget(
-                                trackedSupplements: data.trackedSupplements,
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => SupplementTrackScreen(
-                                        initialDate: data.selectedDate),
-                                  ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: DesignConstants.spacingXS),
+                  Selector<
+                    DiaryViewModel,
+                    ({
+                      List<TrackedSupplement> trackedSupplements,
+                      DateTime selectedDate,
+                    })
+                  >(
+                    selector: (context, vm) => (
+                      trackedSupplements:
+                          (showSkeleton && vm.trackedSupplements.isEmpty)
+                          ? [
+                              TrackedSupplement(
+                                supplement: Supplement(
+                                  name: 'Whey Protein',
+                                  defaultDose: 30,
+                                  dailyLimit: 100,
+                                  unit: 'g',
+                                ),
+                                totalDosedToday: 30,
+                              ),
+                            ]
+                          : vm.trackedSupplements,
+                      selectedDate: vm.selectedDate,
+                    ),
+                    builder: (context, data, child) {
+                      return SupplementSummaryWidget(
+                        trackedSupplements: data.trackedSupplements,
+                        onTapSupplement: (ts) =>
+                            _showSupplementDetailSheet(context, ts),
+                      );
+                    },
+                  ),
+                  if (stepsEnabled) const StepsSummaryCard(),
+                  if (sleepEnabled) const SleepSummaryCard(),
+                  if (pulseEnabled) const PulseSummaryCard(),
+                  // New section: insert workout summary here.
+                  if (hasWorkoutSummary || showSkeleton)
+                    Selector<DiaryViewModel, Map<String, dynamic>?>(
+                      selector: (context, vm) => showSkeleton
+                          ? {
+                              'duration': const Duration(minutes: 45),
+                              'volume': 10000.0,
+                              'sets': 15,
+                              'count': 1,
+                            }
+                          : vm.workoutSummary,
+                      builder: (context, workoutSummary, child) {
+                        if (workoutSummary == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return RepaintBoundary(
+                          child: TodaysWorkoutSummaryCard(
+                            duration: workoutSummary['duration'] as Duration,
+                            volume: workoutSummary['volume'] as double,
+                            sets: workoutSummary['sets'] as int,
+                            workoutCount: workoutSummary['count'] as int,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const WorkoutHistoryScreen(),
                                 ),
                               );
                             },
                           ),
-                          if (stepsEnabled) const StepsSummaryCard(),
-                          if (sleepEnabled) const SleepSummaryCard(),
-                          if (pulseEnabled) const PulseSummaryCard(),
-                          // New section: insert workout summary here.
-                          if (hasWorkoutSummary)
-                            Selector<DiaryViewModel, Map<String, dynamic>?>(
-                              selector: (context, vm) => vm.workoutSummary,
-                              builder: (context, workoutSummary, child) {
-                                if (workoutSummary == null) {
-                                  return const SizedBox.shrink();
-                                }
-                                return TodaysWorkoutSummaryCard(
-                                  duration: workoutSummary['duration'] as Duration,
-                                  volume: workoutSummary['volume'] as double,
-                                  sets: workoutSummary['sets'] as int,
-                                  workoutCount: workoutSummary['count'] as int,
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const WorkoutHistoryScreen(),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: finalPadding.left),
-                  sliver: SliverToBoxAdapter(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: DesignConstants.spacingXL),
-                        AppSectionHeader(title: l10n.protocol_today_capslock),
-                        _buildTodaysLog(l10n),
-                      ],
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: EdgeInsets.only(left: finalPadding.left,
-                    right: finalPadding.right,
-                    bottom: finalPadding.bottom,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: RepaintBoundary(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: DesignConstants.spacingXL),
-                          AppSectionHeader(title: l10n.measurementWeightCapslock),
-                          const WeightChartCard(),
-                          const BottomContentSpacer(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          );
+          ),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: finalPadding.left),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: DesignConstants.spacingXL),
+                  AppSectionHeader(title: l10n.protocol_today_capslock),
+                  _buildTodaysLog(l10n),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.only(
+              left: finalPadding.left,
+              right: finalPadding.right,
+              bottom: finalPadding.bottom,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: DesignConstants.spacingXL),
+                  AppSectionHeader(title: l10n.measurementWeightCapslock),
+                  const WeightChartCard(),
+                  const BottomContentSpacer(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (showSkeleton && !hasDataForSelectedDate) {
+      content = ActiveGapOverlay(
+        message: l10n.emptyStateActiveGapOverlay,
+        background: content,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => syncHealthData(forceStepsRefresh: true),
+      child: content,
+    );
   }
 
   // Section headers now use the centralized AppSectionHeader widget.
@@ -818,14 +1132,15 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: close,
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () async {
                       final vm = viewModel;
                       final state = key.currentState;
@@ -873,9 +1188,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         }
                       } catch (_) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.error)),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(l10n.error)));
                         return;
                       }
 
@@ -883,7 +1198,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       if (!mounted) return;
                       vm.loadDataForDate(diaryDate, queueIfInFlight: true);
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],
@@ -910,17 +1226,17 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
           onEditFluid: _editFluidEntry,
           onDeleteFluid: _deleteFluidEntry,
         ),
-        ...mealOrder.where((k) => k != "fluids").map((mealKey) {
-          return _MealCard(
-            key: ValueKey(mealKey),
-            title: _getLocalizedMealName(l10n, mealKey),
-            mealKey: mealKey,
-            onAddFood: () => _addFoodToMeal(mealKey),
-            onEditFood: _editFoodEntry,
-            onDeleteFood: _deleteFoodEntry,
-            onSaveAsTemplate: _saveAsMealTemplate,
-          );
-        }),
+        for (final mealKey in mealOrder)
+          if (mealKey != "fluids")
+            _MealCard(
+              key: ValueKey(mealKey),
+              title: _getLocalizedMealName(l10n, mealKey),
+              mealKey: mealKey,
+              onAddFood: () => _addFoodToMeal(mealKey),
+              onEditFood: _editFoodEntry,
+              onDeleteFood: _deleteFoodEntry,
+              onSaveAsTemplate: _saveAsMealTemplate,
+            ),
       ],
     );
   }
@@ -962,6 +1278,8 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.diaryDayView));
     _checkNotifier();
   }
 
@@ -1059,6 +1377,7 @@ class _DiaryDateNavigator extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _compactIconButton(
+          tooltip: MaterialLocalizations.of(context).previousPageTooltip,
           icon: LucideIcons.chevron_left,
           onPressed: onPreviousDay,
         ),
@@ -1067,7 +1386,10 @@ class _DiaryDateNavigator extends StatelessWidget {
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
             onTap: onPickDate,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXS, vertical: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingXS,
+                vertical: DesignConstants.spacingS,
+              ),
               child: Text(
                 title,
                 maxLines: 1,
@@ -1078,6 +1400,7 @@ class _DiaryDateNavigator extends StatelessWidget {
           ),
         ),
         _compactIconButton(
+          tooltip: MaterialLocalizations.of(context).nextPageTooltip,
           icon: LucideIcons.chevron_right,
           onPressed: onNextDay,
         ),
@@ -1088,12 +1411,14 @@ class _DiaryDateNavigator extends StatelessWidget {
   Widget _compactIconButton({
     required IconData icon,
     required VoidCallback onPressed,
+    String? tooltip,
   }) {
     return IconButton(
+      tooltip: tooltip,
       icon: Icon(icon),
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints.tightFor(width: 36, height: 48),
+      constraints: const BoxConstraints.tightFor(width: 48, height: 48),
       onPressed: onPressed,
     );
   }
@@ -1106,7 +1431,7 @@ class _MealCard extends StatefulWidget {
   final Future<void> Function(TrackedFoodItem) onEditFood;
   final Future<void> Function(int) onDeleteFood;
   final Future<void> Function(List<TrackedFoodItem>, AppLocalizations)
-      onSaveAsTemplate;
+  onSaveAsTemplate;
 
   const _MealCard({
     super.key,
@@ -1146,22 +1471,47 @@ class _MealCardState extends State<_MealCard> {
     final l10n = AppLocalizations.of(context)!;
 
     return Selector<DiaryViewModel, List<TrackedFoodItem>>(
-      selector: (context, vm) => vm.entriesByMeal[widget.mealKey] ?? const [],
+      selector: (context, vm) {
+        if (!vm.hasDataForSelectedDate) {
+          return [
+            TrackedFoodItem(
+              item: FoodItem(
+                name: 'Placeholder Food',
+                calories: 250,
+                protein: 10,
+                carbs: 30,
+                fat: 5,
+                barcode: 'dummy',
+                source: FoodItemSource.user,
+              ),
+              entry: FoodEntry(
+                barcode: 'dummy',
+                quantityInGrams: 100,
+                timestamp: DateTime.now(),
+                mealType: widget.mealKey,
+              ),
+            ),
+          ];
+        }
+        return vm.entriesByMeal[widget.mealKey] ?? const [];
+      },
       shouldRebuild: (prev, next) => !_listEquals(prev, next),
       builder: (context, items, child) {
         final mealMacros = _MealMacros();
+        final solidItems = <TrackedFoodItem>[];
+
         for (var item in items) {
           final factor = item.entry.quantityInGrams / 100.0;
           mealMacros.calories += (item.item.calories * factor).toDouble();
           mealMacros.protein += (item.item.protein * factor).toDouble();
           mealMacros.carbs += (item.item.carbs * factor).toDouble();
           mealMacros.fat += (item.item.fat * factor).toDouble();
-        }
 
-        final solidItems = items.where((item) {
           final fi = item.item;
-          return fi.isLiquid != true && !fi.isFluid;
-        }).toList();
+          if (fi.isLiquid != true && !fi.isFluid) {
+            solidItems.add(item);
+          }
+        }
 
         return RepaintBoundary(
           child: AppCardContainer(
@@ -1175,11 +1525,16 @@ class _MealCardState extends State<_MealCard> {
                   child: Row(
                     children: [
                       Expanded(
-                          child: Text(widget.title,
-                              style: theme.textTheme.titleMedium)),
-                      Icon(_isOpen
-                          ? LucideIcons.chevron_up
-                          : LucideIcons.chevron_down),
+                        child: Text(
+                          widget.title,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      Icon(
+                        _isOpen
+                            ? LucideIcons.chevron_up
+                            : LucideIcons.chevron_down,
+                      ),
                       const SizedBox(width: DesignConstants.spacingXS),
                       IconButton(
                         icon: const Icon(LucideIcons.circle_plus),
@@ -1197,8 +1552,9 @@ class _MealCardState extends State<_MealCard> {
                     protein: mealMacros.protein,
                     carbs: mealMacros.carbs,
                     fat: mealMacros.fat,
-                    useBadges:
-                        context.read<ThemeService>().useColorfulMacroBadges,
+                    useBadges: context
+                        .read<ThemeService>()
+                        .useColorfulMacroBadges,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -1213,19 +1569,26 @@ class _MealCardState extends State<_MealCard> {
                   firstChild: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (items.isNotEmpty) const Divider(height: 16),
-                      ...items.map(
-                        (item) => FoodEntryTile(
-                          trackedItem: item,
-                          onEdit: widget.onEditFood,
-                          onDelete: widget.onDeleteFood,
-                        ),
-                      ),
+                      if (items.isNotEmpty)
+                        const SizedBox(height: DesignConstants.spacingS),
+                      ...items.asMap().entries.expand((entry) {
+                        final index = entry.key;
+                        final item = entry.value;
+                        return [
+                          if (index > 0) const Divider(height: 1),
+                          FoodEntryTile(
+                            trackedItem: item,
+                            onEdit: widget.onEditFood,
+                            onDelete: widget.onDeleteFood,
+                          ),
+                        ];
+                      }),
                       if (solidItems.isNotEmpty) ...[
                         const SizedBox(height: DesignConstants.spacingXS),
                         TextButton(
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 0,
                               vertical: DesignConstants.spacingXS,
                             ),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1293,7 +1656,19 @@ class _FluidsCardState extends State<_FluidsCard> {
     final l10n = AppLocalizations.of(context)!;
 
     return Selector<DiaryViewModel, List<FluidEntry>>(
-      selector: (context, vm) => vm.fluidEntries,
+      selector: (context, vm) {
+        if (!vm.hasDataForSelectedDate) {
+          return [
+            FluidEntry(
+              timestamp: DateTime.now(),
+              quantityInMl: 250,
+              name: 'Water',
+              kcal: 0,
+            ),
+          ];
+        }
+        return vm.fluidEntries;
+      },
       shouldRebuild: (prev, next) => !_fluidListEquals(prev, next),
       builder: (context, fluids, child) {
         return RepaintBoundary(
@@ -1308,11 +1683,16 @@ class _FluidsCardState extends State<_FluidsCard> {
                   child: Row(
                     children: [
                       Expanded(
-                          child: Text(l10n.waterHeader,
-                              style: theme.textTheme.titleMedium)),
-                      Icon(_isOpen
-                          ? LucideIcons.chevron_up
-                          : LucideIcons.chevron_down),
+                        child: Text(
+                          l10n.waterHeader,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      Icon(
+                        _isOpen
+                            ? LucideIcons.chevron_up
+                            : LucideIcons.chevron_down,
+                      ),
                       const SizedBox(width: DesignConstants.spacingXS),
                       IconButton(
                         icon: const Icon(LucideIcons.circle_plus),
@@ -1339,7 +1719,8 @@ class _FluidsCardState extends State<_FluidsCard> {
                               (entry.sugarPer100ml! / 100) * entry.quantityInMl;
                         }
                         if (entry.caffeinePer100ml != null) {
-                          totalCaffeine += (entry.caffeinePer100ml! / 100) *
+                          totalCaffeine +=
+                              (entry.caffeinePer100ml! / 100) *
                               entry.quantityInMl;
                         }
                       }
@@ -1348,8 +1729,9 @@ class _FluidsCardState extends State<_FluidsCard> {
                         sugar: totalSugar,
                         caffeine: totalCaffeine,
                         waterMl: totalMl,
-                        useBadges:
-                            ctx.read<ThemeService>().useColorfulMacroBadges,
+                        useBadges: ctx
+                            .read<ThemeService>()
+                            .useColorfulMacroBadges,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
@@ -1364,15 +1746,22 @@ class _FluidsCardState extends State<_FluidsCard> {
                       : CrossFadeState.showSecond,
                   duration: DesignConstants.expandCollapseDuration,
                   firstChild: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (fluids.isNotEmpty) const Divider(height: 16),
-                      ...fluids.map(
-                        (entry) => FluidEntryTile(
-                          entry: entry,
-                          onEdit: widget.onEditFluid,
-                          onDelete: widget.onDeleteFluid,
-                        ),
-                      ),
+                      if (fluids.isNotEmpty)
+                        const SizedBox(height: DesignConstants.spacingS),
+                      ...fluids.asMap().entries.expand((entry) {
+                        final index = entry.key;
+                        final fluid = entry.value;
+                        return [
+                          if (index > 0) const Divider(height: 1),
+                          FluidEntryTile(
+                            entry: fluid,
+                            onEdit: widget.onEditFluid,
+                            onDelete: widget.onDeleteFluid,
+                          ),
+                        ];
+                      }),
                     ],
                   ),
                   secondChild: const SizedBox.shrink(),

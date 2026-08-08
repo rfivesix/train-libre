@@ -1,3 +1,4 @@
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import '../../util/design_constants.dart';
 
@@ -17,12 +18,24 @@ class SummaryCard extends StatelessWidget {
   /// Optional tap handler for the card.
   final VoidCallback? onTap;
 
+  /// Whether to disable the drop shadow.
+  final bool disableShadow;
+
+  /// Optional background color override.
+  final Color? backgroundColor;
+
+  /// Whether to use the secondary surface color (tertiarySystemGroupedBackground in iOS).
+  final bool useSecondarySurface;
+
   const SummaryCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(DesignConstants.spacingM),
     this.margin = const EdgeInsets.symmetric(vertical: 6.0),
     this.onTap,
+    this.disableShadow = false,
+    this.backgroundColor,
+    this.useSecondarySurface = false,
   });
 
   @override
@@ -30,33 +43,50 @@ class SummaryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
+
+    final defaultBg = isDark
+        ? (useSecondarySurface
+            ? DesignConstants.summaryCardSecondaryDarkMode
+            : DesignConstants.summaryCardDarkMode)
+        : (useSecondarySurface
+            ? DesignConstants.summaryCardSecondaryLightMode
+            : Colors.white);
+    final cardBg = backgroundColor ?? defaultBg;
+
+    // True Apple-style squircle using the figma_squircle package.
+    // smoothness: 0.6 matches iOS system cards exactly.
+    // Unlike Flutter's ContinuousRectangleBorder, this superellipse
+    // stays tight to the corner instead of creeping along the edge.
+    final squircleRadius = SmoothBorderRadius(
+      cornerRadius: DesignConstants.borderRadiusL,
+      cornerSmoothing: 0.6,
+    );
+    final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
+    final clipper = ShapeBorderClipper(shape: squircle);
 
     final card = Padding(
       padding: margin,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: radius,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 9,
-              offset: const Offset(0, 3),
-              color: cs.shadow.withValues(alpha: isDark ? 0.2 : 0.08),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
+          boxShadow: (disableShadow || isDark)
+              ? null
+              : [
+                  BoxShadow(
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                    color: cs.shadow.withValues(alpha: 0.05),
+                  ),
+                ],
         ),
-        child: ClipRRect(
-          borderRadius: radius,
+        child: ClipPath(
+          clipper: clipper,
           child: Container(
             padding: padding,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF2A2A2A)
-                  : cs.surface.withValues(alpha: 0.95),
-              borderRadius: radius,
-              border: Border.all(
-                color: cs.onSurface.withValues(alpha: 0.08),
-                width: 1,
+            decoration: ShapeDecoration(
+              color: cardBg,
+              shape: squircle.copyWith(
+                side: BorderSide.none,
               ),
             ),
             child: Material(

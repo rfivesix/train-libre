@@ -3,6 +3,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
 import '../../core/infrastructure/basis_data_manager.dart';
+import 'app_button.dart';
 
 class DatabasePlaceholderWidget extends StatelessWidget {
   final String title;
@@ -30,9 +31,13 @@ class DatabasePlaceholderWidget extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.02),
             border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05),
               width: 1.2,
             ),
           ),
@@ -65,12 +70,15 @@ class DatabasePlaceholderWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: DesignConstants.spacingXL),
-              FilledButton.icon(
-                onPressed: onDownloadPressed ?? () async {
-                  await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
-                },
-                icon: const Icon(LucideIcons.download),
-                label: Text(l10n.offDownloadCTA),
+              AppButton.primary(
+                onPressed: onDownloadPressed ??
+                    () async {
+                      await BasisDataManager.instance
+                          .promptOffDatabaseDownloadIfFirstTime(context);
+                    },
+                label: l10n.offDownloadCTA,
+                tooltip: l10n.offDownloadCTA,
+                icon: LucideIcons.download,
               ),
             ],
           ),

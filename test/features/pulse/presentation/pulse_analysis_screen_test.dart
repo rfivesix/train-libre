@@ -101,7 +101,7 @@ void main() {
     expect(repository.windows.last.startUtc, DateTime(2026, 4, 20).toUtc());
     expect(repository.windows.last.endUtc, DateTime(2026, 4, 27).toUtc());
 
-    await tester.tap(find.byKey(const Key('sleep-period-prev')));
+    await tester.tap(find.byKey(const Key('time-range-prev')));
     await tester.pumpAndSettle();
 
     expect(repository.windows.last.startUtc, DateTime(2026, 4, 13).toUtc());

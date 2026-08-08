@@ -1,3 +1,4 @@
+import 'package:train_libre/services/unit_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/steps/data/steps_aggregation_repository.dart';
@@ -40,7 +41,8 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Future<void> updatePauseTime(int routineExerciseId, int? seconds) async {}
   @override
-  Future<void> updateRoutineExerciseNotes(int routineExerciseId, String? notes) async {}
+  Future<void> updateRoutineExerciseNotes(
+      int routineExerciseId, String? notes) async {}
   @override
   Future<void> saveWorkoutExerciseNote({
     required int workoutLogId,
@@ -48,7 +50,8 @@ class FakeWorkoutRepository implements IWorkoutRepository {
     required String? notes,
   }) async {}
   @override
-  Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async => {};
+  Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async =>
+      {};
   @override
   Future<List<SetLog>> getLastSetsForExercise(String exerciseName) async => [];
   @override
@@ -58,11 +61,14 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Stream<List<WorkoutLog>> watchFullWorkoutLogs() => const Stream.empty();
   @override
-  Stream<List<SetLog>> watchSetLogsForWorkout(int workoutLogId) => const Stream.empty();
+  Stream<List<SetLog>> watchSetLogsForWorkout(int workoutLogId) =>
+      const Stream.empty();
   @override
   Stream<List<Routine>> watchAllRoutines() => const Stream.empty();
   @override
-  Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(DateTime start, DateTime end) => Stream.value([]);
+  Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
+          DateTime start, DateTime end) =>
+      Stream.value([]);
   @override
   Future<Routine?> getRoutineByUuid(String uuid) async => null;
   @override
@@ -75,7 +81,8 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<Routine> createRoutineFromWorkout({
     required int workoutLogId,
     required String name,
-  }) async => Routine(id: 1, name: name);
+  }) async =>
+      Routine(id: 1, name: name);
 }
 
 Future<void> _pumpUntilScopeLoaded(WidgetTester tester) async {
@@ -100,7 +107,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ChangeNotifierProvider<LiveWorkoutViewModel>.value(
-        value: LiveWorkoutViewModel(repository: FakeWorkoutRepository()),
+        value: LiveWorkoutViewModel(repository: FakeWorkoutRepository(), unitService: UnitService()),
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -118,13 +125,13 @@ void main() {
     expect(find.text('Hourly Timeline'), findsOneWidget);
     expect(find.byType(StatisticsStepsCard), findsNothing);
 
-    await tester.tap(find.text('Week'));
+    await tester.tap(find.text('7D'));
     await _pumpScopeTransition(tester);
 
     expect(find.text('Hourly Timeline'), findsNothing);
     expect(find.byType(StatisticsStepsCard), findsNothing);
 
-    await tester.tap(find.text('Month'));
+    await tester.tap(find.text('1M'));
     await _pumpScopeTransition(tester);
 
     expect(find.byType(StatisticsStepsCard), findsOneWidget);

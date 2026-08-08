@@ -235,7 +235,10 @@ class ExportManager {
         SELECT min_bpm, max_bpm, sum_bpm, sample_count
         FROM pulse_hourly_aggregates
         WHERE bucket_end_ms > ? AND bucket_start_ms < ?
-      ''', variables: [drift.Variable<int>(startMs), drift.Variable<int>(endMs)]).get();
+      ''', variables: [
+        drift.Variable<int>(startMs),
+        drift.Variable<int>(endMs)
+      ]).get();
       if (rows.isNotEmpty) {
         double min = double.infinity;
         double max = double.negativeInfinity;
@@ -268,21 +271,33 @@ class ExportManager {
     // -------------------------------------------------------------------------
     final entries = await foodHelper.getAllFoodEntries();
     final fluidEntries = await foodHelper.getAllFluidEntries();
-    final archivedEntries = entries.where((e) => e.archiveLocalId != null).toList();
-    final legacyEntries = entries.where((e) => e.archiveLocalId == null).toList();
+
+    // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
+    final Set<int> archiveIdsSet = {};
+    final Set<String> barcodesSet = {};
+
+    for (final entry in entries) {
+      if (entry.archiveLocalId != null) {
+        archiveIdsSet.add(entry.archiveLocalId!);
+      } else {
+        barcodesSet.add(entry.barcode);
+      }
+    }
 
     final Map<int, FoodItem> archiveProductsMap = {};
     final Map<String, FoodItem> legacyProductsMap = {};
 
-    if (archivedEntries.isNotEmpty) {
-      final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
-      final archivedProducts = await foodHelper.productLocalDataSource.getProductsByArchiveIds(archiveIds);
+    if (archiveIdsSet.isNotEmpty) {
+      final archiveIds = archiveIdsSet.toList();
+      final archivedProducts = await foodHelper.productLocalDataSource
+          .getProductsByArchiveIds(archiveIds);
       archiveProductsMap.addAll(archivedProducts);
     }
 
-    if (legacyEntries.isNotEmpty) {
-      final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
-      final legacyProducts = await foodHelper.productLocalDataSource.getProductsByBarcodes(barcodes);
+    if (barcodesSet.isNotEmpty) {
+      final barcodes = barcodesSet.toList();
+      final legacyProducts = await foodHelper.productLocalDataSource
+          .getProductsByBarcodes(barcodes);
       for (final p in legacyProducts) {
         legacyProductsMap[p.barcode] = p;
       }
@@ -306,7 +321,8 @@ class ExportManager {
           fat: p.fat * ratio,
           sugar: (p.sugar ?? 0.0) * ratio,
           fiber: (p.fiber ?? 0.0) * ratio,
-          caffeine: (p.caffeineMgPer100g ?? p.caffeineMgPer100ml ?? 0.0) * ratio,
+          caffeine:
+              (p.caffeineMgPer100g ?? p.caffeineMgPer100ml ?? 0.0) * ratio,
           water: 0,
         ));
       }
@@ -397,13 +413,16 @@ class ExportManager {
           canonicalStage = 'awake';
         }
 
-        sessionStages[sessionId]![canonicalStage] = (sessionStages[sessionId]![canonicalStage] ?? 0.0) + minutes;
+        sessionStages[sessionId]![canonicalStage] =
+            (sessionStages[sessionId]![canonicalStage] ?? 0.0) + minutes;
       }
 
       for (final r in sleepRowsFromDb) {
         final sessionId = r.read<String>('session_id');
-        final startTime = DateTime.fromMillisecondsSinceEpoch(r.read<int>('started_at'));
-        final endTime = DateTime.fromMillisecondsSinceEpoch(r.read<int>('ended_at'));
+        final startTime =
+            DateTime.fromMillisecondsSinceEpoch(r.read<int>('started_at'));
+        final endTime =
+            DateTime.fromMillisecondsSinceEpoch(r.read<int>('ended_at'));
         final stages = sessionStages[sessionId] ?? {};
 
         sleepRows.add(SleepRowDto(
@@ -429,26 +448,32 @@ class ExportManager {
     StepsSourcePolicy stepsSourcePolicy = StepsSourcePolicy.autoDominant;
 
     try {
-      final stepSegmentsRows = await dbInst.select(dbInst.healthStepSegments).get();
-      stepSegments = stepSegmentsRows.map((s) => HealthStepSegmentDto(
-        provider: s.provider,
-        sourceId: s.sourceId,
-        startAt: s.startAt,
-        endAt: s.endAt,
-        stepCount: s.stepCount,
-      )).toList();
+      final stepSegmentsRows =
+          await dbInst.select(dbInst.healthStepSegments).get();
+      stepSegments = stepSegmentsRows
+          .map((s) => HealthStepSegmentDto(
+                provider: s.provider,
+                sourceId: s.sourceId,
+                startAt: s.startAt,
+                endAt: s.endAt,
+                stepCount: s.stepCount,
+              ))
+          .toList();
 
       final pulseRows = await dbInst.customSelect('''
         SELECT bucket_start_ms, min_bpm, max_bpm, sum_bpm, sample_count
         FROM pulse_hourly_aggregates
       ''').get();
-      pulseAggregates = pulseRows.map((r) => PulseHourlyAggregateDto(
-        bucketStart: DateTime.fromMillisecondsSinceEpoch(r.read<int>('bucket_start_ms')),
-        minBpm: r.read<double>('min_bpm'),
-        maxBpm: r.read<double>('max_bpm'),
-        sumBpm: r.read<double>('sum_bpm'),
-        sampleCount: r.read<num>('sample_count').toInt(),
-      )).toList();
+      pulseAggregates = pulseRows
+          .map((r) => PulseHourlyAggregateDto(
+                bucketStart: DateTime.fromMillisecondsSinceEpoch(
+                    r.read<int>('bucket_start_ms')),
+                minBpm: r.read<double>('min_bpm'),
+                maxBpm: r.read<double>('max_bpm'),
+                sumBpm: r.read<double>('sum_bpm'),
+                sampleCount: r.read<num>('sample_count').toInt(),
+              ))
+          .toList();
 
       final workoutListForHr = await dbInst.customSelect('''
         SELECT id, start_time, end_time
@@ -459,9 +484,12 @@ class ExportManager {
       final Map<String, List<Map<String, double>>> workoutHrByDate = {};
       for (final w in workoutListForHr) {
         final wId = w.read<String>('id');
-        final startTime = DateTime.fromMillisecondsSinceEpoch(w.read<int>('start_time'));
-        final endTime = DateTime.fromMillisecondsSinceEpoch(w.read<int>('end_time'));
-        final day = DateFormat('yyyy-MM-dd').format(startTime.toLocal()); // local timezone date
+        final startTime =
+            DateTime.fromMillisecondsSinceEpoch(w.read<int>('start_time'));
+        final endTime =
+            DateTime.fromMillisecondsSinceEpoch(w.read<int>('end_time'));
+        final day = DateFormat('yyyy-MM-dd')
+            .format(startTime.toLocal()); // local timezone date
 
         final hr = await _getWorkoutHeartRate(wId, startTime, endTime);
         if (hr != null) {
@@ -560,7 +588,9 @@ class ExportManager {
 
     void writeCell(Sheet sheet, int col, int row, CellValue? value) {
       if (value != null) {
-        sheet.cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: row)).value = value;
+        sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: row))
+            .value = value;
       }
     }
 
@@ -569,9 +599,18 @@ class ExportManager {
     // -------------------------------------------------------------------------
     final nutritionSheet = excel['Nutrition'];
     final nutritionHeaders = [
-      'Zeitpunkt', 'Name/Food', 'Typ (Essen/Trinken)', 'Menge (g/ml)',
-      'Kalorien (kcal)', 'Protein (g)', 'Kohlenhydrate (g)', 'Fett (g)',
-      'Zucker (g)', 'Ballaststoffe (g)', 'Koffein (mg)', 'Wasser/Flüssigkeit (ml)'
+      'Zeitpunkt',
+      'Name/Food',
+      'Typ (Essen/Trinken)',
+      'Menge (g/ml)',
+      'Kalorien (kcal)',
+      'Protein (g)',
+      'Kohlenhydrate (g)',
+      'Fett (g)',
+      'Zucker (g)',
+      'Ballaststoffe (g)',
+      'Koffein (mg)',
+      'Wasser/Flüssigkeit (ml)'
     ];
     for (int col = 0; col < nutritionHeaders.length; col++) {
       writeCell(nutritionSheet, col, 0, TextCellValue(nutritionHeaders[col]));
@@ -580,7 +619,8 @@ class ExportManager {
     for (int r = 0; r < data.nutritionRows.length; r++) {
       final rowData = data.nutritionRows[r];
       final rowIndex = r + 1;
-      writeCell(nutritionSheet, 0, rowIndex, TextCellValue(rowData.timestampStr));
+      writeCell(
+          nutritionSheet, 0, rowIndex, TextCellValue(rowData.timestampStr));
       writeCell(nutritionSheet, 1, rowIndex, TextCellValue(rowData.name));
       writeCell(nutritionSheet, 2, rowIndex, TextCellValue(rowData.type));
       writeCell(nutritionSheet, 3, rowIndex, IntCellValue(rowData.quantity));
@@ -590,7 +630,8 @@ class ExportManager {
       writeCell(nutritionSheet, 7, rowIndex, DoubleCellValue(rowData.fat));
       writeCell(nutritionSheet, 8, rowIndex, DoubleCellValue(rowData.sugar));
       writeCell(nutritionSheet, 9, rowIndex, DoubleCellValue(rowData.fiber));
-      writeCell(nutritionSheet, 10, rowIndex, DoubleCellValue(rowData.caffeine));
+      writeCell(
+          nutritionSheet, 10, rowIndex, DoubleCellValue(rowData.caffeine));
       writeCell(nutritionSheet, 11, rowIndex, IntCellValue(rowData.water));
     }
 
@@ -599,7 +640,15 @@ class ExportManager {
     // -------------------------------------------------------------------------
     final workoutSheet = excel['Workouts & Exercises'];
     final workoutHeaders = [
-      'Workout Name', 'Exercise', 'Set Index', 'Weight', 'Reps', 'RIR', 'RPE', 'Set Notes', 'Workout Comments'
+      'Workout Name',
+      'Exercise',
+      'Set Index',
+      'Weight',
+      'Reps',
+      'RIR',
+      'RPE',
+      'Set Notes',
+      'Workout Comments'
     ];
     for (int col = 0; col < workoutHeaders.length; col++) {
       writeCell(workoutSheet, col, 0, TextCellValue(workoutHeaders[col]));
@@ -614,27 +663,33 @@ class ExportManager {
 
       // Explicit type safety checks & safe conversion
       if (rowData.weight != null) {
-        writeCell(workoutSheet, 3, rowIndex, DoubleCellValue(rowData.weight!.toDouble()));
+        writeCell(workoutSheet, 3, rowIndex,
+            DoubleCellValue(rowData.weight!.toDouble()));
       }
       if (rowData.reps != null) {
-        writeCell(workoutSheet, 4, rowIndex, IntCellValue(rowData.reps!.toInt()));
+        writeCell(
+            workoutSheet, 4, rowIndex, IntCellValue(rowData.reps!.toInt()));
       }
 
       // CRITICAL COMPLIANCE: RIR/RPE must write empty text cell when null (no ?? 0)
       if (rowData.rir != null) {
-        writeCell(workoutSheet, 5, rowIndex, IntCellValue(rowData.rir!.toInt()));
+        writeCell(
+            workoutSheet, 5, rowIndex, IntCellValue(rowData.rir!.toInt()));
       } else {
         writeCell(workoutSheet, 5, rowIndex, TextCellValue(''));
       }
 
       if (rowData.rpe != null) {
-        writeCell(workoutSheet, 6, rowIndex, IntCellValue(rowData.rpe!.toInt()));
+        writeCell(
+            workoutSheet, 6, rowIndex, IntCellValue(rowData.rpe!.toInt()));
       } else {
         writeCell(workoutSheet, 6, rowIndex, TextCellValue(''));
       }
 
-      writeCell(workoutSheet, 7, rowIndex, TextCellValue(rowData.setNotes ?? ''));
-      writeCell(workoutSheet, 8, rowIndex, TextCellValue(rowData.workoutComments ?? ''));
+      writeCell(
+          workoutSheet, 7, rowIndex, TextCellValue(rowData.setNotes ?? ''));
+      writeCell(workoutSheet, 8, rowIndex,
+          TextCellValue(rowData.workoutComments ?? ''));
     }
 
     // -------------------------------------------------------------------------
@@ -642,8 +697,15 @@ class ExportManager {
     // -------------------------------------------------------------------------
     final sleepSheet = excel['Sleep'];
     final sleepHeaders = [
-      'Datum', 'Startzeit', 'Endzeit', 'Gesamtdauer (Min)', 'Tiefschlaf (Min)',
-      'Leichtschlaf (Min)', 'REM-Schlaf (Min)', 'Wach/Unterbrechungen (Min)', 'Schlaf-Score'
+      'Datum',
+      'Startzeit',
+      'Endzeit',
+      'Gesamtdauer (Min)',
+      'Tiefschlaf (Min)',
+      'Leichtschlaf (Min)',
+      'REM-Schlaf (Min)',
+      'Wach/Unterbrechungen (Min)',
+      'Schlaf-Score'
     ];
     for (int col = 0; col < sleepHeaders.length; col++) {
       writeCell(sleepSheet, col, 0, TextCellValue(sleepHeaders[col]));
@@ -655,12 +717,30 @@ class ExportManager {
       writeCell(sleepSheet, 0, rowIndex, TextCellValue(rowData.nightDate));
       writeCell(sleepSheet, 1, rowIndex, TextCellValue(rowData.startTimeIso));
       writeCell(sleepSheet, 2, rowIndex, TextCellValue(rowData.endTimeIso));
-      writeCell(sleepSheet, 3, rowIndex, IntCellValue(rowData.totalSleepMinutes.toInt()));
-      writeCell(sleepSheet, 4, rowIndex, DoubleCellValue(double.parse(rowData.deepMinutes.toStringAsFixed(1))));
-      writeCell(sleepSheet, 5, rowIndex, DoubleCellValue(double.parse(rowData.lightMinutes.toStringAsFixed(1))));
-      writeCell(sleepSheet, 6, rowIndex, DoubleCellValue(double.parse(rowData.remMinutes.toStringAsFixed(1))));
-      writeCell(sleepSheet, 7, rowIndex, DoubleCellValue(double.parse(rowData.awakeMinutes.toStringAsFixed(1))));
-      writeCell(sleepSheet, 8, rowIndex, DoubleCellValue(rowData.score.toDouble()));
+      writeCell(sleepSheet, 3, rowIndex,
+          IntCellValue(rowData.totalSleepMinutes.toInt()));
+      writeCell(
+          sleepSheet,
+          4,
+          rowIndex,
+          DoubleCellValue(
+              double.parse(rowData.deepMinutes.toStringAsFixed(1))));
+      writeCell(
+          sleepSheet,
+          5,
+          rowIndex,
+          DoubleCellValue(
+              double.parse(rowData.lightMinutes.toStringAsFixed(1))));
+      writeCell(sleepSheet, 6, rowIndex,
+          DoubleCellValue(double.parse(rowData.remMinutes.toStringAsFixed(1))));
+      writeCell(
+          sleepSheet,
+          7,
+          rowIndex,
+          DoubleCellValue(
+              double.parse(rowData.awakeMinutes.toStringAsFixed(1))));
+      writeCell(
+          sleepSheet, 8, rowIndex, DoubleCellValue(rowData.score.toDouble()));
     }
 
     // -------------------------------------------------------------------------
@@ -668,10 +748,17 @@ class ExportManager {
     // -------------------------------------------------------------------------
     final activitySheet = excel['Biometrics & Wearables'];
     final activityHeaders = [
-      'Datum', 'Schritte (Gesamt)', 'Schritte-Quelle',
-      'Ruhepuls Min (BPM)', 'Ruhepuls Max (BPM)', 'Ruhepuls Avg (BPM)',
-      'Workout Puls Min (BPM)', 'Workout Puls Max (BPM)', 'Workout Puls Avg (BPM)',
-      'Weight (kg)', 'Body Fat (%)'
+      'Datum',
+      'Schritte (Gesamt)',
+      'Schritte-Quelle',
+      'Ruhepuls Min (BPM)',
+      'Ruhepuls Max (BPM)',
+      'Ruhepuls Avg (BPM)',
+      'Workout Puls Min (BPM)',
+      'Workout Puls Max (BPM)',
+      'Workout Puls Avg (BPM)',
+      'Weight (kg)',
+      'Body Fat (%)'
     ];
     for (int col = 0; col < activityHeaders.length; col++) {
       writeCell(activitySheet, col, 0, TextCellValue(activityHeaders[col]));
@@ -703,11 +790,13 @@ class ExportManager {
     for (final row in data.measurementRows) {
       final day = _formatDateLocal(row.timestamp);
       allDates.add(day);
-      
+
       final typeLower = row.type.toLowerCase().trim();
       if (typeLower == 'weight') {
         weightValuesByDay.putIfAbsent(day, () => []).add(row.value);
-      } else if (typeLower == 'body_fat' || typeLower == 'bodyfat' || typeLower == 'body fat') {
+      } else if (typeLower == 'body_fat' ||
+          typeLower == 'bodyfat' ||
+          typeLower == 'body fat') {
         bodyFatValuesByDay.putIfAbsent(day, () => []).add(row.value);
       }
     }
@@ -725,7 +814,8 @@ class ExportManager {
         if (data.stepsSourcePolicy == StepsSourcePolicy.maxPerHour) {
           final stepsTotal = _calculateMaxPerHourSteps(dayStepsSegments);
           writeCell(activitySheet, 1, rowIndex, IntCellValue(stepsTotal));
-          writeCell(activitySheet, 2, rowIndex, TextCellValue('Merge (max per hour)'));
+          writeCell(activitySheet, 2, rowIndex,
+              TextCellValue('Merge (max per hour)'));
         } else {
           final domResult = _calculateAutoDominantSteps(dayStepsSegments);
           writeCell(activitySheet, 1, rowIndex, IntCellValue(domResult.value));
@@ -753,7 +843,8 @@ class ExportManager {
           final avgHr = sumHr / totalSamples;
           writeCell(activitySheet, 3, rowIndex, DoubleCellValue(minHr));
           writeCell(activitySheet, 4, rowIndex, DoubleCellValue(maxHr));
-          writeCell(activitySheet, 5, rowIndex, DoubleCellValue(double.parse(avgHr.toStringAsFixed(1))));
+          writeCell(activitySheet, 5, rowIndex,
+              DoubleCellValue(double.parse(avgHr.toStringAsFixed(1))));
         } else {
           writeCell(activitySheet, 3, rowIndex, TextCellValue(''));
           writeCell(activitySheet, 4, rowIndex, TextCellValue(''));
@@ -770,7 +861,8 @@ class ExportManager {
       if (workoutHr != null) {
         writeCell(activitySheet, 6, rowIndex, DoubleCellValue(workoutHr.min));
         writeCell(activitySheet, 7, rowIndex, DoubleCellValue(workoutHr.max));
-        writeCell(activitySheet, 8, rowIndex, DoubleCellValue(double.parse(workoutHr.avg.toStringAsFixed(1))));
+        writeCell(activitySheet, 8, rowIndex,
+            DoubleCellValue(double.parse(workoutHr.avg.toStringAsFixed(1))));
       } else {
         writeCell(activitySheet, 6, rowIndex, TextCellValue(''));
         writeCell(activitySheet, 7, rowIndex, TextCellValue(''));
@@ -780,16 +872,20 @@ class ExportManager {
       // Upgraded columns: Weight (kg) & Body Fat (%)
       final dayWeights = weightValuesByDay[d] ?? [];
       if (dayWeights.isNotEmpty) {
-        final avgWeight = dayWeights.reduce((a, b) => a + b) / dayWeights.length;
-        writeCell(activitySheet, 9, rowIndex, DoubleCellValue(double.parse(avgWeight.toStringAsFixed(1))));
+        final avgWeight =
+            dayWeights.reduce((a, b) => a + b) / dayWeights.length;
+        writeCell(activitySheet, 9, rowIndex,
+            DoubleCellValue(double.parse(avgWeight.toStringAsFixed(1))));
       } else {
         writeCell(activitySheet, 9, rowIndex, TextCellValue(''));
       }
 
       final dayBodyFats = bodyFatValuesByDay[d] ?? [];
       if (dayBodyFats.isNotEmpty) {
-        final avgBodyFat = dayBodyFats.reduce((a, b) => a + b) / dayBodyFats.length;
-        writeCell(activitySheet, 10, rowIndex, DoubleCellValue(double.parse(avgBodyFat.toStringAsFixed(1))));
+        final avgBodyFat =
+            dayBodyFats.reduce((a, b) => a + b) / dayBodyFats.length;
+        writeCell(activitySheet, 10, rowIndex,
+            DoubleCellValue(double.parse(avgBodyFat.toStringAsFixed(1))));
       } else {
         writeCell(activitySheet, 10, rowIndex, TextCellValue(''));
       }
@@ -799,25 +895,35 @@ class ExportManager {
     // 5. Measurements Sheet (Sheet 5 - Raw chronological log)
     // -------------------------------------------------------------------------
     final measurementsSheet = excel['Measurements'];
-    final measurementHeaders = ['Date', 'Time', 'Measurement Type', 'Value', 'Unit'];
+    final measurementHeaders = [
+      'Date',
+      'Time',
+      'Measurement Type',
+      'Value',
+      'Unit'
+    ];
     for (int col = 0; col < measurementHeaders.length; col++) {
-      writeCell(measurementsSheet, col, 0, TextCellValue(measurementHeaders[col]));
+      writeCell(
+          measurementsSheet, col, 0, TextCellValue(measurementHeaders[col]));
     }
 
-    final sortedMeasurements = List<MeasurementRowDto>.from(data.measurementRows)
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final sortedMeasurements =
+        List<MeasurementRowDto>.from(data.measurementRows)
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     for (int r = 0; r < sortedMeasurements.length; r++) {
       final rowData = sortedMeasurements[r];
       final rowIndex = r + 1;
 
-      final dateStr = DateFormat('yyyy-MM-dd').format(rowData.timestamp.toLocal());
+      final dateStr =
+          DateFormat('yyyy-MM-dd').format(rowData.timestamp.toLocal());
       final timeStr = DateFormat('HH:mm').format(rowData.timestamp.toLocal());
 
       writeCell(measurementsSheet, 0, rowIndex, TextCellValue(dateStr));
       writeCell(measurementsSheet, 1, rowIndex, TextCellValue(timeStr));
       writeCell(measurementsSheet, 2, rowIndex, TextCellValue(rowData.type));
-      writeCell(measurementsSheet, 3, rowIndex, DoubleCellValue(rowData.value.toDouble()));
+      writeCell(measurementsSheet, 3, rowIndex,
+          DoubleCellValue(rowData.value.toDouble()));
       writeCell(measurementsSheet, 4, rowIndex, TextCellValue(rowData.unit));
     }
 
@@ -836,14 +942,16 @@ class ExportManager {
     return '$year-$month-$day';
   }
 
-  static int _calculateMaxPerHourSteps(List<HealthStepSegmentDto> segmentsForDay) {
+  static int _calculateMaxPerHourSteps(
+      List<HealthStepSegmentDto> segmentsForDay) {
     final hourlySourceSteps = <int, Map<String, int>>{};
     for (final seg in segmentsForDay) {
       final localStart = seg.startAt.toLocal();
       final hour = localStart.hour;
       final sourceKey = seg.sourceId ?? seg.provider;
       hourlySourceSteps.putIfAbsent(hour, () => {});
-      hourlySourceSteps[hour]![sourceKey] = (hourlySourceSteps[hour]![sourceKey] ?? 0) + seg.stepCount;
+      hourlySourceSteps[hour]![sourceKey] =
+          (hourlySourceSteps[hour]![sourceKey] ?? 0) + seg.stepCount;
     }
 
     int totalSteps = 0;
@@ -857,7 +965,8 @@ class ExportManager {
     return totalSteps;
   }
 
-  static MapEntry<String, int> _calculateAutoDominantSteps(List<HealthStepSegmentDto> segmentsForDay) {
+  static MapEntry<String, int> _calculateAutoDominantSteps(
+      List<HealthStepSegmentDto> segmentsForDay) {
     final sourceTotals = <String, int>{};
     for (final seg in segmentsForDay) {
       final sourceKey = seg.sourceId ?? seg.provider;

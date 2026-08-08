@@ -36,13 +36,13 @@ class SleepSyncResult {
 
 abstract class SleepImportService {
   Future<SleepSyncResult> importRecent({
-    int lookbackDays = 30,
+    int lookbackDays = 90,
     bool forceFullSync = false,
     CancellationToken? token,
     void Function(int index, int total)? onProgress,
   });
   Future<SleepSyncResult?> importRecentIfDue({
-    int lookbackDays = 30,
+    int lookbackDays = 90,
     Duration minInterval = const Duration(hours: 6),
     bool force = false,
   });
@@ -144,7 +144,7 @@ class SleepSyncService implements SleepSettingsService {
 
   @override
   Future<SleepSyncResult> importRecent({
-    int lookbackDays = 30,
+    int lookbackDays = 90,
     bool forceFullSync = false,
     CancellationToken? token,
     void Function(int index, int total)? onProgress,
@@ -190,8 +190,16 @@ class SleepSyncService implements SleepSettingsService {
     token?.throwIfCancelled();
 
     final result = Platform.isIOS
-        ? await _importWithHealthKit(fromUtc: fromUtc, toUtc: nowUtc, token: token, onProgress: onProgress)
-        : await _importWithHealthConnect(fromUtc: fromUtc, toUtc: nowUtc, token: token, onProgress: onProgress);
+        ? await _importWithHealthKit(
+            fromUtc: fromUtc,
+            toUtc: nowUtc,
+            token: token,
+            onProgress: onProgress)
+        : await _importWithHealthConnect(
+            fromUtc: fromUtc,
+            toUtc: nowUtc,
+            token: token,
+            onProgress: onProgress);
 
     if (result.success) {
       lastImportAtListenable.value = DateTime.now().toUtc();
@@ -201,7 +209,7 @@ class SleepSyncService implements SleepSettingsService {
 
   @override
   Future<SleepSyncResult?> importRecentIfDue({
-    int lookbackDays = 30,
+    int lookbackDays = 90,
     Duration minInterval = const Duration(hours: 6),
     bool force = false,
   }) async {
@@ -217,7 +225,7 @@ class SleepSyncService implements SleepSettingsService {
     _autoImportInFlight = true;
     try {
       await _setLastAutoImportAttemptAt(DateTime.now().toUtc());
-      return importRecent(lookbackDays: lookbackDays);
+      return await importRecent(lookbackDays: lookbackDays);
     } finally {
       _autoImportInFlight = false;
     }
@@ -266,7 +274,8 @@ class SleepSyncService implements SleepSettingsService {
       );
     }
     token?.throwIfCancelled();
-    final run = await _runPipelineImport(import.batch!, token: token, onProgress: onProgress);
+    final run = await _runPipelineImport(import.batch!,
+        token: token, onProgress: onProgress);
     return SleepSyncResult(
       success: true,
       permissionState: SleepPermissionState.ready,
@@ -300,7 +309,8 @@ class SleepSyncService implements SleepSettingsService {
       );
     }
     token?.throwIfCancelled();
-    final run = await _runPipelineImport(import.batch!, token: token, onProgress: onProgress);
+    final run = await _runPipelineImport(import.batch!,
+        token: token, onProgress: onProgress);
     return SleepSyncResult(
       success: true,
       permissionState: SleepPermissionState.ready,

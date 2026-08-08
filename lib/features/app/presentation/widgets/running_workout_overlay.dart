@@ -3,6 +3,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class RunningWorkoutOverlay extends StatelessWidget {
   final String elapsedDuration;
@@ -28,41 +29,26 @@ class RunningWorkoutOverlay extends StatelessWidget {
       l10n: l10n,
     );
 
-    double radius = 37.0; // Half of height 74.0 for perfect pill
-    return Container(
-      margin: const EdgeInsets.only(bottom: DesignConstants.spacingL), // Yields exactly 20px gap above GlassBottomBar
-      height: 74.0,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ClipPath(
-              clipper: ShadowOuterClipper(borderRadius: radius),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(radius),
-                  boxShadow: DesignConstants.glassShadow,
-                ),
-              ),
-            ),
-          ),
-          GlassAdaptiveScope(
-            minQuality: GlassQuality.premium,
-            maxQuality: GlassQuality.premium,
+    final double radius = DesignConstants.workoutOverlayHeight / 2; // Half of height for perfect pill
+    return SizedBox(
+      height: DesignConstants.workoutOverlayHeight,
+      child: GlassAdaptiveScope(
+            maxQuality: DesignConstants.defaultGlassQuality,
+            minQuality: DesignConstants.minGlassQuality,
             child: RepaintBoundary(
               child: GlassContainer(
                 useOwnLayer: true,
-                height: 74.0,
-                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
+                height: DesignConstants.workoutOverlayHeight,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingXL),
                 alignment: Alignment.center,
                 shape: LiquidRoundedSuperellipse(borderRadius: radius),
-                quality: GlassQuality.premium,
+                quality: DesignConstants.defaultGlassQuality,
                 settings: DesignConstants.liquidGlassSettings(isDark),
                 child: child,
               ),
             ),
           ),
-        ],
-      ),
     );
   }
 }
@@ -82,7 +68,7 @@ class _RunningWorkoutRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    //final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Row(
@@ -103,30 +89,18 @@ class _RunningWorkoutRow extends StatelessWidget {
             ],
           ),
         ),
-        FilledButton(
+        AppButton.primary(
           onPressed: onContinue,
-          style: FilledButton.styleFrom(
-            backgroundColor: cs.primary,
-            foregroundColor: cs.onPrimary,
-            minimumSize: const Size(0, 28),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: Text(l10n.continue_workout_button),
+          label: l10n.continue_workout_button,
+          tooltip: l10n.continue_workout_button,
+          size: AppButtonSize.small,
         ),
         const SizedBox(width: DesignConstants.spacingS),
-        FilledButton(
+        AppButton.danger(
           onPressed: onDiscard,
-          style: FilledButton.styleFrom(
-            backgroundColor: cs.error,
-            foregroundColor: cs.onError,
-            minimumSize: const Size(0, 28),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: Text(l10n.discard_button),
+          label: l10n.discard_button,
+          tooltip: l10n.discard_button,
+          size: AppButtonSize.small,
         ),
       ],
     );

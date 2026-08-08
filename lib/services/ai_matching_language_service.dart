@@ -3,92 +3,100 @@
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/app_data_sources.dart';
 import 'base_food_language_service.dart';
+import 'off_catalog_country_service.dart';
 
-/// Possible language choices for AI food-name matching.
-///
-/// This setting controls which language the AI uses for food names when
-/// querying the local database. It is intentionally **decoupled** from
-/// the app UI language so that a user running the app in German can
-/// match against an English food database, or vice versa.
+/// Context containing the user's primary UI language and the active OFF food catalog language.
+class AiMatchingContext {
+  /// Primary language code for food display names (e.g., 'de', 'en', 'fr').
+  final String appLanguage;
+
+  /// Primary language code of the active OFF catalog (e.g., 'de', 'fr', 'en', 'it', 'ja').
+  final String catalogLanguage;
+
+  const AiMatchingContext({
+    required this.appLanguage,
+    required this.catalogLanguage,
+  });
+
+  /// Whether the food catalog language differs from the user's app UI language.
+  bool get hasDifferentCatalogLanguage => appLanguage != catalogLanguage;
+}
+
+/// Helper extension to map [OffCatalogCountry] to its primary language code.
+extension OffCatalogCountryLanguageX on OffCatalogCountry {
+  String get primaryLanguageCode => switch (this) {
+        OffCatalogCountry.de ||
+        OffCatalogCountry.at ||
+        OffCatalogCountry.ch =>
+          'de',
+        OffCatalogCountry.us || OffCatalogCountry.uk => 'en',
+        OffCatalogCountry.fr => 'fr',
+        OffCatalogCountry.it => 'it',
+        OffCatalogCountry.jp => 'ja',
+      };
+}
+
+/// Legacy enum kept for backward compatibility.
 enum AiMatchingLanguage {
-  /// Follow the base-food display language (default).
   auto,
-
-  /// Always match in English.
   en,
-
-  /// Always match in German.
   de,
-
-  /// Always match in French.
   fr,
-
-  /// Always match in Italian.
   it,
-
-  /// Always match in Japanese.
   ja,
 }
 
-/// Persists and resolves the user's preferred AI matching language.
-///
-/// Mirrors the [BaseFoodLanguageService] pattern: preference stored
-/// in [SharedPreferences], resolved at runtime.
+/// Persists and resolves AI matching language context.
 class AiMatchingLanguageService {
   const AiMatchingLanguageService._();
 
-  static const String _preferenceKey = 'ai_matching_language';
+  /// Resolves the current [AiMatchingContext] based on app locale and active OFF catalog country.
+  static Future<AiMatchingContext> resolveMatchingContext({
+    required BuildContext context,
+    SharedPreferences? prefs,
+  }) async {
+    final locale = Localizations.localeOf(context).languageCode;
+    final resolvedPrefs = prefs ?? await SharedPreferences.getInstance();
+    final activeOffCountry =
+        OffCatalogCountryService.readActiveCountryFromPrefs(resolvedPrefs);
 
-  /// Read the persisted choice. Returns [AiMatchingLanguage.auto] if unset.
+    final baseFoodChoice =
+        await BaseFoodLanguageService.readChoice(prefs: resolvedPrefs);
+    final appLang = BaseFoodLanguageService.resolveLanguageCodeFromLocale(
+      choice: baseFoodChoice,
+      locale: locale,
+      activeCountry: activeOffCountry,
+    );
+
+    final catalogLang = activeOffCountry.primaryLanguageCode;
+
+    return AiMatchingContext(
+      appLanguage: appLang,
+      catalogLanguage: catalogLang,
+    );
+  }
+
+  /// Deprecated: Read the persisted choice. Returns [AiMatchingLanguage.auto].
   static Future<AiMatchingLanguage> readChoice({
     SharedPreferences? prefs,
   }) async {
-    final resolved = prefs ?? await SharedPreferences.getInstance();
-    return _parse(resolved.getString(_preferenceKey));
+    return AiMatchingLanguage.auto;
   }
 
-  /// Write a new choice.
+  /// Deprecated: Write choice stub.
   static Future<void> writeChoice(
     AiMatchingLanguage choice, {
     SharedPreferences? prefs,
-  }) async {
-    final resolved = prefs ?? await SharedPreferences.getInstance();
-    await resolved.setString(_preferenceKey, choice.name);
-  }
+  }) async {}
 
-  /// Resolve the effective language code (`'en'` or `'de'`) for AI matching.
-  ///
-  /// When [choice] is [AiMatchingLanguage.auto]:
-  ///   - Delegates to [BaseFoodLanguageService.resolveLanguageCode] so the
-  ///     AI matching language stays in sync with the base-food display
-  ///     language (and ultimately the app locale).
+  /// Resolve the effective language code for AI matching.
   static Future<String> resolveLanguageCode({
-    required AiMatchingLanguage choice,
+    AiMatchingLanguage choice = AiMatchingLanguage.auto,
     required BuildContext context,
   }) async {
-    if (choice == AiMatchingLanguage.en) return 'en';
-    if (choice == AiMatchingLanguage.de) return 'de';
-    if (choice == AiMatchingLanguage.fr) return 'fr';
-    if (choice == AiMatchingLanguage.it) return 'it';
-    if (choice == AiMatchingLanguage.ja) return 'ja';
-
-    // Capture locale before async gap to avoid linter warning
-    final locale = Localizations.localeOf(context).languageCode;
-
-    // Auto mode: follow base-food display language.
-    final baseFoodChoice = await BaseFoodLanguageService.readChoice();
-    return BaseFoodLanguageService.resolveLanguageCodeFromLocale(
-      choice: baseFoodChoice,
-      locale: locale,
-    );
-  }
-
-  static AiMatchingLanguage _parse(String? value) {
-    if (value == null) return AiMatchingLanguage.auto;
-    return AiMatchingLanguage.values.firstWhere(
-      (e) => e.name == value,
-      orElse: () => AiMatchingLanguage.auto,
-    );
+    final matchingContext = await resolveMatchingContext(context: context);
+    return matchingContext.appLanguage;
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class DataAutoBackupCard extends StatelessWidget {
   const DataAutoBackupCard({
@@ -29,79 +29,78 @@ class DataAutoBackupCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.autoBackupTitle,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+    return Padding(
+      padding: const EdgeInsets.all(DesignConstants.spacingL),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.autoBackupTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Text(l10n.autoBackupDescription, style: theme.textTheme.bodyMedium),
+          const SizedBox(height: DesignConstants.spacingS),
+          SelectableText(
+            autoBackupDir ?? l10n.autoBackupDefaultFolder,
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: onPickDirectory,
+                  label: l10n.autoBackupChooseFolder,
+                  tooltip: l10n.autoBackupChooseFolder,
+                  icon: LucideIcons.folder_open,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: (autoBackupDir == null || autoBackupDir!.isEmpty)
+                      ? null
+                      : onCopyPath,
+                  label: l10n.autoBackupCopyPath,
+                  tooltip: l10n.autoBackupCopyPath,
+                  icon: LucideIcons.copy,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          SizedBox(
+            width: double.infinity,
+            child: AppButton.primary(
+              onPressed: onRunNow,
+              label: l10n.autoBackupRunNow,
+              tooltip: l10n.autoBackupRunNow,
+              icon: LucideIcons.cloud_upload,
+            ),
+          ),
+          if (lastAutoBackupUsedFallback &&
+              lastAutoBackupDirUsed != null &&
+              lastAutoBackupDirUsed!.isNotEmpty) ...[
             const SizedBox(height: DesignConstants.spacingS),
             Text(
-              l10n.autoBackupDescription,
-              style: theme.textTheme.bodyMedium,
+              'Fallback folder used:\n$lastAutoBackupDirUsed',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
             ),
+          ],
+          if (lastAutoBackupFilePath != null &&
+              lastAutoBackupFilePath!.isNotEmpty) ...[
             const SizedBox(height: DesignConstants.spacingS),
             SelectableText(
-              autoBackupDir ?? l10n.autoBackupDefaultFolder,
+              lastAutoBackupFilePath!,
               style: theme.textTheme.bodySmall,
             ),
-            const SizedBox(height: DesignConstants.spacingM),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(LucideIcons.folder_open),
-                    label: Text(l10n.autoBackupChooseFolder),
-                    onPressed: onPickDirectory,
-                  ),
-                ),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(LucideIcons.copy),
-                    label: Text(l10n.autoBackupCopyPath),
-                    onPressed: (autoBackupDir == null || autoBackupDir!.isEmpty)
-                        ? null
-                        : onCopyPath,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: DesignConstants.spacingM),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(LucideIcons.cloud_upload),
-                label: Text(l10n.autoBackupRunNow),
-                onPressed: onRunNow,
-              ),
-            ),
-            if (lastAutoBackupUsedFallback &&
-                lastAutoBackupDirUsed != null &&
-                lastAutoBackupDirUsed!.isNotEmpty) ...[
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
-                'Fallback folder used:\n$lastAutoBackupDirUsed',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                ),
-              ),
-            ],
-            if (lastAutoBackupFilePath != null &&
-                lastAutoBackupFilePath!.isNotEmpty) ...[
-              const SizedBox(height: DesignConstants.spacingS),
-              SelectableText(
-                lastAutoBackupFilePath!,
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }

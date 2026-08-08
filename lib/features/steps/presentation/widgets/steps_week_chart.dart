@@ -8,7 +8,7 @@ import '../../../../services/health/steps_sync_service.dart';
 import '../../domain/steps_models.dart';
 import 'horizontal_guide_painter.dart';
 import 'steps_chart_utils.dart';
-import 'steps_insight_pill.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class StepsWeekChart extends StatelessWidget {
@@ -22,6 +22,30 @@ class StepsWeekChart extends StatelessWidget {
   final List<StepsBucket> buckets;
   final int dailyGoal;
   final DateTime? weekStart;
+
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i += 2) {
+      final left = items[i];
+      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
+            ],
+          ),
+        ),
+      );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,24 +91,20 @@ class StepsWeekChart extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            StepsInsightPill(
-              label: l10n.stepsModuleTotal,
-              value: numberFormat.format(total),
-            ),
-            StepsInsightPill(
-              label: l10n.stepsModuleAvgPerDay,
-              value: numberFormat.format(avg),
-            ),
-            StepsInsightPill(
-              label: l10n.stepsModuleGoalHit,
-              value: '$goalDays/${buckets.length}',
-            ),
-          ],
-        ),
+        _buildTwoColumnGrid([
+          ValueSummaryCard(
+            value: numberFormat.format(total),
+            label: l10n.stepsModuleTotal,
+          ),
+          ValueSummaryCard(
+            value: numberFormat.format(avg),
+            label: l10n.stepsModuleAvgPerDay,
+          ),
+          ValueSummaryCard(
+            value: '$goalDays/${buckets.length}',
+            label: l10n.stepsModuleGoalHit,
+          ),
+        ]),
         const SizedBox(height: DesignConstants.spacingM),
         SizedBox(
           height: weekChartHeight,
@@ -130,7 +150,8 @@ class StepsWeekChart extends StatelessWidget {
               ),
               Positioned.fill(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: chartLeftInset,
+                  padding: const EdgeInsets.only(
+                    left: chartLeftInset,
                     top: weekChartTopInset,
                     right: DesignConstants.spacingXS,
                     bottom: chartBottomInset,
@@ -169,7 +190,8 @@ class StepsWeekChart extends StatelessWidget {
                                       color: Theme.of(
                                         context,
                                       ).colorScheme.primary,
-                                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                                      borderRadius: BorderRadius.circular(
+                                          DesignConstants.borderRadiusS),
                                     ),
                                   ),
                                 if (isGoalHit && bucket.steps > 0)

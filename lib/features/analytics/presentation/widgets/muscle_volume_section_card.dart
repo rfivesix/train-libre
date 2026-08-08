@@ -9,14 +9,14 @@ import 'analytics_card_base.dart';
 
 class MuscleVolumeSectionCard extends StatelessWidget {
   final SectionLoadState<VolumeMusclesSectionData> state;
-  final String rangeLabel;
+  final String? rangeLabel;
   final VoidCallback onRetry;
   final VoidCallback onTap;
 
   const MuscleVolumeSectionCard({
     super.key,
     required this.state,
-    required this.rangeLabel,
+    this.rangeLabel,
     required this.onRetry,
     required this.onTap,
   });
@@ -27,14 +27,7 @@ class MuscleVolumeSectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.volumeMuscles;
     final title = l10n.analyticsMuscleTopFrequency;
 
-    if (state.isLoading && !state.hasData) {
-      return AnalyticsCardBase.buildSectionLoadingCard(
-        context,
-        l10n,
-        sectionId,
-        title,
-      );
-    }
+
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,
@@ -48,15 +41,14 @@ class MuscleVolumeSectionCard extends StatelessWidget {
     final data = state.data;
     final muscleAnalytics = data?.muscleAnalytics ?? const {};
 
-    final muscles =
-        (muscleAnalytics['muscles'] as List<dynamic>? ?? const [])
-            .cast<Map<String, dynamic>>()
-            .where(
-              (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
-                m['muscleGroup'] as String?,
-              ),
-            )
-            .toList(growable: false);
+    final muscles = (muscleAnalytics['muscles'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>()
+        .where(
+          (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
+            m['muscleGroup'] as String?,
+          ),
+        )
+        .toList(growable: false);
     final topMuscle = muscles.isNotEmpty ? muscles.first : null;
     final topMuscleShare =
         (topMuscle?['distributionShare'] as num?)?.toDouble() ?? 0.0;
@@ -83,9 +75,7 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                 context,
                 label: title,
                 trailingIcon: true,
-                chipText: topMuscle == null
-                    ? null
-                    : '${(topMuscleShare * 100).toStringAsFixed(0)}%',
+                chipText: rangeLabel,
               ),
               const SizedBox(height: DesignConstants.spacingXS),
               Text(
@@ -105,7 +95,8 @@ class MuscleVolumeSectionCard extends StatelessWidget {
               if (topMuscleShare > 0) ...[
                 const SizedBox(height: DesignConstants.spacingS),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusS),
                   child: LinearProgressIndicator(
                     minHeight: 6,
                     value: topMuscleShare.clamp(0.0, 1.0),
@@ -115,8 +106,13 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 6),
-              AnalyticsCardBase.buildMicroCaption(context, rangeLabel),
+              if (topMuscle != null) ...[
+                const SizedBox(height: 6),
+                AnalyticsCardBase.buildMicroCaption(
+                  context,
+                  '${(topMuscleShare * 100).toStringAsFixed(0)}%',
+                ),
+              ]
             ],
           ),
         ),

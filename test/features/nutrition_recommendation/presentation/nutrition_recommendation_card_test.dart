@@ -8,6 +8,12 @@ import 'package:train_libre/features/nutrition_recommendation/presentation/nutri
 import 'package:train_libre/generated/app_localizations.dart';
 
 void main() {
+  setUp(() {
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.platformDispatcher.views.first.physicalSize = const Size(800, 1200);
+    binding.platformDispatcher.views.first.devicePixelRatio = 1.0;
+  });
+
   testWidgets('renders empty state without recommendation', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -22,7 +28,6 @@ void main() {
             generatedAt: null,
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 6),
             isAdaptiveRecommendationDueNow: true,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -34,7 +39,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
-    expect(find.text(l10n.adaptiveRecommendationCardTitle), findsOneWidget);
+    expect(find.text(l10n.adaptiveRecommendationCardTitle), findsNothing);
     expect(find.text(l10n.adaptiveRecommendationEmptyBody), findsOneWidget);
     expect(find.text(l10n.adaptiveRecommendationApplyAction), findsNothing);
   });
@@ -57,7 +62,6 @@ void main() {
             generatedAt: DateTime(2026, 4, 5, 9, 0),
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
             isAdaptiveRecommendationDueNow: false,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {
@@ -129,7 +133,6 @@ void main() {
             generatedAt: recommendation.generatedAt,
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
             isAdaptiveRecommendationDueNow: false,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -170,7 +173,6 @@ void main() {
             generatedAt: recommendation.generatedAt,
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
             isAdaptiveRecommendationDueNow: false,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -216,7 +218,6 @@ void main() {
             generatedAt: recommendation.generatedAt,
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
             isAdaptiveRecommendationDueNow: false,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -234,7 +235,7 @@ void main() {
     );
   });
 
-  testWidgets('renders localized recommendation title for german locale',
+  testWidgets('renders localized empty body text for german locale',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -250,7 +251,6 @@ void main() {
             generatedAt: null,
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 6),
             isAdaptiveRecommendationDueNow: true,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -260,7 +260,11 @@ void main() {
       ),
     );
 
-    expect(find.text('Adaptive Empfehlung'), findsOneWidget);
+    expect(
+      find.text(
+          'Tracke Gewicht und Ernährung etwa eine Woche, um die erste wöchentliche Empfehlung freizuschalten.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('renders maintenance credible interval and uncertainty hint',
@@ -281,7 +285,6 @@ void main() {
             generatedAt: DateTime(2026, 4, 5, 9, 0),
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
             isAdaptiveRecommendationDueNow: false,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -322,7 +325,6 @@ void main() {
             generatedAt: DateTime(2026, 4, 5, 9, 0),
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
             isAdaptiveRecommendationDueNow: false,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -361,7 +363,6 @@ void main() {
             generatedAt: DateTime(2026, 4, 5, 9, 0),
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
             isAdaptiveRecommendationDueNow: false,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -407,7 +408,6 @@ void main() {
                 generatedAt: DateTime(2026, 4, 5, 9, 0),
                 nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
                 isAdaptiveRecommendationDueNow: false,
-                activeTargetCalories: 2400,
                 isRecalculating: false,
                 isApplying: false,
                 onRecalculate: () {},
@@ -447,10 +447,10 @@ void main() {
     // visual buckets.  This test locks the mapping so future edits must be
     // deliberate.
     const expectedFills = {
-      RecommendationConfidence.notEnoughData: 0.22,
-      RecommendationConfidence.low: 0.42,
-      RecommendationConfidence.medium: 0.68,
-      RecommendationConfidence.high: 0.90,
+      RecommendationConfidence.notEnoughData: 0.1,
+      RecommendationConfidence.low: 0.4,
+      RecommendationConfidence.medium: 0.7,
+      RecommendationConfidence.high: 1.0,
     };
 
     for (final entry in expectedFills.entries) {
@@ -470,7 +470,6 @@ void main() {
                 generatedAt: DateTime(2026, 4, 5, 9, 0),
                 nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
                 isAdaptiveRecommendationDueNow: false,
-                activeTargetCalories: 2400,
                 isRecalculating: false,
                 isApplying: false,
                 onRecalculate: () {},
@@ -515,7 +514,6 @@ void main() {
             generatedAt: DateTime(2026, 4, 5, 9, 0),
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
             isAdaptiveRecommendationDueNow: false,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -574,7 +572,6 @@ void main() {
             generatedAt: recommendation.generatedAt,
             nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
             isAdaptiveRecommendationDueNow: false,
-            activeTargetCalories: 2400,
             isRecalculating: false,
             isApplying: false,
             onRecalculate: () {},
@@ -584,11 +581,16 @@ void main() {
       ),
     );
 
-    expect(find.text('Effektive Energiedichte: 5938 kcal/kg'), findsOneWidget);
+    final context = tester.element(find.byType(NutritionRecommendationCard));
+    final l10n = AppLocalizations.of(context)!;
+
     expect(
-      find.text(
-        'Dynamischer Wert basierend auf Gewichts- und Wasserverlust-Ratio',
-      ),
+        find.text(l10n.adaptiveRecommendationEnergyDensityLabel),
+        findsOneWidget);
+    expect(find.text(l10n.adaptiveRecommendationEnergyDensityValue(5938)),
+        findsOneWidget);
+    expect(
+      find.text(l10n.adaptiveRecommendationEnergyDensityExplanation),
       findsOneWidget,
     );
   });

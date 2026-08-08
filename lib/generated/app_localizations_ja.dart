@@ -15,6 +15,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get selectTimeTitle => '時間を選択';
 
   @override
+  String get removeTimer => 'タイマーを削除';
+
+  @override
+  String get noTimerLabel => 'タイマーなし';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override
@@ -40,6 +46,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get daily => '毎日';
+
+  @override
+  String get nowLabel => 'Now';
 
   @override
   String get today => '今日';
@@ -421,13 +430,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get setLabel => 'セット';
 
   @override
-  String get kgLabel => '重量(kg)';
+  String kgLabel(String unit) {
+    return 'Weight ($unit)';
+  }
 
   @override
   String get repsLabel => '担当者';
 
   @override
-  String get cardioDistanceLabel => '距離(km)';
+  String cardioDistanceLabel(String unit) {
+    return 'Distance ($unit)';
+  }
 
   @override
   String get cardioTimeLabel => '時間';
@@ -596,6 +609,33 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get filter30Days => '30日';
+
+  @override
+  String get filter30DaysShort => '30日';
+
+  @override
+  String get filter90DaysShort => '90日';
+
+  @override
+  String get filter180DaysShort => '180日';
+
+  @override
+  String get filter7DaysShort => '7日';
+
+  @override
+  String get filter1MonthShort => '1ヶ月';
+
+  @override
+  String get filter3MonthsShort => '3ヶ月';
+
+  @override
+  String get filter6MonthsShort => '6ヶ月';
+
+  @override
+  String get filter1YearShort => '1年';
+
+  @override
+  String get filterMax => '最大';
 
   @override
   String get filterAll => '全て';
@@ -925,6 +965,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get titleEditRoutine => 'ルーチンの編集';
 
   @override
+  String get editRoutine => 'ルーチンの編集';
+
+  @override
   String get validatorPleaseEnterRoutineName => 'ルーチンの名前を入力してください。';
 
   @override
@@ -967,9 +1010,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fabAddExercise => 'エクササイズを追加';
-
-  @override
-  String get kgLabelShort => 'kg';
 
   @override
   String get drawerExerciseCatalog => 'エクササイズカタログ';
@@ -1041,6 +1081,25 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get deleteExerciseButton => '練習の削除';
+
+  @override
+  String get deleteCustomExerciseTitle => 'カスタムエクササイズを削除';
+
+  @override
+  String deleteCustomExerciseBody(String name) {
+    return '「$name」を完全に削除します。この操作は元に戻せません。';
+  }
+
+  @override
+  String get deleteCustomExerciseWithLogsWarning =>
+      'このエクササイズはトレーニング履歴に記録されています。ログデータは保持されますが、エクササイズへのリンクは削除されます。';
+
+  @override
+  String get deleteCustomExerciseWithRoutinesWarning =>
+      'このエクササイズは1つ以上のルーティンで使用されています。それらのルーティンから削除されます。';
+
+  @override
+  String get deleteCustomExerciseSuccess => 'エクササイズを削除しました。';
 
   @override
   String get restOverLabel => '一時停止が終わりました';
@@ -1203,6 +1262,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get workoutSectionMyPlans => '私の計画';
+
+  @override
+  String get emptyStateWorkoutRoutinesCallout =>
+      'ジムでのワークアウトを体系的に記録するために、最初のルーティンを作成しましょう。';
 
   @override
   String get workoutSectionHistoryLibrary => '歴史と図書館';
@@ -1670,7 +1733,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get autoBackupCopyPath => 'パスのコピー';
 
   @override
-  String get autoBackupRunNow => '今すぐ自動バックアップを確認して実行';
+  String get autoBackupRunNow => '今すぐチェック＆自動バックアップを実行';
+
+  @override
+  String get icloudAutoBackupTitle => 'iCloud自動バックアップ';
+
+  @override
+  String get icloudAutoBackupDescription =>
+      'アプリがバックグラウンドになると、データベースを自動的にiCloud Driveに同期します。新しいデバイスや再インストール時にデータを復元できます。';
+
+  @override
+  String get icloudBackupNow => '今すぐiCloudにバックアップ';
+
+  @override
+  String get icloudBackupUploading => 'アップロード中…';
+
+  @override
+  String get icloudBackupSuccess => 'バックアップが正常にアップロードされました。';
+
+  @override
+  String get icloudBackupFailed => 'バックアップに失敗しました。iCloud接続を確認してください。';
 
   @override
   String get autoBackupRequestAccessSubtitle =>
@@ -1895,16 +1977,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nutritionExplorerTitle => '栄養探検家';
 
   @override
-  String get myMeals => '私の食事';
+  String get myMeals => 'マイレシピ';
 
   @override
-  String get myMealsCL => '私の食事';
+  String get myMealsCL => 'マイレシピ';
 
   @override
   String get nutritionSectionTodayInFocus => '今日の焦点';
 
   @override
-  String get nutritionSectionMyMeals => '私の食事';
+  String get nutritionSectionMyMeals => 'マイレシピ';
+
+  @override
+  String get emptyStateNutritionRecipesCallout =>
+      'お気に入りの食事をすばやく記録するために、最初のレシピを作成しましょう。';
 
   @override
   String get nutritionSectionToolsAndLibrary => 'ツールとライブラリ';
@@ -1935,6 +2021,12 @@ class AppLocalizationsJa extends AppLocalizations {
       'この補足を削除してもよろしいですか?すべての履歴データは失われます。\n\nヒント: 代わりにサプリメントを編集することで、追跡を解除することができます。';
 
   @override
+  String get editSupplementLogTitle => '入力を編集';
+
+  @override
+  String get deleteSupplementLogConfirm => 'この入力を削除してもよろしいですか？';
+
+  @override
   String get fieldRequired => '必須';
 
   @override
@@ -1950,7 +2042,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tabCatalogSearch => 'カタログ';
 
   @override
-  String get tabMeals => '食事';
+  String get tabMeals => 'レシピ';
 
   @override
   String get emptyCategory => 'エントリはありません';
@@ -1962,41 +2054,41 @@ class AppLocalizationsJa extends AppLocalizations {
   String get searchSectionOther => 'その他の結果';
 
   @override
-  String get mealsComingSoonTitle => 'お食事（近日公開予定）';
+  String get mealsComingSoonTitle => 'レシピ（近日公開予定）';
 
   @override
-  String get mealsComingSoonBody => 'すぐに、複数の食品から独自の食事を作成できるようになります。';
+  String get mealsComingSoonBody => 'すぐに、複数の食品から独自のレシピを作成できるようになります。';
 
   @override
-  String get mealsEmptyTitle => '食事テンプレートが保存されていません';
+  String get mealsEmptyTitle => 'レシピテンプレートが保存されていません';
 
   @override
-  String get mealsEmptyBody => '食事を作成して、複数の食品を一度にすばやく記録します。';
+  String get mealsEmptyBody => 'レシピを作成して、複数の食品を一度にすばやく記録します。';
 
   @override
   String get mealsEmptyBodyWithShortcut =>
-      '日記で、朝食または夕食の下にある「食事として保存」オプションを使用して、一般的な食事の組み合わせを簡単なテンプレートとして保存します。';
+      '日記で、朝食または夕食の下にある「レシピとして保存」オプションを使用して、一般的な食事の組み合わせを簡単なテンプレートとして保存します。';
 
   @override
-  String get mealsCreateManually => '食事を手動で作成する';
+  String get mealsCreateManually => 'レシピを手動で作成する';
 
   @override
-  String get saveMealTemplateShortcut => '食事として保存';
+  String get saveMealTemplateShortcut => 'レシピとして保存';
 
   @override
-  String get mealsCreate => '食事を作る';
+  String get mealsCreate => 'レシピを作る';
 
   @override
-  String get mealsEdit => '食事を編集する';
+  String get mealsEdit => 'レシピを編集する';
 
   @override
-  String get mealsDelete => '食事を削除する';
+  String get mealsDelete => 'レシピを削除する';
 
   @override
   String get mealsAddToDiary => '食べ物を追加する';
 
   @override
-  String get mealNameLabel => '食事名';
+  String get mealNameLabel => 'レシピ名';
 
   @override
   String get mealNotesLabel => '注意事項';
@@ -2011,23 +2103,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealIngredientAmountLabel => '額';
 
   @override
-  String get mealDeleteConfirmTitle => '食事を削除する';
+  String get mealDeleteConfirmTitle => 'レシピを削除する';
 
   @override
   String mealDeleteConfirmBody(Object name) {
-    return '食事「$name」を削除してもよろしいですか?その成分もすべて除去されます。';
+    return 'レシピ「$name」を削除してもよろしいですか?その成分もすべて除去されます。';
   }
 
   @override
   String mealAddedToDiary(Object name) {
-    return '食事「$name」が日記に追加されました。';
+    return 'レシピ「$name」が日記に追加されました。';
   }
 
   @override
-  String get mealSaved => '食事は節約されました。';
+  String get mealSaved => 'レシピを保存しました。';
 
   @override
-  String get mealDeleted => '食事を削除しました。';
+  String get mealDeleted => 'レシピを削除しました。';
 
   @override
   String get confirm => '確認する';
@@ -2036,13 +2128,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get addMealToDiaryTitle => '日記に追加';
 
   @override
-  String get mealTypeLabel => '食事';
+  String get mealTypeLabel => 'レシピ';
 
   @override
   String get amountLabel => '額';
 
   @override
-  String get mealAddedToDiarySuccess => '日記に食事を追加しました';
+  String get mealAddedToDiarySuccess => '日記にレシピを追加しました';
 
   @override
   String get error => 'エラー';
@@ -2242,6 +2334,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get adaptiveRatePerWeekLabel => '週次目標レート';
+
+  @override
+  String get customTargetRateOption => 'カスタム';
+
+  @override
+  String get customTargetRateDialogTitle => 'カスタム目標レートを設定';
 
   @override
   String get onboardingNameTitle => 'あなたの名前は何ですか？';
@@ -2956,6 +3054,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get exerciseMetricEst1RM => 'EST（東部基準時。 1RM';
 
   @override
+  String get exerciseMetricDistance => '距離';
+
+  @override
+  String get exerciseMetricDuration => '時間';
+
+  @override
+  String get exerciseMetricPace => 'ペース';
+
+  @override
   String get prBannerBestMaxWeight => 'ベスト最大体重';
 
   @override
@@ -3037,8 +3144,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsRecentRecords => '最近の記録';
 
   @override
-  String analyticsPerfWithReps(String weight, int reps) {
-    return '$weight kg x $reps';
+  String analyticsPerfWithReps(String weight, int reps, Object unit) {
+    return '$weight $unit x $reps';
   }
 
   @override
@@ -3063,8 +3170,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsNoPrTrendInWindow => 'この分野ではまだ明確な PR 傾向はありません。';
 
   @override
-  String analyticsE1rmProgress(String previous, String recent) {
-    return 'e1RM $previous -> $recent kg';
+  String analyticsE1rmProgress(String previous, String recent, Object unit) {
+    return 'e1RM $previous -> $recent $unit';
   }
 
   @override
@@ -3127,6 +3234,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsWeeksAtLeast2Workouts => '少なくとも2回のセッションで週に1回';
 
   @override
+  String get analyticsInTimeframe => '対象期間内';
+
+  @override
+  String get analyticsVsPriorPeriod => '前期間比';
+
+  @override
   String get analyticsCalendarExplainer =>
       '色の濃さは 1 日あたりのセッションを反映しており、これが真の一貫性マップになります。';
 
@@ -3181,7 +3294,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '同等のハード セットでは、プライマリ x1.0 とセカンダリ x0.3 の重み付けが使用されます。頻度は、同等のセットが 1.0 以上に達した日のみをカウントします。';
 
   @override
-  String get analyticsWeeklySetsByMuscle => '筋肉別ウィークリーセット';
+  String get analyticsWeeklySetsByMuscle => 'Ø 筋肉別週次セット';
 
   @override
   String get analyticsFrequencyByMuscle => '筋肉別の頻度';
@@ -3208,7 +3321,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String analyticsWeekTotalEquivalentSets(String value) {
-    return '週合計: $value 個の同等セット';
+    return 'Ø 1週当たり $value 相当セット';
   }
 
   @override
@@ -3216,18 +3329,18 @@ class AppLocalizationsJa extends AppLocalizations {
       '頻度は、筋肉が同等のセット数 >= 1.0 に達した日のみをカウントします。';
 
   @override
-  String liveWorkoutE1rmCurrentSet(String value) {
-    return 'e1RM $value kg';
+  String liveWorkoutE1rmCurrentSet(String value, Object unit) {
+    return 'e1RM $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmBestSession(String value) {
-    return 'このセッションの最高の e1RM: $value kg';
+  String liveWorkoutE1rmBestSession(String value, Object unit) {
+    return 'このセッションの最高の e1RM: $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmVsLastSession(String delta) {
-    return '前回のセッションとの比較: $delta kg';
+  String liveWorkoutE1rmVsLastSession(String delta, Object unit) {
+    return '前回のセッションとの比較: $delta $unit';
   }
 
   @override
@@ -3270,21 +3383,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsBodyNutritionTrendContext => '経時的な体重とカロリー';
 
   @override
-  String get analyticsBodyNutritionTrendContextHint =>
-      'グラフは、同じ空間に収まるように各系列を拡大縮小します。ツールチップには生の kg と kcal の値が表示されます。';
+  String analyticsBodyNutritionTrendContextHint(Object unit) {
+    return 'グラフは、同じ空間に収まるように各系列を拡大縮小します。ツールチップには生の $unit と kcal の値が表示されます。';
+  }
 
   @override
-  String get analyticsBodyNutritionNormalizedHint =>
-      'グラフは、同じスペースに収まるように体重とカロリーをスケールします。ツールチップには生の kg と kcal の値が表示されます。';
+  String analyticsBodyNutritionNormalizedHint(Object unit) {
+    return 'グラフは、同じスペースに収まるように体重とカロリーをスケールします。ツールチップには生の $unit と kcal の値が表示されます。';
+  }
 
   @override
-  String get analyticsBodyNutritionTotalWeightLabel => '総重量(kg)';
+  String analyticsBodyNutritionTotalWeightLabel(Object unit) {
+    return '総重量($unit)';
+  }
 
   @override
   String get analyticsBodyNutritionTotalCaloriesLabel => '総カロリー（kcal）';
 
   @override
-  String get analyticsWeightTrendLabel => '重量(kg)';
+  String analyticsWeightTrendLabel(String unit) {
+    return '重量($unit)';
+  }
 
   @override
   String get analyticsCaloriesTrendLabel => 'カロリー(kcal)';
@@ -3402,6 +3521,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingRestoreFailed => 'インポートに失敗しました。ファイルを確認して再試行してください。';
+
+  @override
+  String get onboardingRestoreFromICloud => 'iCloudから復元';
+
+  @override
+  String get onboardingRestoreICloudSuccess => 'iCloudバックアップが正常に復元されました。';
+
+  @override
+  String get onboardingRestoreICloudFailed =>
+      'iCloudの復元に失敗しました。接続を確認して再試行してください。';
 
   @override
   String get finishWorkoutTitleLabel => 'ワークアウトのタイトル';
@@ -3522,7 +3651,8 @@ class AppLocalizationsJa extends AppLocalizations {
       '許可が付与されました。まだスリープが表示されない場合は、以下の手動インポートを実行します。';
 
   @override
-  String get sleepNoPermissionTitle => '許可がありません';
+  String get sleepDataStatusSubtitleIos =>
+      '接続はアクティブです。データが見つからない場合（インポートされたセッションが 0 の場合）、Apple Health アプリで手動で読み取り権限を確認してください。';
 
   @override
   String get sleepNoPermissionSubtitle => '睡眠データをインポートするには、睡眠と心拍数の権限が必要です。';
@@ -3889,8 +4019,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adaptiveGoalGain => '体重が増える';
 
   @override
-  String adaptiveRatePerWeek(String value) {
-    return '$value kg/週';
+  String adaptiveRatePerWeek(String value, Object unit) {
+    return '$value $unit/週';
   }
 
   @override
@@ -4193,6 +4323,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'データ品質';
 
   @override
+  String get adaptiveRecommendationEnergyDensityLabel => '実効エネルギー密度';
+
+  @override
+  String adaptiveRecommendationEnergyDensityValue(int value) {
+    return '$value kcal/kg';
+  }
+
+  @override
+  String get adaptiveRecommendationEnergyDensityExplanation =>
+      '体重と水分損失の比率に基づく動的な値です';
+
+  @override
   String get adaptiveRecommendationRecalculateNowAction => '今すぐ再計算してください';
 
   @override
@@ -4277,6 +4419,12 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settingsShowSugarInDiaryOverviewSubtitle =>
       '上部の毎日の概要セクションに砂糖が表示されます';
+
+  @override
+  String get settingsOverviewExtraNutrientTitle => '概要の追加栄養素';
+
+  @override
+  String get settingsOverviewExtraNutrientSubtitle => '毎日の概要に3つ目の栄養素を追加';
 
   @override
   String get settingsSectionHealthTracking => '健康状態と追跡';
@@ -4701,11 +4849,34 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get welcome_privacy_body =>
-      'Train Libre を使用すると、当社のプライバシー ポリシーと法的通知に記載されているとおりにデータが処理されることに同意したものとみなされます。';
+      'ワークアウトの記録や分析機能を提供するために、当社のプライバシーポリシーに記載されているとおり、お客様のフィットネスおよびアクティビティデータを処理します。';
 
   @override
   String get i_agree_to_privacy_policy =>
-      '私はプライバシー ポリシーに記載されているとおりに自分の健康データを処理することを読み、これに同意します。';
+      'ワークアウトの記録および分析のために、私のフィットネスおよび健康データが処理されることに明示的に同意します。同意は設定からいつでも撤回できます。';
+
+  @override
+  String get i_agree_to_optional_telemetry =>
+      '(任意) アプリの安定性と機能向上のため、匿用の利用統計を共有します（個人データは送信されません）。';
+
+  @override
+  String get welcome_back_updated_legal_title => 'おかえりなさい & 利用規約改定のお知らせ';
+
+  @override
+  String legal_update_body(String version) {
+    return 'プライバシーポリシーおよび利用規約を更新しました（バージョン $version）。Train Libre を引き続き利用するには、新しい利用規約に同意してください。既存のデータはデバイス内にそのまま保存されます。';
+  }
+
+  @override
+  String i_agree_to_updated_privacy_policy(String version) {
+    return '更新されたプライバシーポリシー（v$version）およびフィットネス・健康データの処理に同意します。';
+  }
+
+  @override
+  String get accept_and_continue => '同意して続ける';
+
+  @override
+  String get by_tapping_accept_continue => '「同意して続ける」をタップすることで、更新された';
 
   @override
   String get acceptTermsPrompt => '利用規約に同意します';
@@ -4715,6 +4886,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get accept_and_get_started => '同意して始めましょう';
+
+  @override
+  String get by_tapping_accept => '「同意して始めましょう」をタップすると、当社の';
+
+  @override
+  String get and_acknowledge => 'に同意し、';
 
   @override
   String get about_section => 'について';
@@ -4749,7 +4926,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get muscleChest => '胸';
 
   @override
-  String get muscleBack => '戻る';
+  String get muscleBack => '背中';
 
   @override
   String get muscleShoulders => '肩';
@@ -4767,13 +4944,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get muscleHamstrings => 'ハムストリングス';
 
   @override
-  String get muscleGlutes => '大臀筋';
+  String get muscleLegs => '脚';
 
   @override
-  String get muscleCalves => '子牛';
+  String get muscleArms => '腕';
 
   @override
-  String get muscleLowerBack => '腰部';
+  String get muscleGlutes => '臀部';
+
+  @override
+  String get muscleCalves => 'ふくらはぎ';
+
+  @override
+  String get muscleLowerBack => '腰';
 
   @override
   String get muscleAbs => '腹筋';
@@ -5290,4 +5473,110 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get onboardingRegionSettingsHint =>
       'これは後でいつでも「設定 → 栄養 → データベース地域」で変更できます。';
+
+  @override
+  String get clearSearch => '検索をクリア';
+
+  @override
+  String rollingDaysLabel(int days) {
+    return '過去 $days 日間（ローリング）';
+  }
+
+  @override
+  String get muscleTraps => '僧帽筋';
+
+  @override
+  String get muscleObliques => '腹斜筋';
+
+  @override
+  String get icloudSyncErrorTitle => 'iCloud同期エラー';
+
+  @override
+  String get icloudSyncErrorHelp =>
+      'iOSの「設定」->「[名前]」->「iCloud」->「iCloud Drive」でiCloud Driveが有効になっていることを確認してください。';
+
+  @override
+  String get icloudSyncErrorCopyLog => '技術エラーログをコピー';
+
+  @override
+  String get icloudSyncErrorClose => '閉じる';
+
+  @override
+  String get icloudSyncErrorCopied => 'エラーログをクリップボードにコピーしました！';
+
+  @override
+  String icloudLastSynced(String date) {
+    return '最終同期：$date';
+  }
+
+  @override
+  String get icloudNeverSynced => '未同期';
+
+  @override
+  String get emptyStateDiaryColdStartTitle => '日記へようこそ！';
+
+  @override
+  String get emptyStateDiaryColdStartSubtitle => 'ここで栄養と水分の摂取を記録しましょう。';
+
+  @override
+  String get emptyStateActiveGapOverlay => 'この期間に利用可能なデータはありません';
+
+  @override
+  String get emptyStateDiaryColdStartCallToAction => '最初の記録をここに追加しましょう';
+
+  @override
+  String get statisticsColdStartTitle => '分析へようこそ！';
+
+  @override
+  String get statisticsColdStartSubtitle =>
+      '最初のワークアウトや食事を記録するか、歩数や睡眠を追跡すると、進行状況がここに視覚化されます。';
+
+  @override
+  String get statisticsActiveGapTitle => 'データがありません';
+
+  @override
+  String get reviewPromptTitle => 'Train Libreを気に入っていただけましたか？';
+
+  @override
+  String get reviewPromptSubtitle => 'フィードバックは広告やトラッカーなしでのアプリ改善に役立ちます。';
+
+  @override
+  String get reviewPromptYes => 'はい、気に入っています';
+
+  @override
+  String get reviewPromptNo => 'いいえ、あまり';
+
+  @override
+  String get reviewPromptLater => '後で通知';
+
+  @override
+  String get updateAvailableTitle => 'アップデート利用可能';
+
+  @override
+  String get statusReady => '準備完了';
+
+  @override
+  String get statusRequired => '必須';
+
+  @override
+  String get updatesAvailableBody => 'ローカルカタログの新しいアップデートが利用可能です。今すぐアップデートしますか？';
+
+  @override
+  String get exerciseCatalogWger => 'エクササイズカタログ (wger)';
+
+  @override
+  String get nutritionCatalogOff => '栄養カタログ (OFF)';
+
+  @override
+  String get workoutImportZeroNew => '0件の新しいワークアウトがインポートされました（すべて既に存在しています）。';
+
+  @override
+  String get telemetryDeleteDialogTitle => 'テレメトリデータを削除しますか？';
+
+  @override
+  String get telemetryDeleteDialogBody =>
+      '過去のテレメトリデータを本当に削除しますか？\n\n以下の処理が行われます：\n• このデバイスに保存されているすべてのデバイスUUID、セッションID、ローカルカウンターがリセットされます。\n• EUのPostHogサーバーに削除リクエスト（\$delete_person）が送信され、そこからデータが削除されます。\n• テレメトリSDKが完全にリセットされます。';
+
+  @override
+  String get telemetryDeleteConfirmButton => '今すぐデータを削除';
 }

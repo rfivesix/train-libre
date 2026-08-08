@@ -11,7 +11,7 @@ void main() {
   });
 
   group('ImportManager decodeAndGroupWorkouts tests', () {
-    test('CSV parsing with standard English headers and metrics', () {
+    test('CSV parsing with standard English headers and metrics', () async {
       final csvString =
           'title,start_time,end_time,exercise,set_type,weight,reps,distance,duration,rpe,set_notes\n'
           'Upper Body Workout,2026-05-20 10:00:00,2026-05-20 11:30:00,Bench Press,normal,100,5,,,9,Felt strong\n'
@@ -24,12 +24,13 @@ void main() {
         isImperial: false,
       );
 
-      final result = ImportManager.decodeAndGroupWorkouts(params);
+      final result = await ImportManager.decodeAndGroupWorkouts(params);
 
       expect(result.length, 2);
 
       // Verify first workout (Upper Body Workout)
-      final workout1 = result.firstWhere((w) => w.title == 'Upper Body Workout');
+      final workout1 =
+          result.firstWhere((w) => w.title == 'Upper Body Workout');
       expect(workout1.notes, isNull);
       expect(workout1.startTime, DateTime(2026, 5, 20, 10, 0, 0));
       expect(workout1.endTime, DateTime(2026, 5, 20, 11, 30, 0));
@@ -65,9 +66,8 @@ void main() {
       expect(cardioSet.rpe, 8);
     });
 
-    test('CSV parsing with German headers and set-type abbreviations', () {
-      final csvString =
-          'übung,typ,gewicht,wiederholungen,notiz,datum,name\n'
+    test('CSV parsing with German headers and set-type abbreviations', () async {
+      final csvString = 'übung,typ,gewicht,wiederholungen,notiz,datum,name\n'
           'Kniebeugen,w,120,5,Erster Satz,23.05.2026 15:30,Leg Day\n'
           'Kniebeugen,f,150,3,Failure set,23.05.2026 15:30,Leg Day\n'
           'Kreuzheben,d,100,8,Drop set,23.05.2026 15:30,Leg Day\n';
@@ -78,7 +78,7 @@ void main() {
         isImperial: false,
       );
 
-      final result = ImportManager.decodeAndGroupWorkouts(params);
+      final result = await ImportManager.decodeAndGroupWorkouts(params);
 
       expect(result.length, 1);
       final workout = result.first;
@@ -104,9 +104,8 @@ void main() {
       expect(workout.sets[2].reps, 8);
     });
 
-    test('CSV parsing with imperial flag converts lbs to kg', () {
-      final csvString =
-          'workout,start,exercise,mass,reps\n'
+    test('CSV parsing with imperial flag converts lbs to kg', () async {
+      final csvString = 'workout,start,exercise,mass,reps\n'
           'Chest Day,2026-05-22 18:00,Incline Press,220.46,8\n';
 
       final params = ImportBackgroundTaskParams(
@@ -115,7 +114,7 @@ void main() {
         isImperial: true, // triggers conversion
       );
 
-      final result = ImportManager.decodeAndGroupWorkouts(params);
+      final result = await ImportManager.decodeAndGroupWorkouts(params);
 
       expect(result.length, 1);
       final set = result.first.sets.first;
@@ -124,9 +123,12 @@ void main() {
       expect(set.weightKg, closeTo(100.0, 0.1));
     });
 
-    test('Date parsing handles various formats cleanly', () {
+    test('Date parsing handles various formats cleanly', () async {
       final formats = [
         '20 May 2026, 14:35',
+        '25 Juli 2026, 14:21',
+        '25 July 2026, 14:21',
+        '25. Juli 2026, 14:21',
         '2026-05-20 14:35:10',
         '2026-05-20 14:35',
         '20.05.2026, 14:35',
@@ -136,8 +138,7 @@ void main() {
       ];
 
       for (final rawDate in formats) {
-        final csvString =
-            'title,start_time,exercise,weight,reps\n'
+        final csvString = 'title,start_time,exercise,weight,reps\n'
             'Test Date,"$rawDate",Curls,20,10\n';
 
         final params = ImportBackgroundTaskParams(
@@ -146,19 +147,44 @@ void main() {
           isImperial: false,
         );
 
-        final result = ImportManager.decodeAndGroupWorkouts(params);
-        expect(result.length, 1, reason: 'Failed parsing date string: $rawDate');
+        final result = await ImportManager.decodeAndGroupWorkouts(params);
+        expect(result.length, 1,
+            reason: 'Failed parsing date string: $rawDate');
         expect(result.first.startTime.year, 2026);
-        expect(result.first.startTime.month, 5);
-        expect(result.first.startTime.day, 20);
-        expect(result.first.startTime.hour, 14);
-        expect(result.first.startTime.minute, 35);
+        expect(result.first.startTime.hour, rawDate.contains('14:21') ? 14 : 14);
+        expect(result.first.startTime.minute, rawDate.contains('14:21') ? 21 : 35);
       }
     });
 
-    test('Missing date fallback returns current date', () {
+    test('CSV parsing with Hevy German format ("25 Juli 2026, 14:21")', () async {
       final csvString =
-          'title,start_time,exercise,weight,reps\n'
+          '"title","start_time","end_time","description","exercise_title","superset_id","exercise_notes","set_index","set_type","weight_kg","reps","distance_km","duration_seconds","rpe"\n'
+          '"Beine","25 Juli 2026, 14:21","25 Juli 2026, 16:27","","Hackenschmidt Squat (Maschine)",,"Die schwere Variante",0,"warmup",20,10,,,\n'
+          '"Beine","25 Juli 2026, 14:21","25 Juli 2026, 16:27","","Hackenschmidt Squat (Maschine)",,"Die schwere Variante",1,"normal",80,6,,,\n';
+
+      final params = ImportBackgroundTaskParams(
+        fileBytes: Uint8List.fromList(utf8.encode(csvString)),
+        extension: 'csv',
+        isImperial: false,
+      );
+
+      final result = await ImportManager.decodeAndGroupWorkouts(params);
+
+      expect(result.length, 1);
+      final workout = result.first;
+      expect(workout.title, 'Beine');
+      expect(workout.startTime, DateTime(2026, 7, 25, 14, 21));
+      expect(workout.endTime, DateTime(2026, 7, 25, 16, 27));
+      expect(workout.sets.length, 2);
+      expect(workout.sets[0].exerciseName, 'Hackenschmidt Squat (Maschine)');
+      expect(workout.sets[0].setType, 'warmup');
+      expect(workout.sets[0].weightKg, 20.0);
+      expect(workout.sets[0].reps, 10);
+      expect(workout.sets[0].notes, 'Die schwere Variante');
+    });
+
+    test('Missing date fallback returns current date', () async {
+      final csvString = 'title,start_time,exercise,weight,reps\n'
           'Test Date,,Curls,20,10\n';
 
       final params = ImportBackgroundTaskParams(
@@ -167,38 +193,39 @@ void main() {
         isImperial: false,
       );
 
-      final result = ImportManager.decodeAndGroupWorkouts(params);
+      final result = await ImportManager.decodeAndGroupWorkouts(params);
       expect(result.length, 0); // start_time is required in CSV row grouping!
     });
 
-    test('Handles malformed file extensions or data errors gracefully', () {
+    test('Handles malformed file extensions or data errors gracefully', () async {
       final params = ImportBackgroundTaskParams(
         fileBytes: Uint8List.fromList(utf8.encode('random,garbage,data')),
         extension: 'unsupported',
         isImperial: false,
       );
 
-      final result = ImportManager.decodeAndGroupWorkouts(params);
+      final result = await ImportManager.decodeAndGroupWorkouts(params);
       expect(result, isEmpty);
     });
 
-    test('Handles empty and minimal CSV inputs without crashing', () {
+    test('Handles empty and minimal CSV inputs without crashing', () async {
       final paramsEmpty = ImportBackgroundTaskParams(
         fileBytes: Uint8List.fromList([]),
         extension: 'csv',
         isImperial: false,
       );
 
-      final result1 = ImportManager.decodeAndGroupWorkouts(paramsEmpty);
+      final result1 = await ImportManager.decodeAndGroupWorkouts(paramsEmpty);
       expect(result1, isEmpty);
 
       final paramsHeaderOnly = ImportBackgroundTaskParams(
-        fileBytes: Uint8List.fromList(utf8.encode('title,start_time,exercise\n')),
+        fileBytes:
+            Uint8List.fromList(utf8.encode('title,start_time,exercise\n')),
         extension: 'csv',
         isImperial: false,
       );
 
-      final result2 = ImportManager.decodeAndGroupWorkouts(paramsHeaderOnly);
+      final result2 = await ImportManager.decodeAndGroupWorkouts(paramsHeaderOnly);
       expect(result2, isEmpty);
     });
   });

@@ -3,6 +3,7 @@ import '../features/diary/data/sources/product_local_data_source.dart';
 import '../features/statistics/data/body_nutrition_analytics_data_adapter.dart';
 import '../features/statistics/domain/body_nutrition_analytics_engine.dart';
 import '../features/statistics/domain/body_nutrition_analytics_models.dart';
+import '../features/statistics/domain/timeframe_block.dart';
 import 'perf_debug_timer.dart';
 
 export '../features/statistics/domain/body_nutrition_analytics_models.dart';
@@ -18,7 +19,9 @@ class BodyNutritionAnalyticsUtils {
       BodyNutritionAnalyticsDataAdapter.daysFromRangeIndex(index);
 
   static Future<BodyNutritionAnalyticsResult> build({
-    required int rangeIndex,
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
+    bool isRolling = false,
   }) async {
     return PerfDebugTimer.time(
       area: 'statistics',
@@ -28,7 +31,10 @@ class BodyNutritionAnalyticsUtils {
           databaseHelper: DatabaseHelper.instance,
           productDatabaseHelper: ProductLocalDataSource.instance,
         );
-        final raw = await adapter.fetch(rangeIndex: rangeIndex);
+        final raw = await adapter.fetch(
+            selectedBlockType: selectedBlockType,
+            anchorDate: anchorDate,
+            isRolling: isRolling);
         return BodyNutritionAnalyticsEngine.build(
           range: raw.range,
           weightPoints: raw.weightPoints,

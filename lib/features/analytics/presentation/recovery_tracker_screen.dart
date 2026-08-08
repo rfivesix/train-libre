@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -15,9 +16,13 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_section_header.dart';
 import 'widgets/analytics_chart_defaults.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
+import '../../../widgets/common/dual_body_highlighter.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class RecoveryTrackerScreen extends StatefulWidget {
   const RecoveryTrackerScreen({super.key});
@@ -27,7 +32,7 @@ class RecoveryTrackerScreen extends StatefulWidget {
 }
 
 class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
-
+  static const Duration _expandDuration = Duration(milliseconds: 280);
 
   final ScrollController _scrollController = ScrollController();
   final Map<String, GlobalKey> _muscleKeys = {};
@@ -52,6 +57,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.recoveryTracker));
     _loadRecovery();
   }
 
@@ -166,31 +173,79 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   }) {
     final color = _stateColor(context, state);
     final percent = total > 0 ? (count / total * 100).round() : 0;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
+    // Blend: card surface + color tint as a single background
+    final surfaceBase = isDark
+        ? DesignConstants.summaryCardSecondaryDarkMode
+        : DesignConstants.summaryCardSecondaryLightMode;
+
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingS),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _stateLabel(l10n, state),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '$count · $percent%',
-              style: Theme.of(context).textTheme.bodySmall,
+          borderRadius: radius,
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 9,
+              offset: const Offset(0, 3),
+              color: theme.colorScheme.shadow
+                  .withValues(alpha: isDark ? 0.2 : 0.08),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
+              vertical: DesignConstants.spacingM,
+            ),
+            decoration: BoxDecoration(
+              color: surfaceBase,
+              borderRadius: radius,
+              border: Border.all(
+                color: color.withValues(alpha: isDark ? 0.35 : 0.25),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '$count',
+                    maxLines: 1,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _stateLabel(l10n, state),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$percent%',
+                  maxLines: 1,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -233,41 +288,66 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     return tracked < trackedFromStates ? trackedFromStates : tracked;
   }
 
+  Future<void> _scrollToMuscle(String muscleGroup) async {
+    final index =
+        _recovery.muscles.indexWhere((m) => m.muscleGroup == muscleGroup);
+    if (index < 0) return;
+    final muscle = _recovery.muscles[index];
 
-
-  void _scrollToMuscle(String muscleGroup) {
-    final muscle = _recovery.muscles.firstWhere(
-      (m) => m.muscleGroup == muscleGroup,
-      orElse: () => _recovery.muscles.first,
-    );
-
+    var didExpand = false;
     setState(() {
-      if (muscle.state == RecoveryDomainService.stateRecovering) {
+      if (muscle.state == RecoveryDomainService.stateRecovering &&
+          !_isRecoveringExpanded) {
         _isRecoveringExpanded = true;
-      } else if (muscle.state == RecoveryDomainService.stateReady) {
+        didExpand = true;
+      } else if (muscle.state == RecoveryDomainService.stateReady &&
+          !_isReadyExpanded) {
         _isReadyExpanded = true;
-      } else if (muscle.state == RecoveryDomainService.stateFresh) {
+        didExpand = true;
+      } else if (muscle.state == RecoveryDomainService.stateFresh &&
+          !_isFreshExpanded) {
         _isFreshExpanded = true;
+        didExpand = true;
       }
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final key = _muscleKeys[muscleGroup];
-      if (key != null && key.currentContext != null) {
-        Scrollable.ensureVisible(
-          key.currentContext!,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          alignment: 0.1,
-        );
-      }
-    });
+    // Wait until the expand animation settled, otherwise the target position is
+    // measured against a layout that is still growing.
+    if (didExpand) {
+      await Future<void>.delayed(
+          _expandDuration + const Duration(milliseconds: 32));
+    } else {
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted || !_scrollController.hasClients) return;
+
+    final renderObject =
+        _muscleKeys[muscleGroup]?.currentContext?.findRenderObject();
+    if (renderObject == null || !renderObject.attached) return;
+
+    // The body extends behind the app bar, so the first visually usable pixel
+    // sits below status bar + toolbar.
+    final topInset = MediaQuery.of(context).padding.top +
+        kToolbarHeight +
+        DesignConstants.spacingM;
+
+    final viewport = RenderAbstractViewport.of(renderObject);
+    final revealOffset = viewport.getOffsetToReveal(renderObject, 0.0).offset;
+
+    final position = _scrollController.position;
+    final target = (revealOffset - topInset)
+        .clamp(position.minScrollExtent, position.maxScrollExtent);
+
+    await _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   Widget _buildBodyView(
     BuildContext context,
     List<RecoveryMusclePayload> muscles,
-    BodySide side,
   ) {
     final List<BodyPartHighlightData> highlights = [];
 
@@ -286,15 +366,14 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
       }
     }
 
-    final filteredHighlights = BodySlugMapper.forSide(highlights, side);
-
-    return BodyHighlighter(
+    return DualBodyHighlighter(
       gender: context.watch<ProfileService>().gender.toBodyGender(),
-      side: side,
-      highlightedParts: filteredHighlights,
+      frontHighlights: BodySlugMapper.forSide(highlights, BodySide.front),
+      backHighlights: BodySlugMapper.forSide(highlights, BodySide.back),
+      height: 320,
       onBodyPartTap: (slug, data) {
         if (data.payload is String) {
-          _scrollToMuscle(data.payload as String);
+          unawaited(_scrollToMuscle(data.payload as String));
         }
       },
     );
@@ -335,7 +414,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingXS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: DesignConstants.spacingXS),
               decoration: BoxDecoration(
                 color: stateColor.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(999),
@@ -448,6 +528,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
       child: SummaryCard(
+        padding: EdgeInsets.zero,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -457,8 +538,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   BorderRadius.circular(DesignConstants.borderRadiusM),
               child: Container(
                 constraints: const BoxConstraints(minHeight: 56.0),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL, vertical: DesignConstants.spacingM),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingL,
+                    vertical: DesignConstants.spacingM),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -504,7 +586,9 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                       ],
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(top: DesignConstants.spacingS, left: DesignConstants.spacingXL),
+                      padding: const EdgeInsets.only(
+                          top: DesignConstants.spacingS,
+                          left: DesignConstants.spacingXL),
                       child: Wrap(
                         spacing: 6.0,
                         runSpacing: 4.0,
@@ -513,7 +597,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                               StatisticsPresentationFormatter.muscleGroupLabel(
                                   l10n, m.muscleGroup);
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: color.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(6),
@@ -541,9 +626,10 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                 ),
               ),
             ),
-            AnimatedCrossFade(
-              firstChild: const SizedBox.shrink(),
-              secondChild: Padding(
+            _ExpandReveal(
+              isExpanded: isExpanded,
+              duration: _expandDuration,
+              child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Column(
                   children: [
@@ -569,10 +655,6 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   ],
                 ),
               ),
-              crossFadeState: isExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 250),
             ),
           ],
         ),
@@ -632,237 +714,269 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
           ),
         ],
       ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                controller: _scrollController,
-                padding: DesignConstants.screenPadding.copyWith(
-                  top: DesignConstants.screenPadding.top + topPadding,
-                  bottom: DesignConstants.bottomContentSpacer,
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: !_recovery.hasData,
+        extendBodyBehindAppBar: true,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          padding: DesignConstants.screenPadding.copyWith(
+            top: DesignConstants.screenPadding.top + topPadding,
+            bottom: DesignConstants.bottomContentSpacer,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppSectionHeader(
+                title: l10n.metricsMuscleReadiness,
+                padding: const EdgeInsets.only(
+                    left: DesignConstants.spacingXS, bottom: 6),
+              ),
+              Text(
+                _overallLabel(l10n, _recovery.overallState),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: _overallStateColor(
+                        context,
+                        _recovery.overallState,
+                      ),
+                    ),
+              ),
+              if (hasData && tracked > 0) ...[
+                const SizedBox(height: DesignConstants.spacingL),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: SizedBox(
+                    height: 8,
+                    child: Row(
+                      children: [
+                        if (recovering > 0)
+                          Expanded(
+                            flex: recovering,
+                            child: ColoredBox(
+                              color: _stateColor(
+                                context,
+                                RecoveryDomainService.stateRecovering,
+                              ),
+                            ),
+                          ),
+                        if (ready > 0)
+                          Expanded(
+                            flex: ready,
+                            child: ColoredBox(
+                              color: _stateColor(
+                                context,
+                                RecoveryDomainService.stateReady,
+                              ),
+                            ),
+                          ),
+                        if (fresh > 0)
+                          Expanded(
+                            flex: fresh,
+                            child: ColoredBox(
+                              color: _stateColor(
+                                context,
+                                RecoveryDomainService.stateFresh,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 10),
+                Row(
                   children: [
-                    AppSectionHeader(
-                      title: l10n.metricsMuscleReadiness,
-                      padding: const EdgeInsets.only(left: DesignConstants.spacingXS, bottom: 6),
+                    _buildReadinessPill(
+                      context,
+                      l10n,
+                      state: RecoveryDomainService.stateRecovering,
+                      count: recovering,
+                      total: tracked,
                     ),
-                    SummaryCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(14.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _overallLabel(l10n, _recovery.overallState),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: _overallStateColor(
-                                      context,
-                                      _recovery.overallState,
-                                    ),
-                                  ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              hasData
-                                  ? l10n.recoveryHubCountsSummary(
-                                      recovering,
-                                      ready,
-                                      fresh,
-                                    )
-                                  : l10n.recoveryHubNoDataSummary,
-                            ),
-                            if (hasData && tracked > 0) ...[
-                              const SizedBox(height: DesignConstants.spacingM),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(999),
-                                child: SizedBox(
-                                  height: 8,
-                                  child: Row(
-                                    children: [
-                                      if (recovering > 0)
-                                        Expanded(
-                                          flex: recovering,
-                                          child: ColoredBox(
-                                            color: _stateColor(
-                                              context,
-                                              RecoveryDomainService
-                                                  .stateRecovering,
-                                            ),
-                                          ),
-                                        ),
-                                      if (ready > 0)
-                                        Expanded(
-                                          flex: ready,
-                                          child: ColoredBox(
-                                            color: _stateColor(
-                                              context,
-                                              RecoveryDomainService.stateReady,
-                                            ),
-                                          ),
-                                        ),
-                                      if (fresh > 0)
-                                        Expanded(
-                                          flex: fresh,
-                                          child: ColoredBox(
-                                            color: _stateColor(
-                                              context,
-                                              RecoveryDomainService.stateFresh,
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  _buildReadinessPill(
-                                    context,
-                                    l10n,
-                                    state:
-                                        RecoveryDomainService.stateRecovering,
-                                    count: recovering,
-                                    total: tracked,
-                                  ),
-                                  const SizedBox(width: DesignConstants.spacingS),
-                                  _buildReadinessPill(
-                                    context,
-                                    l10n,
-                                    state: RecoveryDomainService.stateReady,
-                                    count: ready,
-                                    total: tracked,
-                                  ),
-                                  const SizedBox(width: DesignConstants.spacingS),
-                                  _buildReadinessPill(
-                                    context,
-                                    l10n,
-                                    state: RecoveryDomainService.stateFresh,
-                                    count: fresh,
-                                    total: tracked,
-                                  ),
-                                ],
-                              ),
-                            ],
-                            const SizedBox(height: DesignConstants.spacingS),
-                            Text(
-                              l10n.recoveryHeuristicDisclaimer,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    _buildReadinessPill(
+                      context,
+                      l10n,
+                      state: RecoveryDomainService.stateReady,
+                      count: ready,
+                      total: tracked,
                     ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    AppSectionHeader(
-                      title: l10n.analyticsRecentDistributionHeatmap,
-                      padding: const EdgeInsets.only(left: DesignConstants.spacingXS, bottom: 6),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    _buildReadinessPill(
+                      context,
+                      l10n,
+                      state: RecoveryDomainService.stateFresh,
+                      count: fresh,
+                      total: tracked,
                     ),
-                    SummaryCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(DesignConstants.spacingM),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (!hasData)
-                              AnalyticsChartDefaults.stateView(
-                                context: context,
-                                l10n: l10n,
-                                status: AnalyticsStatus.empty,
-                                emptyLabel: l10n.recoveryNoDataBody,
-                              )
-                            else
-                              RepaintBoundary(
-                                child: SizedBox(
-                                  height: 320,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: _buildBodyView(
-                                          context,
-                                          visibleMuscles,
-                                          BodySide.front,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: _buildBodyView(
-                                          context,
-                                          visibleMuscles,
-                                          BodySide.back,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    AppSectionHeader(
-                      title: l10n.recoveryByMuscleTitle,
-                      padding: const EdgeInsets.only(left: DesignConstants.spacingXS, bottom: 6),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    if (!hasData)
-                      SummaryCard(
-                        child: Padding(
-                          padding: const EdgeInsets.all(14.0),
-                          child: Text(l10n.recoveryNoDataBody),
-                        ),
-                      )
-                    else ...[
-                      _buildZoneCard(
-                        context,
-                        l10n,
-                        title: l10n.recoveryStateRecovering,
-                        muscles: recoveringMuscles,
-                        color: _stateColor(
-                            context, RecoveryDomainService.stateRecovering),
-                        isExpanded: _isRecoveringExpanded,
-                        onToggle: (val) =>
-                            setState(() => _isRecoveringExpanded = val),
-                      ),
-                      _buildZoneCard(
-                        context,
-                        l10n,
-                        title: l10n.localeName.startsWith('de')
-                            ? 'Gemischt / Bereit'
-                            : 'Mixed / Ready',
-                        muscles: readyMuscles,
-                        color: _stateColor(
-                            context, RecoveryDomainService.stateReady),
-                        isExpanded: _isReadyExpanded,
-                        onToggle: (val) =>
-                            setState(() => _isReadyExpanded = val),
-                      ),
-                      _buildZoneCard(
-                        context,
-                        l10n,
-                        title: l10n.recoveryStateFresh,
-                        muscles: freshMuscles,
-                        color: _stateColor(
-                            context, RecoveryDomainService.stateFresh),
-                        isExpanded: _isFreshExpanded,
-                        onToggle: (val) =>
-                            setState(() => _isFreshExpanded = val),
-                      ),
-                    ]
                   ],
                 ),
+              ],
+              const SizedBox(height: DesignConstants.spacingS),
+              Text(
+                l10n.recoveryHeuristicDisclaimer,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
               ),
-      );
+              const SizedBox(height: DesignConstants.spacingM),
+              AppSectionHeader(
+                title: l10n.analyticsRecentDistributionHeatmap,
+                padding: const EdgeInsets.only(
+                    left: DesignConstants.spacingXS, bottom: 6),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!hasData)
+                    AnalyticsChartDefaults.stateView(
+                      context: context,
+                      l10n: l10n,
+                      status: AnalyticsStatus.empty,
+                      emptyLabel: l10n.recoveryNoDataBody,
+                    )
+                  else
+                    RepaintBoundary(
+                      child: _buildBodyView(
+                        context,
+                        visibleMuscles,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: DesignConstants.spacingM),
+              AppSectionHeader(
+                title: l10n.recoveryByMuscleTitle,
+                padding: const EdgeInsets.only(
+                    left: DesignConstants.spacingXS, bottom: 6),
+              ),
+              const SizedBox(height: DesignConstants.spacingS),
+              if (!hasData)
+                Padding(
+                  padding: const EdgeInsets.only(top: DesignConstants.spacingS),
+                  child: Text(l10n.recoveryNoDataBody),
+                )
+              else ...[
+                _buildZoneCard(
+                  context,
+                  l10n,
+                  title: l10n.recoveryStateRecovering,
+                  muscles: recoveringMuscles,
+                  color: _stateColor(
+                      context, RecoveryDomainService.stateRecovering),
+                  isExpanded: _isRecoveringExpanded,
+                  onToggle: (val) =>
+                      setState(() => _isRecoveringExpanded = val),
+                ),
+                _buildZoneCard(
+                  context,
+                  l10n,
+                  title: l10n.localeName.startsWith('de')
+                      ? 'Gemischt / Bereit'
+                      : 'Mixed / Ready',
+                  muscles: readyMuscles,
+                  color: _stateColor(context, RecoveryDomainService.stateReady),
+                  isExpanded: _isReadyExpanded,
+                  onToggle: (val) => setState(() => _isReadyExpanded = val),
+                ),
+                _buildZoneCard(
+                  context,
+                  l10n,
+                  title: l10n.recoveryStateFresh,
+                  muscles: freshMuscles,
+                  color: _stateColor(context, RecoveryDomainService.stateFresh),
+                  isExpanded: _isFreshExpanded,
+                  onToggle: (val) => setState(() => _isFreshExpanded = val),
+                ),
+              ]
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Expand/collapse reveal that clips its child instead of resizing it.
+///
+/// The child keeps its natural layout for the whole animation, so text never
+/// reflows or collapses onto itself while the section closes.
+class _ExpandReveal extends StatefulWidget {
+  const _ExpandReveal({
+    required this.isExpanded,
+    required this.duration,
+    required this.child,
+  });
+
+  final bool isExpanded;
+  final Duration duration;
+  final Widget child;
+
+  @override
+  State<_ExpandReveal> createState() => _ExpandRevealState();
+}
+
+class _ExpandRevealState extends State<_ExpandReveal>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+    value: widget.isExpanded ? 1.0 : 0.0,
+  );
+
+  late final Animation<double> _reveal = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeOutCubic,
+    reverseCurve: Curves.easeInCubic,
+  );
+
+  // Fades in only after the section already opened a bit, and fades out during
+  // the first part of the collapse so the content is gone before it is clipped.
+  late final Animation<double> _fade = CurvedAnimation(
+    parent: _controller,
+    curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
+    reverseCurve: const Interval(0.55, 1.0, curve: Curves.easeIn),
+  );
+
+  @override
+  void didUpdateWidget(covariant _ExpandReveal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _controller.duration = widget.duration;
+    if (widget.isExpanded != oldWidget.isExpanded) {
+      if (widget.isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        final heightFactor = _reveal.value.clamp(0.0, 1.0);
+        if (heightFactor == 0.0) return const SizedBox.shrink();
+        return ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: heightFactor,
+            child: Opacity(
+              opacity: _fade.value.clamp(0.0, 1.0),
+              child: child,
+            ),
+          ),
+        );
+      },
+    );
   }
 }

@@ -14,10 +14,11 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/swipe_action_background.dart';
 import '../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-
+import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen that displays a list of all saved [Routine] templates.
 ///
@@ -35,10 +36,13 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   static const ShareService _shareService = ShareService();
   late final Stream<List<Routine>> _routinesStream;
   bool _initialRoutineOpened = false;
+  final Set<int> _dismissedRoutineIds = {};
 
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.routineList));
     _routinesStream = Provider.of<IWorkoutRepository>(context, listen: false)
         .watchAllRoutines();
   }
@@ -152,8 +156,12 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     );
 
     if (confirmed) {
-      await WorkoutLocalDataSource.instance.deleteRoutine(routine.id!);
+      _performDeleteRoutine(routine);
     }
+  }
+
+  void _performDeleteRoutine(Routine routine) async {
+    await WorkoutLocalDataSource.instance.deleteRoutine(routine.id!);
   }
 
   @override
@@ -174,26 +182,32 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          final routines = snapshot.data ?? [];
+          final routines = (snapshot.data ?? [])
+              .where((r) => !_dismissedRoutineIds.contains(r.id))
+              .toList();
 
           // If an initialRoutineId was passed, navigate there directly on first load.
           if (widget.initialRoutineId != null &&
               !_initialRoutineOpened &&
               routines.isNotEmpty) {
             _initialRoutineOpened = true;
-            try {
-              final routineToEdit = routines.firstWhere(
-                (r) => r.id == widget.initialRoutineId,
-              );
+            Routine? routineToEdit;
+            for (final r in routines) {
+              if (r.id == widget.initialRoutineId) {
+                routineToEdit = r;
+                break;
+              }
+            }
+            if (routineToEdit != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) =>
-                        EditRoutineScreen(routine: routineToEdit),
+                        EditRoutineScreen(routine: routineToEdit!),
                   ),
                 );
               });
-            } catch (_) {}
+            }
           }
 
           if (routines.isEmpty) {
@@ -210,32 +224,55 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 return _buildStartEmptyWorkoutCard(context, l10n);
               }
               final routine = routines[index - 1];
-              return Dismissible(
-                key: Key('routine_${routine.id}'),
-                direction: DismissDirection.endToStart,
-
-                // Same backgrounds as in Nutrition Screen
-                background: const SwipeActionBackground(
-                  color: Colors.redAccent,
-                  icon: LucideIcons.trash_2,
-                  alignment: Alignment.centerRight,
-                ),
-
-                confirmDismiss: (direction) async {
-                  return await showDeleteConfirmation(context);
+              return GlassActionableCard(
+                dismissibleKey: Key('routine_${routine.id}'),
+                onEdit: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => EditRoutineScreen(routine: routine),
+                    ),
+                  );
                 },
-
-                onDismissed: (direction) {
-                  if (direction == DismissDirection.endToStart) {
-                    _deleteRoutine(context, routine); // actually delete
-                  }
+                confirmDelete: () async {
+                  return await showDeleteConfirmation(
+                    context,
+                    content: l10n.deleteRoutineConfirmContent(routine.name),
+                  );
                 },
-
+                onDelete: () {
+                  setState(() {
+                    if (routine.id != null) {
+                      _dismissedRoutineIds.add(routine.id!);
+                    }
+                  });
+                  _performDeleteRoutine(routine);
+                },
+                additionalActions: [
+                  GlassContextAction(
+                    label: l10n.duplicate,
+                    icon: LucideIcons.copy,
+                    onTap: () => _duplicateRoutine(routine.id!),
+                  ),
+                  GlassContextAction(
+                    label: l10n.share,
+                    icon: DesignConstants.adaptiveShareIcon,
+                    onTap: () => _shareRoutine(routine),
+                  ),
+                ],
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => EditRoutineScreen(routine: routine),
+                    ),
+                  );
+                },
                 child: SummaryCard(
                   child: ListTile(
-                    leading: ElevatedButton(
+                    leading: AppButton.primary(
                       onPressed: () => _startWorkout(routine),
-                      child: Text(l10n.startButton),
+                      label: l10n.startButton,
+                      tooltip: l10n.startButton,
+                      size: AppButtonSize.small,
                     ),
                     title: Text(
                       routine.name,
@@ -265,7 +302,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                         PlatformAdaptivePopupMenuItem<String>(
                           value: 'share',
                           label: l10n.share,
-                          icon: LucideIcons.share_2,
+                          icon: DesignConstants.adaptiveShareIcon,
                         ),
                         PlatformAdaptivePopupMenuItem<String>(
                           value: 'delete',
@@ -275,14 +312,6 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                         ),
                       ],
                     ),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              EditRoutineScreen(routine: routine),
-                        ),
-                      );
-                    },
                   ),
                 ),
               );
@@ -325,65 +354,19 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     AppLocalizations l10n,
     TextTheme textTheme,
   ) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              LucideIcons.list_todo,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: DesignConstants.spacingL),
-            Text(
-              l10n.emptyRoutinesTitle,
-              style: textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(
-              l10n.emptyRoutinesSubtitle,
-              textAlign: TextAlign.center,
-              style: textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
+    final double topPadding =
+        MediaQuery.of(context).padding.top + kToolbarHeight;
 
-            // Existing button: create routine
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-              onPressed: _createNewRoutine,
-              icon: const Icon(LucideIcons.plus),
-              label: Text(
-                l10n.createFirstRoutineButton,
-                style: textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: DesignConstants.spacingM),
-
-            // New: start free workout (visible in empty state too)
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-              onPressed: _startEmptyWorkout,
-              icon: const Icon(LucideIcons.circle_play),
-              label: Text(l10n.startEmptyWorkoutButton),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: EdgeInsets.only(top: topPadding),
+      child: ColdStartEmptyState(
+        icon: LucideIcons.swatch_book,
+        title: l10n.emptyRoutinesTitle,
+        subtitle: l10n.emptyRoutinesSubtitle,
+        callToAction: l10n.addRoutineButton,
+        showArrow: true,
+        customEndXOffset: 110.0,
+        customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
       ),
     );
   }

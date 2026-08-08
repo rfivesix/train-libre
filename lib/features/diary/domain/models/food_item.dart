@@ -305,4 +305,45 @@ class FoodItem {
     final cleaned = code.trim().toLowerCase().replaceAll('_', '-');
     return cleaned.split('-').first;
   }
+
+  FoodItem copyWithNames({
+    String? nameDe,
+    String? nameEn,
+    String? nameFr,
+    String? nameIt,
+    String? nameJa,
+  }) {
+    return FoodItem(
+      id: id,
+      barcode: barcode,
+      name: name,
+      nameDe: nameDe ?? this.nameDe,
+      nameEn: nameEn ?? this.nameEn,
+      nameFr: nameFr ?? this.nameFr,
+      nameIt: nameIt ?? this.nameIt,
+      nameJa: nameJa ?? this.nameJa,
+      brand: brand,
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+      sugar: sugar,
+      fiber: fiber,
+      salt: salt,
+      kj: kj,
+      sodium: sodium,
+      calcium: calcium,
+      isLiquid: isLiquid,
+      isFluid: isFluid,
+      caffeineMgPer100ml: caffeineMgPer100ml,
+      caffeineMgPer100g: caffeineMgPer100g,
+      ingredientsText: ingredientsText,
+      ingredientsAnalysisTags: ingredientsAnalysisTags,
+      additivesTags: additivesTags,
+      productQuantity: productQuantity,
+      productQuantityUnit: productQuantityUnit,
+      source: source,
+      category: category,
+    );
+  }
 }

@@ -1,6 +1,7 @@
 // lib/screens/workout_summary_screen.dart
 
 import 'package:flutter/material.dart';
+import 'widgets/exercise_record_data.dart';
 import 'package:provider/provider.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
@@ -15,16 +16,22 @@ import '../domain/models/workout_log.dart';
 import 'edit_routine_screen.dart';
 import '../../../services/health/workout_heart_rate_models.dart';
 import '../../../services/health/workout_heart_rate_service.dart';
+import '../../pulse/application/pulse_tracking_service.dart';
 import '../../../services/unit_service.dart';
 import '../../../services/profile_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen providing a summary of a recently finished workout session.
 ///
@@ -52,17 +59,20 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   Map<String, _ExerciseSummaryData> _summaryPerExercise = {};
 
   /// Stores new records achieved in this session per exercise.
-  Map<String, List<_ExerciseRecordData>> _newRecordsPerExercise = {};
+  Map<String, List<ExerciseRecordData>> _newRecordsPerExercise = {};
 
   Map<String, Exercise> _exerciseDetails = {};
 
   bool _showSyncBanner = false;
   Routine? _associatedRoutine;
   bool _isSyncing = false;
+  bool _pulseTrackingEnabled = false;
 
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.workoutSummary));
     _loadWorkoutDetails();
   }
 
@@ -78,8 +88,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         startTime: data.startTime,
         endTime: data.endTime,
       );
+      final pulseTrackingFuture = PulseTrackingService().isTrackingEnabled();
       final Map<String, _ExerciseSummaryData> summaryMap = {};
-      final Map<String, List<_ExerciseRecordData>> newRecordsMap = {};
+      final Map<String, List<ExerciseRecordData>> newRecordsMap = {};
       final Map<String, Exercise> detailsMap = {};
 
       final groupedSets = <String, List<SetLog>>{};
@@ -102,18 +113,102 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         if (isCardio) {
           double totalDist = 0;
           int totalSeconds = 0;
+
+          double sessionMaxDist = 0;
+          int sessionMaxDur = 0;
+          double sessionFastestPace = double.infinity;
+
           for (var s in sets) {
             final dist = s.distanceKm ?? 0.0;
             final dur = s.durationSeconds ?? 0;
 
             totalDist += dist;
             totalSeconds += dur;
+
+            if (s.isCompleted == true) {
+              if (dist > sessionMaxDist) sessionMaxDist = dist;
+              if (dur > sessionMaxDur) sessionMaxDur = dur;
+              if (dist > 0 && dur > 0) {
+                final pace = dur / dist;
+                if (pace < sessionFastestPace) sessionFastestPace = pace;
+              }
+            }
           }
           final int minutes = (totalSeconds / 60).round();
           summaryMap[name] = _ExerciseSummaryData.cardio(
             distanceKm: totalDist,
             minutes: minutes,
           );
+
+          // Calculate PRs for cardio exercises
+          final historicalBests = await db.getExerciseBests(
+            name,
+            excludeWorkoutLogId: widget.logId,
+            isCardio: true,
+          );
+
+          List<ExerciseRecordData> records = [];
+          if (sessionMaxDist > (historicalBests['maxDistance'] ?? 0)) {
+            final double old = historicalBests['maxDistance'] ?? 0;
+            records.add(
+              ExerciseRecordData.cardio(
+                label: 'Best Distance', // Or localized label later
+                value:
+                    '${sessionMaxDist.toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km',
+                diff: old > 0
+                    ? '+${(sessionMaxDist - old).toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km'
+                    : null,
+              ),
+            );
+          }
+          if (sessionMaxDur > (historicalBests['maxDuration']?.toInt() ?? 0)) {
+            final int old = historicalBests['maxDuration']?.toInt() ?? 0;
+            final m = sessionMaxDur ~/ 60;
+            final s = sessionMaxDur % 60;
+
+            String? diffStr;
+            if (old > 0) {
+              final diff = sessionMaxDur - old;
+              final dm = diff ~/ 60;
+              final ds = diff % 60;
+              diffStr = '+${dm > 0 ? '${dm}m ' : ''}${ds}s';
+            }
+
+            records.add(
+              ExerciseRecordData.cardio(
+                label: 'Longest Duration',
+                value: '${m}m ${s}s',
+                diff: diffStr,
+              ),
+            );
+          }
+          if (sessionFastestPace != double.infinity) {
+            final oldFastest = historicalBests['fastestPace'] ?? 0.0;
+            if (oldFastest == 0.0 || sessionFastestPace < oldFastest) {
+              final pm = sessionFastestPace.toInt() ~/ 60;
+              final ps = sessionFastestPace.toInt() % 60;
+
+              String? diffStr;
+              if (oldFastest > 0) {
+                final diff = oldFastest - sessionFastestPace;
+                final dm = diff.toInt() ~/ 60;
+                final ds = diff.toInt() % 60;
+                diffStr = '-${dm > 0 ? '${dm}m ' : ''}${ds}s';
+              }
+
+              records.add(
+                ExerciseRecordData.cardio(
+                  label: 'Fastest Pace',
+                  value: '${pm}m ${ps}s / km',
+                  diff: diffStr,
+                ),
+              );
+            }
+          }
+
+          if (records.isNotEmpty) {
+            newRecordsMap[name] = records;
+          }
         } else {
           double totalVol = 0;
           double sessionMaxWeight = 0;
@@ -144,11 +239,11 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
             excludeWorkoutLogId: widget.logId,
           );
 
-          List<_ExerciseRecordData> records = [];
+          List<ExerciseRecordData> records = [];
           if (sessionMaxWeight > (historicalBests['maxWeight'] ?? 0)) {
             final double old = historicalBests['maxWeight'] ?? 0;
             records.add(
-              _ExerciseRecordData.weight(
+              ExerciseRecordData.weight(
                 label: l10n.exerciseMetricMaxWeight,
                 valueKg: sessionMaxWeight,
                 diffKg: old > 0 ? sessionMaxWeight - old : null,
@@ -158,7 +253,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           if (sessionMaxVolume > (historicalBests['maxVolume'] ?? 0)) {
             final double old = historicalBests['maxVolume'] ?? 0;
             records.add(
-              _ExerciseRecordData.weight(
+              ExerciseRecordData.weight(
                 label: l10n.exerciseMetricVolume,
                 valueKg: sessionMaxVolume,
                 diffKg: old > 0 ? sessionMaxVolume - old : null,
@@ -169,7 +264,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           if (sessionMaxEst1rm > (historicalBests['maxEst1rm'] ?? 0)) {
             final double old = historicalBests['maxEst1rm'] ?? 0;
             records.add(
-              _ExerciseRecordData.weight(
+              ExerciseRecordData.weight(
                 label: l10n.exerciseMetricEst1RM,
                 valueKg: sessionMaxEst1rm,
                 diffKg: old > 0 ? sessionMaxEst1rm - old : null,
@@ -196,6 +291,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
 
       final heartRate = await heartRateFuture;
+      final pulseTrackingEnabled = await pulseTrackingFuture;
 
       if (mounted) {
         setState(() {
@@ -204,6 +300,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           _newRecordsPerExercise = newRecordsMap;
           _exerciseDetails = detailsMap;
           _heartRateSummary = heartRate;
+          _pulseTrackingEnabled = pulseTrackingEnabled;
           _associatedRoutine = associatedRoutine;
           _showSyncBanner = showSyncBanner;
           _isLoading = false;
@@ -239,7 +336,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           if (!_isLoading && _log != null)
             IconButton(
               tooltip: l10n.share,
-              icon: const Icon(LucideIcons.share),
+              icon: Icon(DesignConstants.adaptiveShareIcon),
               onPressed: () => _shareService.showWorkoutShareSheet(
                 context: context,
                 workout: _log!,
@@ -268,6 +365,32 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               progress: null,
                             ),
                             const SizedBox(height: DesignConstants.spacingL),
+
+                            // Routine Title & Notes (Hero Section FIRST)
+                            if (_log!.routineName != null &&
+                                _log!.routineName!.isNotEmpty) ...[
+                              Text(
+                                _log!.routineName!,
+                                style: textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                              const SizedBox(height: DesignConstants.spacingXS),
+                            ],
+                            if (_log!.notes != null &&
+                                _log!.notes!.isNotEmpty) ...[
+                              Text(
+                                _log!.notes!,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                              const SizedBox(height: DesignConstants.spacingM),
+                            ],
+
                             if (_showSyncBanner &&
                                 _associatedRoutine != null) ...[
                               _buildSyncBanner(colorScheme, textTheme),
@@ -277,59 +400,34 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               _buildMuscleHeatmap(l10n),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
-                            if (_heartRateSummary != null) ...[
+                            if (_heartRateSummary != null &&
+                                (_pulseTrackingEnabled ||
+                                    _heartRateSummary!.hasData)) ...[
                               _buildHeartRateCard(l10n, _heartRateSummary!),
-                              const SizedBox(height: DesignConstants.spacingL),
-                            ],
-
-                            if (_log!.routineName != null &&
-                                _log!.routineName!.isNotEmpty) ...[
-                              Text(
-                                _log!.routineName!,
-                                style: textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: DesignConstants.spacingS),
-                            ],
-                            if (_log!.notes != null &&
-                                _log!.notes!.isNotEmpty) ...[
-                              Text(
-                                _log!.notes!,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontStyle: FontStyle.italic,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
 
                             // NEW RECORDS SECTION
                             if (_newRecordsPerExercise.isNotEmpty) ...[
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    l10n.workoutSummaryNewRecordsTitle,
-                                    style: textTheme.titleMedium?.copyWith(
-                                      color: Colors.amber[800],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  AlgorithmInfoButton(
-                                    title: "Estimated 1-Rep Max Heuristic (Epley Equation)",
-                                    explanation: "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
-                                    keyPoints: const [
-                                      "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
-                                      "Estimates are sports-science heuristics designed for healthy individuals.",
-                                      "Provides a safe way to track strength progression without testing true failure.",
-                                    ],
-                                    technicalTitle: "Epley Equation Details",
-                                    technicalExplanation: "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
-                                    citationUrl: "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
-                                  ),
-                                ],
+                              AppSectionHeader(
+                                title: l10n.workoutSummaryNewRecordsTitle,
+                                padding: EdgeInsets.zero,
+                                action: AlgorithmInfoButton(
+                                  title:
+                                      "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                                  explanation:
+                                      "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                                  keyPoints: const [
+                                    "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
+                                    "Estimates are sports-science heuristics designed for healthy individuals.",
+                                    "Provides a safe way to track strength progression without testing true failure.",
+                                  ],
+                                  technicalTitle: "Epley Equation Details",
+                                  technicalExplanation:
+                                      "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                                  citationUrl:
+                                      "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                                ),
                               ),
                               const SizedBox(height: DesignConstants.spacingS),
                               ..._newRecordsPerExercise.entries.map((entry) {
@@ -340,7 +438,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                       color: Colors.amber,
                                     ),
                                     title: Text(
-                                      entry.key,
+                                      _exerciseDetails[entry.key]
+                                              ?.getLocalizedName(context) ??
+                                          entry.key,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -359,16 +459,18 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                               const SizedBox(height: DesignConstants.spacingL),
                             ],
 
-                            Text(
-                              l10n.workoutSummaryExerciseOverview,
-                              style: textTheme.titleMedium,
+                            AppSectionHeader(
+                              title: l10n.workoutSummaryExerciseOverview,
+                              padding: EdgeInsets.zero,
                             ),
                             const SizedBox(height: DesignConstants.spacingS),
                             ..._summaryPerExercise.entries.map((entry) {
                               return SummaryCard(
                                 child: ListTile(
                                   title: Text(
-                                    entry.key,
+                                    _exerciseDetails[entry.key]
+                                            ?.getLocalizedName(context) ??
+                                        entry.key,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -388,22 +490,12 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       // Fertig-Button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
-                            backgroundColor: colorScheme.primary,
-                            foregroundColor: colorScheme.onPrimary,
-                          ),
+                        child: AppButton.primary(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: Text(
-                            l10n.doneButtonLabel,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          label: l10n.doneButtonLabel,
+                          tooltip: l10n.doneButtonLabel,
                         ),
                       ),
                     ],
@@ -472,7 +564,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
   Widget _buildMetricTile({required String label, required String value}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 10, vertical: DesignConstants.spacingS),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
@@ -513,6 +606,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     final muscleCounts = <BodyPartSlug, int>{};
 
     for (final ex in _exerciseDetails.values) {
+      if (ex.isCardio) continue;
       final exerciseSlugs = <BodyPartSlug>{};
       for (final name in ex.primaryMuscles) {
         exerciseSlugs.addAll(BodySlugMapper.fromRawName(name));
@@ -528,47 +622,20 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       muscleCounts.map((k, v) => MapEntry(k, v.toDouble())),
     );
 
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingM),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.analyticsRecentDistributionHeatmap,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: DesignConstants.spacingM),
-            SizedBox(
-              height: 180,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: BodyHighlighter(
-                      gender:
-                          context.watch<ProfileService>().gender.toBodyGender(),
-                      side: BodySide.front,
-                      highlightedParts:
-                          BodySlugMapper.forSide(highlights, BodySide.front),
-                    ),
-                  ),
-                  Expanded(
-                    child: BodyHighlighter(
-                      gender:
-                          context.watch<ProfileService>().gender.toBodyGender(),
-                      side: BodySide.back,
-                      highlightedParts:
-                          BodySlugMapper.forSide(highlights, BodySide.back),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppSectionHeader(
+          title: l10n.analyticsRecentDistributionHeatmap,
+          padding: EdgeInsets.zero,
         ),
-      ),
+        const SizedBox(height: DesignConstants.spacingM),
+        DualBodyHighlighter(
+          gender: context.watch<ProfileService>().gender.toBodyGender(),
+          frontHighlights: BodySlugMapper.forSide(highlights, BodySide.front),
+          backHighlights: BodySlugMapper.forSide(highlights, BodySide.back),
+        ),
+      ],
     );
   }
 
@@ -596,15 +663,19 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     WorkoutLog log,
     Map<String, Exercise> exerciseDetails,
   ) {
-    final workingSets = log.sets
-        .where(
-            (s) => s.isCompleted == true && s.setType.toLowerCase() != 'warmup')
-        .toList();
-
+    final logExCounts = <String, int>{};
     final logExNames = <String>[];
-    for (final s in workingSets) {
-      if (!logExNames.contains(s.exerciseName)) {
-        logExNames.add(s.exerciseName);
+
+    for (final s in log.sets) {
+      if (s.isCompleted == true && s.setType.toLowerCase() != 'warmup') {
+        final name = s.exerciseName;
+        final currentCount = logExCounts[name];
+        if (currentCount != null) {
+          logExCounts[name] = currentCount + 1;
+        } else {
+          logExNames.add(name);
+          logExCounts[name] = 1;
+        }
       }
     }
 
@@ -626,9 +697,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         return true;
       }
 
-      final logSetsForEx =
-          workingSets.where((s) => s.exerciseName == logName).toList();
-      if (routineEx.setTemplates.length != logSetsForEx.length) {
+      if (routineEx.setTemplates.length != logExCounts[logName]) {
         return true;
       }
     }
@@ -728,29 +797,10 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                     child: Text(l10n.discard),
                   ),
                   const SizedBox(width: DesignConstants.spacingS),
-                  FilledButton.icon(
+                  AppButton.primary(
                     onPressed: _isSyncing ? null : _syncRoutine,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
-                        vertical: 10,
-                      ),
-                    ),
-                    icon: _isSyncing
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
-                            ),
-                          )
-                        : const Icon(LucideIcons.check, size: 18),
-                    label: Text(l10n.updateNow),
+                    label: l10n.updateNow,
+                    tooltip: l10n.updateNow,
                   ),
                 ],
               ),
@@ -865,30 +915,5 @@ class _ExerciseSummaryData {
       UnitDimension.weight,
     );
     return '${volume.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)}';
-  }
-}
-
-class _ExerciseRecordData {
-  final String label;
-  final double valueKg;
-  final double? diffKg;
-  final int fractionDigits;
-
-  const _ExerciseRecordData.weight({
-    required this.label,
-    required this.valueKg,
-    this.diffKg,
-    this.fractionDigits = 1,
-  });
-
-  String format(UnitService unitService) {
-    final value = unitService.convertDisplayValue(
-      valueKg,
-      UnitDimension.weight,
-    );
-    final diffText = diffKg == null
-        ? ''
-        : ' (+${unitService.convertDisplayValue(diffKg!, UnitDimension.weight).toStringAsFixed(fractionDigits).replaceAll('.0', '')})';
-    return '$label (${value.toStringAsFixed(fractionDigits).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}$diffText)';
   }
 }

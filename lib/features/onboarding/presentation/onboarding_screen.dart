@@ -1,10 +1,13 @@
 // lib/screens/onboarding_screen.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
 
+
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
+import '../../../main.dart' as app_main;
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../data/database_helper.dart';
@@ -26,15 +29,32 @@ import '../../settings/presentation/pulse_settings_screen.dart';
 import '../../settings/presentation/sleep_settings_screen.dart';
 import '../../settings/presentation/steps_settings_screen.dart';
 import 'widgets/welcome_slide.dart';
+import 'widgets/unit_system_slide.dart';
 import 'widgets/profile_slide.dart';
 import 'widgets/adaptive_goal_slide.dart';
 import 'widgets/region_selection_slide.dart';
 import '../../../services/off_catalog_country_service.dart';
 import '../../../config/app_data_sources.dart';
+import '../../../core/infrastructure/icloud_sync_service.dart';
 import 'dart:io';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
+import '../../../widgets/common/long_running_operation_overlay.dart';
+import '../../../util/permission_dialogs.dart';
+import '../../../services/health/health_platform_steps.dart';
+import '../../pulse/application/pulse_tracking_service.dart';
+import '../../sleep/platform/permissions/sleep_permission_controller.dart';
+import '../../sleep/platform/permissions/healthkit_sleep_permissions_service.dart';
+import '../../sleep/platform/permissions/health_connect_sleep_permissions_service.dart';
+import '../../sleep/platform/sleep_platform_channel.dart';
+import '../../health_export/export_service.dart';
+import '../../health_export/adapters/apple_health/apple_health_export_adapter.dart';
+import '../../health_export/adapters/health_connect/health_connect_export_adapter.dart';
+import '../../health_export/models/export_models.dart';
+import 'package:uuid/uuid.dart';
+import '../../../services/telemetry/telemetry_service.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -43,11 +63,13 @@ import '../../../widgets/common/algorithm_info_sheet.dart';
 class OnboardingScreen extends StatefulWidget {
   final AdaptiveNutritionRecommendationService? recommendationService;
   final DatabaseHelper? databaseHelper;
+  final bool forceImportMode;
 
   const OnboardingScreen({
     super.key,
     this.recommendationService,
     this.databaseHelper,
+    this.forceImportMode = false,
   });
 
   @override
@@ -55,12 +77,17 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const int _regionSelectionPageIndex = 1;
-  static const int _profilePageIndex = 2;
-  static const int _measurementsPageIndex = 3;
-  static const int _adaptiveGoalPageIndex = 4;
-  static const int _pageCount = 7;
+  static const int _unitSystemPageIndex = 1;
+  static const int _regionSelectionPageIndex = 2;
+  static const int _profilePageIndex = 3;
+  static const int _measurementsPageIndex = 4;
+  static const int _adaptiveGoalPageIndex = 5;
+  static const int _pageCount = 8;
   static const int _lastPageIndex = _pageCount - 1;
+
+  bool _isImportedMode = false;
+  bool _requiresHardRestart = false;
+  bool _hasICloudBackup = false;
 
   String? _heightError;
   String? _dobError;
@@ -73,19 +100,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   String? _lastWarnedHeightValue;
   String? _lastWarnedWeightValue;
 
+  final String _onboardingSessionId = const Uuid().v4();
+  final Stopwatch _stepStopwatch = Stopwatch()..start();
+  final Stopwatch _totalStopwatch = Stopwatch()..start();
+  bool _onboardingCompletedSuccessfully = false;
+
+  static const List<String> _stepNames = [
+    'welcome',
+    'unit_system',
+    'region_selection',
+    'profile_basics',
+    'body_measurements',
+    'adaptive_goals',
+    'permissions_consent',
+    'completion',
+  ];
+
   OffCatalogCountry _selectedOffCountry = OffCatalogCountry.de;
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool _isRestoring = false;
   bool _isGeneratingOnboardingRecommendation = false;
+  bool _isCheckingDatabase = false;
   Future<void>? _onboardingRecommendationFuture;
+
 
   late final AdaptiveNutritionRecommendationService _recommendationService;
   late final DatabaseHelper _databaseHelper;
   BodyweightGoal _selectedGoal = BodyweightGoal.maintainWeight;
-  double _selectedTargetRateKgPerWeek = WeeklyTargetRateCatalog.defaultForGoal(
-    BodyweightGoal.maintainWeight,
-  ).kgPerWeek;
+  double _selectedTargetRateKgPerWeek = 0.0;
   NutritionRecommendation? _onboardingRecommendation;
 
   // --- CONTROLLER ---
@@ -121,11 +164,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
+    _isImportedMode = widget.forceImportMode;
     _databaseHelper = widget.databaseHelper ?? DatabaseHelper.instance;
     _recommendationService = widget.recommendationService ??
         AdaptiveNutritionRecommendationService(databaseHelper: _databaseHelper);
     _loadAdaptiveGoalSettings();
     _initSelectedCountry();
+
+    if (_isImportedMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pageController.jumpToPage(_unitSystemPageIndex);
+      });
+    }
+
+    // Silently check if an iCloud backup is available for restore on iOS.
+    if (Platform.isIOS || Platform.isMacOS) {
+      ICloudSyncService.instance.hasICloudBackup().then((found) {
+        if (mounted) setState(() => _hasICloudBackup = found);
+      });
+    }
 
     _heightController.addListener(() {
       if (_heightError != null || _heightWarning != null) {
@@ -185,6 +242,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   void dispose() {
+    if (!_onboardingCompletedSuccessfully) {
+      TelemetryService.instance.trackOnboardingAbandoned(
+        lastStepIndex: _currentPage,
+        lastStepName: _stepNames[_currentPage.clamp(0, _stepNames.length - 1)],
+        sessionId: _onboardingSessionId,
+      );
+    }
     _pageController.dispose();
     _nameController.dispose();
     _heightController.dispose();
@@ -197,6 +261,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _waterController.dispose();
     super.dispose();
   }
+
 
   // --- LOGIC ---
 
@@ -217,6 +282,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       _selectedTargetRateKgPerWeek = WeeklyTargetRateCatalog.coerceTargetRate(
         goal: goal,
         kgPerWeek: rate,
+        unitService: context.read<UnitService>(),
       );
       _selectedPriorActivityLevel = priorActivityLevel;
       _selectedExtraCardioHoursOption = extraCardioHoursOption;
@@ -327,6 +393,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final db = _databaseHelper;
     final prefs = await SharedPreferences.getInstance();
     final unitService = _unitService;
+
+    // Explicitly persist selected unit system to SharedPreferences and Database
+    await unitService.setUnitSystem(unitService.unitSystem);
 
     final int calories = int.tryParse(_calController.text) ?? 2500;
     final int protein = int.tryParse(_protController.text) ?? 180;
@@ -439,14 +508,92 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool('hasSeenOnboarding', true);
     await AppTourService.instance.queuePostOnboardingOffer();
 
+    _onboardingCompletedSuccessfully = true;
+    unawaited(TelemetryService.instance.trackOnboardingCompleted(
+      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+      restoredFromBackup: _isImportedMode,
+      sessionId: _onboardingSessionId,
+    ));
+
     if (!mounted) return;
+
+
+    if (_requiresHardRestart) {
+      app_main.main();
+      return;
+    }
+
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const MainScreen()),
       (route) => false,
     );
   }
 
-  /// Lets the user pick a backup JSON file and import it, skipping onboarding.
+  /// Downloads the iCloud backup and replaces the local database, then
+  /// navigates directly to [MainScreen] (skipping the rest of onboarding).
+  Future<void> _restoreFromICloud() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    setState(() => _isRestoring = true);
+
+    bool success = false;
+    try {
+      success = await LongRunningOperationOverlay.run(
+        context: context,
+        title: l10n.onboardingRestoreFromICloud,
+        initialStatus: 'Downloading backup...',
+        icon: LucideIcons.cloud_download,
+        operation: (token, updateProgress) async {
+          final res = await ICloudSyncService.instance.downloadAndRestore(
+            onProgress: (progress) {
+              final normProgress = progress > 1.0 ? progress / 100.0 : progress;
+              final percent = (normProgress * 100).toStringAsFixed(0);
+              updateProgress('Downloading... $percent%', normProgress);
+            },
+          );
+          if (!res) throw Exception('Restore failed');
+        },
+      );
+    } catch (e) {
+      success = false;
+    }
+
+    if (!mounted) return;
+    setState(() => _isRestoring = false);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.onboardingRestoreICloudSuccess)),
+      );
+
+      // Close old connection so SQLite releases the file lock
+      DatabaseHelper.driftDb?.close();
+
+      await context.read<UnitService>().reload();
+      await _loadAdaptiveGoalSettings();
+
+      if (!mounted) return;
+      setState(() {
+        _isImportedMode = true;
+        _requiresHardRestart = true;
+      });
+
+      _pageController.animateToPage(
+        _unitSystemPageIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.onboardingRestoreICloudFailed),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
+  /// Picks a JSON backup file and imports it, skipping onboarding.
   Future<void> _restoreFromBackup() async {
     final l10n = AppLocalizations.of(context)!;
 
@@ -469,16 +616,57 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _isRestoring = true);
     final filePath = result.files.single.path!;
 
-    bool success = await BackupManager.instance.importFullBackupAuto(filePath);
+    bool success = false;
+    try {
+      if (!mounted) return;
+      success = await LongRunningOperationOverlay.run(
+        context: context,
+        title: l10n.backupImportTitle,
+        initialStatus: l10n.backupImportTitle,
+        icon: LucideIcons.download,
+        operation: (token, updateProgress) async {
+          final res = await BackupManager.instance.importFullBackupAuto(
+            filePath,
+            token: token,
+            onProgress: (tableName, progress) {
+              final statusText = l10n.progressImportingTable(tableName);
+              updateProgress(statusText, progress);
+            },
+          );
+          if (!res) throw Exception('Import failed');
+        },
+      );
+    } catch (e) {
+      success = false;
+    }
 
     // If plain import failed, the file might be encrypted — ask for password.
     if (!success && mounted) {
       final pw = await _askRestorePassword(l10n);
       if (pw != null) {
-        success = await BackupManager.instance.importFullBackupAuto(
-          filePath,
-          passphrase: pw,
-        );
+        try {
+          if (!mounted) return;
+          success = await LongRunningOperationOverlay.run(
+            context: context,
+            title: l10n.backupImportTitle,
+            initialStatus: 'Decrypting...',
+            icon: LucideIcons.download,
+            operation: (token, updateProgress) async {
+              final res = await BackupManager.instance.importFullBackupAuto(
+                filePath,
+                passphrase: pw,
+                token: token,
+                onProgress: (tableName, progress) {
+                  final statusText = l10n.progressImportingTable(tableName);
+                  updateProgress(statusText, progress);
+                },
+              );
+              if (!res) throw Exception('Import failed');
+            },
+          );
+        } catch (e) {
+          success = false;
+        }
       }
     }
 
@@ -486,17 +674,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _isRestoring = false);
 
     if (success) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('hasSeenOnboarding', true);
-      await AppTourService.instance.queuePostOnboardingOffer();
-
       if (!mounted) return;
+      await context.read<UnitService>().reload();
+      await _loadAdaptiveGoalSettings();
+      if (!mounted) return;
+      setState(() {
+        _isImportedMode = true;
+        _requiresHardRestart = true;
+      });
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.onboardingRestoreSuccess)));
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-        (route) => false,
+      _pageController.animateToPage(
+        _unitSystemPageIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -526,17 +718,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () => Navigator.of(ctx).pop(null),
-                  child: Text(l10n.cancel),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
+                child: AppButton.primary(
                   onPressed: () =>
                       Navigator.of(ctx).pop(controller.text.trim()),
-                  child: Text(l10n.onboardingNext),
+                  label: l10n.onboardingNext,
+                  tooltip: l10n.onboardingNext,
                 ),
               ),
             ],
@@ -553,102 +747,119 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (mounted) {
         final isTesting = Platform.environment.containsKey('FLUTTER_TEST');
         if (!isTesting) {
-          await BasisDataManager.instance
-              .promptOffDatabaseDownloadIfFirstTime(context);
+          setState(() => _isCheckingDatabase = true);
+          try {
+            await BasisDataManager.instance
+                .promptOffDatabaseDownloadIfFirstTime(context);
+          } finally {
+            if (mounted) {
+              setState(() => _isCheckingDatabase = false);
+            }
+          }
         }
+      }
+      if (_isImportedMode) {
+        _pageController.animateToPage(
+          _lastPageIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+        return;
       }
     }
 
-    if (_currentPage == _profilePageIndex) {
-      if (_nameController.text.trim().isEmpty) return;
+    if (!_isImportedMode) {
+      if (_currentPage == _profilePageIndex) {
+        if (_nameController.text.trim().isEmpty) return;
 
-      bool hasProfileErrors = false;
-      _dobError = null;
-      _genderError = null;
-      _heightError = null;
+        bool hasProfileErrors = false;
+        _dobError = null;
+        _genderError = null;
+        _heightError = null;
 
-      if (_selectedDate == null) {
-        _dobError = l10n.onboardingFieldCannotBeEmpty;
-        hasProfileErrors = true;
-      }
-      if (_selectedGender == null) {
-        _genderError = l10n.onboardingFieldCannotBeEmpty;
-        hasProfileErrors = true;
-      }
-      if (_heightController.text.trim().isEmpty) {
-        _heightError = l10n.onboardingFieldCannotBeEmpty;
-        hasProfileErrors = true;
-        _heightWarning = null;
-        _lastWarnedHeightValue = null;
-      }
+        if (_selectedDate == null) {
+          _dobError = l10n.onboardingFieldCannotBeEmpty;
+          hasProfileErrors = true;
+        }
+        if (_selectedGender == null) {
+          _genderError = l10n.onboardingFieldCannotBeEmpty;
+          hasProfileErrors = true;
+        }
+        if (_heightController.text.trim().isEmpty) {
+          _heightError = l10n.onboardingFieldCannotBeEmpty;
+          hasProfileErrors = true;
+          _heightWarning = null;
+          _lastWarnedHeightValue = null;
+        }
 
-      if (hasProfileErrors) {
-        setState(() {});
-        return;
-      }
+        if (hasProfileErrors) {
+          setState(() {});
+          return;
+        }
 
-      final heightInput =
-          double.tryParse(_heightController.text.replaceAll(',', '.'));
-      if (heightInput != null) {
-        final heightCm =
-            _unitService.convertToMetric(heightInput, UnitDimension.height);
-        if (heightCm < 100 || heightCm > 250) {
-          if (_lastWarnedHeightValue != _heightController.text) {
-            setState(() {
-              _heightWarning = l10n.onboardingPhysiologicalRangeWarning;
-              _lastWarnedHeightValue = _heightController.text;
-            });
-            return;
+        final heightInput =
+            double.tryParse(_heightController.text.replaceAll(',', '.'));
+        if (heightInput != null) {
+          final heightCm =
+              _unitService.convertToMetric(heightInput, UnitDimension.height);
+          if (heightCm < 100 || heightCm > 250) {
+            if (_lastWarnedHeightValue != _heightController.text) {
+              setState(() {
+                _heightWarning = l10n.onboardingPhysiologicalRangeWarning;
+                _lastWarnedHeightValue = _heightController.text;
+              });
+              return;
+            }
+          } else {
+            _heightWarning = null;
+            _lastWarnedHeightValue = null;
           }
         } else {
           _heightWarning = null;
           _lastWarnedHeightValue = null;
         }
-      } else {
-        _heightWarning = null;
-        _lastWarnedHeightValue = null;
-      }
-    }
-
-    if (_currentPage == _measurementsPageIndex) {
-      final weightText = _weightController.text.trim();
-      if (weightText.isEmpty) {
-        setState(() {
-          _weightError = l10n.onboardingFieldCannotBeEmpty;
-          _weightWarning = null;
-          _lastWarnedWeightValue = null;
-        });
-        return;
-      } else {
-        _weightError = null;
       }
 
-      final weightInput = double.tryParse(weightText.replaceAll(',', '.'));
-      if (weightInput != null) {
-        final weightKg =
-            _unitService.convertToMetric(weightInput, UnitDimension.weight);
-        if (weightKg < 35 || weightKg > 250) {
-          if (_lastWarnedWeightValue != _weightController.text) {
-            setState(() {
-              _weightWarning = l10n.onboardingPhysiologicalRangeWarning;
-              _lastWarnedWeightValue = _weightController.text;
-            });
-            return;
+      if (_currentPage == _measurementsPageIndex) {
+        final weightText = _weightController.text.trim();
+        if (weightText.isEmpty) {
+          setState(() {
+            _weightError = l10n.onboardingFieldCannotBeEmpty;
+            _weightWarning = null;
+            _lastWarnedWeightValue = null;
+          });
+          return;
+        } else {
+          _weightError = null;
+        }
+
+        final weightInput = double.tryParse(weightText.replaceAll(',', '.'));
+        if (weightInput != null) {
+          final weightKg =
+              _unitService.convertToMetric(weightInput, UnitDimension.weight);
+          if (weightKg < 35 || weightKg > 250) {
+            if (_lastWarnedWeightValue != _weightController.text) {
+              setState(() {
+                _weightWarning = l10n.onboardingPhysiologicalRangeWarning;
+                _lastWarnedWeightValue = _weightController.text;
+              });
+              return;
+            }
+          } else {
+            _weightWarning = null;
+            _lastWarnedWeightValue = null;
           }
         } else {
           _weightWarning = null;
           _lastWarnedWeightValue = null;
         }
-      } else {
-        _weightWarning = null;
-        _lastWarnedWeightValue = null;
       }
-    }
 
-    if (_currentPage == _adaptiveGoalPageIndex) {
-      // Ensure we have a recommendation and apply it automatically.
-      await _refreshOnboardingRecommendationPreview();
-      _applyOnboardingRecommendationToGoals();
+      if (_currentPage == _adaptiveGoalPageIndex) {
+        // Ensure we have a recommendation and apply it automatically.
+        await _refreshOnboardingRecommendationPreview();
+        _applyOnboardingRecommendationToGoals();
+      }
     }
 
     if (_currentPage < _lastPageIndex) {
@@ -658,11 +869,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      _finishOnboarding();
+      if (_isImportedMode) {
+        await _runAutomatedPermissionSequence();
+      } else {
+        await _finishOnboarding();
+      }
     }
   }
 
   void _prevPage() {
+    if (_isImportedMode && _currentPage == _lastPageIndex) {
+      _pageController.animateToPage(
+        _regionSelectionPageIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      return;
+    }
     if (_currentPage > 0) {
       _pageController.animateToPage(
         _currentPage - 1,
@@ -672,39 +895,173 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  Future<void> _runAutomatedPermissionSequence() async {
+    final l10n = AppLocalizations.of(context)!;
+    final prefs = await SharedPreferences.getInstance();
+
+    if (!mounted) return;
+
+    // 1. Apple Health / Health Connect Export
+    final appleExportEnabled =
+        prefs.getBool('health_export_apple_enabled') ?? false;
+    final googleExportEnabled =
+        prefs.getBool('health_export_health_connect_enabled') ?? false;
+    if (appleExportEnabled || googleExportEnabled) {
+      final title = Platform.isIOS
+          ? l10n.healthExportAppleHealthTitle
+          : l10n.healthExportHealthConnectTitle;
+      final body = Platform.isIOS
+          ? l10n.healthExportAppleHealthSubtitle
+          : l10n.healthExportHealthConnectSubtitle;
+      final confirmed = await showPrePermissionDialog(
+        context: context,
+        title: title,
+        body: body,
+        continueLabel: l10n.health_permission_continue,
+        cancelLabel: l10n.health_permission_not_now,
+      );
+      if (confirmed && mounted) {
+        final service = HealthExportService(adapters: [
+          AppleHealthExportAdapter(),
+          HealthConnectExportAdapter()
+        ]);
+        await service.requestPermissions(Platform.isIOS
+            ? HealthExportPlatform.appleHealth
+            : HealthExportPlatform.healthConnect);
+      }
+    }
+
+    if (!mounted) return;
+
+    // 2. Steps Tracking
+    final stepsEnabled = prefs.getBool('steps_tracking_enabled') ?? false;
+    if (stepsEnabled) {
+      final confirmed = await showPrePermissionDialog(
+        context: context,
+        title: l10n.health_permission_dialog_title,
+        body: l10n.health_permission_dialog_body,
+        continueLabel: l10n.health_permission_continue,
+        cancelLabel: l10n.health_permission_not_now,
+      );
+      if (confirmed && mounted) {
+        const platform = HealthPlatformSteps();
+        await platform.requestPermissions();
+      }
+    }
+
+    if (!mounted) return;
+
+    // 3. Pulse Tracking
+    final pulseEnabled = prefs.getBool('pulse_tracking_enabled') ?? false;
+    if (pulseEnabled) {
+      final confirmed = await showPrePermissionDialog(
+        context: context,
+        title: l10n.pulseSettingsPermissionTitle,
+        body: l10n.pulseSettingsPermissionSubtitle,
+        continueLabel: l10n.health_permission_continue,
+        cancelLabel: l10n.health_permission_not_now,
+      );
+      if (confirmed && mounted) {
+        final service = PulseTrackingService();
+        await service.requestPermissions();
+      }
+    }
+
+    if (!mounted) return;
+
+    // 4. Sleep Tracking
+    final sleepEnabled = prefs.getBool('sleep_tracking_enabled') ?? false;
+    if (sleepEnabled) {
+      final controller = SleepPermissionController(Platform.isIOS
+          ? const HealthKitSleepPermissionsService(
+              HealthKitSleepMethodChannelBridge())
+          : const HealthConnectSleepPermissionsService(
+              HealthConnectSleepMethodChannelBridge()));
+      await controller.requestAccess(context);
+    }
+
+    if (!mounted) return;
+
+    await prefs.setBool('hasSeenOnboarding', true);
+    await AppTourService.instance.queuePostOnboardingOffer();
+
+    _onboardingCompletedSuccessfully = true;
+    unawaited(TelemetryService.instance.trackOnboardingCompleted(
+      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+      restoredFromBackup: _isImportedMode,
+      sessionId: _onboardingSessionId,
+    ));
+
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            LinearProgressIndicator(
-              value: (_currentPage + 1) / _pageCount,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                theme.colorScheme.primary,
+    return PopScope(
+      canPop: _currentPage == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentPage > 0) {
+          _prevPage();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              LinearProgressIndicator(
+                value: (_currentPage + 1) / _pageCount,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
+                minHeight: 4,
               ),
-              minHeight: 4,
-            ),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (i) {
-                  setState(() => _currentPage = i);
-                  if (i == _adaptiveGoalPageIndex) {
-                    _refreshOnboardingRecommendationPreview();
-                  }
-                },
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (i) {
+                    final durationSec = _stepStopwatch.elapsed.inSeconds;
+                    _stepStopwatch.reset();
+                    _stepStopwatch.start();
+
+                    TelemetryService.instance.trackOnboardingStep(
+                      stepIndex: i,
+                      stepName: _stepNames[i.clamp(0, _stepNames.length - 1)],
+                      durationSeconds: durationSec,
+                      sessionId: _onboardingSessionId,
+                    );
+
+                    setState(() => _currentPage = i);
+                    if (i == _adaptiveGoalPageIndex) {
+                      _refreshOnboardingRecommendationPreview();
+                    }
+                  },
+
                 children: [
                   WelcomeSlide(
                     isRestoring: _isRestoring,
                     onContinue: _nextPage,
                     onRestore: _restoreFromBackup,
+                    onRestoreICloud: _restoreFromICloud,
+                    hasICloudBackup: _hasICloudBackup,
+                  ),
+                  UnitSystemSlide(
+                    selectedSystem: _unitService.unitSystem,
+                    onSelectSystem: (system) async {
+                      await context.read<UnitService>().setUnitSystem(system);
+                      setState(() {});
+                    },
                   ),
                   RegionSelectionSlide(
                     selectedCountry: _selectedOffCountry,
@@ -761,7 +1118,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       setState(() {
                         _selectedGoal = goal;
                         _selectedTargetRateKgPerWeek =
-                            WeeklyTargetRateCatalog.defaultForGoal(goal)
+                            WeeklyTargetRateCatalog.defaultForGoal(
+                                    goal, _unitService)
                                 .kgPerWeek;
                       });
                       _refreshOnboardingRecommendationPreview();
@@ -808,40 +1166,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Row(
                   children: [
                     IconButton.filledTonal(
-                      onPressed: _prevPage,
+                      onPressed: _isCheckingDatabase ? null : _prevPage,
                       icon: const Icon(LucideIcons.arrow_left),
                     ),
                     const Spacer(),
-                    ElevatedButton(
+                    AppButton.primary(
                       key: const Key('onboarding_bottom_next_button'),
-                      onPressed: _isGeneratingOnboardingRecommendation
+                      onPressed: _isGeneratingOnboardingRecommendation || _isCheckingDatabase
                           ? null
                           : _nextPage,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesignConstants.spacingXXL,
-                          vertical: DesignConstants.spacingL,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: _isGeneratingOnboardingRecommendation &&
-                              _currentPage == _adaptiveGoalPageIndex
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              _currentPage == _lastPageIndex
-                                  ? l10n.onboardingFinish.toUpperCase()
-                                  : l10n.onboardingNext.toUpperCase(),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                      label: _currentPage == _lastPageIndex
+                          ? l10n.onboardingFinish.toUpperCase()
+                          : l10n.onboardingNext.toUpperCase(),
+                      tooltip: _currentPage == _lastPageIndex
+                          ? l10n.onboardingFinish.toUpperCase()
+                          : l10n.onboardingNext.toUpperCase(),
+                      isLoading: (_isGeneratingOnboardingRecommendation &&
+                              _currentPage == _adaptiveGoalPageIndex) ||
+                          _isCheckingDatabase,
                     ),
                   ],
                 ),
@@ -849,8 +1191,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Future<void> _openBodyFatHelperEntryPoint() async {
     await showBodyFatGuidanceSheet(context);

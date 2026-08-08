@@ -60,7 +60,6 @@ class _GlassFabState extends State<GlassFab>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasLabel = widget.label != null;
-    final Color neutralTint = DesignConstants.glassNeutralTint(isDark);
 
     final iconAndText = Padding(
       padding: hasLabel
@@ -90,67 +89,30 @@ class _GlassFabState extends State<GlassFab>
       ),
     );
 
-    final double effectiveRadius = hasLabel ? 37.0 : 999.0;
-    final Widget content = Stack(
-      children: [
-        Positioned.fill(
-          child: ClipPath(
-            clipper: ShadowOuterClipper(
-              borderRadius: effectiveRadius,
-              isOval: !hasLabel,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(effectiveRadius),
-                boxShadow: DesignConstants.glassShadow,
-              ),
-            ),
-          ),
-        ),
-        GlassAdaptiveScope(
-          minQuality: GlassQuality.premium,
-          maxQuality: GlassQuality.premium,
-          child: RepaintBoundary(
-            child: AdaptiveGlass(
-              settings: DesignConstants.liquidGlassSettings(isDark),
-              shape: hasLabel
-                  ? const LiquidRoundedSuperellipse(borderRadius: 37)
-                  : const LiquidOval(),
-              quality: GlassQuality.premium,
-              child: GlassGlow(
-                glowColor: Colors.white.withValues(alpha: isDark ? 0.24 : 0.18),
-                glowRadius: 1.0,
-                child: Container(
-                  height: 74.0, // Match main screen bottom bar height
-                  width: hasLabel ? null : 74.0,
-                  decoration: BoxDecoration(
-                    color: neutralTint,
-                    borderRadius: BorderRadius.circular(effectiveRadius),
+    final Widget content = GlassAdaptiveScope(
+      maxQuality: DesignConstants.defaultGlassQuality,
+      minQuality: DesignConstants.minGlassQuality,
+      child: RepaintBoundary(
+        child: GlassContainer(
+          useOwnLayer: true,
+          height: DesignConstants.fabSize,
+          width: hasLabel ? null : DesignConstants.fabSize,
+          shape: hasLabel
+              ? LiquidRoundedSuperellipse(borderRadius: DesignConstants.fabSize / 2)
+              : const LiquidOval(),
+          quality: DesignConstants.defaultGlassQuality,
+          settings: DesignConstants.liquidGlassSettings(isDark),
+          child: hasLabel
+              ? iconAndText
+              : Center(
+                  child: Icon(
+                    widget.icon,
+                    size: 30,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
-                  foregroundDecoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(effectiveRadius),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.20)
-                          : Colors.black.withValues(alpha: 0.08),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: hasLabel
-                      ? iconAndText
-                      : Center(
-                          child: Icon(
-                            widget.icon,
-                            size: 30,
-                            color: isDark ? Colors.white : Colors.black,
-                          ),
-                        ),
                 ),
-              ),
-            ),
-          ),
         ),
-      ],
+      ),
     );
 
     return GestureDetector(

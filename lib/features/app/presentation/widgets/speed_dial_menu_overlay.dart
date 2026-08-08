@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../theme/color_constants.dart';
 
 class SpeedDialMenuOverlay extends StatelessWidget {
   final Animation<double> animation;
@@ -38,11 +37,10 @@ class SpeedDialMenuOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDarkLocal = Theme.of(context).brightness == Brightness.dark;
-    final Color neutralTintLocal =
-        DesignConstants.glassNeutralTint(isDarkLocal);
+
 
     // Define liquid animation radius locally here or from a constant.
-    const double rLiquid = 99;
+    const double rLiquid = 100.0; // Large radius ensures perfect-circle glass appearance
 
     return AnimatedBuilder(
       animation: animation,
@@ -73,7 +71,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  bottom: 116.0,
+                  bottom: 86.0,
                   right: 16.0,
                   child: Material(
                     color: Colors.transparent,
@@ -82,43 +80,50 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                       children: actions.asMap().entries.map((entry) {
                         final index = entry.key;
                         final action = entry.value;
+                        final int actionCount = actions.length;
+                        final int reverseIndex = actionCount - 1 - index;
+
                         final curved = CurvedAnimation(
                           parent: animation,
                           curve: Interval(
-                            (index * 0.12).clamp(0.0, 0.95),
+                            (reverseIndex * 0.08).clamp(0.0, 0.7),
                             1.0,
                             curve: Curves.easeOutBack,
                           ),
                         );
                         final tv = _safe01(curved.value);
 
-                        // Sprout coordinate system calculations
-                        final int actionCount = actions.length;
-                        final double yFinal =
-                            163.0 + (actionCount - 1 - index) * 94.0;
-                        final double yFab = 69.0;
-                        final double offsetY = yFinal - yFab;
-                        final double offsetX =
-                            0.0; // Perfectly aligned with FAB
+                        // Sprout coordinate system:
+                        // FAB center is at bottom 48.0 (bottom 16.0 + 32.0).
+                        // Column bottom is at 86.0. Bottom item (reverseIndex=0) center is at bottom 120.0 (86.0 + 6.0 + 28.0).
+                        // Distance from FAB center to Item 0 center = 120.0 - 48.0 = 72.0px.
+                        // Each item row is 68.0px tall (56.0 button + 12.0 vertical padding).
+                        final double offsetY = 72.0 + reverseIndex * 68.0;
 
                         // Staggered label fade & slide
                         final double labelTv =
-                            ((tv - 0.65) / 0.35).clamp(0.0, 1.0);
+                            ((tv - 0.4) / 0.6).clamp(0.0, 1.0);
                         final double labelOpacity = labelTv;
-                        final double labelOffsetX = (1.0 - labelTv) * -16.0;
+                        final double labelOffsetX = (1.0 - labelTv) * -20.0;
 
-                        // Liquid stretch parameters
+                        // Scale button from 0.1 -> 1.0 as it emerges out of the FAB
+                        final double btnScale =
+                            (0.1 + 0.9 * tv).clamp(0.0, 1.25);
+
+                        // Liquid stretch parameters — scale from fabSize to match FAB appearance
                         final double stretch = _getStretch(tv);
-                        final double btnWidth = 74.0 * (1.0 - stretch * 0.3);
-                        final double btnHeight = 74.0 * (1.0 + stretch);
+                        final double btnWidth =
+                            DesignConstants.fabSize * (1.0 - stretch * 0.3);
+                        final double btnHeight =
+                            DesignConstants.fabSize * (1.0 + stretch);
 
                         return Transform.translate(
-                          offset:
-                              Offset((1 - tv) * offsetX, (1 - tv) * offsetY),
+                          offset: Offset(0.0, (1 - tv) * offsetY),
                           child: Opacity(
                             opacity: tv,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10.0,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 6.0,
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -140,98 +145,103 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: DesignConstants.spacingL),
-                                  SizedBox(
-                                    width: 74.0,
-                                    height: 74.0,
-                                    child: Center(
-                                      child: SizedBox(
-                                        width: btnWidth,
-                                        height: btnHeight,
-                                        child: Stack(
-                                          children: [
-                                            Positioned.fill(
-                                              child: ClipPath(
-                                                clipper: ShadowOuterClipper(
-                                                  borderRadius: rLiquid,
-                                                  isOval: true,
-                                                ),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            rLiquid),
-                                                    boxShadow: DesignConstants
-                                                        .glassShadow,
+                                  const SizedBox(
+                                      width: DesignConstants.spacingL),
+                                  Transform.scale(
+                                    scale: btnScale,
+                                    child: SizedBox(
+                                      // Fixed container prevents layout jumps during stretch animation
+                                      width: DesignConstants.fabSize,
+                                      height: DesignConstants.fabSize,
+                                      child: Center(
+                                        child: SizedBox(
+                                          width: btnWidth,
+                                          height: btnHeight,
+                                          child: Stack(
+                                            children: [
+                                              // Shadow layer — identical to FAB shadow
+                                              Positioned.fill(
+                                                child: ClipPath(
+                                                  clipper: ShadowOuterClipper(
+                                                    borderRadius: rLiquid,
+                                                    isOval: true,
+                                                  ),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              rLiquid),
+                                                      boxShadow: DesignConstants
+                                                          .glassShadow(isDarkLocal),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                            GlassButton.custom(
-                                              onTap: () {
-                                                onActionTap(action['action']);
-                                              },
-                                              width: btnWidth,
-                                              height: btnHeight,
-                                              useOwnLayer: true,
-                                              quality: GlassQuality.minimal,
-                                              shape:
-                                                  const LiquidRoundedSuperellipse(
-                                                borderRadius: rLiquid,
-                                              ),
-                                              settings: DesignConstants
-                                                  .liquidGlassSettings(
-                                                      isDarkLocal),
-                                              child: Container(
-                                                width: btnWidth,
-                                                height: btnHeight,
-                                                decoration: BoxDecoration(
-                                                  color: neutralTintLocal,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          rLiquid),
-                                                ),
-                                                foregroundDecoration:
-                                                    BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          rLiquid),
-                                                  border: Border.all(
-                                                    color: isDarkLocal
-                                                        ? Colors.white
-                                                            .withValues(
-                                                                alpha: 0.20)
-                                                        : Colors.black
-                                                            .withValues(
-                                                                alpha: 0.08),
-                                                    width: 1.2,
-                                                  ),
-                                                ),
-                                                alignment: Alignment.center,
-                                                child: action['gradient'] ==
-                                                        true
-                                                    ? ShaderMask(
-                                                        blendMode:
-                                                            BlendMode.srcIn,
-                                                        shaderCallback: (bounds) =>
-                                                            createAiGradientShader(
-                                                          bounds,
+                                              // Premium glass layer — identical pattern to the FAB
+                                              GlassAdaptiveScope(
+                                                maxQuality: DesignConstants
+                                                    .defaultGlassQuality,
+                                                minQuality: DesignConstants
+                                                    .minGlassQuality,
+                                                child: AdaptiveGlass(
+                                                  shape: const LiquidOval(),
+                                                  settings: DesignConstants
+                                                      .liquidGlassSettings(
+                                                          isDarkLocal),
+                                                  quality: DesignConstants
+                                                      .defaultGlassQuality,
+                                                  useOwnLayer: true,
+                                                  isInteractive: false,
+                                                  child: Material(
+                                                    color: Colors.transparent,
+                                                    child: InkWell(
+                                                      customBorder:
+                                                          const CircleBorder(),
+                                                      onTap: () {
+                                                        onActionTap(
+                                                            action['action']);
+                                                      },
+                                                      child: SizedBox(
+                                                        width: btnWidth,
+                                                        height: btnHeight,
+                                                        child: Center(
+                                                          child: action[
+                                                                      'gradient'] ==
+                                                                  true
+                                                              ? ShaderMask(
+                                                                  blendMode:
+                                                                      BlendMode
+                                                                          .srcIn,
+                                                                  shaderCallback:
+                                                                      (bounds) =>
+                                                                          DesignConstants
+                                                                              .createAiGradientShader(
+                                                                    bounds,
+                                                                  ),
+                                                                  child: Icon(
+                                                                    action[
+                                                                        'icon'],
+                                                                    size: 28,
+                                                                  ),
+                                                                )
+                                                              : Icon(
+                                                                  action[
+                                                                      'icon'],
+                                                                  size: 28,
+                                                                  color: isDarkLocal
+                                                                      ? Colors
+                                                                          .white
+                                                                      : Colors
+                                                                          .black,
+                                                                ),
                                                         ),
-                                                        child: Icon(
-                                                          action['icon'],
-                                                          size: 28,
-                                                        ),
-                                                      )
-                                                    : Icon(
-                                                        action['icon'],
-                                                        size: 28,
-                                                        color: isDarkLocal
-                                                            ? Colors.white
-                                                            : Colors.black,
                                                       ),
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -247,34 +257,34 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                 ),
                 // Active Rotating FAB on top of the blur filter
                 Positioned(
-                  bottom: 32.0,
+                  bottom: 16.0,
                   right: 16.0,
                   child: IgnorePointer(
                     ignoring: v == 0.0,
-                    child: Opacity(
-                      opacity: v,
-                      child: Stack(
+                    child: Stack(
                         children: [
                           ClipPath(
                             clipper: ShadowOuterClipper(
-                                borderRadius: 37, isOval: true),
+                                borderRadius: DesignConstants.fabSize / 2,
+                                isOval: true),
                             child: Container(
-                              width: 74.0,
-                              height: 74.0,
+                              width: DesignConstants.fabSize,
+                              height: DesignConstants.fabSize,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(37),
-                                boxShadow: DesignConstants.glassShadow,
+                                borderRadius: BorderRadius.circular(
+                                    DesignConstants.fabSize / 2),
+                                boxShadow: DesignConstants.glassShadow(isDarkLocal),
                               ),
                             ),
                           ),
                           GlassAdaptiveScope(
-                            minQuality: GlassQuality.premium,
-                            maxQuality: GlassQuality.premium,
+                            maxQuality: DesignConstants.defaultGlassQuality,
+                            minQuality: DesignConstants.minGlassQuality,
                             child: AdaptiveGlass(
                               shape: const LiquidOval(),
                               settings: DesignConstants.liquidGlassSettings(
                                   isDarkLocal),
-                              quality: GlassQuality.premium,
+                              quality: DesignConstants.defaultGlassQuality,
                               useOwnLayer: true,
                               isInteractive:
                                   false, // Force background blur during animations
@@ -284,13 +294,13 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                   customBorder: const CircleBorder(),
                                   onTap: onClose,
                                   child: SizedBox(
-                                    width: 74.0,
-                                    height: 74.0,
+                                    width: DesignConstants.fabSize,
+                                    height: DesignConstants.fabSize,
                                     child: Center(
                                       child: RotationTransition(
-                                        turns:
-                                            Tween<double>(begin: 0.0, end: 0.375)
-                                                .animate(
+                                        turns: Tween<double>(
+                                                begin: 0.0, end: 0.375)
+                                            .animate(
                                           CurvedAnimation(
                                             parent: animation,
                                             curve: Curves.easeOutCubic,
@@ -314,7 +324,6 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

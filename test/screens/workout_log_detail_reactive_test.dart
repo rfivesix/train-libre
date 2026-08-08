@@ -44,15 +44,15 @@ void main() {
     SharedPreferences.setMockInitialValues({'unit_system': 'metric'});
     database = db.AppDatabase(NativeDatabase.memory());
     DatabaseHelper.setDriftDb(database);
-    
+
     // Insert a dummy workout directly into the DB so _loadDetails succeeds
-    final row = await database.into(database.workoutLogs).insertReturning(
-      db.WorkoutLogsCompanion.insert(
-        startTime: DateTime.now(),
-        status: const drift.Value('completed'),
-        routineNameSnapshot: const drift.Value('Test Routine'),
-      )
-    );
+    final row = await database
+        .into(database.workoutLogs)
+        .insertReturning(db.WorkoutLogsCompanion.insert(
+          startTime: DateTime.now(),
+          status: const drift.Value('completed'),
+          routineNameSnapshot: const drift.Value('Test Routine'),
+        ));
     logId = row.localId;
     logUuid = row.id;
 
@@ -70,73 +70,85 @@ void main() {
     expect(find.text('Bench Press'), findsNothing);
 
     // Push new sets via real drift database
-    await database.into(database.setLogs).insert(
-      db.SetLogsCompanion.insert(
-        workoutLogId: logUuid,
-        exerciseNameSnapshot: const drift.Value('Bench Press'),
-        setType: const drift.Value('normal'),
-        weight: const drift.Value(100),
-        reps: const drift.Value(10),
-        restTimeSeconds: const drift.Value(60),
-        isCompleted: const drift.Value(true),
-        logOrder: const drift.Value(0),
-      )
-    );
-    
+    await database.into(database.setLogs).insert(db.SetLogsCompanion.insert(
+          workoutLogId: logUuid,
+          exerciseNameSnapshot: const drift.Value('Bench Press'),
+          setType: const drift.Value('normal'),
+          weight: const drift.Value(100),
+          reps: const drift.Value(10),
+          restTimeSeconds: const drift.Value(60),
+          isCompleted: const drift.Value(true),
+          logOrder: const drift.Value(0),
+        ));
+
     // Wait for drift watch stream to propagate
     await tester.pumpAndSettle();
 
-    expect(find.text('Bench Press'), findsOneWidget);
-    expect(find.text('100'), findsOneWidget); // Weight
-    
+    expect(find.text('Bench Press'), findsWidgets);
+    expect(find.textContaining('100'), findsWidgets); // Weight
+
     await tester.pumpWidget(Container());
     await tester.pumpAndSettle();
   });
 
-  testWidgets('edit-mode guard prevents overwrite during active typing', (tester) async {
+  testWidgets('edit-mode guard prevents overwrite during active typing',
+      (tester) async {
     // Start with 1 set
-    final setRow = await database.into(database.setLogs).insertReturning(
-      db.SetLogsCompanion.insert(
-        workoutLogId: logUuid,
-        exerciseNameSnapshot: const drift.Value('Bench Press'),
-        setType: const drift.Value('normal'),
-        weight: const drift.Value(100),
-        reps: const drift.Value(10),
-        restTimeSeconds: const drift.Value(60),
-        isCompleted: const drift.Value(true),
-        logOrder: const drift.Value(0),
-      )
-    );
+    final setRow = await database
+        .into(database.setLogs)
+        .insertReturning(db.SetLogsCompanion.insert(
+          workoutLogId: logUuid,
+          exerciseNameSnapshot: const drift.Value('Bench Press'),
+          setType: const drift.Value('normal'),
+          weight: const drift.Value(100),
+          reps: const drift.Value(10),
+          restTimeSeconds: const drift.Value(60),
+          isCompleted: const drift.Value(true),
+          logOrder: const drift.Value(0),
+        ));
+
+    // Use a tall viewport so ReorderableListView.builder renders all items eagerly
+    await tester.binding.setSurfaceSize(const Size(800, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
     await tester.pumpAndSettle();
 
-    // Tap edit button
+    // Tap edit button to enter edit mode
     await tester.tap(find.byIcon(LucideIcons.pencil));
     await tester.pumpAndSettle();
 
-    // Check it correctly shows 100 before typing
-    expect(find.text('100'), findsOneWidget);
+    // The weight input field is keyed by set localId
+    final weightFieldFinder = find.byKey(ValueKey('weight_input_${setRow.localId}'));
+
+    // Verify the field is in the tree and shows the initial weight
+    expect(weightFieldFinder, findsOneWidget);
+    expect(find.textContaining('100'), findsWidgets);
 
     // Type a new weight
-    await tester.enterText(find.byType(TextField).first, '105');
+    await tester.enterText(weightFieldFinder, '105');
     await tester.pumpAndSettle();
 
     // Push new sets via DB (simulating a background sync or other device edit)
     await database.update(database.setLogs).replace(
-      setRow.copyWith(weight: const drift.Value(110)) // Changed weight!
-    );
-    
+        setRow.copyWith(weight: const drift.Value(110)) // Changed weight!
+        );
+
     // Pump to process stream
     await tester.pumpAndSettle();
 
     // The text field should STILL have 105, because edit mode guarded the state
-    expect(find.text('105'), findsOneWidget);
-    
+    expect(find.text('105'), findsWidgets);
+
     // Save to exit edit mode
     await tester.tap(find.text('Save').last);
     await tester.pumpAndSettle();
-    
+
+    final updatedSetInDb = await (database.select(database.setLogs)
+          ..where((tbl) => tbl.localId.equals(setRow.localId)))
+        .getSingle();
+    expect(updatedSetInDb.weight, 105.0);
+
     await tester.pumpWidget(Container());
     await tester.pumpAndSettle();
   });

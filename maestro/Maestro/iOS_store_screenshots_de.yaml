@@ -5,31 +5,60 @@ appId: com.rfivesix.trainlibre
 
 - tapOn: "0"
 - tapOn: "0"
-- tapOn: "Akzeptieren & Loslegen"
+- tapOn: "Akzeptieren & Loslegen\nAkzeptieren & Loslegen\nAkzeptieren & Loslegen"
 - tapOn: "Erlauben"
 - extendedWaitUntil:
-    visible: "Aus Backup wiederherstellen"
+    visible: "Aus Backup wiederherstellen\nAus Backup wiederherstellen\nAus Backup wiederherstellen"
     timeout: 60000
-- tapOn: "Aus Backup wiederherstellen"
+- tapOn: "Aus Backup wiederherstellen\nAus Backup wiederherstellen\nAus Backup wiederherstellen"
 - tapOn: "backup.json"
 - tapOn: "Öffnen"
+
+# Onboarding Step 1: Unit system
 - extendedWaitUntil:
-    visible: "Vielleicht später" 
+    visible: "WEITER\nWEITER\nWEITER"
     timeout: 60000
-- tapOn: 
-    text: "Vielleicht später"
-- tapOn: 
-    text: "Tagebuch"
+- tapOn:
+    text: "Metrisch.*"
     optional: true
-    repeat: 2
-    delay: 10000
-- takeScreenshot: 01_diary
-- tapOn: 
-    text: "Ernährung\nErnährung"
-    optional: true
-    repeat: 2
-    delay: 10000
-- takeScreenshot: 02_nutrition
+- tapOn: "WEITER\nWEITER\nWEITER"
+
+# Onboarding Step 2: Region selection
+- tapOn: "Vereinigte Staaten (US)"
+- tapOn: "Deutschland (DE)"
+- tapOn: "WEITER\nWEITER\nWEITER"
+- assertVisible: "Jetzt herunterladen\nJetzt herunterladen\nJetzt herunterladen"
+- tapOn: "Jetzt herunterladen\nJetzt herunterladen\nJetzt herunterladen"
+
+# Onboarding Step 3: AI & Health completion (last page)
+- extendedWaitUntil:
+    visible: "Fortfahren\nFortfahren\nFortfahren"
+    timeout: 60000
+- tapOn: "Fortfahren\nFortfahren\nFortfahren"
+- tapOn:
+    text: "„Train Libre“ darf Daten schreiben"
+    index: 1
+- tapOn: "Nicht erlauben"
+- tapOn: "Fortfahren\nFortfahren\nFortfahren"
+- tapOn:
+    text: "„Train Libre“ darf Daten lesen"
+    index: 1
+- tapOn: "Nicht erlauben"
+- tapOn: "Fortfahren\nFortfahren\nFortfahren"
+- tapOn:
+    text: "„Train Libre“ darf Daten lesen"
+    index: 1
+- tapOn: "Nicht erlauben"
+- tapOn: "Fortfahren\nFortfahren\nFortfahren"
+- tapOn:
+    text: "„Train Libre“ darf Daten lesen"
+    index: 1
+- tapOn: "Nicht erlauben"
+- tapOn: "LOSLEGEN\nLOSLEGEN\nLOSLEGEN"
+- tapOn: "Überspringen"
+
+
+# Navigation to Settings -> Data Backup Screenshot
 - tapOn:
     point: 91%,13%
 - tapOn: "Einstellungen\nThema, Einheiten, Daten und mehr"
@@ -40,37 +69,41 @@ appId: com.rfivesix.trainlibre
 - tapOn: "Zurück"
 - tapOn: "Zurück"
 - tapOn: "Zurück"
-- tapOn:
-    text: "„Train Libre“ darf Daten lesen"
-    index: 1
-- tapOn: "Nicht erlauben"
-- tapOn: "Statistiken\nStatistiken"
+
+# Tabs
+- tapOn: 
+    text: "Tagebuch"
+    optional: true
+- takeScreenshot: 01_diary
+- tapOn: 
+    text: "Ernährung"
+    optional: true
+- takeScreenshot: 02_nutrition
+- tapOn: "Statistiken"
+- waitForAnimationToEnd
 - scrollUntilVisible:
     element: "Körpermaße\nAlle Messwerte"
 - scroll
 - tapOn: "Körpermaße\nAlle Messwerte"
+- extendedWaitUntil:
+    visible: "6M"
+    timeout: 60000
+- tapOn: "6M"
 - takeScreenshot: 04_measurements
 - tapOn: "Zurück"
 - scrollUntilVisible:
-    element: "Muskel-Bereitschaft\nAktuell\nMehrere Muskelgruppen sind noch in Erholung\nIn Erholung: 6  Bereit: 3  Frisch: 4"
+    element: "Muskel-Bereitschaft\nAktuell\nMehrere Muskelgruppen sind noch in Erholung\n6\nIn Erholung\n46%\n3\nBereit\n23%\n4\nFrisch\n31%"
     direction: UP
-- tapOn: "Muskel-Bereitschaft\nAktuell\nMehrere Muskelgruppen sind noch in Erholung\nIn Erholung: 6  Bereit: 3  Frisch: 4"
+- tapOn: "Muskel-Bereitschaft\nAktuell\nMehrere Muskelgruppen sind noch in Erholung\n6\nIn Erholung\n46%\n3\nBereit\n23%\n4\nFrisch\n31%"
+
 - takeScreenshot: 05_recovery
 - tapOn: "Zurück"
+
+# AI Meal Capture Photo capture
 - tapOn:
-    point: 91%,13%
-- tapOn: "Einstellungen\nThema, Einheiten, Daten und mehr"
-- scrollUntilVisible:
-    element: "KI-Mahlzeitenerkennung\nKI-basierte Mahlzeitenerkennung konfigurieren."
-- tapOn: "KI-Mahlzeitenerkennung\nKI-basierte Mahlzeitenerkennung konfigurieren."
-- tapOn: "0"
-- tapOn: "Zurück"
-- tapOn: "Zurück"
-- tapOn: "Zurück"
+    point: 90%,90%
 - tapOn:
-    point: 80%,90%
-- tapOn:
-    point: 79%,80%
+    point: 90%,85%
 - tapOn:
     point: 44%,14%
     optional: true
@@ -78,20 +111,22 @@ appId: com.rfivesix.trainlibre
     delay: 5000
 - tapOn:
     point: 88%,83%
-- tapOn: "Foto, 01. Juni, 9:45 AM"
 - tapOn:
-    text: "Foto, 01. Juni, 9:45 AM"
-    index: 1
+    text: "Foto, 01. Juni.*"
+    optional: true
 - tapOn: "Fertig"
 - takeScreenshot: 06_ai
 - tapOn: "Zurück"
+
+# Workout start & log
 - tapOn:
-    point: 80%,90%
+    point: 90%,90%
 - tapOn:
-    point: 79%,61%
+    point: 90%,70%
 - tapOn: # Tap on Pull (intensity)
-    text: "Start"
+    text: "Start\nStart\nStart"
     index: 3
+
 - tapOn: "0"
 - inputText: "50"
 - tapOn: "10-20"
@@ -111,7 +146,3 @@ appId: com.rfivesix.trainlibre
 - tapOn:
     point: 91%,59%
 - takeScreenshot: 07_runnning_workout
-
-
-
-

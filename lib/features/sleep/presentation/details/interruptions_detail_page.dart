@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
-
 import '../../../../generated/app_localizations.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../data/sleep_day_repository.dart';
 import 'sleep_detail_page_shell.dart';
 import 'sleep_metric_formatters.dart';
@@ -46,16 +44,15 @@ class InterruptionsDetailPage extends StatelessWidget {
       statusColor:
           overview.interruptionsCount! <= 1 ? Colors.green : Colors.orange,
       children: [
-        SummaryCard(
-          child: Padding(
-            padding: const EdgeInsets.all(DesignConstants.spacingL),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(l10n.sleepInterruptionsTotalWakeDuration),
-                Text(formatDuration(overview.interruptionsWakeDuration!)),
-              ],
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.cardPaddingInternal),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(l10n.sleepInterruptionsTotalWakeDuration),
+              Text(formatDuration(overview.interruptionsWakeDuration!)),
+            ],
           ),
         ),
         const SizedBox(height: DesignConstants.spacingM),

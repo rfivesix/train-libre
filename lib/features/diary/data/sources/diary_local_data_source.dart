@@ -10,11 +10,13 @@ import '../../domain/models/food_entry.dart';
 import '../../domain/models/fluid_entry.dart';
 import '../../../supplements/domain/models/supplement.dart' as domain;
 import '../../../supplements/data/sources/supplement_local_data_source.dart';
+import '../../../../services/telemetry/telemetry_service.dart';
 
 class DiaryLocalDataSource {
   final drift_db.AppDatabase _db;
   drift_db.AppDatabase get db => _db;
   final SupplementLocalDataSource _supplementDbHelper;
+  SupplementLocalDataSource get supplementDbHelper => _supplementDbHelper;
 
   static DiaryLocalDataSource get instance =>
       DatabaseHelper.instance.diaryLocalDataSource;
@@ -93,7 +95,8 @@ class DiaryLocalDataSource {
         _db.nutritionLogs,
         _db.nutritionLogs.id.equalsExp(_db.fluidLogs.linkedNutritionLogId),
       ),
-    ])..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
+    ])
+      ..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
 
     return query.watch().map((rows) {
       return rows.map((row) {
@@ -113,7 +116,6 @@ class DiaryLocalDataSource {
       }).toList();
     });
   }
-
 
   Future<drift_db.DailyGoalsHistoryData?> getGoalsForDate(DateTime date) async {
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
@@ -198,7 +200,8 @@ class DiaryLocalDataSource {
         _db.nutritionLogs,
         _db.nutritionLogs.id.equalsExp(_db.fluidLogs.linkedNutritionLogId),
       ),
-    ])..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
+    ])
+      ..where(_db.fluidLogs.consumedAt.isBetweenValues(start, end));
 
     final rows = await query.get();
     return rows.map((row) {
@@ -216,6 +219,47 @@ class DiaryLocalDataSource {
         linkedFoodEntryId: nutritionRow?.localId,
       );
     }).toList();
+  }
+  Future<bool> hasAnyDiaryEntries() async {
+    if (await (_db.select(_db.nutritionLogs)..limit(1)).getSingleOrNull() != null) return true;
+    if (await (_db.select(_db.fluidLogs)..limit(1)).getSingleOrNull() != null) return true;
+    if (await (_db.select(_db.supplementLogs)..limit(1)).getSingleOrNull() != null) return true;
+    if (await (_db.select(_db.workoutLogs)..limit(1)).getSingleOrNull() != null) return true;
+    if (await (_db.select(_db.healthStepSegments)..limit(1)).getSingleOrNull() != null) return true;
+
+    try {
+      final sleepRes = await _db.customSelect('SELECT 1 FROM sleep_raw_imports LIMIT 1').getSingleOrNull();
+      if (sleepRes != null) return true;
+    } catch (_) {}
+
+    try {
+      final pulseRes = await _db.customSelect('SELECT 1 FROM pulse_hourly_aggregates LIMIT 1').getSingleOrNull();
+      if (pulseRes != null) return true;
+    } catch (_) {}
+
+    try {
+      final weightRes = await _db.customSelect("SELECT COUNT(*) as count FROM measurements WHERE chart_type = 'weight'").getSingleOrNull();
+      if (weightRes != null && weightRes.read<int>('count') > 1) return true;
+    } catch (_) {}
+
+    return false;
+  }
+
+  Future<bool> hasWeightMeasurementForDate(DateTime date) async {
+    final startOfDay = DateTime(date.year, date.month, date.day);
+    final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+    try {
+      final res = await _db.customSelect(
+        "SELECT 1 FROM measurements WHERE chart_type = 'weight' AND timestamp >= ? AND timestamp <= ? LIMIT 1",
+        variables: [
+          drift.Variable.withDateTime(startOfDay),
+          drift.Variable.withDateTime(endOfDay)
+        ],
+      ).getSingleOrNull();
+      return res != null;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> updateFluidEntry(FluidEntry entry) async {
@@ -282,9 +326,12 @@ class DiaryLocalDataSource {
       final pFiber = override?.fiber ?? product.fiber;
       final pSalt = override?.salt ?? product.salt;
       final pCaffeine = override?.caffeine ?? product.caffeine;
-      final pCaffeineMgPer100g = override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
-      final pProductQuantity = override?.productQuantity ?? product.productQuantity;
-      final pProductQuantityUnit = override?.productQuantityUnit ?? product.productQuantityUnit;
+      final pCaffeineMgPer100g =
+          override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pProductQuantity =
+          override?.productQuantity ?? product.productQuantity;
+      final pProductQuantityUnit =
+          override?.productQuantityUnit ?? product.productQuantityUnit;
       final pIsFluid = override?.isFluid ?? product.isFluid;
       final pIsLiquid = override?.isLiquid ?? product.isLiquid;
       final pCategory = override?.category ?? product.category;
@@ -391,7 +438,19 @@ class DiaryLocalDataSource {
         );
   }
 
-  Future<int> insertFoodEntry(FoodEntry entry) async {
+  /// Inserts a nutrition log entry.
+  ///
+  /// [telemetrySource] records which surface the entry came from for the
+  /// aggregated `daily_food_logged` event. The counter lives here rather than in
+  /// [NutritionRepository] because every logging path in the app funnels through
+  /// this method, while only one of them goes through the repository.
+  Future<int> insertFoodEntry(
+    FoodEntry entry, {
+    String telemetrySource = FoodLogSource.manualSearch,
+  }) async {
+    unawaited(TelemetryService.instance.incrementFoodLogCount(
+      source: FoodLogSource.sanitize(telemetrySource),
+    ));
     final product = await (_db.select(_db.products)
           ..where((tbl) => tbl.barcode.equals(entry.barcode))
           ..limit(1))
@@ -415,9 +474,12 @@ class DiaryLocalDataSource {
       final pFiber = override?.fiber ?? product.fiber;
       final pSalt = override?.salt ?? product.salt;
       final pCaffeine = override?.caffeine ?? product.caffeine;
-      final pCaffeineMgPer100g = override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
-      final pProductQuantity = override?.productQuantity ?? product.productQuantity;
-      final pProductQuantityUnit = override?.productQuantityUnit ?? product.productQuantityUnit;
+      final pCaffeineMgPer100g =
+          override?.caffeineMgPer100g ?? product.caffeineMgPer100g;
+      final pProductQuantity =
+          override?.productQuantity ?? product.productQuantity;
+      final pProductQuantityUnit =
+          override?.productQuantityUnit ?? product.productQuantityUnit;
       final pIsFluid = override?.isFluid ?? product.isFluid;
       final pIsLiquid = override?.isLiquid ?? product.isLiquid;
       final pCategory = override?.category ?? product.category;
@@ -647,7 +709,8 @@ class DiaryLocalDataSource {
     DateTime? updatedSince,
   }) async {
     final startOfDay = start.dateOnly.add(const Duration(hours: 4));
-    final endOfDay = end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
+    final endOfDay =
+        end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
 
     final query = _db.select(_db.nutritionLogs)
       ..where((tbl) => tbl.consumedAt.isBetweenValues(startOfDay, endOfDay));
@@ -678,14 +741,16 @@ class DiaryLocalDataSource {
     DateTime? updatedSince,
   }) async {
     final startOfDay = start.dateOnly.add(const Duration(hours: 4));
-    final endOfDay = end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
+    final endOfDay =
+        end.dateOnly.add(const Duration(hours: 27, minutes: 59, seconds: 59));
 
     final query = _db.select(_db.fluidLogs).join([
       drift.leftOuterJoin(
         _db.nutritionLogs,
         _db.nutritionLogs.id.equalsExp(_db.fluidLogs.linkedNutritionLogId),
       ),
-    ])..where(_db.fluidLogs.consumedAt.isBetweenValues(startOfDay, endOfDay));
+    ])
+      ..where(_db.fluidLogs.consumedAt.isBetweenValues(startOfDay, endOfDay));
 
     if (updatedSince != null) {
       query.where(_db.fluidLogs.updatedAt.isBiggerOrEqualValue(updatedSince));
@@ -741,7 +806,8 @@ class DiaryLocalDataSource {
     final query = _db.select(_db.nutritionLogs).join([
       drift.leftOuterJoin(
         _db.offProductsArchive,
-        _db.offProductsArchive.localId.equalsExp(_db.nutritionLogs.archiveLocalId),
+        _db.offProductsArchive.localId
+            .equalsExp(_db.nutritionLogs.archiveLocalId),
       ),
       drift.leftOuterJoin(
         _db.products,

@@ -13,8 +13,10 @@ import '../../../util/time_util.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/common.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen displaying a list of all previously completed workout sessions.
 ///
@@ -32,6 +34,8 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.workoutHistory));
     _logsStream = Provider.of<IWorkoutRepository>(context, listen: false)
         .watchFullWorkoutLogs();
   }
@@ -63,7 +67,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
             return Center(
               child: Text(
                 '${l10n.error}: ${snapshot.error}',
-                style: const TextStyle(color: Colors.redAccent),
+                style: const TextStyle(color: DesignConstants.brandRedColor),
               ),
             );
           }
@@ -75,29 +79,12 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                 padding: DesignConstants.cardPadding.copyWith(
                   top: DesignConstants.cardPadding.top + topPadding,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      LucideIcons.history,
-                      size: 80,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingL),
-                    Text(
-                      l10n.workoutHistoryEmptyTitle,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    Text(
-                      l10n.emptyHistory,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
-                    ),
-                  ],
+                child: ColdStartEmptyState(
+                  icon: LucideIcons.history,
+                  title: l10n.workoutHistoryEmptyTitle,
+                  subtitle: l10n.emptyHistory,
+                  callToAction: '',
+                  showArrow: false,
                 ),
               ),
             );
@@ -120,29 +107,23 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                 (sum, set) => sum + (set.weightKg ?? 0) * (set.reps ?? 0),
               );
 
-              return Dismissible(
-                key: Key('log_${log.id}'),
-                direction: DismissDirection.endToStart,
-
-                // FIXED: Only `secondaryBackground` is needed here.
-                background: const SwipeActionBackground(
-                  color: Colors.redAccent,
-                  icon: LucideIcons.trash_2,
-                  alignment: Alignment.centerRight,
-                ),
-                confirmDismiss: (direction) async {
-                  // New: helper (specific text needed here)
+              return GlassActionableCard(
+                dismissibleKey: Key('log_${log.id}'),
+                confirmDelete: () async {
                   return await showDeleteConfirmation(
                     context,
                     content: l10n.deleteWorkoutConfirmContent,
                   );
                 },
-                onDismissed: (direction) {
-                  _deleteLog(log.id!);
-                },
+                onDelete: () => _deleteLog(log.id!),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        WorkoutLogDetailScreen(logId: log.id!),
+                  ),
+                ),
                 child: SummaryCard(
                   child: ListTile(
-                    leading: const Icon(LucideIcons.calendar_days, size: 40),
                     title: Text(
                       log.routineName ?? l10n.freeWorkoutTitle,
                       maxLines: 2,
@@ -212,12 +193,6 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                             ),
                           )
                         : null,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            WorkoutLogDetailScreen(logId: log.id!),
-                      ),
-                    ),
                   ),
                 ),
               );

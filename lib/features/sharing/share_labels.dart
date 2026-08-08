@@ -1,4 +1,5 @@
 import '../../generated/app_localizations.dart';
+import '../../services/unit_service.dart';
 import 'share_set_type.dart';
 
 class ShareLabels {
@@ -37,7 +38,7 @@ class ShareLabels {
     required this.shareImageMinimal,
   });
 
-  factory ShareLabels.fromL10n(AppLocalizations l10n) {
+  factory ShareLabels.fromL10n(AppLocalizations l10n, UnitService unitService) {
     return ShareLabels(
       appName: l10n.appTitle,
       sharedWithTrainLibre: l10n.sharedWithTrainLibre,
@@ -49,8 +50,8 @@ class ShareLabels {
       set: l10n.shareSetLabel,
       setNumber: l10n.shareSetNumber,
       reps: l10n.repsShort,
-      kg: 'kg',
-      km: 'km',
+      kg: unitService.suffixFor(UnitDimension.weight),
+      km: unitService.suffixFor(UnitDimension.distance),
       min: 'min',
       warmup: l10n.setTypeWarmup,
       work: l10n.setTypeWork,

@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import '../../../../widgets/common/common.dart';
 
 import '../../../../data/database_helper.dart';
 import '../../../../generated/app_localizations.dart';
-import '../../../settings/presentation/settings_screen.dart';
+
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../data/repository/sleep_query_repository.dart';
 import '../../data/sleep_day_repository.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
 import '../../platform/sleep_sync_service.dart';
 import '../../domain/sleep_domain.dart';
-import '../details/sleep_data_unavailable_card.dart';
+
 import '../month/sleep_month_overview_page.dart';
 import '../week/sleep_week_overview_page.dart';
 import '../widgets/sleep_period_scope_layout.dart';
@@ -21,6 +22,9 @@ import '../widgets/sleep_score_card.dart';
 import '../widgets/sleep_timeline_card.dart';
 import 'sleep_day_view_model.dart' hide SleepPeriodScope;
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'dart:async';
+import '../../../../services/telemetry/telemetry_service.dart';
+
 
 class SleepDayOverviewPage extends StatefulWidget {
   const SleepDayOverviewPage({
@@ -66,6 +70,8 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.sleepOverview));
     _anchorDay = _normalizeDate(
       widget._selectedDay ?? widget._viewModel?.selectedDay ?? DateTime.now(),
     );
@@ -110,6 +116,13 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
         anchorDate: _anchorDay,
         onScopeChanged: _onScopeChanged,
         onShiftPeriod: _shiftPeriod,
+        onAnchorChanged: (selection) {
+          final date = selection.anchorDate;
+          setState(() {
+            _anchorDay = date;
+          });
+          _loadScopeData();
+        },
         child: _buildScopeContent(context),
       ),
     );
@@ -121,47 +134,86 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
       case SleepPeriodScope.day:
         return const _SleepDayOverviewContent();
       case SleepPeriodScope.week:
-        if (_isLoadingWeek || _weekAggregation == null) {
+        if (_isLoadingWeek) {
           return const Center(child: CircularProgressIndicator());
         }
-        final aggregation = _weekAggregation!;
-        return Column(
+        final aggregation = _weekAggregation;
+        final hasNoData = aggregation == null || aggregation.days.every((day) => day.score == null);
+
+        final displayAggregation = hasNoData
+            ? const SleepPeriodAggregationEngine().aggregateWeek(
+                weekStart: _anchorDay.subtract(
+                  Duration(days: _anchorDay.weekday - DateTime.monday),
+                ),
+                analyses: getMockWeekAnalyses(
+                  _anchorDay.subtract(
+                    Duration(days: _anchorDay.weekday - DateTime.monday),
+                  ),
+                ),
+              )
+            : aggregation;
+
+        Widget weekContent = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            WeekSummaryCard(aggregation: aggregation),
+            WeekSummaryCard(aggregation: displayAggregation),
             const SizedBox(height: _sleepOverviewSectionSpacing),
-            WeekWindowCard(aggregation: aggregation),
-            const SizedBox(height: _sleepOverviewSectionSpacing),
-            WeekScoreStrip(aggregation: aggregation, onTapDay: _selectDay),
-            if (aggregation.days.every((day) => day.score == null)) ...[
-              const SizedBox(height: _sleepOverviewSectionSpacing),
-              SleepDataUnavailableCard(
-                message: l10n.sleepWeekNoScoredNights,
-                margin: EdgeInsets.zero,
-              ),
-            ],
+            WeekWindowCard(
+              aggregation: displayAggregation,
+              onTapDay: _selectDay,
+            ),
           ],
         );
+
+        if (hasNoData) {
+          weekContent = ActiveGapOverlay(
+            message: l10n.emptyStateActiveGapOverlay,
+            background: Skeletonizer(
+              enabled: true,
+              child: IgnorePointer(child: weekContent),
+            ),
+          );
+        }
+        return weekContent;
+
       case SleepPeriodScope.month:
-        if (_isLoadingMonth || _monthAggregation == null) {
+        if (_isLoadingMonth) {
           return const Center(child: CircularProgressIndicator());
         }
-        final aggregation = _monthAggregation!;
-        return Column(
+        final aggregation = _monthAggregation;
+        final hasNoData = aggregation == null || aggregation.days.every((day) => day.score == null);
+
+        final displayAggregation = hasNoData
+            ? const SleepPeriodAggregationEngine().aggregateMonth(
+                monthStart: DateTime(_anchorDay.year, _anchorDay.month, 1),
+                analyses: getMockMonthAnalyses(
+                  DateTime(_anchorDay.year, _anchorDay.month, 1),
+                ),
+              )
+            : aggregation;
+
+        Widget monthContent = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MonthSummaryCard(aggregation: aggregation),
+            MonthSummaryCard(aggregation: displayAggregation),
             const SizedBox(height: _sleepOverviewSectionSpacing),
-            MonthCalendarGrid(aggregation: aggregation, onTapDay: _selectDay),
-            if (aggregation.days.every((day) => day.score == null)) ...[
-              const SizedBox(height: _sleepOverviewSectionSpacing),
-              SleepDataUnavailableCard(
-                message: l10n.sleepMonthNoScoredNights,
-                margin: EdgeInsets.zero,
-              ),
-            ],
+            MonthCalendarGrid(
+              aggregation: displayAggregation,
+              onTapDay: _selectDay,
+            ),
           ],
         );
+
+        if (hasNoData) {
+          monthContent = ActiveGapOverlay(
+            message: l10n.emptyStateActiveGapOverlay,
+            background: Skeletonizer(
+              enabled: true,
+              child: IgnorePointer(child: monthContent),
+            ),
+          );
+        }
+        return monthContent;
     }
   }
 
@@ -297,41 +349,55 @@ class _SleepDayOverviewContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final model = context.watch<SleepDayViewModel>();
     final overview = model.overview;
     if (model.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (overview == null) {
-      return _SleepEmptyStateCard(
-        onOpenSettings: () async {
-          await Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
-          if (!context.mounted) return;
-          await context.read<SleepDayViewModel>().load();
-        },
-        onImportNow: model.importNow,
-      );
-    }
-    return Column(
+
+    final isMock = overview == null;
+    final displayOverview = overview ?? getMockDayOverview(model.selectedDay);
+
+    Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SleepTimelineCard(overview: overview),
-        if (overview.allSessions.length > 1) ...[
+        SleepTimelineCard(overview: displayOverview),
+        if (displayOverview.allSessions.length > 1) ...[
           const SizedBox(height: _sleepOverviewSectionSpacing),
-          _SleepIntervalsCard(overview: overview),
+          _SleepIntervalsCard(overview: displayOverview),
         ],
         const SizedBox(height: _sleepOverviewSectionSpacing),
-        SleepScoreCard(overview: overview),
+        SleepScoreCard(overview: displayOverview),
         const SizedBox(height: _sleepOverviewSectionSpacing),
-        if (overview.scoringResult != null) ...[
-          SleepScoreBreakdownCard(scoringResult: overview.scoringResult!),
-          const SizedBox(height: _sleepOverviewSectionSpacing),
+        if (displayOverview.scoringResult != null) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingL),
+            child:
+                SleepScoreBreakdownCard(scoringResult: displayOverview.scoringResult!),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
         ],
-        SleepMetricTileGrid(overview: overview),
+        Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+          child: SleepMetricTileGrid(overview: displayOverview),
+        ),
       ],
     );
+
+    if (isMock) {
+      content = ActiveGapOverlay(
+        message: l10n.emptyStateActiveGapOverlay,
+        background: Skeletonizer(
+          enabled: true,
+          child: IgnorePointer(child: content),
+        ),
+      );
+    }
+
+    return content;
   }
 }
 
@@ -363,9 +429,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
     final countBadgeText =
         isDark ? const Color(0xFF34D399) : const Color(0xFF065F46);
 
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      padding: EdgeInsets.zero,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -383,11 +448,12 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                     ),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingS, vertical: 2),
                     decoration: BoxDecoration(
                       color: countBadgeBg,
-                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM),
                     ),
                     child: Text(
                       '${sessions.length}',
@@ -415,7 +481,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                  padding: const EdgeInsets.only(
+                    left: DesignConstants.spacingL,
                     right: DesignConstants.spacingL,
                     top: DesignConstants.spacingM,
                     bottom: DesignConstants.spacingL,
@@ -454,10 +521,13 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                         ),
                         const SizedBox(width: DesignConstants.spacingM),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingXS),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: DesignConstants.spacingXS),
                           decoration: BoxDecoration(
                             color: badgeColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                            borderRadius: BorderRadius.circular(
+                                DesignConstants.borderRadiusS),
                             border: Border.all(
                               color: badgeColor.withValues(alpha: 0.3),
                               width: 1,
@@ -482,7 +552,8 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
                                 ),
                               ),
                               if (startLocal.day != endLocal.day) ...[
-                                const SizedBox(width: DesignConstants.spacingXS),
+                                const SizedBox(
+                                    width: DesignConstants.spacingXS),
                                 Text(
                                   '(+1)',
                                   style: theme.textTheme.labelSmall?.copyWith(
@@ -533,60 +604,134 @@ class _SleepIntervalsCardState extends State<_SleepIntervalsCard> {
   }
 }
 
-class _SleepEmptyStateCard extends StatelessWidget {
-  const _SleepEmptyStateCard({
-    required this.onOpenSettings,
-    required this.onImportNow,
-  });
-
-  final VoidCallback onOpenSettings;
-  final Future<bool> Function() onImportNow;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.sleepEmptyDayNoData),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(l10n.sleepEmptyDayConnectMessage),
-            const SizedBox(height: DesignConstants.spacingM),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: onOpenSettings,
-                  icon: const Icon(LucideIcons.settings),
-                  label: Text(l10n.sleepOpenSettingsButton),
-                ),
-                FilledButton.icon(
-                  onPressed: () async {
-                    final ok = await onImportNow();
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ok
-                              ? l10n.sleepImportFinishedRefreshing
-                              : l10n.sleepImportUnavailableSettingsHint,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(LucideIcons.refresh_cw),
-                  label: Text(l10n.sleepImportNowButton),
-                ),
-              ],
-            ),
-          ],
-        ),
+SleepDayOverviewData getMockDayOverview(DateTime day) {
+  final start = DateTime(day.year, day.month, day.day, 22, 30);
+  final end = DateTime(day.year, day.month, day.day + 1, 6, 30);
+  return SleepDayOverviewData(
+    analysis: NightlySleepAnalysis(
+      id: 'mock',
+      sessionId: 'mock_session',
+      nightDate: day,
+      analysisVersion: '1',
+      normalizationVersion: '1',
+      analyzedAtUtc: DateTime.now(),
+      score: 78.0,
+      totalSleepMinutes: 480,
+      sleepEfficiencyPct: 90.0,
+      restingHeartRateBpm: 60.0,
+      interruptionsCount: 1,
+      interruptionsWakeMinutes: 10,
+      sleepQuality: SleepQualityBucket.good,
+      scoreBreakdownJson: const {
+        'duration': {'score': 85.0, 'value': 480.0},
+        'depth': {'score': 75.0, 'value': 90.0},
+        'regularity': {'score': 80.0, 'value': 85.0},
+      },
+    ),
+    session: SleepSession(
+      id: 'mock_session',
+      startAtUtc: start.toUtc(),
+      endAtUtc: end.toUtc(),
+      sessionType: SleepSessionType.mainSleep,
+      sourcePlatform: 'mock',
+    ),
+    timelineSegments: [
+      SleepStageSegment(
+        id: 'mock_stage_1',
+        sessionId: 'mock_session',
+        startAtUtc: start.toUtc(),
+        endAtUtc: start.add(const Duration(hours: 2)).toUtc(),
+        stage: CanonicalSleepStage.light,
+        sourcePlatform: 'mock',
       ),
+      SleepStageSegment(
+        id: 'mock_stage_2',
+        sessionId: 'mock_session',
+        startAtUtc: start.add(const Duration(hours: 2)).toUtc(),
+        endAtUtc: start.add(const Duration(hours: 4)).toUtc(),
+        stage: CanonicalSleepStage.deep,
+        sourcePlatform: 'mock',
+      ),
+      SleepStageSegment(
+        id: 'mock_stage_3',
+        sessionId: 'mock_session',
+        startAtUtc: start.add(const Duration(hours: 4)).toUtc(),
+        endAtUtc: start.add(const Duration(hours: 5)).toUtc(),
+        stage: CanonicalSleepStage.rem,
+        sourcePlatform: 'mock',
+      ),
+      SleepStageSegment(
+        id: 'mock_stage_4',
+        sessionId: 'mock_session',
+        startAtUtc: start.add(const Duration(hours: 5)).toUtc(),
+        endAtUtc: end.toUtc(),
+        stage: CanonicalSleepStage.light,
+        sourcePlatform: 'mock',
+      ),
+    ],
+    stageDataConfidence: SleepStageConfidence.high,
+    totalSleepMinutes: 480,
+    sleepHrAvg: 62.0,
+    baselineSleepHr: 60.0,
+    deltaSleepHr: 2.0,
+    interruptionsCount: 1,
+    interruptionsWakeDuration: const Duration(minutes: 10),
+    deepDuration: const Duration(hours: 1, minutes: 30),
+    lightDuration: const Duration(hours: 5),
+    remDuration: const Duration(hours: 1, minutes: 30),
+    allSessions: [
+      SleepSession(
+        id: 'mock_session',
+        startAtUtc: start.toUtc(),
+        endAtUtc: end.toUtc(),
+        sessionType: SleepSessionType.mainSleep,
+        sourcePlatform: 'mock',
+      ),
+    ],
+  );
+}
+
+List<NightlySleepAnalysis> getMockWeekAnalyses(DateTime weekStart) {
+  return List.generate(7, (i) {
+    final date = weekStart.add(Duration(days: i));
+    return NightlySleepAnalysis(
+      id: 'mock_$i',
+      sessionId: 'mock_session_$i',
+      nightDate: date,
+      analysisVersion: '1',
+      normalizationVersion: '1',
+      analyzedAtUtc: date,
+      score: [72.0, 85.0, 64.0, 78.0, 91.0, 80.0, 75.0][i],
+      totalSleepMinutes: [420, 480, 390, 460, 520, 470, 440][i],
+      sleepEfficiencyPct: 90.0,
+      restingHeartRateBpm: 60.0,
+      interruptionsCount: 1,
+      interruptionsWakeMinutes: 10,
+      sleepQuality: SleepQualityBucket.good,
     );
-  }
+  });
+}
+
+List<NightlySleepAnalysis> getMockMonthAnalyses(DateTime monthStart) {
+  final daysInMonth = DateTime(monthStart.year, monthStart.month + 1, 0).day;
+  return List.generate(daysInMonth, (i) {
+    final date = monthStart.add(Duration(days: i));
+    final double score = 65.0 + (i * 7 % 26);
+    final int minutes = 400 + (i * 13 % 120);
+    return NightlySleepAnalysis(
+      id: 'mock_$i',
+      sessionId: 'mock_session_$i',
+      nightDate: date,
+      analysisVersion: '1',
+      normalizationVersion: '1',
+      analyzedAtUtc: date,
+      score: score,
+      totalSleepMinutes: minutes,
+      sleepEfficiencyPct: 90.0,
+      restingHeartRateBpm: 60.0,
+      interruptionsCount: 1,
+      interruptionsWakeMinutes: 10,
+      sleepQuality: SleepQualityBucket.good,
+    );
+  });
 }

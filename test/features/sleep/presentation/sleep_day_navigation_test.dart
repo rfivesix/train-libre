@@ -14,6 +14,7 @@ import 'package:train_libre/features/sleep/platform/sleep_sync_service.dart';
 import 'package:train_libre/util/cancellation_token.dart';
 import 'package:train_libre/features/profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:intl/intl.dart';
+import 'package:train_libre/widgets/common/empty_states/active_gap_overlay.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -141,6 +142,7 @@ Widget _testApp({
   String? initialRoute,
 }) {
   return MaterialApp(
+    locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     onGenerateRoute: onGenerateRoute,
@@ -379,8 +381,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Week summary'), findsOneWidget);
-    expect(find.text('Daily score'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('Sleep window'), findsOneWidget);
 
     await tester.pumpWidget(
       _testApp(
@@ -392,7 +394,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Month summary'), findsOneWidget);
     expect(find.text('Daily score states'), findsOneWidget);
   });
 
@@ -462,15 +463,15 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
 
     await tester.tap(find.text('Week'));
-    await tester.pumpAndSettle();
-    expect(find.text('Week summary'), findsOneWidget);
+    await _pumpRouteTransition(tester);
+    expect(find.text('Sleep window'), findsOneWidget);
 
     await tester.tap(find.text('Month'));
-    await tester.pumpAndSettle();
-    expect(find.text('Month summary'), findsOneWidget);
+    await _pumpRouteTransition(tester);
+    expect(find.text('Daily score states'), findsOneWidget);
   });
 
   testWidgets('renders empty state without crash', (tester) async {
@@ -490,10 +491,8 @@ void main() {
         home: SleepDayOverviewPage(viewModel: model),
       ),
     );
-    await tester.pumpAndSettle();
-    expect(find.text('No sleep data available for this day.'), findsOneWidget);
-    expect(find.text('Open settings'), findsOneWidget);
-    expect(find.text('Import now'), findsOneWidget);
+    await _pumpRouteTransition(tester);
+    expect(find.byType(ActiveGapOverlay), findsOneWidget);
   });
 
   testWidgets('heart-rate detail shows neutral baseline-missing state', (
@@ -604,7 +603,7 @@ void main() {
     expect(find.text(_dayLabel(DateTime(2026, 3, 31))), findsOneWidget);
     final initialFetches = repository.fetchCount;
 
-    await tester.tap(find.byKey(const Key('sleep-period-prev')));
+    await tester.tap(find.byKey(const Key('time-range-prev')));
     await tester.pumpAndSettle();
     expect(find.text(_dayLabel(DateTime(2026, 3, 30))), findsOneWidget);
     expect(repository.fetchCount, initialFetches + 1);
@@ -646,7 +645,7 @@ void main() {
 
     expect(find.text(_weekLabel(DateTime(2026, 3, 31))), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('sleep-period-prev')));
+    await tester.tap(find.byKey(const Key('time-range-prev')));
     await _pumpRouteTransition(tester);
     expect(find.text(_weekLabel(DateTime(2026, 3, 24))), findsOneWidget);
   });
@@ -687,7 +686,7 @@ void main() {
 
     expect(find.text(_monthLabel(DateTime(2026, 3, 31))), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('sleep-period-prev')));
+    await tester.tap(find.byKey(const Key('time-range-prev')));
     await _pumpRouteTransition(tester);
     expect(find.text(_monthLabel(DateTime(2026, 2, 28))), findsOneWidget);
   });
@@ -712,10 +711,10 @@ void main() {
         home: SleepDayOverviewPage(viewModel: model),
       ),
     );
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
 
-    await tester.tap(find.text('Import now'));
-    await tester.pumpAndSettle();
+    await model.importNow();
+    await _pumpRouteTransition(tester);
     expect(import.calls, 1);
   });
 
@@ -823,7 +822,7 @@ void main() {
         home: SleepDayOverviewPage(viewModel: model),
       ),
     );
-    await tester.pumpAndSettle();
+    await _pumpRouteTransition(tester);
 
     final listView = tester.widget<ListView>(find.byType(ListView).first);
     final padding = listView.padding as EdgeInsets;

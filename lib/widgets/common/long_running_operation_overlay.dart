@@ -137,9 +137,12 @@ class _LongRunningOperationOverlayState
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
-                    value: _progress >= 0 && _progress <= 1.0 ? _progress : null,
+                    value:
+                        _progress >= 0 && _progress <= 1.0 ? _progress : null,
                     minHeight: 8,
-                    backgroundColor: isDark ? Colors.white10 : Theme.of(context).colorScheme.onSurfaceVariant,
+                    backgroundColor: isDark
+                        ? Colors.white10
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                     color: theme.colorScheme.primary,
                   ),
                 ),

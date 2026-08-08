@@ -1,8 +1,12 @@
 part of '../ai_service.dart';
 
 extension AiParsing on AiService {
-  /// Extracts the meal candidate (holistic context and items) from the AI response.
-  AiMealCandidate _parseMealCandidateFromContent(String content) {
+  /// Extracts the meal candidate (holistic context and items) from the AI response off the main thread.
+  Future<AiMealCandidate> _parseMealCandidateFromContent(String content) async {
+    return Isolate.run(() => _parseMealCandidateFromContentSync(content));
+  }
+
+  AiMealCandidate _parseMealCandidateFromContentSync(String content) {
     var cleaned = content.trim();
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');
@@ -14,9 +18,10 @@ extension AiParsing on AiService {
       final decoded = jsonDecode(cleaned);
       if (decoded is Map<String, dynamic>) {
         final contextMap = decoded['mealContext'];
-        final AiMealContext? mealContext = contextMap != null && contextMap is Map<String, dynamic>
-            ? AiMealContext.fromJson(contextMap)
-            : null;
+        final AiMealContext? mealContext =
+            contextMap != null && contextMap is Map<String, dynamic>
+                ? AiMealContext.fromJson(contextMap)
+                : null;
 
         final rawItems = decoded['items'];
         if (rawItems is List) {
@@ -26,6 +31,7 @@ extension AiParsing on AiService {
                     grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                     confidence: (e['confidence'] as num?)?.toDouble(),
                     stateHint: e['stateHint'] as String?,
+                    catalogSearchTerm: e['catalogSearchTerm'] as String?,
                   ))
               .toList();
           return AiMealCandidate(
@@ -42,6 +48,7 @@ extension AiParsing on AiService {
                   grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                   confidence: (e['confidence'] as num?)?.toDouble(),
                   stateHint: e['stateHint'] as String?,
+                  catalogSearchTerm: e['catalogSearchTerm'] as String?,
                 ))
             .toList();
         return AiMealCandidate(items: items);
@@ -55,9 +62,10 @@ extension AiParsing on AiService {
         final jsonStr = cleaned.substring(startBracket, endBracket + 1);
         final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
         final contextMap = decoded['mealContext'];
-        final AiMealContext? mealContext = contextMap != null && contextMap is Map<String, dynamic>
-            ? AiMealContext.fromJson(contextMap)
-            : null;
+        final AiMealContext? mealContext =
+            contextMap != null && contextMap is Map<String, dynamic>
+                ? AiMealContext.fromJson(contextMap)
+                : null;
 
         final rawItems = decoded['items'];
         if (rawItems is List) {
@@ -67,6 +75,7 @@ extension AiParsing on AiService {
                     grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                     confidence: (e['confidence'] as num?)?.toDouble(),
                     stateHint: e['stateHint'] as String?,
+                    catalogSearchTerm: e['catalogSearchTerm'] as String?,
                   ))
               .toList();
           return AiMealCandidate(
@@ -89,17 +98,23 @@ extension AiParsing on AiService {
                   grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                   confidence: (e['confidence'] as num?)?.toDouble(),
                   stateHint: e['stateHint'] as String?,
+                  catalogSearchTerm: e['catalogSearchTerm'] as String?,
                 ))
             .toList();
         return AiMealCandidate(items: items);
       } catch (_) {}
     }
 
-    throw const AiParseException('No valid JSON object or array found in response.');
+    throw const AiParseException(
+        'No valid JSON object or array found in response.');
   }
 
-  /// Extracts the JSON array from the AI response text.
-  List<AiSuggestedItem> _parseItemsFromContent(String content) {
+  /// Extracts the JSON array from the AI response text off the main thread.
+  Future<List<AiSuggestedItem>> _parseItemsFromContent(String content) async {
+    return Isolate.run(() => _parseItemsFromContentSync(content));
+  }
+
+  List<AiSuggestedItem> _parseItemsFromContentSync(String content) {
     var cleaned = content.trim();
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');

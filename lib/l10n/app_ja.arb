@@ -2,6 +2,8 @@
   "@@locale": "ja",
   "selectDateTitle": "日付を選択",
   "selectTimeTitle": "時間を選択",
+  "removeTimer": "タイマーを削除",
+  "noTimerLabel": "タイマーなし",
   "appTitle": "Train Libre",
   "bannerText": "推奨事項 / 現在のトレーニング",
   "calories": "カロリー",
@@ -11,6 +13,7 @@
   "fat": "脂質",
   "steps": "歩数",
   "daily": "毎日",
+  "nowLabel": "Now",
   "today": "今日",
   "workoutSection": "ワークアウトセクション - まだ実装されていません",
   "addMenuTitle": "何を追加したいですか?",
@@ -156,9 +159,9 @@
   "addExerciseToWorkoutButton": "ワークアウトにエクササイズを追加",
   "lastTimeLabel": "前回",
   "setLabel": "セット",
-  "kgLabel": "重量(kg)",
+  "kgLabel": "Weight ({unit})",
   "repsLabel": "担当者",
-  "cardioDistanceLabel": "距離(km)",
+  "cardioDistanceLabel": "Distance ({unit})",
   "cardioTimeLabel": "時間",
   "cardioIntensityLabel": "インテンス。",
   "cardioIntensityShortLabel": "内部。",
@@ -222,6 +225,15 @@
   "filterToday": "今日",
   "filter7Days": "7日間",
   "filter30Days": "30日",
+  "filter30DaysShort": "30日",
+  "filter90DaysShort": "90日",
+  "filter180DaysShort": "180日",
+  "filter7DaysShort": "7日",
+  "filter1MonthShort": "1ヶ月",
+  "filter3MonthsShort": "3ヶ月",
+  "filter6MonthsShort": "6ヶ月",
+  "filter1YearShort": "1年",
+  "filterMax": "最大",
   "filterAll": "全て",
   "showLess": "表示を少なくする",
   "showMoreDetails": "さらに詳細を表示",
@@ -349,6 +361,7 @@
   "repsLabelShort": "担当者",
   "titleNewRoutine": "新しいルーチン",
   "titleEditRoutine": "ルーチンの編集",
+  "editRoutine": "ルーチンの編集",
   "validatorPleaseEnterRoutineName": "ルーチンの名前を入力してください。",
   "snackbarRoutineCreated": "ルーチンが作成されました。次に、いくつかの演習を追加します。",
   "snackbarRoutineSaved": "ルーチンが保存されました。",
@@ -368,7 +381,6 @@
     }
   },
   "fabAddExercise": "エクササイズを追加",
-  "kgLabelShort": "kg",
   "drawerExerciseCatalog": "エクササイズカタログ",
   "lastWorkoutTitle": "最後のトレーニング",
   "repeatButton": "繰り返す",
@@ -418,6 +430,17 @@
   "doneButtonLabel": "終わり",
   "setRestTimeButton": "休憩時間を設定する",
   "deleteExerciseButton": "練習の削除",
+  "deleteCustomExerciseTitle": "カスタムエクササイズを削除",
+  "deleteCustomExerciseBody": "「{name}」を完全に削除します。この操作は元に戻せません。",
+  "@deleteCustomExerciseBody": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deleteCustomExerciseWithLogsWarning": "このエクササイズはトレーニング履歴に記録されています。ログデータは保持されますが、エクササイズへのリンクは削除されます。",
+  "deleteCustomExerciseWithRoutinesWarning": "このエクササイズは1つ以上のルーティンで使用されています。それらのルーティンから削除されます。",
+  "deleteCustomExerciseSuccess": "エクササイズを削除しました。",
+
   "restOverLabel": "一時停止が終わりました",
   "workoutRunningLabel": "トレーニングはアクティブです…",
   "continueButton": "続く",
@@ -481,6 +504,7 @@
   "manage_all_plans": "すべての計画を管理する",
   "workoutSectionStart": "始める",
   "workoutSectionMyPlans": "私の計画",
+  "emptyStateWorkoutRoutinesCallout": "ジムでのワークアウトを体系的に記録するために、最初のルーティンを作成しましょう。",
   "workoutSectionHistoryLibrary": "歴史と図書館",
   "workoutAllRoutines": "すべてのルーチン",
   "workoutEntryWorkouts": "トレーニング",
@@ -733,7 +757,13 @@
   "autoBackupDefaultFolder": "アプリ - ドキュメント/バックアップ (デフォルト)",
   "autoBackupChooseFolder": "フォルダーの選択",
   "autoBackupCopyPath": "パスのコピー",
-  "autoBackupRunNow": "今すぐ自動バックアップを確認して実行",
+  "autoBackupRunNow": "今すぐチェック＆自動バックアップを実行",
+  "icloudAutoBackupTitle": "iCloud自動バックアップ",
+  "icloudAutoBackupDescription": "アプリがバックグラウンドになると、データベースを自動的にiCloud Driveに同期します。新しいデバイスや再インストール時にデータを復元できます。",
+  "icloudBackupNow": "今すぐiCloudにバックアップ",
+  "icloudBackupUploading": "アップロード中…",
+  "icloudBackupSuccess": "バックアップが正常にアップロードされました。",
+  "icloudBackupFailed": "バックアップに失敗しました。iCloud接続を確認してください。",
   "autoBackupRequestAccessSubtitle": "データを自動的にバックアップするには、Train Libre は選択したフォルダーにアクセスする必要があります。バックアップはそこに保存されます。",
   "snackbarAutoBackupSuccess": "自動バックアップが完了しました。",
   "snackbarAutoBackupFailed": "自動バックアップが失敗したか、キャンセルされました。",
@@ -813,10 +843,11 @@
   "workout": "いい結果",
   "addFoodTitle": "食べ物を追加する",
   "nutritionExplorerTitle": "栄養探検家",
-  "myMeals": "私の食事",
-  "myMealsCL": "私の食事",
+  "myMeals": "マイレシピ",
+  "myMealsCL": "マイレシピ",
   "nutritionSectionTodayInFocus": "今日の焦点",
-  "nutritionSectionMyMeals": "私の食事",
+  "nutritionSectionMyMeals": "マイレシピ",
+  "emptyStateNutritionRecipesCallout": "お気に入りの食事をすばやく記録するために、最初のレシピを作成しましょう。",
   "nutritionSectionToolsAndLibrary": "ツールとライブラリ",
   "supplement_caffeine": "カフェイン",
   "supplement_creatine_monohydrate": "クレアチン一水和物",
@@ -826,41 +857,43 @@
   "emptySupplements": "サプリメントは利用できません",
   "undo": "元に戻す",
   "deleteSupplementConfirm": "この補足を削除してもよろしいですか?すべての履歴データは失われます。\n\nヒント: 代わりにサプリメントを編集することで、追跡を解除することができます。",
+  "editSupplementLogTitle": "入力を編集",
+  "deleteSupplementLogConfirm": "この入力を削除してもよろしいですか？",
   "fieldRequired": "必須",
   "unitNotSupported": "ユニットはサポートされていません。",
   "caffeineUnitLocked": "カフェインの場合、単位は mg に固定されています。",
   "caffeineMustBeMg": "カフェインはmg単位で記録する必要があります。",
   "tabCatalogSearch": "カタログ",
-  "tabMeals": "食事",
+  "tabMeals": "レシピ",
   "emptyCategory": "エントリはありません",
   "searchSectionBase": "ベースフード",
   "searchSectionOther": "その他の結果",
-  "mealsComingSoonTitle": "お食事（近日公開予定）",
-  "mealsComingSoonBody": "すぐに、複数の食品から独自の食事を作成できるようになります。",
-  "mealsEmptyTitle": "食事テンプレートが保存されていません",
-  "mealsEmptyBody": "食事を作成して、複数の食品を一度にすばやく記録します。",
-  "mealsEmptyBodyWithShortcut": "日記で、朝食または夕食の下にある「食事として保存」オプションを使用して、一般的な食事の組み合わせを簡単なテンプレートとして保存します。",
-  "mealsCreateManually": "食事を手動で作成する",
-  "saveMealTemplateShortcut": "食事として保存",
-  "mealsCreate": "食事を作る",
-  "mealsEdit": "食事を編集する",
-  "mealsDelete": "食事を削除する",
+  "mealsComingSoonTitle": "レシピ（近日公開予定）",
+  "mealsComingSoonBody": "すぐに、複数の食品から独自のレシピを作成できるようになります。",
+  "mealsEmptyTitle": "レシピテンプレートが保存されていません",
+  "mealsEmptyBody": "レシピを作成して、複数の食品を一度にすばやく記録します。",
+  "mealsEmptyBodyWithShortcut": "日記で、朝食または夕食の下にある「レシピとして保存」オプションを使用して、一般的な食事の組み合わせを簡単なテンプレートとして保存します。",
+  "mealsCreateManually": "レシピを手動で作成する",
+  "saveMealTemplateShortcut": "レシピとして保存",
+  "mealsCreate": "レシピを作る",
+  "mealsEdit": "レシピを編集する",
+  "mealsDelete": "レシピを削除する",
   "mealsAddToDiary": "食べ物を追加する",
-  "mealNameLabel": "食事名",
+  "mealNameLabel": "レシピ名",
   "mealNotesLabel": "注意事項",
   "mealIngredientsTitle": "材料",
   "mealAddIngredient": "成分を追加する",
   "mealIngredientAmountLabel": "額",
-  "mealDeleteConfirmTitle": "食事を削除する",
-  "mealDeleteConfirmBody": "食事「{name}」を削除してもよろしいですか?その成分もすべて除去されます。",
-  "mealAddedToDiary": "食事「{name}」が日記に追加されました。",
-  "mealSaved": "食事は節約されました。",
-  "mealDeleted": "食事を削除しました。",
+  "mealDeleteConfirmTitle": "レシピを削除する",
+  "mealDeleteConfirmBody": "レシピ「{name}」を削除してもよろしいですか?その成分もすべて除去されます。",
+  "mealAddedToDiary": "レシピ「{name}」が日記に追加されました。",
+  "mealSaved": "レシピを保存しました。",
+  "mealDeleted": "レシピを削除しました。",
   "confirm": "確認する",
   "addMealToDiaryTitle": "日記に追加",
-  "mealTypeLabel": "食事",
+  "mealTypeLabel": "レシピ",
   "amountLabel": "額",
-  "mealAddedToDiarySuccess": "日記に食事を追加しました",
+  "mealAddedToDiarySuccess": "日記にレシピを追加しました",
   "error": "エラー",
   "mealsViewTitle": "食事ビュータイトル",
   "noNotes": "メモはありません",
@@ -930,6 +963,9 @@
   "onboardingFeaturePrivacyBody": "アカウント不要、クラウド強制なし。データはあなたのものです。",
   "onboardingSettingsHint": "すべての設定は後からいつでも設定画面で変更できます。",
   "adaptiveRatePerWeekLabel": "週次目標レート",
+  "customTargetRateOption": "カスタム",
+  "customTargetRateDialogTitle": "カスタム目標レートを設定",
+
   "onboardingNameTitle": "あなたの名前は何ですか？",
   "onboardingNameLabel": "あなたの名前",
   "onboardingNameError": "あなたの名前を入力してください",
@@ -1321,6 +1357,9 @@
   "exerciseMetricMaxWeight": "最大重量",
   "exerciseMetricVolume": "音量",
   "exerciseMetricEst1RM": "EST（東部基準時。 1RM",
+  "exerciseMetricDistance": "距離",
+  "exerciseMetricDuration": "時間",
+  "exerciseMetricPace": "ペース",
   "prBannerBestMaxWeight": "ベスト最大体重",
   "prBannerBestVolumeSet": "ベストボリュームセット",
   "prBannerBest1RM": "ベスト 1-Rep Max",
@@ -1348,7 +1387,7 @@
   "analyticsTopVolume": "トップトレーニング済み",
   "analyticsLowestVolume": "最低音量",
   "analyticsRecentRecords": "最近の記録",
-  "analyticsPerfWithReps": "{weight} kg x {reps}",
+  "analyticsPerfWithReps": "{weight} {unit} x {reps}",
   "@analyticsPerfWithReps": {
     "placeholders": {
       "weight": {
@@ -1356,7 +1395,8 @@
       },
       "reps": {
         "type": "int"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsKgThisWeek": "kg（今週）",
@@ -1366,7 +1406,7 @@
   "analyticsNoRecordYet": "まだ記録がありません",
   "analyticsNotableImprovements": "注目すべき改善点",
   "analyticsNoPrTrendInWindow": "この分野ではまだ明確な PR 傾向はありません。",
-  "analyticsE1rmProgress": "e1RM {previous} -> {recent} kg",
+  "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
   "@analyticsE1rmProgress": {
     "placeholders": {
       "previous": {
@@ -1374,7 +1414,8 @@
       },
       "recent": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsUnitKg": "kg",
@@ -1396,6 +1437,8 @@
   "analyticsVsPrior4Weeks": "過去 4 週間との比較",
   "analyticsRollingConsistency": "ローリング一貫性",
   "analyticsWeeksAtLeast2Workouts": "少なくとも2回のセッションで週に1回",
+  "analyticsInTimeframe": "対象期間内",
+  "analyticsVsPriorPeriod": "前期間比",
   "analyticsCalendarExplainer": "色の濃さは 1 日あたりのセッションを反映しており、これが真の一貫性マップになります。",
   "analyticsSelectDayPrompt": "セッション数を検査する日を選択します。",
   "analyticsSelectedDayWorkouts": "{date}: {count} セッション",
@@ -1426,10 +1469,10 @@
         "type": "String"
       }
     }
-  },
+},
   "analyticsPeriodLabel": "期間",
   "analyticsEquivalentSetsExplainer": "同等のハード セットでは、プライマリ x1.0 とセカンダリ x0.3 の重み付けが使用されます。頻度は、同等のセットが 1.0 以上に達した日のみをカウントします。",
-  "analyticsWeeklySetsByMuscle": "筋肉別ウィークリーセット",
+  "analyticsWeeklySetsByMuscle": "Ø 筋肉別週次セット",
   "analyticsFrequencyByMuscle": "筋肉別の頻度",
   "analyticsRecentDistributionHeatmap": "最近の配布ヒートマップ",
   "analyticsRadarOverviewTitle": "レーダーの概要",
@@ -1437,7 +1480,7 @@
   "analyticsGuidanceTitle": "ガイダンス",
   "analyticsGuidanceDirectionalDisclaimer": "これは、最新のセット分布に基づいた方向性のガイダンスであり、絶対的な診断ではありません。",
   "analyticsGuidanceSoftenedDisclaimer": "十分なデータが利用可能になるまで、洞察は意図的に緩和されます。",
-  "analyticsWeekTotalEquivalentSets": "週合計: {value} 個の同等セット",
+  "analyticsWeekTotalEquivalentSets": "Ø 1週当たり {value} 相当セット",
   "@analyticsWeekTotalEquivalentSets": {
     "placeholders": {
       "value": {
@@ -1446,28 +1489,31 @@
     }
   },
   "analyticsFrequencyRuleFooter": "頻度は、筋肉が同等のセット数 >= 1.0 に達した日のみをカウントします。",
-  "liveWorkoutE1rmCurrentSet": "e1RM {value} kg",
+  "liveWorkoutE1rmCurrentSet": "e1RM {value} {unit}",
   "@liveWorkoutE1rmCurrentSet": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmBestSession": "このセッションの最高の e1RM: {value} kg",
+  "liveWorkoutE1rmBestSession": "このセッションの最高の e1RM: {value} {unit}",
   "@liveWorkoutE1rmBestSession": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmVsLastSession": "前回のセッションとの比較: {delta} kg",
+  "liveWorkoutE1rmVsLastSession": "前回のセッションとの比較: {delta} {unit}",
   "@liveWorkoutE1rmVsLastSession": {
     "placeholders": {
       "delta": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "bodyNutritionCorrelationTitle": "身体と栄養のトレンド",
@@ -1483,11 +1529,18 @@
   "analyticsLowConfidenceLabel": "信頼度の低いパターン",
   "analyticsObservedPatternLabel": "観察されたパターン",
   "analyticsBodyNutritionTrendContext": "経時的な体重とカロリー",
-  "analyticsBodyNutritionTrendContextHint": "グラフは、同じ空間に収まるように各系列を拡大縮小します。ツールチップには生の kg と kcal の値が表示されます。",
-  "analyticsBodyNutritionNormalizedHint": "グラフは、同じスペースに収まるように体重とカロリーをスケールします。ツールチップには生の kg と kcal の値が表示されます。",
-  "analyticsBodyNutritionTotalWeightLabel": "総重量(kg)",
+  "analyticsBodyNutritionTrendContextHint": "グラフは、同じ空間に収まるように各系列を拡大縮小します。ツールチップには生の {unit} と kcal の値が表示されます。",
+  "analyticsBodyNutritionNormalizedHint": "グラフは、同じスペースに収まるように体重とカロリーをスケールします。ツールチップには生の {unit} と kcal の値が表示されます。",
+  "analyticsBodyNutritionTotalWeightLabel": "総重量({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "総カロリー（kcal）",
-  "analyticsWeightTrendLabel": "重量(kg)",
+  "analyticsWeightTrendLabel": "重量({unit})",
+  "@analyticsWeightTrendLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsCaloriesTrendLabel": "カロリー(kcal)",
   "analyticsInterpretationTitle": "解釈",
   "analyticsBodyNutritionConfidenceHighHint": "この範囲のデータ カバレッジは、より信頼性の高いパターン読み取りに十分な強度を持っています。",
@@ -1532,6 +1585,9 @@
   "onboardingRestoreImporting": "バックアップをインポートしています...",
   "onboardingRestoreSuccess": "バックアップが正常に復元されました。",
   "onboardingRestoreFailed": "インポートに失敗しました。ファイルを確認して再試行してください。",
+  "onboardingRestoreFromICloud": "iCloudから復元",
+  "onboardingRestoreICloudSuccess": "iCloudバックアップが正常に復元されました。",
+  "onboardingRestoreICloudFailed": "iCloudの復元に失敗しました。接続を確認して再試行してください。",
   "finishWorkoutTitleLabel": "ワークアウトのタイトル",
   "finishWorkoutNotesLabel": "注記 (オプション)",
   "finishWorkoutNotesHint": "トレーニングはどうでしたか？",
@@ -1599,6 +1655,13 @@
   "sleepRawImportsSubtitle": "最近のヘルスコネクト ペイロードを表示する",
   "sleepDataStatusTitle": "データステータス",
   "sleepDataStatusSubtitle": "許可が付与されました。まだスリープが表示されない場合は、以下の手動インポートを実行します。",
+  "@sleepDataStatusSubtitle": {
+    "type": "text"
+  },
+  "sleepDataStatusSubtitleIos": "接続はアクティブです。データが見つからない場合（インポートされたセッションが 0 の場合）、Apple Health アプリで手動で読み取り権限を確認してください。",
+  "@sleepDataStatusSubtitleIos": {
+    "type": "text"
+  },
   "sleepNoPermissionTitle": "許可がありません",
   "sleepNoPermissionSubtitle": "睡眠データをインポートするには、睡眠と心拍数の権限が必要です。",
   "sleepFeatureUnavailableTitle": "利用できない機能",
@@ -1777,12 +1840,13 @@
   "adaptiveGoalLose": "体重を減らす",
   "adaptiveGoalMaintain": "体重を維持する",
   "adaptiveGoalGain": "体重が増える",
-  "adaptiveRatePerWeek": "{value} kg/週",
+  "adaptiveRatePerWeek": "{value} {unit}/週",
   "@adaptiveRatePerWeek": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "adaptivePriorActivityLabel": "ベースラインの毎日の活動",
@@ -2011,6 +2075,16 @@
   "adaptiveRecommendationMacroTargetsLabel": "推奨ターゲット",
   "adaptiveRecommendationTargetCaloriesLabel": "目標kcal",
   "adaptiveRecommendationDataQualityLabel": "データ品質",
+  "adaptiveRecommendationEnergyDensityLabel": "実効エネルギー密度",
+  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
+  "@adaptiveRecommendationEnergyDensityValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationEnergyDensityExplanation": "体重と水分損失の比率に基づく動的な値です",
   "adaptiveRecommendationRecalculateNowAction": "今すぐ再計算してください",
   "adaptiveRecommendationRecalculating": "再計算中...",
   "adaptiveRecommendationApplying": "申請中...",
@@ -2036,6 +2110,8 @@
   "settingsAppearanceSubtitle": "テーマ、ビジュアルスタイル、ハプティクスを調整する",
   "settingsShowSugarInDiaryOverviewTitle": "日記の概要に砂糖を表示",
   "settingsShowSugarInDiaryOverviewSubtitle": "上部の毎日の概要セクションに砂糖が表示されます",
+  "settingsOverviewExtraNutrientTitle": "概要の追加栄養素",
+  "settingsOverviewExtraNutrientSubtitle": "毎日の概要に3つ目の栄養素を追加",
   "settingsSectionHealthTracking": "健康状態と追跡",
   "settingsStepsSubtitle": "追跡、ソースポリシー、およびプロバイダー",
   "settingsSleepSubtitle": "インポート、権限、スリープ状態",
@@ -2192,11 +2268,33 @@
   "health_permission_continue": "続く",
   "health_permission_not_now": "今じゃない",
   "welcome_privacy_title": "ようこそとプライバシー",
-  "welcome_privacy_body": "Train Libre を使用すると、当社のプライバシー ポリシーと法的通知に記載されているとおりにデータが処理されることに同意したものとみなされます。",
-  "i_agree_to_privacy_policy": "私はプライバシー ポリシーに記載されているとおりに自分の健康データを処理することを読み、これに同意します。",
+  "welcome_privacy_body": "ワークアウトの記録や分析機能を提供するために、当社のプライバシーポリシーに記載されているとおり、お客様のフィットネスおよびアクティビティデータを処理します。",
+  "i_agree_to_privacy_policy": "ワークアウトの記録および分析のために、私のフィットネスおよび健康データが処理されることに明示的に同意します。同意は設定からいつでも撤回できます。",
+  "i_agree_to_optional_telemetry": "(任意) アプリの安定性と機能向上のため、匿用の利用統計を共有します（個人データは送信されません）。",
+  "welcome_back_updated_legal_title": "おかえりなさい & 利用規約改定のお知らせ",
+  "legal_update_body": "プライバシーポリシーおよび利用規約を更新しました（バージョン {version}）。Train Libre を引き続き利用するには、新しい利用規約に同意してください。既存のデータはデバイス内にそのまま保存されます。",
+  "@legal_update_body": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "i_agree_to_updated_privacy_policy": "更新されたプライバシーポリシー（v{version}）およびフィットネス・健康データの処理に同意します。",
+  "@i_agree_to_updated_privacy_policy": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accept_and_continue": "同意して続ける",
+  "by_tapping_accept_continue": "「同意して続ける」をタップすることで、更新された",
   "acceptTermsPrompt": "利用規約に同意します",
   "viewTermsInline": "利用規約",
   "accept_and_get_started": "同意して始めましょう",
+  "by_tapping_accept": "「同意して始めましょう」をタップすると、当社の",
+  "and_acknowledge": "に同意し、",
   "about_section": "について",
   "legal_section": "法的通知とプライバシー",
   "aiSettingsInstructionTitle": "AI 食事認識の仕組み",
@@ -2207,15 +2305,17 @@
   "legal_document_version_value": "1.2",
   "legal_document_last_updated_value": "2026 年 5 月 20 日",
   "muscleChest": "胸",
-  "muscleBack": "戻る",
+  "muscleBack": "背中",
   "muscleShoulders": "肩",
   "muscleBiceps": "上腕二頭筋",
   "muscleTriceps": "上腕三頭筋",
   "muscleQuads": "大腿四頭筋",
   "muscleHamstrings": "ハムストリングス",
-  "muscleGlutes": "大臀筋",
-  "muscleCalves": "子牛",
-  "muscleLowerBack": "腰部",
+  "muscleLegs": "脚",
+  "muscleArms": "腕",
+  "muscleGlutes": "臀部",
+  "muscleCalves": "ふくらはぎ",
+  "muscleLowerBack": "腰",
   "muscleAbs": "腹筋",
   "muscleAdductors": "内転筋",
   "muscleForearms": "前腕",
@@ -2429,6 +2529,74 @@
   "wgerPlaceholderText": "エクササイズカタログ機能を使用するにはローカルデータベースカタログが必要です。",
   "onboardingRegionTitle": "地域の選択",
   "onboardingRegionExplanation": "食料品を購入する国を選択してください。これにより、地域の製品に適した正しいOpen Food Factsデータベースがダウンロードされます。",
-  "onboardingRegionSettingsHint": "これは後でいつでも「設定 → 栄養 → データベース地域」で変更できます。"
+  "onboardingRegionSettingsHint": "これは後でいつでも「設定 → 栄養 → データベース地域」で変更できます。",
+  "clearSearch": "検索をクリア",
+  "rollingDaysLabel": "過去 {days} 日間（ローリング）",
+  "@rollingDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "muscleTraps": "僧帽筋",
+  "muscleObliques": "腹斜筋",
+  "@kgLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@cardioDistanceLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@analyticsBodyNutritionTrendContextHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionNormalizedHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionTotalWeightLabel": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "icloudSyncErrorTitle": "iCloud同期エラー",
+  "icloudSyncErrorHelp": "iOSの「設定」->「[名前]」->「iCloud」->「iCloud Drive」でiCloud Driveが有効になっていることを確認してください。",
+  "icloudSyncErrorCopyLog": "技術エラーログをコピー",
+  "icloudSyncErrorClose": "閉じる",
+  "icloudSyncErrorCopied": "エラーログをクリップボードにコピーしました！",
+  "icloudLastSynced": "最終同期：{date}",
+  "icloudNeverSynced": "未同期",
+  "emptyStateDiaryColdStartTitle": "日記へようこそ！",
+  "emptyStateDiaryColdStartSubtitle": "ここで栄養と水分の摂取を記録しましょう。",
+  "emptyStateActiveGapOverlay": "この期間に利用可能なデータはありません",
+  "emptyStateDiaryColdStartCallToAction": "最初の記録をここに追加しましょう",
+  "statisticsColdStartTitle": "分析へようこそ！",
+  "statisticsColdStartSubtitle": "最初のワークアウトや食事を記録するか、歩数や睡眠を追跡すると、進行状況がここに視覚化されます。",
+  "statisticsActiveGapTitle": "データがありません",
+  "reviewPromptTitle": "Train Libreを気に入っていただけましたか？",
+  "reviewPromptSubtitle": "フィードバックは広告やトラッカーなしでのアプリ改善に役立ちます。",
+  "reviewPromptYes": "はい、気に入っています",
+  "reviewPromptNo": "いいえ、あまり",
+  "reviewPromptLater": "後で通知",
+  "updateAvailableTitle": "アップデート利用可能",
+  "statusReady": "準備完了",
+  "statusRequired": "必須",
+  "updatesAvailableBody": "ローカルカタログの新しいアップデートが利用可能です。今すぐアップデートしますか？",
+  "exerciseCatalogWger": "エクササイズカタログ (wger)",
+  "nutritionCatalogOff": "栄養カタログ (OFF)",
+  "workoutImportZeroNew": "0件の新しいワークアウトがインポートされました（すべて既に存在しています）。",
+  "telemetryDeleteDialogTitle": "テレメトリデータを削除しますか？",
+  "telemetryDeleteDialogBody": "過去のテレメトリデータを本当に削除しますか？\n\n以下の処理が行われます：\n• このデバイスに保存されているすべてのデバイスUUID、セッションID、ローカルカウンターがリセットされます。\n• EUのPostHogサーバーに削除リクエスト（$delete_person）が送信され、そこからデータが削除されます。\n• テレメトリSDKが完全にリセットされます。",
+  "telemetryDeleteConfirmButton": "今すぐデータを削除"
 }
-

@@ -46,7 +46,8 @@ class CatalogCategoryTile extends StatelessWidget {
             )
           else if (categoryItems == null || categoryItems.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM),
+              padding: const EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingM),
               child: Center(child: Text(l10n.emptyCategory)),
             )
           else

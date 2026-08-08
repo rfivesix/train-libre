@@ -6,8 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../analytics/domain/models/chart_data_point.dart';
 import '../../../profile/presentation/widgets/measurement_chart_widget.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../data/sleep_day_repository.dart';
+import '../../domain/metrics/sleep_thresholds.dart';
 import 'sleep_data_unavailable_card.dart';
 import 'sleep_detail_page_shell.dart';
 import 'widgets/sleep_benchmark_bar.dart';
@@ -74,7 +74,7 @@ class HeartRateDetailPage extends StatelessWidget {
 
     return SleepDetailPageShell(
       title: l10n.sleepMetricHeartRateTitle,
-      value: hasAverage ? '${avg.round()} ${l10n.sleepBpmUnit}' : '--',
+      value: hasAverage ? '⌀ ${avg.round()} ${l10n.sleepBpmUnit}' : '--',
       statusLabel: statusLabel,
       subtitle: established
           ? l10n.sleepHeartRateComparedBaselineSubtitle
@@ -86,33 +86,63 @@ class HeartRateDetailPage extends StatelessWidget {
               : Theme.of(context).colorScheme.onSurfaceVariant,
       children: [
         if (hasAverage) ...[
-          SleepBenchmarkBar(
-            min: 35,
-            max: 90,
-            value: avg,
-            lowerTarget:
-                established && baseline != null ? baseline - 3 : avg - 2,
-            upperTarget:
-                established && baseline != null ? baseline + 3 : avg + 2,
-          ),
+          Builder(builder: (context) {
+            final min = 35.0;
+            final max = 90.0;
+            final base = established && baseline != null ? baseline : avg;
+            return SleepBenchmarkBar(
+              min: min,
+              max: max,
+              value: avg,
+              minLabel: '${min.toInt()} ${l10n.sleepBpmUnit}',
+              maxLabel: '${max.toInt()} ${l10n.sleepBpmUnit}',
+              segments: [
+                BenchmarkSegment(
+                  limit: base - HeartRateThresholds.warningDeviation,
+                  color: Colors.red,
+                  label: '',
+                ),
+                BenchmarkSegment(
+                  limit: base - HeartRateThresholds.optimalDeviation,
+                  color: Colors.orange,
+                  label: (base - HeartRateThresholds.optimalDeviation)
+                      .round()
+                      .toString(),
+                ),
+                BenchmarkSegment(
+                  limit: base + HeartRateThresholds.optimalDeviation,
+                  color: Colors.green,
+                  label: (base + HeartRateThresholds.optimalDeviation)
+                      .round()
+                      .toString(),
+                ),
+                BenchmarkSegment(
+                  limit: base + HeartRateThresholds.warningDeviation,
+                  color: Colors.orange,
+                  label: (base + HeartRateThresholds.warningDeviation)
+                      .round()
+                      .toString(),
+                ),
+                BenchmarkSegment(
+                  limit: max,
+                  color: Colors.red,
+                ),
+              ],
+            );
+          }),
           const SizedBox(height: DesignConstants.spacingM),
         ],
         if (hasSamples)
-          SummaryCard(
-            child: Padding(
-              padding: const EdgeInsets.all(DesignConstants.spacingL),
-              child: MeasurementChartWidget.fromData(
-                dataPoints: chartPoints,
-                unit: l10n.sleepBpmUnit,
-                axisMode: MeasurementChartAxisMode.time,
-                valueFractionDigits: 0,
-                referenceLineValue: established ? baseline : null,
-                valueLabelBuilder: (value, unit) => '${value.round()} $unit',
-                selectedDateLabelBuilder: (value) =>
-                    timeFormatter.format(value),
-                axisLabelBuilder: (value, _) => timeFormatter.format(value),
-              ),
-            ),
+          MeasurementChartWidget.fromData(
+            dataPoints: chartPoints,
+            unit: l10n.sleepBpmUnit,
+            axisMode: MeasurementChartAxisMode.time,
+            valueFractionDigits: 0,
+            referenceLineValue: established ? baseline : null,
+            valueLabelBuilder: (value, unit) => '${value.round()} $unit',
+            selectedDateLabelBuilder: (value) => timeFormatter.format(value),
+            axisLabelBuilder: (value, _) => timeFormatter.format(value),
+            edgeToEdge: true,
           )
         else
           SleepDataUnavailableCard(

@@ -270,14 +270,23 @@ class HealthExportDataSource {
     );
     if (entries.isEmpty) return const <ExportNutritionRecord>[];
 
-    final archivedEntries = entries.where((e) => e.archiveLocalId != null).toList();
-    final legacyEntries = entries.where((e) => e.archiveLocalId == null).toList();
+    // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
+    final Set<int> archiveIdsSet = {};
+    final Set<String> barcodesSet = {};
+
+    for (final entry in entries) {
+      if (entry.archiveLocalId != null) {
+        archiveIdsSet.add(entry.archiveLocalId!);
+      } else {
+        barcodesSet.add(entry.barcode);
+      }
+    }
 
     final Map<int, db.OffProductsArchiveData> archiveProductsMap = {};
     final Map<String, db.Product> legacyProductsMap = {};
 
-    if (archivedEntries.isNotEmpty) {
-      final archiveIds = archivedEntries.map((e) => e.archiveLocalId!).toSet().toList();
+    if (archiveIdsSet.isNotEmpty) {
+      final archiveIds = archiveIdsSet.toList();
       final dbInstance = await _db.database;
       final rows = await (dbInstance.select(dbInstance.offProductsArchive)
             ..where((tbl) => tbl.localId.isIn(archiveIds)))
@@ -287,8 +296,8 @@ class HealthExportDataSource {
       }
     }
 
-    if (legacyEntries.isNotEmpty) {
-      final barcodes = legacyEntries.map((e) => e.barcode).toSet().toList();
+    if (barcodesSet.isNotEmpty) {
+      final barcodes = barcodesSet.toList();
       final products = await _loadProductsByBarcode(barcodes);
       for (final p in products) {
         legacyProductsMap[p.barcode] = p;
@@ -300,7 +309,8 @@ class HealthExportDataSource {
       if (entry.id == null) continue;
       final factor = entry.quantityInGrams / 100.0;
 
-      if (entry.archiveLocalId != null && archiveProductsMap.containsKey(entry.archiveLocalId)) {
+      if (entry.archiveLocalId != null &&
+          archiveProductsMap.containsKey(entry.archiveLocalId)) {
         final archivedProduct = archiveProductsMap[entry.archiveLocalId!]!;
         final sodium = ((archivedProduct.salt ?? 0) > 0
             ? (archivedProduct.salt! / _saltToSodiumFactor)
@@ -313,8 +323,12 @@ class HealthExportDataSource {
           proteinGrams: archivedProduct.protein * factor,
           carbsGrams: archivedProduct.carbs * factor,
           fatGrams: archivedProduct.fat * factor,
-          fiberGrams: archivedProduct.fiber == null ? null : archivedProduct.fiber! * factor,
-          sugarGrams: archivedProduct.sugar == null ? null : archivedProduct.sugar! * factor,
+          fiberGrams: archivedProduct.fiber == null
+              ? null
+              : archivedProduct.fiber! * factor,
+          sugarGrams: archivedProduct.sugar == null
+              ? null
+              : archivedProduct.sugar! * factor,
           sodiumGrams: sodium == null ? null : sodium * factor,
         );
         if (record.hasAnyValue) {

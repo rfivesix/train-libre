@@ -15,6 +15,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectTimeTitle => 'Select Time';
 
   @override
+  String get removeTimer => 'Remove Timer';
+
+  @override
+  String get noTimerLabel => 'No Timer';
+
+  @override
   String get appTitle => 'Train Libre';
 
   @override
@@ -40,6 +46,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daily => 'Daily';
+
+  @override
+  String get nowLabel => 'Now';
 
   @override
   String get today => 'Today';
@@ -425,13 +434,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setLabel => 'Set';
 
   @override
-  String get kgLabel => 'Weight (kg)';
+  String kgLabel(String unit) {
+    return 'Weight ($unit)';
+  }
 
   @override
   String get repsLabel => 'Reps';
 
   @override
-  String get cardioDistanceLabel => 'Distance (km)';
+  String cardioDistanceLabel(String unit) {
+    return 'Distance ($unit)';
+  }
 
   @override
   String get cardioTimeLabel => 'Time';
@@ -602,6 +615,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filter30Days => '30 Days';
+
+  @override
+  String get filter30DaysShort => '30D';
+
+  @override
+  String get filter90DaysShort => '90D';
+
+  @override
+  String get filter180DaysShort => '180D';
+
+  @override
+  String get filter7DaysShort => '7D';
+
+  @override
+  String get filter1MonthShort => '1M';
+
+  @override
+  String get filter3MonthsShort => '3M';
+
+  @override
+  String get filter6MonthsShort => '6M';
+
+  @override
+  String get filter1YearShort => '1Y';
+
+  @override
+  String get filterMax => 'MAX';
 
   @override
   String get filterAll => 'All';
@@ -932,6 +972,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get titleEditRoutine => 'Edit Routine';
 
   @override
+  String get editRoutine => 'Edit Routine';
+
+  @override
   String get validatorPleaseEnterRoutineName =>
       'Please enter a name for the routine.';
 
@@ -976,9 +1019,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fabAddExercise => 'Add Exercise';
-
-  @override
-  String get kgLabelShort => 'kg';
 
   @override
   String get drawerExerciseCatalog => 'Exercise Catalog';
@@ -1051,6 +1091,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteExerciseButton => 'Delete exercise';
+
+  @override
+  String get deleteCustomExerciseTitle => 'Delete Custom Exercise';
+
+  @override
+  String deleteCustomExerciseBody(String name) {
+    return 'This will permanently delete \"$name\". This cannot be undone.';
+  }
+
+  @override
+  String get deleteCustomExerciseWithLogsWarning =>
+      'This exercise appears in your workout history. Your log entries will be kept, but the exercise link will be removed.';
+
+  @override
+  String get deleteCustomExerciseWithRoutinesWarning =>
+      'This exercise is used in one or more routines. It will be removed from those routines.';
+
+  @override
+  String get deleteCustomExerciseSuccess => 'Exercise deleted.';
 
   @override
   String get restOverLabel => 'Pause is over';
@@ -1214,6 +1273,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workoutSectionMyPlans => 'My plans';
+
+  @override
+  String get emptyStateWorkoutRoutinesCallout =>
+      'Create your first routine to track your workouts in the gym in a structured way.';
 
   @override
   String get workoutSectionHistoryLibrary => 'History & library';
@@ -1704,6 +1767,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoBackupRunNow => 'Check & Run Auto-Backup Now';
 
   @override
+  String get icloudAutoBackupTitle => 'iCloud Auto-Backup';
+
+  @override
+  String get icloudAutoBackupDescription =>
+      'Automatically syncs your database to iCloud Drive whenever the app goes into the background. Your data can be restored on a new device or after reinstalling.';
+
+  @override
+  String get icloudBackupNow => 'Backup to iCloud Now';
+
+  @override
+  String get icloudBackupUploading => 'Uploading…';
+
+  @override
+  String get icloudBackupSuccess => 'Backup uploaded successfully.';
+
+  @override
+  String get icloudBackupFailed =>
+      'Backup failed. Check your iCloud connection.';
+
+  @override
   String get autoBackupRequestAccessSubtitle =>
       'To automatically back up your data, Train Libre needs access to a folder you choose. Your backups will be stored there.';
 
@@ -1930,16 +2013,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nutritionExplorerTitle => 'Nutrition Explorer';
 
   @override
-  String get myMeals => 'My Meals';
+  String get myMeals => 'My Recipes';
 
   @override
-  String get myMealsCL => 'MY MEALS';
+  String get myMealsCL => 'MY RECIPES';
 
   @override
   String get nutritionSectionTodayInFocus => 'Today in focus';
 
   @override
-  String get nutritionSectionMyMeals => 'My meals';
+  String get nutritionSectionMyMeals => 'My recipes';
+
+  @override
+  String get emptyStateNutritionRecipesCallout =>
+      'Create your first recipe to quickly log your frequent meals.';
 
   @override
   String get nutritionSectionToolsAndLibrary => 'Tools & library';
@@ -1970,6 +2057,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete this supplement? All historical data will be lost.\n\nTip: You can simply untrack it by editing the supplement instead.';
 
   @override
+  String get editSupplementLogTitle => 'Edit Log Entry';
+
+  @override
+  String get deleteSupplementLogConfirm =>
+      'Are you sure you want to delete this log entry?';
+
+  @override
   String get fieldRequired => 'Required';
 
   @override
@@ -1985,7 +2079,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabCatalogSearch => 'Catalog';
 
   @override
-  String get tabMeals => 'Meals';
+  String get tabMeals => 'Recipes';
 
   @override
   String get emptyCategory => 'No entries';
@@ -1997,43 +2091,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchSectionOther => 'Other results';
 
   @override
-  String get mealsComingSoonTitle => 'Meals (coming soon)';
+  String get mealsComingSoonTitle => 'Recipes (coming soon)';
 
   @override
   String get mealsComingSoonBody =>
-      'Soon you will be able to create your own meals from multiple foods.';
+      'Soon you will be able to create your own recipes from multiple foods.';
 
   @override
-  String get mealsEmptyTitle => 'No meal templates saved';
+  String get mealsEmptyTitle => 'No recipe templates saved';
 
   @override
   String get mealsEmptyBody =>
-      'Create meals to quickly log multiple foods at once.';
+      'Create recipes to quickly log multiple foods at once.';
 
   @override
   String get mealsEmptyBodyWithShortcut =>
-      'In the diary, use the “Save as meal” option below your Breakfast or Dinner to save common food combinations as a quick template.';
+      'In the diary, use the “Save as recipe” option below your Breakfast or Dinner to save common food combinations as a quick template.';
 
   @override
-  String get mealsCreateManually => 'Create meal manually';
+  String get mealsCreateManually => 'Create recipe manually';
 
   @override
-  String get saveMealTemplateShortcut => 'Save as meal';
+  String get saveMealTemplateShortcut => 'Save as recipe';
 
   @override
-  String get mealsCreate => 'Create meal';
+  String get mealsCreate => 'Create recipe';
 
   @override
-  String get mealsEdit => 'Edit meal';
+  String get mealsEdit => 'Edit recipe';
 
   @override
-  String get mealsDelete => 'Delete meal';
+  String get mealsDelete => 'Delete recipe';
 
   @override
   String get mealsAddToDiary => 'Add food';
 
   @override
-  String get mealNameLabel => 'Meal name';
+  String get mealNameLabel => 'Recipe name';
 
   @override
   String get mealNotesLabel => 'Notes';
@@ -2048,23 +2142,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealIngredientAmountLabel => 'Amount';
 
   @override
-  String get mealDeleteConfirmTitle => 'Delete meal';
+  String get mealDeleteConfirmTitle => 'Delete recipe';
 
   @override
   String mealDeleteConfirmBody(Object name) {
-    return 'Are you sure you want to delete the meal \'$name\'? All its ingredients will also be removed.';
+    return 'Are you sure you want to delete the recipe \'$name\'? All its ingredients will also be removed.';
   }
 
   @override
   String mealAddedToDiary(Object name) {
-    return 'Meal \'$name\' has been added to your diary.';
+    return 'Recipe \'$name\' has been added to your diary.';
   }
 
   @override
-  String get mealSaved => 'Meal saved.';
+  String get mealSaved => 'Recipe saved.';
 
   @override
-  String get mealDeleted => 'Meal deleted.';
+  String get mealDeleted => 'Recipe deleted.';
 
   @override
   String get confirm => 'Confirm';
@@ -2073,13 +2167,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMealToDiaryTitle => 'Add to diary';
 
   @override
-  String get mealTypeLabel => 'Meal';
+  String get mealTypeLabel => 'Recipe';
 
   @override
   String get amountLabel => 'Amount';
 
   @override
-  String get mealAddedToDiarySuccess => 'Meal added to diary';
+  String get mealAddedToDiarySuccess => 'Recipe added to diary';
 
   @override
   String get error => 'Error';
@@ -2287,6 +2381,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adaptiveRatePerWeekLabel => 'Weekly Target Rate';
+
+  @override
+  String get customTargetRateOption => 'Custom';
+
+  @override
+  String get customTargetRateDialogTitle => 'Set Custom Target Rate';
 
   @override
   String get onboardingNameTitle => 'What\'s your name?';
@@ -3040,6 +3140,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exerciseMetricEst1RM => 'Est. 1RM';
 
   @override
+  String get exerciseMetricDistance => 'Distance';
+
+  @override
+  String get exerciseMetricDuration => 'Duration';
+
+  @override
+  String get exerciseMetricPace => 'Pace';
+
+  @override
   String get prBannerBestMaxWeight => 'Best Max Weight';
 
   @override
@@ -3122,8 +3231,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsRecentRecords => 'Recent Records';
 
   @override
-  String analyticsPerfWithReps(String weight, int reps) {
-    return '$weight kg x $reps';
+  String analyticsPerfWithReps(String weight, int reps, Object unit) {
+    return '$weight $unit x $reps';
   }
 
   @override
@@ -3149,8 +3258,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'There is no clear PR trend in this window yet.';
 
   @override
-  String analyticsE1rmProgress(String previous, String recent) {
-    return 'e1RM $previous -> $recent kg';
+  String analyticsE1rmProgress(String previous, String recent, Object unit) {
+    return 'e1RM $previous -> $recent $unit';
   }
 
   @override
@@ -3213,6 +3322,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsWeeksAtLeast2Workouts => 'weeks with at least 2 sessions';
 
   @override
+  String get analyticsInTimeframe => 'In timeframe';
+
+  @override
+  String get analyticsVsPriorPeriod => 'vs prior period';
+
+  @override
   String get analyticsCalendarExplainer =>
       'Color intensity reflects sessions per day, making this a true consistency map.';
 
@@ -3270,7 +3385,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Equivalent hard sets use primary x1.0 and secondary x0.3 weighting. Frequency counts only days reaching >= 1.0 equivalent sets.';
 
   @override
-  String get analyticsWeeklySetsByMuscle => 'Weekly Sets by Muscle';
+  String get analyticsWeeklySetsByMuscle => 'Ø Weekly Sets by Muscle';
 
   @override
   String get analyticsFrequencyByMuscle => 'Frequency by Muscle';
@@ -3299,7 +3414,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String analyticsWeekTotalEquivalentSets(String value) {
-    return 'Week total: $value equivalent sets';
+    return 'Ø $value equivalent sets per week';
   }
 
   @override
@@ -3307,18 +3422,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Frequency counts only days where the muscle reached >= 1.0 equivalent sets.';
 
   @override
-  String liveWorkoutE1rmCurrentSet(String value) {
-    return 'e1RM $value kg';
+  String liveWorkoutE1rmCurrentSet(String value, Object unit) {
+    return 'e1RM $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmBestSession(String value) {
-    return 'Best e1RM this session: $value kg';
+  String liveWorkoutE1rmBestSession(String value, Object unit) {
+    return 'Best e1RM this session: $value $unit';
   }
 
   @override
-  String liveWorkoutE1rmVsLastSession(String delta) {
-    return 'vs last session: $delta kg';
+  String liveWorkoutE1rmVsLastSession(String delta, Object unit) {
+    return 'vs last session: $delta $unit';
   }
 
   @override
@@ -3362,22 +3477,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Weight and calories over time';
 
   @override
-  String get analyticsBodyNutritionTrendContextHint =>
-      'The chart scales each series to fit the same space; tooltips show raw kg and kcal values.';
+  String analyticsBodyNutritionTrendContextHint(Object unit) {
+    return 'The chart scales each series to fit the same space; tooltips show raw $unit and kcal values.';
+  }
 
   @override
-  String get analyticsBodyNutritionNormalizedHint =>
-      'The chart scales weight and calories to fit the same space; tooltips show raw kg and kcal values.';
+  String analyticsBodyNutritionNormalizedHint(Object unit) {
+    return 'The chart scales weight and calories to fit the same space; tooltips show raw $unit and kcal values.';
+  }
 
   @override
-  String get analyticsBodyNutritionTotalWeightLabel => 'Total weight (kg)';
+  String analyticsBodyNutritionTotalWeightLabel(Object unit) {
+    return 'Total weight ($unit)';
+  }
 
   @override
   String get analyticsBodyNutritionTotalCaloriesLabel =>
       'Total calories (kcal)';
 
   @override
-  String get analyticsWeightTrendLabel => 'Weight (kg)';
+  String analyticsWeightTrendLabel(String unit) {
+    return 'Weight ($unit)';
+  }
 
   @override
   String get analyticsCaloriesTrendLabel => 'Calories (kcal)';
@@ -3504,6 +3625,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import failed. Please check the file and try again.';
 
   @override
+  String get onboardingRestoreFromICloud => 'Restore from iCloud';
+
+  @override
+  String get onboardingRestoreICloudSuccess =>
+      'iCloud backup restored successfully!';
+
+  @override
+  String get onboardingRestoreICloudFailed =>
+      'iCloud restore failed. Check your connection and try again.';
+
+  @override
   String get finishWorkoutTitleLabel => 'Workout Title';
 
   @override
@@ -3628,7 +3760,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Permissions granted. If no sleep appears yet, run a manual import below.';
 
   @override
-  String get sleepNoPermissionTitle => 'No permission';
+  String get sleepDataStatusSubtitleIos =>
+      'Connection active. If data is missing (0 sessions imported), manually verify the read permissions in the Apple Health app.';
 
   @override
   String get sleepNoPermissionSubtitle =>
@@ -4019,8 +4152,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveGoalGain => 'Gain weight';
 
   @override
-  String adaptiveRatePerWeek(String value) {
-    return '$value kg/week';
+  String adaptiveRatePerWeek(String value, Object unit) {
+    return '$value $unit/week';
   }
 
   @override
@@ -4331,6 +4464,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'Data quality';
 
   @override
+  String get adaptiveRecommendationEnergyDensityLabel =>
+      'Effective energy density';
+
+  @override
+  String adaptiveRecommendationEnergyDensityValue(int value) {
+    return '$value kcal/kg';
+  }
+
+  @override
+  String get adaptiveRecommendationEnergyDensityExplanation =>
+      'Dynamic value based on weight and water-loss ratio';
+
+  @override
   String get adaptiveRecommendationRecalculateNowAction => 'Recalculate now';
 
   @override
@@ -4340,8 +4486,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveRecommendationApplying => 'Applying...';
 
   @override
-  String get adaptiveRecommendationApplyAction =>
-      'Apply recommendation to active goals';
+  String get adaptiveRecommendationApplyAction => 'Apply recommendation';
 
   @override
   String get adaptiveRecommendationWarningCalorieFloor =>
@@ -4421,6 +4566,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsShowSugarInDiaryOverviewSubtitle =>
       'Shows sugar in the top daily overview section';
+
+  @override
+  String get settingsOverviewExtraNutrientTitle =>
+      'Additional Nutrient in Overview';
+
+  @override
+  String get settingsOverviewExtraNutrientSubtitle =>
+      'Add a third nutrient tile to the daily overview section';
 
   @override
   String get settingsSectionHealthTracking => 'Health & Tracking';
@@ -4857,11 +5010,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcome_privacy_body =>
-      'By using Train Libre, you agree to the processing of your data as described in our Privacy Policy and Legal Notice.';
+      'To provide workout tracking and training insights, we process your fitness and activity data as described in our Privacy Policy.';
 
   @override
   String get i_agree_to_privacy_policy =>
-      'I have read and agree to the processing of my health data as described in the Privacy Policy.';
+      'I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings.';
+
+  @override
+  String get i_agree_to_optional_telemetry =>
+      '(Optional) I want to share anonymous usage statistics to help improve app stability and features (zero personal data).';
+
+  @override
+  String get welcome_back_updated_legal_title =>
+      'Welcome Back & Updated Policies';
+
+  @override
+  String legal_update_body(String version) {
+    return 'We have updated our Privacy Policy and Terms of Service (Version $version). To continue using Train Libre, please acknowledge the updated terms. All your existing data remains safely stored on your device.';
+  }
+
+  @override
+  String i_agree_to_updated_privacy_policy(String version) {
+    return 'I explicitly consent to the updated Privacy Policy (v$version) and the processing of my fitness and health data.';
+  }
+
+  @override
+  String get accept_and_continue => 'Accept & Continue';
+
+  @override
+  String get by_tapping_accept_continue =>
+      'By tapping \"Accept & Continue\", you agree to the updated';
 
   @override
   String get acceptTermsPrompt => 'I accept the Terms of Service';
@@ -4871,6 +5049,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accept_and_get_started => 'Accept & Get Started';
+
+  @override
+  String get by_tapping_accept =>
+      'By tapping \"Accept & Get Started\", you agree to our';
+
+  @override
+  String get and_acknowledge => 'and acknowledge our';
 
   @override
   String get about_section => 'About';
@@ -4917,10 +5102,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get muscleTriceps => 'Triceps';
 
   @override
-  String get muscleQuads => 'Quads';
+  String get muscleQuads => 'Quadriceps';
 
   @override
   String get muscleHamstrings => 'Hamstrings';
+
+  @override
+  String get muscleLegs => 'Legs';
+
+  @override
+  String get muscleArms => 'Arms';
 
   @override
   String get muscleGlutes => 'Glutes';
@@ -5462,4 +5653,115 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingRegionSettingsHint =>
       'You can change this at any time later in Settings → Nutrition → Database Region.';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String rollingDaysLabel(int days) {
+    return 'Last $days days (rolling)';
+  }
+
+  @override
+  String get muscleTraps => 'Traps';
+
+  @override
+  String get muscleObliques => 'Obliques';
+
+  @override
+  String get icloudSyncErrorTitle => 'iCloud Sync Failed';
+
+  @override
+  String get icloudSyncErrorHelp =>
+      'Please ensure that iCloud Drive is enabled in your iOS System Settings under Settings -> [Your Name] -> iCloud -> iCloud Drive.';
+
+  @override
+  String get icloudSyncErrorCopyLog => 'Copy Technical Error Log';
+
+  @override
+  String get icloudSyncErrorClose => 'Close';
+
+  @override
+  String get icloudSyncErrorCopied => 'Error log copied to clipboard!';
+
+  @override
+  String icloudLastSynced(String date) {
+    return 'Last synced: $date';
+  }
+
+  @override
+  String get icloudNeverSynced => 'Never synced';
+
+  @override
+  String get emptyStateDiaryColdStartTitle => 'Welcome to your Diary!';
+
+  @override
+  String get emptyStateDiaryColdStartSubtitle =>
+      'Keep track of your nutrition and hydration here.';
+
+  @override
+  String get emptyStateActiveGapOverlay => 'No data available for this period';
+
+  @override
+  String get emptyStateDiaryColdStartCallToAction =>
+      'Log your first entry here';
+
+  @override
+  String get statisticsColdStartTitle => 'Welcome to your Analytics!';
+
+  @override
+  String get statisticsColdStartSubtitle =>
+      'Your progress will be visualized here as soon as you log your first workouts, meals, or track your steps and sleep.';
+
+  @override
+  String get statisticsActiveGapTitle => 'No data available';
+
+  @override
+  String get reviewPromptTitle => 'Do you like Train Libre?';
+
+  @override
+  String get reviewPromptSubtitle =>
+      'Your feedback helps us continuously improve the app without ads or trackers.';
+
+  @override
+  String get reviewPromptYes => 'Yes, I like it';
+
+  @override
+  String get reviewPromptNo => 'No, not really';
+
+  @override
+  String get reviewPromptLater => 'Remind me later';
+
+  @override
+  String get updateAvailableTitle => 'Update Available';
+
+  @override
+  String get statusReady => 'Ready';
+
+  @override
+  String get statusRequired => 'Required';
+
+  @override
+  String get updatesAvailableBody =>
+      'New updates are available for your local catalogs. Would you like to update now?';
+
+  @override
+  String get exerciseCatalogWger => 'Exercise Catalog (wger)';
+
+  @override
+  String get nutritionCatalogOff => 'Nutrition Catalog (OFF)';
+
+  @override
+  String get workoutImportZeroNew =>
+      '0 new workouts imported (all already existed).';
+
+  @override
+  String get telemetryDeleteDialogTitle => 'Delete Telemetry Data?';
+
+  @override
+  String get telemetryDeleteDialogBody =>
+      'Do you really want to delete your past telemetry data?\n\nThe following will happen:\n• All device UUIDs, session IDs, and local counters stored on this device will be reset.\n• A deletion request (\$delete_person) will be sent to PostHog servers in the EU to remove your data there.\n• The telemetry SDK will be fully reset.';
+
+  @override
+  String get telemetryDeleteConfirmButton => 'Delete data now';
 }

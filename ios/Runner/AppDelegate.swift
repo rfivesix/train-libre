@@ -14,23 +14,8 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    if #available(iOS 10.0, *) {
-      UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
-    }
     configureChannelsIfNeeded()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
-
-  override func userNotificationCenter(
-    _ center: UNUserNotificationCenter,
-    willPresent notification: UNNotification,
-    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
-  ) {
-    if #available(iOS 14.0, *) {
-      completionHandler([.banner, .list, .badge, .sound])
-    } else {
-      completionHandler([.alert, .badge, .sound])
-    }
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
@@ -578,15 +563,8 @@ import UIKit
   }
 
   private func currentSleepPermissionSnapshot() -> [String: Any] {
-    guard
-      let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis),
-      let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate)
-    else {
-      return ["sleepGranted": false, "heartRateGranted": false]
-    }
-    let sleepGranted = healthStore.authorizationStatus(for: sleepType) == .sharingAuthorized
-    let heartRateGranted = healthStore.authorizationStatus(for: heartRateType) == .sharingAuthorized
-    return ["sleepGranted": sleepGranted, "heartRateGranted": heartRateGranted]
+    let available = HKHealthStore.isHealthDataAvailable()
+    return ["sleepGranted": available, "heartRateGranted": available]
   }
 
   private func readSleepAndHeartRate(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -706,13 +684,32 @@ import UIKit
   }
 
   private func mapHealthKitSleepValue(_ value: Int) -> String {
-    switch value {
-    case HKCategoryValueSleepAnalysis.inBed.rawValue:
-      return "in_bed"
-    case HKCategoryValueSleepAnalysis.awake.rawValue:
-      return "awake"
-    default:
-      return "asleep"
+    if #available(iOS 16.0, *) {
+      switch value {
+      case HKCategoryValueSleepAnalysis.inBed.rawValue:
+        return "in_bed"
+      case HKCategoryValueSleepAnalysis.awake.rawValue:
+        return "awake"
+      case HKCategoryValueSleepAnalysis.asleepCore.rawValue:
+        return "core"
+      case HKCategoryValueSleepAnalysis.asleepDeep.rawValue:
+        return "deep"
+      case HKCategoryValueSleepAnalysis.asleepREM.rawValue:
+        return "rem"
+      case HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue:
+        return "asleep_unspecified"
+      default:
+        return "asleep"
+      }
+    } else {
+      switch value {
+      case HKCategoryValueSleepAnalysis.inBed.rawValue:
+        return "in_bed"
+      case HKCategoryValueSleepAnalysis.awake.rawValue:
+        return "awake"
+      default:
+        return "asleep"
+      }
     }
   }
 

@@ -44,7 +44,8 @@ class WeightSlide extends StatelessWidget {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXL),
+              contentPadding: const EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingXL),
             ),
           ),
         ],

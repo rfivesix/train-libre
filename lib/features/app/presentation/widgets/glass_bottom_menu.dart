@@ -4,6 +4,8 @@ import '../../../../services/haptic_feedback_service.dart';
 import '../../../../util/design_constants.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/glass_border_painter.dart';
+import '../../../../widgets/common/app_button.dart';
 
 /// Represents an action item within a [showGlassBottomMenu].
 class GlassMenuAction {
@@ -38,10 +40,12 @@ class GlassMenuAction {
 Future<T?> showGlassBottomMenu<T>({
   required BuildContext context,
   String? title,
+  Widget? headerTrailing,
   List<GlassMenuAction>? actions,
   Widget Function(BuildContext, VoidCallback)? contentBuilder,
   bool isDismissible = true,
   bool enableDrag = true,
+  bool applySafeAreaBottom = true,
 }) {
   assert(
     (actions != null && contentBuilder == null) ||
@@ -71,8 +75,10 @@ Future<T?> showGlassBottomMenu<T>({
         padding: EdgeInsets.only(bottom: kb),
         child: _GlassBottomMenuSheet(
           title: title,
+          headerTrailing: headerTrailing,
           actions: actions ?? const <GlassMenuAction>[],
           contentBuilder: contentBuilder,
+          applySafeAreaBottom: applySafeAreaBottom,
         ),
       );
     },
@@ -82,34 +88,38 @@ Future<T?> showGlassBottomMenu<T>({
 class _GlassBottomMenuSheet extends StatelessWidget {
   const _GlassBottomMenuSheet({
     this.title,
+    this.headerTrailing,
     this.contentBuilder,
     this.actions = const <GlassMenuAction>[],
+    this.applySafeAreaBottom = true,
   });
 
   final String? title;
+  final Widget? headerTrailing;
   final Widget Function(BuildContext, VoidCallback)? contentBuilder;
   final List<GlassMenuAction> actions;
+  final bool applySafeAreaBottom;
 
   @override
   Widget build(BuildContext context) {
-    // ... (this part stays exactly identical to the current file) ...
-    // ...
     final media = MediaQuery.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bottomInset = media.viewPadding.bottom;
+    final keyboardInset = media.viewInsets.bottom;
 
     final Color neutralTint = isDark
-        ? theme.colorScheme.surface.withValues(alpha: 0.70)
-        : theme.colorScheme.surface.withValues(alpha: 0.82);
+        ? DesignConstants.summaryCardDarkMode.withValues(alpha: 0.95)
+        : const Color(0xFFF2F2F7).withValues(alpha: 0.92);
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
 
     const double r = 24;
-    const EdgeInsets outerMargin = EdgeInsets.fromLTRB(16, 0, 16, 16);
+    final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
+    final maxAvailableHeight = media.size.height - topPadding - 16 - keyboardInset;
 
     Widget contentColumn() {
-      return Padding(
-        padding: EdgeInsets.only(bottom: bottomInset),
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxAvailableHeight),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -118,30 +128,54 @@ class _GlassBottomMenuSheet extends StatelessWidget {
               width: 44,
               height: 5,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.75),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(100),
               ),
             ),
             if (title != null) ...[
               const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
-                child: Text(
-                  title!,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingL),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (headerTrailing != null) const SizedBox(width: 80),
+                    Expanded(
+                      child: Text(
+                        title!,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (headerTrailing != null)
+                      SizedBox(
+                        width: 100,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: headerTrailing,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
             if (contentBuilder != null) ...[
               const SizedBox(height: DesignConstants.spacingS),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM),
-                child: contentBuilder!(
-                  context,
-                  () => Navigator.of(context).maybePop(),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        left: DesignConstants.spacingM,
+                        right: DesignConstants.spacingM,
+                        bottom: applySafeAreaBottom ? bottomInset : 0),
+                    child: contentBuilder!(
+                      context,
+                      () => Navigator.of(context).maybePop(),
+                    ),
+                  ),
                 ),
               ),
             ] else if (actions.isNotEmpty) ...[
@@ -149,21 +183,21 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                 constraints: const BoxConstraints(maxHeight: 420),
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+                    padding: EdgeInsets.fromLTRB(8, 12, 8, 8 + (applySafeAreaBottom ? bottomInset : 0)),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(actions.length, (i) {
                         final a = actions[i];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+                          padding: const EdgeInsets.only(
+                              bottom: DesignConstants.spacingS),
                           child: _GlassTile(
                             icon: a.icon,
                             customIcon: a.customIcon, // <--- Pass new value
                             title: a.label,
                             subtitle: a.subtitle,
                             onTap: () {
-                              HapticFeedbackService.instance
-                                  .selectionFeedback();
+                              HapticFeedbackService.instance.selectionFeedback();
                               Navigator.of(context).maybePop();
                               WidgetsBinding.instance.addPostFrameCallback(
                                 (_) => a.onTap(),
@@ -189,7 +223,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(r),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.18),
@@ -204,35 +238,37 @@ class _GlassBottomMenuSheet extends StatelessWidget {
           RepaintBoundary(
             child: AdaptiveGlass(
               settings: LiquidGlassSettings(
-                thickness: 30,
+                thickness: 0,
                 blur: 8,
                 glassColor: effectiveGlass,
-                lightIntensity: isDark ? 0.55 : 0.80,
+                lightIntensity: 0,
                 saturation: 1.20,
               ),
-              shape: const LiquidRoundedSuperellipse(borderRadius: r),
+              shape: const LiquidVerticalRoundedSuperellipse(
+                topRadius: r,
+                bottomRadius: 0,
+              ),
               child: Stack(
                 children: [
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: neutralTint,
-                        borderRadius: BorderRadius.circular(r),
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(r)),
                       ),
                     ),
                   ),
                   Positioned.fill(
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(r),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.20)
-                                : Colors.black.withValues(alpha: 0.08),
-                            width: 1.2,
-                          ),
-                        ),
+                    child: CustomPaint(
+                      painter: GlassBorderPainter(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.15)
+                            : theme.colorScheme.onSurface
+                                .withValues(alpha: 0.08),
+                        radius: r,
+                        strokeWidth: 0.5,
+                        bottomPadding: bottomInset,
                       ),
                     ),
                   ),
@@ -250,11 +286,43 @@ class _GlassBottomMenuSheet extends StatelessWidget {
       bottom: false,
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: outerMargin,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: liquidCard(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              if (keyboardInset > 0)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: -keyboardInset,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                    child: RepaintBoundary(
+                      child: AdaptiveGlass(
+                        settings: LiquidGlassSettings(
+                          thickness: 0,
+                          blur: 8,
+                          glassColor: effectiveGlass,
+                          lightIntensity: 0,
+                          saturation: 1.20,
+                        ),
+                        shape: const LiquidVerticalRoundedSuperellipse(
+                          topRadius: r,
+                          bottomRadius: 0,
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: neutralTint,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              liquidCard(),
+            ],
           ),
         ),
       ),
@@ -291,14 +359,16 @@ class _GlassTile extends StatelessWidget {
         customIcon != null ? customIcon! : Icon(icon, size: 22);
 
     final tileContent = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: DesignConstants.spacingM),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 14, vertical: DesignConstants.spacingS),
       child: Row(
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)
                   : Colors.white.withValues(alpha: 0.2),
@@ -410,7 +480,8 @@ Future<bool> showDeleteConfirmation(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingS),
             child: Text(
               effectiveContent,
               textAlign: TextAlign.center,
@@ -421,26 +492,24 @@ Future<bool> showDeleteConfirmation(
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(false);
                   },
-                  child: Text(l10n.cancel),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    foregroundColor: Colors.white,
-                  ),
+                child: AppButton.danger(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(true);
                   },
-                  child: Text(effectiveConfirmLabel),
+                  label: effectiveConfirmLabel,
+                  tooltip: effectiveConfirmLabel,
                 ),
               ),
             ],
@@ -475,7 +544,8 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingS),
             child: Text(
               l10n.workoutConflictContent,
               textAlign: TextAlign.center,
@@ -486,26 +556,24 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(ActiveWorkoutConflictResult.cancel);
                   },
-                  child: Text(l10n.cancel),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    foregroundColor: Colors.white,
-                  ),
+                child: AppButton.danger(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(ActiveWorkoutConflictResult.discard);
                   },
-                  child: Text(l10n.discardButton),
+                  label: l10n.discardButton,
+                  tooltip: l10n.discardButton,
                 ),
               ),
             ],
@@ -513,12 +581,13 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
           const SizedBox(height: DesignConstants.spacingM),
           SizedBox(
             width: double.infinity,
-            child: FilledButton(
+            child: AppButton.primary(
               onPressed: () {
                 close();
                 Navigator.of(ctx).pop(ActiveWorkoutConflictResult.resume);
               },
-              child: Text(l10n.resumeWorkoutButton),
+              label: l10n.resumeWorkoutButton,
+              tooltip: l10n.resumeWorkoutButton,
             ),
           ),
         ],
@@ -528,4 +597,3 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
 
   return result ?? ActiveWorkoutConflictResult.cancel;
 }
-

@@ -1,5 +1,6 @@
 // lib/main.dart
 
+import 'dart:async';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'util/design_constants.dart';
 
@@ -18,12 +19,14 @@ import 'features/workout/presentation/live_workout_view_model.dart';
 import 'package:provider/provider.dart';
 import 'services/theme_service.dart';
 import 'theme/app_colors.dart';
-import 'theme/color_constants.dart';
 import 'package:intl/date_symbol_data_local.dart'; // FIX: Initialize intl formatting
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'features/onboarding/presentation/initial_consent_screen.dart';
+import 'features/onboarding/presentation/legal_update_consent_screen.dart';
+import 'features/app/presentation/legal_screen.dart';
+import 'core/infrastructure/icloud_sync_service.dart';
 
 import 'features/diary/domain/repositories/diary_repository.dart';
 import 'features/diary/data/nutrition_repository.dart';
@@ -42,6 +45,37 @@ import 'features/profile/data/sources/profile_local_data_source.dart';
 import 'features/supplements/domain/repositories/supplement_repository.dart';
 import 'features/supplements/data/supplement_repository_impl.dart';
 import 'features/supplements/data/sources/supplement_local_data_source.dart';
+import 'package:workmanager/workmanager.dart';
+import 'features/nutrition_recommendation/data/recommendation_service.dart';
+import 'services/local_notification_service.dart';
+import 'services/telemetry/telemetry_service.dart';
+
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      final database = db.AppDatabase();
+      DatabaseHelper.setDriftDb(database);
+
+      await LocalNotificationService.instance.initialize();
+
+      final service = AdaptiveNutritionRecommendationService(
+        databaseHelper: DatabaseHelper.instance,
+      );
+
+      // Attempt to generate/refresh if due, which will also notify the user
+      // via the stream in LocalNotificationService.
+      await service.refreshRecommendationIfDue();
+
+      return Future.value(true);
+    } catch (e) {
+      debugPrint("Background task error: $e");
+      return Future.value(false);
+    }
+  });
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +93,10 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final hasAcceptedConsent = prefs.getBool('hasAcceptedConsent') ?? false;
+  final acceptedLegalVersion = prefs.getString('acceptedLegalVersion');
+
+  final isFreshInstall = !hasAcceptedConsent && acceptedLegalVersion == null;
+  final isLegalOutdated = acceptedLegalVersion != kCurrentLegalVersion;
 
   // Load previously settled glass quality to avoid warmup jank on cold starts
   final savedGlassQuality = prefs.getString('glass_quality');
@@ -78,20 +116,23 @@ void main() async {
   final workoutRepository =
       WorkoutRepository(localDataSource: workoutLocalDataSource);
 
-  // Create the workout session manager before injecting it. Restoration is
-  // handled by AppInitializerScreen after the first frame is visible.
-  final workoutSessionManager =
-      LiveWorkoutViewModel(repository: workoutRepository);
-
   final themeService = ThemeService(); // Create an instance
   final unitService = UnitService();
+
+  // Create the workout session manager before injecting it. Restoration is
+  // handled by AppInitializerScreen after the first frame is visible.
+  final workoutSessionManager = LiveWorkoutViewModel(
+      repository: workoutRepository, unitService: unitService);
 
   // Start the app with all required providers and Liquid Glass Setup.
   runApp(
     LiquidGlassWidgets.wrap(
       adaptiveQuality: true,
       adaptiveConfig: GlassAdaptiveScopeConfig(
-        initialQuality: initialGlassQuality,
+        initialQuality:
+            initialGlassQuality ?? DesignConstants.defaultGlassQuality,
+        maxQuality: DesignConstants.defaultGlassQuality,
+        minQuality: DesignConstants.minGlassQuality,
         allowStepUp: true,
         onQualityChanged: (_, to) => prefs.setString('glass_quality', to.name),
       ),
@@ -131,21 +172,66 @@ void main() async {
           ChangeNotifierProvider.value(value: themeService),
         ],
         child: MyApp(
-          home: hasAcceptedConsent
-              ? const AppInitializerScreen(skipOffDatabase: true)
-              : InitialConsentScreen(nextScreen: const AppInitializerScreen(skipOffDatabase: true)),
+          home: isFreshInstall
+              ? const InitialConsentScreen(
+                  nextScreen: AppInitializerScreen(skipOffDatabase: true))
+              : (isLegalOutdated
+                  ? const LegalUpdateConsentScreen(
+                      nextScreen: AppInitializerScreen(skipOffDatabase: true))
+                  : const AppInitializerScreen(skipOffDatabase: true)),
         ),
       ),
     ),
   );
 
   // Background update checks are handled by AppInitializerScreen.
+  Workmanager().initialize(
+    callbackDispatcher,
+  );
+
+  Workmanager().registerPeriodicTask(
+    "1",
+    "tdeeCalculationTask",
+    frequency: const Duration(hours: 12),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+  );
 }
 
 /// The entry point of the Train Libre application.
 ///
 /// This application is a fitness tracker that allows users to log workouts,
 /// manage supplements, and track body measurements.
+class RestartWidget extends StatefulWidget {
+  final Widget child;
+
+  const RestartWidget({super.key, required this.child});
+
+  static void restartApp(BuildContext context) {
+    context.findAncestorStateOfType<_RestartWidgetState>()?.restartApp();
+  }
+
+  @override
+  State<RestartWidget> createState() => _RestartWidgetState();
+}
+
+class _RestartWidgetState extends State<RestartWidget> {
+  Key key = UniqueKey();
+
+  void restartApp() {
+    setState(() {
+      key = UniqueKey();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyedSubtree(
+      key: key,
+      child: widget.child,
+    );
+  }
+}
+
 class MyApp extends StatefulWidget {
   final Widget home;
 
@@ -158,6 +244,37 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  late final AppLifecycleListener _lifecycleListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleListener = AppLifecycleListener(
+      onPause: _onAppPause,
+      onHide: _onAppPause,
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  /// Silently snapshot and upload the database to iCloud when the app is
+  /// backgrounded. Only runs if the user has enabled iCloud sync.
+  Future<void> _onAppPause() async {
+    // Flush the aggregated food-log counter here rather than only from
+    // MainScreen, so entries still get reported when the app is backgrounded
+    // from onboarding or any other screen outside the tab shell.
+    unawaited(TelemetryService.instance.flushDailyFoodLog());
+
+    final db = DatabaseHelper.driftDb;
+    if (db == null) return;
+    // Fire-and-forget — we intentionally do not await so the UI is never
+    // blocked by the sync operation.
+    unawaited(ICloudSyncService.instance.syncIfEnabled(db));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,8 +282,8 @@ class _MyAppState extends State<MyApp> {
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
 
-    const cardDark = Color(0xFF171717);
-    const cardLight = Color(0xFFF3F3F3);
+    const cardDark = Color(0xFF1C1C1E);
+    const cardLight = Colors.white;
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -178,11 +295,12 @@ class _MyAppState extends State<MyApp> {
 
         // Use brand accent by default; optional Android toggle enables dynamic Material colors.
         final Color lightSeed = useDynamicMaterialColors
-            ? (lightDynamic?.primary ?? brandAccentColorLightMode)
-            : brandAccentColorLightMode;
+            ? (lightDynamic?.primary ??
+                DesignConstants.brandAccentColorLightMode)
+            : DesignConstants.brandAccentColorLightMode;
         final Color darkSeed = useDynamicMaterialColors
-            ? (darkDynamic?.primary ?? brandAccentColor)
-            : brandAccentColor;
+            ? (darkDynamic?.primary ?? DesignConstants.brandAccentColor)
+            : DesignConstants.brandAccentColor;
 
         // --- Light scheme from seed, but without Material You UI ---
         final lightScheme = ColorScheme.fromSeed(
@@ -192,6 +310,7 @@ class _MyAppState extends State<MyApp> {
           primary: lightSeed,
           onPrimary: Colors.black,
           surface: Colors.white,
+          error: DesignConstants.brandRedColor,
         );
 
         // --- Dark scheme from seed + OLED black ---
@@ -210,6 +329,7 @@ class _MyAppState extends State<MyApp> {
           surfaceContainer: Colors.black,
           surfaceContainerHigh: Colors.black,
           surfaceContainerHighest: Colors.black,
+          error: DesignConstants.brandRedColor,
         );
 
         // --- Light theme (Material 2, but with ColorScheme from seed) ---
@@ -231,7 +351,7 @@ class _MyAppState extends State<MyApp> {
             ),
           ],
           primaryColor: lightScheme.primary, // Accent in Material 2 contexts
-          scaffoldBackgroundColor: Colors.white,
+          scaffoldBackgroundColor: const Color(0xFFF2F2F7),
           canvasColor: Colors.white,
           cardColor: cardLight,
 
@@ -252,16 +372,24 @@ class _MyAppState extends State<MyApp> {
 
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFFF3F3F3),
+            fillColor: Colors.white,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide(color: lightScheme.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
               vertical: DesignConstants.spacingM,
             ),
           ),
@@ -282,7 +410,8 @@ class _MyAppState extends State<MyApp> {
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
             ),
           ),
 
@@ -370,7 +499,8 @@ class _MyAppState extends State<MyApp> {
               backgroundColor: lightScheme.primary,
               foregroundColor: lightScheme.onPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),
@@ -461,16 +591,19 @@ class _MyAppState extends State<MyApp> {
 
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFF1C1C1C),
+            fillColor: const Color(0xFF2C2C2E),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide(color: darkScheme.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
               vertical: DesignConstants.spacingM,
             ),
           ),
@@ -491,7 +624,8 @@ class _MyAppState extends State<MyApp> {
             ),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
             ),
           ),
 
@@ -578,7 +712,8 @@ class _MyAppState extends State<MyApp> {
               backgroundColor: darkScheme.primary,
               foregroundColor: darkScheme.onPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
               ),
             ),
           ),

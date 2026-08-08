@@ -6,6 +6,9 @@ import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
+import '../../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
+import '../../../../util/design_constants.dart';
 
 /// A single row representing a set within an exercise log.
 /// Supports both view mode and edit mode (via nullable text controllers).
@@ -63,17 +66,18 @@ class WorkoutLogSetRow extends StatelessWidget {
     } else {
       val1Display = setLog.weightKg == null
           ? '-'
-          : unitService
-              .convertDisplayValue(setLog.weightKg!, UnitDimension.weight)
-              .toStringAsFixed(1)
-              .replaceAll('.0', '');
+          : unitService.formatDisplayWeight(setLog.weightKg!);
       val2Display = setLog.reps?.toString() ?? '-';
     }
 
     final currentSetE1rm = _calculateBrzyckiE1rm(setLog);
     final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
-    final bool hasPR =
-        setLog.isMaxWeightPR || setLog.isMaxVolumePR || setLog.isMaxEst1RMPR;
+    final bool hasPR = setLog.isMaxWeightPR ||
+        setLog.isMaxVolumePR ||
+        setLog.isMaxEst1RMPR ||
+        setLog.isMaxDistancePR ||
+        setLog.isMaxDurationPR ||
+        setLog.isFastestPacePR;
 
     final rowContent = Row(
       children: [
@@ -102,6 +106,7 @@ class WorkoutLogSetRow extends StatelessWidget {
           flex: isCardio ? 4 : 2,
           child: isEditMode
               ? TextFormField(
+                  key: ValueKey('weight_input_${setLog.id}'),
                   controller: weightController,
                   textAlign: TextAlign.center,
                   keyboardType: const TextInputType.numberWithOptions(
@@ -137,6 +142,7 @@ class WorkoutLogSetRow extends StatelessWidget {
           child: isEditMode
               ? TextFormField(
                   controller: repsController,
+                  readOnly: isCardio,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   inputFormatters: isCardio ? [TimerInputFormatter()] : null,
@@ -151,6 +157,23 @@ class WorkoutLogSetRow extends StatelessWidget {
                     fillColor: Colors.transparent,
                     hintText: isCardio ? "00:00" : "-",
                   ),
+                  onTap: isCardio
+                      ? () async {
+                          final currentSeconds =
+                              parsePauseDuration(repsController?.text ?? "") ??
+                                  0;
+                          final newDuration =
+                              await adaptive_pickers.showAdaptiveDurationPicker(
+                            context: context,
+                            initialDuration: Duration(seconds: currentSeconds),
+                          );
+                          if (newDuration != null) {
+                            final seconds = newDuration.inSeconds;
+                            repsController?.text =
+                                seconds > 0 ? formatPauseDuration(seconds) : "";
+                          }
+                        }
+                      : null,
                 )
               : Text(
                   val2Display,
@@ -204,13 +227,14 @@ class WorkoutLogSetRow extends StatelessWidget {
             width: 48,
             child: isEditMode
                 ? IconButton(
+                    tooltip: AppLocalizations.of(context)!.delete,
                     icon: const Icon(
                       LucideIcons.trash_2,
-                      color: Colors.redAccent,
+                      color: DesignConstants.brandRedColor,
                     ),
                     onPressed: onDelete,
                   )
-                : const Icon(LucideIcons.circle_check, color: Colors.green),
+                : const SizedBox.shrink(),
           ),
         ),
       ],
@@ -236,7 +260,7 @@ class WorkoutLogSetRow extends StatelessWidget {
                   ],
                   if (showCurrentSetE1rm)
                     Text(
-                      '${unitService.convertDisplayValue(currentSetE1rm, UnitDimension.weight).toStringAsFixed(1)} ${unitService.suffixFor(UnitDimension.weight)}',
+                      '${unitService.formatDisplayWeight(currentSetE1rm)} ${unitService.suffixFor(UnitDimension.weight)}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 11,
@@ -271,7 +295,7 @@ class WorkoutLogSetRow extends StatelessWidget {
       case 'dropset':
         return Colors.blue;
       case 'failure':
-        return Colors.red;
+        return DesignConstants.brandRedColor;
       default:
         return Colors.grey;
     }
@@ -308,10 +332,10 @@ class WorkoutLogSetRow extends StatelessWidget {
 
     if (setLog.isMaxWeightPR && setLog.weightPRDiff != null) {
       label =
-          "+${setLog.weightPRDiff!.toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)}";
+          "+${unitService.formatDisplayWeight(setLog.weightPRDiff!)} ${unitService.suffixFor(UnitDimension.weight)}";
     } else if (setLog.isMaxEst1RMPR && setLog.est1rmPRDiff != null) {
       label =
-          "+${setLog.est1rmPRDiff!.toStringAsFixed(1).replaceAll('.0', '')} ${unitService.suffixFor(UnitDimension.weight)} (1RM)";
+          "+${unitService.formatDisplayWeight(setLog.est1rmPRDiff!)} ${unitService.suffixFor(UnitDimension.weight)} (1RM)";
     } else if (setLog.isMaxVolumePR && setLog.volumePRDiff != null) {
       label =
           "+${setLog.volumePRDiff!.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)} (Vol)";

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'design_constants.dart';
 
 import '../features/app/presentation/widgets/glass_bottom_menu.dart';
+import '../widgets/common/app_button.dart';
 
 /// Shows a glass-styled explanation dialog before the system permission popup.
 ///
@@ -28,7 +29,8 @@ Future<bool> showPrePermissionDialog({
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS),
               child: Text(
                 body,
                 textAlign: TextAlign.center,
@@ -38,12 +40,13 @@ Future<bool> showPrePermissionDialog({
             const SizedBox(height: DesignConstants.spacingXL),
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
+              child: AppButton.primary(
                 onPressed: () {
                   close();
                   Navigator.of(ctx).pop(true);
                 },
-                child: Text(continueLabel),
+                label: continueLabel,
+                tooltip: continueLabel,
               ),
             ),
           ],

@@ -1,3 +1,5 @@
+import "../../services/unit_service.dart";
+
 import 'package:intl/intl.dart';
 
 import '../exercise_catalog/domain/models/exercise.dart';
@@ -7,10 +9,24 @@ import 'share_labels.dart';
 import 'share_set_type.dart';
 
 class WorkoutShareFormatter {
-  const WorkoutShareFormatter(this.labels, {this.locale});
+  const WorkoutShareFormatter(this.labels,
+      {this.locale,
+      this.exerciseDetails = const {},
+      required this.unitService});
 
   final ShareLabels labels;
   final String? locale;
+  final Map<String, Exercise> exerciseDetails;
+  final UnitService unitService;
+
+  String _exerciseName(String rawName) {
+    final exercise = exerciseDetails[rawName];
+    if (exercise == null) return rawName;
+    final preferGerman = locale?.toLowerCase().startsWith('de') == true;
+    final primary = preferGerman ? exercise.nameDe : exercise.nameEn;
+    final fallback = preferGerman ? exercise.nameEn : exercise.nameDe;
+    return primary.trim().isNotEmpty ? primary : fallback;
+  }
 
   String format(WorkoutLog workout) {
     final completedSets = _completedSets(workout);
@@ -37,7 +53,7 @@ class WorkoutShareFormatter {
     buffer.writeln();
 
     for (final entry in exerciseGroups.entries) {
-      buffer.writeln(entry.key);
+      buffer.writeln(_exerciseName(entry.key));
       for (var index = 0; index < entry.value.length; index += 1) {
         buffer.writeln(
           '${labels.setNumber(index + 1)}: ${_formatSetLine(entry.value[index])}',
@@ -72,7 +88,7 @@ class WorkoutShareFormatter {
     final groups = _groupByExercise(_completedSets(workout));
     return groups.entries.take(visibleExerciseLimit).map((entry) {
       return WorkoutShareExerciseSummary(
-        name: entry.key,
+        name: _exerciseName(entry.key),
         detail: '${entry.value.length}x',
       );
     }).toList(growable: false);
@@ -89,7 +105,7 @@ class WorkoutShareFormatter {
         (sum, set) => sum + ((set.weightKg ?? 0) * (set.reps ?? 0)),
       );
       return WorkoutShareExerciseSummary(
-        name: entry.key,
+        name: _exerciseName(entry.key),
         detail: volume > 0 ? _formatWeight(volume) : '${entry.value.length}x',
       );
     }).toList()
@@ -216,15 +232,21 @@ class WorkoutShareFormatter {
     final hasDuration = set.durationSeconds != null && set.durationSeconds! > 0;
 
     if (hasWeight && hasReps) {
-      parts.add('${_formatNumber(set.weightKg!)} ${labels.kg} x ${set.reps}');
+      final dispW =
+          unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
+      parts.add('${_formatNumber(dispW)} ${labels.kg} x ${set.reps}');
     } else if (hasReps) {
       parts.add('${set.reps} ${labels.reps}');
     } else if (hasWeight) {
-      parts.add('${_formatNumber(set.weightKg!)} ${labels.kg}');
+      final dispW =
+          unitService.convertDisplayValue(set.weightKg!, UnitDimension.weight);
+      parts.add('${_formatNumber(dispW)} ${labels.kg}');
     }
 
     if (hasDistance) {
-      parts.add('${_formatNumber(set.distanceKm!)} ${labels.km}');
+      final dispD = unitService.convertDisplayValue(
+          set.distanceKm!, UnitDimension.distance);
+      parts.add('${_formatNumber(dispD)} ${labels.km}');
     }
     if (hasDuration) {
       parts.add(_formatMinutes(Duration(seconds: set.durationSeconds!)));

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
 
-
 import '../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 

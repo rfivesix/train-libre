@@ -2,6 +2,9 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'widgets/exercise_record_data.dart';
+import '../../../../services/unit_service.dart';
+import '../../../widgets/common/algorithm_info_sheet.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
@@ -18,13 +21,12 @@ import '../../../services/health/workout_heart_rate_models.dart';
 import '../../../services/health/workout_heart_rate_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../pulse/application/pulse_tracking_service.dart';
-import '../../../services/unit_service.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
-import '../../exercise_catalog/presentation/widgets/wger_attribution_widget.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/workout_heart_rate_section.dart';
 import 'widgets/workout_exercise_log_card.dart';
@@ -32,9 +34,12 @@ import 'widgets/muscle_color_helper.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'edit_routine_screen.dart';
+import 'reorder_scroll_anchor.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A detailed view for a single completed [WorkoutLog].
 ///
@@ -57,8 +62,17 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   WorkoutHeartRateSummary? _heartRateSummary;
   Map<String, List<SetLog>> _groupedSets = {};
   Map<String, Exercise> _exerciseDetails = {};
+  final Map<String, List<ExerciseRecordData>> _newRecordsPerExercise = {};
   Map<String, String> _exerciseNotes = {};
   bool _isEditMode = false;
+  bool _isDragging = false;
+  bool _isReordering = false;
+  String? _draggedExerciseName;
+  Timer? _collapseTimer;
+  Timer? _expandTimer;
+  final ScrollController _scrollController = ScrollController();
+  late final ReorderScrollAnchor _dragAnchor =
+      ReorderScrollAnchor(_scrollController);
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _notesController;
 
@@ -77,6 +91,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.workoutDetail));
     _notesController = TextEditingController();
     _loadDetails();
     _setLogsSubscription = context
@@ -88,6 +104,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   @override
   void dispose() {
     _setLogsSubscription?.cancel();
+    _collapseTimer?.cancel();
+    _expandTimer?.cancel();
     _notesController.dispose();
     _clearControllers();
     super.dispose();
@@ -155,6 +173,38 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   bool _isCardio(String exerciseName) {
     final ex = _exerciseDetails[exerciseName];
     return ex?.categoryName.toLowerCase() == 'cardio';
+  }
+
+  /// Collapses every card down to its header, keeping [anchorId]'s card pinned
+  /// where it is on screen.
+  void _collapseCards(String anchorId) {
+    if (!mounted || _isDragging) return;
+    _dragAnchor.capture(anchorId);
+    setState(() => _isDragging = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _dragAnchor.restore();
+    });
+  }
+
+  /// Expands the cards again, keeping [anchorId]'s card pinned where it is.
+  void _expandCards(String? anchorId) {
+    _expandTimer?.cancel();
+    _isReordering = false;
+    if (!mounted || !_isDragging) return;
+    _dragAnchor.capture(anchorId);
+    setState(() => _isDragging = false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _dragAnchor.restore();
+    });
+  }
+
+  /// Expands the cards once the drop animation and the reorder have finished.
+  void _scheduleExpandAfterDrop() {
+    _expandTimer?.cancel();
+    _expandTimer = Timer(
+      kReorderDropSettleDuration,
+      () => _expandCards(_draggedExerciseName),
+    );
   }
 
   Future<void> _loadDetails({bool preserveEditState = false}) async {
@@ -229,10 +279,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         // Strength: Val1 = weight, Val2 = reps
         val1 = setLog.weightKg == null
             ? ''
-            : unitService
-                .convertDisplayValue(setLog.weightKg!, UnitDimension.weight)
-                .toStringAsFixed(1)
-                .replaceAll('.0', '');
+            : unitService.formatDisplayWeight(setLog.weightKg!);
         val2 = setLog.reps?.toString() ?? '';
       }
 
@@ -274,6 +321,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     List<SetLog> sets, {
     DateTime? beforeTimestamp,
   }) async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    _newRecordsPerExercise.clear();
     final db = WorkoutLocalDataSource.instance;
     final Map<String, Map<String, double>> historicalBests = {};
 
@@ -305,28 +355,141 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       double? volumeDiff;
       double? est1rmDiff;
 
-      if (currentWeight > 0 &&
-          setLog.isCompleted == true &&
-          setLog.setType != 'warmup') {
-        final oldMaxWeight = bests['maxWeight'] ?? 0.0;
-        if (currentWeight > oldMaxWeight) {
-          isMaxWeightPR = true;
-          weightDiff = oldMaxWeight > 0 ? currentWeight - oldMaxWeight : null;
-          bests['maxWeight'] = currentWeight;
+      bool isMaxDistancePR = false;
+      bool isMaxDurationPR = false;
+      bool isFastestPacePR = false;
+      double? distanceDiff;
+      int? durationDiff;
+      double? paceDiff;
+
+      final currentDistance = setLog.distanceKm ?? 0.0;
+      final currentDuration = setLog.durationSeconds ?? 0;
+      double currentPace = double.infinity;
+      if (currentDistance > 0 && currentDuration > 0) {
+        currentPace = currentDuration / currentDistance;
+      }
+
+      if (setLog.isCompleted == true && setLog.setType != 'warmup') {
+        if (currentWeight > 0) {
+          final oldMaxWeight = bests['maxWeight'] ?? 0.0;
+          if (currentWeight > oldMaxWeight) {
+            isMaxWeightPR = true;
+            weightDiff = oldMaxWeight > 0 ? currentWeight - oldMaxWeight : null;
+            bests['maxWeight'] = currentWeight;
+          }
+
+          final oldMaxVolume = bests['maxVolume'] ?? 0.0;
+          if (currentVolume > oldMaxVolume) {
+            isMaxVolumePR = true;
+            volumeDiff = oldMaxVolume > 0 ? currentVolume - oldMaxVolume : null;
+            bests['maxVolume'] = currentVolume;
+          }
+
+          final oldMaxEst1rm = bests['maxEst1rm'] ?? 0.0;
+          if (currentEst1rm > oldMaxEst1rm) {
+            isMaxEst1RMPR = true;
+            est1rmDiff = oldMaxEst1rm > 0 ? currentEst1rm - oldMaxEst1rm : null;
+            bests['maxEst1rm'] = currentEst1rm;
+          }
         }
 
-        final oldMaxVolume = bests['maxVolume'] ?? 0.0;
-        if (currentVolume > oldMaxVolume) {
-          isMaxVolumePR = true;
-          volumeDiff = oldMaxVolume > 0 ? currentVolume - oldMaxVolume : null;
-          bests['maxVolume'] = currentVolume;
+        if (currentDistance > 0 || currentDuration > 0) {
+          final oldMaxDistance = bests['maxDistance'] ?? 0.0;
+          if (currentDistance > oldMaxDistance) {
+            isMaxDistancePR = true;
+            distanceDiff =
+                oldMaxDistance > 0 ? currentDistance - oldMaxDistance : null;
+            bests['maxDistance'] = currentDistance;
+          }
+
+          final oldMaxDuration = bests['maxDuration']?.toInt() ?? 0;
+          if (currentDuration > oldMaxDuration) {
+            isMaxDurationPR = true;
+            durationDiff =
+                oldMaxDuration > 0 ? currentDuration - oldMaxDuration : null;
+            bests['maxDuration'] = currentDuration.toDouble();
+          }
+
+          final oldFastestPace = bests['fastestPace'] ?? 0.0;
+          if (currentPace != double.infinity &&
+              (oldFastestPace == 0.0 || currentPace < oldFastestPace)) {
+            isFastestPacePR = true;
+            paceDiff = oldFastestPace > 0 ? oldFastestPace - currentPace : null;
+            bests['fastestPace'] = currentPace;
+          }
         }
 
-        final oldMaxEst1rm = bests['maxEst1rm'] ?? 0.0;
-        if (currentEst1rm > oldMaxEst1rm) {
-          isMaxEst1RMPR = true;
-          est1rmDiff = oldMaxEst1rm > 0 ? currentEst1rm - oldMaxEst1rm : null;
-          bests['maxEst1rm'] = currentEst1rm;
+        // Add to _newRecordsPerExercise
+        if (isMaxWeightPR ||
+            isMaxVolumePR ||
+            isMaxEst1RMPR ||
+            isMaxDistancePR ||
+            isMaxDurationPR ||
+            isFastestPacePR) {
+          _newRecordsPerExercise.putIfAbsent(exName, () => []);
+
+          if (isMaxWeightPR) {
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.weight(
+              label: l10n.exerciseMetricMaxWeight,
+              valueKg: currentWeight,
+              diffKg: weightDiff,
+            ));
+          }
+          if (isMaxVolumePR) {
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.weight(
+              label: l10n.exerciseMetricVolume,
+              valueKg: currentVolume,
+              diffKg: volumeDiff,
+              fractionDigits: 0,
+            ));
+          }
+          if (isMaxEst1RMPR) {
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.weight(
+              label: l10n.exerciseMetricEst1RM,
+              valueKg: currentEst1rm,
+              diffKg: est1rmDiff,
+            ));
+          }
+          if (isMaxDistancePR) {
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.cardio(
+              label: 'Best Distance',
+              value:
+                  '${currentDistance.toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km',
+              diff: distanceDiff != null
+                  ? '+${distanceDiff.toStringAsFixed(2).replaceAll(RegExp(r"0*$"), "").replaceAll(RegExp(r"\.$"), "")} km'
+                  : null,
+            ));
+          }
+          if (isMaxDurationPR) {
+            final m = currentDuration ~/ 60;
+            final s = currentDuration % 60;
+            String? diffStr;
+            if (durationDiff != null) {
+              final dm = durationDiff ~/ 60;
+              final ds = durationDiff % 60;
+              diffStr = '+${dm > 0 ? '${dm}m ' : ''}${ds}s';
+            }
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.cardio(
+              label: 'Longest Duration',
+              value: '${m}m ${s}s',
+              diff: diffStr,
+            ));
+          }
+          if (isFastestPacePR) {
+            final pm = currentPace.toInt() ~/ 60;
+            final ps = currentPace.toInt() % 60;
+            String? diffStr;
+            if (paceDiff != null) {
+              final dm = paceDiff.toInt() ~/ 60;
+              final ds = paceDiff.toInt() % 60;
+              diffStr = '-${dm > 0 ? '${dm}m ' : ''}${ds}s';
+            }
+            _newRecordsPerExercise[exName]!.add(ExerciseRecordData.cardio(
+              label: 'Fastest Pace',
+              value: '${pm}m ${ps}s / km',
+              diff: diffStr,
+            ));
+          }
         }
       }
 
@@ -337,6 +500,12 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         weightPRDiff: weightDiff,
         volumePRDiff: volumeDiff,
         est1rmPRDiff: est1rmDiff,
+        isMaxDistancePR: isMaxDistancePR,
+        isMaxDurationPR: isMaxDurationPR,
+        isFastestPacePR: isFastestPacePR,
+        distancePRDiff: distanceDiff,
+        durationPRDiff: durationDiff,
+        pacePRDiff: paceDiff,
       );
     }
   }
@@ -383,102 +552,125 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
   Future<void> _saveChanges() async {
     FocusScope.of(context).unfocus();
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
+      return;
+    }
 
-    final l10n = AppLocalizations.of(context)!;
-    final dbHelper = WorkoutLocalDataSource.instance;
-    final unitService = context.read<UnitService>();
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      final dbHelper = WorkoutLocalDataSource.instance;
+      final unitService = context.read<UnitService>();
 
-    final initialSetIds = _log!.sets.map((s) => s.id!).toSet();
-    final currentSets = _groupedSets.values.expand((sets) => sets).toList();
+      final initialSetIds = _log!.sets.map((s) => s.id!).toSet();
+      final currentSets = _groupedSets.values.expand((sets) => sets).toList();
 
-    final idsToDelete = initialSetIds
-        .difference(currentSets.map((s) => s.id!).toSet())
-        .toList();
+      final idsToDelete = initialSetIds
+          .difference(currentSets.map((s) => s.id!).toSet())
+          .toList();
 
-    final List<SetLog> setsToUpdate = [];
-    final List<SetLog> setsToInsert = [];
+      final List<SetLog> setsToUpdate = [];
+      final List<SetLog> setsToInsert = [];
 
-    for (final setLog in currentSets) {
-      // Distinguish again what the controller values mean.
-      final isCardio = _isCardio(setLog.exerciseName);
+      int currentOrder = 0;
 
-      final val1Input = double.tryParse(
-            _weightControllers[setLog.id!]?.text.replaceAll(',', '.') ?? '0',
-          ) ??
-          0.0;
-      final val1 = isCardio
-          ? val1Input
-          : unitService.convertToMetric(val1Input, UnitDimension.weight);
-      final repsText = _repsControllers[setLog.id!]?.text ?? '';
-      final val2 = isCardio
-          ? (parsePauseDuration(repsText) ?? 0).toDouble()
-          : (double.tryParse(repsText.replaceAll(',', '.')) ?? 0.0);
-      final rir = int.tryParse(_rirControllers[setLog.id!]?.text ?? '');
+      for (final setLog in currentSets) {
+        // Distinguish again what the controller values mean.
+        final isCardio = _isCardio(setLog.exerciseName);
 
-      SetLog updatedSet;
+        final val1Input = double.tryParse(
+              _weightControllers[setLog.id!]?.text.replaceAll(',', '.') ?? '0',
+            ) ??
+            0.0;
+        final val1 = isCardio
+            ? val1Input
+            : unitService.convertToMetric(val1Input, UnitDimension.weight);
+        final repsText = _repsControllers[setLog.id!]?.text ?? '';
+        final val2 = isCardio
+            ? (parsePauseDuration(repsText) ?? 0).toDouble()
+            : (double.tryParse(repsText.replaceAll(',', '.')) ?? 0.0);
+        final rir = int.tryParse(_rirControllers[setLog.id!]?.text ?? '');
 
-      if (isCardio) {
-        // Val1 = Distance, Val2 = Seconds
-        updatedSet = setLog.copyWith(
-          distanceKm: val1,
-          durationSeconds: val2.round(),
-          rir: rir,
-          clearRir: rir == null,
-          // Set weight/reps to 0/null for cardio to avoid bad data?
-          weightKg: 0,
-          reps: 0,
-        );
-      } else {
-        // Val1 = Weight, Val2 = Reps (int)
-        updatedSet = setLog.copyWith(
-          weightKg: val1,
-          reps: val2.toInt(),
-          rir: rir,
-          clearRir: rir == null,
-          // Cardio Felder nullen
-          distanceKm: null,
-          durationSeconds: null,
-        );
+        SetLog updatedSet;
+
+        if (isCardio) {
+          // Val1 = Distance, Val2 = Seconds
+          updatedSet = setLog.copyWith(
+            distanceKm: val1,
+            durationSeconds: val2.round(),
+            rir: rir,
+            clearRir: rir == null,
+            logOrder: currentOrder++,
+            // Set weight/reps to 0/null for cardio to avoid bad data?
+            weightKg: 0,
+            reps: 0,
+          );
+        } else {
+          // Val1 = Weight, Val2 = Reps (int)
+          updatedSet = setLog.copyWith(
+            weightKg: val1,
+            reps: val2.toInt(),
+            rir: rir,
+            clearRir: rir == null,
+            logOrder: currentOrder++,
+            // Cardio Felder nullen
+            distanceKm: null,
+            durationSeconds: null,
+          );
+        }
+
+        if (initialSetIds.contains(setLog.id)) {
+          setsToUpdate.add(updatedSet);
+        } else {
+          setsToInsert.add(updatedSet);
+        }
       }
 
-      if (initialSetIds.contains(setLog.id)) {
-        setsToUpdate.add(updatedSet);
-      } else {
-        setsToInsert.add(updatedSet);
+      final dbInstance = await dbHelper.database;
+      await dbInstance.transaction(() async {
+        await dbHelper.updateWorkoutLogDetails(
+          widget.logId,
+          _editedStartTime!,
+          _notesController.text,
+        );
+        if (idsToDelete.isNotEmpty) await dbHelper.deleteSetLogs(idsToDelete);
+        if (setsToUpdate.isNotEmpty) await dbHelper.updateSetLogs(setsToUpdate);
+        for (final set in setsToInsert) {
+          await dbHelper.insertSetLog(
+            set.copyWith(id: null, workoutLogId: widget.logId),
+          );
+        }
+        for (final exerciseName in _exerciseNotes.keys) {
+          final note = _exerciseNotes[exerciseName];
+          await dbHelper.saveWorkoutExerciseNote(
+            workoutLogId: widget.logId,
+            exerciseName: exerciseName,
+            notes: note != null && note.isNotEmpty ? note : null,
+          );
+        }
+      });
+
+      if (mounted) {
+        HapticFeedbackService.instance.confirmationFeedback();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.snackbarRoutineSaved)));
+      }
+
+      setState(() => _isEditMode = false);
+      _loadDetails();
+    } catch (e, stackTrace) {
+      debugPrint("Error saving changes: $e");
+      debugPrint(stackTrace.toString());
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("${l10n.error}: $e"),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     }
-
-    await dbHelper.updateWorkoutLogDetails(
-      widget.logId,
-      _editedStartTime!,
-      _notesController.text,
-    );
-    if (idsToDelete.isNotEmpty) await dbHelper.deleteSetLogs(idsToDelete);
-    if (setsToUpdate.isNotEmpty) await dbHelper.updateSetLogs(setsToUpdate);
-    for (final set in setsToInsert) {
-      await dbHelper.insertSetLog(
-        set.copyWith(id: null, workoutLogId: widget.logId),
-      );
-    }
-    for (final exerciseName in _exerciseNotes.keys) {
-      final note = _exerciseNotes[exerciseName];
-      await dbHelper.saveWorkoutExerciseNote(
-        workoutLogId: widget.logId,
-        exerciseName: exerciseName,
-        notes: note != null && note.isNotEmpty ? note : null,
-      );
-    }
-
-    if (mounted) {
-      HapticFeedbackService.instance.confirmationFeedback();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.snackbarRoutineSaved)));
-    }
-
-    setState(() => _isEditMode = false);
-    _loadDetails();
   }
 
   void _showSaveAsRoutineDialog() async {
@@ -500,8 +692,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingXS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS,
+                  vertical: DesignConstants.spacingXS),
               child: Text(
                 l10n.saveAsRoutinePrompt,
                 style: Theme.of(ctx).textTheme.bodyMedium,
@@ -515,7 +708,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
               decoration: InputDecoration(
                 labelText: l10n.formFieldRoutineName,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
                 ),
               ),
             ),
@@ -523,17 +717,18 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final name = controller.text.trim();
                       if (name.isNotEmpty) {
@@ -541,7 +736,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                         Navigator.of(ctx).pop(name);
                       }
                     },
-                    child: Text(l10n.save),
+                    label: l10n.save,
+                    tooltip: l10n.save,
                   ),
                 ),
               ],
@@ -670,18 +866,25 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     ),
                   )
                 : IconButton(
+                    tooltip: l10n.edit,
                     icon: const Icon(LucideIcons.pencil),
                     onPressed: _toggleEditMode,
                   ),
-          if (!_isLoading && _log != null && !_isEditMode)
+          if (!_isLoading && _log != null && !_isEditMode) ...[
+            IconButton(
+              tooltip: l10n.saveAsRoutineTitle,
+              icon: const Icon(LucideIcons.bookmark_plus),
+              onPressed: _showSaveAsRoutineDialog,
+            ),
             IconButton(
               tooltip: l10n.share,
-              icon: const Icon(LucideIcons.share),
+              icon: Icon(DesignConstants.adaptiveShareIcon),
               onPressed: () => _shareService.showWorkoutShareSheet(
                 context: context,
                 workout: _log!,
               ),
             ),
+          ],
         ],
       ),
       body: _isLoading
@@ -704,105 +907,133 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     ),
                     Expanded(
                       child: ListView(
-                        padding: EdgeInsets.zero,
+                        controller: _scrollController,
+                        padding: EdgeInsets.only(
+                          bottom: _isDragging ? 800.0 : 0.0,
+                        ),
                         children: [
-                          // Header Info
+                          // Header Info (Clean Hero section)
                           Padding(
-                            padding: DesignConstants.cardPadding,
-                            child: SummaryCard(
-                              child: Padding(
-                                padding: const EdgeInsets.all(DesignConstants.spacingL),
-                                child: Form(
-                                  key: _formKey,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal:
+                                  DesignConstants.screenPaddingHorizontal,
+                              vertical: DesignConstants.spacingM,
+                            ),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _log!.routineName ??
+                                              l10n.freeWorkoutTitle,
+                                          style:
+                                              textTheme.headlineSmall?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      if (_isEditMode)
+                                        IconButton(
+                                          tooltip: l10n.selectDateTitle,
+                                          icon: Icon(
+                                            LucideIcons.calendar,
+                                            size: 20,
+                                            color: colorScheme.primary,
+                                          ),
+                                          onPressed: _pickDateTime,
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat.yMMMMd(locale).add_Hm().format(
+                                          _editedStartTime ?? _log!.startTime,
+                                        ),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  if (_isEditMode) ...[
+                                    const SizedBox(
+                                        height: DesignConstants.spacingM),
+                                    TextFormField(
+                                      controller: _notesController,
+                                      decoration: InputDecoration(
+                                        labelText: l10n.notesLabel,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            DesignConstants.borderRadiusM,
+                                          ),
+                                        ),
+                                      ),
+                                      maxLines: 3,
+                                    ),
+                                  ] else if (_log!.notes != null &&
+                                      _log!.notes!.isNotEmpty) ...[
+                                    const SizedBox(
+                                        height: DesignConstants.spacingM),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(
+                                          DesignConstants.spacingM),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.surfaceContainerLow,
+                                        borderRadius: BorderRadius.circular(
+                                          DesignConstants.borderRadiusM,
+                                        ),
+                                        border: Border.all(
+                                          color: colorScheme.outlineVariant
+                                              .withValues(alpha: 0.5),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${l10n.notesLabel}: ${_log!.notes!}',
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (_exerciseDetails.isNotEmpty) ...[
+                            Builder(
+                              builder: (context) {
+                                final heatmapWidget = _buildMuscleHeatmap(l10n);
+                                if (heatmapWidget is SizedBox) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal:
+                                        DesignConstants.screenPaddingHorizontal,
+                                    vertical: DesignConstants.spacingM,
+                                  ),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        _log!.routineName ??
-                                            l10n.freeWorkoutTitle,
-                                        style: textTheme.headlineMedium,
-                                      ),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            DateFormat.yMMMMd(
-                                              locale,
-                                            ).add_Hm().format(
-                                                  _editedStartTime ??
-                                                      _log!.startTime,
-                                                ),
-                                          ),
-                                          if (_isEditMode)
-                                            IconButton(
-                                              icon: Icon(
-                                                LucideIcons.calendar,
-                                                size: 18,
-                                                color: colorScheme.primary,
-                                              ),
-                                              onPressed: _pickDateTime,
-                                            ),
-                                        ],
+                                      AppSectionHeader(
+                                        title: l10n
+                                            .analyticsRecentDistributionHeatmap,
+                                        padding: EdgeInsets.zero,
                                       ),
                                       const SizedBox(
                                         height: DesignConstants.spacingM,
                                       ),
-                                      _isEditMode
-                                          ? TextFormField(
-                                              controller: _notesController,
-                                              decoration: InputDecoration(
-                                                labelText: l10n.notesLabel,
-                                              ),
-                                              maxLines: 3,
-                                            )
-                                          : (_log!.notes != null &&
-                                                  _log!.notes!.isNotEmpty
-                                              ? Text(
-                                                  '${l10n.notesLabel}: ${_log!.notes!}',
-                                                  style: const TextStyle(
-                                                    fontStyle: FontStyle.italic,
-                                                  ),
-                                                )
-                                              : const SizedBox.shrink()),
-                                      if (_exerciseDetails.isNotEmpty) ...[
-                                        const Divider(height: 24),
-                                        Text(
-                                          l10n.analyticsRecentDistributionHeatmap,
-                                          style: textTheme.titleMedium,
-                                        ),
-                                        const SizedBox(
-                                          height: DesignConstants.spacingS,
-                                        ),
-                                        _buildMuscleHeatmap(l10n),
-                                      ],
-                                      if (!_isEditMode) ...[
-                                        const SizedBox(height: DesignConstants.spacingM),
-                                        Center(
-                                          child: TextButton.icon(
-                                            onPressed: _showSaveAsRoutineDialog,
-                                            icon: const Icon(LucideIcons.files,
-                                                size: 18),
-                                            label: Text(
-                                              l10n.saveAsRoutineButton,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.w600),
-                                            ),
-                                            style: TextButton.styleFrom(
-                                              foregroundColor: colorScheme
-                                                  .primary
-                                                  .withValues(alpha: 0.8),
-                                              padding:
-                                                  DesignConstants.screenPadding,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                      heatmapWidget,
                                     ],
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
-                          ),
+                          ],
                           if (_heartRateSummary != null &&
                               (_pulseTrackingEnabled ||
                                   _heartRateSummary!.hasData))
@@ -815,6 +1046,83 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 pulseTrackingEnabled: _pulseTrackingEnabled,
                               ),
                             ),
+
+                          // NEW RECORDS SECTION
+                          if (_newRecordsPerExercise.isNotEmpty) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal:
+                                    DesignConstants.screenPaddingHorizontal,
+                              ),
+                              child: AppSectionHeader(
+                                title: l10n.workoutSummaryNewRecordsTitle,
+                                padding: EdgeInsets.zero,
+                                action: AlgorithmInfoButton(
+                                  title:
+                                      "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                                  explanation:
+                                      "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                                  keyPoints: const [
+                                    "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
+                                    "Estimates are sports-science heuristics designed for healthy individuals.",
+                                    "Provides a safe way to track strength progression without testing true failure.",
+                                  ],
+                                  technicalTitle: "Epley Equation Details",
+                                  technicalExplanation:
+                                      "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                                  citationUrl:
+                                      "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal:
+                                    DesignConstants.screenPaddingHorizontal,
+                              ),
+                              child: Column(
+                                children:
+                                    _newRecordsPerExercise.entries.map((entry) {
+                                  return SummaryCard(
+                                    child: ListTile(
+                                      leading: const Icon(
+                                        LucideIcons.trophy,
+                                        color: Colors.amber,
+                                      ),
+                                      title: Text(
+                                        _exerciseDetails[entry.key]
+                                                ?.getLocalizedName(context) ??
+                                            entry.key,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      subtitle: Text(
+                                        entry.value
+                                            .map((record) => record.format(
+                                                context.read<UnitService>()))
+                                            .join(', '),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
+                          ],
+
+                          // EXERCISE LIST SECTION HEADER
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal:
+                                  DesignConstants.screenPaddingHorizontal,
+                              vertical: DesignConstants.spacingS,
+                            ),
+                            child: AppSectionHeader(
+                              title: l10n.workoutSummaryExerciseOverview,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
 
                           // Sets
                           if (!_isEditMode)
@@ -862,9 +1170,59 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             })
                           else ...[
                             ReorderableListView.builder(
+                              buildDefaultDragHandles: false,
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               padding: EdgeInsets.zero,
+                              onReorderStart: (index) {
+                                // _isDragging is already set by the 300ms onPointerDown timer.
+                                // Do not set it here to avoid bypassing the delay.
+                                _expandTimer?.cancel();
+                                _dragAnchor.discard();
+                                _isReordering = true;
+                                _draggedExerciseName =
+                                    _groupedSets.keys.elementAt(index);
+                              },
+                              onReorderEnd: (index) {
+                                // The dropped card is still animating into place
+                                // and the reorder itself only lands when that
+                                // animation ends. Expanding now would fight both.
+                                _scheduleExpandAfterDrop();
+                              },
+                              proxyDecorator: (Widget child, int index,
+                                  Animation<double> anim) {
+                                final entry =
+                                    _groupedSets.entries.elementAt(index);
+                                final String exerciseName = entry.key;
+                                final Exercise? exercise =
+                                    _exerciseDetails[exerciseName];
+                                final List<SetLog> sets = entry.value;
+                                final isCardio = _isCardio(exerciseName);
+
+                                return Material(
+                                  elevation: 0.0,
+                                  color: Colors.transparent,
+                                  child: WorkoutExerciseLogCard(
+                                    exerciseName: exerciseName,
+                                    exercise: exercise,
+                                    sets: sets,
+                                    isEditMode: true,
+                                    isCardio: isCardio,
+                                    isDragging: true,
+                                    isDraggedItem: true,
+                                    weightControllers: _weightControllers,
+                                    repsControllers: _repsControllers,
+                                    rirControllers: _rirControllers,
+                                    exerciseNote: _exerciseNotes[exerciseName],
+                                    onEditNotes: (_) {},
+                                    onDeleteExercise: (_) {},
+                                    onAddSet: () {},
+                                    onDeleteSet: (_) {},
+                                    onSetTypeTap: (_) {},
+                                    index: index,
+                                  ),
+                                );
+                              },
                               onReorderItem: (int oldIndex, int newIndex) {
                                 setState(() {
                                   final entries = _groupedSets.entries.toList();
@@ -886,67 +1244,108 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 final List<SetLog> sets = entry.value;
                                 final isCardio = _isCardio(exerciseName);
 
-                                return WorkoutExerciseLogCard(
+                                // Released either without ever starting a drag,
+                                // or mid-drop – in the latter case the list has
+                                // to settle first.
+                                void handleRelease() {
+                                  _collapseTimer?.cancel();
+                                  if (_isReordering) {
+                                    _scheduleExpandAfterDrop();
+                                  } else {
+                                    _expandCards(exerciseName);
+                                  }
+                                }
+
+                                return RepaintBoundary(
                                   key: ValueKey(exerciseName),
-                                  exerciseName: exerciseName,
-                                  exercise: exercise,
-                                  sets: sets,
-                                  isEditMode: true,
-                                  isCardio: isCardio,
-                                  weightControllers: _weightControllers,
-                                  repsControllers: _repsControllers,
-                                  rirControllers: _rirControllers,
-                                  exerciseNote: _exerciseNotes[exerciseName],
-                                  onEditNotes: (exName) =>
-                                      _editExerciseNotes(context, exName),
-                                  onDeleteExercise: (exName) {
-                                    setState(() {
-                                      for (var set in sets) {
-                                        _weightControllers
-                                            .remove(set.id!)
-                                            ?.dispose();
-                                        _repsControllers
-                                            .remove(set.id!)
-                                            ?.dispose();
-                                        _rirControllers
-                                            .remove(set.id!)
-                                            ?.dispose();
-                                      }
-                                      _groupedSets.remove(exName);
-                                      _exerciseNotes.remove(exName);
-                                    });
-                                  },
-                                  onAddSet: () {
-                                    final newSet = SetLog(
-                                      id: DateTime.now().millisecondsSinceEpoch,
-                                      workoutLogId: _log!.id!,
+                                  child: KeyedSubtree(
+                                    key: _dragAnchor.keyFor(exerciseName),
+                                    child: WorkoutExerciseLogCard(
                                       exerciseName: exerciseName,
-                                      setType: 'normal',
-                                      isCompleted: true,
-                                    );
-                                    setState(() {
-                                      sets.add(newSet);
-                                      _weightControllers[newSet.id!] =
-                                          TextEditingController();
-                                      _repsControllers[newSet.id!] =
-                                          TextEditingController();
-                                      _rirControllers[newSet.id!] =
-                                          TextEditingController();
-                                    });
-                                  },
-                                  onDeleteSet: (setId) {
-                                    setState(() {
-                                      sets.removeWhere((s) => s.id == setId);
-                                      _weightControllers
-                                          .remove(setId)
-                                          ?.dispose();
-                                      _repsControllers.remove(setId)?.dispose();
-                                      _rirControllers.remove(setId)?.dispose();
-                                    });
-                                  },
-                                  onSetTypeTap: (setId) =>
-                                      _showSetTypePicker(setId),
-                                  index: index,
+                                      exercise: exercise,
+                                      sets: sets,
+                                      isEditMode: true,
+                                      isCardio: isCardio,
+                                      isDragging: _isDragging,
+                                      onPointerDown: (event) {
+                                        _collapseTimer?.cancel();
+                                        _collapseTimer = Timer(
+                                            const Duration(milliseconds: 300),
+                                            () => _collapseCards(exerciseName));
+                                      },
+                                      onPointerUp: (event) => handleRelease(),
+                                      onPointerMove: (event) {
+                                        // Cancel timer if finger moves – user is scrolling, not drag-holding.
+                                        if (event.delta.dy.abs() > 4.0 ||
+                                            event.delta.dx.abs() > 4.0) {
+                                          _collapseTimer?.cancel();
+                                        }
+                                      },
+                                      onPointerCancel: (event) =>
+                                          handleRelease(),
+                                      weightControllers: _weightControllers,
+                                      repsControllers: _repsControllers,
+                                      rirControllers: _rirControllers,
+                                      exerciseNote:
+                                          _exerciseNotes[exerciseName],
+                                      onEditNotes: (exName) =>
+                                          _editExerciseNotes(context, exName),
+                                      onDeleteExercise: (exName) {
+                                        setState(() {
+                                          for (var set in sets) {
+                                            _weightControllers
+                                                .remove(set.id!)
+                                                ?.dispose();
+                                            _repsControllers
+                                                .remove(set.id!)
+                                                ?.dispose();
+                                            _rirControllers
+                                                .remove(set.id!)
+                                                ?.dispose();
+                                          }
+                                          _groupedSets.remove(exName);
+                                          _exerciseNotes.remove(exName);
+                                        });
+                                      },
+                                      onAddSet: () {
+                                        final newSet = SetLog(
+                                          id: -DateTime.now()
+                                              .millisecondsSinceEpoch,
+                                          workoutLogId: _log!.id!,
+                                          exerciseName: exerciseName,
+                                          setType: 'normal',
+                                          isCompleted: true,
+                                        );
+                                        setState(() {
+                                          sets.add(newSet);
+                                          _weightControllers[newSet.id!] =
+                                              TextEditingController();
+                                          _repsControllers[newSet.id!] =
+                                              TextEditingController();
+                                          _rirControllers[newSet.id!] =
+                                              TextEditingController();
+                                        });
+                                      },
+                                      onDeleteSet: (setId) {
+                                        setState(() {
+                                          sets.removeWhere(
+                                              (s) => s.id == setId);
+                                          _weightControllers
+                                              .remove(setId)
+                                              ?.dispose();
+                                          _repsControllers
+                                              .remove(setId)
+                                              ?.dispose();
+                                          _rirControllers
+                                              .remove(setId)
+                                              ?.dispose();
+                                        });
+                                      },
+                                      onSetTypeTap: (setId) =>
+                                          _showSetTypePicker(setId),
+                                      index: index,
+                                    ),
+                                  ),
                                 );
                               },
                             ),
@@ -955,7 +1354,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                           // Add Exercise (Edit Mode)
                           if (_isEditMode)
                             Padding(
-                              padding: const EdgeInsets.all(DesignConstants.spacingL),
+                              padding: const EdgeInsets.all(
+                                  DesignConstants.spacingL),
                               child: TextButton.icon(
                                 onPressed: () async {
                                   final selectedExercise =
@@ -975,7 +1375,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                           selectedExercise;
 
                                       final newSet = SetLog(
-                                        id: DateTime.now()
+                                        id: -DateTime.now()
                                             .millisecondsSinceEpoch,
                                         workoutLogId: _log!.id!,
                                         exerciseName: selectedExercise
@@ -1006,15 +1406,6 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 label: Text(l10n.addExerciseToWorkoutButton),
                               ),
                             ),
-
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                            child: WgerAttributionWidget(
-                              textStyle: textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -1028,7 +1419,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
     for (final name in _groupedSets.keys) {
       final ex = _exerciseDetails[name];
-      if (ex == null) continue;
+      if (ex == null || ex.isCardio) continue;
 
       final exerciseSlugs = <BodyPartSlug>{};
       for (final muscleName in ex.primaryMuscles) {
@@ -1047,28 +1438,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
     if (highlights.isEmpty) return const SizedBox.shrink();
 
-    return SizedBox(
-      height: 180,
-      child: Row(
-        children: [
-          Expanded(
-            child: BodyHighlighter(
-              gender: context.watch<ProfileService>().gender.toBodyGender(),
-              side: BodySide.front,
-              highlightedParts:
-                  BodySlugMapper.forSide(highlights, BodySide.front),
-            ),
-          ),
-          Expanded(
-            child: BodyHighlighter(
-              gender: context.watch<ProfileService>().gender.toBodyGender(),
-              side: BodySide.back,
-              highlightedParts:
-                  BodySlugMapper.forSide(highlights, BodySide.back),
-            ),
-          ),
-        ],
-      ),
+    return DualBodyHighlighter(
+      gender: context.watch<ProfileService>().gender.toBodyGender(),
+      frontHighlights: BodySlugMapper.forSide(highlights, BodySide.front),
+      backHighlights: BodySlugMapper.forSide(highlights, BodySide.back),
     );
   }
 
@@ -1104,7 +1477,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       {
         'type': 'normal',
         'label': l10n.set_type_normal,
-        'symbol': buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
+        'symbol':
+            buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
       },
       {
         'type': 'warmup',

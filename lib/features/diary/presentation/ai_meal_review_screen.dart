@@ -22,6 +22,12 @@ import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
+import 'package:provider/provider.dart';
+import '../../../services/theme_service.dart';
+import '../../../services/base_food_language_service.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
+import 'dart:async';
 
 /// Review screen for AI-suggested food items.
 ///
@@ -66,6 +72,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.aiMealReview));
     _selectedMealType = widget.initialMealType ??
         MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
     _selectedTimestamp = (widget.initialDate ?? DateTime.now()).withCurrentTime;
@@ -103,9 +111,26 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // Validation
   // ---------------------------------------------------------------------------
 
-  Future<void> _validateCurrentItems() async {
+  void _updateItemNutritionLocally(int index) {
+    if (index < 0 || index >= _items.length) return;
+    final item = _items[index];
+    final food = item.matchedFood;
+    if (food != null) {
+      final factor = item.suggestion.estimatedGrams / 100.0;
+      item.nutrition = AiNutritionTotals(
+        kcal: food.calories * factor,
+        protein: food.protein * factor,
+        carbs: food.carbs * factor,
+        fat: food.fat * factor,
+      );
+    }
+  }
+
+  Future<void> _validateCurrentItems({bool showLoading = false}) async {
     if (!mounted) return;
-    setState(() => _isMatching = true);
+    if (showLoading) {
+      setState(() => _isMatching = true);
+    }
     final candidate = _candidateFromReviewItems();
     final result = await AiMealValidationEngine().validateMealCandidate(
       candidate: candidate,
@@ -161,7 +186,19 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   void _removeItem(int index) {
     setState(() => _items.removeAt(index));
-    _validateCurrentItems();
+    _validateCurrentItems(showLoading: false);
+  }
+
+  void _adjustQuantityBy(int index, int delta) {
+    final item = _items[index];
+    final newGrams = (item.suggestion.estimatedGrams + delta).clamp(10, 5000);
+    if (newGrams != item.suggestion.estimatedGrams) {
+      setState(() {
+        item.suggestion.estimatedGrams = newGrams;
+        _updateItemNutritionLocally(index);
+      });
+      _validateCurrentItems(showLoading: false);
+    }
   }
 
   void _editQuantity(int index) async {
@@ -190,17 +227,18 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final val = int.tryParse(controller.text);
                       if (val != null && val > 0) {
@@ -208,7 +246,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                         Navigator.of(ctx).pop(val);
                       }
                     },
-                    child: Text(l10n.save),
+                    label: l10n.save,
+                    tooltip: l10n.save,
                   ),
                 ),
               ],
@@ -219,8 +258,11 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     );
 
     if (result != null && mounted) {
-      setState(() => item.suggestion.estimatedGrams = result);
-      _validateCurrentItems();
+      setState(() {
+        item.suggestion.estimatedGrams = result;
+        _updateItemNutritionLocally(index);
+      });
+      _validateCurrentItems(showLoading: false);
     }
   }
 
@@ -232,9 +274,20 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       setState(() {
         _items[index].matchedFood = selectedItem;
         _items[index].suggestion.matchedBarcode = selectedItem.barcode;
-        _items[index].suggestion.name = selectedItem.getLocalizedName(context);
+        _items[index].suggestion.name = (() {
+          final themeService =
+              Provider.of<ThemeService>(context, listen: false);
+          final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+            choice: themeService.baseFoodLanguage,
+            context: context,
+          );
+          return selectedItem.source == FoodItemSource.base
+              ? selectedItem.getLocalizedName(context,
+                  languageCode: baseFoodLang)
+              : selectedItem.getLocalizedName(context);
+        })();
       });
-      _validateCurrentItems();
+      _validateCurrentItems(showLoading: false);
     }
   }
 
@@ -247,7 +300,19 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         _items.add(
           _ReviewItem(
             suggestion: AiSuggestedItem(
-              name: selectedItem.getLocalizedName(context),
+              name: (() {
+                final themeService =
+                    Provider.of<ThemeService>(context, listen: false);
+                final baseFoodLang =
+                    BaseFoodLanguageService.resolveLanguageCode(
+                  choice: themeService.baseFoodLanguage,
+                  context: context,
+                );
+                return selectedItem.source == FoodItemSource.base
+                    ? selectedItem.getLocalizedName(context,
+                        languageCode: baseFoodLang)
+                    : selectedItem.getLocalizedName(context);
+              })(),
               estimatedGrams: 100,
               confidence: 1.0,
               matchedBarcode: selectedItem.barcode,
@@ -256,7 +321,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           ),
         );
       });
-      _validateCurrentItems();
+      _validateCurrentItems(showLoading: false);
       HapticFeedbackService.instance.confirmationFeedback();
     }
   }
@@ -272,17 +337,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     setState(() => _isRetrying = true);
     _startAiWaitingHaptics();
     try {
-      final aiMatchLang = await AiMatchingLanguageService.readChoice();
-      if (!mounted) return;
-      final languageCode = await AiMatchingLanguageService.resolveLanguageCode(
-        choice: aiMatchLang,
+      final matchingContext =
+          await AiMatchingLanguageService.resolveMatchingContext(
         context: context,
       );
+      if (!mounted) return;
       final candidate = await AiService.instance.retry(
         previousResults: _items.map((e) => e.suggestion).toList(),
         feedback: feedback,
         images: widget.originalImages.isNotEmpty ? widget.originalImages : null,
-        languageCode: languageCode,
+        matchingContext: matchingContext,
       );
       final orchestrator = AiRepairOrchestrator(
         validationEngine: AiMealValidationEngine(),
@@ -296,7 +360,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             validation: validation,
             images:
                 widget.originalImages.isNotEmpty ? widget.originalImages : null,
-            languageCode: languageCode,
+            matchingContext: matchingContext,
             mealContext: candidate.context,
           );
         },
@@ -369,7 +433,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           timestamp: _selectedTimestamp,
           mealType: _selectedMealType,
         );
-        await db.insertFoodEntry(entry);
+        await db.insertFoodEntry(entry,
+            telemetrySource: FoodLogSource.aiCapture);
       }
       saved = true;
     } catch (error) {
@@ -410,22 +475,24 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(false);
                   },
-                  child: Text(AppLocalizations.of(context)!.cancel),
+                  label: AppLocalizations.of(context)!.cancel,
+                  tooltip: AppLocalizations.of(context)!.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
+                child: AppButton.primary(
                   onPressed: () {
                     close();
                     Navigator.of(ctx).pop(true);
                   },
-                  child: Text(l10n.aiValidationSaveMatchedItemsButton),
+                  label: l10n.aiValidationSaveMatchedItemsButton,
+                  tooltip: l10n.aiValidationSaveMatchedItemsButton,
                 ),
               ),
             ],
@@ -498,16 +565,20 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                           : () => _replaceWithFood(index),
                       onReplace: () => _replaceWithFood(index),
                       onEditQuantity: () => _editQuantity(index),
+                      onQuickAdjustQuantity: (delta) =>
+                          _adjustQuantityBy(index, delta),
                     );
                   }),
 
                 // Add item button
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
-                  child: OutlinedButton.icon(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: DesignConstants.spacingS),
+                  child: AppButton.secondary(
                     onPressed: _addManualItem,
-                    icon: const Icon(LucideIcons.plus),
-                    label: Text(l10n.aiReviewAddItem),
+                    label: l10n.aiReviewAddItem,
+                    tooltip: l10n.aiReviewAddItem,
+                    icon: LucideIcons.plus,
                   ),
                 ),
 
@@ -535,6 +606,17 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 ),
                 if (_showFeedback) ...[
                   const SizedBox(height: DesignConstants.spacingS),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      _buildFeedbackChip(theme, 'Larger portions'),
+                      _buildFeedbackChip(theme, 'Smaller portions'),
+                      _buildFeedbackChip(theme, 'Separate ingredients'),
+                      _buildFeedbackChip(theme, 'No sauce/dressing'),
+                    ],
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
                   TextField(
                     controller: _feedbackController,
                     maxLines: 3,
@@ -544,16 +626,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     ),
                   ),
                   const SizedBox(height: DesignConstants.spacingS),
-                  OutlinedButton.icon(
+                  AppButton.secondary(
                     onPressed: _isRetrying ? null : _retryWithFeedback,
-                    icon: _isRetrying
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(LucideIcons.rotate_cw),
-                    label: Text(l10n.aiReviewRetryButton),
+                    label: l10n.aiReviewRetryButton,
+                    tooltip: l10n.aiReviewRetryButton,
                   ),
                 ],
 
@@ -583,7 +659,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     initialValue: _selectedMealType,
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
                         vertical: DesignConstants.spacingS,
                       ),
                       isDense: true,
@@ -631,26 +708,13 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   flex: 3,
                   child: SizedBox(
                     height: 48,
-                    child: FilledButton.icon(
+                    child: AppButton.primary(
                       onPressed:
                           (_items.isNotEmpty && !_isSaving && !_isMatching)
                               ? _saveToDiary
                               : null,
-                      icon: _isSaving
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(LucideIcons.check),
-                      label: Text(
-                        l10n.aiReviewSaveToDiary,
-                        style: const TextStyle(fontSize: 16),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      label: l10n.aiReviewSaveToDiary,
+                      tooltip: l10n.aiReviewSaveToDiary,
                     ),
                   ),
                 ),
@@ -659,6 +723,21 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFeedbackChip(ThemeData theme, String text) {
+    return ActionChip(
+      label: Text(text, style: const TextStyle(fontSize: 12)),
+      visualDensity: VisualDensity.compact,
+      onPressed: () {
+        final current = _feedbackController.text.trim();
+        if (current.isEmpty) {
+          _feedbackController.text = text;
+        } else if (!current.contains(text)) {
+          _feedbackController.text = '$current, $text';
+        }
+      },
     );
   }
 

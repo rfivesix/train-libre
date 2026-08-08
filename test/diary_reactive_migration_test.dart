@@ -25,21 +25,25 @@ import 'package:train_libre/features/workout/data/workout_repository.dart';
 
 class FakeSupplementRepository implements SupplementRepository {
   final supplementsController = StreamController<List<Supplement>>.broadcast();
-  final supplementLogsController = StreamController<List<SupplementLog>>.broadcast();
+  final supplementLogsController =
+      StreamController<List<SupplementLog>>.broadcast();
 
   @override
   Stream<List<Supplement>> watchAllSupplements() => Stream.value([]);
   @override
-  Stream<List<Supplement>> watchSupplementsForDate(DateTime date) => supplementsController.stream;
+  Stream<List<Supplement>> watchSupplementsForDate(DateTime date) =>
+      supplementsController.stream;
   @override
-  Stream<List<SupplementLog>> watchSupplementLogsForDate(DateTime date) => supplementLogsController.stream;
+  Stream<List<SupplementLog>> watchSupplementLogsForDate(DateTime date) =>
+      supplementLogsController.stream;
 
   @override
   Future<List<Supplement>> getAllSupplements() async => [];
   @override
   Future<List<Supplement>> getSupplementsForDate(DateTime date) async => [];
   @override
-  Future<List<SupplementLog>> getSupplementLogsForDate(DateTime date) async => [];
+  Future<List<SupplementLog>> getSupplementLogsForDate(DateTime date) async =>
+      [];
 
   @override
   Future<int> insertSupplement(Supplement supplement) async => 0;
@@ -77,7 +81,9 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Future<String?> getExerciseUuidByLocalId(int localId) async => null;
   @override
-  Future<Map<String, double>> getExerciseBests(String name, {String? altName, String? exerciseUuid}) async => {};
+  Future<Map<String, double>> getExerciseBests(String name,
+          {String? altName, String? exerciseUuid}) async =>
+      {};
   @override
   Future<void> updateSetLogs(List<SetLog> logs) async {}
   @override
@@ -87,25 +93,35 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   @override
   Future<void> updatePauseTime(int routineExerciseId, int? seconds) async {}
   @override
-  Future<void> updateRoutineExerciseNotes(int routineExerciseId, String? notes) async {}
+  Future<void> updateRoutineExerciseNotes(
+      int routineExerciseId, String? notes) async {}
   @override
-  Future<void> saveWorkoutExerciseNote({required int workoutLogId, required String exerciseName, required String? notes}) async {}
+  Future<void> saveWorkoutExerciseNote(
+      {required int workoutLogId,
+      required String exerciseName,
+      required String? notes}) async {}
   @override
-  Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async => {};
+  Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async =>
+      {};
   @override
   Future<List<SetLog>> getLastSetsForExercise(String exerciseName) async => [];
   @override
-  Future<List<WorkoutLog>> getWorkoutLogsForDateRange(DateTime start, DateTime end) async => [];
+  Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
+          DateTime start, DateTime end) async =>
+      [];
   @override
   Stream<List<WorkoutLog>> watchFullWorkoutLogs() => Stream.value([]);
   @override
-  Stream<List<SetLog>> watchSetLogsForWorkout(int workoutLogId) => Stream.value([]);
+  Stream<List<SetLog>> watchSetLogsForWorkout(int workoutLogId) =>
+      Stream.value([]);
   @override
   Stream<List<Routine>> watchAllRoutines() => Stream.value([]);
-  Stream<List<WorkoutLog>> Function(DateTime start, DateTime end)? watchWorkoutLogsForDateRangeMock;
+  Stream<List<WorkoutLog>> Function(DateTime start, DateTime end)?
+      watchWorkoutLogsForDateRangeMock;
 
   @override
-  Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(DateTime start, DateTime end) {
+  Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
+      DateTime start, DateTime end) {
     if (watchWorkoutLogsForDateRangeMock != null) {
       return watchWorkoutLogsForDateRangeMock!(start, end);
     }
@@ -125,7 +141,8 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<Routine> createRoutineFromWorkout({
     required int workoutLogId,
     required String name,
-  }) async => Routine(id: 1, name: name);
+  }) async =>
+      Routine(id: 1, name: name);
 }
 
 void main() {
@@ -156,7 +173,9 @@ void main() {
       await database.close();
     });
 
-    test('DiaryLocalDataSource.watchEntriesForDate propagates writes reactively', () async {
+    test(
+        'DiaryLocalDataSource.watchEntriesForDate propagates writes reactively',
+        () async {
       final date = DateTime(2026, 5, 19);
       final stream = localDataSource.watchEntriesForDate(date);
       final emissions = [];
@@ -180,7 +199,9 @@ void main() {
       await sub.cancel();
     });
 
-    test('DiaryLocalDataSource.watchFluidEntriesForDate propagates writes reactively', () async {
+    test(
+        'DiaryLocalDataSource.watchFluidEntriesForDate propagates writes reactively',
+        () async {
       final date = DateTime(2026, 5, 19);
       final stream = localDataSource.watchFluidEntriesForDate(date);
       final emissions = [];
@@ -203,7 +224,9 @@ void main() {
       await sub.cancel();
     });
 
-    test('DiaryViewModel updates nutrition and fluid entries reactively without manual triggers', () async {
+    test(
+        'DiaryViewModel updates nutrition and fluid entries reactively without manual triggers',
+        () async {
       final date = DateTime(2026, 5, 19);
       viewModel.setSelectedDate(date);
 
@@ -227,7 +250,9 @@ void main() {
       expect(viewModel.fluidEntries.first.quantityInMl, 250);
     });
 
-    test('DiaryViewModel updates completed workouts reactively on local database insert', () async {
+    test(
+        'DiaryViewModel updates completed workouts reactively on local database insert',
+        () async {
       final date = DateTime(2026, 5, 19);
       viewModel.setSelectedDate(date);
 
@@ -236,13 +261,13 @@ void main() {
 
       // Insert completed workout directly into real test Drift DB
       await database.into(database.workoutLogs).insert(
-        WorkoutLogsCompanion(
-          startTime: drift.Value(date),
-          endTime: drift.Value(date.add(const Duration(minutes: 60))),
-          status: const drift.Value('completed'),
-          routineNameSnapshot: const drift.Value('Reactive Hypertrophy'),
-        ),
-      );
+            WorkoutLogsCompanion(
+              startTime: drift.Value(date),
+              endTime: drift.Value(date.add(const Duration(minutes: 60))),
+              status: const drift.Value('completed'),
+              routineNameSnapshot: const drift.Value('Reactive Hypertrophy'),
+            ),
+          );
 
       // Wait for Drift stream emission
       await Future.delayed(const Duration(milliseconds: 100));
@@ -251,7 +276,9 @@ void main() {
       expect(viewModel.workoutSummary!['count'], equals(1));
     });
 
-    test('DiaryViewModel updates supplements reactively when supplement logs emit', () async {
+    test(
+        'DiaryViewModel updates supplements reactively when supplement logs emit',
+        () async {
       final date = DateTime(2026, 5, 19);
       viewModel.setSelectedDate(date);
 
@@ -262,10 +289,16 @@ void main() {
       final repo = viewModel.supplementRepo;
       if (repo is FakeSupplementRepository) {
         repo.supplementsController.add([
-          Supplement(id: 1, name: 'Creatine', defaultDose: 5, unit: 'g', code: 'creatine_monohydrate'),
+          Supplement(
+              id: 1,
+              name: 'Creatine',
+              defaultDose: 5,
+              unit: 'g',
+              code: 'creatine_monohydrate'),
         ]);
         repo.supplementLogsController.add([
-          SupplementLog(id: 1, supplementId: 1, dose: 5, unit: 'g', timestamp: date),
+          SupplementLog(
+              id: 1, supplementId: 1, dose: 5, unit: 'g', timestamp: date),
         ]);
       }
 
@@ -273,11 +306,13 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 150));
 
       expect(viewModel.trackedSupplements, isNotEmpty);
-      expect(viewModel.trackedSupplements.first.supplement.name, equals('Creatine'));
+      expect(viewModel.trackedSupplements.first.supplement.name,
+          equals('Creatine'));
       expect(viewModel.trackedSupplements.first.totalDosedToday, equals(5.0));
     });
 
-    test('watchFullWorkoutLogs emits completed logs reactively on DB insert', () async {
+    test('watchFullWorkoutLogs emits completed logs reactively on DB insert',
+        () async {
       final date = DateTime(2026, 5, 19);
       final workoutDataSource = WorkoutLocalDataSource(database);
       final stream = workoutDataSource.watchFullWorkoutLogs();
@@ -290,13 +325,13 @@ void main() {
 
       // Insert a completed workout
       await database.into(database.workoutLogs).insert(
-        WorkoutLogsCompanion(
-          startTime: drift.Value(date),
-          endTime: drift.Value(date.add(const Duration(minutes: 60))),
-          status: const drift.Value('completed'),
-          routineNameSnapshot: const drift.Value('Reactive Hypertrophy'),
-        ),
-      );
+            WorkoutLogsCompanion(
+              startTime: drift.Value(date),
+              endTime: drift.Value(date.add(const Duration(minutes: 60))),
+              status: const drift.Value('completed'),
+              routineNameSnapshot: const drift.Value('Reactive Hypertrophy'),
+            ),
+          );
 
       await Future.delayed(const Duration(milliseconds: 100));
       expect(emissions.last, hasLength(1));
@@ -317,10 +352,10 @@ void main() {
 
       // Insert a new routine
       await database.into(database.routines).insert(
-        RoutinesCompanion(
-          name: const drift.Value('Powerbuilding Day A'),
-        ),
-      );
+            RoutinesCompanion(
+              name: const drift.Value('Powerbuilding Day A'),
+            ),
+          );
 
       await Future.delayed(const Duration(milliseconds: 100));
       expect(emissions.last, hasLength(1));
@@ -329,7 +364,9 @@ void main() {
       await sub.cancel();
     });
 
-    test('DiaryViewModel rapid date switches cancel old subscriptions and prevent stale processing', () async {
+    test(
+        'DiaryViewModel rapid date switches cancel old subscriptions and prevent stale processing',
+        () async {
       final dateA = DateTime(2026, 5, 19);
       final dateB = DateTime(2026, 5, 20);
 
@@ -338,7 +375,9 @@ void main() {
 
       final fakeWorkoutRepo = FakeWorkoutRepository();
       fakeWorkoutRepo.watchWorkoutLogsForDateRangeMock = (start, end) {
-        if (start.year == dateA.year && start.month == dateA.month && start.day == dateA.day) {
+        if (start.year == dateA.year &&
+            start.month == dateA.month &&
+            start.day == dateA.day) {
           return workoutControllerA.stream;
         } else {
           return workoutControllerB.stream;

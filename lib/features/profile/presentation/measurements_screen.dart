@@ -1,23 +1,32 @@
-// lib/features/profile/presentation/measurements_screen.dart
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import '../../analytics/domain/models/chart_data_point.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../domain/repositories/profile_repository.dart';
 import '../../../generated/app_localizations.dart';
+import '../domain/models/measurement.dart';
 import '../domain/models/measurement_session.dart';
-import 'add_measurement_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/common.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/seamless_loading_overlay.dart';
 import 'widgets/measurement_chart_widget.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../util/l10n_ext.dart';
-import '../../../widgets/common/swipe_action_background.dart';
 import '../../../services/unit_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
+import '../../../util/date_util.dart';
+import '../../../features/statistics/domain/timeframe_block.dart';
+import '../../../util/timeframe_label_formatter.dart';
+import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for viewing and analyzing body measurement history.
 class MeasurementsScreen extends StatefulWidget {
@@ -32,36 +41,125 @@ class MeasurementsScreen extends StatefulWidget {
 class _MeasurementsScreenState extends State<MeasurementsScreen> {
   late final IProfileRepository _repository =
       widget.repository ?? context.read<IProfileRepository>();
+
   bool _isLoading = true;
   List<MeasurementSession> _sessions = [];
   String? _selectedChartType;
   List<String> _availableMeasurementTypes = [];
 
-  DateTimeRange _currentChartDateRange = DateTimeRange(
-    start: DateTime.now().subtract(const Duration(days: 29)),
-    end: DateTime.now(),
-  );
-  final List<String> _chartDateRangeKeys = ['30D', '90D', '180D', 'All'];
-  String _selectedChartRangeKey = '30D';
+  // --- Unified TimeframeBlock state (same logic as Statistics Hub) ---
+  static const _blocks = [
+    TimeframeBlock.week,
+    TimeframeBlock.month,
+    TimeframeBlock.threeMonths,
+    TimeframeBlock.sixMonths,
+    TimeframeBlock.maxBlock,
+  ];
+  TimeframeBlock _activeBlock = TimeframeBlock.month;
+  DateTime _anchorDate = DateTime.now();
+  bool _isRolling = true;
+
+  List<String> _timeRangeLabels(AppLocalizations l10n) => [
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter6MonthsShort,
+        l10n.filterMax,
+      ];
+
+  DateTimeRange get _activeDateRange {
+    if (_isRolling) return _activeBlock.getRollingBounds();
+    return _activeBlock.getBounds(_anchorDate, DateTime(2020));
+  }
+
+  String? _rangeDisplayLabel(AppLocalizations l10n) {
+    if (_activeBlock == TimeframeBlock.maxBlock) return l10n.filterMax;
+    if (_isRolling) {
+      return TimeframeLabelFormatter.formatRolling(_activeBlock, l10n);
+    }
+    return TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
+  }
+
+  void _shiftTimeframe(bool backwards) {
+    setState(() {
+      if (_activeBlock == TimeframeBlock.maxBlock) return;
+
+      final now = DateTime.now();
+      final currentBounds = _activeBlock.getBounds(now, DateTime(2020));
+      final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+      final isOngoing =
+          !_isRolling && myBounds.start.isAtSameMomentAs(currentBounds.start);
+
+      if (backwards) {
+        if (isOngoing && _activeBlock != TimeframeBlock.day) {
+          _isRolling = true;
+        } else if (_isRolling) {
+          _isRolling = false;
+          _anchorDate = _activeBlock.shift(now, -1);
+        } else {
+          _anchorDate = _activeBlock.shift(_anchorDate, -1);
+        }
+      } else {
+        if (_isRolling) {
+          _isRolling = false;
+          _anchorDate = now;
+        } else {
+          final previousAnchor = _activeBlock.shift(now, -1);
+          final previousBounds =
+              _activeBlock.getBounds(previousAnchor, DateTime(2020));
+          final isPreviousToOngoing = !_isRolling &&
+              myBounds.start.isAtSameMomentAs(previousBounds.start);
+
+          if (isPreviousToOngoing && _activeBlock != TimeframeBlock.day) {
+            _isRolling = true;
+          } else {
+            _anchorDate = _activeBlock.shift(_anchorDate, 1);
+          }
+        }
+      }
+    });
+  }
+
+  bool get _nextEnabled {
+    if (_activeBlock == TimeframeBlock.maxBlock) return false;
+    if (_isRolling) return false;
+    final now = DateTime.now();
+    final currentBounds = _activeBlock.getBounds(now, DateTime(2020));
+    final myBounds = _activeBlock.getBounds(_anchorDate, DateTime(2020));
+    return !myBounds.start.isAtSameMomentAs(currentBounds.start);
+  }
+
+  List<MeasurementSession> get _filteredSessions {
+    final range = _activeDateRange;
+    return _sessions
+        .where((s) =>
+            s.timestamp.isAfter(range.start) &&
+            s.timestamp.isBefore(range.end.add(const Duration(seconds: 1))))
+        .toList();
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadMeasurements();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.bodyMeasurements));
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _loadMeasurements();
+      }
+    });
   }
 
   Future<void> _loadMeasurements() async {
     setState(() => _isLoading = true);
     try {
       final sessions = await _repository.getMeasurementSessions();
-
       final Set<String> types = {};
       for (final session in sessions) {
         for (final measurement in session.measurements) {
           types.add(measurement.type);
         }
       }
-
       if (mounted) {
         setState(() {
           _sessions = sessions;
@@ -73,54 +171,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                 : _availableMeasurementTypes.first;
           }
         });
-        _loadChartData();
       }
     } catch (e) {
       debugPrint('Error loading measurements: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  Future<void> _loadChartData() async {
-    if (_selectedChartType == null || _selectedChartType!.isEmpty) return;
-
-    final now = DateTime.now();
-    DateTime start;
-    DateTime end = DateTime(now.year, now.month, now.day, 23, 59, 59);
-
-    switch (_selectedChartRangeKey) {
-      case '90D':
-        start = now.subtract(const Duration(days: 89));
-        break;
-      case '180D':
-        start = now.subtract(const Duration(days: 179));
-        break;
-      case 'All':
-        final earliest = await _repository.getEarliestMeasurementDate();
-        start = earliest ?? now;
-        break;
-      case '30D':
-      default:
-        start = now.subtract(const Duration(days: 29));
-    }
-
-    setState(() {
-      _currentChartDateRange = DateTimeRange(start: start, end: end);
-    });
-  }
-
-  void _navigateToCreateMeasurement() {
-    Navigator.of(context)
-        .push(
-          MaterialPageRoute(
-            builder: (context) => AddMeasurementScreen(
-                initialDate: DateTime.now(), repository: _repository),
-          ),
-        )
-        .then((_) => _loadMeasurements());
   }
 
   Future<void> _deleteMeasurementSession(MeasurementSession session) async {
@@ -129,84 +185,161 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
       await _loadMeasurements();
       return;
     }
-
     try {
-      await _repository.deleteMeasurementSession(
-        sessionId,
-      );
+      await _repository.deleteMeasurementSession(sessionId);
     } finally {
-      if (mounted) {
-        await _loadMeasurements();
-      }
+      if (mounted) await _loadMeasurements();
     }
+  }
+
+  void _showMeasurementBottomMenu({MeasurementSession? existingSession}) {
+    final l10n = AppLocalizations.of(context)!;
+    showGlassBottomMenu<bool?>(
+      context: context,
+      title: existingSession != null
+          ? l10n.addMeasurementDialogTitle
+          : l10n.addMeasurement,
+      contentBuilder: (ctx, close) {
+        return MeasurementFormSheet(
+          repository: _repository,
+          existingSession: existingSession,
+          onSaved: () {
+            close();
+            _loadMeasurements();
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-
+    final textTheme = Theme.of(context).textTheme;
+    final unitService = context.watch<UnitService>();
+    final locale = Localizations.localeOf(context).toString();
+    final dateFormat = DateFormat.yMMMMEEEEd(locale).add_Hm();
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
+
+    final hasNoData = _filteredSessions.isEmpty;
+    final displaySessions = hasNoData ? getMockSessions(_activeDateRange) : _filteredSessions;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.measurementsScreenTitle),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _sessions.isEmpty
-              ? _buildEmptyState(l10n, context)
-              : ListView(
-                  padding: DesignConstants.cardPadding.copyWith(
-                    top: DesignConstants.cardPadding.top + topPadding,
-                  ),
+      body: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: false, // Handle empty state at timeframe/content level
+        extendBodyBehindAppBar: true,
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.only(
+                top: topPadding + DesignConstants.spacingM,
+                left: 0,
+                right: 0,
+                bottom: DesignConstants.spacingS,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (_availableMeasurementTypes.isNotEmpty) ...[
-                      _buildChartSection(
-                        l10n,
-                        colorScheme,
-                        Theme.of(context).textTheme,
-                      ),
-                      const SizedBox(height: DesignConstants.spacingXL),
-                    ],
-                    AppSectionHeader(title: l10n.all_measurements),
-                    ..._sessions.map(
-                      (session) => _buildMeasurementSessionCard(
-                          l10n, colorScheme, session),
+                    // ── Unified time range filter (identical to Statistics Hub) ──
+                    TimeRangeFilter(
+                      ranges: _timeRangeLabels(l10n),
+                      selectedIndex: _blocks.indexOf(_activeBlock),
+                      onSelected: (index) {
+                        setState(() {
+                          _activeBlock = _blocks[index];
+                          _isRolling = _activeBlock != TimeframeBlock.maxBlock;
+                          _anchorDate = DateTime.now();
+                        });
+                      },
+                      onPrevious: _activeBlock == TimeframeBlock.maxBlock
+                          ? null
+                          : () => _shiftTimeframe(true),
+                      onNext: _nextEnabled ? () => _shiftTimeframe(false) : null,
+                      displayDate: _rangeDisplayLabel(l10n),
+                      onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
+                          ? null
+                          : () async {
+                              final selected = await adaptive_pickers
+                                  .showAdaptiveTimeframePicker(
+                                context: context,
+                                activeBlock: _activeBlock,
+                                initialAnchor: _anchorDate,
+                                initialIsRolling: _isRolling,
+                                earliestAvailableDay: DateTime(2020),
+                              );
+                              if (selected != null) {
+                                setState(() {
+                                  _anchorDate = selected.anchorDate;
+                                  _isRolling = selected.isRolling;
+                                });
+                              }
+                            },
+                      nextEnabled: _nextEnabled,
+                      showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
                     ),
-                    const BottomContentSpacer(),
+                    const SizedBox(height: DesignConstants.spacingL),
+                    // ── Chart (follows same date range) ──
+                    _buildChartSection(l10n, colorScheme, textTheme),
+                    const SizedBox(height: DesignConstants.spacingXL),
+                    // ── Session list header ──
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.screenPaddingHorizontal,
+                      ),
+                      child: AppSectionHeader(title: l10n.all_measurements),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
                   ],
                 ),
-      floatingActionButton: GlassFab(
-        label: l10n.addMeasurement,
-        onPressed: _navigateToCreateMeasurement,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    );
-  }
-
-  Widget _buildEmptyState(AppLocalizations l10n, BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: DesignConstants.cardPadding,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              l10n.measurementsEmptyState,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
-            const SizedBox(height: DesignConstants.spacingXL),
-            ElevatedButton.icon(
-              onPressed: _navigateToCreateMeasurement,
-              icon: const Icon(LucideIcons.plus),
-              label: Text(l10n.addMeasurement),
+            if (hasNoData)
+              SliverToBoxAdapter(
+                child: ActiveGapOverlay(
+                  message: l10n.emptyStateActiveGapOverlay,
+                  background: Skeletonizer(
+                    enabled: true,
+                    child: Column(
+                      children: displaySessions
+                          .map((session) => _buildSessionCard(
+                              l10n, colorScheme, textTheme, unitService, dateFormat, session))
+                          .toList(),
+                    ),
+                  ),
+                ),
+              )
+            else
+              SliverList.builder(
+                itemCount: displaySessions.length,
+                itemBuilder: (context, index) {
+                  return _buildSessionCard(
+                    l10n,
+                    colorScheme,
+                    textTheme,
+                    unitService,
+                    dateFormat,
+                    displaySessions[index],
+                  );
+                },
+              ),
+            const SliverToBoxAdapter(
+              child: BottomContentSpacer(),
             ),
           ],
         ),
       ),
+      floatingActionButton: GlassFab(
+        label: l10n.addMeasurement,
+        onPressed: () => _showMeasurementBottomMenu(),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -216,170 +349,133 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     TextTheme textTheme,
   ) {
     final unitService = context.watch<UnitService>();
-    if (_selectedChartType == null) return const SizedBox.shrink();
+    final chartType = _displayChartType;
+    final types = _displayMeasurementTypes;
+    final hasNoData = _filteredSessions.isEmpty;
 
-    return SummaryCard(
-      padding: DesignConstants.cardPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: PlatformAdaptiveDropdownFormField<String>(
-                  value: _selectedChartType,
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        _selectedChartType = newValue;
-                      });
-                      _loadChartData();
-                    }
-                  },
-                  items: _availableMeasurementTypes
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        l10n.getLocalizedMeasurementName(value),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: _chartDateRangeKeys
-                    .map((key) => _buildFilterButton(key, key))
-                    .toList(),
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.screenPaddingHorizontal,
           ),
-          const SizedBox(height: DesignConstants.spacingS),
+          child: PlatformAdaptiveDropdownFormField<String>(
+            value: chartType,
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                setState(() => _selectedChartType = newValue);
+              }
+            },
+            items: types.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(l10n.getLocalizedMeasurementName(value)),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        if (hasNoData)
+          MeasurementChartWidget.fromData(
+            dataPoints: _getMockChartDataPoints(chartType, _activeDateRange),
+            unit: _getMeasurementUnit(chartType, unitService),
+            edgeToEdge: true,
+          )
+        else
           MeasurementChartWidget(
-            chartType: _selectedChartType!,
-            dateRange: _currentChartDateRange,
-            unit: _getMeasurementUnit(_selectedChartType!, unitService),
+            chartType: chartType,
+            dateRange: _activeDateRange,
+            unit: _getMeasurementUnit(chartType, unitService),
             repository: _repository,
+            edgeToEdge: true,
           ),
-        ],
-      ),
+      ],
     );
   }
 
-  Widget _buildFilterButton(String label, String key) {
-    final theme = Theme.of(context);
-    final isSelected = _selectedChartRangeKey == key;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedChartRangeKey = key;
-        });
-        _loadChartData();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? theme.colorScheme.primary
-              : theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: isSelected
-                ? theme.colorScheme.onPrimary
-                : theme.colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMeasurementSessionCard(
+  Widget _buildSessionCard(
     AppLocalizations l10n,
     ColorScheme colorScheme,
+    TextTheme textTheme,
+    UnitService unitService,
+    DateFormat dateFormat,
     MeasurementSession session,
   ) {
-    final unitService = context.watch<UnitService>();
-    final locale = Localizations.localeOf(context).toString();
     final sortedMeasurements = session.measurements.toList()
       ..sort((a, b) => a.type.compareTo(b.type));
 
-    return Dismissible(
-      key: Key('session_${session.id}'),
-      direction: DismissDirection.endToStart,
-      background: const SwipeActionBackground(
-        color: Colors.redAccent,
-        icon: LucideIcons.trash_2,
-        alignment: Alignment.centerRight,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.screenPaddingHorizontal,
       ),
-      confirmDismiss: (direction) async {
-        return await showDeleteConfirmation(context);
-      },
-      onDismissed: (direction) {
-        setState(() {
-          _sessions.removeWhere(
-            (s) =>
+      child: GlassActionableCard(
+        dismissibleKey: Key(
+            'session_${session.id}_${session.timestamp.millisecondsSinceEpoch}'),
+        onEdit: () => _showMeasurementBottomMenu(existingSession: session),
+        onDelete: () {
+          setState(() {
+            _sessions.removeWhere((s) =>
                 (s.id != null && s.id == session.id) ||
-                (s.id == null && s.timestamp == session.timestamp),
-          );
-        });
-        _deleteMeasurementSession(session);
-      },
-      child: SummaryCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              contentPadding: DesignConstants.screenPadding,
-              title: Text(
-                DateFormat.yMMMMEEEEd(
-                  locale,
-                ).add_Hm().format(session.timestamp),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(LucideIcons.chevron_right),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.measurement_session_detail_view)),
-                );
-              },
-            ),
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-            ),
-            ...sortedMeasurements.map(
-              (measurement) => ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 4.0,
+                (s.id == null && s.timestamp == session.timestamp));
+          });
+          _deleteMeasurementSession(session);
+        },
+        onTap: () => _showMeasurementBottomMenu(existingSession: session),
+        child: SummaryCard(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dateFormat.format(session.timestamp),
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                leading: _getMeasurementIcon(measurement.type),
-                title: Text(l10n.getLocalizedMeasurementName(measurement.type)),
-                trailing: Text(
-                  "${_displayMeasurementValue(measurement.type, measurement.value, unitService).toStringAsFixed(1)} ${_getMeasurementUnit(measurement.type, unitService)}",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
+                const SizedBox(height: 8),
+                ...sortedMeasurements.map((m) {
+                  final value =
+                      _displayMeasurementValue(m.type, m.value, unitService)
+                          .toStringAsFixed(1);
+                  final unit = _getMeasurementUnit(m.type, unitService);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getMeasurementIconData(m.type),
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            l10n.getLocalizedMeasurementName(m.type),
+                            style: textTheme.bodyMedium,
+                          ),
+                        ),
+                        Text(
+                          '$value $unit'.trim(),
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   double _displayMeasurementValue(
-    String type,
-    double value,
-    UnitService unitService,
-  ) {
+      String type, double value, UnitService unitService) {
     switch (type) {
       case 'weight':
         return unitService.convertDisplayValue(value, UnitDimension.weight);
@@ -429,30 +525,319 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     }
   }
 
-  Icon _getMeasurementIcon(String type) {
+  IconData _getMeasurementIconData(String type) {
     switch (type) {
       case 'weight':
-        return const Icon(LucideIcons.scale);
+        return LucideIcons.scale;
       case 'fat_percent':
-        return const Icon(LucideIcons.dumbbell);
-      case 'neck':
-        return const Icon(LucideIcons.person_standing);
-      case 'shoulder':
-        return const Icon(LucideIcons.person_standing);
-      case 'chest':
-        return const Icon(LucideIcons.person_standing);
-      case 'left_bicep':
-        return const Icon(LucideIcons.person_standing);
-      case 'right_bicep':
-        return const Icon(LucideIcons.person_standing);
-      case 'abdomen':
-        return const Icon(LucideIcons.person_standing);
-      case 'waist':
-        return const Icon(LucideIcons.person_standing);
-      case 'hips':
-        return const Icon(LucideIcons.person_standing);
+        return LucideIcons.dumbbell;
       default:
-        return const Icon(LucideIcons.ruler);
+        return LucideIcons.ruler;
     }
+  }
+
+  List<MeasurementSession> getMockSessions(DateTimeRange range) {
+    final start = range.start;
+    final end = range.end;
+    final duration = end.difference(start);
+    final step = duration.inDays ~/ 4;
+
+    return List.generate(3, (i) {
+      final date = start.add(Duration(days: (i + 1) * step));
+      return MeasurementSession(
+        id: i,
+        timestamp: date,
+        measurements: [
+          Measurement(sessionId: i, type: 'weight', value: 80.0 - i * 0.5, unit: 'kg'),
+          Measurement(sessionId: i, type: 'fat_percent', value: 15.0 - i * 0.1, unit: '%'),
+          Measurement(sessionId: i, type: 'waist', value: 88.0 - i * 0.2, unit: 'cm'),
+        ],
+      );
+    });
+  }
+
+  List<ChartDataPoint> _getMockChartDataPoints(String chartType, DateTimeRange range) {
+    final start = range.start;
+    final end = range.end;
+    final duration = end.difference(start);
+    final step = duration.inDays ~/ 4;
+
+    double baseValue = 75.0;
+    if (chartType == 'fat_percent') { baseValue = 15.0; }
+    else if (chartType == 'waist') { baseValue = 85.0; }
+    else if (chartType == 'neck') { baseValue = 38.0; }
+    else if (chartType == 'chest') { baseValue = 100.0; }
+
+    return List.generate(4, (i) {
+      final date = start.add(Duration(days: (i + 1) * step));
+      final double variation = i * 0.3 - 0.5;
+      return ChartDataPoint(date: date, value: baseValue + variation);
+    });
+  }
+
+  List<String> get _displayMeasurementTypes {
+    if (_availableMeasurementTypes.isNotEmpty) return _availableMeasurementTypes;
+    return ['weight', 'fat_percent', 'waist'];
+  }
+
+  String get _displayChartType {
+    return _selectedChartType ?? 'weight';
+  }
+}
+
+/// Public measurement form sheet — used inside the bottom menu (add + edit)
+/// Also used from main_screen.dart for the global add action.
+class MeasurementFormSheet extends StatefulWidget {
+  final IProfileRepository? repository;
+  final MeasurementSession? existingSession;
+  final DateTime? initialDate;
+  final VoidCallback onSaved;
+
+  const MeasurementFormSheet({
+    super.key,
+    this.repository,
+    this.existingSession,
+    this.initialDate,
+    required this.onSaved,
+  });
+
+  @override
+  State<MeasurementFormSheet> createState() => _MeasurementFormSheetState();
+}
+
+class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
+  late final IProfileRepository _repository;
+  final _formKey = GlobalKey<FormState>();
+  final Map<String, TextEditingController> _controllers = {};
+  late DateTime _selectedDateTime;
+
+  final Map<String, String> _measurementTypes = {
+    'weight': 'kg',
+    'fat_percent': '%',
+    'waist': 'cm',
+    'abdomen': 'cm',
+    'hips': 'cm',
+    'neck': 'cm',
+    'shoulder': 'cm',
+    'chest': 'cm',
+    'left_bicep': 'cm',
+    'right_bicep': 'cm',
+    'left_forearm': 'cm',
+    'right_forearm': 'cm',
+    'left_thigh': 'cm',
+    'right_thigh': 'cm',
+    'left_calf': 'cm',
+    'right_calf': 'cm',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget.repository ?? context.read<IProfileRepository>();
+    _selectedDateTime = (widget.existingSession?.timestamp ??
+            widget.initialDate ??
+            DateTime.now())
+        .withCurrentTime;
+    for (var key in _measurementTypes.keys) {
+      _controllers[key] = TextEditingController();
+    }
+    if (widget.existingSession != null) {
+      _selectedDateTime = widget.existingSession!.timestamp;
+      final unitService = context.read<UnitService>();
+      for (final m in widget.existingSession!.measurements) {
+        final dimension = _measurementDimension(m.type);
+        final displayValue = dimension == null
+            ? m.value
+            : unitService.convertDisplayValue(m.value, dimension);
+        final text = displayValue % 1 == 0
+            ? displayValue.toInt().toString()
+            : displayValue.toStringAsFixed(1);
+        _controllers[m.type]?.text = text;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controllers.forEach((_, c) => c.dispose());
+    super.dispose();
+  }
+
+  UnitDimension? _measurementDimension(String key) {
+    switch (key) {
+      case 'weight':
+        return UnitDimension.weight;
+      case 'waist':
+      case 'abdomen':
+      case 'hips':
+      case 'neck':
+      case 'shoulder':
+      case 'chest':
+      case 'left_bicep':
+      case 'right_bicep':
+      case 'left_forearm':
+      case 'right_forearm':
+      case 'left_thigh':
+      case 'right_thigh':
+      case 'left_calf':
+      case 'right_calf':
+        return UnitDimension.height;
+      default:
+        return null;
+    }
+  }
+
+  String _displayUnit(String key, UnitService unitService) {
+    final dimension = _measurementDimension(key);
+    if (dimension == null) return _measurementTypes[key] ?? '';
+    return unitService.suffixFor(dimension);
+  }
+
+  Future<void> _selectDate() async {
+    final DateTime? picked = await adaptive_pickers.showAdaptiveDatePicker(
+      context: context,
+      initialDate: _selectedDateTime,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDateTime = DateTime(picked.year, picked.month, picked.day,
+            _selectedDateTime.hour, _selectedDateTime.minute);
+      });
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await adaptive_pickers.showAdaptiveTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDateTime = DateTime(
+            _selectedDateTime.year,
+            _selectedDateTime.month,
+            _selectedDateTime.day,
+            picked.hour,
+            picked.minute);
+      });
+    }
+  }
+
+  void _saveSession() async {
+    final unitService = context.read<UnitService>();
+    final List<Measurement> measurements = [];
+    _controllers.forEach((key, controller) {
+      if (controller.text.isNotEmpty) {
+        final value = double.tryParse(controller.text.replaceAll(',', '.'));
+        if (value != null) {
+          final dimension = _measurementDimension(key);
+          final metricValue = dimension == null
+              ? value
+              : unitService.convertToMetric(value, dimension);
+          measurements.add(Measurement(
+            sessionId: widget.existingSession?.id ?? 0,
+            type: key,
+            value: metricValue,
+            unit: _measurementTypes[key]!,
+          ));
+        }
+      }
+    });
+
+    if (widget.existingSession?.id != null) {
+      await _repository.deleteMeasurementSession(widget.existingSession!.id!);
+    }
+    if (measurements.isNotEmpty) {
+      await _repository.insertMeasurementSession(
+        MeasurementSession(
+            timestamp: _selectedDateTime, measurements: measurements),
+      );
+    }
+    if (mounted) widget.onSaved();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final unitService = context.watch<UnitService>();
+
+    final formattedDate = DateFormat('dd.MM.yyyy').format(_selectedDateTime);
+    final formattedTime = DateFormat.Hm().format(_selectedDateTime);
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 420),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                icon: const Icon(LucideIcons.calendar, size: 20),
+                label: Text(
+                  formattedDate,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                onPressed: _selectDate,
+              ),
+              TextButton.icon(
+                icon: const Icon(LucideIcons.clock, size: 20),
+                label: Text(
+                  formattedTime,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                onPressed: _selectTime,
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: DesignConstants.spacingL),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    ..._measurementTypes.keys.map((key) => Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: DesignConstants.spacingM,
+                          ),
+                          child: TextFormField(
+                            controller: _controllers[key],
+                            decoration: InputDecoration(
+                              labelText: l10n.getLocalizedMeasurementName(key),
+                              suffixText: _displayUnit(key, unitService),
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            textInputAction: TextInputAction.next,
+                            validator: (value) {
+                              if (value != null &&
+                                  value.isNotEmpty &&
+                                  double.tryParse(value.replaceAll(',', '.')) ==
+                                      null) {
+                                return l10n.validatorPleaseEnterNumber;
+                              }
+                              return null;
+                            },
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+          AppButton.primary(
+            onPressed: _saveSession,
+            label: l10n.save,
+            tooltip: l10n.save,
+          ),
+        ],
+      ),
+    );
   }
 }

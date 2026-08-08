@@ -133,7 +133,8 @@ class _EditableSetRowState extends State<EditableSetRow> {
             ),
           ),
           IconButton(
-            icon: Icon(LucideIcons.trash_2, color: Theme.of(context).colorScheme.error),
+            icon: Icon(LucideIcons.trash_2,
+                color: Theme.of(context).colorScheme.error),
             tooltip: l10n.delete,
             onPressed: widget.onDelete,
           ),

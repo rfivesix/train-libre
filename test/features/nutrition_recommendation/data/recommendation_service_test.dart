@@ -651,17 +651,31 @@ void main() {
       );
     });
 
-    test('refreshRecommendationIfDue broadcasts updated snapshot on stream', () async {
+    test('refreshRecommendationIfDue broadcasts updated snapshot on stream',
+        () async {
       final monday = DateTime(2026, 4, 6, 10, 0);
+
+      // Pre-populate with a dummy snapshot to ensure there is a previous snapshot
+      await repository.saveLatestRecommendationSnapshot(
+        snapshot: AdaptiveRecommendationSnapshot(
+          recommendation: _recommendationForDueWeek('2026-03-30'),
+          maintenanceEstimate: _estimateForDueWeek('2026-03-30'),
+          dueWeekKey: '2026-03-30',
+          algorithmVersion:
+              AdaptiveNutritionRecommendationService.algorithmVersion,
+        ),
+      );
 
       final futureSnapshot = repository.onRecommendationUpdated.first;
 
-      final recommendation = await service.refreshRecommendationIfDue(now: monday, force: true);
+      final recommendation =
+          await service.refreshRecommendationIfDue(now: monday, force: true);
 
       final broadcasted = await futureSnapshot;
 
       expect(recommendation, isNotNull);
-      expect(broadcasted.recommendation.recommendedCalories, recommendation!.recommendedCalories);
+      expect(broadcasted.recommendation.recommendedCalories,
+          recommendation!.recommendedCalories);
       expect(broadcasted.dueWeekKey, '2026-04-06');
     });
   });

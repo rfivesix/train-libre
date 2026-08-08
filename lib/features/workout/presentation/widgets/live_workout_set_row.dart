@@ -1,3 +1,5 @@
+import '../../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +12,7 @@ import '../../domain/models/set_template.dart';
 import '../live_workout_view_model.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
+import '../../../../util/design_constants.dart';
 
 /// An interactive row representing a single set in an active workout session.
 ///
@@ -73,7 +76,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
       {
         'type': 'failure',
         'label': l10n.set_type_failure,
-        'symbol': buildSymbol('F', Colors.red),
+        'symbol': buildSymbol('F', DesignConstants.brandRedColor),
       },
       {
         'type': 'dropset',
@@ -115,7 +118,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
       case 'dropset':
         return Colors.blue;
       case 'failure':
-        return Colors.red;
+        return DesignConstants.brandRedColor;
       default:
         return Colors.grey;
     }
@@ -151,17 +154,6 @@ class LiveWorkoutSetRow extends StatelessWidget {
     return weight * (36 / (37 - reps));
   }
 
-  String _formatDisplayWeightValue(
-    double metricValue,
-    UnitService unitService, {
-    int fractionDigits = 1,
-  }) {
-    return unitService
-        .convertDisplayValue(metricValue, UnitDimension.weight)
-        .toStringAsFixed(fractionDigits)
-        .replaceAll('.0', '');
-  }
-
   Widget _buildPRBadge(SetLog setLog, BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final unitService = context.read<UnitService>();
@@ -169,13 +161,13 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     if (setLog.isMaxWeightPR && setLog.weightPRDiff != null) {
       label =
-          "+${_formatDisplayWeightValue(setLog.weightPRDiff!, unitService)} ${unitService.suffixFor(UnitDimension.weight)}";
+          "+${unitService.formatDisplayWeight(setLog.weightPRDiff!)} ${unitService.suffixFor(UnitDimension.weight)}";
     } else if (setLog.isMaxEst1RMPR && setLog.est1rmPRDiff != null) {
       label =
-          "+${_formatDisplayWeightValue(setLog.est1rmPRDiff!, unitService)} ${unitService.suffixFor(UnitDimension.weight)} (1RM)";
+          "+${unitService.formatDisplayWeight(setLog.est1rmPRDiff!)} ${unitService.suffixFor(UnitDimension.weight)} (1RM)";
     } else if (setLog.isMaxVolumePR && setLog.volumePRDiff != null) {
       label =
-          "+${_formatDisplayWeightValue(setLog.volumePRDiff!, unitService, fractionDigits: 0)} ${unitService.suffixFor(UnitDimension.weight)} (Vol)";
+          "+${unitService.formatDisplayWeight(setLog.volumePRDiff!, fractionDigits: 0)} ${unitService.suffixFor(UnitDimension.weight)} (Vol)";
     }
 
     return TweenAnimationBuilder<double>(
@@ -183,10 +175,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.elasticOut,
       builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: child,
-        );
+        return Transform.scale(scale: value, child: child);
       },
       child: Tooltip(
         message: l10n.prBadgeTooltip,
@@ -200,11 +189,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                LucideIcons.trophy,
-                color: Colors.amber,
-                size: 14,
-              ),
+              const Icon(LucideIcons.trophy, color: Colors.amber, size: 14),
               const SizedBox(width: 4),
               Text(
                 label,
@@ -224,7 +209,10 @@ class LiveWorkoutSetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final log = context.select<LiveWorkoutViewModel, SetLog?>((vm) => vm.setLogs[templateId]) ?? setLog;
+    final log = context.select<LiveWorkoutViewModel, SetLog?>(
+          (vm) => vm.setLogs[templateId],
+        ) ??
+        setLog;
     final bool isCompleted = log.isCompleted ?? false;
     final unitService = context.read<UnitService>();
 
@@ -302,7 +290,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           if (lastSet.weightKg != null) {
                             final displayWeight = unitService
                                 .convertDisplayValue(
-                                    lastSet.weightKg!, UnitDimension.weight)
+                                  lastSet.weightKg!,
+                                  UnitDimension.weight,
+                                )
                                 .toStringAsFixed(1)
                                 .replaceAll('.0', '');
                             manager.weightControllers[templateId]?.text =
@@ -390,8 +380,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
               if (isCardio) {
                 if (val != manager.setLogs[templateId]?.distanceKm ||
                     clearValue) {
-                  manager.updateSet(templateId,
-                      distance: val, clearDistance: clearValue);
+                  manager.updateSet(
+                    templateId,
+                    distance: val,
+                    clearDistance: clearValue,
+                  );
                 }
               } else {
                 final metricValue = val == null
@@ -399,8 +392,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                     : unitService.convertToMetric(val, UnitDimension.weight);
                 if (metricValue != manager.setLogs[templateId]?.weightKg ||
                     clearValue) {
-                  manager.updateSet(templateId,
-                      weight: metricValue, clearWeight: clearValue);
+                  manager.updateSet(
+                    templateId,
+                    weight: metricValue,
+                    clearWeight: clearValue,
+                  );
                 }
               }
             },
@@ -412,6 +408,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
           flex: isCardio ? 4 : 2,
           child: TextFormField(
             controller: manager.repsControllers[templateId],
+            readOnly: isCardio,
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
             inputFormatters: isCardio ? [TimerInputFormatter()] : null,
@@ -432,14 +429,43 @@ class LiveWorkoutSetRow extends StatelessWidget {
               ),
             ),
             enabled: !isCompleted,
+            onTap: (isCardio && !isCompleted)
+                ? () async {
+                    final currentSeconds =
+                        manager.setLogs[templateId]?.durationSeconds ?? 0;
+                    final newDuration =
+                        await adaptive_pickers.showAdaptiveDurationPicker(
+                      context: context,
+                      initialDuration: Duration(seconds: currentSeconds),
+                    );
+                    if (newDuration != null) {
+                      final seconds = newDuration.inSeconds;
+                      final clearDuration = seconds == 0;
+                      if (seconds !=
+                              manager.setLogs[templateId]?.durationSeconds ||
+                          clearDuration) {
+                        manager.repsControllers[templateId]?.text =
+                            formatPauseDuration(seconds);
+                        manager.updateSet(
+                          templateId,
+                          duration: seconds,
+                          clearDuration: clearDuration,
+                        );
+                      }
+                    }
+                  }
+                : null,
             onChanged: (text) {
               if (isCardio) {
                 final seconds = parsePauseDuration(text);
                 final clearDuration = seconds == null && text.isEmpty;
                 if (seconds != manager.setLogs[templateId]?.durationSeconds ||
                     clearDuration) {
-                  manager.updateSet(templateId,
-                      duration: seconds, clearDuration: clearDuration);
+                  manager.updateSet(
+                    templateId,
+                    duration: seconds,
+                    clearDuration: clearDuration,
+                  );
                 }
               } else {
                 final int? val;
@@ -461,8 +487,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 }
                 final clearValue = val == null && text.isEmpty;
                 if (val != manager.setLogs[templateId]?.reps || clearValue) {
-                  manager.updateSet(templateId,
-                      reps: val, clearReps: clearValue);
+                  manager.updateSet(
+                    templateId,
+                    reps: val,
+                    clearReps: clearValue,
+                  );
                 }
               }
             },
@@ -515,13 +544,16 @@ class LiveWorkoutSetRow extends StatelessWidget {
               SizedBox(
                 width: 48,
                 child: IconButton(
+                  tooltip: isCompleted ? l10n.undo : l10n.doneButtonLabel,
                   icon: Icon(
                     isCompleted ? LucideIcons.circle_check : LucideIcons.circle,
                     color: isCompleted ? Colors.green : Colors.grey,
                   ),
                   onPressed: () async {
-                    await manager.updateSet(templateId,
-                        isCompleted: !isCompleted);
+                    await manager.updateSet(
+                      templateId,
+                      isCompleted: !isCompleted,
+                    );
                     if (!isCompleted) {
                       final updatedSet = manager.setLogs[templateId];
                       if (updatedSet != null) {
@@ -541,7 +573,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           if (updatedSet.weightKg != null) {
                             final displayWeight =
                                 unitService.convertDisplayValue(
-                                    updatedSet.weightKg!, UnitDimension.weight);
+                              updatedSet.weightKg!,
+                              UnitDimension.weight,
+                            );
                             manager.weightControllers[templateId]?.text =
                                 displayWeight
                                     .toStringAsFixed(2)
@@ -570,14 +604,16 @@ class LiveWorkoutSetRow extends StatelessWidget {
       ],
     );
 
-    final currentSetE1rm = _calculateBrzyckiE1rm(
-      log,
-      requireCompleted: false,
-    );
+    final currentSetE1rm = _calculateBrzyckiE1rm(log, requireCompleted: false);
     final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
 
     final bool hasPR = isCompleted &&
-        (log.isMaxWeightPR || log.isMaxVolumePR || log.isMaxEst1RMPR);
+        (log.isMaxWeightPR ||
+            log.isMaxVolumePR ||
+            log.isMaxEst1RMPR ||
+            log.isMaxDistancePR ||
+            log.isMaxDurationPR ||
+            log.isFastestPacePR);
 
     final rowWithSubInfo = Column(
       children: [
@@ -595,7 +631,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 if (showCurrentSetE1rm)
                   Text(
                     l10n.liveWorkoutE1rmCurrentSet(
-                      _formatDisplayWeightValue(currentSetE1rm, unitService),
+                      unitService.formatDisplayWeight(currentSetE1rm),
+                      unitService.suffixFor(UnitDimension.weight),
                     ),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
@@ -615,7 +652,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
           isCompleted ? DismissDirection.none : DismissDirection.endToStart,
       onDismissed: (_) => _removeSet(templateId),
       background: Container(
-        color: Colors.redAccent,
+        color: DesignConstants.brandRedColor,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(LucideIcons.trash_2, color: Colors.white),

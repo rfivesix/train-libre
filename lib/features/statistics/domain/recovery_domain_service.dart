@@ -225,7 +225,8 @@ class RecoveryDomainService {
     'abdominals': 'abs',
     'core': 'abs',
     'obliques': 'abs',
-    'obliquus externus abdominis': null, // discard — not a primary strength group
+    'obliquus externus abdominis':
+        null, // discard — not a primary strength group
     // Back (additional wger fallback names)
     'serratus anterior': 'back',
     // Forearms

@@ -9,8 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/legal_screen.dart';
-import '../../app/presentation/terms_of_service_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class InitialConsentScreen extends StatefulWidget {
   final Widget nextScreen;
@@ -22,31 +23,40 @@ class InitialConsentScreen extends StatefulWidget {
 }
 
 class _InitialConsentScreenState extends State<InitialConsentScreen> {
-  bool _privacyAccepted = false;
-  bool _termsAccepted = false;
+  bool _healthDataAccepted = false;
+  bool _telemetryAccepted = false;
   late TapGestureRecognizer _termsRecognizer;
+  late TapGestureRecognizer _legalRecognizer;
 
   @override
   void initState() {
     super.initState();
-    _termsRecognizer = TapGestureRecognizer()..onTap = _navigateToTerms;
+    _termsRecognizer = TapGestureRecognizer()..onTap = _navigateToLegal;
+    _legalRecognizer = TapGestureRecognizer()..onTap = _navigateToLegal;
   }
 
   @override
   void dispose() {
     _termsRecognizer.dispose();
+    _legalRecognizer.dispose();
     super.dispose();
   }
 
-  void _navigateToTerms() {
+  void _navigateToLegal() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
+      MaterialPageRoute(builder: (_) => const LegalScreen()),
     );
   }
 
   Future<void> _acceptAndProceed() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasAcceptedConsent', true);
+    await prefs.setString('acceptedLegalVersion', kCurrentLegalVersion);
+    if (_telemetryAccepted) {
+      await TelemetryService.instance.optIn();
+    } else {
+      await TelemetryService.instance.optOut();
+    }
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
@@ -66,7 +76,7 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Blurred background with app icon or placeholder
+          // Blurred background with app icon
           Positioned.fill(
             child: Container(
               color: Colors.black,
@@ -114,81 +124,78 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                       style: theme.textTheme.bodyMedium,
                     ),
                     const SizedBox(height: DesignConstants.spacingL),
-                    // Links
+                    // Legal links button
                     Center(
                       child: TextButton(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const LegalScreen()),
-                        ),
+                        onPressed: _navigateToLegal,
                         child: Text(
                             '${l10n.legal_notice} & ${l10n.privacy_policy}'),
                       ),
                     ),
                     const Divider(),
-                    CheckboxListTile(
-                      value: _privacyAccepted,
+                    // Explicit health data consent tile
+                    _buildConsentTile(
+                      value: _healthDataAccepted,
                       onChanged: (val) =>
-                          setState(() => _privacyAccepted = val ?? false),
-                      title: Text(
-                        l10n.i_agree_to_privacy_policy,
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
+                          setState(() => _healthDataAccepted = val),
+                      text: l10n.i_agree_to_privacy_policy,
+                      theme: theme,
                     ),
                     const SizedBox(height: DesignConstants.spacingS),
-                    CheckboxListTile(
-                      value: _termsAccepted,
+                    // Optional anonymous telemetry tile
+                    _buildConsentTile(
+                      value: _telemetryAccepted,
                       onChanged: (val) =>
-                          setState(() => _termsAccepted = val ?? false),
-                      title: Text.rich(
-                        TextSpan(
-                          text: l10n.acceptTermsPrompt
-                              .split(l10n.viewTermsInline)
-                              .first,
-                          style: theme.textTheme.bodySmall,
-                          children: [
-                            TextSpan(
-                              text: l10n.viewTermsInline,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                              ),
-                              recognizer: _termsRecognizer,
-                            ),
-                            TextSpan(
-                              text: l10n.acceptTermsPrompt
-                                          .split(l10n.viewTermsInline)
-                                          .length >
-                                      1
-                                  ? l10n.acceptTermsPrompt
-                                      .split(l10n.viewTermsInline)[1]
-                                  : '',
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
+                          setState(() => _telemetryAccepted = val),
+                      text: l10n.i_agree_to_optional_telemetry,
+                      theme: theme,
                     ),
                     const SizedBox(height: DesignConstants.spacingL),
                     SizedBox(
                       width: double.infinity,
-                      child: FilledButton(
-                        onPressed: (_privacyAccepted && _termsAccepted)
-                            ? _acceptAndProceed
-                            : null,
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(56),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: Text(l10n.accept_and_get_started),
+                      child: AppButton.primary(
+                        onPressed: _healthDataAccepted ? _acceptAndProceed : null,
+                        label: l10n.accept_and_get_started,
+                        tooltip: l10n.accept_and_get_started,
                       ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    // Clickwrap legal text matching bodySmall style of checkbox text above
+                    Text.rich(
+                      TextSpan(
+                        text: '${l10n.by_tapping_accept} ',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: l10n.terms_of_service,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: _termsRecognizer,
+                          ),
+                          TextSpan(
+                            text: ' ${l10n.and_acknowledge} ',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          TextSpan(
+                            text: l10n.privacy_policy,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: _legalRecognizer,
+                          ),
+                          const TextSpan(text: '.'),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -196,6 +203,45 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildConsentTile({
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required String text,
+    required ThemeData theme,
+  }) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: DesignConstants.spacingS,
+          horizontal: DesignConstants.spacingXS,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0, right: DesignConstants.spacingM),
+              child: Icon(
+                value ? LucideIcons.circle_check : LucideIcons.circle,
+                color: value
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                size: 22,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                text,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -10,6 +10,7 @@ import '../features/supplements/domain/models/supplement_log.dart';
 import '../features/analytics/domain/models/chart_data_point.dart';
 
 import '../features/diary/data/sources/diary_local_data_source.dart';
+import '../services/telemetry/telemetry_service.dart';
 import '../features/diary/data/sources/meal_local_data_source.dart';
 import '../features/profile/data/sources/profile_local_data_source.dart';
 import '../features/supplements/data/sources/supplement_local_data_source.dart';
@@ -38,6 +39,10 @@ class DatabaseHelper {
     _driftDb = database;
   }
 
+  /// Returns the active [AppDatabase] instance if it has been initialised,
+  /// or `null` if [setDriftDb] has not yet been called.
+  static db.AppDatabase? get driftDb => _driftDb;
+
   db.AppDatabase get dbInstance =>
       _injectedDb ?? (_driftDb ??= db.AppDatabase());
 
@@ -53,8 +58,10 @@ class DatabaseHelper {
         await dbInst.customStatement('DELETE FROM health_step_segments');
         await dbInst.customStatement('DELETE FROM health_export_records');
         await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
-        await dbInst.customStatement('DELETE FROM sleep_canonical_stage_segments');
-        await dbInst.customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
+        await dbInst
+            .customStatement('DELETE FROM sleep_canonical_stage_segments');
+        await dbInst
+            .customStatement('DELETE FROM sleep_canonical_heart_rate_samples');
         await dbInst.customStatement('DELETE FROM sleep_canonical_sessions');
         await dbInst.customStatement('DELETE FROM sleep_raw_imports');
         await dbInst.customStatement('DELETE FROM pulse_hourly_aggregates');
@@ -189,8 +196,12 @@ class DatabaseHelper {
       StepsLocalDataSource(dbInstance);
 
   // Proxies
-  Future<int> insertFoodEntry(FoodEntry entry) =>
-      diaryLocalDataSource.insertFoodEntry(entry);
+  Future<int> insertFoodEntry(
+    FoodEntry entry, {
+    String telemetrySource = FoodLogSource.manualSearch,
+  }) =>
+      diaryLocalDataSource.insertFoodEntry(entry,
+          telemetrySource: telemetrySource);
   Future<int> insertFluidEntry(FluidEntry entry) =>
       diaryLocalDataSource.insertFluidEntry(entry);
   Future<void> deleteFluidEntryByLinkedFoodId(int id) =>
@@ -402,7 +413,8 @@ class DatabaseHelper {
   Future<double?> getLatestWeight() async {
     final sessions = await getMeasurementSessions();
     for (final session in sessions) {
-      final m = session.measurements.where((m) => m.type == 'weight').firstOrNull;
+      final m =
+          session.measurements.where((m) => m.type == 'weight').firstOrNull;
       if (m != null) return m.value;
     }
     return null;

@@ -11,7 +11,6 @@ import '../domain/models/tracked_food_item.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import 'widgets/off_attribution_widget.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:sqflite/sqflite.dart';
@@ -22,6 +21,9 @@ import 'package:provider/provider.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 // Dev flag: keep disabled for production or remove dev-only sections entirely.
 const bool kDevEditEnabled = false;
@@ -88,14 +90,16 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.foodDetail));
     if (widget.trackedItem != null) {
       _displayItem = widget.trackedItem!.item;
       _trackedQuantity = widget.trackedItem!.entry.quantityInGrams;
-      _showPer100g = false;
+      _showPer100g = _trackedQuantity == 0;
     } else {
       _displayItem = widget.foodItem!;
       _trackedQuantity = _displayItem.productQuantity?.round();
-      _showPer100g = _trackedQuantity == null;
+      _showPer100g = _trackedQuantity == null || _trackedQuantity == 0;
     }
     _checkIfFavorite();
   }
@@ -274,7 +278,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     const color = Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingS,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
@@ -300,7 +307,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingS,
+              ),
               child: Text(
                 l10n.copySystemFoodBody,
                 textAlign: TextAlign.center,
@@ -311,22 +320,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(false);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(true);
                     },
-                    child: Text(l10n.createCopyAndEdit),
+                    label: l10n.createCopyAndEdit,
+                    tooltip: l10n.createCopyAndEdit,
                   ),
                 ),
               ],
@@ -409,17 +420,15 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => CreateFoodScreen(
-            foodItemToEdit: duplicated,
-          ),
+          builder: (context) => CreateFoodScreen(foodItemToEdit: duplicated),
         ),
       );
     } catch (e) {
       debugPrint("Error duplicating food: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("${l10n.error}: $e")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("${l10n.error}: $e")));
       }
     } finally {
       if (mounted) {
@@ -438,7 +447,9 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingS,
+              ),
               child: Text(
                 l10n.deleteFoodConfirmBody,
                 textAlign: TextAlign.center,
@@ -449,26 +460,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(false);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(true);
                     },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(ctx).colorScheme.error,
-                      foregroundColor: Theme.of(ctx).colorScheme.onError,
-                    ),
-                    child: Text(l10n.delete),
+                    label: l10n.delete,
+                    tooltip: l10n.delete,
                   ),
                 ),
               ],
@@ -481,19 +490,21 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     if (confirm == true) {
       setState(() => _isLoading = true);
       try {
-        await ProductLocalDataSource.instance
-            .deleteProduct(_displayItem.id ?? '', _displayItem.barcode);
+        await ProductLocalDataSource.instance.deleteProduct(
+          _displayItem.id ?? '',
+          _displayItem.barcode,
+        );
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.foodItemDeleted)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.foodItemDeleted)));
           Navigator.of(context).pop(true);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${l10n.error}: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
         }
       } finally {
         if (mounted) {
@@ -538,8 +549,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     context: context,
                   );
                   return _displayItem.source == FoodItemSource.base
-                      ? _displayItem.getLocalizedName(context,
-                          languageCode: baseFoodLang)
+                      ? _displayItem.getLocalizedName(
+                          context,
+                          languageCode: baseFoodLang,
+                        )
                       : _displayItem.getLocalizedName(context);
                 }(),
                 style: Theme.of(
@@ -557,6 +570,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         actions: [
           if (_displayItem.isCustom) ...[
             IconButton(
+              tooltip: l10n.edit,
               icon: const Icon(LucideIcons.pencil),
               onPressed: () async {
                 final result = await Navigator.of(context).push<FoodItem>(
@@ -573,20 +587,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               },
             ),
             IconButton(
+              tooltip: l10n.delete,
               icon: const Icon(LucideIcons.trash_2),
               onPressed: _deleteFoodItem,
             ),
           ] else ...[
             IconButton(
+              tooltip: l10n.edit,
               icon: const Icon(LucideIcons.pencil),
               onPressed: () => _showSystemEditMenu(context),
             ),
           ],
           IconButton(
+            tooltip: l10n.tabFavorites,
             icon: Icon(
-              _isFavorite ? LucideIcons.heart : LucideIcons.heart,
-              color:
-                  _isFavorite ? Theme.of(context).colorScheme.error : colorScheme.onSurfaceVariant,
+              LucideIcons.heart,
+              color: _isFavorite
+                  ? Theme.of(context).colorScheme.error
+                  : colorScheme.onSurfaceVariant,
             ),
             onPressed: _toggleFavorite,
           ),
@@ -607,10 +625,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (_displayItem.brand.isNotEmpty)
-                  Text(
-                    _displayItem.brand,
-                    style: textTheme.bodySmall,
-                  ),
+                  Text(_displayItem.brand, style: textTheme.bodySmall),
                 // Dietary Badges
                 if (_displayItem.ingredientsAnalysisTags != null &&
                     _displayItem.ingredientsAnalysisTags!.isNotEmpty) ...[
@@ -618,13 +633,16 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   Wrap(
                     spacing: 8,
                     children: [
-                      if (_displayItem.ingredientsAnalysisTags!
-                          .contains('en:vegan'))
+                      if (_displayItem.ingredientsAnalysisTags!.contains(
+                        'en:vegan',
+                      ))
                         _GlassBadge(label: l10n.vegan),
-                      if (_displayItem.ingredientsAnalysisTags!
-                              .contains('en:vegetarian') &&
-                          !_displayItem.ingredientsAnalysisTags!
-                              .contains('en:vegan'))
+                      if (_displayItem.ingredientsAnalysisTags!.contains(
+                            'en:vegetarian',
+                          ) &&
+                          !_displayItem.ingredientsAnalysisTags!.contains(
+                            'en:vegan',
+                          ))
                         _GlassBadge(label: l10n.vegetarian),
                     ],
                   ),
@@ -723,14 +741,17 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     _displayItem.ingredientsText!.isNotEmpty) ...[
                   const SizedBox(height: DesignConstants.spacingM),
                   Theme(
-                    data: Theme.of(context)
-                        .copyWith(dividerColor: Colors.transparent),
+                    data: Theme.of(
+                      context,
+                    ).copyWith(dividerColor: Colors.transparent),
                     child: SummaryCard(
                       child: ExpansionTile(
                         title: Text(l10n.ingredients),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(DesignConstants.spacingL),
+                            padding: const EdgeInsets.all(
+                              DesignConstants.spacingL,
+                            ),
                             child: Text(
                               _displayItem.ingredientsText!,
                               style: textTheme.bodyMedium,
@@ -781,10 +802,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                           const SizedBox(height: DesignConstants.spacingM),
                           Row(
                             children: [
-                              ElevatedButton.icon(
+                              AppButton.primary(
                                 onPressed: _saveDevEdits,
-                                icon: const Icon(LucideIcons.save),
-                                label: Text(l10n.save),
+                                label: l10n.save,
+                                tooltip: l10n.save,
+                                icon: LucideIcons.save,
                               ),
                               const SizedBox(width: DesignConstants.spacingM),
                               TextButton.icon(
@@ -797,7 +819,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                               IconButton(
                                 tooltip: l10n.devExportBaseDb,
                                 onPressed: _exportBaseDb,
-                                icon: const Icon(LucideIcons.share),
+                                icon: Icon(DesignConstants.adaptiveShareIcon),
                               ),
                             ],
                           ),
@@ -806,23 +828,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     ),
                   ),
                 ],
-
-                if (!_displayItem.barcode.startsWith('user_created_'))
-                  Padding(
-                    padding: const EdgeInsets.only(top: DesignConstants.spacingXL, bottom: DesignConstants.spacingS),
-                    child: OffAttributionWidget(
-                      textStyle: textTheme.bodySmall,
-                    ),
-                  ),
               ],
             ),
           ),
           if (_isLoading)
             Container(
               color: Colors.black.withValues(alpha: 0.2),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
@@ -833,10 +845,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     return ListTile(
       dense: true,
       title: Text(label),
-      trailing: Text(
-        value,
-        style: Theme.of(context).textTheme.labelLarge,
-      ),
+      trailing: Text(value, style: Theme.of(context).textTheme.labelLarge),
     );
   }
 
@@ -1011,27 +1020,30 @@ class _PortionChip extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 class _GlassBadge extends StatelessWidget {
   final String label;
-  final bool isVegan; // Oder ein Enum für den Status
+  final bool isVegan; // Or status enum
 
   const _GlassBadge({required this.label}) : isVegan = true;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Wir nutzen deine definierten App-Farben statt Hartcodierung
+    // Uses defined app colors for badge tinting
     final primaryBadgeColor = Colors.green;
     final isDarkMode = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: DesignConstants.spacingXS),
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingS,
+        vertical: DesignConstants.spacingXS,
+      ),
       decoration: BoxDecoration(
-        // Im Dark Mode helles Glas, im Light Mode dunkles Glas
+        // Light glass tint depending on dark/light mode
         color: isDarkMode
             ? primaryBadgeColor.withValues(alpha: 0.15)
             : primaryBadgeColor.withValues(alpha: 0.20),
         borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
         border: Border.all(
-          // Border erhält jetzt die Badge-Farbe mit etwas mehr Deckkraft
+          // Border uses badge color with higher opacity
           color: primaryBadgeColor.withValues(alpha: 0.5),
           width: 0.5,
         ),

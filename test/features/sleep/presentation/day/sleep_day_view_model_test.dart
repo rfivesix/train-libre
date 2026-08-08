@@ -133,7 +133,9 @@ void main() {
       expect(vm.selectedScopeIndex, SleepPeriodScope.day.index);
     });
 
-    test('load sets isLoading, watches repository overview, handles data stream emission, and triggers background sync', () async {
+    test(
+        'load sets isLoading, watches repository overview, handles data stream emission, and triggers background sync',
+        () async {
       final vm = SleepDayViewModel(
         repository: mockRepository,
         syncService: mockSyncService,
@@ -201,7 +203,9 @@ void main() {
       expect(mockRepository.watchCount, 1);
     });
 
-    test('setScopeIndex transitions scope indices and handles non-day scopes cleanly', () async {
+    test(
+        'setScopeIndex transitions scope indices and handles non-day scopes cleanly',
+        () async {
       final vm = SleepDayViewModel(
         repository: mockRepository,
         syncService: mockSyncService,
@@ -252,7 +256,9 @@ void main() {
       expect(vm.selectedDay, DateTime(2026, 5, 7)); // Shifts by -2 months
     });
 
-    test('importNow triggers sync, loads on success, and handles failure cleanly', () async {
+    test(
+        'importNow triggers sync, loads on success, and handles failure cleanly',
+        () async {
       final vm = SleepDayViewModel(
         repository: mockRepository,
         syncService: mockSyncService,
@@ -279,7 +285,9 @@ void main() {
       expect(vm.isLoading, isFalse);
     });
 
-    test('dispose cancels active stream subscription and disposes repositories & services', () async {
+    test(
+        'dispose cancels active stream subscription and disposes repositories & services',
+        () async {
       final vm = SleepDayViewModel(
         repository: mockRepository,
         syncService: mockSyncService,

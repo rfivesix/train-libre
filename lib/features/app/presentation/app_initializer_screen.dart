@@ -1,5 +1,4 @@
-// lib/screens/app_initializer_screen.dart
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
 
@@ -11,9 +10,13 @@ import '../../../services/local_notification_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import 'main_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
+import '../../nutrition_recommendation/data/recommendation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'dart:io';
+import 'package:package_info_plus/package_info_plus.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A splash screen responsible for app-wide initialization.
 ///
@@ -60,8 +63,10 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       // Cold Start first launch prompt is handled during onboarding region selection.
     }
 
-    final isOffDbInitialized = await BasisDataManager.instance.isOffDatabaseInitialized();
-    final skipOffDb = widget.skipOffDatabase || (!isOffDbInitialized && !widget.forceUpdate);
+    final isOffDbInitialized =
+        await BasisDataManager.instance.isOffDatabaseInitialized();
+    final skipOffDb =
+        widget.skipOffDatabase || (!isOffDbInitialized && !widget.forceUpdate);
 
     // 1) Run basis-data update checks and stream progress to the UI.
     await BasisDataManager.instance.checkForBasisDataUpdate(
@@ -153,6 +158,13 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
     try {
       await LocalNotificationService.instance.initialize();
+      // Asynchronously trigger recommendation check on startup
+      unawaited(AdaptiveNutritionRecommendationService()
+          .refreshRecommendationIfDue()
+          .catchError((e) {
+        debugPrint("Startup recommendation check failed: $e");
+        return null;
+      }));
     } catch (e) {
       debugPrint("Local notification initialization failed: $e");
     }
@@ -163,6 +175,23 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       } catch (e) {
         debugPrint("Workout session restore failed: $e");
       }
+    }
+
+    try {
+      await TelemetryService.instance.init();
+      final packageInfo = await PackageInfo.fromPlatform();
+      final (localeStr, countryCode) =
+          TelemetryService.resolveSystemLocaleAndCountry();
+
+      unawaited(TelemetryService.instance.trackAppLaunched(
+        appVersion: packageInfo.version,
+        osVersion: Platform.operatingSystemVersion,
+        platform: Platform.operatingSystem,
+        locale: localeStr,
+        country: countryCode,
+      ));
+    } catch (e) {
+      debugPrint("Telemetry startup tracking failed: $e");
     }
   }
 
@@ -218,15 +247,18 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       return l10n.initCheckingExercises;
     } else if (raw == 'Suche nach Remote-OFF-Katalog-Updates...') {
       return l10n.initLoadingRemoteManifest;
-    } else if (raw == 'Kein OFF-Bundle/Remote verfügbar. Vorhandene lokale OFF-Daten bleiben unverändert.') {
+    } else if (raw ==
+        'Kein OFF-Bundle/Remote verfügbar. Vorhandene lokale OFF-Daten bleiben unverändert.') {
       return l10n.initNoOffBundle;
     }
 
-    if (raw.startsWith('Remote-Übungskatalog ') && raw.endsWith(' wird heruntergeladen.')) {
+    if (raw.startsWith('Remote-Übungskatalog ') &&
+        raw.endsWith(' wird heruntergeladen.')) {
       final version = raw.substring(21, raw.length - 21);
       return l10n.initDownloadingRemoteCatalog(version);
     }
-    if (raw.startsWith('Remote-Übungskatalog ') && raw.endsWith(' wird importiert.')) {
+    if (raw.startsWith('Remote-Übungskatalog ') &&
+        raw.endsWith(' wird importiert.')) {
       final version = raw.substring(21, raw.length - 17);
       return l10n.initImportingRemoteCatalog(version);
     }
@@ -234,11 +266,13 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       final version = raw.substring(15, raw.length - 10);
       return l10n.initImportingRemoteCatalog(version);
     }
-    if (raw.startsWith('Remote-OFF-Katalog ') && raw.endsWith(' wird heruntergeladen.')) {
+    if (raw.startsWith('Remote-OFF-Katalog ') &&
+        raw.endsWith(' wird heruntergeladen.')) {
       final version = raw.substring(19, raw.length - 21);
       return l10n.initDownloadingProductBundle(version);
     }
-    if (raw.startsWith('Remote-OFF-Katalog ') && raw.endsWith(' wird importiert.')) {
+    if (raw.startsWith('Remote-OFF-Katalog ') &&
+        raw.endsWith(' wird importiert.')) {
       final version = raw.substring(19, raw.length - 17);
       return l10n.initImportingProductBundle(version);
     }
@@ -246,7 +280,8 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       final version = raw.substring(19, raw.length - 10);
       return l10n.initImportingProductBundle(version);
     }
-    if (raw.startsWith('OFF-Datenbank ist aktuell (Version: ') && raw.endsWith(').')) {
+    if (raw.startsWith('OFF-Datenbank ist aktuell (Version: ') &&
+        raw.endsWith(').')) {
       return l10n.initProductDatabaseUpToDate;
     }
 
@@ -274,7 +309,8 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final updateDbReg = RegExp(r'^Update Produktdatenbank \((.+)\)$');
     if (updateDbReg.hasMatch(raw)) {
       final country = updateDbReg.firstMatch(raw)!.group(1) ?? '';
-      return l10n.initUpdateTask(l10n.initCheckingProductDatabase(country).replaceAll('...', ''));
+      return l10n.initUpdateTask(
+          l10n.initCheckingProductDatabase(country).replaceAll('...', ''));
     }
 
     final dbReg = RegExp(r'^Produktdatenbank \((.+)\)$');
@@ -347,7 +383,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
                     ? _progress
                     : null, // null renders an indeterminate spinner style.
                 minHeight: 8,
-                backgroundColor: isDark ? Colors.white10 : Theme.of(context).colorScheme.onSurfaceVariant,
+                backgroundColor: isDark
+                    ? Colors.white10
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
                 color: theme.colorScheme.primary,
               ),
             ),

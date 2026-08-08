@@ -1,11 +1,18 @@
-// lib/util/design_constants.dart
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 /// Central source of truth for design tokens including spacing, radii, and padding.
 ///
 /// Ensures visual consistency across the application by providing standardized constants.
 class DesignConstants {
+  // === ADAPTIVE ICONS ===
+  /// Returns the platform-appropriate share icon (share for iOS/macOS, share_2 for Android/others)
+  static IconData get adaptiveShareIcon => Platform.isIOS || Platform.isMacOS
+      ? LucideIcons.share
+      : LucideIcons.share_2;
   // === SPACING ===
   // Card Padding
   static const double cardPaddingInternal = 16.0; // Innenabstand von Cards
@@ -23,7 +30,7 @@ class DesignConstants {
 
   // === TYPOGRAPHY ===
   /// Letter spacing used for uppercase section headers throughout the app.
-  static const double sectionHeaderLetterSpacing = 1.0;
+  static const double sectionHeaderLetterSpacing = 0.7;
 
   /// Standard font weight for section headers.
   static const FontWeight sectionHeaderFontWeight = FontWeight.bold;
@@ -81,36 +88,175 @@ class DesignConstants {
   static const EdgeInsets sectionHeaderPadding = EdgeInsets.only(
     bottom: 8.0,
     left: 4.0,
-    top: 4.0,
+    top: 4.0, // Increased top padding for better visual separation
   );
 
+  // === COLORS ===
+  static const Color summaryCardDarkMode = Color(0xFF1C1C1E);
+  static const Color summaryCardSecondaryDarkMode = Color(0xFF2C2C2E);
+  static const Color summaryCardSecondaryLightMode = Color(0xFFF2F2F7);
+
   // === GLASSMORPHISM ===
-  /// Unified shadow for glassmorphic elements.
-  static List<BoxShadow> get glassShadow => [
-        BoxShadow(
-          blurRadius: 12,
-          offset: const Offset(0, 6),
-          color: Colors.black.withValues(alpha: 0.30),
-        ),
-      ];
+  // Glassmorphic Component Sizes (Apple HIG Aligned)
+  /// Standard height for the premium floating bottom navigation bar.
+  static const double bottomNavigationBarHeight = 64.0;
+
+  /// Standard size (width & height) for the main Glass FAB.
+  static const double fabSize = 64.0;
+
+  /// Standard height for floating overlays such as the Running Workout Overlay and the Live Rest Timer bar.
+  static const double workoutOverlayHeight = 64.0;
+
+  /// Standard size for the action item buttons inside the Speed Dial (Plus) Menu.
+  static const double speedDialActionSize = 56.0;
+
+  /// Standard height for custom list tiles/interactive items inside glass menus.
+  static const double glassTileHeight = 52.0;
+
+  /// Unified subtle drop shadow for glassmorphic floating bars & buttons in Light Mode.
+  static List<BoxShadow> glassShadow(bool isDark) => isDark
+      ? const []
+      : [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ];
+
+  /// Shared height for the bottom fade-out vignette painted behind the
+  /// floating glass nav bar / FAB / overlays. Single source of truth so the
+  /// container height and [bottomVignetteGradient]'s stops can be tuned
+  /// together — the stops are relative to *this* height, not the screen.
+  ///
+  /// Sized relative to the bar itself (1.75x [bottomNavigationBarHeight])
+  /// so the fade becomes visible roughly half a bar-height above the bar's
+  /// top edge, and is fully transparent by about one bar-height above it —
+  /// a short, close scrim rather than one that reaches far up the screen.
+  static const double bottomVignetteHeight = bottomNavigationBarHeight * 1.75;
+
+  /// Global bottom vignette gradient that ramps up towards the bottom edge,
+  /// reaching 100% opacity right at the very bottom screen boundary.
+  ///
+  /// The tail uses closely-spaced stops with small alpha steps so the onset
+  /// is imperceptible. The final stop is [baseColor] at alpha 0 rather than
+  /// [Colors.transparent] — the latter is `#00000000` (black), so
+  /// interpolating a light-grey/white stop into it drags the intermediate
+  /// RGB values towards black as alpha fades out, producing a visible dark
+  /// seam right before the gradient disappears.
+  static LinearGradient bottomVignetteGradient(bool isDark) {
+    final baseColor = isDark ? Colors.black : const Color(0xFFF2F2F7);
+    return LinearGradient(
+      begin: Alignment.bottomCenter,
+      end: Alignment.topCenter,
+      colors: [
+        baseColor.withValues(alpha: 1.00),
+        baseColor.withValues(alpha: 0.78),
+        baseColor.withValues(alpha: 0.55),
+        baseColor.withValues(alpha: 0.34),
+        baseColor.withValues(alpha: 0.18),
+        baseColor.withValues(alpha: 0.07),
+        baseColor.withValues(alpha: 0.0),
+      ],
+      stops: const [0.0, 0.18, 0.36, 0.54, 0.72, 0.88, 1.0],
+    );
+  }
 
   /// Unified neutral background color tint for glassmorphic elements.
   static Color glassNeutralTint(bool isDark) =>
       (isDark ? Colors.white : Colors.white).withValues(alpha: 0.10);
 
   /// Unified base color tint for the glass shader.
-  static Color glassColor(bool isDark) =>
-      isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.15);
+  static Color glassColor(bool isDark) => isDark
+      ? Colors.white.withValues(alpha: 0.10)
+      : Colors.white.withValues(alpha: 0.50);
+
+  /// Default platform-adaptive glass quality.
+  /// Uses [GlassQuality.standard] on Android for optimal GPU subpass performance,
+  /// and [GlassQuality.premium] on iOS/macOS.
+  static GlassQuality get defaultGlassQuality {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return GlassQuality.standard;
+    }
+    return GlassQuality.premium;
+  }
+
+  /// Floor for the adaptive glass quality scope.
+  ///
+  /// On iOS/macOS the adaptive downgrade logic is disabled by pinning the
+  /// floor to [defaultGlassQuality] (premium) — Apple GPUs render the premium
+  /// shader without trouble, and a runtime step-down only causes a visible
+  /// quality change. On Android the scope may degrade all the way down to
+  /// [GlassQuality.minimal] when frames run over budget.
+  static GlassQuality get minGlassQuality {
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return defaultGlassQuality;
+    }
+    return GlassQuality.minimal;
+  }
 
   /// Unified settings for liquid glassmorphic rendering.
+  ///
+  /// Tuned to match real iOS *system UI* glass (UITabBar / navigation
+  /// chrome), not the "simulated glass object" look used for buttons and
+  /// panels:
+  /// - [fresnelStrength]: 0 disables the physics-based lens rim that makes
+  ///   glass read as a thick optical object. Per the package docs, 0.0 is
+  ///   what matches "iOS 26 system UI glass such as Messages buttons,
+  ///   notification banners, and lock screen controls" — i.e. our tab bar.
+  /// - [blur]: raised so the backdrop frosts the way a real `UIBlurEffect`
+  ///   material does (content behind the bar should read as soft color, not
+  ///   a legible warped image).
+  /// - [whitenStrength]: adds the light-mode "legibility veil" real iOS glass
+  ///   lays over bright backgrounds; gated ([whitenGated]) so it only lifts
+  ///   bright pixels and dark icons/text stay crisp. In dark mode this is
+  ///   applied *ungated* instead — a small uniform lift so the bar reads as
+  ///   dark grey (matching `UIBlurEffect` dark materials) instead of pure
+  ///   black when there's nothing behind it to blur; a gated lift would be a
+  ///   no-op there since an all-black backdrop has no bright pixels to gate on.
   static LiquidGlassSettings liquidGlassSettings(bool isDark) =>
       LiquidGlassSettings(
         thickness: 30,
         blur: 2.0,
         glassColor: glassColor(isDark),
         lightIntensity: isDark ? 0.55 : 0.80,
-        saturation: 1.20,
+        saturation: 1.90,
+        ambientRim: 0.01,
+        fresnelStrength: 0.0,
+        whitenStrength: isDark ? 0.00 : 0.05,
+        whitenGated: !isDark,
       );
+
+  /// The primary brand color for Train Libre, sourced from the app icon.
+  static const Color brandAccentColor = Color(0xFFDDFF00);
+
+  /// A darkened version of the brand color for better contrast in Light Mode.
+  static const Color brandAccentColorLightMode = Color(0xFF8B9E00);
+
+  /// A rich, saturated red used for destructive actions and errors.
+  /// Chosen for maximum visual impact: vivid, warm, and unmistakably urgent.
+  static const Color brandRedColor = Color(0xFFE5253A);
+
+  /// The standard colors used for AI-related gradients and accents.
+  static const List<Color> aiGradientColors = [
+    Color(0xFFE88DCC),
+    Color(0xFFF4A77A),
+    Color(0xFFF7D06B),
+    Color(0xFF7DDEAE),
+    Color(0xFF6DC8D9),
+  ];
+
+  /// Creates a linear gradient shader for AI-themed icons and elements.
+  static Shader createAiGradientShader(Rect bounds) {
+    return const LinearGradient(
+      colors: aiGradientColors,
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ).createShader(bounds);
+  }
+
+  static const Color summaryCardWhiteMode = Color.fromARGB(255, 235, 235, 235);
 }
 
 /// A custom clipper that clips out the inner area of a shape, leaving only
@@ -124,7 +270,8 @@ class ShadowOuterClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    final Path outer = Path()..addRect(Rect.fromLTWH(-100, -100, size.width + 200, size.height + 200));
+    final Path outer = Path()
+      ..addRect(Rect.fromLTWH(-100, -100, size.width + 200, size.height + 200));
     final Path inner = Path();
     if (isOval) {
       inner.addOval(Rect.fromLTWH(0, 0, size.width, size.height));
@@ -139,6 +286,7 @@ class ShadowOuterClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant ShadowOuterClipper oldClipper) {
-    return oldClipper.borderRadius != borderRadius || oldClipper.isOval != isOval;
+    return oldClipper.borderRadius != borderRadius ||
+        oldClipper.isOval != isOval;
   }
 }

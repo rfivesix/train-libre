@@ -152,13 +152,25 @@ class WorkoutLocalDataSource {
     final localIdsByUuid = {
       for (final row in logRows) row.id: row.localId,
     };
-    final setRows = await (dbInstance.select(dbInstance.setLogs)
-          ..where((tbl) => tbl.workoutLogId.isIn(localIdsByUuid.keys))
-          ..orderBy([
-            (t) => drift.OrderingTerm(expression: t.workoutLogId),
-            (t) => drift.OrderingTerm(expression: t.logOrder),
-          ]))
-        .get();
+
+    final allUuids = localIdsByUuid.keys.toList();
+    final setRows = <db.SetLog>[];
+
+    const chunkSize = 500;
+    for (var i = 0; i < allUuids.length; i += chunkSize) {
+      final chunk = allUuids.sublist(
+        i,
+        i + chunkSize > allUuids.length ? allUuids.length : i + chunkSize,
+      );
+      final batchSets = await (dbInstance.select(dbInstance.setLogs)
+            ..where((tbl) => tbl.workoutLogId.isIn(chunk))
+            ..orderBy([
+              (t) => drift.OrderingTerm(expression: t.workoutLogId),
+              (t) => drift.OrderingTerm(expression: t.logOrder),
+            ]))
+          .get();
+      setRows.addAll(batchSets);
+    }
 
     final setsByWorkoutUuid = <String, List<db.SetLog>>{};
     for (final setRow in setRows) {

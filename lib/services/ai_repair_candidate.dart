@@ -5,13 +5,13 @@ import '../features/diary/domain/models/food_item.dart';
 /// A compact representation of a real database food entity,
 /// formatted for injection into an AI repair prompt.
 class AiRepairCandidate {
-  final String exactName;     // The exact DB product name the AI must use
-  final String? barcode;      // For direct barcode matching after repair
+  final String exactName; // The exact DB product name the AI must use
+  final String? barcode; // For direct barcode matching after repair
   final int kcalPer100g;
   final double proteinPer100g;
   final double carbsPer100g;
   final double fatPer100g;
-  final String source;        // "base" | "user" | "off"
+  final String source; // "base" | "user" | "off"
 
   const AiRepairCandidate({
     required this.exactName,

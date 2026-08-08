@@ -61,6 +61,10 @@ class AiMealCandidateItem {
   final double? confidence;
   final String? matchedBarcode;
   final String? stateHint;
+  final String? catalogSearchTerm;
+  final double? volumeCm3;
+  final double? depthConfidence;
+  final Map<String, dynamic>? spatialBoundingBox;
 
   const AiMealCandidateItem({
     required this.name,
@@ -68,6 +72,10 @@ class AiMealCandidateItem {
     this.confidence,
     this.matchedBarcode,
     this.stateHint,
+    this.catalogSearchTerm,
+    this.volumeCm3,
+    this.depthConfidence,
+    this.spatialBoundingBox,
   });
 
   AiMealCandidateItem copyWith({
@@ -76,6 +84,10 @@ class AiMealCandidateItem {
     double? confidence,
     String? matchedBarcode,
     String? stateHint,
+    String? catalogSearchTerm,
+    double? volumeCm3,
+    double? depthConfidence,
+    Map<String, dynamic>? spatialBoundingBox,
   }) {
     return AiMealCandidateItem(
       name: name ?? this.name,
@@ -83,6 +95,10 @@ class AiMealCandidateItem {
       confidence: confidence ?? this.confidence,
       matchedBarcode: matchedBarcode ?? this.matchedBarcode,
       stateHint: stateHint ?? this.stateHint,
+      catalogSearchTerm: catalogSearchTerm ?? this.catalogSearchTerm,
+      volumeCm3: volumeCm3 ?? this.volumeCm3,
+      depthConfidence: depthConfidence ?? this.depthConfidence,
+      spatialBoundingBox: spatialBoundingBox ?? this.spatialBoundingBox,
     );
   }
 
@@ -93,6 +109,10 @@ class AiMealCandidateItem {
       if (confidence != null) 'confidence': confidence,
       if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
       if (stateHint != null) 'stateHint': stateHint,
+      if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
+      if (volumeCm3 != null) 'volumeCm3': volumeCm3,
+      if (depthConfidence != null) 'depthConfidence': depthConfidence,
+      if (spatialBoundingBox != null) 'spatialBoundingBox': spatialBoundingBox,
     };
   }
 }
@@ -404,7 +424,8 @@ class AiValidationResult {
       buffer
         ..writeln('')
         ..writeln('CANDIDATES for item ${i + 1} ("${item.candidate.name}"):')
-        ..writeln('Choose the EXACT name from one of these real database entries:');
+        ..writeln(
+            'Choose the EXACT name from one of these real database entries:');
       for (final candidate in candidates) {
         buffer.writeln(candidate.toPromptLine());
       }

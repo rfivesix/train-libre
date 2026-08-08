@@ -1,12 +1,14 @@
 // lib/screens/ai_meal_capture_screen.dart
 
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../services/ai_meal_validation.dart';
 import '../../../services/ai_service.dart';
+import 'util/photo_pre_processor.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -19,6 +21,9 @@ import '../../../widgets/common/algorithm_info_sheet.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// Screen for capturing meal input via photo(s) or text before AI analysis.
 ///
@@ -46,6 +51,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   // Photo state
   final List<File> _images = [];
   static const int _maxImages = 4;
+  final PhotoPreProcessor _preProcessor = PhotoPreProcessor();
 
   // Analysis state
   bool _isAnalyzing = false;
@@ -56,7 +62,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   bool _isOffDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized =
+        await BasisDataManager.instance.isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -67,6 +74,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.aiMealCapture));
     _checkDbStatus();
     _analyzeButtonAnimationController = AnimationController(
       vsync: this,
@@ -77,6 +86,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void dispose() {
     _stopAiWaitingHaptics();
+    _preProcessor.dispose();
     _textController.dispose();
     _analyzeButtonAnimationController.dispose();
     super.dispose();
@@ -100,32 +110,72 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     // English
     if (lower.contains('breakfast')) return 'mealtypeBreakfast';
     if (lower.contains('lunch')) return 'mealtypeLunch';
-    if (lower.contains('dinner') || lower.contains('supper')) return 'mealtypeDinner';
+    if (lower.contains('dinner') || lower.contains('supper')) {
+      return 'mealtypeDinner';
+    }
     if (lower.contains('snack')) return 'mealtypeSnack';
 
     // German
-    if (lower.contains('frühstück') || lower.contains('fruhstuck')) return 'mealtypeBreakfast';
+    if (lower.contains('frühstück') || lower.contains('fruhstuck')) {
+      return 'mealtypeBreakfast';
+    }
     if (lower.contains('mittag')) return 'mealtypeLunch';
     if (lower.contains('abend')) return 'mealtypeDinner';
-    if (lower.contains('snack') || lower.contains('zwischenmahlzeit')) return 'mealtypeSnack';
+    if (lower.contains('snack') || lower.contains('zwischenmahlzeit')) {
+      return 'mealtypeSnack';
+    }
 
     // French
-    if (lower.contains('petit-déjeuner') || lower.contains('petit déjeuner') || lower.contains('matin')) return 'mealtypeBreakfast';
-    if (lower.contains('déjeuner') || lower.contains('dejeuner') || lower.contains('midi')) return 'mealtypeLunch';
-    if (lower.contains('dîner') || lower.contains('diner') || lower.contains('souper') || lower.contains('soir')) return 'mealtypeDinner';
-    if (lower.contains('collation') || lower.contains('goûter') || lower.contains('gouter')) return 'mealtypeSnack';
+    if (lower.contains('petit-déjeuner') ||
+        lower.contains('petit déjeuner') ||
+        lower.contains('matin')) {
+      return 'mealtypeBreakfast';
+    }
+    if (lower.contains('déjeuner') ||
+        lower.contains('dejeuner') ||
+        lower.contains('midi')) {
+      return 'mealtypeLunch';
+    }
+    if (lower.contains('dîner') ||
+        lower.contains('diner') ||
+        lower.contains('souper') ||
+        lower.contains('soir')) {
+      return 'mealtypeDinner';
+    }
+    if (lower.contains('collation') ||
+        lower.contains('goûter') ||
+        lower.contains('gouter')) {
+      return 'mealtypeSnack';
+    }
 
     // Italian
     if (lower.contains('colazione')) return 'mealtypeBreakfast';
     if (lower.contains('pranzo')) return 'mealtypeLunch';
     if (lower.contains('cena')) return 'mealtypeDinner';
-    if (lower.contains('spuntino') || lower.contains('merenda')) return 'mealtypeSnack';
+    if (lower.contains('spuntino') || lower.contains('merenda')) {
+      return 'mealtypeSnack';
+    }
 
     // Japanese
-    if (lower.contains('朝食') || lower.contains('朝ごはん')) return 'mealtypeBreakfast';
-    if (lower.contains('昼食') || lower.contains('昼ごはん') || lower.contains('ランチ')) return 'mealtypeLunch';
-    if (lower.contains('夕食') || lower.contains('晩ごはん') || lower.contains('ディナー') || lower.contains('夜ごはん')) return 'mealtypeDinner';
-    if (lower.contains('間食') || lower.contains('おやつ') || lower.contains('スナック')) return 'mealtypeSnack';
+    if (lower.contains('朝食') || lower.contains('朝ごはん')) {
+      return 'mealtypeBreakfast';
+    }
+    if (lower.contains('昼食') ||
+        lower.contains('昼ごはん') ||
+        lower.contains('ランチ')) {
+      return 'mealtypeLunch';
+    }
+    if (lower.contains('夕食') ||
+        lower.contains('晩ごはん') ||
+        lower.contains('ディナー') ||
+        lower.contains('夜ごはん')) {
+      return 'mealtypeDinner';
+    }
+    if (lower.contains('間食') ||
+        lower.contains('おやつ') ||
+        lower.contains('スナック')) {
+      return 'mealtypeSnack';
+    }
 
     return null;
   }
@@ -142,7 +192,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       maxWidth: 1024,
     );
     if (photo != null && mounted) {
-      setState(() => _images.add(File(photo.path)));
+      final file = File(photo.path);
+      setState(() => _images.add(file));
+      _preProcessor.processImages([file]);
     }
   }
 
@@ -155,13 +207,17 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       maxWidth: 1024,
     );
     if (picked.isNotEmpty && mounted) {
+      final newFiles = picked.take(remaining).map((x) => File(x.path)).toList();
       setState(() {
-        _images.addAll(picked.take(remaining).map((x) => File(x.path)));
+        _images.addAll(newFiles);
       });
+      _preProcessor.processImages(newFiles);
     }
   }
 
   void _removeImage(int index) {
+    final file = _images[index];
+    _preProcessor.cancelAndRemove(file);
     setState(() => _images.removeAt(index));
   }
 
@@ -177,13 +233,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     setState(() => _isAnalyzing = true);
     _startAiWaitingHaptics();
 
-    // Resolve the AI matching language (decoupled from app UI locale)
-    final aiMatchLang = await AiMatchingLanguageService.readChoice();
     if (!mounted) return;
-    final languageCode = await AiMatchingLanguageService.resolveLanguageCode(
-      choice: aiMatchLang,
+    final matchingContext =
+        await AiMatchingLanguageService.resolveMatchingContext(
       context: context,
     );
+
+    if (_images.isNotEmpty) {
+      await _preProcessor.waitForCompletion(_images);
+    }
+    if (!mounted) return;
 
     try {
       AiMealCandidate candidate;
@@ -193,17 +252,17 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         candidate = await AiService.instance.analyzeImages(
           _images,
           textHint: text.isNotEmpty ? text : null,
-          languageCode: languageCode,
+          matchingContext: matchingContext,
         );
       } else {
         candidate = await AiService.instance.analyzeText(
           text,
-          languageCode: languageCode,
+          matchingContext: matchingContext,
         );
       }
 
       final validationOutcome =
-          await _validateAndRepair(candidate, languageCode);
+          await _validateAndRepair(candidate, matchingContext);
 
       if (!mounted) return;
 
@@ -252,6 +311,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
+    } catch (e) {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.error),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     } finally {
       _stopAiWaitingHaptics();
       if (mounted) setState(() => _isAnalyzing = false);
@@ -260,7 +329,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   Future<AiRepairOutcome> _validateAndRepair(
     AiMealCandidate candidate,
-    String languageCode,
+    AiMatchingContext matchingContext,
   ) {
     final engine = AiMealValidationEngine();
     final orchestrator = AiRepairOrchestrator(validationEngine: engine);
@@ -272,7 +341,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           candidate: candidate,
           validation: validation,
           images: _images.isNotEmpty ? _images : null,
-          languageCode: languageCode,
+          matchingContext: matchingContext,
           mealContext: candidate.context,
         );
       },
@@ -295,14 +364,15 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.secondary(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l10n.cancel),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
                 ),
               ),
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
-                child: FilledButton(
+                child: AppButton.primary(
                   onPressed: () {
                     Navigator.of(ctx).pop();
                     Navigator.of(context).push(
@@ -310,7 +380,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           builder: (_) => const AiSettingsScreen()),
                     );
                   },
-                  child: Text(l10n.aiSettingsTitle),
+                  label: l10n.aiSettingsTitle,
+                  tooltip: l10n.aiSettingsTitle,
                 ),
               ),
             ],
@@ -350,42 +421,43 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               body: l10n.offPlaceholderText,
               icon: LucideIcons.database,
               onDownloadPressed: () async {
-                await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+                await BasisDataManager.instance
+                    .promptOffDatabaseDownloadIfFirstTime(context);
                 await _checkDbStatus();
               },
             )
           : Column(
               children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_images.isNotEmpty) ...[
-                    _buildUnifiedPhotoList(theme),
-                    const SizedBox(height: 20),
-                  ],
-                ],
-              ),
-            ),
-          ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_images.isNotEmpty) ...[
+                          _buildUnifiedPhotoList(theme),
+                          const SizedBox(height: 20),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
 
-          // Unified Input Area
-          _buildUnifiedInputArea(l10n, theme),
+                // Unified Input Area
+                _buildUnifiedInputArea(l10n, theme),
 
-          // Analyze button — AI gradient CTA with inline loading
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
-            child: _AiAnalyzeButton(
-              onPressed: (_hasInput && !_isAnalyzing) ? _analyze : null,
-              isAnalyzing: _isAnalyzing,
-              l10n: l10n,
-              pulseController: _analyzeButtonAnimationController,
+                // Analyze button — AI gradient CTA with inline loading
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
+                  child: _AiAnalyzeButton(
+                    onPressed: (_hasInput && !_isAnalyzing) ? _analyze : null,
+                    isAnalyzing: _isAnalyzing,
+                    l10n: l10n,
+                    pulseController: _analyzeButtonAnimationController,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -400,7 +472,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         SizedBox(
           height: 140,
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingXL),
             scrollDirection: Axis.horizontal,
             itemCount: _images.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
@@ -409,7 +482,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ),
         const SizedBox(height: DesignConstants.spacingS),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
+          padding:
+              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
           child: Text(
             '${_images.length} / $_maxImages',
             style: theme.textTheme.bodySmall?.copyWith(
@@ -422,40 +496,88 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Widget _buildPhotoThumbnail(int index, ThemeData theme) {
-    return Stack(
-      children: [
-        Container(
-          width: 140,
-          height: 140,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant,
-              width: 1.5,
-            ),
-            image: DecorationImage(
-              image: FileImage(_images[index]),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Positioned(
-          top: 6,
-          right: 6,
-          child: GestureDetector(
-            onTap: () => _removeImage(index),
-            child: Container(
-              padding: const EdgeInsets.all(4),
+    final file = _images[index];
+    final notifier = _preProcessor.getNotifier(file);
+
+    return ValueListenableBuilder<PreProcessState>(
+      valueListenable: notifier,
+      builder: (context, state, _) {
+        final isPreparing = state.status == PreProcessStatus.processing ||
+            state.status == PreProcessStatus.idle;
+
+        return Stack(
+          children: [
+            Container(
+              width: 140,
+              height: 140,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white24, width: 1),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusL),
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 1.5,
+                ),
               ),
-              child: const Icon(LucideIcons.x, size: 14, color: Colors.white),
+              child: ClipRRect(
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusL - 1.5),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.file(
+                      file,
+                      fit: BoxFit.cover,
+                    ),
+                    if (isPreparing) ...[
+                      ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.3),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: state.progress.clamp(0.05, 1.0),
+                            child: Container(
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+            Positioned(
+              top: 6,
+              right: 6,
+              child: GestureDetector(
+                onTap: () => _removeImage(index),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white24, width: 1),
+                  ),
+                  child:
+                      const Icon(LucideIcons.x, size: 14, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -464,7 +586,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     ThemeData theme,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
+      padding:
+          const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
       child: Column(
         children: [
           TextField(
@@ -480,7 +603,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               ),
               filled: true,
               fillColor: theme.colorScheme.surfaceContainerLow,
-              contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingL,
                 vertical: DesignConstants.spacingM,
               ),
               enabledBorder: OutlineInputBorder(

@@ -302,7 +302,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
     );
   }
 
-  Future<void> updateRoutineExerciseNotes(int routineExerciseId, String? notes) async {
+  Future<void> updateRoutineExerciseNotes(
+      int routineExerciseId, String? notes) async {
     final dbInstance = await database;
     await (dbInstance.update(
       dbInstance.routineExercises,
@@ -415,12 +416,15 @@ extension RoutinesQueries on WorkoutLocalDataSource {
       if (routineRow == null) return;
 
       // 2. Load original routine exercises
-      final originalExercises = await (dbInstance.select(dbInstance.routineExercises)
+      final originalExercises = await (dbInstance
+              .select(dbInstance.routineExercises)
             ..where((tbl) => tbl.routineId.equals(routineUuid))
             ..orderBy([(t) => drift.OrderingTerm(expression: t.orderIndex)]))
           .get();
 
-      final originalExByUuid = {for (final re in originalExercises) re.exerciseId: re};
+      final originalExByUuid = {
+        for (final re in originalExercises) re.exerciseId: re
+      };
 
       // 3. Load completed session sets
       final completedSets = await (dbInstance.select(dbInstance.setLogs)
@@ -435,7 +439,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         if (set.exerciseId != null && set.exerciseId!.isNotEmpty) {
           return set.exerciseId;
         }
-        final exercise = await getExerciseByName(set.exerciseNameSnapshot ?? '');
+        final exercise =
+            await getExerciseByName(set.exerciseNameSnapshot ?? '');
         return exercise?.uuid;
       }
 
@@ -462,7 +467,9 @@ extension RoutinesQueries on WorkoutLocalDataSource {
       }
 
       // 6. Realignment, expansion, contraction, and absorption
-      for (int orderIndex = 0; orderIndex < orderedExerciseUuids.length; orderIndex++) {
+      for (int orderIndex = 0;
+          orderIndex < orderedExerciseUuids.length;
+          orderIndex++) {
         final exerciseUuid = orderedExerciseUuids[orderIndex];
         final setsForEx = setsByExerciseUuid[exerciseUuid]!;
 
@@ -473,11 +480,14 @@ extension RoutinesQueries on WorkoutLocalDataSource {
           // Rule 1: Sequence Order Realignment (No Deletion)
           await (dbInstance.update(dbInstance.routineExercises)
                 ..where((tbl) => tbl.id.equals(originalRe.id)))
-              .write(db.RoutineExercisesCompanion(orderIndex: drift.Value(orderIndex)));
+              .write(db.RoutineExercisesCompanion(
+                  orderIndex: drift.Value(orderIndex)));
           routineExerciseUuid = originalRe.id;
         } else {
           // Rule 3: Total Absorption for Novel Entities
-          final newReRow = await dbInstance.into(dbInstance.routineExercises).insertReturning(
+          final newReRow = await dbInstance
+              .into(dbInstance.routineExercises)
+              .insertReturning(
                 db.RoutineExercisesCompanion(
                   routineId: drift.Value(routineUuid),
                   exerciseId: drift.Value(exerciseUuid),
@@ -490,7 +500,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         // Load original templates for this exercise (if it existed)
         final List<db.RoutineSetTemplate> originalTemplates;
         if (originalRe != null) {
-          originalTemplates = await (dbInstance.select(dbInstance.routineSetTemplates)
+          originalTemplates = await (dbInstance
+                  .select(dbInstance.routineSetTemplates)
                 ..where((tbl) => tbl.routineExerciseId.equals(originalRe.id))
                 ..orderBy([(t) => drift.OrderingTerm(expression: t.localId)]))
               .get();
@@ -499,11 +510,19 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         }
 
         // Separate templates and sets into warmup and working buckets
-        final originalWarmups = originalTemplates.where((t) => t.setType.toLowerCase() == 'warmup').toList();
-        final originalWorkings = originalTemplates.where((t) => t.setType.toLowerCase() != 'warmup').toList();
+        final originalWarmups = originalTemplates
+            .where((t) => t.setType.toLowerCase() == 'warmup')
+            .toList();
+        final originalWorkings = originalTemplates
+            .where((t) => t.setType.toLowerCase() != 'warmup')
+            .toList();
 
-        final completedWarmups = setsForEx.where((s) => s.setType.toLowerCase() == 'warmup').toList();
-        final completedWorkings = setsForEx.where((s) => s.setType.toLowerCase() != 'warmup').toList();
+        final completedWarmups = setsForEx
+            .where((s) => s.setType.toLowerCase() == 'warmup')
+            .toList();
+        final completedWorkings = setsForEx
+            .where((s) => s.setType.toLowerCase() != 'warmup')
+            .toList();
 
         // Sync Warmups
         await _syncSetTemplatesBucket(
@@ -522,8 +541,10 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         );
 
         // 7. Re-order/re-create templates to enforce warmups are always stored/loaded before workings (localId order)
-        final finalTemplates = await (dbInstance.select(dbInstance.routineSetTemplates)
-              ..where((tbl) => tbl.routineExerciseId.equals(routineExerciseUuid)))
+        final finalTemplates = await (dbInstance
+                .select(dbInstance.routineSetTemplates)
+              ..where(
+                  (tbl) => tbl.routineExerciseId.equals(routineExerciseUuid)))
             .get();
 
         final sortedTemplates = [
@@ -533,7 +554,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
         // Delete existing templates for this exercise
         await (dbInstance.delete(dbInstance.routineSetTemplates)
-              ..where((tbl) => tbl.routineExerciseId.equals(routineExerciseUuid)))
+              ..where(
+                  (tbl) => tbl.routineExerciseId.equals(routineExerciseUuid)))
             .go();
 
         // Re-insert in correct sorted order to establish sequential localId ordering
@@ -574,17 +596,17 @@ extension RoutinesQueries on WorkoutLocalDataSource {
           await (dbInstance.update(dbInstance.routineExercises)
                 ..where((tbl) => tbl.id.equals(routineExerciseUuid)))
               .write(db.RoutineExercisesCompanion(
-                pauseSeconds: drift.Value(setLog.restTimeSeconds),
-              ));
+            pauseSeconds: drift.Value(setLog.restTimeSeconds),
+          ));
         }
       } else if (i >= origCount && i < compCount) {
         // Scenario B: Volume Expansion (Sets Added)
         final setLog = completedSets[i];
-        
+
         String? targetReps;
         double? targetWeight;
         int? targetRir;
-        
+
         if (originalTemplates.isNotEmpty) {
           final lastTemplate = originalTemplates.last;
           targetReps = lastTemplate.targetReps;
@@ -610,8 +632,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
           await (dbInstance.update(dbInstance.routineExercises)
                 ..where((tbl) => tbl.id.equals(routineExerciseUuid)))
               .write(db.RoutineExercisesCompanion(
-                pauseSeconds: drift.Value(setLog.restTimeSeconds),
-              ));
+            pauseSeconds: drift.Value(setLog.restTimeSeconds),
+          ));
         }
       } else if (i < origCount && i >= compCount) {
         // Scenario C: Volume Contraction (Sets Removed)
@@ -655,7 +677,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         if (set.exerciseId != null && set.exerciseId!.isNotEmpty) {
           return set.exerciseId;
         }
-        final exercise = await getExerciseByName(set.exerciseNameSnapshot ?? '');
+        final exercise =
+            await getExerciseByName(set.exerciseNameSnapshot ?? '');
         return exercise?.uuid;
       }
 
@@ -673,17 +696,20 @@ extension RoutinesQueries on WorkoutLocalDataSource {
       }
 
       // 4. Create routine exercises and set templates
-      for (int orderIndex = 0; orderIndex < orderedExerciseUuids.length; orderIndex++) {
+      for (int orderIndex = 0;
+          orderIndex < orderedExerciseUuids.length;
+          orderIndex++) {
         final exerciseUuid = orderedExerciseUuids[orderIndex];
         final setsForEx = setsByExerciseUuid[exerciseUuid]!;
 
-        final newReRow = await dbInstance.into(dbInstance.routineExercises).insertReturning(
-              db.RoutineExercisesCompanion(
-                routineId: drift.Value(routineRow.id),
-                exerciseId: drift.Value(exerciseUuid),
-                orderIndex: drift.Value(orderIndex),
-              ),
-            );
+        final newReRow =
+            await dbInstance.into(dbInstance.routineExercises).insertReturning(
+                  db.RoutineExercisesCompanion(
+                    routineId: drift.Value(routineRow.id),
+                    exerciseId: drift.Value(exerciseUuid),
+                    orderIndex: drift.Value(orderIndex),
+                  ),
+                );
 
         // Sort setsForEx to ensure warmups are first, and workings are second
         final sortedSets = [
@@ -716,8 +742,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
           await (dbInstance.update(dbInstance.routineExercises)
                 ..where((tbl) => tbl.id.equals(newReRow.id)))
               .write(db.RoutineExercisesCompanion(
-                pauseSeconds: drift.Value(pauseSeconds),
-              ));
+            pauseSeconds: drift.Value(pauseSeconds),
+          ));
         }
       }
 

@@ -83,7 +83,8 @@ class AddMenuSheet extends StatelessWidget {
         ),
       ),
       tileColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
       onTap: onTap,
     );
   }

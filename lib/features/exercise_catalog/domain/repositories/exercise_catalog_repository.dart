@@ -14,6 +14,7 @@ abstract class IExerciseCatalogRepository {
   Future<Exercise?> getExerciseByUuid(String exerciseUuid);
   Future<Exercise> insertExercise(Exercise exercise);
   Future<void> updateCustomExercise(Exercise exercise);
+  Future<bool> deleteCustomExercise(int localId);
   Future<List<Exercise>> getCustomExercises();
   Future<void> importCustomExercises(List<Exercise> exercises);
   Future<void> applyExerciseNameMapping(Map<String, String> mapping);
@@ -22,11 +23,13 @@ abstract class IExerciseCatalogRepository {
     String exerciseName, {
     String? altName,
     String? exerciseUuid,
+    bool isCardio = false,
   });
   Future<List<Map<String, dynamic>>> getExerciseTimeSeriesData(
     String exerciseName, {
     String? altName,
     String? exerciseUuid,
+    bool isCardio = false,
   });
   Future<List<String>> getAllCategories();
   Future<List<String>> getAllMuscleGroups();

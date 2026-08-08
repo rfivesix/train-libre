@@ -98,10 +98,10 @@ class SleepPeriodAggregationEngine {
       sleepWindows: windows,
       meanScore: _meanScore(days),
       weekdayAverageDuration: _averageDuration(
-        days.where((day) => day.date.weekday <= DateTime.friday).toList(),
+        days.where((day) => day.date.weekday <= DateTime.friday),
       ),
       weekendAverageDuration: _averageDuration(
-        days.where((day) => day.date.weekday >= DateTime.saturday).toList(),
+        days.where((day) => day.date.weekday >= DateTime.saturday),
       ),
     );
   }
@@ -134,10 +134,10 @@ class SleepPeriodAggregationEngine {
       days: days,
       meanScore: _meanScore(days),
       weekdayAverageDuration: _averageDuration(
-        days.where((day) => day.date.weekday <= DateTime.friday).toList(),
+        days.where((day) => day.date.weekday <= DateTime.friday),
       ),
       weekendAverageDuration: _averageDuration(
-        days.where((day) => day.date.weekday >= DateTime.saturday).toList(),
+        days.where((day) => day.date.weekday >= DateTime.saturday),
       ),
     );
   }
@@ -181,7 +181,8 @@ class SleepPeriodAggregationEngine {
       }
 
       byDate[key] = primary.copyWith(
-        totalSleepMinutes: totalMinutes > 0 ? totalMinutes : primary.totalSleepMinutes,
+        totalSleepMinutes:
+            totalMinutes > 0 ? totalMinutes : primary.totalSleepMinutes,
       );
     }
     return byDate;
@@ -247,22 +248,31 @@ class SleepPeriodAggregationEngine {
     return minuteOfDay;
   }
 
-  double? _meanScore(List<SleepDayAggregate> days) {
-    final values = days.map((day) => day.score).whereType<double>().toList();
-    if (values.isEmpty) return null;
-    final sum = values.fold<double>(0, (total, value) => total + value);
-    return sum / values.length;
+  double? _meanScore(Iterable<SleepDayAggregate> days) {
+    double sum = 0.0;
+    int count = 0;
+    for (final day in days) {
+      if (day.score != null) {
+        sum += day.score!;
+        count++;
+      }
+    }
+    if (count == 0) return null;
+    return sum / count;
   }
 
-  Duration? _averageDuration(List<SleepDayAggregate> days) {
-    final durations = days
-        .map((day) => day.totalSleepMinutes)
-        .whereType<int>()
-        .where((minutes) => minutes > 0)
-        .toList();
-    if (durations.isEmpty) return null;
-    final sum = durations.fold<int>(0, (total, value) => total + value);
-    return Duration(minutes: (sum / durations.length).round());
+  Duration? _averageDuration(Iterable<SleepDayAggregate> days) {
+    int sum = 0;
+    int count = 0;
+    for (final day in days) {
+      final totalSleepMinutes = day.totalSleepMinutes;
+      if (totalSleepMinutes != null && totalSleepMinutes > 0) {
+        sum += totalSleepMinutes;
+        count++;
+      }
+    }
+    if (count == 0) return null;
+    return Duration(minutes: (sum / count).round());
   }
 
   DateTime _normalizeDate(DateTime value) =>

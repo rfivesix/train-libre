@@ -49,13 +49,21 @@ class SleepRegularityIndexResult {
 /// - This implementation uses 1-minute binary sleep/wake vectors and returns
 ///   a 0..100 probability score.
 SleepRegularityIndexResult calculateSleepRegularityIndex({
-  required List<DailySleepWakeState> dailyStates,
+  required Iterable<DailySleepWakeState> dailyStates,
   int minimumValidDays = 5,
   int stableValidDays = 7,
 }) {
-  final sorted = List<DailySleepWakeState>.from(dailyStates)
-    ..sort((a, b) => a.day.compareTo(b.day));
-  final valid = sorted.where((state) => state.hasSleepData).toList();
+  final valid = <DailySleepWakeState>[];
+
+  // BOLT OPTIMIZATION: Previously, the entire dailyStates array was copied,
+  // fully sorted (O(N log N)), and then filtered. We reverse the order: we
+  // first filter out invalid elements in a single O(N) pass without extra arrays.
+  for (final state in dailyStates) {
+    if (state.hasSleepData) {
+      valid.add(state);
+    }
+  }
+
   final validDays = valid.length;
   if (validDays < minimumValidDays || valid.length < 2) {
     return SleepRegularityIndexResult(
@@ -66,6 +74,10 @@ SleepRegularityIndexResult calculateSleepRegularityIndex({
       stable: false,
     );
   }
+
+  // BOLT OPTIMIZATION: We now only sort the valid items, reducing sort complexity
+  // from O(N log N) to O(V log V) where V <= N.
+  valid.sort((a, b) => a.day.compareTo(b.day));
 
   var matches = 0;
   var comparisons = 0;

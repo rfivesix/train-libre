@@ -7,9 +7,8 @@ import '../domain/repositories/profile_repository.dart';
 import '../domain/models/user_gender.dart';
 import '../../../data/drift_database.dart' as db; // Access to Profile class
 import '../../../generated/app_localizations.dart';
-import 'goals_screen.dart';
-import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
+import 'goals_screen.dart';
 import '../../../services/profile_service.dart';
 import '../../../services/unit_service.dart';
 import '../../app/presentation/about_screen.dart';
@@ -21,6 +20,7 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// A screen for managing user-specific identity and data.
 class ProfileScreen extends StatefulWidget {
@@ -132,7 +132,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     labelText: l10n.onboardingNameLabel,
                     prefixIcon: const Icon(LucideIcons.user),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM),
                     ),
                   ),
                 ),
@@ -157,7 +158,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             labelText: l10n.onboardingDobLabel,
                             prefixIcon: const Icon(LucideIcons.cake),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                              borderRadius: BorderRadius.circular(
+                                  DesignConstants.borderRadiusM),
                             ),
                           ),
                           child: Text(
@@ -174,9 +176,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         decoration: InputDecoration(
                           labelText: l10n.onboardingGenderLabel,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                            borderRadius: BorderRadius.circular(
+                                DesignConstants.borderRadiusM),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 10,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
                             vertical: DesignConstants.spacingL,
                           ),
                         ),
@@ -204,17 +208,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton.secondary(
                         onPressed: () {
                           close();
                           Navigator.of(ctx).pop();
                         },
-                        child: Text(l10n.cancel),
+                        label: l10n.cancel,
+                        tooltip: l10n.cancel,
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
-                      child: FilledButton(
+                      child: AppButton.primary(
                         onPressed: () async {
                           final parsedHeight = double.tryParse(
                             heightCtrl.text.replaceAll(',', '.'),
@@ -235,18 +240,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: heightMetric,
                             gender: selectedGender,
                           );
+                          profileService.updateUserName(nameCtrl.text.trim());
                           if (selectedGender != null) {
                             await profileService.updateGender(
                               UserGender.fromString(selectedGender),
                               _repository,
                             );
                           }
+
                           if (!ctx.mounted) return;
                           close();
                           Navigator.of(ctx).pop();
                           _loadProfileData();
                         },
-                        child: Text(l10n.save),
+                        label: l10n.save,
+                        tooltip: l10n.save,
                       ),
                     ),
                   ],
@@ -370,7 +378,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: DesignConstants.spacingXS),
+                                const SizedBox(
+                                    height: DesignConstants.spacingXS),
                                 if (subline.isNotEmpty)
                                   Text(
                                     subline,
@@ -437,11 +446,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     );
                   },
                 ),
-                _buildOnboardingCard(l10n),
-                const SizedBox(height: DesignConstants.spacingM),
-                AppSectionHeader(title: l10n.about_section),
-                _buildNavigationCard(
-                  icon: LucideIcons.info,
+                AppLinkRow(
                   title: l10n.about_train_libre,
                   subtitle: l10n.app_version,
                   onTap: () {
@@ -452,10 +457,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     );
                   },
                 ),
-                const SizedBox(height: DesignConstants.spacingM),
-                AppSectionHeader(title: l10n.legal_section),
-                _buildNavigationCard(
-                  icon: LucideIcons.scale,
+                AppLinkRow(
                   title: l10n.legal_section,
                   subtitle: '${l10n.legal_notice} & ${l10n.privacy_policy}',
                   onTap: () {
@@ -493,36 +495,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24.0),
         ),
-      ),
-    );
-  }
-
-  Widget _buildOnboardingCard(AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    return SummaryCard(
-      child: ListTile(
-        leading: Icon(
-          LucideIcons.graduation_cap,
-          size: 36,
-          color: theme.colorScheme.primary,
-        ),
-        title: Text(
-          l10n.onbShowTutorialAgain,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        subtitle: Text(l10n.onbFinishBody, style: theme.textTheme.bodyMedium),
-        trailing: const Icon(LucideIcons.chevron_right),
-        onTap: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
-        },
-        contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
-          vertical: DesignConstants.spacingM,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM)),
       ),
     );
   }

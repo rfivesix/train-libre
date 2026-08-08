@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
@@ -12,6 +14,7 @@ import '../data/backup_restore_diagnostics_provider.dart';
 import '../domain/feedback_report_builder.dart';
 import '../domain/feedback_report_models.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
 
 class FeedbackReportScreen extends StatefulWidget {
   final FeedbackReportBuilder? reportBuilder;
@@ -54,6 +57,8 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           backupRestoreDiagnosticsProvider: BackupRestoreDiagnosticsProvider(),
         );
     _actions = widget.actions ?? FeedbackReportActions();
+    unawaited(TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.feedbackReport));
   }
 
   @override
@@ -136,6 +141,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       }
     }
 
+    _trackReportSubmission('copied');
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -168,6 +174,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       }
     }
 
+    _trackReportSubmission('saved_file');
     if (!mounted) return;
     setState(() => _savedFilePath = savedPath);
 
@@ -207,6 +214,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       }
     }
 
+    _trackReportSubmission('shared');
     if (!mounted) return;
     final wasShared = status == ShareResultStatus.success;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -248,6 +256,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       }
     }
 
+    _trackReportSubmission('email');
     if (!mounted) return;
     if (!opened) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -256,6 +265,143 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
         ),
       );
     }
+  }
+
+  List<String> get _activeIncludedSections => [
+        if (_includeAdaptiveDiagnostics) 'adaptive_nutrition',
+        if (_includeBackupRestoreDiagnostics) 'backup_restore',
+        if (_includeUserNote && _noteController.text.trim().isNotEmpty)
+          'user_note',
+      ];
+
+  /// Diagnostic keys whose values are body measurements or nutrition
+  /// quantities. They are never attached to the telemetry event.
+  ///
+  /// The report the user sends through email, share or file export still
+  /// contains the full detail — those channels are under the user's own control
+  /// and go to the developer directly. The PostHog event only carries the
+  /// counters, confidence levels and state flags needed to reproduce a bug.
+  static bool _isSensitiveDiagnosticKey(String key) {
+    // Pure counters keep their signal without revealing a measured value.
+    if (key.endsWith('_count') || key.endsWith('_days')) return false;
+    return key.contains('weight') ||
+        key.contains('_kg') ||
+        key.contains('kcal') ||
+        key.contains('calorie') ||
+        key.contains('protein') ||
+        key.contains('carbs') ||
+        key.contains('fat') ||
+        key.contains('maintenance');
+  }
+
+  Map<String, dynamic> _buildDiagnosticsSummary(String? reportText) {
+    if (reportText == null || reportText.isEmpty) return {};
+    final summary = <String, dynamic>{};
+    // The free-text note is deliberately NOT included. It is unconstrained user
+    // input that can contain names, diagnoses or contact details; only its
+    // length is reported, via `userNoteLength`.
+    final lines = reportText.split('\n');
+    for (final rawLine in lines) {
+      var line = rawLine.trim();
+      if (line.startsWith('- ')) {
+        line = line.substring(2).trim();
+      }
+      final colonIndex = line.indexOf(':');
+      if (colonIndex > 0) {
+        final key = line.substring(0, colonIndex).trim();
+        final valueStr = line.substring(colonIndex + 1).trim();
+
+        final isDiagnosticKey = key.startsWith('feature_') ||
+            key.contains('goal_') ||
+            key.contains('target_') ||
+            key.contains('due_') ||
+            key.contains('recommendation') ||
+            key.contains('calories') ||
+            key.contains('protein') ||
+            key.contains('carbs') ||
+            key.contains('fat') ||
+            key.contains('weight') ||
+            key.contains('maintenance') ||
+            key.contains('confidence') ||
+            key.contains('warning') ||
+            key.contains('input_') ||
+            key.contains('posterior_') ||
+            key.contains('prior_') ||
+            key.contains('phase_') ||
+            key.contains('backup_') ||
+            key.contains('estimator_');
+
+        if (isDiagnosticKey && !_isSensitiveDiagnosticKey(key)) {
+          final safeKey =
+              'diag_${key.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')}';
+          final numValue = double.tryParse(valueStr);
+          if (numValue != null) {
+            summary[safeKey] = numValue;
+          } else if (valueStr == 'yes' || valueStr == 'true') {
+            summary[safeKey] = true;
+          } else if (valueStr == 'no' || valueStr == 'false') {
+            summary[safeKey] = false;
+          } else {
+            summary[safeKey] = valueStr;
+          }
+        }
+      }
+    }
+    return summary;
+  }
+
+  void _trackReportSubmission(String submissionMethod) {
+    final noteText = _noteController.text.trim();
+    final summary = _buildDiagnosticsSummary(_previewText);
+    unawaited(TelemetryService.instance.trackFeedbackReportSubmitted(
+      includedSections: _activeIncludedSections,
+      hasUserNote: _includeUserNote && noteText.isNotEmpty,
+      userNoteLength: _includeUserNote ? noteText.length : 0,
+      submissionMethod: submissionMethod,
+      diagnosticsSummary: summary,
+    ));
+  }
+
+  Future<void> _sendAnonymousReportToPostHog() async {
+    final previewText = _previewText;
+    if (previewText == null) return;
+
+    // Direct submission rides on the telemetry pipeline, which drops everything
+    // while the user is opted out. Reporting success in that case would claim a
+    // delivery that never happened, so check first and point at the channels
+    // that do work.
+    final canSubmit = await TelemetryService.instance.isOptedIn();
+
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final isGerman = l10n.localeName.startsWith('de');
+
+    if (!canSubmit) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isGerman
+                ? 'Direktversand benötigt die anonyme Nutzungsstatistik. '
+                    'Aktiviere sie in den Einstellungen oder nutze E-Mail bzw. Teilen.'
+                : 'Direct submission requires anonymous usage statistics. '
+                    'Enable it in Settings, or use email or share instead.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    _trackReportSubmission('posthog_direct');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isGerman
+              ? 'Diagnosebericht direkt an Entwickler gesendet. Vielen Dank!'
+              : 'Diagnostic report sent directly to developer. Thank you!',
+        ),
+      ),
+    );
   }
 
   @override
@@ -275,16 +421,9 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           top: DesignConstants.cardPadding.top + topPadding,
         ),
         children: [
-          AppSectionHeader(title: l10n.feedbackReportScreenTitle),
-          SummaryCard(
-            child: ListTile(
-              leading: const Icon(LucideIcons.shield_alert),
-              title: Text(
-                l10n.feedbackReportPrivacyTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(l10n.feedbackReportPrivacyBody),
-            ),
+          AppInfoRow(
+            title: l10n.feedbackReportPrivacyTitle,
+            subtitle: l10n.feedbackReportPrivacyBody,
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           AppSectionHeader(title: l10n.feedbackReportOptionalNoteTitle),
@@ -353,17 +492,11 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
           const SizedBox(height: DesignConstants.spacingL),
           SizedBox(
             width: double.infinity,
-            child: FilledButton.icon(
+            child: AppButton.primary(
               key: const Key('feedback_report_generate_preview_button'),
               onPressed: _isGeneratingPreview ? null : _generatePreview,
-              icon: _isGeneratingPreview
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(LucideIcons.eye),
-              label: Text(l10n.feedbackReportGeneratePreview),
+              label: l10n.feedbackReportGeneratePreview,
+              tooltip: l10n.feedbackReportGeneratePreview,
             ),
           ),
           if (_previewText != null) ...[
@@ -385,33 +518,52 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
               ),
             ),
             const SizedBox(height: DesignConstants.spacingL),
+            SizedBox(
+              width: double.infinity,
+              child: AppButton.primary(
+                key: const Key('feedback_report_action_send_posthog'),
+                onPressed: _sendAnonymousReportToPostHog,
+                label: l10n.localeName.startsWith('de')
+                    ? 'Direkt an Entwickler senden'
+                    : 'Send directly to developer',
+                tooltip: l10n.localeName.startsWith('de')
+                    ? 'Direkt an Entwickler senden'
+                    : 'Send directly to developer',
+                icon: LucideIcons.send,
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                OutlinedButton.icon(
+                AppButton.secondary(
                   key: const Key('feedback_report_action_copy'),
                   onPressed: _isCopying ? null : _copyReport,
-                  icon: const Icon(LucideIcons.copy),
-                  label: Text(l10n.feedbackReportActionCopy),
+                  label: l10n.feedbackReportActionCopy,
+                  tooltip: l10n.feedbackReportActionCopy,
+                  icon: LucideIcons.copy,
                 ),
-                OutlinedButton.icon(
+                AppButton.secondary(
                   key: const Key('feedback_report_action_save'),
                   onPressed: _isSaving ? null : _saveReportFile,
-                  icon: const Icon(LucideIcons.download),
-                  label: Text(l10n.feedbackReportActionSave),
+                  label: l10n.feedbackReportActionSave,
+                  tooltip: l10n.feedbackReportActionSave,
+                  icon: LucideIcons.download,
                 ),
-                OutlinedButton.icon(
+                AppButton.secondary(
                   key: const Key('feedback_report_action_share'),
                   onPressed: _isSharing ? null : _shareReport,
-                  icon: const Icon(LucideIcons.share),
-                  label: Text(l10n.feedbackReportActionShare),
+                  label: l10n.feedbackReportActionShare,
+                  tooltip: l10n.feedbackReportActionShare,
+                  icon: DesignConstants.adaptiveShareIcon,
                 ),
-                OutlinedButton.icon(
+                AppButton.secondary(
                   key: const Key('feedback_report_action_email'),
                   onPressed: _isEmailing ? null : _openEmailDraft,
-                  icon: const Icon(LucideIcons.mail),
-                  label: Text(l10n.feedbackReportActionEmail),
+                  label: l10n.feedbackReportActionEmail,
+                  tooltip: l10n.feedbackReportActionEmail,
+                  icon: LucideIcons.mail,
                 ),
               ],
             ),

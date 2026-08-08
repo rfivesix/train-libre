@@ -87,15 +87,22 @@ class HealthKitMapper {
       case 'awake':
         return CanonicalSleepStage.awake;
       case 'core':
+      case 'asleep_core':
         return CanonicalSleepStage.light;
       case 'deep':
+      case 'asleep_deep':
         return CanonicalSleepStage.deep;
       case 'rem':
+      case 'asleep_rem':
         return CanonicalSleepStage.rem;
       case 'in_bed':
       case 'inbed':
       case 'in bed':
         return CanonicalSleepStage.inBedOnly;
+      case 'asleep':
+      case 'asleep_unspecified':
+      case 'asleepunspecified':
+        return CanonicalSleepStage.asleepUnspecified;
       default:
         return CanonicalSleepStage.unknown;
     }

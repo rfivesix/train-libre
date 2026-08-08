@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 
-import '../../sleep/data/persistence/sleep_persistence_models.dart';
 import '../../sleep/platform/permissions/sleep_permission_controller.dart';
 import '../../sleep/platform/permissions/sleep_permission_models.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
@@ -36,7 +35,6 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
   late final bool _ownsSleepPermissionController;
 
   bool _sleepTrackingEnabled = false;
-  bool _isSleepRawLoading = false;
   bool _hasChanges = false;
 
   @override
@@ -66,84 +64,6 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
     if (!mounted) return;
     setState(() => _sleepTrackingEnabled = enabled);
     await _sleepPermissionController.refresh();
-  }
-
-  Future<List<SleepRawImportRecord>> _loadRawSleepImports() async {
-    final service = _sleepSyncService;
-    if (service is! SleepSyncService) return const <SleepRawImportRecord>[];
-    return service.fetchRecentRawImports();
-  }
-
-  String _formatRawImport(SleepRawImportRecord record, AppLocalizations l10n) {
-    final importedAt = record.importedAt.toLocal().toIso8601String();
-    final header = [
-      '${l10n.sleepRawImportImportedAt}: $importedAt',
-      '${l10n.sleepRawImportStatus}: ${record.importStatus}',
-      '${l10n.sleepRawImportSource}: ${record.sourcePlatform}',
-      if (record.sourceAppId != null)
-        '${l10n.sleepRawImportApp}: ${record.sourceAppId}',
-      if (record.sourceConfidence != null)
-        '${l10n.sleepRawImportConfidence}: ${record.sourceConfidence}',
-    ].join('\n');
-    final payload = () {
-      try {
-        final decoded = jsonDecode(record.payloadJson);
-        return const JsonEncoder.withIndent('  ').convert(decoded);
-      } catch (_) {
-        return record.payloadJson;
-      }
-    }();
-    return '$header\n${l10n.sleepRawImportPayload}:\n$payload';
-  }
-
-  Future<void> _showRawSleepImports() async {
-    final l10n = AppLocalizations.of(context)!;
-    if (_isSleepRawLoading) return;
-    setState(() => _isSleepRawLoading = true);
-    final records = await _loadRawSleepImports();
-    if (!mounted) return;
-    setState(() => _isSleepRawLoading = false);
-
-    if (records.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.sleepNoRawImportsFound)));
-      return;
-    }
-
-    final formatted = records
-        .map((record) => _formatRawImport(record, l10n))
-        .join('\n\n---\n\n');
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(DesignConstants.spacingL),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.sleepRawImportsSheetTitle,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: DesignConstants.spacingM),
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: SelectableText(
-                      formatted,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
   }
 
   String _sleepStatusSubtitle(
@@ -244,53 +164,53 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                         l10n.sleepHealthConnectionStatusTitle,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text(_sleepStatusSubtitle(permission, l10n)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_sleepStatusSubtitle(permission, l10n)),
+                          const SizedBox(height: 4),
+                          Text(
+                            permission.state == SleepPermissionState.ready
+                                ? (Platform.isIOS
+                                    ? l10n.sleepDataStatusSubtitleIos
+                                    : l10n.sleepDataStatusSubtitle)
+                                : (permission.state ==
+                                            SleepPermissionState.denied ||
+                                        permission.state ==
+                                            SleepPermissionState.partial
+                                    ? l10n.sleepNoPermissionSubtitle
+                                    : l10n.sleepFeatureUnavailableSubtitle),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                          ),
+                        ],
+                      ),
                       trailing: Icon(
-                        _sleepStatusIcon(permission.state),
+                        permission.state == SleepPermissionState.ready
+                            ? LucideIcons.circle_check
+                            : (permission.state ==
+                                        SleepPermissionState.denied ||
+                                    permission.state ==
+                                        SleepPermissionState.partial
+                                ? LucideIcons.chevron_right
+                                : _sleepStatusIcon(permission.state)),
                         color: _sleepStatusColor(context, permission.state),
                       ),
+                      onTap: (permission.state == SleepPermissionState.denied ||
+                              permission.state == SleepPermissionState.partial)
+                          ? () async {
+                              await _sleepPermissionController
+                                  .requestAccess(context);
+                              if (!mounted) return;
+                              setState(() {});
+                            }
+                          : null,
                     ),
-                    if (permission.state == SleepPermissionState.ready)
-                      ListTile(
-                        leading: const Icon(LucideIcons.info),
-                        title: Text(
-                          l10n.sleepDataStatusTitle,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(l10n.sleepDataStatusSubtitle),
-                      ),
-                    if (permission.state == SleepPermissionState.denied ||
-                        permission.state == SleepPermissionState.partial)
-                      ListTile(
-                        leading: const Icon(LucideIcons.lock),
-                        title: Text(
-                          l10n.sleepNoPermissionTitle,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(l10n.sleepNoPermissionSubtitle),
-                      ),
-                    if (permission.state == SleepPermissionState.unavailable ||
-                        permission.state == SleepPermissionState.notInstalled)
-                      ListTile(
-                        leading: const Icon(LucideIcons.signal_zero),
-                        title: Text(
-                          l10n.sleepFeatureUnavailableTitle,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(l10n.sleepFeatureUnavailableSubtitle),
-                      ),
                     const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(LucideIcons.lock_open),
-                      title: Text(l10n.sleepRequestAccessTitle),
-                      subtitle: Text(l10n.sleepRequestAccessSubtitle),
-                      trailing: const Icon(LucideIcons.chevron_right),
-                      onTap: () async {
-                        await _sleepPermissionController.requestAccess(context);
-                        if (!mounted) return;
-                        setState(() {});
-                      },
-                    ),
                     ListTile(
                       leading: const Icon(LucideIcons.refresh_cw),
                       title: Text(l10n.sleepImportNowTitle),
@@ -308,7 +228,7 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                           icon: LucideIcons.refresh_cw,
                           operation: (token, updateProgress) async {
                             importResult = await _sleepSyncService.importRecent(
-                              lookbackDays: 90,
+                              lookbackDays: 365,
                               forceFullSync: true,
                               token: token,
                               onProgress: (index, total) {
@@ -351,19 +271,6 @@ class _SleepSettingsScreenState extends State<SleepSettingsScreen> {
                         }
                         await _sleepPermissionController.refresh();
                       },
-                    ),
-                    ListTile(
-                      leading: const Icon(LucideIcons.braces),
-                      title: Text(l10n.sleepRawImportsTitle),
-                      subtitle: Text(l10n.sleepRawImportsSubtitle),
-                      trailing: _isSleepRawLoading
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(LucideIcons.chevron_right),
-                      onTap: _isSleepRawLoading ? null : _showRawSleepImports,
                     ),
                   ],
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../util/design_constants.dart';
 
 /// Configuration item for [PlatformAdaptivePopupMenu].
 class PlatformAdaptivePopupMenuItem<T> {
@@ -25,12 +26,16 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
   final Widget icon;
   final List<PlatformAdaptivePopupMenuItem<T>> items;
   final ValueChanged<T> onSelected;
+  final T? selectedValue;
+  final double menuWidth;
 
   const PlatformAdaptivePopupMenu({
     super.key,
     required this.icon,
     required this.items,
     required this.onSelected,
+    this.selectedValue,
+    this.menuWidth = 260.0,
   });
 
   @override
@@ -46,24 +51,37 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
       saturation: 1.20,
     );
 
-    return GlassMenu(
-      menuWidth: 200,
+    return AdaptiveLiquidGlassLayer(
       settings: menuSettings,
-      triggerBuilder: (context, toggle) => GestureDetector(
-        onTap: toggle,
-        behavior: HitTestBehavior.opaque,
-        child: icon,
+      quality: DesignConstants.defaultGlassQuality,
+      child: GlassMenu(
+        menuWidth: menuWidth,
+        settings: menuSettings,
+        triggerBuilder: (context, toggle) => GestureDetector(
+          onTap: toggle,
+          behavior: HitTestBehavior.opaque,
+          child: icon,
+        ),
+        items: items.map((item) {
+          final isSelected = selectedValue != null && item.value == selectedValue;
+          return GlassMenuItem(
+            title: item.label,
+            icon: item.icon != null ? Icon(item.icon, size: 20) : null,
+            isSelected: isSelected,
+            trailing: isSelected
+                ? Icon(
+                    LucideIcons.check,
+                    size: 18,
+                    color: isDark ? Colors.white : Colors.black87,
+                  )
+                : null,
+            isDestructive: item.isDestructive,
+            onTap: () {
+              onSelected(item.value);
+            },
+          );
+        }).toList(),
       ),
-      items: items.map((item) {
-        return GlassMenuItem(
-          title: item.label,
-          icon: item.icon != null ? Icon(item.icon, size: 20) : null,
-          isDestructive: item.isDestructive,
-          onTap: () {
-            onSelected(item.value);
-          },
-        );
-      }).toList(),
     );
   }
 }
@@ -120,72 +138,131 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
 
         // Find the currently selected item or fall back to the first item
         DropdownMenuItem<T>? selectedItem;
-        try {
-          selectedItem = items.firstWhere((item) => item.value == state.value);
-        } catch (_) {
-          if (items.isNotEmpty) {
-            selectedItem = items.first;
+        for (final item in items) {
+          if (item.value == state.value) {
+            selectedItem = item;
+            break;
           }
         }
+        if (selectedItem == null && items.isNotEmpty) {
+          selectedItem = items.first;
+        }
 
-        final selectedText = selectedItem != null ? _getItemText(selectedItem.child) : '';
-        final effectiveDecoration = (decoration ?? const InputDecoration()).copyWith(
-          errorText: state.errorText ?? errorText,
+        final selectedText =
+            selectedItem != null ? _getItemText(selectedItem.child) : '';
+        // Container background and border for proper contrast across Light & Dark modes:
+        // In Light Mode inside white cards (0xFFFFFFFF), input controls need subtle background tinting
+        // and border outlining so they don't appear as invisible "white-on-white".
+        final containerFillColor = isDark
+            ? Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E)
+            : const Color(0xFFF2F2F7);
+
+        final borderColor = isDark
+            ? Colors.white.withValues(alpha: 0.15)
+            : Colors.black.withValues(alpha: 0.12);
+
+        final defaultDecoration = InputDecoration(
+          filled: true,
+          fillColor: containerFillColor,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            borderSide: BorderSide(color: borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingM,
+            vertical: DesignConstants.spacingS + 2,
+          ),
+        );
+
+        final mergedDecoration = defaultDecoration.copyWith(
+          labelText: decoration?.labelText,
+          hintText: decoration?.hintText,
+          helperText: decoration?.helperText,
+          prefixIcon: decoration?.prefixIcon,
+          suffixIcon: decoration?.suffixIcon,
+          errorText: state.errorText ?? decoration?.errorText ?? errorText,
+          fillColor: decoration?.fillColor ?? containerFillColor,
+          filled: decoration?.filled ?? true,
+          contentPadding: decoration?.contentPadding,
+          border: decoration?.border != null && decoration?.border != const OutlineInputBorder()
+              ? decoration?.border
+              : defaultDecoration.border,
+          enabledBorder: decoration?.enabledBorder != null && decoration?.enabledBorder != const OutlineInputBorder()
+              ? decoration?.enabledBorder
+              : defaultDecoration.enabledBorder,
         );
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            final menuWidth = constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
-            return GlassMenu(
-              menuWidth: menuWidth,
+            final menuWidth =
+                constraints.maxWidth > 0 ? constraints.maxWidth : 280.0;
+            return AdaptiveLiquidGlassLayer(
               settings: menuSettings,
-              triggerBuilder: (context, toggle) {
-                return GestureDetector(
-                  onTap: onChanged == null ? null : toggle,
-                  behavior: HitTestBehavior.opaque,
-                  child: InputDecorator(
-                    decoration: effectiveDecoration,
-                    isEmpty: selectedText.isEmpty,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                         Expanded(
-                          child: Text(
-                            selectedText,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+              quality: DesignConstants.defaultGlassQuality,
+              child: GlassMenu(
+                menuWidth: menuWidth,
+                autoAdjustToScreen: true,
+                settings: menuSettings,
+                triggerBuilder: (context, toggle) {
+                  return GestureDetector(
+                    onTap: onChanged == null ? null : toggle,
+                    behavior: HitTestBehavior.opaque,
+                    child: InputDecorator(
+                      decoration: mergedDecoration,
+                      isEmpty: selectedText.isEmpty,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              selectedText,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
-                      ],
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-              items: items.map((item) {
-                final isSelected = item.value == state.value;
-                return GlassMenuItem(
-                  title: _getItemText(item.child),
-                  isSelected: isSelected,
-                  trailing: isSelected
-                      ? Icon(
-                          LucideIcons.check,
-                          size: 18,
-                          color: isDark ? Colors.white : Colors.black87,
-                        )
-                      : null,
-                  onTap: () {
-                    state.didChange(item.value);
-                    onChanged?.call(item.value);
-                  },
-                );
-              }).toList(),
+                  );
+                },
+                items: items.map((item) {
+                  final isSelected = item.value == state.value;
+                  return GlassMenuItem(
+                    title: _getItemText(item.child),
+                    isSelected: isSelected,
+                    trailing: isSelected
+                        ? Icon(
+                            LucideIcons.check,
+                            size: 18,
+                            color: isDark ? Colors.white : Colors.black87,
+                          )
+                        : null,
+                    onTap: () {
+                      state.didChange(item.value);
+                      onChanged?.call(item.value);
+                    },
+                  );
+                }).toList(),
+              ),
             );
           },
         );

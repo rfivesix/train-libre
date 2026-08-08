@@ -530,7 +530,8 @@ extension AiNetwork on AiService {
     } catch (e) {
       if (e is AiServiceException) rethrow;
       final errStr = e.toString().toLowerCase();
-      if (errStr.contains('connection refused') || errStr.contains('connection timed out')) {
+      if (errStr.contains('connection refused') ||
+          errStr.contains('connection timed out')) {
         if (provider == AiProvider.ollama) {
           throw const AiNetworkException(
             'Ollama is offline. Please make sure the Ollama server is running at http://localhost:11434',

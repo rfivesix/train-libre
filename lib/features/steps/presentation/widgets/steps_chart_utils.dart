@@ -1,5 +1,3 @@
-
-
 const double chartTopInset = 8;
 const double chartBottomInset = 28;
 const double chartLeftInset = 30;

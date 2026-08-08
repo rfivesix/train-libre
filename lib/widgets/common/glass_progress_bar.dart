@@ -1,4 +1,5 @@
 // lib/widgets/glass_progress_bar.dart
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 
 import '../../util/design_constants.dart';
@@ -6,7 +7,10 @@ import '../../util/design_constants.dart';
 /// A progress bar widget with a glass background and a solid fill color.
 ///
 /// Displays a [label], [unit], current [value], and optional [target].
-class GlassProgressBar extends StatelessWidget {
+///
+/// When [value] or [target] change, the fill bar and the displayed numeric
+/// value animate smoothly to the new position instead of jumping instantly.
+class GlassProgressBar extends StatefulWidget {
   /// The descriptive label for the progress (e.g., 'Calories').
   final String label;
 
@@ -28,6 +32,9 @@ class GlassProgressBar extends StatelessWidget {
   /// The corner radius for the bar.
   final double borderRadius;
 
+  /// Whether to disable the drop shadow.
+  final bool disableShadow;
+
   const GlassProgressBar({
     super.key,
     required this.label,
@@ -37,6 +44,88 @@ class GlassProgressBar extends StatelessWidget {
     required this.color,
     this.height = 54.0,
     this.borderRadius = DesignConstants.borderRadiusL,
+    this.disableShadow = false,
+  });
+
+  @override
+  State<GlassProgressBar> createState() => _GlassProgressBarState();
+}
+
+class _GlassProgressBarState extends State<GlassProgressBar> {
+  // Track the value we are tweening FROM so we can hand it to
+  // TweenAnimationBuilder as the starting point on every change.
+  late double _previousValue;
+  late double _previousTarget;
+
+  @override
+  void initState() {
+    super.initState();
+    _previousValue = widget.value;
+    _previousTarget = widget.target;
+  }
+
+  @override
+  void didUpdateWidget(GlassProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Store the old rendered values so the tween starts from where the bar
+    // visually was, not from 0.
+    if (oldWidget.value != widget.value || oldWidget.target != widget.target) {
+      _previousValue = oldWidget.value;
+      _previousTarget = oldWidget.target;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      // Tween the raw value (not the clamped progress ratio) so the
+      // displayed text number also animates smoothly.
+      tween: Tween<double>(begin: _previousValue, end: widget.value),
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedValue, _) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: _previousTarget, end: widget.target),
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+          builder: (context, animatedTarget, _) {
+            return _GlassProgressBarPainter(
+              label: widget.label,
+              unit: widget.unit,
+              value: animatedValue,
+              target: animatedTarget,
+              color: widget.color,
+              height: widget.height,
+              borderRadius: widget.borderRadius,
+              disableShadow: widget.disableShadow,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Pure-display layer — receives already-tweened values and just renders.
+class _GlassProgressBarPainter extends StatelessWidget {
+  final String label;
+  final String unit;
+  final double value;
+  final double target;
+  final Color color;
+  final double height;
+  final double borderRadius;
+  final bool disableShadow;
+
+  const _GlassProgressBarPainter({
+    required this.label,
+    required this.unit,
+    required this.value,
+    required this.target,
+    required this.color,
+    required this.height,
+    required this.borderRadius,
+    required this.disableShadow,
   });
 
   @override
@@ -48,7 +137,6 @@ class GlassProgressBar extends StatelessWidget {
     final hasTarget = target > 0;
     final rawProgress = hasTarget ? (value / target) : 0.0;
     final progress = rawProgress.clamp(0.0, 1.0);
-    final radius = BorderRadius.circular(borderRadius);
 
     // Crisp, minimal text shadow for edge definition, only if bar has progress
     final textShadows = value > 0
@@ -67,32 +155,39 @@ class GlassProgressBar extends StatelessWidget {
     final luminance = color.computeLuminance();
     final bool isLowContrast = isDark ? (luminance > 0.5) : (luminance < 0.5);
 
+    // Identical to SummaryCard: same cornerRadius, same cornerSmoothing.
+    // NOTE: do not wrap this widget in a LayoutBuilder to derive the radius from
+    // the laid-out height — LayoutBuilder reports 0 for intrinsic dimensions, and
+    // NutritionSummaryWidget puts these bars inside an IntrinsicHeight, which
+    // then collapses the whole grid to zero height.
+    final squircleRadius = SmoothBorderRadius(
+      cornerRadius: borderRadius,
+      cornerSmoothing: 0.6,
+    );
+    final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
+    final clipper = ShapeBorderClipper(shape: squircle);
+
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 7,
-            offset: const Offset(0, 2),
-            color: cs.shadow.withValues(alpha: isDark ? 0.2 : 0.06),
-          ),
-        ],
+      decoration: ShapeDecoration(
+        shape: squircle,
+        shadows: (disableShadow || isDark)
+            ? null
+            : [
+                BoxShadow(
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                  color: cs.shadow.withValues(alpha: 0.05),
+                ),
+              ],
       ),
-      child: ClipRRect(
-        borderRadius: radius,
+      child: ClipPath(
+        clipper: clipper,
         child: Container(
           height: height,
-          decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF2A2A2A)
-                : cs.surface.withValues(alpha: 0.95),
-            borderRadius: radius,
-          ),
-          foregroundDecoration: BoxDecoration(
-            borderRadius: radius,
-            border: Border.all(
-              color: cs.onSurface.withValues(alpha: 0.08),
-              width: 1,
+          decoration: ShapeDecoration(
+            color: isDark ? DesignConstants.summaryCardDarkMode : Colors.white,
+            shape: squircle.copyWith(
+              side: BorderSide.none,
             ),
           ),
           child: LayoutBuilder(
@@ -105,23 +200,22 @@ class GlassProgressBar extends StatelessWidget {
                         : Colors.black;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingM,
                     vertical: DesignConstants.spacingXS,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: filledTextColor,
-                            shadows: withShadow ? textShadows : null,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: filledTextColor,
+                          shadows: withShadow ? textShadows : null,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -158,7 +252,11 @@ class GlassProgressBar extends StatelessWidget {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            ColoredBox(color: color),
+                            DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: color,
+                              ),
+                            ),
                             if ((isLowContrast || isDark) && value > 0)
                               Positioned.fill(
                                 child: DecoratedBox(

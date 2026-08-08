@@ -32,10 +32,14 @@ class FakeProfileRepository implements IProfileRepository {
   Future<void> deleteMeasurementSession(int sessionId) async {}
 
   @override
-  Future<List<ChartDataPoint>> getChartDataForTypeAndRange(String type, DateTimeRange range) async => [];
+  Future<List<ChartDataPoint>> getChartDataForTypeAndRange(
+          String type, DateTimeRange range) async =>
+      [];
 
   @override
-  Stream<List<ChartDataPoint>> watchChartDataForTypeAndRange(String type, DateTimeRange range) => Stream.value([]);
+  Stream<List<ChartDataPoint>> watchChartDataForTypeAndRange(
+          String type, DateTimeRange range) =>
+      Stream.value([]);
 
   @override
   Future<int> getCurrentTargetStepsOrDefault() async => 8000;
@@ -50,7 +54,13 @@ class FakeProfileRepository implements IProfileRepository {
   Future<void> insertMeasurementSession(MeasurementSession session) async {}
 
   @override
-  Future<void> saveUserGoals({required int calories, required int protein, required int carbs, required int fat, required int water, required int steps}) async {}
+  Future<void> saveUserGoals(
+      {required int calories,
+      required int protein,
+      required int carbs,
+      required int fat,
+      required int water,
+      required int steps}) async {}
 }
 
 void main() {

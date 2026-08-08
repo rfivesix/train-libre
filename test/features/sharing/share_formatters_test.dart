@@ -1,3 +1,4 @@
+import 'package:train_libre/services/unit_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/sharing/routine_share_formatter.dart';
 import 'package:train_libre/features/sharing/share_labels.dart';
@@ -10,7 +11,11 @@ import 'package:train_libre/features/workout/domain/models/set_log.dart';
 import 'package:train_libre/features/workout/domain/models/set_template.dart';
 import 'package:train_libre/features/workout/domain/models/workout_log.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
   final english = _labels();
   final german = _labels(
     sharedWithTrainLibre: 'Geteilt mit Train Libre',
@@ -25,7 +30,7 @@ void main() {
 
   group('WorkoutShareFormatter', () {
     test('formats weighted workout with normal per-set lines and volume', () {
-      final formatter = WorkoutShareFormatter(english);
+      final formatter = WorkoutShareFormatter(english, unitService: UnitService());
       final text = formatter.format(
         _workout([
           _set('Bench Press', weightKg: 80, reps: 8),
@@ -45,7 +50,7 @@ void main() {
     });
 
     test('formats warm-up and failure sets as suffixes', () {
-      final formatter = WorkoutShareFormatter(german);
+      final formatter = WorkoutShareFormatter(german, unitService: UnitService());
       final text = formatter.format(
         _workout([
           _set('Leg Curl', setType: 'warmup', weightKg: 45, reps: 13),
@@ -60,7 +65,7 @@ void main() {
     });
 
     test('formats dropsets as suffixes', () {
-      final formatter = WorkoutShareFormatter(english);
+      final formatter = WorkoutShareFormatter(english, unitService: UnitService());
       final text = formatter.format(
         _workout([_set('Curl', setType: 'dropset', weightKg: 20, reps: 12)]),
       );
@@ -69,7 +74,7 @@ void main() {
     });
 
     test('handles bodyweight/no-weight sets as reps only', () {
-      final formatter = WorkoutShareFormatter(german);
+      final formatter = WorkoutShareFormatter(german, unitService: UnitService());
       final text = formatter.format(_workout([_set('Push-up', reps: 20)]));
 
       expect(text, contains('Set 1: 20 Wdh'));
@@ -77,7 +82,7 @@ void main() {
     });
 
     test('handles cardio distance and duration cleanly', () {
-      final formatter = WorkoutShareFormatter(german);
+      final formatter = WorkoutShareFormatter(german, unitService: UnitService());
       final text = formatter.format(
         _workout([
           _set(
@@ -93,7 +98,7 @@ void main() {
     });
 
     test('truncates long image exercise list outside UI', () {
-      final formatter = WorkoutShareFormatter(english);
+      final formatter = WorkoutShareFormatter(english, unitService: UnitService());
       final workout = _workout(
         List.generate(
           8,
@@ -106,7 +111,7 @@ void main() {
     });
 
     test('builds muscle volume summaries from exercise muscles', () {
-      final formatter = WorkoutShareFormatter(english);
+      final formatter = WorkoutShareFormatter(english, unitService: UnitService());
       final workout = _workout([
         _set('Row', weightKg: 80, reps: 10),
         _set('Curl', weightKg: 20, reps: 10, order: 2),

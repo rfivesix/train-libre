@@ -5,7 +5,7 @@ import '../../../generated/app_localizations.dart';
 import 'add_food_screen.dart';
 import 'meal_screen.dart';
 import '../../profile/presentation/goals_screen.dart';
-import '../../supplements/presentation/supplement_track_screen.dart';
+import '../../supplements/presentation/supplement_hub_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/common.dart';
@@ -13,6 +13,9 @@ import '../../../widgets/common/summary_card.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A portal for overviewing nutrition and meal planning.
 ///
@@ -32,26 +35,52 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   bool _isApplyingRecommendation = false;
 
   @override
+  void initState() {
+    super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.nutritionHub));
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Load data only the first time.
-    _hubDataFuture ??= _loadHubData();
+    if (_hubDataFuture == null) {
+      // Instant load of cached state first for 120 FPS navigation
+      _hubDataFuture = _loadHubData(refreshIfDue: false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkBackgroundRecommendationDue();
+      });
+    }
+  }
+
+  Future<void> _checkBackgroundRecommendationDue() async {
+    if (!mounted) return;
+    final state = await _recommendationService.loadState(refreshIfDue: false);
+    if (state.isAdaptiveRecommendationDueNow) {
+      // Offloaded to background Isolate via compute()
+      await _recommendationService.refreshRecommendationIfDue();
+      if (mounted) {
+        setState(() {
+          _hubDataFuture = _loadHubData(refreshIfDue: false);
+        });
+      }
+    }
   }
 
   Future<void> _refreshData() async {
     // Called by RefreshIndicator to reload data.
     setState(() {
-      _hubDataFuture = _loadHubData();
+      _hubDataFuture = _loadHubData(refreshIfDue: true);
     });
   }
 
-  Future<Map<String, dynamic>> _loadHubData() async {
+  Future<Map<String, dynamic>> _loadHubData({bool refreshIfDue = false}) async {
     final today = DateTime.now();
     final goals = await DatabaseHelper.instance.getGoalsForDate(today);
     final targetCalories = goals?.targetCalories ?? 2500;
     final meals = await DatabaseHelper.instance.getMeals();
     final recommendationState =
-        await _recommendationService.loadState(refreshIfDue: true);
+        await _recommendationService.loadState(refreshIfDue: refreshIfDue);
 
     return {
       'meals': meals,
@@ -145,8 +174,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     ).padding.top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
-    const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
+    const EdgeInsets basePadding = DesignConstants
+        .cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(
@@ -178,53 +207,97 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
             child: ListView(
               padding: finalPadding,
               children: [
-                AppSectionHeader(title: l10n.nutritionSectionTodayInFocus),
-                _buildGoalsAndRecommendationCard(
-                  context,
-                  recommendationState,
-                  targetCalories,
+                AppSectionHeader(
+                    isFirst: true,
+                    title: l10n.adaptiveRecommendationCardTitle.toUpperCase()),
+                RepaintBoundary(
+                  child: _buildGoalsAndRecommendationCard(
+                    context,
+                    recommendationState,
+                    targetCalories,
+                  ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
                 AppSectionHeader(title: l10n.nutritionSectionMyMeals),
-                SizedBox(
-                  height: 150,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    clipBehavior: Clip.none,
-                    itemCount: meals.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return _buildCreateMealCard(context, l10n);
-                      }
-                      return _buildMealCard(context, meals[index - 1]);
-                    },
+                RepaintBoundary(
+                  child: SizedBox(
+                    height: 160,
+                    child: meals.isEmpty
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildCreateMealCard(context, l10n),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: DesignConstants.spacingS,
+                                    vertical: DesignConstants.spacingM,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.emptyStateNutritionRecipesCallout,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.6),
+                                              height: 1.3,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            clipBehavior: Clip.none,
+                            itemCount: meals.length + 1,
+                            itemBuilder: (context, index) {
+                              if (index == 0) {
+                                return _buildCreateMealCard(context, l10n);
+                              }
+                              return _buildMealCard(context, meals[index - 1]);
+                            },
+                          ),
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
                 AppSectionHeader(title: l10n.nutritionSectionToolsAndLibrary),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.pill,
-                  title: l10n.supplementTrackerTitle,
-                  subtitle: l10n.supplementTrackerDescription,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const SupplementTrackScreen(),
-                      ),
-                    );
-                  },
+                RepaintBoundary(
+                  child: _buildNavigationCard(
+                    context: context,
+                    icon: LucideIcons.pill,
+                    title: l10n.supplementTrackerTitle,
+                    subtitle: l10n.supplementTrackerDescription,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const SupplementHubScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-                _buildNavigationCard(
-                  context: context,
-                  icon: LucideIcons.search,
-                  title: l10n.drawerFoodExplorer,
-                  subtitle: l10n.data_from_off_and_wger,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AddFoodScreen()),
-                    );
-                  },
+                RepaintBoundary(
+                  child: _buildNavigationCard(
+                    context: context,
+                    icon: LucideIcons.search,
+                    title: l10n.drawerFoodExplorer,
+                    subtitle: l10n.data_from_off_and_wger,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const AddFoodScreen()),
+                      );
+                    },
+                  ),
                 ),
                 const BottomContentSpacer(),
               ],
@@ -252,7 +325,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
               recommendationState.nextAdaptiveRecommendationDueAt,
           isAdaptiveRecommendationDueNow:
               recommendationState.isAdaptiveRecommendationDueNow,
-          activeTargetCalories: targetCalories,
           isRecalculating: _isRecalculatingRecommendation,
           isApplying: _isApplyingRecommendation,
           onRecalculate: _recalculateRecommendationNow,
@@ -261,13 +333,14 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
         const SizedBox(height: 10),
         Align(
           alignment: Alignment.centerLeft,
-          child: ElevatedButton(
+          child: AppButton.primary(
             onPressed: () {
               Navigator.of(
                 context,
               ).push(MaterialPageRoute(builder: (_) => const GoalsScreen()));
             },
-            child: Text(AppLocalizations.of(context)!.my_goals),
+            label: AppLocalizations.of(context)!.my_goals,
+            tooltip: AppLocalizations.of(context)!.my_goals,
           ),
         ),
       ],
@@ -282,7 +355,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: SummaryCard(
-          padding: EdgeInsets.zero,
           child: InkWell(
             onTap: _createMealAndOpenEditor,
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
@@ -311,12 +383,12 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 32 - 12) / 2;
     final l10n = AppLocalizations.of(context)!;
+
     return SizedBox(
       width: cardWidth,
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: SummaryCard(
-          padding: EdgeInsets.zero,
           child: InkWell(
             onTap: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => MealScreen(meal: meal)))
@@ -336,7 +408,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  ElevatedButton(
+                  AppButton.primary(
                     onPressed: () => Navigator.of(context)
                         .push(
                           MaterialPageRoute(
@@ -344,7 +416,9 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                           ),
                         )
                         .then((_) => _refreshData()),
-                    child: Text(l10n.edit),
+                    label: l10n.edit,
+                    tooltip: l10n.edit,
+                    size: AppButtonSize.medium,
                   ),
                 ],
               ),
@@ -364,7 +438,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   }) {
     return SummaryCard(
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingM,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: DesignConstants.spacingM,
           horizontal: DesignConstants.spacingL,
         ),
         leading: Icon(
@@ -380,3 +455,4 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     );
   }
 }
+

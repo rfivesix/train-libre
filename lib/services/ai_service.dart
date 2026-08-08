@@ -1,7 +1,9 @@
 // lib/services/ai_service.dart
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -9,6 +11,10 @@ import 'package:http/http.dart' as http;
 
 import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
+import 'ai_matching_language_service.dart';
+import 'package:uuid/uuid.dart';
+import 'telemetry/telemetry_service.dart';
+import 'telemetry/telemetry_buckets.dart';
 
 part 'ai/ai_models.dart';
 part 'ai/ai_prompts.dart';
@@ -479,10 +485,15 @@ class AiService {
     List<File> images, {
     String? textHint,
     String? languageCode,
+    AiMatchingContext? matchingContext,
   }) async {
     final userContent =
         textHint ?? 'Analyze this meal and identify all food components.';
-    final prompt = _AiPrompts.buildSystemPrompt(languageCode: languageCode);
+    final prompt = _AiPrompts.buildSystemPrompt(
+      languageCode: languageCode,
+      appLanguage: matchingContext?.appLanguage,
+      catalogLanguage: matchingContext?.catalogLanguage,
+    );
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
@@ -498,8 +509,13 @@ class AiService {
   Future<AiMealCandidate> analyzeText(
     String description, {
     String? languageCode,
+    AiMatchingContext? matchingContext,
   }) async {
-    final prompt = _AiPrompts.buildSystemPrompt(languageCode: languageCode);
+    final prompt = _AiPrompts.buildSystemPrompt(
+      languageCode: languageCode,
+      appLanguage: matchingContext?.appLanguage,
+      catalogLanguage: matchingContext?.catalogLanguage,
+    );
 
     final raw = await _callSelectedProviderRaw(
       userContent: description,
@@ -516,6 +532,7 @@ class AiService {
     required String feedback,
     List<File>? images,
     String? languageCode,
+    AiMatchingContext? matchingContext,
   }) async {
     final previousJson = jsonEncode(
       previousResults.map((e) => e.toJson()).toList(),
@@ -528,7 +545,11 @@ User correction/feedback: $feedback
 
 Please provide an updated analysis incorporating the user's feedback. Return the corrected JSON object containing mealContext and items.''';
 
-    final prompt = _AiPrompts.buildSystemPrompt(languageCode: languageCode);
+    final prompt = _AiPrompts.buildSystemPrompt(
+      languageCode: languageCode,
+      appLanguage: matchingContext?.appLanguage,
+      catalogLanguage: matchingContext?.catalogLanguage,
+    );
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
@@ -563,6 +584,7 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     required AiValidationResult validation,
     List<File>? images,
     String? languageCode,
+    AiMatchingContext? matchingContext,
     AiMealContext? mealContext,
   }) async {
     final userContent = '''
@@ -584,11 +606,13 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
       images: images,
       systemPrompt: _AiPrompts.buildRepairPrompt(
         languageCode: languageCode,
+        appLanguage: matchingContext?.appLanguage,
+        catalogLanguage: matchingContext?.catalogLanguage,
         mealContext: mealContext,
       ),
       temperature: 0.1,
     );
-    final repaired = _parseItemsFromContent(raw);
+    final repaired = await _parseItemsFromContent(raw);
     return AiMealCandidate(
       items: repaired
           .map(
@@ -610,93 +634,133 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
     List<File>? images,
     double temperature = 0.3,
   }) async {
-    final provider = await getSelectedProvider();
-    String? apiKey;
-    if (provider != AiProvider.ollama) {
-      apiKey = await getApiKey(provider);
-      if (provider != AiProvider.custom && (apiKey == null || apiKey.isEmpty)) {
-        throw const AiKeyMissingException();
-      }
-    }
-    final model = await resolveAndPersistSelectedModel(provider);
+    final requestId = const Uuid().v4();
+    final providerEnum = await getSelectedProvider();
+    final provider = providerEnum.name;
+    final stopwatch = Stopwatch()..start();
 
-    final imageDataList = <String>[];
-    if (images != null) {
-      for (final img in images) {
-        final bytes = await img.readAsBytes();
-        imageDataList.add(await compute(base64Encode, bytes));
-      }
-    }
+    unawaited(TelemetryService.instance.trackAiMealScanRequested(
+      requestId: requestId,
+      provider: provider,
+    ));
 
-    switch (provider) {
-      case AiProvider.openai:
-        return _callOpenAiRaw(
-          apiKey!,
-          model,
-          userContent,
-          imageDataList,
-          systemPrompt: systemPrompt,
-          temperature: temperature,
-        );
-      case AiProvider.ollama:
-        return _callOpenAiRaw(
-          '',
-          model,
-          userContent,
-          imageDataList,
-          systemPrompt: systemPrompt,
-          temperature: temperature,
-          baseUrlOverride: 'http://localhost:11434/v1',
-          provider: provider,
-        );
-      case AiProvider.custom:
-        final customUrl = await getCustomBaseUrl();
-        return _callOpenAiRaw(
-          apiKey ?? '',
-          model,
-          userContent,
-          imageDataList,
-          systemPrompt: systemPrompt,
-          temperature: temperature,
-          baseUrlOverride: customUrl,
-          provider: provider,
-        );
-      case AiProvider.gemini:
-        return _callGeminiRaw(
-          apiKey!,
-          model,
-          userContent,
-          imageDataList,
-          systemPrompt: systemPrompt,
-          temperature: temperature,
-        );
-      case AiProvider.anthropic:
-        return _callAnthropicRaw(
-          apiKey!,
-          model,
-          userContent,
-          imageDataList,
-          systemPrompt: systemPrompt,
-          temperature: temperature,
-        );
-      case AiProvider.mistral:
-        return _callMistralRaw(
-          apiKey!,
-          model,
-          userContent,
-          imageDataList,
-          systemPrompt: systemPrompt,
-          temperature: temperature,
-        );
-      case AiProvider.xai:
-        return _callXaiRaw(
-          apiKey!,
-          model,
-          userContent,
-          imageDataList,
-          systemPrompt: systemPrompt,
-          temperature: temperature,
-        );
+    try {
+      String? apiKey;
+      if (providerEnum != AiProvider.ollama) {
+        apiKey = await getApiKey(providerEnum);
+        if (providerEnum != AiProvider.custom &&
+            (apiKey == null || apiKey.isEmpty)) {
+          throw const AiKeyMissingException();
+        }
+      }
+      final model = await resolveAndPersistSelectedModel(providerEnum);
+
+      final imageDataList = <String>[];
+      if (images != null) {
+        for (final img in images) {
+          final bytes = await img.readAsBytes();
+          imageDataList.add(await compute(base64Encode, bytes));
+        }
+      }
+
+      final String rawResult;
+      switch (providerEnum) {
+        case AiProvider.openai:
+          rawResult = await _callOpenAiRaw(
+            apiKey!,
+            model,
+            userContent,
+            imageDataList,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+          );
+          break;
+        case AiProvider.ollama:
+          rawResult = await _callOpenAiRaw(
+            '',
+            model,
+            userContent,
+            imageDataList,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+            baseUrlOverride: 'http://localhost:11434/v1',
+            provider: providerEnum,
+          );
+          break;
+        case AiProvider.custom:
+          final customUrl = await getCustomBaseUrl();
+          rawResult = await _callOpenAiRaw(
+            apiKey ?? '',
+            model,
+            userContent,
+            imageDataList,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+            baseUrlOverride: customUrl,
+            provider: providerEnum,
+          );
+          break;
+        case AiProvider.gemini:
+          rawResult = await _callGeminiRaw(
+            apiKey!,
+            model,
+            userContent,
+            imageDataList,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+          );
+          break;
+        case AiProvider.anthropic:
+          rawResult = await _callAnthropicRaw(
+            apiKey!,
+            model,
+            userContent,
+            imageDataList,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+          );
+          break;
+        case AiProvider.mistral:
+          rawResult = await _callMistralRaw(
+            apiKey!,
+            model,
+            userContent,
+            imageDataList,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+          );
+          break;
+        case AiProvider.xai:
+          rawResult = await _callXaiRaw(
+            apiKey!,
+            model,
+            userContent,
+            imageDataList,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+          );
+          break;
+      }
+
+      stopwatch.stop();
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: TelemetryBuckets.getLatencyBucket(stopwatch.elapsed),
+        success: true,
+      ));
+
+      return rawResult;
+    } catch (e) {
+      stopwatch.stop();
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: TelemetryBuckets.getLatencyBucket(stopwatch.elapsed),
+        success: false,
+        errorCode: e.runtimeType.toString(),
+      ));
+      rethrow;
     }
   }
 }

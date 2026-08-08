@@ -59,6 +59,15 @@ class SetLog {
   /// Temporary flag: True if this set is an Estimated 1RM PR.
   final bool isMaxEst1RMPR;
 
+  /// Temporary flag: True if this set is a Max Distance PR (Cardio).
+  final bool isMaxDistancePR;
+
+  /// Temporary flag: True if this set is a Longest Duration PR (Cardio).
+  final bool isMaxDurationPR;
+
+  /// Temporary flag: True if this set is a Fastest Pace PR (Cardio).
+  final bool isFastestPacePR;
+
   /// Temporary value: Difference to previous Weight PR.
   final double? weightPRDiff;
 
@@ -67,6 +76,15 @@ class SetLog {
 
   /// Temporary value: Difference to previous Estimated 1RM PR.
   final double? est1rmPRDiff;
+
+  /// Temporary value: Difference to previous Distance PR (Cardio).
+  final double? distancePRDiff;
+
+  /// Temporary value: Difference to previous Duration PR (Cardio).
+  final int? durationPRDiff;
+
+  /// Temporary value: Difference to previous Pace PR (Cardio).
+  final double? pacePRDiff;
 
   /// Creates a new [SetLog] instance.
   SetLog({
@@ -88,9 +106,15 @@ class SetLog {
     this.isMaxWeightPR = false,
     this.isMaxVolumePR = false,
     this.isMaxEst1RMPR = false,
+    this.isMaxDistancePR = false,
+    this.isMaxDurationPR = false,
+    this.isFastestPacePR = false,
     this.weightPRDiff,
     this.volumePRDiff,
     this.est1rmPRDiff,
+    this.distancePRDiff,
+    this.durationPRDiff,
+    this.pacePRDiff,
   });
 
   /// Creates a [SetLog] instance from a Map, typically from a database row.
@@ -161,9 +185,15 @@ class SetLog {
     bool? isMaxWeightPR,
     bool? isMaxVolumePR,
     bool? isMaxEst1RMPR,
+    bool? isMaxDistancePR,
+    bool? isMaxDurationPR,
+    bool? isFastestPacePR,
     double? weightPRDiff,
     double? volumePRDiff,
     double? est1rmPRDiff,
+    double? distancePRDiff,
+    int? durationPRDiff,
+    double? pacePRDiff,
     bool clearWeight = false,
     bool clearReps = false,
     bool clearRir = false,
@@ -190,9 +220,15 @@ class SetLog {
       isMaxWeightPR: isMaxWeightPR ?? this.isMaxWeightPR,
       isMaxVolumePR: isMaxVolumePR ?? this.isMaxVolumePR,
       isMaxEst1RMPR: isMaxEst1RMPR ?? this.isMaxEst1RMPR,
+      isMaxDistancePR: isMaxDistancePR ?? this.isMaxDistancePR,
+      isMaxDurationPR: isMaxDurationPR ?? this.isMaxDurationPR,
+      isFastestPacePR: isFastestPacePR ?? this.isFastestPacePR,
       weightPRDiff: weightPRDiff ?? this.weightPRDiff,
       volumePRDiff: volumePRDiff ?? this.volumePRDiff,
       est1rmPRDiff: est1rmPRDiff ?? this.est1rmPRDiff,
+      distancePRDiff: distancePRDiff ?? this.distancePRDiff,
+      durationPRDiff: durationPRDiff ?? this.durationPRDiff,
+      pacePRDiff: pacePRDiff ?? this.pacePRDiff,
     );
   }
 }

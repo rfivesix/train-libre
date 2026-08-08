@@ -10,11 +10,11 @@ import 'create_food_screen.dart';
 import 'food_detail_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/glass_fab.dart';
-import 'widgets/off_attribution_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart'; // Added
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for exploring and managing the food database independently of tracking.
 ///
@@ -42,7 +42,8 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   bool _isOffDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized =
+        await BasisDataManager.instance.isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -53,10 +54,14 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.foodExplorer));
     _tabController = TabController(length: 2, vsync: this);
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+        context,
+      );
       await _checkDbStatus();
     });
     _loadFavorites();
@@ -138,60 +143,82 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
-              vertical: DesignConstants.spacingXL,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.addFoodTitle,
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 28,
-                  ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingL,
+                  vertical: DesignConstants.spacingXL,
                 ),
-                const SizedBox(height: DesignConstants.spacingL),
-                TabBar(
-                  controller: _tabController,
-                  isScrollable: false,
-                  indicator: const BoxDecoration(),
-                  splashFactory: NoSplash.splashFactory,
-                  overlayColor: WidgetStateProperty.all(Colors.transparent),
-                  dividerColor: Colors.transparent,
-                  // FIX: Dynamic color based on theme mode.
-                  labelColor: isLightMode ? Colors.black : Colors.white,
-                  unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                  labelStyle: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.0,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.0,
-                  ),
-                  tabs: [
-                    Tab(text: l10n.tabSearch),
-                    Tab(text: l10n.tabFavorites),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.addFoodTitle,
+                      style: textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 28,
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingL),
+                    TabBar(
+                      controller: _tabController,
+                      isScrollable: false,
+                      indicator: const BoxDecoration(),
+                      splashFactory: NoSplash.splashFactory,
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                      dividerColor: Colors.transparent,
+                      // FIX: Dynamic color based on theme mode.
+                      labelColor: isLightMode ? Colors.black : Colors.white,
+                      unselectedLabelColor: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant,
+                      labelStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.0,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.0,
+                      ),
+                      tabs: [
+                        Tab(text: l10n.tabSearch),
+                        Tab(text: l10n.tabFavorites),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [_buildSearchTab(l10n), _buildFavoritesTab(l10n)],
+                ),
+              ),
+            ],
           ),
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [_buildSearchTab(l10n), _buildFavoritesTab(l10n)],
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Container(
+                height: DesignConstants.bottomVignetteHeight,
+                decoration: BoxDecoration(
+                  gradient: DesignConstants.bottomVignetteGradient(
+                    Theme.of(context).brightness == Brightness.dark,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -211,7 +238,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
         body: l10n.offPlaceholderText,
         icon: LucideIcons.database,
         onDownloadPressed: () async {
-          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+          await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+            context,
+          );
           await _checkDbStatus();
         },
       );
@@ -238,6 +267,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                   ),
                   suffixIcon: value.text.isNotEmpty
                       ? IconButton(
+                          tooltip: l10n.clearSearch,
                           icon: Icon(
                             LucideIcons.x,
                             color: colorScheme.onSurfaceVariant,
@@ -254,11 +284,13 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: _isLoadingSearch
+            child: (_isLoadingSearch && _foundFoodItems.isEmpty)
                 ? const Center(child: CircularProgressIndicator())
                 : _foundFoodItems.isNotEmpty
                     ? ListView.builder(
-                        scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
+                        padding: const EdgeInsets.only(bottom: 96.0),
+                        scrollCacheExtent:
+                            const ScrollCacheExtent.pixels(1500.0),
                         itemCount: _foundFoodItems.length,
                         itemBuilder: (context, index) =>
                             _buildFoodListItem(_foundFoodItems[index]),
@@ -270,8 +302,6 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
                         ),
                       ),
           ),
-          if (_foundFoodItems.any((item) => item.source == FoodItemSource.off))
-            const OffAttributionWidget(),
         ],
       ),
     );
@@ -287,10 +317,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           l10n.favoritesEmptyState,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.6),
               ),
         ),
       );
@@ -299,15 +328,18 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
       children: [
         Expanded(
           child: ListView.builder(
+            padding: EdgeInsets.fromLTRB(
+              DesignConstants.cardPadding.left,
+              DesignConstants.cardPadding.top,
+              DesignConstants.cardPadding.right,
+              96.0,
+            ),
             scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
-            padding: DesignConstants.cardPadding,
             itemCount: _favoriteFoodItems.length,
             itemBuilder: (context, index) =>
                 _buildFoodListItem(_favoriteFoodItems[index]),
           ),
         ),
-        if (_favoriteFoodItems.any((item) => item.source == FoodItemSource.off))
-          const OffAttributionWidget(),
       ],
     );
   }
@@ -317,21 +349,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    IconData sourceIcon;
-    switch (item.source) {
-      case FoodItemSource.base:
-        sourceIcon = LucideIcons.star;
-        break;
-      case FoodItemSource.off:
-      case FoodItemSource.user:
-        sourceIcon = LucideIcons.archive;
-        break;
-    }
-
     return SummaryCard(
       // FIX: Now uses SummaryCard.
       child: ListTile(
-        leading: Icon(sourceIcon, color: colorScheme.primary),
         title: Text(
           item.name.isNotEmpty ? item.name : l10n.unknown,
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -339,7 +359,9 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
         subtitle: Row(
           children: [
             Text(
-              l10n.foodItemSubtitle('', item.calories).replaceFirst(RegExp(r'^.*?-\s*'), ''),
+              l10n
+                  .foodItemSubtitle('', item.calories)
+                  .replaceFirst(RegExp(r'^.*?-\s*'), ''),
             ),
             if (item.brand.isNotEmpty &&
                 item.brand != 'Keine Marke' &&
@@ -356,6 +378,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           ],
         ),
         trailing: IconButton(
+          tooltip: l10n.add_button,
           icon: Icon(
             LucideIcons.circle_plus,
             color: colorScheme.primary,

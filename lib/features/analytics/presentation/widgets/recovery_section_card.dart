@@ -4,6 +4,7 @@ import '../../../../util/design_constants.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../statistics/domain/recovery_payload_models.dart';
+import '../../../statistics/domain/recovery_domain_service.dart';
 import '../../../statistics/presentation/statistics_formatter.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
@@ -12,12 +13,14 @@ class RecoverySectionCard extends StatelessWidget {
   final SectionLoadState<RecoveryAnalyticsPayload> state;
   final VoidCallback onRetry;
   final VoidCallback onTap;
+  final String? chipText;
 
   const RecoverySectionCard({
     super.key,
     required this.state,
     required this.onRetry,
     required this.onTap,
+    this.chipText,
   });
 
   @override
@@ -26,14 +29,7 @@ class RecoverySectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.recovery;
     final title = l10n.metricsMuscleReadiness;
 
-    if (state.isLoading && !state.hasData) {
-      return AnalyticsCardBase.buildSectionLoadingCard(
-        context,
-        l10n,
-        sectionId,
-        title,
-      );
-    }
+
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,
@@ -57,10 +53,6 @@ class RecoverySectionCard extends StatelessWidget {
       overallState,
     );
 
-    final recoveryStatusSummary = hasData
-        ? l10n.recoveryHubCountsSummary(recovering, ready, fresh)
-        : l10n.recoveryHubNoDataSummary;
-
     final iconColor = StatisticsPresentationFormatter.recoveryOverallColor(
       context,
       overallState,
@@ -79,7 +71,7 @@ class RecoverySectionCard extends StatelessWidget {
               AnalyticsCardBase.buildHeaderWithChevron(
                 context,
                 label: title,
-                chipText: hasData ? l10n.currentlyTracking : null,
+                chipText: chipText ?? (hasData ? l10n.currentlyTracking : null),
               ),
               Text(
                 recoveryHeadline,
@@ -88,22 +80,42 @@ class RecoverySectionCard extends StatelessWidget {
                       color: iconColor,
                     ),
               ),
-              const SizedBox(height: DesignConstants.spacingXS),
-              Text(
-                recoveryStatusSummary,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+              const SizedBox(height: DesignConstants.spacingL),
+              if (hasData)
+                Row(
+                  children: [
+                    _buildReadinessPill(
+                      context,
+                      l10n,
+                      state: RecoveryDomainService.stateRecovering,
+                      count: recovering,
+                      total: recovering + ready + fresh,
                     ),
-              ),
-              if (hasData) ...[
-                const SizedBox(height: DesignConstants.spacingS),
-                _buildRecoveryDistributionBar(
-                  context,
-                  recovering: recovering,
-                  ready: ready,
-                  fresh: fresh,
+                    const SizedBox(width: DesignConstants.spacingS),
+                    _buildReadinessPill(
+                      context,
+                      l10n,
+                      state: RecoveryDomainService.stateReady,
+                      count: ready,
+                      total: recovering + ready + fresh,
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    _buildReadinessPill(
+                      context,
+                      l10n,
+                      state: RecoveryDomainService.stateFresh,
+                      count: fresh,
+                      total: recovering + ready + fresh,
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  l10n.recoveryHubNoDataSummary,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                 ),
-              ],
             ],
           ),
         ),
@@ -111,35 +123,82 @@ class RecoverySectionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRecoveryDistributionBar(
-    BuildContext context, {
-    required int recovering,
-    required int ready,
-    required int fresh,
+  Widget _buildReadinessPill(
+    BuildContext context,
+    AppLocalizations l10n, {
+    required String state,
+    required int count,
+    required int total,
   }) {
-    final total = recovering + ready + fresh;
-    if (total <= 0) return const SizedBox.shrink();
-    final colorScheme = Theme.of(context).colorScheme;
-    final segments = <MapEntry<int, Color>>[
-      MapEntry(recovering, colorScheme.error),
-      MapEntry(ready, colorScheme.primary),
-      MapEntry(fresh, colorScheme.tertiary),
-    ].where((segment) => segment.key > 0).toList(growable: false);
+    final color =
+        StatisticsPresentationFormatter.recoveryStateColor(context, state);
+    final percent = total > 0 ? (count / total * 100).round() : 0;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: SizedBox(
-        height: 8,
-        child: Row(
-          children: [
-            for (final segment in segments)
-              Expanded(
-                flex: segment.key,
-                child: ColoredBox(color: segment.value),
+    final surfaceBase = isDark
+        ? DesignConstants.summaryCardSecondaryDarkMode
+        : DesignConstants.summaryCardSecondaryLightMode;
+
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
+              vertical: DesignConstants.spacingM,
+            ),
+            decoration: BoxDecoration(
+              color: surfaceBase,
+              borderRadius: radius,
+              border: Border.all(
+                color: color.withValues(alpha: isDark ? 0.35 : 0.25),
+                width: 1,
               ),
-            if (segments.isEmpty)
-              Expanded(child: ColoredBox(color: colorScheme.outline)),
-          ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '$count',
+                    maxLines: 1,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  StatisticsPresentationFormatter.recoveryStateLabel(
+                      l10n, state),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$percent%',
+                  maxLines: 1,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import '../../../services/unit_service.dart';
 // lib/features/profile/presentation/goals_screen.dart
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
@@ -12,6 +13,10 @@ import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/domain/goal_models.dart';
 import '../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
 import '../../../data/database_helper.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
+
+
 
 /// A screen for defining daily health and nutrition targets.
 class GoalsScreen extends StatefulWidget {
@@ -56,6 +61,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.goalEditor));
     _recommendationService = widget.recommendationService ??
         AdaptiveNutritionRecommendationService(
             databaseHelper: DatabaseHelper.instance);
@@ -103,13 +110,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
         int targetWater = settings?.targetWater ?? 3000;
         if (settings?.targetWater == null) {
-          _repository.getChartDataForTypeAndRange(
+          _repository
+              .getChartDataForTypeAndRange(
             'weight',
             DateTimeRange(
               start: DateTime.now().subtract(const Duration(days: 365)),
               end: DateTime.now(),
             ),
-          ).then((weightData) {
+          )
+              .then((weightData) {
             if (weightData.isNotEmpty && mounted) {
               final latestWeight = weightData.last.value;
               setState(() {
@@ -129,6 +138,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
         _selectedTargetRateKgPerWeek = WeeklyTargetRateCatalog.coerceTargetRate(
           goal: selectedGoal,
           kgPerWeek: selectedTargetRate,
+          unitService: context.read<UnitService>(),
         );
         _selectedPriorActivityLevel = selectedPriorActivityLevel;
         _selectedExtraCardioHoursOption = selectedExtraCardioHoursOption;
@@ -257,34 +267,16 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         setState(() {
                           _selectedGoal = goal;
                           _selectedTargetRateKgPerWeek =
-                              WeeklyTargetRateCatalog.defaultForGoal(goal)
+                              WeeklyTargetRateCatalog.defaultForGoal(
+                                      goal, context.read<UnitService>())
                                   .kgPerWeek;
                         });
                       },
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: WeeklyTargetRateCatalog.optionsForGoal(
-                        _selectedGoal,
-                      ).map((option) {
-                        final selected =
-                            option.kgPerWeek == _selectedTargetRateKgPerWeek;
-                        return ChoiceChip(
-                          label: Text(
-                            _rateLabel(l10n, option.kgPerWeek),
-                          ),
-                          selected: selected,
-                          onSelected: (_) {
-                            setState(() {
-                              _selectedTargetRateKgPerWeek = option.kgPerWeek;
-                            });
-                          },
-                        );
-                      }).toList(growable: false),
-                    ),
+                    _buildTargetRateChips(context, l10n),
                     const SizedBox(height: DesignConstants.spacingXL),
+
                     AppSectionHeader(
                       key: const Key(
                         'goals_recommendation_settings_section_title',
@@ -364,9 +356,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
                             explanation: l10n.infoTdeeExplanation,
                             keyPoints: l10n.infoTdeeKeyPoints.split('\n'),
                             technicalTitle: l10n.infoTdeeTechnicalTitle,
-                            technicalExplanation: l10n.infoTdeeTechnicalExplanation,
-                            markdownAssetPath: 'documentation/features/bayesian_tdee_estimator.md',
-                            citationUrl: 'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
+                            technicalExplanation:
+                                l10n.infoTdeeTechnicalExplanation,
+                            markdownAssetPath:
+                                'documentation/features/bayesian_tdee_estimator.md',
+                            citationUrl:
+                                'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
                           ),
                         ),
                       ],
@@ -469,10 +464,112 @@ class _GoalsScreenState extends State<GoalsScreen> {
     }
   }
 
-  String _rateLabel(AppLocalizations l10n, double kgPerWeek) {
-    final sign = kgPerWeek > 0 ? '+' : '';
-    return l10n.adaptiveRatePerWeek('$sign${kgPerWeek.toStringAsFixed(2)}');
+  Widget _buildTargetRateChips(BuildContext context, AppLocalizations l10n) {
+    if (_selectedGoal == BodyweightGoal.maintainWeight) {
+      return const SizedBox.shrink();
+    }
+
+    final unitService = context.read<UnitService>();
+    final presetOptions = WeeklyTargetRateCatalog.optionsForGoal(
+      _selectedGoal,
+      unitService,
+    );
+    final isCustom = !WeeklyTargetRateCatalog.isPreset(
+      goal: _selectedGoal,
+      kgPerWeek: _selectedTargetRateKgPerWeek,
+      unitService: unitService,
+    );
+
+    final chips = <Widget>[];
+
+    for (final option in presetOptions) {
+      final selected =
+          !isCustom &&
+          (option.kgPerWeek - _selectedTargetRateKgPerWeek).abs() < 0.001;
+      chips.add(
+        ChoiceChip(
+          label: Text(_rateLabel(context, l10n, option.kgPerWeek)),
+          selected: selected,
+          onSelected: (_) {
+            setState(() {
+              _selectedTargetRateKgPerWeek = option.kgPerWeek;
+            });
+          },
+        ),
+      );
+    }
+
+    final String customChipText;
+    if (isCustom) {
+      customChipText = _rateLabel(context, l10n, _selectedTargetRateKgPerWeek);
+    } else {
+
+      customChipText =
+          (l10n.customTargetRateOption.isNotEmpty)
+              ? l10n.customTargetRateOption
+              : 'Eigener Wert';
+    }
+
+    chips.add(
+      ChoiceChip(
+        key: const Key('goals_custom_rate_chip'),
+        label: Text(customChipText),
+        selected: isCustom,
+        onSelected: (_) async {
+          final newRate = await showAdaptiveTargetRatePicker(
+            context: context,
+            goal: _selectedGoal,
+            initialKgPerWeek:
+                _selectedTargetRateKgPerWeek == 0
+                    ? WeeklyTargetRateCatalog.defaultForGoal(
+                      _selectedGoal,
+                      unitService,
+                    ).kgPerWeek
+                    : _selectedTargetRateKgPerWeek,
+            unitService: unitService,
+          );
+          if (newRate != null && mounted) {
+            setState(() {
+              _selectedTargetRateKgPerWeek = newRate;
+            });
+          }
+        },
+      ),
+    );
+
+    return Wrap(spacing: 8, runSpacing: 8, children: chips);
   }
+
+  String _rateLabel(
+    BuildContext context,
+    AppLocalizations l10n,
+    double kgPerWeek,
+  ) {
+    final unitService = context.read<UnitService>();
+    final sign = kgPerWeek > 0 ? '+' : '';
+    final isMetric = unitService.isMetric;
+
+    if (isMetric) {
+      final grams = (kgPerWeek.abs() * 1000).round();
+      if (grams < 1000 && grams % 100 != 0) {
+        return '$sign$grams g/Woche';
+      }
+    }
+
+    final displayValue = unitService.convertDisplayValue(
+      kgPerWeek.abs(),
+      UnitDimension.weight,
+    );
+    final valStr = displayValue
+        .toStringAsFixed(2)
+        .replaceAll(RegExp(r'0*$'), '')
+        .replaceAll(RegExp(r'\.$'), '');
+    return l10n.adaptiveRatePerWeek(
+      '$sign$valStr',
+      unitService.suffixFor(UnitDimension.weight),
+    );
+  }
+
 
   String _priorActivityLabel(
     AppLocalizations l10n,

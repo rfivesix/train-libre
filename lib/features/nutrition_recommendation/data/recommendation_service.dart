@@ -6,8 +6,12 @@ import '../domain/adaptive_diet_phase.dart';
 import '../domain/adaptive_recommendation_snapshot.dart';
 import '../domain/bayesian_recommendation_engine.dart';
 import '../domain/bayesian_tdee_estimator.dart';
+import '../domain/confidence_models.dart';
 import '../domain/goal_models.dart';
 import '../domain/recommendation_models.dart';
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import 'recommendation_due_notification.dart';
 import 'recommendation_input_adapter.dart';
 import 'recommendation_repository.dart';
@@ -270,18 +274,20 @@ class AdaptiveNutritionRecommendationService {
     );
     final previousRecommendation = latestSnapshot?.recommendation;
 
-    final result = _bayesianEngine.generate(
-      input: input,
-      goal: goal,
-      targetRateKgPerWeek: targetRateKgPerWeek,
-      generatedAt: effectiveNow,
-      algorithmVersion: algorithmVersion,
-      dueWeekKey: dueWeekKey,
-      recursiveState: latestRecursiveState,
-      previousRecommendation: previousRecommendation,
-      phaseContext: BayesianObservationPhaseContext.fromTrackingState(
-        trackingState: phaseTrackingState,
-        asOfDay: phaseAnchorDay,
+    final result = await compute(
+      _generateBayesianRecommendationIsolate,
+      _BayesianGenerateParams(
+        engine: _bayesianEngine,
+        input: input,
+        goal: goal,
+        targetRateKgPerWeek: targetRateKgPerWeek,
+        generatedAt: effectiveNow,
+        algorithmVersion: algorithmVersion,
+        dueWeekKey: dueWeekKey,
+        recursiveState: latestRecursiveState,
+        previousRecommendation: previousRecommendation,
+        phaseTrackingState: phaseTrackingState,
+        phaseAnchorDay: phaseAnchorDay,
       ),
     );
 
@@ -296,8 +302,7 @@ class AdaptiveNutritionRecommendationService {
     if (result.recursiveState != null && result.recursiveState!.isValid) {
       await _repository.saveLatestEstimatorState(state: result.recursiveState!);
     }
-    // Generation only updates adaptive recommendation state.
-    // It never mutates active goals; apply remains an explicit user action.
+    _trackRecommendationTelemetry(result);
 
     return result.recommendation;
   }
@@ -394,18 +399,20 @@ class AdaptiveNutritionRecommendationService {
       phase: goal.canonicalDietPhase,
       asOfDay: onboardingPhaseAnchorDay,
     );
-    final result = _bayesianEngine.generate(
-      input: input,
-      goal: goal,
-      targetRateKgPerWeek: targetRateKgPerWeek,
-      generatedAt: effectiveNow,
-      algorithmVersion: algorithmVersion,
-      dueWeekKey: dueWeekKey,
-      recursiveState: null,
-      previousRecommendation: null,
-      phaseContext: BayesianObservationPhaseContext.fromTrackingState(
-        trackingState: onboardingPhaseState,
-        asOfDay: onboardingPhaseAnchorDay,
+    final result = await compute(
+      _generateBayesianRecommendationIsolate,
+      _BayesianGenerateParams(
+        engine: _bayesianEngine,
+        input: input,
+        goal: goal,
+        targetRateKgPerWeek: targetRateKgPerWeek,
+        generatedAt: effectiveNow,
+        algorithmVersion: algorithmVersion,
+        dueWeekKey: dueWeekKey,
+        recursiveState: null,
+        previousRecommendation: null,
+        phaseTrackingState: onboardingPhaseState,
+        phaseAnchorDay: onboardingPhaseAnchorDay,
       ),
     );
 
@@ -609,6 +616,55 @@ class AdaptiveNutritionRecommendationService {
       now: now,
     );
   }
+
+  void _trackRecommendationTelemetry(
+      BayesianNutritionRecommendationResult result) {
+    try {
+      final summary = result.recommendation.inputSummary;
+      final confidence = result.recommendation.confidence;
+      String confidenceBucket;
+      switch (confidence) {
+        case RecommendationConfidence.notEnoughData:
+          confidenceBucket = '0.00-0.25';
+          break;
+        case RecommendationConfidence.low:
+          confidenceBucket = '0.25-0.50';
+          break;
+        case RecommendationConfidence.medium:
+          confidenceBucket = '0.50-0.75';
+          break;
+        case RecommendationConfidence.high:
+          confidenceBucket = '0.75-1.00';
+          break;
+      }
+
+      final est = result.maintenanceEstimate;
+      final effectiveSampleSize = est.effectiveSampleSize;
+      final hasSlope = summary.smoothedWeightSlopeKgPerWeek != null ||
+          est.observedWeightSlopeKgPerWeek != null;
+      final hasIntake = summary.avgLoggedCalories > 0 ||
+          est.observedIntakeCalories != null;
+      final isPriorOnly = est.priorSource == BayesianPriorSource.profilePriorBootstrap ||
+          summary.qualityFlags.contains('onboarding_prior_only') ||
+          summary.qualityFlags.contains('bayesian_intake_unavailable');
+
+      unawaited(TelemetryService.instance.trackRecommendationGenerated(
+        weightLogCount: summary.weightLogCount,
+        intakeLoggedDays: summary.intakeLoggedDays,
+        windowDays: summary.windowDays,
+        effectiveSampleSize: effectiveSampleSize,
+        hasSlope: hasSlope,
+        hasIntake: hasIntake,
+        confidence: result.recommendation.confidence.name,
+        confidenceScoreBucket: confidenceBucket,
+        warningLevel: result.recommendation.warningState.warningLevel.name,
+        qualityFlags: summary.qualityFlags,
+        isPriorOnly: isPriorOnly,
+      ));
+    } catch (e) {
+      debugPrint('Error tracking recommendation telemetry: $e');
+    }
+  }
 }
 
 class _VirtualProfile {
@@ -622,3 +678,51 @@ class _VirtualProfile {
     required this.gender,
   });
 }
+
+class _BayesianGenerateParams {
+  final BayesianNutritionRecommendationEngine engine;
+  final RecommendationGenerationInput input;
+  final BodyweightGoal goal;
+  final double targetRateKgPerWeek;
+  final DateTime generatedAt;
+  final String algorithmVersion;
+  final String dueWeekKey;
+  final BayesianEstimatorState? recursiveState;
+  final NutritionRecommendation? previousRecommendation;
+  final AdaptiveDietPhaseTrackingState phaseTrackingState;
+  final DateTime phaseAnchorDay;
+
+  const _BayesianGenerateParams({
+    required this.engine,
+    required this.input,
+    required this.goal,
+    required this.targetRateKgPerWeek,
+    required this.generatedAt,
+    required this.algorithmVersion,
+    required this.dueWeekKey,
+    required this.recursiveState,
+    required this.previousRecommendation,
+    required this.phaseTrackingState,
+    required this.phaseAnchorDay,
+  });
+}
+
+BayesianNutritionRecommendationResult _generateBayesianRecommendationIsolate(
+  _BayesianGenerateParams params,
+) {
+  return params.engine.generate(
+    input: params.input,
+    goal: params.goal,
+    targetRateKgPerWeek: params.targetRateKgPerWeek,
+    generatedAt: params.generatedAt,
+    algorithmVersion: params.algorithmVersion,
+    dueWeekKey: params.dueWeekKey,
+    recursiveState: params.recursiveState,
+    previousRecommendation: params.previousRecommendation,
+    phaseContext: BayesianObservationPhaseContext.fromTrackingState(
+      trackingState: params.phaseTrackingState,
+      asOfDay: params.phaseAnchorDay,
+    ),
+  );
+}
+

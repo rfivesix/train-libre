@@ -2,7 +2,584 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+## [1.0.0] - 2026-08-08
+
+### Fixed
+- **Exercise Reordering Dropped Items at the Wrong Index (Live Workout):** `LiveWorkoutViewModel.reorderExercise` applied the legacy `if (oldIndex < newIndex) newIndex -= 1;` correction, but its only call site (`live_workout_screen.dart`) uses `ReorderableListView.onReorderItem`, which — unlike the obsolete `onReorder` — already reports `newIndex` in post-removal coordinates. The decrement was therefore applied twice and every exercise dragged *downwards* landed one position too high (dragging index 0 to index 2 put it at index 1); upward drags were unaffected, as was the persisted `logOrder`, which is recomputed from the resulting list. `edit_routine_screen.dart` and `workout_log_detail_screen.dart` were already correct. Covered by an updated test plus a new upward-drag case asserting the exact resulting order.
+- **Exercise Cards Jumped and Stuttered After a Drag Was Released:** Dropping an exercise triggered three competing layout upheavals inside 250ms across all three reorder screens. `onPointerUp` expanded every collapsed card the instant the finger lifted; `onReorderEnd` expanded them again *and* issued a `jumpTo` — but that callback fires at the **start** of the drop animation, and its `index` is the raw insert index (one too high for downward drags, since the dragged item is still counted at its old position); the reorder itself only lands ~250ms later in `_dropCompleted`, causing a third relayout. Simultaneously the 800px bottom padding that keeps scroll room during a drag disappeared, clamping the offset. The sequence is now serialized: the list stays collapsed and stable while the SDK animates the card into place, and expands in a single frame once the drop and the reorder have settled (`kReorderDropSettleDuration`). Since `_dragCancel` does not emit `onReorderEnd`, `onPointerUp`/`onPointerCancel` schedule the same expansion as a fallback. Applies to `edit_routine_screen.dart`, `live_workout_screen.dart` and `workout_log_detail_screen.dart`.
+- **Scroll Position After Collapse/Expand Was Estimated From Hardcoded Card Heights:** `_calculateScrollPosition` and `_calculateScrollAdjustment` (duplicated in all three reorder screens) summed magic numbers — `70.0` per `ListTile`, `48.0` per set row, `48.0` for the add-set button, `80.0` for a notes container, `16.0` for padding, plus a `320.0` header allowance in the log detail screen — to guess where the list would end up. The guess never matched the real layout, so the post-drag `jumpTo` landed beside the intended position and the list visibly settled into place afterwards. Replaced by `ReorderScrollAnchor`, which measures the touched card's actual `RenderBox` position before the relayout and corrects the scroll offset by the exact delta afterwards, keeping the card pinned under the finger both when collapsing (drag start) and expanding (after drop). ~140 lines of height estimation removed.
+- **Recovery Zone Cards Squashed Their Text While Collapsing:** The Recovering/Ready/Fresh sections in `recovery_tracker_screen.dart` used `AnimatedCrossFade`, which lays both children on top of each other and *scales* between their sizes. Collapsing therefore compressed the muscle list rather than hiding it: the text reflowed on every frame and the lines visibly stacked on top of one another as the card shrank upwards. Replaced by a new `_ExpandReveal` widget that keeps the content at its natural layout for the whole animation and only clips it (`ClipRect` + `Align(heightFactor:)`), so no reflow can occur. Size uses `easeOutCubic` opening / `easeInCubic` closing over 280ms; opacity is offset against it via `Interval` — fading in only after the section has already opened 30%, and fading out during the first ~45% of the collapse so the content is gone before the clip edge reaches it.
+- **Tapping a Muscle on the Body Model Scrolled to the Wrong Position:** `_scrollToMuscle` ran `Scrollable.ensureVisible` from an `addPostFrameCallback` fired immediately after the `setState` that expands the target zone card — i.e. while the expansion was still animating, so the destination was measured against a layout that was still growing. If the card had been collapsed beforehand the muscle's `GlobalKey` had no `currentContext` at all in that frame and the jump silently did nothing. Independently, the screen sets `extendBodyBehindAppBar: true`, so viewport offset 0 sits *behind* the app bar; `alignment: 0.1` left the muscle's title hidden underneath it. The scroll now waits for the expand animation to settle (or one frame when the card was already open) and computes the target itself via `RenderAbstractViewport.getOffsetToReveal`, subtracting status bar height + `kToolbarHeight` + spacing and clamping to the scroll extents, so the muscle heading lands directly below the app bar. Also replaced `firstWhere(..., orElse: () => muscles.first)`, which jumped to an unrelated muscle for an unknown slug and threw on an empty list, with an `indexWhere` early return.
+- **Undisposed Timers in `WorkoutLogDetailScreen`:** `_collapseTimer` was never cancelled in `dispose()`, leaving a pending callback able to fire `setState` on an unmounted state after leaving the screen mid-press.
+- **Nutrition Hub Scroll Jank on Physical Devices:** Fixed janky scrolling on the Nutrition Hub screen, not reproducible on desktop/simulator due to excess GPU memory bandwidth masking the cost. Root cause was `AppButton`'s liquid glass: it builds via `AdaptiveGlass` without passing `quality`, so it always runs `GlassQuality.standard` → `LightweightLiquidGlass`, which pushes one `BackdropFilterLayer` per button whenever `blur > 0` — a full framebuffer store/load on a tile-based GPU. This is invisible to the app-wide glass-quality knobs (`DesignConstants.defaultGlassQuality` / `minGlassQuality`, the adaptive scope wired up in `main.dart`), which never reach buttons at all, so lowering glass quality previously had zero effect on this screen. Cost scales with the number of buttons visible at once rather than with data volume, which is why Nutrition Hub (recalculate + apply + goals + one button per recipe card) janked while data-heavier screens like Statistics and Diary did not. `AppButton` now wraps its glass in `InheritedLiquidGlass(isBlurProvidedByAncestor: true)` with `allowElevation: false`, taking the package's `skipBlur` path: the shader still paints tint, rim and Fresnel exactly as before, but no backdrop layer is pushed. Measured on-device via a temporary `FrameTiming` probe (debug build; iOS Simulators reject `--profile`): Nutrition Hub raster p50/p90 dropped from ~7.3–8.8/9.7–10.5ms to ~4.3–6.0/5.8–6.7ms, with Workout Hub improving similarly (6.5/8.0 → 4.4/5.4ms). Verified pixel-identical via before/after screenshots diffed with PIL in both Light and Dark mode — the only measurable delta is a single physical anti-aliasing pixel (⅓ logical px at 3x) on the button's outer edge, safe because every button in the app sits on a flat, near-neutral surface (checked scanner, AI capture, and tour overlay screens, which place buttons over camera previews or images, and confirmed none use `AppButton`).
+- **`GlassProgressBar` Drop Shadow Ignored the Squircle Silhouette:** The bar's outer shadow container used `BoxDecoration(borderRadius: BorderRadius.circular(borderRadius))` while the bar body itself is clipped to a `SmoothRectangleBorder` superellipse. The shadow was therefore cast from a plain circular-radius rectangle whose corners sit slightly outside the squircle, making the corner edges read as ordinary rounded corners rather than the Apple squircle used by `SummaryCard`. Replaced with `ShapeDecoration(shape: squircle)` so shadow, background fill and clip path all derive from the same shape object. Visible in Light Mode only — Dark Mode disables the shadow entirely (`disableShadow || isDark`). The squircle parameters themselves remain 1:1 with `SummaryCard` (`cornerRadius: DesignConstants.borderRadiusL`, `cornerSmoothing: 0.6`).
+
+### Added
+- **`ReorderScrollAnchor` Scroll-Anchoring Utility & Tests:** Added `lib/features/workout/presentation/reorder_scroll_anchor.dart`, a small helper that pins one list item in place while the list relayouts around it. `capture(id)` records the item's on-screen position via its `RenderBox`, `restore()` — called from a post-frame callback — scrolls by exactly the distance it moved, clamped to the scroll extents; `keyFor(id)` hands out the `GlobalKey` the card must carry to be measurable. Shared by the three workout screens that collapse their cards during a drag. The accompanying `kReorderDropSettleDuration` documents the 250ms drop animation `SliverReorderableList` runs before applying the reorder, which is private in the SDK. Covered by `test/reorder_scroll_anchor_test.dart` (4 widget tests) against a list with deliberately non-uniform item heights, so a uniform-height shortcut cannot pass by luck, including an assertion that the viewport actually moves — a no-op anchor would otherwise satisfy the pinning check.
+- **`GlassProgressBar` Intrinsic-Height Regression Test:** Added `test/widgets/glass_progress_bar_test.dart`, which lays the bars out inside the same `IntrinsicHeight` → `Row` → `Expanded` structure that `NutritionSummaryWidget` uses for the "Today in Focus" grid and asserts a non-zero rendered size. `LayoutBuilder` throws *"LayoutBuilder does not support returning intrinsic dimensions"* and resolves to `0` when queried for an intrinsic height, so introducing one at the root of `GlassProgressBar.build` silently collapses the entire grid to zero height while every other screen keeps rendering normally. A code comment at the shape construction site records the constraint.
+
+### Changed
+- **Glass Quality No Longer Degrades on iOS/macOS:** The adaptive quality logic behind the floating bottom bar and every other glass surface is provided by `GlassAdaptiveScope` (`liquid_glass_widgets`), which benchmarks raster frame times at warmup and keeps stepping quality down at runtime when P95 exceeds the frame budget (thermal throttling, background load). It ran on all platforms: iOS was capped at `GlassQuality.premium` via `maxQuality`, but nothing stopped it from dropping to `standard` or even `minimal` mid-session, and the settled tier is persisted to `SharedPreferences` (`glass_quality`), so a single bad measurement carried over into subsequent cold starts. Added `DesignConstants.minGlassQuality`, which returns `defaultGlassQuality` (premium) on iOS/macOS and `GlassQuality.minimal` elsewhere, and passed it as `minQuality` to the root `GlassAdaptiveScopeConfig` in `main.dart` plus all six nested scopes (`main_screen.dart`, `running_workout_overlay.dart`, `speed_dial_menu_overlay.dart` ×2, `live_workout_screen.dart` ×2, `glass_fab.dart`). With `min == max == premium` on Apple platforms the adapter's floor clamp neutralises every downgrade path — the static capability probe, the warmup decision, runtime degradation and a previously persisted lower tier are all raised back to premium. Android behaviour is unchanged: it stays capped at `standard` and may still degrade to `minimal`.
+
+## [1.0.0-beta.11] - 2026-08-07
+
+### Fixed
+- **OFF Region Picker Dialog Selection State:** Fixed `RadioListTile` in the Open Food Facts (OFF) food database region picker dialog (`settings_screen.dart`) missing `groupValue` and `onChanged` parameters, which left selection clicks inactive and prevented saving a region change. Also fixed widget test page transition timing and isolate completion handling in `adaptive_recommendation_settings_flow_test.dart` and `settings_off_region_test.dart`.
+- **PostHog Contacted Before Any Consent Was Given:** Fixed the app opening a connection to PostHog EU on every launch regardless of opt-in state, contradicting the "no data or network connections before you explicitly enable this" guarantee in the privacy policy and `TELEMETRY.md`. `TelemetryService.init()` is invoked unconditionally from `AppInitializerScreen` and called `Posthog().setup()` before evaluating consent; in `posthog-ios` 3.69.0, `setup()` unconditionally triggers `PostHogRemoteConfig.preloadRemoteConfig()`, which is gated only by `disableRemoteConfigForTesting` and contains no reference to the opt-out state at all (`grep -c "optOut" PostHogRemoteConfig.swift` → 0). No *events* were transmitted — `track()` correctly dropped those — but the remote-config request itself exposed the device's IP address to PostHog. SDK setup is now deferred out of `init()` into `optIn()` behind a `_sdkConfigured` flag; an install that never opts in performs zero network activity toward PostHog. Setting `config.optOut = true` before setup would **not** have fixed this, since remote config ignores that flag. Covered by a regression test that fails if any SDK call occurs while opted out.
+- **Body Weight, Calorie/Macro Targets and Free-Text Notes Sent to PostHog:** Fixed `feedback_report_submitted` transmitting `diag_latest_logged_weight_kg`, `diag_recommended_calories_kcal`, `diag_active_target_protein_g` / `_carbs_g` / `_fat_g`, `diag_posterior_maintenance_kcal` and the user's free-text note verbatim as `user_note`. This contradicted both the privacy policy ("no body weights") and this document's own "ZERO PII" claim for that event, and the free-text field is unconstrained input that can contain names, diagnoses or contact details. `_buildDiagnosticsSummary` no longer adds the note at all — only `user_note_length` is reported — and a new `_isSensitiveDiagnosticKey` filter drops every key carrying a body measurement or nutrition quantity while keeping pure `*_count` / `*_days` counters, confidence levels, quality flags and state strings. The complete report including all figures and the note remains available through the email, share, copy and file-export actions, which go directly to the developer under the user's own control.
+- **Feedback Report Claimed Success While Silently Dropping the Submission:** `_sendAnonymousReportToPostHog` showed "Diagnostic report sent directly to developer. Thank you!" unconditionally, but the submission rides on the telemetry pipeline, which discards everything while the user is opted out. Users with telemetry off were told their report had been delivered when nothing was sent. The action now checks the opt-in state first and, when telemetry is off, explains that and points at the email/share channels instead.
+- **Native iOS `$rageclick` Autocapture Leak:** Fixed `$rageclick` events being transmitted with raw touch coordinates (`$touch_x`, `$touch_y`) despite `PostHogConfig.beforeSend` returning `null` for them. Rage-click autocapture is enabled by default in the native PostHog iOS SDK (`PostHogRageClickConfig.enabled = true`) and registers `PostHogRageClickIntegration` independently of `captureElementInteractions`; because the event is native-initiated it never passes through the Dart-side `beforeSend` callback, which by design only intercepts events captured via `Posthog().capture()`. `posthog_flutter` 5.34.2 exposed no way to disable it, so the SDK was upgraded to 5.36.0 and `config.rageClickConfig.enabled = false` is now set in `PostHogTelemetryService.init()`. Since these events also bypassed `$ip: "0.0.0.0"`, they were additionally being enriched server-side with the real request IP, resolving city name, postal code, latitude and longitude — a direct violation of the "No Location Data" guarantee in `TELEMETRY.md`.
+- **`$identify` Person Profile Creation & GeoIP Leak:** Fixed the per-launch ID rotation mechanism creating exactly the PostHog Person Profiles it was designed to prevent. `PostHogConfig.personProfiles` defaults to `identifiedOnly`, so calling `Posthog().identify(userId: ephemeralSessionId)` marked the user as identified and caused PostHog to build a full person profile; every subsequent event in that session was ingested as `person_mode: full` instead of `propertyless`. The `$identify` event itself is native-initiated and bypassed `beforeSend`, arriving with the real request IP and writing resolved city, postal code, latitude, longitude, subdivision and time zone into `$set` and `$set_once` person properties. Replaced with `Posthog().reset()`, which discards the stored anonymous ID so the native SDK mints a fresh one — achieving identical per-launch rotation while the user stays anonymous — and set `personProfiles = PostHogPersonProfiles.never`.
+- **Server-Side GeoIP Resolution (`$geoip_disable`):** Restored `$geoip_disable: true` on all telemetry payloads. `$ip: "0.0.0.0"` alone does **not** stop PostHog's server-side GeoIP transformation from resolving city, postal code and coordinates out of the request IP. Both properties are now applied centrally in `beforeSend` for SDK-captured events and inline in the two direct HTTP payloads (`app_launched`, `$delete_person`) via a shared `_privacyProperties` getter, so no payload can be constructed without them. Client-resolved `$geoip_country_code` / `$geoip_continent_code` metadata is preserved so World Map and country-breakdown insights keep working.
+- **`daily_food_logged` Massive Undercounting:** Fixed two independent bugs that caused the aggregated food counter to report a small fraction of actual entries. First, `incrementFoodLogCount` was only called from `NutritionRepository.insertFoodEntry`, but five of six logging paths (`main_screen.dart` quick-add, `add_food_screen.dart`, `meals_screen.dart`, `meal_screen.dart`, `ai_meal_review_screen.dart`) call `DatabaseHelper.instance.insertFoodEntry` directly and bypassed the repository entirely — including manual search and the AI meal scanner. The counter was moved down to `DiaryLocalDataSource.insertFoodEntry`, the single choke point every path funnels through. Second, logging a saved meal or confirming an AI meal scan inserts each item in a tight loop with an unawaited increment, and the concurrent read-modify-write cycles on `SharedPreferences` interleaved and lost updates, so a five-item meal was recorded as a single entry; increments and flushes are now serialized through a single-future queue. The flush was additionally moved to the app-root `AppLifecycleListener` in `main.dart` so it also runs when the app is backgrounded from onboarding or any screen outside the tab shell, and now calls `Posthog().flush()` to hand the batch to the network rather than leaving it queued.
+- **`$delete_person` Deletion Request Suppressed by Its Own Payload:** Fixed the "Telemetrie-Daten löschen" action sending `$process_person_profile: false` on the `$delete_person` event. That flag instructs the ingestion pipeline to skip person processing — the very step that carries out the deletion — likely rendering the feature ineffective. The property is now explicitly excluded for this event in both the direct HTTP payload and the `beforeSend` enrichment, while `$ip` and `$geoip_disable` are still enforced.
+- **Fabricated Device Metadata on `app_launched`:** Removed `$device_manufacturer`, `$device_model`, `$device_name`, `$is_sideloaded` and `$is_testflight` from the direct HTTP `app_launched` payload. These were guessed from the `platform` string, reporting hardware that no device actually had (`"Apple"` / `"arm64"` / `"iPhone"` for every iOS device, `"Android"` / `"Mobile"` for every Android one) and hardcoding `$is_testflight: false` even where SDK-captured events correctly reported `true`. Only observable values are now sent. Also corrected the stale hardcoded `$lib_version` (`"5.34.2"`), extracted to a `_libVersion` constant documented to track the `pubspec.yaml` constraint.
+- **Dark Mode Bottom Menu Text Field Contrast:** Fixed text input fields (`TextField`, `TextFormField`, dropdowns) in bottom menus and dialogs blending into dark sheet backgrounds due to nearly identical background color (`#1C1C1C` vs `#1C1C1E`). Updated dark mode `inputDecorationTheme.fillColor` to elevated surface color `#2C2C2E` (`tertiarySystemGroupedBackground` / iOS secondary elevated surface) in accordance with Apple HIG and Material Design dark surface elevation guidelines, ensuring crisp contrast, clear input borders, and visual legibility across all bottom sheets and dialog forms.
+- **Standalone ValueSummaryCard Light Mode Background:** Fixed standalone `ValueSummaryCard` tiles (e.g. recommended macro targets and effective energy density in Nutrition Hub, heart rate section, and analytics screens) using secondary surface color (`#F2F2F7`) instead of primary card white (`#FFFFFF`) in Light Mode, blending into the page background. Reset default `useSecondarySurface` in `ValueSummaryCard` to `false` (matching `SummaryCard`) and explicitly enabled `useSecondarySurface: true` only where cards are nested inside a parent `SummaryCard` (e.g. `BodyMetricsSectionCard`, `PulseSectionCard`, `SleepSectionCard`).
+- **Dropdown Form Field Light Mode Visibility:** Fixed contrast issue where dropdown menu fields (`PlatformAdaptiveDropdownFormField`) appeared invisible ("white on white") in Light Mode when placed inside white cards (`#FFFFFF`). Added a subtle background tint (`#F2F2F7`) and fine outline border (`Colors.black.withValues(alpha: 0.12)`) to ensure crisp visual boundaries, clear structure, and high contrast across all light-themed surfaces globally.
+
+### Added
+- **`feature_used` Event Instrumentation (Previously Entirely Dead):** `TelemetryService.trackFeatureUsed()` existed in the interface and all implementations but had **zero call sites**, so the entire event category was silently never emitted. Instrumented 18 feature keys: `routine_created` (`edit_routine_screen.dart`), `routine_started` (`workout_hub_screen.dart`), `routine_shared` (`share_service.dart`), `workout_imported` (`data_management_screen.dart`), `custom_exercise_created` (`create_exercise_screen.dart`), `barcode_scanned` (`add_food_screen.dart`, `general_food_selection_screen.dart`), `custom_food_created` (`create_food_screen.dart`), `app_tour_started` / `app_tour_completed` (`main_screen.dart`), `apple_health_exported` / `health_connect_exported` (`export_service.dart`), `icloud_sync_triggered` (`icloud_sync_service.dart`), and `json_backup_created` / `json_backup_restored` / `csv_exported` (`backup_manager.dart`). Keys reachable from multiple screens are tracked at their data-layer choke point — `recipe_created` in `MealLocalDataSource.insertMeal`, `supplement_logged` in `SupplementLocalDataSource.insertSupplementLog`, `body_measurement_logged` in `ProfileLocalDataSource.insertMeasurementSession` — so no call site can bypass them, the same class of bug that broke `daily_food_logged`.
+- **`screen_viewed` Coverage Expanded From 7 to 43 Screens:** Only five tabs plus `settings_main`, `legal_privacy` and `feedback_report` were instrumented, leaving every detail screen invisible in analytics. Added tracking to all remaining screens across workout (`live_workout`, `routine_editor`, `routine_list`, `workout_summary`, `workout_history`, `workout_detail`), exercise catalog (`exercise_catalog`, `exercise_detail`, `create_exercise`), diary (`diary_day_view`, `nutrition_hub`, `meal_list`, `add_food_search`, `food_detail`, `create_food`, `ai_meal_capture`, `ai_meal_review`, `barcode_scanner`, `meal_editor`, `food_explorer`), analytics (`statistics_hub`, `muscle_group_analytics`, `pr_dashboard`, `consistency_tracker`, `body_nutrition_correlation`, `recovery_tracker`) and health/utility screens (`body_measurements`, `goal_editor`, `pulse_overview`, `sleep_overview`, `steps_overview`, `supplements_overview`, `ai_settings`, `data_management`, `about_app`). `AboutScreen` was converted from `StatelessWidget` to `StatefulWidget` to carry the `initState` hook.
+- **Closed-Set Telemetry Value Constants (`ScreenName`, `FeatureKey`, `FoodLogSource`):** Introduced constant catalogs in `telemetry_service.dart` so call sites reference identifiers instead of string literals, keeping them in lockstep with `TELEMETRY.md`. Backed by runtime sanitization inside `PostHogTelemetryService`: `screen_name` and `feature_key` are validated against `^[a-z][a-z0-9_]*$` and coerced to `"unknown"` on mismatch, and `incrementFoodLogCount` runs `FoodLogSource.sanitize()` on its argument rather than trusting callers. User-authored text (routine names, food names) can never match the pattern — this is the exact leak class that once transmitted a routine title `"Arme + Schultern"` as `workout_type`.
+- **Food Log Source Attribution:** `daily_food_logged.sources` previously only ever contained the single hardcoded value `"diary_entry"`. Entries are now attributed to `manual_search`, `barcode_scan` (via a new `ScannedFoodItem` provenance wrapper threaded through `AddFoodNavigationResult`), `ai_capture` or `meal`, matching the documented schema.
+- **Telemetry Regression Tests:** Added coverage for the concurrent-increment race (25 parallel increments must yield exactly 25), distinct source recording, opt-out isolation, `FoodLogSource.sanitize()` fallback behaviour, and a guard asserting no catalog value can contain user-authored text.
+- **Apple HIG Segmented Control Component (`AppSegmentedControl`):** Created reusable iOS-style `AppSegmentedControl<T>` component featuring smooth sliding background pill transitions (`#2C2C2E` in Dark Mode, `#FFFFFF` in Light Mode), squircle corner smoothing, and settings-aware haptic feedback (`HapticFeedbackService.instance.selectionFeedback()`).
+- **App Store Connect Screenshot Upload Script & Fastlane Integration:** Added an automated deployment script `script/upload_app_store_screenshots.sh` and a new `upload_screenshots` lane in `ios/fastlane/Fastfile`. Automatically stages localized screenshot sets (`de-DE`, `en-US`), validates image formats, supports `--dry-run` inspection, and uploads marketing screenshots directly to App Store Connect via Fastlane `deliver`.
+- **App Store Connect Metadata Synchronization (`sync_store_metadata`):** Added a Markdown-based store metadata synchronization system (`script/sync_store_metadata.sh`, `script/sync_store_metadata.py`, `metadata/app_store/*.md`). Supports editing app title, subtitle, keywords, description, release notes, and URLs in consolidated VS Code Markdown files with automatic character limit validation and bi-directional push/pull sync with App Store Connect via Fastlane.
+
+### Changed
+- **Store Screenshots Updated:** Updated App Store and Google Play marketing screenshots for iOS and Android across light and dark themes.
+- **Repository Cleanup:** Removed leftover test log files (`flutter_01.log`, `flutter_02.log`) and patch review artifacts (`patch_review.diff`) from the project root directory. Removed unreferenced method `_showOverviewExtraNutrientPicker` in `SettingsScreen` to ensure clean static analysis. Standardized and translated German code comments to clean English documentation across diary and UI components.
+- **Privacy Policy Reworked & Bumped to v1.7 (Telemetry Section):** Rewrote section 6 C of the privacy policy to match what the code actually does, and raised `kCurrentLegalVersion` from `1.6` to `1.7` so existing users are asked to re-consent. Corrections: the claim that metrics are grouped "exclusively into coarse buckets" (naming `15-30min` and `4-7` as examples) was false — `TelemetryBuckets.getDurationBucket`/`getExerciseCountBucket` have no callers and `workout_completed` sends exact integers, so only latency and confidence are actually bucketed. Country, continent and locale are transmitted but were never disclosed; they are now described, including that they are derived client-side from system settings rather than from the IP. "Anonymous" was replaced with "pseudonymised" throughout, since `app_launched` uses a persistent local device UUID. The absolute "stored exclusively on EU servers" claim was softened to name Frankfurt as the primary hosting infrastructure while acknowledging that support, security and sub-processing operations may involve access outside the EU under the DPA's safeguards. "Delete telemetry data" is now described as *requesting* erasure, subject to technical exceptions such as backup copies, and the self-service button in Settings is mentioned instead of only the email route. The event categories collected are now enumerated (previously none were named, despite Art. 13 GDPR requiring the categories of processed data), with a pointer to `TELEMETRY.md` for the full catalogue. Applied across all five languages in `assets/privacy/privacy_policy_*.md` and `docs/script.js`, plus `docs/privacy.html`, the German and English documents in `legal_screen.dart`, and the summary and data-subject-rights bullets that repeated the old claims.
+- **Terms of Service Translated to French, Italian and Japanese:** `assets/legal/` shipped only German and English while the app is localised for five languages. Added `terms_of_service_fr.md`, `terms_of_service_it.md` and `terms_of_service_ja.md` mirroring the existing four-section structure (no medical advice, as-is disclaimer, data autonomy, GPL-3.0 governance).
+- **Website Privacy Page Completed for French, Italian and Japanese:** Eight `data-i18n` keys covering the health-data import/export bullets and the backup introduction (`p_5_a_l1`–`l3`, `p_5_a_c2`, `p_5_b_l1`–`l3`, `p_6_b_c1`) were missing from the `fr`, `it` and `ja` blocks in `docs/script.js`, so those sections silently fell back to English. All five language tables now carry an identical key set.
+- **`posthog_flutter` 5.34.2 → 5.36.0 & Native Subsystem Lockdown:** Upgraded for `PostHogConfig.rageClickConfig`, which 5.36.0 introduced specifically to allow disabling `$rageclick` capture (the native iOS dependency `posthog-ios` was already pinned at 3.69.0 via SPM, exactly the minimum 5.36.0 requires, so no native version bump was needed). Because every subsystem that emits its own native events bypasses `beforeSend`, they are now all disabled at the source in `PostHogConfig`: `sessionReplay`, `surveys`, `sendFeatureFlagEvents`, `preloadFeatureFlags`, `capturePushNotificationSubscriptions` and `capturePushNotificationOpened`. The last two default to `true` as of `posthog_flutter` 5.35.0 and would otherwise have started registering device push tokens with PostHog on upgrade with no code change — unacceptable for an offline-first, privacy-first app. `beforeSend` additionally drops a deny-list of `$`-prefixed and `survey *` events as defense in depth.
+- **`TELEMETRY.md` Reconciled With Actual Implementation:** The schema catalog documented several features that do not exist in the app, so their telemetry could never fire. Removed `fasting_timer_started`, `fasting_timer_completed` and the `fasting_tracker` screen (no fasting feature exists), and `plate_calculator_used` (no plate calculator exists; the `used_plate_calculator` field on `workout_completed` is now documented as reserved and always `false`). Renamed `routine_shared_qr` → `routine_shared` and replaced `routine_scanned_qr` with `workout_imported`, since routine sharing goes through `ShareService`'s text/image sheet and there is no QR flow anywhere in the app. Collapsed `cloud_backup`, `export_data`, `import_data` and `data_privacy_settings` into `data_management` (backup, CSV export, import and local-data deletion all live on `DataManagementScreen`), folded `workout_overview` into `workout_tab` (same screen), and added the previously undocumented `feedback_report` screen. Documented the `reset()`-over-`identify()` rationale, the `$geoip_disable` requirement, and both `daily_food_logged` correctness constraints.
+- **Apple HIG Hairline Glass Outlines:** Reduced stroke widths and shader ambient rim parameters across all glass elements (`GlassBottomMenu`, `GlassPillButton`, `GlassMenu`, `AppButton`, `GlassContextMenuOverlay`, `platform_adaptive_pickers.dart`, and `DesignConstants.liquidGlassSettings`) from 1.0–1.5pt down to ultra-thin **0.5pt** hairline borders and `ambientRim: 0.08` to match native Apple iOS 17/18 & macOS glass sheet aesthetics.
+- **Bottom Navigation Bar System-Glass Tuning:** Tuned `DesignConstants.liquidGlassSettings` for the floating bottom `GlassTabBar`/FAB to match real iOS *system UI* glass (`UITabBar`) instead of the "simulated glass object" look used for buttons/panels: set `fresnelStrength: 0.0` (disables the physics-based lens rim), raised `blur` for proper backdrop frosting, and added `whitenStrength` legibility veil (`0.15` in Light Mode, gated to bright pixels only) so text/icons stay crisp. In Dark Mode, `whitenStrength: 0.14` is applied *ungated* (`whitenGated: false`) so the bar reads as dark grey rather than near-black when there's nothing behind it to blur, since a gated lift is a no-op over an all-black backdrop. Reduced `ambientRim` to `0.01` and raised `saturation` to `0.90`.
+- **Bottom Vignette Scrim Rework:** Introduced `DesignConstants.bottomVignetteHeight` (`bottomNavigationBarHeight * 1.75` ≈ 112px) as the single source of truth for the fade-out scrim height, replacing 10 duplicated magic-number heights (160/180/200px) across `main_screen.dart`, `supplement_hub_screen.dart`, `exercise_catalog_screen.dart`, `add_food_screen.dart`, `food_explorer_screen.dart`, `meals_screen.dart`, `meal_screen.dart`, `edit_routine_screen.dart`, and `live_workout_screen.dart`. Reworked `bottomVignetteGradient`'s stops to a 7-stop eased falloff so the fade becomes visible roughly half a bar-height above the bar and fully dissipates within about one bar-height, avoiding both an overly long reach up the screen and an abrupt cutoff. Fixed a rendering artifact where the final gradient stop used `Colors.transparent` (`#00000000`, i.e. black at zero alpha) — interpolating a light grey/white stop into it dragged intermediate RGB values towards black as alpha faded, producing a visible dark seam in Light Mode; replaced with `baseColor.withValues(alpha: 0.0)` so only alpha animates.
+- **Apple HIG Button Redesign & Settings-Aware Haptics:** Refactored `AppButton` to trigger settings-aware haptic feedback on button press (`HapticFeedbackService.instance.lightImpact()`), strictly respecting the user's App-Einstellungen toggle (`_hapticsEnabled`). Replaced opacity fading with iOS spring scale animation (`scale: 0.96`, 120ms duration), applied Apple squircle corner smoothing (`14.0pt` radius with `cornerSmoothing: 0.6`), and updated secondary button variant to use iOS `Filled Tonal` style (`primaryColor.withValues(alpha: isDark ? 0.18 : 0.12)`). Added settings-aware selection haptics to `TimeRangeFilter` and `ExerciseDetailScreen` filter controls.
+- **Apple HIG Card & Background Alignment (Dark & Light Mode):** Unified dark theme card surface colors to Apple's system standard `secondarySystemGroupedBackground` (`#1C1C1E` / `Color(0xFF1C1C1E)`) across `DesignConstants.summaryCardDarkMode`, `main.dart` `cardDark`, `GlassProgressBar`, `FrostedContainer`, and analytics screens. Added `summaryCardSecondaryDarkMode = Color(0xFF2C2C2E)` and `summaryCardSecondaryLightMode = Color(0xFFF2F2F7)` for nested surface elements (`tertiarySystemGroupedBackground` / iOS secondary surface). Updated `ValueSummaryCard`, `RecoverySectionCard`, and `RecoveryTrackerScreen` readiness pills to use secondary surface backgrounds by default (`#2C2C2E` in Dark Mode, `#F2F2F7` in Light Mode) so nested grid cards (e.g. in `BodyMetricsSectionCard`, `BodyNutritionCorrelationScreen`, and Statistics Hub `RecoverySectionCard`) stand out cleanly with subtle contrast against parent white (`#FFFFFF`) or dark (`#1C1C1E`) card surfaces. Set top-level `ValueSummaryCard` items in `ExerciseDetailScreen` to `#1C1C1E` in Dark Mode and `#FFFFFF` in Light Mode. Removed default 1px white border stroke in `SummaryCard`, `GlassProgressBar`, and `FrostedContainer` for solid cards, relying on elevation contrast (`#1C1C1E` on `#000000`). Corrected shadow logic to disable drop shadows in Dark Mode while preserving soft shadows in Light Mode, and maintained all explicit status borders (e.g. Recovery Tracker muscle readiness state borders).
+- **Unified App Settings Menu Popup UI & Menu Width:** Converted "Zusätzlicher Nährstoff in der Übersicht" and "Unit System" in `SettingsScreen` to be 1:1 identical to standard setting tiles (`ListTile` with title, subtitle, icon, and right chevron). Increased default `menuWidth` in `PlatformAdaptivePopupMenu` from `200` to `260` so longer option labels (e.g. `Metric (kg, cm, ml)` and `Imperial (lbs, in, fl oz)`) render completely without text truncation (...).
+- **Removed Colorful Macro Badges Setting Tile:** Completely removed the "Bunte Nährwert-Badges" (`useColorfulMacroBadges`) toggle tile from `AppearanceSettingsScreen`. The colorful macro badges feature remains hardcoded and permanently active globally (`useColorfulMacroBadges => true`).
+
+## [1.0.0-beta.10] - 2026-08-06
+
+### Fixed
+- **PostHog World Map Analytics & Zero IP Logging:** Resolved PostHog World Map visualization failures caused by `$geoip_disable: true` suppressing GeoIP ingestion. Updated `TelemetryService` and `PostHogTelemetryService` to resolve ISO country codes (e.g., `DE`, `US`) and locale strings reliably across device platforms using `PlatformDispatcher.locales`, regex fallback for locale strings (e.g., `de_DE.UTF-8`, `zh_Hans_CN`), and language fallback maps. Enriched all PostHog telemetry payloads with complete GeoIP country and continent metadata (`$geoip_country_code`, `$geoip_country_name`, `$geoip_continent_code`, `$geoip_continent_name`, `country_code`, `country`), while strictly preserving `$ip: "0.0.0.0"` for zero IP logging. Added automatic flushing of un-flushed daily food log counters on SDK initialization to prevent lost metrics from app force-closures, and instrumented anonymous screen tracking for `FeedbackReportScreen` and `LegalScreen`.
+
+### Changed
+- **Apple-Style Squircle Corners:** Replaced standard circular `BorderRadius` with true Apple-style superellipse squircles using the `figma_squircle` package (`SmoothRectangleBorder` / `SmoothBorderRadius` with `cornerSmoothing: 0.6`) across common UI components including `SummaryCard`, `GlassProgressBar`, `FrostedContainer`, and `GlassMenu`. Unlike Flutter's built-in `ContinuousRectangleBorder`, this implements the exact iOS superellipse algorithm that keeps curves natural and tight to corner regions.
+- **iOS-Style Light Mode Refinement (Apple Health Match):** Overhauled light theme color palette to match iOS `systemGroupedBackground` (`#F2F2F7` / `Color(0xFFF2F2F7)`). Updated `cardLight`, `bottomSheetTheme`, and `dialogTheme` to pure white (`#FFFFFF`). Refined `inputDecorationTheme` (`main.dart`) to use pure white fill (`Colors.white`) with borderless edges (`BorderSide.none`), eliminating muddy grey input field rectangles and un-styled bottom sheet backgrounds on `#F2F2F7`. Configured `GlassProgressBar` with exact 1:1 Apple superellipse squircle parameters. Refined Light Mode floating navigation bar (`GlassTabBar`) and FAB glass base tint to 50% white (`Colors.white.withValues(alpha: 0.50)`), preserving original bottom vignette gradients and adding a subtle elevation drop shadow (`glassShadow(isDark)` with 4% black opacity). Harmonized `GlobalAppBar` tint, `GlassBottomMenu`, and adaptive pickers.
+
+## [1.0.0-beta.9] - 2026-08-04
+
+### Added
+- **Dependency Updates:** Bumped `drift` to `2.34.3` and `posthog_flutter` to `5.34.2` (PR #547).
+- **Single-Pass Min/Max Bound Calculations:** Refactored bounds calculation in `MeasurementChartWidget`, `BodyNutritionNormalizedTrendChart`, `PulseAnalysisEngine`, and `WorkoutHeartRateService` to use single-pass `for` loops instead of chained `where/map/reduce` pipelines, reducing GC pressure (PR #544).
+- **Sleep Metrics & Regularity Index Performance:** Optimized array processing in `heart_rate_metrics.dart` and `sleep_regularity_index.dart` by filtering valid sleep data before sorting and using single-pass loops (PR #546).
+
+### Fixed
+- **iOS Simulator Detection for Telemetry (`$is_emulator`):** Enhanced `_isEmulator()` in `PostHogTelemetryService` to detect iOS Simulators via `Directory.systemTemp.path` (`CoreSimulator` device container path) and OS version strings, ensuring `$is_emulator: true` is accurately transmitted on `app_launched`.
+- **PostHog Strict GeoIP City/Postal Code Scrubbing:** Configured `PostHogConfig.beforeSend` to enforce `$ip: "0.0.0.0"`, `$geoip_disable: true`, and `$process_person_profile: false` on EVERY SDK-captured event (including internal `$identify` calls), preventing PostHog's backend from resolving city names, postal codes, state, latitude, or longitude. Added missing PostHog project `'token'` to direct HTTP POST `/capture/` payloads to eliminate HTTP 400 response errors.
+- **Onboarding Route Scope & Completion State Protection:** Wrapped `OnboardingScreen` in `PopScope` to redirect back gestures to `_prevPage()`, preventing accidental screen disposal on Android/iOS. Fixed `_runAutomatedPermissionSequence` to explicitly set `_onboardingCompletedSuccessfully = true`, track `trackOnboardingCompleted`, and navigate directly to `MainScreen` (`pushAndRemoveUntil`) instead of triggering full `app_main.main()` re-execution, preventing infinite onboarding loops when completing permissions after importing a backup into an existing app install.
+- **Timer Sound Persistent Audio Ducking:** Removed `AVAudioSessionOptions.duckOthers` in `SoundService` (`sound_service.dart`) to prevent iOS from keeping background music and system audio volume permanently lowered after the workout rest timer chime completes.
+- **GlassActionableCard Directional Swipe Background:** Refactored `GlassActionableCard` (`glass_actionable_card.dart`) to use Flutter's native `Dismissible.background` and `secondaryBackground` with `SwipeActionBackground` for all card types. Swiping left (delete) reveals only the pure red background, and swiping right (edit) reveals only the pure blue background, eliminating split color bleed. Updated `SwipeActionBackground` (`swipe_action_background.dart`) to clip all 4 corners with `baseRadius`, ensuring background containers always match card border radii when swiped off-screen.
+- **Speed Dial Menu FAB Alignment & Organic Sprout Animation:** Adjusted the bottom offset of `SpeedDialMenuOverlay` (`speed_dial_menu_overlay.dart`) from `32.0px` down to `16.0px` (and action list offset to `86.0px`), perfectly matching the bottom navigation bar FAB button. Implemented instant FAB handoff on button press (`_menuController.value > 0.0`) in `main_screen.dart` and refactored the sprout animation math so all action items physically originate, scale up (`0.1` -> `1.0`), and stretch directly out of the FAB center when expanding, and shrink/shoot cleanly back into the FAB when closing.
+- **Nutrition Hub & Navigation Isolate Multi-Threading:** Offloaded heavy Bayesian TDEE estimation math and log processing in `AdaptiveNutritionRecommendationService` (`recommendation_service.dart`) to background Isolates via `compute()`. Updated `NutritionHubScreen` (`nutrition_hub_screen.dart`) to instantly render cached state on screen load and defer background calculations post-transition, keeping the main UI thread 100% idle for smooth 60/120 FPS navigation and back swipe gestures without any UI code changes.
+
+
+## [1.0.0-beta.8] - 2026-08-03
+
+### Added
+- **PostHog Telemetry Server/Local Data Deletion & Discreet UI:** Added a discreet `AppLinkRow` action ("Telemetrie-Daten löschen") in Settings outside the main card (`settings_screen.dart`), allowing users to trigger a server-side `$delete_person` deletion request to PostHog EU servers for associated IDs while erasing all locally persisted device UUIDs, cached food counters, and resetting PostHog SDK state (`Posthog().reset()`). Configured `PostHogConfig.beforeSend` to drop all `$rageclick` and `$autocapture` events completely. Enforced per-launch rotation of in-app SDK session distinct IDs (`Posthog().identify(userId: ephemeralSessionId)`), ensuring in-app events across different app launches cannot be linked to the same device. Confirmed 100% opt-in requirement for all events including `app_launched`.
+- **Cross-Platform Workout Rest Timer Audio Output:** Configured `SoundService` (`sound_service.dart`) to play the custom audio asset (`assets/sounds/timer_done.mp3`) via `AudioPlayer` on all mobile platforms (iOS and Android), bypassing mobile-ignored `SystemSound.play` and routing audio directly through headphones, AirPods, or media speakers.
+- **Glass Bottom Sheet `headerTrailing` Action Support:** Extended `showGlassBottomMenu` (`glass_bottom_menu.dart`) to support a custom `headerTrailing` widget rendered top-right in the sheet header, identical to the date/time picker headers.
+- **Workout Rest Timer "Timer entfernen" Header Action:** Replaced the full-width bottom red button in `RoutinePauseTimeDialog` with a subtle top-right action ("Timer entfernen" / "Remove Timer") in the modal sheet header of `live_workout_screen.dart` and `edit_routine_screen.dart`, perfectly matching the date/time picker's "Heute" / "Jetzt" layout.
+
+### Fixed
+- **iOS Audio Category & Native Plugin Rebuild Fix:** Resolved `AVAudioSessionCategory` assertion in `SoundService` by configuring `AVAudioSessionCategory.playback` with `mixWithOthers` and `duckOthers`. Handled `MissingPluginException` gracefully when a full app restart/rebuild is pending for native plugin compilation.
+- **Diary Initial Date Night Cutoff:** Updated `resolveDiaryInitialDate` (`diary_view_model.dart`) so that opening the diary before 03:00 AM automatically defaults the selected date to yesterday instead of today.
+- **Workout Session Rest Timer Persistence in SQLite:** Fixed a critical issue in `workout_logging_queries.dart` (`updateSetLogs`) where `restTimeSeconds` was omitted from the `SetLogsCompanion` database query. When updating set logs during a workout, `rest_time_seconds` was left untouched in SQLite, causing rest timer values to reset to 0/default upon app restart.
+- **Exercise Catalog Category Filter Dropdown:** Replaced modal bottom sheet filter menu in `ExerciseCatalogScreen` (`exercise_catalog_screen.dart`) with the app's native glass context popup dropdown (`PlatformAdaptivePopupMenu`). Clicking the filter icon now opens an inline liquid glass dropdown menu directly below the filter button, displaying category items with active checkmarks for instant filtering without opening a full-screen bottom sheet.
+- **Supplement Quick Selection Sheet Layout:** Removed redundant leading pill icons (`LucideIcons.pill`) from the quick selection list tiles in `LogSupplementMenu` (`log_supplement_menu.dart`) for a cleaner, streamlined list view.
+
+### Fixed
+- **Statistics Screen Timeframe Slider Top Alignment:** Fixed the root cause of excessive space between the app bar and the `TimeRangeFilter` slider on `StatisticsHubScreen` (`statistics_hub_screen.dart`). The `appBarHeight` was incorrectly calculated as `MediaQuery.paddingOf(context).top + kToolbarHeight`, adding an extra 56px of padding that does not exist in sibling screens. Corrected to `MediaQuery.paddingOf(context).top` only, matching `DiaryScreen` and `WorkoutHubScreen`.
+- **Glass Bottom Sheet Keyboard Max-Height Bound:** Corrected `maxAvailableHeight` calculation in `showGlassBottomMenu` (`glass_bottom_menu.dart`) and `_GlassPickerSheet` (`platform_adaptive_pickers.dart`) by subtracting `keyboardInset` (`viewInsets.bottom`). When the soft keyboard opens while editing complex forms (such as adding/editing fluid entries), the sheet height is now capped strictly below the top status bar / Dynamic Island, ensuring full scrollability without overflowing off-screen.
+- **Liquid Glass Bottom Sheet Keyboard Extension:** Overhauled the keyboard transition in `showGlassBottomMenu` (`glass_bottom_menu.dart`) and `_GlassPickerSheet` (`platform_adaptive_pickers.dart`). Replaced negative padding with a non-clipping `Stack` extension that positions an `AdaptiveGlass` backdrop (`bottom: -keyboardInset`). The real liquid glass effect, saturation tint, and backdrop filters now extend continuously down behind the iOS/Android keyboard without triggering Flutter framework assertions or breaking glass optics.
+
+## [1.0.0-beta.7] - 2026-08-01
+
+### Fixed
+- **Nutrition Hub Recipe Cards Visual Mismatch:** Fixed visual clipping, height mismatch (changed from 150px to 160px), missing drop shadows, and `clipBehavior` in `NutritionHubScreen` (`nutrition_hub_screen.dart`), restoring exact 1:1 visual parity with "Meine Pläne" cards in `WorkoutHubScreen`.
+
+### Changed
+- **Main Navigation Dock & Floating Action Button (FAB) Lowering:** Adjusted the bottom position and vertical padding across all Floating Action Buttons (`GlassFab`). Fixed the total bottom offset of `_LiveWorkoutFab` in `LiveWorkoutScreen` (`live_workout_screen.dart`) to `92.0px` (`12.0px outer padding + 8.0px inner margin + 64.0px rest bar height + 8.0px gap`) when the rest timer bar is active, resolving an overlapping visual bug and restoring the exact 8.0px vertical gap above the rest bar. Lowered standalone custom FAB overlays (`EditRoutineScreen`) from `24px` to `12px` base bottom margin to sit lower and consistent across all product screens.
+- **Solid Saturated Brand Lime Rest Completion Banner:** Updated the rest completion banner in `LiveWorkoutScreen` (`live_workout_screen.dart`) to render 100% solid (0% transparency, `glassColor: DesignConstants.brandAccentColor`, `blur: 0.0`) in both Dark and Light modes, completely obscuring any background content behind the pill.
+- **Centralized Data Source Attribution (Open Food Facts & wger):** Removed individual floating and inline `OffAttributionWidget` and `WgerAttributionWidget` overlays from product screens (`AddFoodScreen`, `FoodDetailScreen`, `FoodExplorerScreen`, `GeneralFoodSelectionScreen`, `ExerciseCatalogScreen`, `ExerciseDetailScreen`, `EditRoutineScreen`, `LiveWorkoutScreen`, `WorkoutLogDetailScreen`) to clean up screen layouts and eliminate UI clutter. Consolidated all Open Food Facts (ODbL 1.0) and wger (CC-BY-SA) attribution links into standard `AppLinkRow` list items with `LucideIcons.external_link` trailing icons under the **Attribution** section inside `AboutScreen` (`about_screen.dart`), matching the native look of the rest of the screen.
+
+## [1.0.0-beta.6] - 2026-07-31
+
+### Changed
+- **Data-Minimizing & Zero-Profiling Telemetry Architecture (PostHog EU):** Overhauled `TelemetryService` and `PostHogTelemetryService` to enforce strict data minimization, zero profiling (`$process_person_profile: false`), and complete IP/location scrubbing (`$ip: '0.0.0.0'`, `$geoip_disable: true`). Implemented a **2-ID strategy** (Option B direct HTTP POST to PostHog EU for `app_launched` with persistent device UUID for accurate DAU/MAU counting without user profiling or in-app event correlation). Added ephemeral RAM session UUIDs for onboarding funnel tracking (`onboarding_step_viewed`, `onboarding_completed`, `onboarding_abandoned`), daily aggregated food logging counter (`daily_food_logged`), comprehensive screen view tracking (`screen_viewed`), feature usage triggers (`feature_used`), settings toggles (`setting_toggled`), and anonymized workout subfeature metrics (rest timer, RIR, supersets, warmup/drop/failure set flags, plate calculator).
+- **iOS Liquid Glass Optics & Backdrop Vignette Architecture:** Overhauled application-wide glassmorphic styling and shadow hierarchy. Replaced hard artificial drop shadows (`glassShadow`) across floating buttons (`GlassFAB`, `RunningWorkoutOverlay`, rest timer bar) with clean background vignette gradients (`DesignConstants.bottomVignetteGradient`). Implemented soft, exponential fade-out vignettes for top (`GlobalAppBar`) and bottom navigation overlays (pure dark in Dark Mode, subtle off-white/cool grey tint in Light Mode), reaching 100% solid opacity right at the outer screen boundary while preserving translucency directly behind floating UI components. Unified all floating glass widgets (`GlassFab`, `live_workout_screen.dart` rest timer overlays) to use `GlassContainer` with `DesignConstants.liquidGlassSettings(isDark)` for 1:1 identical optics with `GlassTabBar`.
+- **Open Food Facts Attribution Layer Fix:** Updated `FoodExplorerScreen` (`food_explorer_screen.dart`) layout to hide bottom vignette gradients in empty initial states and position `OffAttributionWidget` cleanly above the vignette layer with proper bottom padding (`96.0`), preventing text overlap with floating buttons.
+
+- **Liquid Glass Widgets Upgrade (v0.24.1):** Upgraded `liquid_glass_widgets` dependency from `0.22.1` to `0.24.1` (PR #536).
+- **Navigation Dock Capsule Radius Fix:** Updated `GlassTabBar.bottom` in `main_screen.dart` to use `GlassDefaults.capsuleRadius` for both `barBorderRadius` and `indicatorBorderRadius`, restoring smooth capsule indicator geometry in the bottom navigation dock.
+- **Flicker-Free Food Search UI Transition:** Updated `FoodExplorerScreen` (`food_explorer_screen.dart`) and `AddFoodScreen` (`add_food_screen.dart`) so that previous search result lists remain visible without loading indicator flickering while typing subsequent query characters.
+- **Bottom Vignette Shadow im Lebensmittel-Explorer:** `AddFoodScreen` (`add_food_screen.dart`) fehlte der weiche Gradient-Schatten am unteren Bildschirmrand. Den `body` in einen `Stack` gewrapped und ein `Positioned`-Overlay mit `DesignConstants.bottomVignetteGradient` ergänzt, konsistent mit `main_screen` und `live_workout_screen`.
+- **OFF Attribution Widget als schwebendes Overlay:** `OffAttributionWidget` in `AddFoodScreen` aus den einzelnen Tabs (wo es einen schwarzen Balken erzeugte) entfernt und als einziges `Positioned`-Overlay über dem Gradient-Schatten platziert — analog zum `WgerAttributionWidget` im `live_workout_screen`. Text-Schatten für Lesbarkeit über dem Gradient ergänzt.
+
+### Performance
+- **Nutrition Hub Meal-Card Scroll Jank Fixed:** Eliminated scroll stuttering in `NutritionHubScreen` when recipe/meal cards were visible. Root causes: (1) `clipBehavior: Clip.none` on the horizontal `ListView.builder` prevented Flutter from discarding compositing layers for off-screen cards – changed to `Clip.hardEdge`. (2) Per-card `RepaintBoundary` + `BoxShadow` (via `SummaryCard`) triggered expensive offscreen compositing on every frame during outer-list scrolling – removed per-card boundaries (a single boundary around the whole horizontal section suffices) and set `disableShadow: true` on meal cards inside the list.
+- **Sleep & Workout Calculations Optimization:** Optimized regularity calculator, workout routine delta detection, and sleep chart bounds calculations to use lazy Iterables, single-pass O(N) loops, and HashMaps, significantly reducing garbage collection pressure and main thread jank (PR #537, PR #540, PR #542).
+
+### Removed
+- **Repeat Onboarding Setting Removed:** Removed the "Anleitung erneut anzeigen" / "Onboarding wiederholen" option from `SettingsScreen` (`settings_screen.dart`).
+
+### Added
+- **Brand-Aware Food Search & Ranking Algorithm:** Enhanced `ProductLocalDataSource.searchProducts`, `getBaseFoods`, `EvaluateFoodSourceUseCase`, and repair fuzzy matching to incorporate product brand names (`p.brand`) directly into search token matching and text-relevance scoring. Search queries combining brand and product names in any order (e.g., "Rewe Magerquark" or "Apfelmus Kaufland Bio") now accurately match and rank relevant brand products at the top.
+- **Global Liquid Glass Context Menu & Actionable Cards (`GlassActionableCard` & `GlassContextMenuOverlay`):** Added a global, highly accessible wrapper widget (`GlassActionableCard`) and iOS / WhatsApp-style context menu overlay (`GlassContextMenuOverlay`) for summary cards and item tiles across Train Libre. Supports long-press focused element elevation, 120Hz Liquid Glass backdrop blur, smooth micro-animations, haptic feedback (`HapticFeedbackService`), and semantic screen reader actions (`Semantics(customActions: ...)`). Integrated across Diary food & fluid tiles (`FoodEntryTile`, `FluidEntryTile`), Workout routines (`RoutinesScreen`), Workout History logs (`WorkoutHistoryScreen`), Supplement catalog (`SupplementHubScreen`), and Body measurement sessions (`MeasurementsScreen`). Eliminates shadow bleed artifacts and GPU blur shader re-compilation jank.
+- **Comprehensive English Telemetry Documentation (`TELEMETRY.md`):** Added a dedicated root documentation file detailing Train Libre's telemetry rationale, opt-in consent model, anti-profiling & 2-ID safeguards, zero-PII policies, and complete event schema catalog (`app_launched`, `onboarding_*`, `screen_viewed`, `feature_used`, `daily_food_logged`, `workout_completed`, `setting_toggled`).
+- **Accessibility Tooltips:** Added missing localized tooltips to interactive IconButtons across live workout, superset header, AI settings, and data management screens for improved screen reader support (PR #538, PR #539, PR #541).
+
+
+## [1.0.0-beta.5] - 2026-07-26
+
+### Added
+- **Opt-in Anonymous Telemetry & F-Droid Cleanliness Architecture:** Implemented a privacy-first, opt-in `TelemetryService` using PostHog EU (`https://eu.i.posthog.com`) with zero PII capture. Added an abstract `TelemetryService` interface with `NoOpTelemetryService` (stub for F-Droid and disabled builds using `--dart-define=DISABLE_TELEMETRY=true`) and `PostHogTelemetryService`. Added a user-facing toggle switch ("Anonyme Nutzungsstatistiken teilen") in Settings under *Support & Info* next to Feedback (default `false`). Instrumented anonymous, coarse-bucketed events for app launches (`app_launched`), completed workouts (`workout_completed`), AI meal image scans (`ai_meal_scan_requested` / `ai_meal_scan_completed`), and database schema upgrades (`db_migration_status`).
+- **Onboarding Optional Telemetry Consent Checkbox:** Added a second, optional checkbox (`i_agree_to_optional_telemetry`) to the Onboarding Consent Screen (`initial_consent_screen.dart`), allowing users to explicitly opt into anonymous usage telemetry directly upon initial launch. The checkbox is unchecked by default and does not block onboarding progress.
+- **Legal Update Re-Consent Architecture (v1.6):** Implemented automatic re-consent enforcement when Privacy Policy or Terms of Service are updated to a new version (e.g. `kCurrentLegalVersion = '1.6'`). Created `LegalUpdateConsentScreen` (`legal_update_consent_screen.dart`), featuring localized version update notices, direct link to full terms, mandatory updated privacy policy consent checkbox, and pre-filled optional telemetry toggle. Updated `main.dart` startup routing to check `acceptedLegalVersion` before launching main app initializers, ensuring zero data processing or telemetry occurs until updated terms are accepted.
+
+### Changed
+- **Privacy Policy & Legal Screen Telemetry Disclosure Update:** Updated the official Privacy Policy in both German and English across legal presentation screens (`legal_screen.dart`) and root asset documentation (`privacy_policy_de.md`, `privacy_policy_en.md`) to **Version 1.6** (dated **27. Juli 2026**). Added Section 6.C (*"Optionale anonyme Telemetrie"* / *"Optional Anonymous Telemetry"*) detailing PostHog EU host disclosures, strict default opt-in status, zero PII transmission, coarse aggregated metric bucketing, instant consent revocation, legal basis under GDPR Art. 6(1)(a), data processor status under GDPR Art. 28 (PostHog, Inc. DPA), storage location & 12-month retention in AWS `eu-central-1` (Frankfurt, Germany) with EU-US Data Privacy Framework (DPF) safeguards, and telemetry data subject rights under Section 7.
+- **Privacy & Analytics Claims Alignment:** Conducted a comprehensive audit across `README.md`, website pages (`docs/index.html`, `docs/privacy.html`, `docs/privacy-policy/`), Impressum (`docs/impressum.md`), and app legal screens (`legal_screen.dart`). Updated marketing claims from absolute statements like *"without analytics SDKs"* or *"Keine Tracking- oder Analyse-SDKs"* to precise, transparent phrasing (*"Kein kommerzielles Tracking / Optionale anonyme Telemetrie"* / *"No Commercial Tracking (Optional Anonymous Telemetry)"*), accurately reflecting the opt-in `posthog_flutter` integration while highlighting the absence of advertising networks, commercial profiling, or mandatory tracking.
+- **Automatic Multilingual AI Meal Recognition & Language Setting Cleanup:** Removed manual "Sprache für KI-Lebensmittelnamen" (`settingsAiFoodNameLanguage`) dropdown setting from `AiSettingsScreen` (`ai_settings_screen.dart`). Overhauled `AiMatchingLanguageService` to resolve `AiMatchingContext` automatically based on app UI locale (`appLanguage`) and active Open Food Facts catalog region (`catalogLanguage`). Updated AI system prompts in `ai_prompts.dart` to instruct AI models to output primary food component names in the app UI language while providing secondary `catalogSearchTerm` keywords in the catalog language when analyzing food in foreign catalog regions (e.g., German UI app used with French OFF catalog). Updated `ProductLocalDataSource.fuzzyMatchForAi` and `AiMealValidationEngine` to perform multi-lingual candidate lookups across base foods and regional OFF databases.
+
+### Performance
+- **Background Isolate AI Payload Parsing:** Offloaded synchronous `jsonDecode()` calls for AI meal candidate and item parsing in `AiService` (`ai_parsing.dart`) to background isolates using `Isolate.run()`, preventing main UI thread frame drops when parsing large AI payloads.
+- **Drift Database Indexing & Query Optimization:** Added `@TableIndex(name: 'idx_nutrition_consumed_at', columns: {#consumedAt})` and `@TableIndex(name: 'idx_fluid_consumed_at', columns: {#consumedAt})` index annotations to `NutritionLogs` and `FluidLogs` tables in `drift_database.dart`, accelerating date-range queries across diary views.
+- **Nutrition Hub Recipes 120Hz Scroll Optimization:** Fixed micro-stuttering and GPU frame drops when scrolling past the "Meine Rezepte" ("My recipes") section on 120Hz ProMotion displays in `NutritionHubScreen` (`nutrition_hub_screen.dart`). Updated recipe card buttons to reuse `AppButton.primary` with `AppButtonSize.medium` (matching the Workout Hub routine card structure and primary lime styling) and isolated section cards and horizontal recipe items with `RepaintBoundary` wrappers to cache rasterized textures and eliminate GPU frame drops during scroll.
+- **Food Search Rendering Optimization:** Optimized food item search rendering in `AddFoodScreen` (`add_food_screen.dart`) by replacing multiple `.where()` list traversals with a single-pass loop, reducing list traversal complexity from $O(3N)$ to $O(N)$ and eliminating intermediate array allocations (PR #535).
+
+### Fixed
+- **AI Capture Fallback Error Handling:** Added a generic `catch (e)` fallback handler in `AiMealCaptureScreen._analyze()` (`ai_meal_capture_screen.dart`) to present user-friendly error SnackBars on unexpected exceptions instead of experiencing a silent loading freeze.
+- **User-Facing Exception Text Cleanup:** Replaced raw `$e` exception stacktrace strings in `meal_editor_screen.dart` with clean, localized error text while preserving `debugPrint()` diagnostic logs for development.
+- **Manager Error Logging:** Added explicit `debugPrint()` logging inside catch blocks across `backup_manager.dart` to prevent silent error swallowing during auto-backups and CSV exports.
+- **Diary Date-Switch Flicker Eliminated:** Implemented stale-while-revalidate pattern in `DiaryViewModel`. Removed `isLoading = true` and `notifyListeners()` from `setSelectedDate()` — the UI now keeps the previous day's content fully rendered and stable while the new date's stream subscriptions resolve in the background. The date arrow/header still updates immediately via `ValueNotifier`. A single atomic `notifyListeners()` in `_executeCalculatedState()` swaps all content to the new date at once, with no intermediate skeleton or flicker.
+
+### Accessibility & Theme Consistency
+- **Touch Target Standard Compliance:** Increased button touch target dimensions in `add_food_screen.dart` (search field action buttons) and `diary_screen.dart` (`_compactIconButton`) to meet the minimum 48x48 dp Material / Apple HIG accessibility standard.
+- **Animated Progress Bars:** Converted `GlassProgressBar` from a `StatelessWidget` to a `StatefulWidget` that uses `TweenAnimationBuilder` to smoothly tween both the fill bar width and the displayed numeric value whenever they change (350 ms, `easeOutCubic`). This means all macro bars (calories, water, protein, carbs, fat, sugar, fiber, salt, caffeine), supplement goal bars, and the steps card bar animate fluidly on every value update — including the atomic date-switch content swap.
+- **Cardio Metric Localization:** Extracted remaining hardcoded metric strings (`Distance`, `Duration`, `Pace`) in `exercise_detail_screen.dart` to `app_en.arb` (`exerciseMetricDistance`, `exerciseMetricDuration`, `exerciseMetricPace`) and `app_de.arb`.
+- **Theme ColorScheme Consistency:** Replaced direct `Colors.black` and `Colors.white` references with `Theme.of(context).colorScheme` tokens in `main_screen.dart` and `scanner_screen.dart`.
+
+
+## [1.0.0-beta.4] - 2026-07-26
+
+### Added
+- **Blocking Import Overlay & Duplicate Workout Skipping:** Added `LongRunningOperationOverlay.run()` modal glass loading screen during CSV workout imports in `data_management_screen.dart`, blocking interactions until import completes. Added automatic duplicate workout skipping in `import_manager.dart` by matching workout `startTime` timestamps against existing database logs, skipping already imported workouts and providing feedback (*"0 neue Workouts importiert (alle existierten bereits)"*).
+
+### Changed
+- **Settings Screen App Tour Option Cleanup:** Removed the "App Tour neu starten" navigation card tile and its handler from `SettingsScreen` per user request.
+- **Live Workout Contextual Exercise Insertion:** Updated exercise addition logic in `LiveWorkoutViewModel.addExercise()` so newly added exercises are inserted immediately after the lowest exercise in the active workout that has at least one completed set (`isCompleted == true`), matching real-world gym workflow. Automatically synchronizes `logOrder` database sequence. If no sets are completed yet, exercises append to the end as before.
+- **Statistics Hub Section Reordering:** Reordered the main sections in `StatisticsHubScreen` so that **Körper (Body)** (Body metrics & measurements) is positioned directly between **Erholung (Recovery)** and **Training** (Consistency, Performance PRs, Muscle Volume), prioritizing body composition metrics higher up the dashboard layout.
+- **Exercise Mapping 1-Tap Pill Selection:** Enhanced `exercise_mapping_screen.dart` to automatically pre-select top fuzzy search matches for unlinked imported exercises and render alternative recommendations as interactive 1-tap `GlassPillButton` elements with selection checkmarks. Users can confirm or switch exercise mappings with 1 tap. Retained persistent access to "Übungen zuordnen" in Settings under *Data Management* for ongoing exercise mapping.
+- **Exercise Search & Fuzzy Matching Overhaul:** Overhauled exercise lookup (`getExerciseByName`) and search (`searchExercises`) in `exercises_queries.dart`. Added automatic parenthetical equipment qualifier stripping (e.g., `(Maschine)`, `(Langhantel)`, `(Kurzhantel)`), a 3-pass multi-tier search engine (strict `AND` -> sanitized base-name -> flexible `OR` with synonym expansion for `KH`/`LH`, `Beinstrecken`/`Beinstrecker`, `Wadendrücken`/`Wadenheben`, `Squat`/`Kniebeuge`, etc.), and automatic high-confidence linking during CSV import. Updated `exercise_mapping_screen.dart` to automatically pre-select top fuzzy search matches for unknown imported exercises, providing instant 1-tap mapping.
+- **App Store Rating Flow & 2-Step Glass Bottom Sheet:** Updated `AppReviewService` rating prompt threshold from 7 days of usage down to 3 days after initial app launch. Replaced unprompted background review trigger with an interactive 2-step `showGlassBottomMenu` dialog asking "Gefällt dir Train Libre?". Selecting "Ja, gefällt mir" triggers native `in_app_review` rating prompt and marks prompt as completed; selecting "Nein, nicht wirklich" dismisses the menu and marks prompt completed to prevent low ratings on the App Store; selecting "Erinnere mich später" snoozes the rating prompt for 7 days.
+- **Onboarding Legal & Consent Screen (GDPR & Clickwrap UX):** Streamlined initial consent UI in `initial_consent_screen.dart`. Removed separate Terms of Service checkbox in favor of an inline Clickwrap agreement statement below the main action button (*"By tapping 'Accept & Get Started', you agree to our Terms of Service and acknowledge our Privacy Policy"*). Retained single explicit consent checkbox required under GDPR Art. 9 with purpose-specific wording (*"I explicitly consent to the processing of my fitness and health data for workout tracking and training insights. I can withdraw my consent at any time in Settings"*), enabling the primary action button once checked. Refined the introduction text to be informative rather than claiming blanket consent. Fixed checkmark icon contrast in Dark Mode by setting `checkColor: theme.colorScheme.onPrimary` (high-contrast dark checkmark on primary lime background) and unified the font style of the clickwrap text below the button with `theme.textTheme.bodySmall` to match the consent text above. Updated localized strings (`welcome_privacy_body`, `i_agree_to_privacy_policy`, `by_tapping_accept`, `and_acknowledge`) across all supported languages (`en`, `de`, `fr`, `it`, `ja`).
+
+### Fixed
+- **Onboarding Unit System Persistence:** Fixed an issue where unit system selection during Onboarding (Metric vs Imperial) was not properly persisted to `SharedPreferences` and SQLite `appSettings`. Removed the early return guard in `UnitService.setUnitSystem()` that prevented disk writes when the selected system matched memory state, updated `ProfileLocalDataSource.saveUserGoals()` to store the selected `unit_system` in the `AppSettings` table instead of hardcoding `'metric'`, and added explicit persistence in `OnboardingScreen._finishOnboarding()`.
+- **Statistics Screen Caching & Instant Tab Switching:** Fixed destructive reloading and full-screen skeleton flashing on tab switches to the Statistics screen. Added in-memory caching with a 30-second freshness TTL, dirty state tracking (`markDirty()`) on home screen data updates, non-destructive background updates when returning to cached statistics views, and restricted `Skeletonizer` enablement to initial cold loads (`!hasAnyData`) and explicit timeframe range changes.
+- **100x Import Speedup & SQLite Variable Chunking:** Optimized exercise name resolution during CSV import in `import_manager.dart` by introducing an in-memory `exerciseCache`, reducing DB queries from 4,000+ to ~40 and speeding up imports to <0.5 seconds. Fixed endless loading loops in `WorkoutHistoryScreen` by chunking `localIdsByUuid.keys` in `_loadWorkoutLogsWithSets` (`workout_local_data_source.dart`) into max 500-variable batches to eliminate `SQLiteException: too many SQL variables` errors on large histories.
+- **Hevy CSV Import & Locale Date Parsing:** Fixed a crash during Hevy CSV workout import caused by uninitialized `intl` date formatting in background isolates (`LocaleDataException: Locale data has not been initialized, call initializeDateFormatting(<locale>)`). Added isolate-level `initializeDateFormatting()` in `ImportManager.decodeAndGroupWorkouts` and expanded date parsing patterns in `_parseDate` to safely handle full German and English month names (e.g. `"25 Juli 2026, 14:21"`) as well as dot-separated and localized day-month formats.
+- **Exercise Notes Localized Tooltips:** Replaced hardcoded German tooltip strings (`"Notizen bearbeiten"`) with localized strings (`l10n.exerciseNoteTitle`) across workout components (`LiveWorkoutScreen`, `EditRoutineExerciseCard`, `WorkoutExerciseLogCard`), ensuring correct accessibility labels for screen readers in all supported languages (PR #532).
+- **Food Selection Accessibility Tooltips:** Added missing localized tooltips (`l10n.add_button`) to icon-only add buttons in `FoodExplorerScreen`, `GeneralFoodSelectionScreen`, and `FoodItemSearchTile` for enhanced screen reader navigation (PR #534).
+
+### Performance
+- **Ernährungs-Screen 120Hz ProMotion Scroll Optimization:** Eliminated micro-stuttering and GPU frame drops on 120Hz ProMotion displays (e.g. iPhone 16 Pro) in `DiaryScreen`. Replaced offscreen live GPU `BackdropFilter` shader blur in `RecommendationBanner` with a high-performance translucent glass background container, and removed nested, oversized `RepaintBoundary` wrappers around the top overview column to eliminate screen-sized texture layer re-rasterization during scrolling.
+- **Sleep Aggregation Iterable Optimizations:** Optimized `SleepPeriodAggregationEngine` (`sleep_period_aggregations.dart`) by refactoring `_meanScore` and `_averageDuration` to process parameters as `Iterable` instead of `List`. Replaced chained `.map().whereType().toList().fold()` allocations with single-pass `for` loops, reducing iteration complexity to O(N) time and eliminating intermediate array allocations (PR #533).
+
+## [1.0.0-beta.3] - 2026-07-25
+
+### Changed
+- **Default Theme Mode (Dark Mode):** Updated application default theme mode in `ThemeService` from `ThemeMode.system` to `ThemeMode.dark`. New installations and unconfigured app preference states now default directly to Dark Mode while preserving user customization in `AppearanceSettingsScreen`.
+
+### Fixed
+- **Onboarding & Backup Unit System Transfer:** Added the missing `UnitSystemSlide` as a dedicated step in the `OnboardingScreen` flow (allowing users to choose between Metric `kg/cm/ml` and Imperial `lbs/in/fl oz` on initial setup). Fixed unit system preference transfer during backup import (`BackupManager` & `ICloudSyncService`) by explicitly synchronizing `unit_system` in `SharedPreferences` with database settings and invoking `UnitService.reload()`, ensuring imported imperial or metric settings immediately update the onboarding screens and application UI.
+- **Maestro Store Screenshot Automation Scripts:** Synchronized and updated both German (`iOS_store_screenshots_de.yaml`) and English (`iOS_store_screenshots_en.yaml`) Maestro UI automation flows. Integrated the onboarding unit system selection step (`UnitSystemSlide`) selecting Metric (`kg/cm/ml`) for both languages, removed obsolete Health permission popups, fixed Muscle Readiness card selector (`"Muskel-Bereitschaft"` / `"Muscle Readiness"`), and streamlined the complete automated screenshot capture flow across diary, nutrition, settings, measurements, recovery, AI meal capture, and live workout logging.
+
+## [1.0.0-beta.2] - 2026-07-23
+
+### Legal
+- **Privacy Policy v1.5 — iCloud Backup Disclosure:** Added iCloud Backup clause (item 5) to Section 6 (Data Security & Backups) across all legal documents to disclose the new optional iCloud Backup feature introduced in this release. Clause confirms: (1) the feature is strictly opt-in and user-controlled via Apple ID / iOS settings; (2) backup data is encrypted by Apple's iCloud infrastructure; (3) Train Libre has no access to backup files or encryption keys on any external server; (4) data privacy is governed by Apple's iCloud Privacy Policy. Updated across: in-app `legal_screen.dart` (EN + DE), `docs/privacy-policy/privacy_policy.md` (EN + DE), `docs/privacy.html`, `docs/privacy-policy/index.html`, and `docs/script.js` i18n translations for all five supported languages (EN, DE, FR, IT, JA). Document version bumped from 1.4 → 1.5, effective date 23. Juli 2026.
+
+### Added
+- **AI Meal Pre-Processing & UI Refinements:** Added instant local pre-processing pipeline (`PhotoPreProcessor`) for AI photo scanning. As soon as a photo is captured or selected, image optimization and base64 encoding run in the background with a blurred preview thumbnail, a grey progress bar, and interactive cancelation via the delete button.
+- **AI Meal Review & Spatial Depth Hooks:** Added inline quick quantity stepper controls (`-25g`, `+25g`), explicit trash deletion buttons on `MealReviewComparisonCard`, and quick-action feedback tags ("Larger portions", "Separate ingredients", etc.) on `AiMealReviewScreen`. Extended candidate data models (`AiSuggestedItem`, `AiMealCandidateItem`) with spatial depth fields (`volumeCm3`, `depthConfidence`, `spatialBoundingBox`) to support future camera depth / LiDAR scan integration.
+- **Additional Overview Nutrient Setting:** Added customizable *"Zusätzlicher Nährstoff in der Übersicht"* setting in `SettingsScreen`. Users can select which non-standard nutrient is featured in the 3x2 daily overview grid on `DiaryScreen` alongside Calories & Water: **Ballaststoffe (Fiber)** (*Default*), **Zucker (Sugar)**, or **Salz (Salt)**. The 3rd tile dynamically renders intake vs configured target goals (`targetFiber`, `targetSugar`, `targetSalt`) with full localizations (`de`, `en`, `fr`, `it`, `ja`).
+
+### Fixed
+- **Real-Time Overview Nutrient & Goal Targets:** Fixed intake calculation for Ballaststoffe (Fiber) and Salz (Salt) by adding `summary.fiber` and `summary.salt` accumulation logic to `CalculateDailyNutritionUseCase` for food entries. Fixed delayed update in `DiaryScreen` when changing the *"Zusätzlicher Nährstoff"* setting by adding an instant `StreamController` broadcast in `UserPreferencesRepository` (`watchOverviewExtraNutrient`), updating `DiaryViewModel` in real-time without needing day switches or app restarts. Fixed missing target goals for Ballaststoffe (Fiber) and Salz (Salt) by passing `targetFiber` and `targetSalt` from preferences into `DailyNutrition`, correctly displaying intake and configured daily goals (e.g. `22.0 / 30 g` for Fiber) instead of `0.0 / 30 g`. Fixed missing French localization keys (`settingsOverviewExtraNutrientTitle` & `Subtitle`) in `app_fr.arb`.
+- **Diary Summary Grid Alignment:** Balanced column width ratio in `NutritionSummaryWidget` under "Heute im Blick" on `DiaryScreen` from asymmetric `3:4` to an exact `1:1` (50% / 50%) split, giving primary daily metrics (Calories & Water) equal prominence and centering the layout divider.
+- **Workout Summary & Log Detail UI Refinements:** Redesigned the top summary hero header in `WorkoutLogDetailScreen` and `WorkoutSummaryScreen`, positioning workout titles and notes left-aligned at the very top directly below the summary metrics bar instead of rendering them centered below the heatmap/heart rate sections. Moved the "Save as Routine" button to a top app bar action button. Fixed heart rate card visibility in `WorkoutSummaryScreen` by checking `PulseTrackingService.isTrackingEnabled()` and sample existence, completely hiding the card when pulse tracking is disabled and no samples exist. Standardized section headers across `WorkoutSummaryScreen` and `WorkoutLogDetailScreen` using `AppSectionHeader` for `AKTUELLE VERTEILUNGS-HEATMAP`, `NEUE REKORDE`, `ABSOLVIERTE ÜBUNGEN`, and `HERZFREQUENZ`. Fixed untranslated English PR labels (`Best Max Weight`, `Best Volume Set`, `Best 1-Rep Max`) in `WorkoutLogDetailScreen` to use localized metrics (`l10n.exerciseMetricMaxWeight`, `l10n.exerciseMetricVolume`, `l10n.exerciseMetricEst1RM`). Fixed empty Heatmap header bug by only rendering `AppSectionHeader` when muscle highlight data is non-empty.
+- **AI Meal Review UX & Card Layout:** Fixed full-screen/full-list loading spinner when editing quantities or modifying items by updating values and running validation silently in the background without flickering. Fixed `Dismissible` swipe-to-delete height mismatch by resetting `SummaryCard` default vertical margin (`margin: EdgeInsets.zero`) and internal double padding (`padding: EdgeInsets.zero`), aligning the red delete background perfectly 1:1 with the white card container. Stacked Swap & Delete icons vertically above the quantity stepper for a compact, spacious left-side macro badge display.
+- **App Tour Highlight Sizing & Label Inclusions:** Shifted navigation bar spotlight rectangle (`_tourNavigationBarKey`) 16px to the right for exact 1:1 symmetrical alignment around the 4 tabs glass container. Adjusted individual tab spotlight boxes (`_tourDiaryTabKey`, `_tourWorkoutTabKey`, `_tourStatisticsTabKey`, `_tourNutritionTabKey`) lower (`top - 4`, `height + 28`) so both the icon and full tab text label below are completely enclosed. Reduced overlay spotlight inflation padding (`targetRect?.inflate(4)`) for clean, tight rounded highlight borders. Updated `_skipAppTour` and `_completeAppTour` to navigate back to the **Tagebuch** tab (`_onNavigationTapped(0)`).
+
+### Changed
+- **Profile App Bar Avatar:** Updated the empty state profile button in the top app bar to display a Trade Republic style solid circular avatar containing the capitalized initial letter of the user's name when no custom profile picture is set. Custom profile images remain unchanged.
+
+### Performance
+- **Iterable & Control Flow Optimizations:** Optimized product lookup and UI screen iterations (`ProductLocalDataSource`, `MealsScreen`, `RoutinesScreen`) by replacing chained iterable method allocations with single-pass loops/Sets and replacing exception-throwing `firstWhere` lookups with safe null checks (PR #531).
+
+### Security
+- **Backup AI API Key Exclusion:** AI provider API keys (SharedPreferences keys with prefix `ai_api_key_*`) are now explicitly excluded from backup payloads in `BackupManager.generateBackupPayload()`. Keys stored via `FlutterSecureStorage` were already excluded by design; this ensures SharedPreferences-level keys are also never exported to backup files.
+
+### Fixed
+- **Onboarding App Tour Auto-Start:** Removed the opt-in dialog asking users whether they want the app tour after completing onboarding. The tour now starts automatically on first launch, giving every new user a guided introduction to the app without a choice screen.
+- **Consent Re-Displayed After App Reset:** After performing a local data reset (via Settings or Data Management), the Privacy Policy & Terms of Use consent screen is now shown again before re-entering the app. Previously the app navigated directly to `AppInitializerScreen`, bypassing the consent check that only runs at cold boot in `main()`.
+- **Navigation Test (settings_structure_navigation_test):** Updated test expectation from `'Show sugar in Diary overview'` to `'Additional Nutrient in Overview'` to match the renamed setting tile introduced in the configurable overview nutrient feature.
+## [1.0.0-beta.1] - 2026-07-23
+
+### Changed
+- **Release:** Prepared repository for Public Beta launch phase by advancing package version string in `pubspec.yaml` to `1.0.0+1`.
+
+### Accessibility
+- **AI Meal Capture:** Added localized tooltip `l10n.aiMealCapture` to the AI Meal Capture button on the Add Food screen for improved screen reader support.
+
+### Fixed
+- **Empty States:** Fixed vertical positioning of `ColdStartEmptyState` in `RoutinesScreen` by accounting for top app bar padding (`topPadding`).
+- **Empty States:** Fixed ingredient empty state in `MealScreen` by providing adequate vertical height, resolving straight arrow lines and text overlapping.
+- **Consistency Tracker:** Fixed historic timeframe selection in `ConsistencyTrackerScreen` by querying weekly metrics relative to selected timeframe bounds (`untilDate`), synchronizing `TableCalendar` focused day, making top 2x3 KPI grid metrics timeframe-adaptive ("Im Zeitraum"), removing redundant chart title lines, and adding a glassmorphic empty state view for periods without workout data.
+- **Widget Test Suite:** Resolved widget test failures across 9 test files (`supplement_reactive_migration_test.dart`, `initial_consent_screen_test.dart`, `pulse_settings_screen_test.dart`, `sleep_settings_screen_test.dart`, `feedback_report_screen_test.dart`, `sleep_day_navigation_test.dart`, `adaptive_recommendation_settings_flow_test.dart`, `edit_routine_unsaved_changes_test.dart`, `data_management_delete_local_data_test.dart`, `workout_log_detail_reactive_test.dart`) by updating legacy `FilledButton`/`OutlinedButton` finders to custom `AppButton` design system components, adding missing `Key` identifiers on action buttons, replacing infinite animation `pumpAndSettle()` timeout loops with deterministic frame pumps, and fixing the reactive edit-mode guard test by: (1) adding `ValueKey('weight_input_${setLog.id}')` to the weight `TextFormField` in `WorkoutLogSetRow`, and (2) setting a 800×3000 test viewport via `tester.binding.setSurfaceSize` so `ReorderableListView.builder` eagerly renders all items. All **644/644 tests now pass**.
+
+### Security
+- **Backup Export:** Fixed dynamic table name SQL injection vulnerability in `BackupManager._fetchTable` by strictly validating table names using alphanumeric regex before query execution.
+
+### Performance
+- **Liquid Glass Shader Pipeline (Android Fix):** Fixed severe 5 FPS GPU pipeline stuttering on Android devices (e.g. Samsung Galaxy S23) by introducing platform-adaptive glass quality (`DesignConstants.defaultGlassQuality`). Replaced hardcoded `GlassQuality.premium` overrides across `GlassFab`, `GlassTabBar`, `RunningWorkoutOverlay`, `SpeedDialMenuOverlay`, `LiveWorkoutScreen`, and `PlatformAdaptiveDropdown` with `GlassQuality.standard` on Android (eliminating GPU subpass framebuffer stalls and enabling 60/120 FPS rendering) while preserving single-layer glass rendering (eliminating double backdrop filter blur overlays).
+- **Measurements Screen:** Optimized `MeasurementsScreen` opening performance by deferring initial DB fetches past the 300ms page route push animation (`Future.delayed`), enabling 100% instant, fluid navigation transitions at 120 FPS, and migrating session card rendering to a lazy `SliverList.builder` with cached date formatting.
+- **Data Export & Analytics:** Optimized data extraction loops across Export Manager, Share Service, Health Export Data Source, and Statistics Data Adapter by eliminating intermediate chained iterable allocations.
+- **Diary ViewModel:** Optimized iterable pipelines and supplement log filtering in Diary ViewModel to reduce memory allocation during UI updates.
+
+### Changed
+- **Deployment Script:** Updated iOS build pipeline in `script/deploy_release.sh` to automatically sanitize version strings by stripping prerelease suffixes (e.g. `-alpha.xx` or `-beta.xx`) when calling `flutter build ios` and `flutter build ipa` for Apple App Store & TestFlight compatibility.
+
+### Dependencies
+- **GitHub Actions:** Bumped `actions/setup-python` to v7 in GitHub workflows.
+- **Dependencies:** Bumped Flutter/Dart dependencies (`drift`, `drift_dev`, `flutter_local_notifications`, `google_fonts`, `liquid_glass_widgets`, `package_info_plus`, `share_plus`, `uuid`).
+
+
+## [1.0.0-alpha.13] - 2026-07-19
+
+### Added
+- **Diary Supplements:** Implemented the ability to edit or delete individual historic supplement entries directly from the Diary Screen via a premium glass bottom sheet detail view.
+
+### Changed
+- **Dependencies:** Removed deprecated `isInDebugMode` flag from `Workmanager` initialization.
+- **Empty States & Skeletonizer:** Harmonized Empty State & Skeletonizer architecture across remaining screens. Replaced legacy blank empty states with interactive/read-only `ColdStartEmptyState` and page-body `Skeletonizer` + `ActiveGapOverlay` combos while preserving timeframe filter interactivity on Routines, Workouts History, Meal, Sleep, Measurements, and Analytics detail views.
+
+### Fixed
+- **Code Quality:** Fixed unchecked nullable value accesses in daily nutrition logging.
+- **Code Quality:** Removed duplicate tooltip arguments from Diary Screen icon buttons.
+- **Scanner:** Fixed an issue where the back arrow button would disappear when camera permission was denied.
+- **Statistics:** Improved performance and prevented micro-stutters during data reloading by offloading analytics payload parsing to a background isolate.
+- **Statistics:** Fixed the Steps tracker card freezing on current period data by correctly binding the date range selector.
+- **Live Workout:** Removed unnecessary local `Overlay` wrapper from the list builder, resolving a closure capture bug to ensure bottom padding updates instantly, and optimized the padding height to `220.0` when the rest timer is active to clear the FAB perfectly.
+- **Statistics:** Optimized the rendering pipeline by showing the loading indicators immediately, but deferring the sequential SQLite queries and isolate creation by 350ms to allow the page transition and bottom bar animations to finish completely, rendering at a perfect 120Hz.
+- **Statistics:** Removed all initial and reloading circular progress spinners from the analytics cards, allowing them to fall back to their full layouts which are beautifully skeletonized by the page's `Skeletonizer` for a premium shimmering effect.
+## [1.0.0-alpha.12] - 2026-07-17
+
+### Added
+- **Background Tasks:** Added `workmanager` integration to schedule periodic background tasks on iOS and Android. The Adaptive Nutrition TDEE recalculation is now scheduled to run in the background.
+- **Accessibility:** Added localized tooltips to the diary date navigator to improve screen reader support and usability.
+- **Accessibility:** Added missing tooltips to IconButtons app-wide for improved screen reader support.
+
+### Changed
+- **Performance:** Optimized the processing of active entries in the Diary view model.
+- **Performance:** Eliminated redundant loops and iterations in the `CalculateDailyNutritionUseCase`, significantly improving the performance of daily nutrition calculations.
+- **Performance:** Removed expensive try-catch blocks in favor of null-safe searching for `firstWhere` control flow.
+
+### Fixed
+- **Onboarding:** Added a loading spinner to the "Next" button on the region selection page during database update checks, preventing the app from appearing frozen.
+- **Backups:** Fixed an issue where routine pause timers (`pauseSeconds`) and exercise notes within routines were not correctly exported/imported via JSON backup.
+- **Live Workout:** Fixed a string interpolation bug that caused new Personal Records to always display as "1 kg" (or "1 km").
+- **Live Workout:** Changed Personal Record logic so that establishing a baseline (logging an exercise for the very first time) no longer triggers a "New Record" notification. Only subsequent improvements will trigger it.
+- **Statistics:** Improved the empty state UI in the Statistics Hub. The active gap overlay label now reads "Keine Daten für diesen Zeitraum verfügbar" to match the Diary screen.
+- **Empty States:** Fixed the "Cold Start" empty state layout. The tutorial arrow now points exactly to the center of the "+" FAB, and the height calculations have been refined to lift the arrow tip cleanly above the FAB on both the Diary and Statistics screens.
+- **Empty States:** Replaced the loading `CircularProgressIndicator` during initialization (cold start loading) on both the Diary and Statistics screens with a shimmering skeleton card layout (`Skeletonizer`), eliminating the crude spinners and ensuring smooth visual transitions.
+- **Statistics:** Fixed a bug where the Statistics screen would not automatically refresh after tracking a new workout or logging diary entries. Switching to the statistics tab now triggers a fresh reload of the data, which is delayed by 300ms to allow the bottom navigation bar animations to finish smoothly without drop frames (jank).
+- **Diary Supplements:** Restored the expected UI behavior for supplements on the Diary screen. Supplements with a `dailyGoal` or no limit are now displayed as checkmark cards again, and only supplements with a specific `dailyLimit` (e.g., Caffeine) are shown as progress bars.
+- **Notifications:** Fixed an issue where rest timer notifications on iOS would only trigger or double-trigger when returning to the app. Notifications are now correctly scheduled and foreground banners are cleanly suppressed.
+- **Adaptive Pickers:** Removed redundant manual haptic feedback calls from the adaptive date, time, and timeframe pickers to prevent double haptics when scrolling.
+- **Security:** Fixed a high-severity SQL injection vulnerability in the backup import flow by strictly validating table and column names.
+- **Empty States:** Replaced all legacy single-text empty-state placeholders across the app with the new premium `ColdStartEmptyState` glassmorphic hero component. Affected screens: Edit Routine, Food Explorer (Recents, Favorites, and Recipes/Meals tabs).
+- **Empty States:** The `ColdStartEmptyState` now supports an optional `showArrow` parameter (default: `true`). This allows the tutorial curved arrow to be hidden on read-only or context-inappropriate screens (e.g., Recents and Favorites tabs in the Food Explorer).
+- **Empty States:** The `SeamlessLoadingOverlay` widget now renders the underlying child wrapped in a `Skeletonizer` shimmer as the cold-start loading state, replacing the previous `CircularProgressIndicator` fallback. All analytics detail screens (Recovery Tracker, PR Dashboard, Consistency Tracker, Muscle Group Analytics) automatically benefit from this change.
+- **Statistics Hub:** All statistics section cards (Steps, Sleep, Pulse, Consistency, Volume/Muscles, Performance, Body Metrics) now always render as full cards even when tracking is disabled or data is absent. Instead of hiding or collapsing, each card renders its content behind a premium `CardEmptyStateOverlay` — a glassmorphic `BackdropFilter` with a pill-shaped message explaining the state (e.g., "No data available for this period" or "Enable step tracking in Settings"). The shimmer skeleton is preserved under the overlay for a premium feel.
+- **Statistics Hub (Refinement):** Steps, Sleep, and Pulse cards (and their section headers) are now **completely hidden** from the Statistics Hub when the respective tracking feature is disabled in Settings — no empty state placeholder at all. When the feature **is** enabled but no data was logged in the selected time range, the card renders with a uniform glassmorphic `CardEmptyStateOverlay` reading "Keine Daten für diesen Zeitraum verfügbar". The Recovery (Muskel-Bereitschaft) card now also uses this overlay instead of its previous inline no-data text label.
+
+
+
+
+## [1.0.0-alpha.11] - 2026-07-15
+
+### Added
+- **Premium Empty States & Loading System:** Implemented a new highly modular, glassmorphic empty state and loading skeleton system across the Diary screen and Statistics Hub. Differentiates cleanly between "Cold Start" (educational hero icon and bobbing arrow) for new users and "Active Gap" (subtle translucent glass overlay over pulsing skeleton layout components) when no data is logged for a given day or period.
+
+### Changed
+- **Centralized Premium Glass UI Height Standards:** Polished and centralized the vertical proportions of all key glassmorphic components to perfectly match native iOS standards (Apple HIG) via new shared design tokens in `DesignConstants`.
+- **Glass Bottom Navigation Bar & FAB:** Reduced the floating bottom navigation bar height and floating action button (FAB) size from 74dp to 64dp, updating related shadow paths, clip states, and dynamic safety paddings.
+- **Glass Workout Overlay & Rest Timer:** Scaled the running workout progress bar overlay and the live workout rest timer bar height from 74dp to 64dp. Dynamically offset the floating action button bottom padding above active rest timers to maintain a consistent 8dp clearance (124dp total offset).
+- **Glass Plus-Menu & Overlay Items:** Refactored the Speed Dial overlay to use the 64dp FAB anchor and smaller 56dp custom action buttons, recalibrating the sprout animation coordinate offsets and spacing gaps.
+- **Glass Bottom Sheet Menu Items:** Polished the `_GlassTile` options within the modal bottom sheet menu to use a 36dp leading icon container and 8dp vertical padding, yielding a standard 52dp height for interactive list items.
+
+### Fixed
+- **Diary Supplements and Wearables State Resolution:** Fixed a bug where active-state data streams for supplements and wearables were blocked or incorrectly overridden by skeleton dummy data on the diary screen.
+- **Tracked Supplements Display Logic:** Restored display logic to show all currently tracked supplements without any daily goals or limits as simple checkmark cards, while dynamically displaying any supplement that has a `dailyGoal` or `dailyLimit` set as a progress bar.
+- **Workout Hub Empty Routines State:** Rendered an inviting helper text to the right of the "Neue Routine" button when the user has no custom workout routines created, which automatically disappears as soon as the first routine is created.
+- **Nutrition Hub Empty Recipes State:** Implemented matching layout behavior for the "Meine Rezepte" section in the Nutrition Hub, showing an inviting recipe creation helper text to the right of the "Rezept erstellen" button when no custom recipes exist.
+- **Onboarding Weight Checks:** Adjusted empty-state checks to ensure a single onboarding weight entry does not prematurely bypass the Cold Start empty state.
+- **Speed Dial Button Shape:** Restored `borderRadius: 100` on Speed Dial action buttons so they render as true circular liquid-glass orbs, not rounded rectangles (regression from the size-token refactor that set radius equal to button size 56).
+- **Workout Overlay Spacing:** Tightened the vertical gap between the running workout pill and the bottom navigation bar — reduced internal margin from 20dp to 8dp and Positioned bottom offset from `36 + navBarHeight` to `20 + navBarHeight`, eliminating the excessive dead space.
+
+## [1.0.0-alpha.10] - 2026-07-14
+
+### Fixed
+- **iCloud Container Entitlements:** Resolved the container entitlement mismatch by removing the obsolete `$(TeamIdentifierPrefix)` macro from the ubiquity container identifiers list in `Runner.entitlements`, fixing the `E_CTR` invalid container errors on iOS.
+- **iCloud Sync Stream Completion:** Reworked the upload and download operations to wrap `ICloudStorage` calls in a `Completer` that listens to the `onProgress` stream. This prevents the operations from resolving prematurely, fixing a bug where restoring from iCloud would always fail because the app tried to read the downloaded database snapshot before it was fully written.
+- **SQLite Database Lock:** Fixed an issue where running manual backup or auto-backup concurrently caused a `SqliteException(1) output file already exists` crash, by checking if the snapshot file exists and calling an asynchronous `.delete()` on it before starting `VACUUM INTO`.
+- **Flutter Stack Trace Assertion:** Resolved a crash where `debugPrintStack(stackTrace: st)` would trigger a Flutter framework assertion error due to `package:stack_trace` formatting conflicts. Replaced it with a standard `debugPrint("iCloud StackTrace: $st")` statement.
+- **Progress Overlay Exception Interception:** Fixed a bug where native exceptions thrown during the `LongRunningOperationOverlay` run were thrown out of the dialog context as unhandled event loop errors, crashing the app. Exceptions are now caught within the async closure, closing the overlay gracefully and propagating errors to the card UI.
+- **Static Analysis & Test Suite:** Resolved all `use_build_context_synchronously` warnings across onboarding and workout views by adding proper `mounted` checks. Fixed test suite failures related to missing `SharedPreferences` mock initialization, timeout issues in the Pulse Tracking test, string capitalization mismatches in the nutrition recommendation test after typography changes, and corrected expected assertion values in the recommendation repository.
+- **Sleep Detail View Alignment:** Fixed a layout inconsistency in the daily sleep detail screens (Duration, Interruptions, Regularity, Depth, Heart Rate) where the top header text (value, status, subtitle) was shifted further to the right than the charts below it. This was caused by an accidental double-padding within the `SleepDetailPageShell`; the redundant inner padding has been removed, perfectly aligning the entire screen to the left edge of the cards.
+
+### Changed
+- **Sleep Target Range Visualization:** Upgraded the horizontal target range visualization bar (`SleepBenchmarkBar`) on the Sleep Duration and Heart Rate detail screens. Replaced the binary visualization (Green/Gray) with a highly detailed 3-color segmented representation (Green/Orange/Red) that perfectly maps to the domain model (Optimal/Warning/Critical). Added exact numerical text indicators at the color transitions. Extracted the previously hardcoded threshold values into a centralized `SleepThresholds` configuration file.
+- **iCloud Sync Progress UI & Error Handling:** Integrated the blocking `LongRunningOperationOverlay` during manual backup to display real-time upload progress (e.g., "Uploading... 45%"). If the synchronization fails, the app now launches the project-standard full-screen `GlassMenu` overlay containing localized descriptions, a copy action, and dismiss actions.
+- **Multi-language Localization:** Added localized strings for the glassmorphism error menu title, help info, and buttons inside the `.arb` files, ensuring full localization support across all 5 supported languages (English, German, French, Italian, and Japanese).
+- **Background Auto-Backup:** Disabled periodic SQLite auto-backups explicitly for iOS/macOS devices to prevent execution conflicts, keeping this feature active only for Android.
+- **Backup File Visibility:** Transitioned the local snapshot file ('icloud_backup.sqlite') path from user-visible documents storage to the hidden internal `Application Support` directory, cleaning up the iOS Files app experience.
+- **Database Refresh:** Implemented a forced UI refresh and state reset immediately after a successful iCloud database restore, ensuring the newly downloaded data is instantly visible and connected.
+- **App Settings Synchronization:** App settings stored in `SharedPreferences` (like the iCloud sync toggle itself, UI preferences, and goals) are now seamlessly bundled into a temporary `system_preferences` table inside the Drift SQLite database right before a backup, and extracted immediately upon restore. This guarantees that app configurations survive an iCloud or local restore alongside the database.
+- **Aligned Onboarding Restore Pipeline:** The iCloud database restore sequence in the Onboarding flow has been perfectly aligned 1:1 with the standard local backup restore flow. After a successful database replacement, the Drift connection is closed safely, and the user is funneled through the standard permission checks (Apple Health, Camera, Notifications) before executing a clean app re-initialization via `main()`.
+- **iCloud Sync Timestamp:** The iCloud Backup Card in Data Management now persistently tracks and displays a localized "Last synced" / "Letztes Backup" timestamp, informing the user of the exact time of their last successful upload.
+- **Forced Restoring Overlays:** Integrated the blocking `LongRunningOperationOverlay` natively into all local JSON imports and iCloud database restores during Onboarding. This prevents users from navigating away or interrupting the process while large database files are being written or decrypted.
+- **Cross-Platform UI Parity:** Ensured the "Restore from iCloud" option during onboarding is strictly hidden on Android devices, exclusively rendering for iOS and macOS.
+- **Automated Onboarding Permission Sequence:** Implemented a fully compliant permission sequence following a backup restore in the Onboarding flow. The app now reads the restored preferences and sequentially loops through all previously active integrations (Apple Health/Health Connect, Steps, Pulse, Sleep). It reuses the existing custom Glass Bottom Menu explanation widgets to preface each native OS prompt, ensuring compliance with App Store guidelines before finalizing the clean initialization via `main()`.
+- **Global Button System:** Migrated all platform-specific standard buttons (`ElevatedButton`, `FilledButton`, `OutlinedButton`) to the unified, custom-designed `AppButton`. This ensures a single, cohesive, premium aesthetic with consistent 12.0dp border radii, standard heights, and native-feeling tap animations across all platforms. `TextButton` instances were intentionally preserved.
+- **AppButton Refinements:** Further polished the `AppButton` design system: (1) The `danger` variant now uses `DesignConstants.brandRedColor` (`#E5253A`) — a vivid, saturated red — instead of the muddy Material error color. (2) Labels now support `maxLines: 2` with `textAlign: TextAlign.center`. (3) `AppButtonSize.small` is now more compact at 32dp height / 8dp horizontal padding. The routine list "Start" button now renders as `AppButtonSize.small` for a sleek, card-native look.
+- **Brand Red Color Upgrade:** `DesignConstants.brandRedColor` updated from `Colors.red` to `Color(0xFFE5253A)` — a rich, warm red that pops across all danger buttons, swipe-to-delete actions, and error indicators.
+- **Danger Button Audit:** Corrected all destructive actions across the app to consistently use `AppButton.danger` (vivid red) instead of the default primary green. Affected locations: `local_data_deletion_card.dart` ("Alle lokalen App-Daten löschen"), `settings_screen.dart` (inline delete card and typed-DELETE confirmation sheet), `glass_bottom_menu.dart` (`showDeleteConfirmation` confirm button and "Verwerfen" in the active-workout-conflict dialog).
+- **AppButtonSize.medium:** Added a new `medium` size tier (40dp height, 12dp horizontal padding) between the existing `small` (32dp) and `regular` (48dp). Used for the "Start" button on Workout Hub routine cards — provides a balanced presence without dominating the compact card layout.
+- **Running Workout Overlay Buttons:** Fixed `RunningWorkoutOverlay` (`running_workout_overlay.dart`) to use compact `size: AppButtonSize.small` buttons that fit cleanly inside the 74dp glass-pill bar. "Verwerfen" now correctly renders as `AppButton.danger` (red) to signal the destructive discard action. "Fortsetzen" uses `AppButton.primary` (green).
+- **Recipe Card Edit Button:** The "Bearbeiten" button on Nutrition Hub recipe cards (`nutrition_hub_screen.dart`) is now `AppButton.secondary(size: AppButtonSize.small)` — a subtle outline style that fits the compact horizontal card without a dominant green block.
+- **Workout Hub Start Button Size:** Routine cards in the "Meine Pläne" horizontal scroll list now use `AppButton.primary(size: AppButtonSize.medium)` (40dp), replacing the previous `small` (32dp) which appeared too compact for the 160dp-tall card.
+## [1.0.0-alpha.9] - 2026-07-13
+
+### Added
+- **iCloud Auto-Backup (iOS):** Added automated iCloud Drive backup support. When enabled in Settings → Data Management, the app silently snapshots the Drift SQLite database using `VACUUM INTO` and uploads it to the user's iCloud container whenever the app is sent to the background.
+- **iCloud Restore on Onboarding:** The onboarding Welcome screen now asynchronously checks for an existing iCloud backup on first launch. If one is found, a "Restore from iCloud" button appears (with a green dot indicator), allowing users to restore their data after a reinstall or on a new device — without manual file picking.
+- **iCloud Sync Card in Data Management:** Added an iOS-only `ICloudSyncCard` to the Data Management screen with a toggle to enable/disable automatic sync and a "Backup to iCloud Now" button with live success/error feedback.
+- **Icon Button Tooltips:** Added accessibility tooltips to icon-only buttons across the app (e.g., in the workout sets list) to improve screen reader support and general usability.
+
+### Fixed
+- **Database Update Prompt Snooze:** Implemented a 30-day snooze mechanism when the user declines a database update prompt to prevent aggressive reprompting across screen changes.
+
+### Changed
+- **Typography:** Updated the inner typography styling of `ValueSummaryCard` to use the exact same TextStyle used in standard `ProgressBar` labels, unifying the visual design.
+- **Sleep Hub Statistics:** Updated the sleep widget in the Statistics Hub to use a grid of `ValueSummaryCard`s for displaying sleep duration, bedtime, and interruptions, while preserving the sleep score ring.
+- **Recovery Analytics Typography:** Adapted the typography in the Recovery Tracker and Recovery Section Cards to match the updated `ValueSummaryCard` typography (removed caps-lock, adjusted text sizes and weights).
+- **Dependencies Update:** Updated various Flutter and Dart packages to their latest versions to maintain platform compatibility and security.
+- **Website CTA:** Replaced the iOS TestFlight Beta link and label with the official App Store link.
+- **Design System:** Centralized color constants into `DesignConstants` and unified all primary red elements (such as Failure set states and delete dialogs) to use the consistent brand red color.
+- **Adaptive Icons:** Introduced a platform-adaptive share icon (`share_2` on Android, `share` on iOS/macOS) globally across the app to better align with native OS expectations.
+
+### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
+- **Food Search Relevance & Performance:** Completely reworked the food search priority scoring to use pure SQL aggregations (Common Table Expressions) over the user's nutrition logs instead of iterating through them in Dart memory. This restores the highly accurate frequency-based search prioritization (frequently eaten foods appear at the top) while guaranteeing lightning-fast query speeds.
+- **Daily Nutrition Calculation Performance:** Optimized the `CalculateDailyNutritionUseCase` by eliminating expensive $O(N \times M)$ list iterations and redundant exception handling, significantly improving the render performance of the daily diary summary.
+- **Edit Routine Drag & Drop:** Disabled drag-to-reorder functionality for exercises in the Edit Routine screen while not explicitly in Edit Mode. This prevents users from accidentally reordering exercises when just browsing the routine.
+- **Unit System Fixes:** Implemented full system-wide support for Imperial units (lbs, inches, miles). Fixed issues where unit labels and weight conversions were hardcoded to metric (kg) in the Edit Routine screen, Profile Goals, Onboarding, and Analytics Dashboards. Imperial steps are now cleanly adapted (e.g., 0.5 lbs increments) and accurately mapped to the underlying metric domain logic.
+- **Workout Pause Timer:** Fixed a bug where the in-app pause timer would go out of sync when the app was pushed to the background on iOS. Also ensured that the timer is completely discarded when a workout is finished, prevented the timer from automatically starting after completing the final set of an exercise, and fixed the +/- 15 seconds adjustment buttons not working.
+## [1.0.0-alpha.8] - 2026-07-10
+
+### Added
+- **Date/Time Picker Quick Actions:** Added a "Today" ("Heute") button to the adaptive date picker and a "Now" ("Jetzt") button to the adaptive time picker for faster data entry. The duration picker remains unaffected.
+
+### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
+- **Sleep Duration Mapping:** Fixed Apple Health integration to properly map iOS 16 sleep stages (Core, Deep, REM) and `asleep_unspecified`, resolving an issue where sleep duration displayed as 0h 0min on iOS devices.
+- **Food Detail Screen:** Fixed a bug where a 0g portion size would prevent users from switching back to the per 100g view, by automatically defaulting to the 100g view when the tracked portion is 0g.
+- **Exercise Catalog:** Increased the display limit of the exercise catalog search from 50 to 100 entries.
+- **Backup Import Flow:** Modified the backup import flow in the onboarding and data management screens so that restoring a backup successfully redirects the user to the onboarding region selection and health permission screens, ensuring proper regional data downloads and API authorizations are established on the new device.
+- **Health Permissions UI:** Unified the health permission status UI across the Settings screens. The Pulse and Steps settings now correctly use the `SleepPermissionController` architecture to display a clear connection status (e.g., a red exclamation mark if permission is missing or denied), matching the reference implementation on the Sleep settings screen, and allowing users to trigger a new permission request by tapping the tile.
+- **Measurements Dropdown Scrolling:** Limited the adaptive measurement chart dropdown menu to the available screen height so long measurement lists become scrollable and all options remain selectable.
+
+### Changed
+- **Sleep and Pulse Detail Refinements:** Simplified the sleep and pulse screens to reduce visual noise and improve readability. The sleep week and month views now use a monochrome score style with clearer tap targets, the month grid no longer repeats the "Sleep score" label, the daily heart-rate tile now shows the `bpm` unit directly in the value, and the pulse/duration benchmark bars now include explicit x-axis labels. The pulse detail screen now opens with a compact `⌀` average label and removes the extra summary cards below the header.
+- **Unified Legal Screen:** Consolidated the Terms of Service directly into the main Legal Screen using the same collapsible accordion design as the Privacy Policy. This removes the need for a separate Markdown-based Terms of Service screen, streamlining the legal section and providing a single unified view for all legal documents. The initial consent screen has been updated to route correctly to this unified view.
+- **Dynamic KPI Card Heights:** Removed fixed aspect ratios and hardcoded heights from `ValueSummaryCard` components across the analytics screens (Sleep, Pulse, Body & Nutrition Correlation, Nutrition Recommendation). The cards now dynamically adapt their vertical size (e.g., taking up less vertical space for 2 items vs. 3 items) while using `IntrinsicHeight` to ensure all cards within the same row stretch perfectly to match the tallest item, creating a tighter and cleaner "Anti-Slop" aesthetic.
+- **Analytics Pulse Cards Density:** Modified the Pulse metric cards in the Statistics Hub to append the "bpm" unit directly to the value text rather than dedicating a separate subtitle line for it. This forces the cards into the compact 2-item layout, significantly reducing vertical bloat.
+- **Measurements Screen and Bottom Menu Overhaul:** Reworked the Measurements screen and its add/edit bottom menu to match the food-entry flow more closely, including the fixed date/time header, fixed save action, improved swipe alignment, and the shared compact bottom-sheet height.
+- **Measurement Sheet Layout and Swipe Alignment:** Moved the measurement date/time controls and save action out of the scrollable form area so they stay fixed in the bottom sheet, matched the flat green date/time treatment used by the food logging flow, and aligned measurement swipe actions with the card edge so the dismiss backgrounds start flush with the summary cards.
+- **Energy Density Card Layout:** Removed the manual aspect ratio height constraint from the "Effective Energy Density" card in the Nutrition Recommendation screen, allowing it to stretch full-width while preserving its natural, compact height.
+- **Diary Scroll Position:** Added a persistent scroll controller to the Diary screen to maintain the scroll position when navigating between different dates.
+- **Diary Share Flow:** Streamlined the share action on the Diary screen to instantly trigger text-sharing of the daily summary, removing the intermediate selection menu.
+- **App Bar Icons:** Refined the App Bar icons for better visibility. The profile placeholder and share icons now use pure white/black colors depending on the theme. The profile placeholder also received a subtle background and border to integrate better with the background.
+- **Adaptive Share Icon:** The share icon is now adaptive, displaying the native iOS share icon on iOS devices and the standard share node icon on Android and other platforms.
+## [1.0.0-alpha.7] - 2026-07-09
+
+### Added
+- **Cardio PR Logic & Badges:** Integrated cardio-specific personal records (Max Distance, Max Duration, Fastest Pace) into the `LiveWorkoutScreen`, `WorkoutSummaryScreen`, and `WorkoutLogDetailScreen`. Cardio sets now properly display PR badges upon completion.
+- **Heart Rate Summary Grid:** Implemented a new three-column grid layout for Min, Avg, and Max Heart Rate inside the `WorkoutLogDetailScreen`, matching the visual style of the pulse analysis screens.
+- **Muscle Name Localization:** Fully localized all anatomical muscle names across the app using arb files to support 5 languages.
+
+### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
+- **Cardio Analytics Isolation:** Strictly isolated Cardio exercises from bodybuilding and hypertrophy metrics. Cardio data points are now filtered out of weekly set volumes, tonnage charts, consistency trackers, and muscle readiness states to prevent analytics pollution.
+- **Cardio UI Data Artifacts:** Fixed a bug on the `ExerciseDetailScreen` where cardio PRs and time-series history displayed as "0" due to queries incorrectly falling back to strength constraints. Passed `isCardio` explicitly down the repository stack to retrieve duration, distance, and pace properly.
+- **Cardio Heatmap Exclusion:** Completely removed the `DualBodyHighlighter` distribution map and primary/secondary muscle chip sections from the `ExerciseDetailScreen` when viewing a Cardio exercise.
+- **Unified Cardio Duration Input:** Standardized cardio input fields across the Live Workout, Edit Routine, and Log History screens. The `Duration` field now uniformly opens the `showAdaptiveDurationPicker` with immediate UI feedback, while the `Distance` and `Intensity` fields retain standard native keyboard text inputs.
+
+
+### Changed
+- **Default Timeframes for Health Trackers & Hub:** Updated the default timeframes for the health trackers (Steps, Sleep, Pulse) to start on "Today" (Daily scope) instead of the previous default. Adjusted the Statistics Hub default timeframe to "Last 7 days" (Rolling Week) for a more immediate overview of recent data.
+- **Fixed Timeframe Picker Scroll Jump:** Removed an internal scroll lock (`PageStorage`) in the `TimeRangeFilter` that previously prevented the active timeframe pill from properly re-aligning when scrolling up and down through the Statistics Hub, ensuring perfect edge alignment upon view reconstruction.
+- **Cleaned up "MAX" Timeframe Pill Design:** Removed the redundant `< MAX >` date navigation sub-elements from the `TimeRangeFilter` when the "MAX" block is selected, resulting in a cleaner, solid primary-colored pill across all analytics screens.
+- **Fixed Rolling Data Ranges:** Fixed an issue where "Last 30 Days" and "Last 7 Days" timeframes queried the database for the *entire* calendar month or week (e.g., July 1-31) instead of computing a true 30-day or 7-day rolling window from today. The `isRolling` context is now properly passed from the view models down to `StatisticsRangePolicyService.resolve()`.
+- **Live Workout Default Pause Time:** Changed the default pause/rest time for newly added exercises and restored workout sessions from 90 seconds to 0 seconds (no pause).
+- **Adaptive Pickers Haptics:** Implemented haptic feedback for the iOS-style Cupertino time, date, and timeframe pickers (`CupertinoDatePicker`, `CupertinoTimerPicker`, `CupertinoPicker`) when scrolling through options, automatically respecting the user's global haptic settings.
+
+## [1.0.0-alpha.6] - 2026-07-08
+
+### Changed
+- **Unified Timeframe Traversal & Default State Order:** Standardized timeframe traversal across `StatisticsHubScreen`, `PRDashboardfluttScreen`, `MuscleGroupAnalyticsScreen`, `BodyNutritionCorrelationScreen`, and `ConsistencyTrackerScreen` to match a strict chronological order: `..., April, May, June, 08 June - 08 July (Rolling), July |`.
+- **Fixed Statistics Hub Timeframe Traversal:** Upgraded the `shiftTimeframe` traversal in `StatisticsHubViewModel` to handle switching into and out of rolling states on left/right click, matching the behavior of detail screens.
+- **Fixed Statistics Hub Timeframe Picker & Label Formatting:** Integrated `TimeframeLabelFormatter` inside `_unifiedRangeLabel` on the Statistics Hub so that the rolling timeframe displays correctly as `"dd. MMM - dd. MMM yyyy"` rather than repeating the static month name. Also passed `initialIsRolling` to `showAdaptiveTimeframePicker` so the picker preserves rolling selection states.
+- **Enabled Rolling Month as Default Timeframe:** Changed the default view of all analytics screens (Statistics Hub, PR Dashboard, Muscle Group Analytics, Body/Nutrition Correlation, and Consistency Tracker) to start with the rolling month timeframe ("Last 30 days" / "Letzte 30 Tage") rather than the static calendar month ("July").
+
+## [1.0.0-alpha.5] - 2026-07-07
+
+### Changed
+- **High-Resolution Timeframe Support:** Added `TimeframeBlock.day` to explicitly support granular day-by-day navigation for the Steps, Sleep, and Pulse modules.
+- **Fixed Picker DST Freeze & Localization:** Resolved a critical Application Not Responding (ANR) infinite-loop freeze in the timeframe picker caused by traversing Daylight Saving Time boundaries on specific days. Also fixed missing localization so that dates and months in the wheel picker now render correctly according to the system language rather than defaulting to English.
+- **Migrated Sleep & Pulse Navigation UI:** Upgraded the Pulse and Sleep sections to use the new unified `TimeRangeFilter` master-pill layout, entirely removing redundant external date selection rows and securely connecting the internal navigation logic to eliminate crashes.
+- **Shiftable & Adjustable Timeframe Selection in Statistics Hub:** Upgraded the timeframe filter on the Statistics Hub from static filters to shiftable, natural calendar blocks (Week, Month, 3M, 6M, Year, Max) utilizing an adaptive Cupertino Wheel Picker. Standardized timeframe badges ("pills") across all analytics cards for visual consistency, while omitting the pill on the Recovery card entirely.
+- **Refactored Hub Analytics Cards to Grid Layout:** Completely overhauled the Body & Nutrition, Pulse, and Recovery cards on the Statistics Hub. Replaced the disparate layout styles and heavy `SummaryCard` wrappers with a unified, flat `ValueSummaryCard` grid layout. The new design natively supports multi-line text (via `IntrinsicHeight`), cleanly eliminates all double-shadow nesting artifacts, and precisely matches the aesthetic of their respective detailed sub-screens.
+- **Fixed Hub Timeframe Picker Index Shift:** Fixed an off-by-one mapping error in the Statistics Hub's timeframe picker that incorrectly shifted the user's selection (e.g. selecting "1 Year" showed "6 Months"). The issue was caused by the introduction of the granular `day` timeframe in sub-screens, which shifted the global enum index. The Hub now explicitly maps selections against a dedicated array of valid blocks.
+- **Rolled out `SeamlessLoadingOverlay` Global Pattern:** Implemented a non-stuttering loading pattern (`SeamlessLoadingOverlay`) across 16 screens (Consistency Tracker, Muscle Group Analytics, PR Dashboard, Recovery Tracker, Measurements, Sleep Month/Week, Steps Module, General Food Selection, Create Exercise, Supplement Hub, AI Settings). The screens now keep the UI mounted and warp/animate smoothly when updating date ranges or swapping views, replacing the previous full-screen loading spinners.
+- **Decontainerized Fluids Card in Diary:** Removed the individual `SummaryCard` wrappers from fluid entries in the Diary Screen. The fluid items now stretch edge-to-edge with 1px dividers inside the main unified `AppCardContainer`, perfectly matching the "Anti-Slop" design of the food meal cards (Breakfast, Lunch, etc.).
+- **Added Profile Button Tooltip:** Added a missing semantic `Tooltip` to the Profile avatar button in the Main Screen AppBar, ensuring accessibility features and hover states display the localized "Profile" label correctly.
+- **Fixed Routine Delete Bug:** Fixed a critical bug in the Routines Screen where swiping to delete a routine would trigger the confirmation dialog twice, leading to a crash or data error on the second prompt. The swipe-to-delete gesture now correctly triggers the confirmation only once and performs the background deletion safely.
+- **Decontainerized Chart Widgets (Anti-Slop Phase):** Removed `SummaryCard` wrappers from all charts and graphs across analytics screens (Consistency Tracker, Recovery Tracker, PR Dashboard, Muscle Group Analytics, Statistics Hub, etc.), allowing them to sit directly on the scaffold background for a cleaner, high-density look.
+- **Refactored Analytics KPIs to Grid Layout:** Replaced heavy `SummaryCard` and custom containers with a standardized `ValueSummaryCard` inside a precise 2-column grid format across the Consistency Tracker, Recovery Tracker, and PR Dashboard. Fixed alignment, spacing, and clipping issues using a robust `Column > Row` layout structure.
+- **Fixed Recovery Tracker State Pill UI:** Corrected an issue where the background color tint for the "In Recovery", "Ready", and "Fresh" state pills only filled the inner padding. The widget now uses a solid `ValueSummaryCard` with a colored translucent border for a unified, clean aesthetic.
+- **Restored Timeframe Selectors in Consistency Tracker:** Re-added the dynamic 30 days, 3 months, 6 months, and All Time choice chips above the Consistency Tracker KPI grid. Connected the chips securely to the repository fetch logic, bypassing the fixed 12-week global policy so the chart data reloads correctly on tap.
+- **Updated Consistency Default Timeframe:** Changed the default window view for the Consistency Tracker chart to 6 months for better immediate historical context.
+- **Decontainerized BodyHighlighter Widgets:** Removed the heavy `SummaryCard` wrappers from the `BodyHighlighter` widget across the app (Exercise Detail, Workout Log Detail, Workout Summary, Muscle Group Analytics, and Recovery Tracker screens) to embrace a flatter, edge-to-edge "Anti-Slop" design aesthetic.
+- **Standardized DualBodyHighlighter:** Introduced a shared `DualBodyHighlighter` widget to ensure front/back silhouette diagrams have the exact same size and structure across `ExerciseDetailScreen`, `WorkoutLogDetailScreen`, `WorkoutSummaryScreen`, and Analytics screens.
+- **Flattened Muscle Legends:** Removed the redundant "Vorne" / "Hinten" text labels, and flattened the primary/secondary muscle legends from background colored chips to clean typography in `ExerciseDetailScreen`.
+- **Refactored Body & Nutrition Correlation Interpretation:** Replaced the heavy `SummaryCard` for the interpretation section on the Body & Nutrition Correlation Screen with a flat, minimal `AppInfoRow` widget, matching the cleaner design of the section.
+- **Decontainerized Sleep Module Charts:** Removed `SummaryCard` wrappers from `SleepTimelineCard`, `WeekWindowCard`, `SleepScoreBreakdownCard`, and `SleepScoreCard` to adopt the flat, edge-to-edge "Anti-Slop" design. Increased the height of the sleep timeline chart by 25% for better visibility.
+- **Refactored Sleep Module KPIs to Grid Layout:** Standardized textual summaries across Week and Month views into the `ValueSummaryCard` grid layout.
+- **Redesigned Sleep Quality Header:** Refactored `SleepScoreCard` in the daily view to use `AppSectionHeader` and `AppInfoRow` styling, enlarging the score ring to 80x80 with bolder typography for prominence.
+- **Fixed Sleep Module Styling & Spacing:** Enforced strict padding alignment between headers and chart limits. Aligned grid cell heights perfectly using `GridView` with fixed `childAspectRatio`, and ensured equal spacing (`8px`) between progress bars in the score breakdown card to match the grid below.
+- **Adjusted Sleep Score Chip Text Colors:** Changed the daily score text color inside the weekly and monthly timeline chips to adaptively use the primary text color (`onSurface`), improving readability against dynamic background pill colors.
+- **Refactored Pulse History for Week & Month Views:** The Pulse Analysis Screen now automatically aggregates intra-day heart rate samples by local day for weekly and monthly timeframes. The chart dynamically downsamples to plot only the estimated **Resting Heart Rate** per day (represented as a cleaner, easier-to-read trend line) instead of the extremely dense, noisy full intraday pulse history.
+- **Dynamic Pulse Chart Titling:** The title above the pulse chart now dynamically changes from "Pulsverlauf" (Pulse History) on the daily view to "Ruhepuls" (Resting Heart Rate) on the weekly and monthly views to accurately reflect the aggregated data points being plotted.
+- **Fixed Workout Drag-and-Drop 300ms Delay Bypass:** Removed the immediate `setState(_isDragging = true)` call from the `onReorderStart` callback in `edit_routine_screen.dart`, `live_workout_screen.dart`, and `workout_log_detail_screen.dart`. Previously `onReorderStart` was bypassing the intentional 300ms long-press delay (already implemented via `onPointerDown` timer), causing the card-collapse animation to snap in the instant the drag lock-in occurred instead of after the full delay.
+- **Fixed Workout Drag-and-Drop Collapsing on Scroll:** Added `onPointerMove` handling to the `Listener` wrappers in all three workout reorder screens and their corresponding card widgets (`EditRoutineExerciseCard`, `WorkoutExerciseLogCard`). If the pointer moves more than 4px before the 300ms timer fires, the timer is cancelled immediately. This prevents the cards from collapsing into drag-mode when the user taps the exercise title and immediately scrolls — the app now correctly treats this as a scroll gesture with no side effects.
+- **Fixed Localization — Analytics Muscle Set Labels (FR/IT/JA):** Corrected the French, Italian, and Japanese translations for `analyticsWeeklySetsByMuscle` and `analyticsWeekTotalEquivalentSets` to match the German and English reference style (using the `Ø` prefix and correct fitness terminology — e.g. French "séries" instead of the incorrect "ensembles", Italian "Serie" with the `Ø` prefix added).
+- **Muscle Group Analytics — Timeframe Applies to Chart:** Connected the period selector in the Muscle Group Analytics screen so that the selected timeframe is applied consistently to both the KPI summary values and the weekly sets-by-muscle bar chart below, ensuring the chart data always reflects the chosen date range.
+
+## [1.0.0-alpha.4] - 2026-07-07
+
+### Added
+- **iOS App Store Rating Prompt:** Implemented a native App Store rating prompt for iOS users using the `in_app_review` package. The prompt seamlessly appears in the background after 7 days of app usage without interrupting the user's workflow.
+
+### Changed
+- **Fixed Measurement Chart Shimmer:** Removed the condition that disabled the underlying gradient shimmer for edge-to-edge measurement charts. The shimmer is now universally visible underneath the line graph, matching the aesthetic of the Body & Nutrition Correlation trend charts.
+- **Fixed Glass Bottom Menu Scrolling:** Moved the bottom safe area inset from the outer wrapper to inside the scrollable content lists (`SingleChildScrollView`). This fixes a UI bug where the scrolling content stopped short of the screen's bottom edge (leaving a ~14-34px gap inside the glass menu) instead of extending fully to the bottom.
+- **Refactored Body & Nutrition Correlation UI:** Removed the outer summary card wrapper to allow the KPI widgets to sit freely in the layout. Extracted the small value box widget from the Nutrition Hub into a generic `ValueSummaryCard` in `common.dart` and applied it to the weight and calorie metrics for visual consistency. Converted the section title to use `AppSectionHeader` and the interpretation text below to use `AppInfoRow` for a cleaner, unified minimal-info design.
+- **Fixed Reordering to the Bottom across Workout Screens:** Removed the unnecessary `newIndex -= 1` adjustment during drag-and-drop sorting across the Live Workout, Edit Routine, and Workout Log Detail screens. The custom reorder list implementation already passes the exact drop index, so the manual offset reduction was causing items to incorrectly drop one slot early (second to last) when dragged downwards.
+- **Fixed Live Workout Screen Reorder Live Updates:** Wrapped the reorderable list of the Live Workout Screen inside a `Consumer<LiveWorkoutViewModel>` within the local `OverlayEntry`. This guarantees that changes to the exercise order in the view model are immediately reflected on-screen without requiring users to exit and resume the workout.
+- **Removed Drag Shadows across all Workout Screens:** Set the drag proxy `Material`'s elevation to `0.0` in both `edit_routine_screen.dart` and `workout_log_detail_screen.dart`, completely removing the default drop shadows during reordering to match the design style of the Live Workout Screen.
+- **Fixed Live Workout FAB Disappearing:** Refactored the Floating Action Button (FAB) on the Live Workout Screen to render as a direct `Positioned` widget inside the parent Scaffold's `Stack` rather than using `OverlayPortal`. This avoids issues where the FAB disappears due to local overlays or layout rebuilds.
+- **Fixed Workout History Save Action and Data Persistence:** Fixed a bug where edited values (weight, reps, rir, etc.) in the Workout Log Detail Screen (History View) were not persisted to the database. Changed `updateSetLogs` in the data source from `batch.update` (which failed to apply correctly on updates due to schema mappings) to individual, transaction-wrapped await-writes. Added missing fields for cardio tracking (`distance` and `durationSeconds`) to ensure cardio sets save correctly as well. Also allowed saving when the header `Form` key returns a null state, and wrapped the transaction in a robust try-catch handler with visual feedback.
+- **Fixed Missing Persistence for Reordered Exercises and Sets in History:** Implemented `logOrder` reassignment during the save process in the Workout Log Detail Screen. Reordered exercises and sets will now correctly persist their new positions in the database instead of reverting upon screen reload.
+- **Fixed New Sets and Exercises Not Saving in History:** Fixed a bug where newly added sets and exercises during the Edit Mode of a completed workout weren't being saved to the database. Changed the temporary UI ID generator to use negative timestamps (`-DateTime.now().millisecondsSinceEpoch`), which properly triggers `INSERT` logic in `insertSetLog` instead of executing a silent `UPDATE` on non-existent positive ID rows.
+
+## [1.0.0-alpha.3] - 2026-07-06
+
+### Changed
+- **Removed Exercise Drag Shadows and Stabilized Drag Layer z-Ordering:** Removed the drop shadow underneath the active highlighted exercise card during drag-and-drop actions on the Live Workout Screen by setting the drag proxy Material's elevation to `0.0`. Wrapped the reorderable exercise list in a local `Overlay` to ensure that dragging exercise cards remain visually underneath the sticky Floating Action Button (FAB) layer while still drawing over other non-draggable exercises.
+- **Removed Redundant Set Completion Checkmarks from Workout History:** Removed the green checkmark icon from set rows in the Workout Log Detail Screen (History View) since all sets in a completed workout log are completed by definition.
+- **Replaced Supplement Hub with Supplement Settings Screen:** Replaced the legacy daily tracking/logging screen in the Supplement Hub with the Supplement Settings Screen. Users can now view the full list of available supplements, edit goals/limits, create new supplements, or delete them directly from the hub. All daily logging has been removed from this screen, as the Diary remains the designated place for supplement logging. Removed `SupplementTrackScreen`, `ManageSupplementsScreen`, and their corresponding test files. Removed the fish icon and added a green/grey check circle indicator showing whether a supplement is currently actively tracked. Configured the list to sort and display tracked supplements on top.
+- **Refactored Sleep Settings Screen Layout and Sync Behavior:** Consolidate health connection status, details on missing permissions, and request access action into a single interactive ListTile to simplify the UI. Removed the obsolete developer-facing "View raw sleep imports" feature. Extended default lookback period for manual sleep imports to 365 days (1 year) and the default automated sync lookback to 90 days to better capture historical sleep data. Fixed a HealthKit permission check bug on iOS where read-only authorizations (Sleep & Heart Rate) would incorrectly evaluate to "Denied" due to limitations in `HKHealthStore.authorizationStatus`. It now correctly checks overall HealthKit availability as a fallback.
+- **Refactored Feedback Screen Privacy Notice:** Replaced the heavy `SummaryCard` and redundant page header with a clean, flat `AppInfoRow` layout for the privacy notice on the Feedback Report Screen.
+- **Renamed Meal Templates to Recipes:** Renamed all user-facing references for custom meal templates and quick-log combinations from "Mahlzeiten" (Meals) to "Rezepte" (Recipes / My Recipes) across all supported localization files (German, English, French, Italian, and Japanese). Tapping "Als Rezept sichern" (Save as recipe) will now create a recipe template, helping users distinguish saved templates from daily logs.
+- **Refactored Diary Meal Layout:** Removed the nested `SummaryCard` container wrapper around individual food entries inside a meal. Instead, food entries are rendered flat within the parent meal card, separated by a thin `Divider` for a cleaner look while maintaining full swipe actions and perfect alignment. Removed the divider line between the macro badges and the first food entry in the list to make the design cleaner.
+- **Fixed Recipe Card Layout and Spacing:** Refactored the recipe list in `add_food_screen.dart` and `meals_screen.dart` from a `GridView` with fixed cell height to a dynamically sizing `ListView.builder`. This completely resolves bottom layout overflows for long recipe titles or wrapped macro badges, while ensuring shorter recipe cards remain compact without empty space. Restored standard margins on `MealItemCard`.
+- **Localized Exercise Names across Summary and Sharing Flows:** Localized exercise names on the workout summary screen (including records/trophies and the exercise overview lists) using resolved exercise data lookups. Integrated translation resolution in `WorkoutShareFormatter` (text sharing and share cards) so shared workouts display exercise names in the user's current locale (German, English, etc.) rather than defaulting to raw English database names.
+
+## [1.0.0-alpha.2] - 2026-07-05
+
+### Changed
+- **Restricted Drag-and-Drop Touch Areas and Stabilized Viewport Scrolling:** Restricted the drag-and-drop sort gesture trigger strictly to the exercise title on the Live Workout Screen, Edit Routine Screen, and Workout Log Detail (History) Screen by wrapping only the title with `Listener` and `ReorderableDelayedDragStartListener`. Enabled viewport scroll stabilization via custom scroll controllers, scroll height pre-collapse calculations, dynamic bottom padding to prevent clamping, and post-frame scroll position matching upon drag drop. Configured `OverlayPortal` layout positioning for the Glass FABs to ensure they render above the drag-proxy decorator layer.
+- **Refactored Settings & About Screens to Flat Layout:** Replaced heavy `SummaryCard` container panels and nested list tiles with clean, flat `AppLinkRow` and `AppInfoRow` components in the About Screen, AI Settings Screen, and Data Management Screen (including CSV Export, Data Backup, Auto Backup, Exercise Mapping, and Workout Import card views) to improve UI elegance and hierarchy.
+- **Created Common AppInfoRow Widget:** Added a new reusable `AppInfoRow` component to standardize formatting of non-interactive status or description fields.
+- **Removed Repetitive Icons from Summary Cards:** Removed the redundant leading icons/emojis (calendars, dumbbells, stars/archives) from the summary list cards in Workout History (workout-verlauf), Exercise Catalog (Übungskatalog), and Food Catalogs (Allgemeiner Food-Katalog / Explorer / Lebensmittel hinzufügen via `FoodItemSearchTile`) to clean up the UI and avoid repetitive graphics.
+- **Glass Bottom Menu Visual Polish:** 
+  - Adjusted background to match the exact dark gray of the summary cards by defining `DesignConstants.summaryCardDarkMode` (`Color(0xFF2A2A2A)`) and using it consistently across both components and the custom date/time pickers (`_GlassPickerSheet` with `0.95` opacity in dark mode) to clearly separate the menu sheet from the background content.
+  - Added a clean top and side border (`1.5` width) that adapts to light/dark themes to define the sheet boundary, and updated it to fade out smoothly from top to bottom (opacity 1.0 to 0) so that there is no hard border cutoff where the rounded corners of the device screen begin at the bottom.
+  - Changed the drag handle color to adaptively use `onSurface` with `0.3` opacity, improving visibility in both light and dark modes.
+- **Settings Section Card Consolidation:** Reworked the Settings screen so each section now uses one unified SummaryCard with dividers between its existing rows, matching the card grouping style used in Appearance settings.
+- **Localized Food Titles in Dialogs & Lists:** Updated the food quantity bottom sheets (`_showQuantityMenu` in both `diary_screen.dart` and `main_screen.dart`), the ingredient logs in `ConfirmLogMealBottomSheet`, the ingredient card/edit list in `MealScreen`, and the AI validation review widgets (`AiMealReviewScreen` / `MealReviewComparisonCard`) to dynamically fetch and display the user's localized base food names (based on the language chosen in the settings) instead of showing the raw database/German names. Also resolved the root localization issue in the main diary list (`FoodEntryTile` / `getProductsByArchiveIds`) by dynamically enriching archived food entries with their name translations from the primary database products table.
+- **Nutrition Recommendation Card Alignment:** Synced the "Data quality" heading with the same section-header treatment used by "Recommended targets" and matched the effective energy density card height, spacing, and text treatment to the target tiles.
+
+## [1.0.0-alpha.1] - 2026-07-03
+
+### Changed
+- **Edge-to-Edge Chart Layout:** Refactored `MeasurementChartWidget`, `BodyNutritionNormalizedTrendChart`, and the Body & Nutrition correlation chart to render without a card container, extending the chart canvas from the left to the right screen edge — matching the Trade Republic–style full-bleed chart aesthetic.
+- **Chart Line Right Boundary:** The chart line now ends just before the Y-axis label area rather than at the very right screen edge, leaving a small visual gap consistent with the reference design.
+- **Weight History Widget Title Removed (Diary & Measurements Screens):** Removed the redundant "Weight History" section title from the Diary and Measurements screens since the section header directly above the chart already provides context.
+- **Exercise Detail Chart:** Extended the exercise progress chart in the Exercise Detail Screen to the same edge-to-edge layout as the other charts.
+- **Y-Axis Labels on Top of Chart Lines:** Fixed Z-ordering so Y-axis label text always renders above the chart's line and area data. Previously, labels were injected into fl_chart's internal paint pipeline and appeared behind lines; they are now placed as Flutter `Stack` overlay widgets drawn after the chart canvas.
+- **Hard-Edged Axis Label Knockout:** Replaced soft Gaussian blur (`blurRadius: 6`) text shadows with a multi-directional `blurRadius: 0` shadow grid (±2 px in all directions) that produces a sharp, text-shaped background mask — so axis labels remain readable where they overlap chart lines without a blurry halo or a rectangular block.
+- **Exercise Detail Empty State:** The "Not enough data" placeholder in the Exercise Detail Screen no longer uses the old `SummaryCard` container. It now renders in the same open, edge-to-edge style as when data is present.
+- **Exercise Detail Y-Axis Clipping Fixed:** Added `clipBehavior: Clip.none` to the `SingleChildScrollView` in `ExerciseDetailScreen` so the chart's `OverflowBox` can reach the screen edges without being clipped by the scroll view.
+- **Body & Nutrition Bottom Axis Edge Labels Fixed:** In edge-to-edge mode the chart domain is now padded by ±1 day (`minX: -1`, `maxX: maxX + 1`) so the first and last date labels are no longer centered at the very edge of the canvas, preventing them from being half-clipped and showing as lone digits ("4" / "0").
+- **Localized Chart Range Filters:** Localized the chart range selector buttons (`30d`, `90d`, `180d`, `All`) across all supported languages (English, German, French, Italian, Japanese).
+- **Tooltip Rendering Order:** Adjusted Stack Z-ordering in the body & nutrition trend chart so the tooltip overlay renders on top of the Y-axis labels.
+- **Enhanced Chart Lines Styling:** Increased line thickness (bar width) on all main line charts and added a subtle, minimal curvature (`curveSmoothness: 0.15`) for smoother edges.
+- **Monotonic/Overshoot-Free Splines for Line Charts:** Configured `curveSmoothness: 0.05` across all line graphs. This tighter curvature removes hard edges and rounds corners cleanly, while preventing overshoots and loops over large data gaps without the flattening artifacts of standard overshoot prevention.
+- **TDEE Notification Scheduling & First-Launch Filtering:**
+  - Configured `AppInitializerScreen` to asynchronously trigger a recommendation refresh check in the background on startup, ensuring TDEE recalculation alerts can be sent without requiring the user to open the nutrition screen.
+  - Added a first-launch guard to `saveLatestRecommendationSnapshot` in the repository so that the initial default TDEE setup does not fire a system notification to new users on their very first app launch.
+- **Database Catalog Import Performance Optimization:**
+  - Configured `_performBatchImport` in the database manager to temporarily disable SQLite foreign key checks (`PRAGMA foreign_keys = OFF;`) during bulk batch imports of base foods, exercises, and OFF products. This significantly speeds up the catalog sync and update process by bypassing constraint validation on each inserted row, restoring the original state afterwards.
+- **Repeat Onboarding Option Location:**
+  - Moved the "Repeat Onboarding" (tutorial) card from the profile screen to the Settings Screen, placing it directly under the "Restart App Tour" card.
+- **Container-Slop Hunting (Design Level 1):**
+  - Dissolved the `SummaryCard` container wrapper around the adaptive nutrition recommendation views in `NutritionRecommendationCard` to render them inline/flat with minimalist margins.
+  - Eliminated chunky card containers from the Legal and About section navigation options in the Profile Screen, converting them into clean, flat text links with inline chevrons and hover/ink tap responses.
+  - Removed section headers ("About", "Legal") and leading icons from the minimal links at the bottom of the Profile Screen.
+  - Replaced the "Today in focus" section header on the Nutrition screen with an uppercase "ADAPTIVE RECOMMENDATION" header, removing the redundant duplicate title inside the card.
+  - Refactored "Estimated maintenance" and "Recommended targets" grids/tiles in the recommendation card to use the standard, premium `SummaryCard` widget.
+  - Removed the outer container panel around the "Data quality" block so it renders flat and clean.
 
 ## [0.9.37] - 2026-06-29
 
@@ -21,6 +598,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Database Catalog Import Optimizations:** Refactored the bulk database import sequence (`BasisDataManager._performBatchImport`) to execute all chunks in a single native database transaction, dynamically loosen disk synchronization guarantees during import (`PRAGMA synchronous = OFF;` and `PRAGMA journal_mode = MEMORY;`) with automatic restoring, and tune chunk size to `5000` to minimize isolate IPC overhead.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Food Entry Alignment in General Food Selection Screen:** Resolved an issue where food entry cards in the general food selection screen had double horizontal padding, causing them to be narrower and misaligned with the search bar.
 
 ## [0.9.36] - 2026-06-26
@@ -41,6 +621,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Onboarding Widget Tests:** Updated the test suites in `onboarding_test.dart` and `adaptive_recommendation_settings_flow_test.dart` to support the updated page indices and bypass the dialog in test environments.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **LaTeX Parser Crash in Recovery Info Dialog:** Resolved a KaTeX rendering crash (`Parser Error: Can't use function '$' in math mode`) inside markdown headings in the Muscle Recovery Tracker details sheet by replacing greedy inline `$` math delimiters with markdown-compatible `\(...\)` delimiters.
 
 
@@ -65,6 +648,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Relaxed Backup Import Constraints:** Permitted full backup imports as long as the base exercise database is initialized, removing locks if the nutrition database download was postponed.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Camera & Health Pre-Permission Refactoring for App Store Compliance (`scanner_screen.dart`, `permission_dialogs.dart`):** Refactored permission-request screens and dialogs to strictly comply with Apple App Store Review Guidelines 5.1.1(iv):
   - Made the Camera Pre-Permission screen non-dismissible by hiding the back button in the App Bar and blocking pop gestures / Android hardware back button.
   - Updated the Camera primary action button text from "Grant Permission" to "Continue" (localized across all supported languages).
@@ -92,6 +678,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.9.34] - 2026-06-21
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Live Workout Screen Layout & Spacing (`live_workout_screen.dart`):** Resolved layout alignment and spacing issues on the live workout screen:
   - Restored the bottom `Column` layout containing the rest timer bar and the Wger attribution widget.
   - Enforced a constant `32.0` logical pixel height wrapper for the attribution widget, preventing layout shifts when the text wraps to two lines on narrow screens.
@@ -131,6 +720,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Glass Progress Bar Coloring (`glass_progress_bar.dart`):** Tweaked the progress fill color treatment for improved visibility and consistency with the Liquid Glass design system.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Live Workout Rest Timer & FAB Padding (`live_workout_screen.dart`):** Fixed incorrect bottom padding on the rest timer bar and glass FAB overlay, resolving a layout issue where these elements could overlap with the safe area or be clipped on devices with home indicators.
 - **iOS Podfile (`Podfile`):** Resolved an iOS build configuration issue in the CocoaPods Podfile that affected dependency resolution.
 - **Test Suite Stability:** Fixed test regressions in `platform_adaptive_recommendation_settings_flow_test.dart` and `workout_log_detail_reactive_test.dart` to align with the new adaptive picker and dropdown architecture.
@@ -138,6 +730,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.9.32] - 2026-06-16
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **`isFluid` Detection Overhaul — Beverage vs. Non-Beverage Classification (Data Forensics):** Completely rewrote the fluid-detection pipeline that determines whether a food item triggers the liquid-tracking UI. A forensic audit of the Open Food Facts parquet dataset revealed that **~30 % of products in the bundled DB** (≈70,500 items) were incorrectly flagged as beverages, including Tabasco, Sriracha, Ketchup, Mustard, BBQ Sauce, Soy Sauce, Balsamic Vinegar, Salad Dressings, Mayonnaise, Ice Cream, Olive Oil, Chicken Broth, Peanut Butter, and Hazelnut Spread:
   - **Root cause:** The old heuristic in `create_off_food_db.py` used `product_quantity_unit ∈ {ml, l, cl}` as the sole primary trigger, with no category-based veto. Sauces, vinegars, and desserts — which routinely carry volume units — bypassed the category check entirely.
   - **Three-tier algorithm:** Replaced both the Python DB generator (`script/create_off_food_db.py`) and the Dart runtime layer (`lib/core/infrastructure/basis_data_manager.dart`) with a unified allowlist → blocklist → volume-unit-fallback heuristic:
@@ -187,6 +782,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Unified Food Search Viewport:** Replaced the multi-tab food search layout with a unified single-scroll track viewport, grouping search results sequentially into three vertical sections: Custom Food matches, Base Food matches, and Other/Open Food Facts matches.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **AI Meal Capture Image Layout:** Fixed a layout issue where the horizontal image preview list was constrained by the screen's outer padding. Removed horizontal padding from the parent scroll view and applied it directly to the list container and label, enabling edge-to-edge scrolling for captured meal images.
 - **Exercise Catalog Never Seeding (Critical):** Resolved a three-layered bug that caused the entire wger exercise catalog to remain empty on fresh installs and after iOS sandbox resets:
   - **Missing bundled asset:** `assets/db/train_libre_training.db` was a 0-byte placeholder file. The bundled SQLite database is now populated from the latest stable wger release (`202606151047`, 852 exercises). Added a 0-byte guard in `BasisDataManager` that aborts the import with a clear error instead of silently opening an empty database.
@@ -215,6 +813,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Implemented a dynamic `Transform.translate` downward translation of `8.0` logical pixels and a custom shadow clipper `_LiveWorkoutFabShadowClipper` when the rest timer bar is active. This narrows the spacing to exactly `8.0` logical pixels to match the Diary Screen's bottom layout, while cleanly cropping the drop shadow at the rest bar's top edge to prevent overlapping visual smudges.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Profile Picture Lazy Loading on Startup:** Resolved an issue where the profile picture avatar in the main screen app bar did not load on a fresh app startup unless the user manually navigated to another screen. Added a reactive `Consumer<ProfileService>` wrapper around the avatar to dynamically update as soon as the asynchronous profile service initialization completes.
 
 ## [0.9.29] - 2026-06-14
@@ -271,6 +872,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Cardio Log View Formatting:** Updated the log details screen (`WorkoutLogDetailScreen`) and set row (`WorkoutLogSetRow`) to format distance with up to 3 decimal places and duration as `MM:SS` format.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Foreground Rest Timer Notifications:** Configured local notifications shown when the app is in the foreground to play sound and vibrate without presenting a visual heads-up drop-down banner (via `DarwinNotificationDetails` alert silencing on iOS, and a dedicated auto-canceling channel with default importance and priority on Android).
 - **Foreground Sound Cut-off:** Extended the auto-cancel delay for foreground notifications to 10 seconds to allow the notification sound and vibration pattern to play to completion before the notification is cleared from the system.
 - **Vibration Settings Compliance:** Wired rest timer notification details to retrieve and check the global `haptics_enabled` preference from `SharedPreferences`, ensuring notification vibrations respect the user's settings.
@@ -281,6 +885,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Global Lucide Icons Migration:** Replaced all 387+ instances of legacy native Material icons across the entire `lib/` directory with crisp, unified vector icons from the Lucide Icons library via an automated regex refactoring pipeline. This eliminates platform-dependent emoji rendering discrepancies, enforces a cohesive, modern visual language across all feature tabs (Diary, Workout, Settings, Profile, Analytics), and significantly streamlines the application's minimalist design identity.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Markdown Export Accuracy:** Fixed a critical bug where beverage nutrition (calories, sugar, carbs) was double-counted when logged as both food and fluid.
 - **Fluid Calorie Calculation:** Corrected an error in the share service where fluid calories were incorrectly scaled by quantity, leading to inflated totals.
 - **Nutrition Summary Metrics:** Added daily user targets (Calories, Protein, Carbs, Fat, Sugar, Water) to the Markdown export summary, matching the interactive Diary UI format.
@@ -303,6 +910,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Relocated and consolidated all primary trailing actions cleanly into the right header container, positioning the new `Icons.share_outlined` button immediately to the left of the static profile picture avatar.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Sleep Sync Freeze & Progress Bar Repair:** Resolved a database deadlock that froze the manual 90-day Sleep Sync at the last iteration (e.g. "Importing Night 58/58...") by removing nested `_db.transaction(...)` blocks from the custom sleep database access objects (`SleepRawImportsDao`, `SleepCanonicalSessionsDao`, `SleepCanonicalStageSegmentsDao`, `SleepCanonicalHeartRateSamplesDao`, `SleepNightlyAnalysesDao`). Refined the pipeline progress calculation to allocate `totalSessions + 5` total steps and report an out-of-bounds progress value (`-1.0`) at initialization, enabling an active indeterminate scanning animation during heavy background isolate calculations before transitioning to determinate progress updates through the database writing phase.
 - **Multilingual Database Sync Labels:** Updated settings database sync labels (`settingsUpdateFoodDatabase`, `settingsUpdateFoodDatabaseSubtitle`, `settingsUpdateFoodDatabaseSuccess`, `settingsUpdateFoodDatabaseError`) in Japanese (`app_ja.arb`) to refer to both the food and exercise databases rather than just the food database, aligning with German, English, French, and Italian translations.
 
@@ -319,6 +929,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Test Suite Realignment:** Updated mock test classes (`FakeSleepImportService` and `_FakeSleepSettingsService`) across the widget and unit test suites to align with the updated `importRecent` method signature.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Health Connect Permissions Crash (`ActivityNotFoundException`):** Patched a native Android runtime crash caused by unsupported contract intents when requesting permissions under the standard `FlutterActivity`. Refactored `MainActivity.kt` to dispatch requests using the native `ActivityCompat.requestPermissions` utility and handle results uniformly in `onRequestPermissionsResult` and `onActivityResult`.
 - **Static Analysis Warnings:** Resolved unused fields and variables (`_isFullBackupRunning`, `_isSleepImporting`, and `unknown` exercise list) and addressed `use_build_context_synchronously` warnings across settings screens using `context.mounted`.
 - **Android Predictive Back Gestures:** Resolved a platform-specific issue where the native predictive back gesture would fail or freeze on Android/GrapheneOS devices. Refactored the core Android container `MainActivity` to inherit from the standard `FlutterActivity` instead of `FlutterFragmentActivity`, eliminating fragment lifecycle dispatcher conflicts. Ported the internal Health Connect permissions launcher and Storage Access Framework directory picker launcher to use the base SDK `startActivityForResult` and `onActivityResult` callbacks to maintain full compile-time compatibility with standard activity lifecycles.
@@ -339,6 +952,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 * **Web Screenshot Fallbacks:** Configured the localized web templates to dynamically map `fr`, `it`, and `ja` screenshots directly to the existing verified `en-US` directory, avoiding duplicate storage overhead.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Bottom Navigation Bar Quality Degradation**: Fixed a bug where returning from route transitions (such as speed dial option screens) demoted the navigation bar to medium quality (frosted fallback) while leaving the sibling action button in premium quality.
 - **Static Analysis Cleanup**: Resolved all remaining static analysis warnings by removing the unused `_isRouteActive` field, deleting redundant `didPushNext()` and `didPop()` overrides, cleaning up unnecessary `dart:ui` imports, and globally suppressing `experimental_member_use` warnings for the liquid glass widgets API.
 * **Recovery Screen Muscle Tracking:** Patched the muscle fatigue calculation algorithm by updating the workout history queries to join the new `exercise_translations` table, resolving a bug where exercise names evaluated to null.
@@ -349,6 +965,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **SpeedDial Overlay Quality Isolation**: Decoupled the speed dial action buttons from dynamic performance telemetry and forced them to render with standard quality (`GlassQuality.standard`), eliminating dynamic quality degradation or toggling.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Bottom Navigation FAB Glassmorphic Blur Mismatch**: Fixed a visual discrepancy where the bottom navigation bar's circular FAB lost background blur (rendering flat white) when quality downgraded to `minimal`. Refactored `main_screen.dart` to bypass the package's built-in `extraButton` parameter, instead implementing a layout composition with a custom sibling `AdaptiveGlass` widget configured with `isInteractive: false` to guarantee consistent glassmorphic blur across all rendering quality levels.
 - **Fix:** Restricted calorie adjustment notification banner strictly to the current date view in Diary.
 - **UX:** Configured 3-Zone master cards in Recovery Tracker to be collapsed by default for faster scanning.
@@ -371,6 +990,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Liquid Glass Shadow Clipping**: Integrated `ShadowOuterClipper` across all Liquid Glass components (bottom navigation, FAB, workout overlay, speed dial actions) to strictly clip drop shadows from behind the transparent glass elements, keeping the backgrounds bright and translucent.
 - **Anatomical Body Highlighter Canvas Mappings**: Synchronized SVG path mappings in local package `flutter_body_highlighter` (and bumped version to 1.0.3) to resolve blank forearms, map lateral head triceps (front view), neck muscles (back view), erector spinae (lower back), isolated tibialis anterior (shin-adjacent), and inner-thigh adductors insertion (back view).
 - **Neck & Traps Visual Merge**: Merged the posterior neck SVG paths directly into the `trapezius` map entry in `flutter_body_highlighter` (v1.0.3) and routed all legacy neck/lower neck raw mappings to the `trapezius` token to eliminate the uncolored gap on the back view.
@@ -381,6 +1003,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Default Visual Style Swap**: Swapped the out-of-the-box visual style preference default from "Flüssig (Liquid Glass)" (index `1`) to "Standard (Glas)" (index `0`) in `ThemeService` so new app installations default to the frosted standard glass style.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Standard Glass Shader Pipeline Upgrade**: Migrated the standard visual style (`visualStyle == 0`) branch across multiple components (`GlassBottomNavBar`, `GlassFab`, `GlassPillButton`, `RunningWorkoutOverlay`, `GlassBottomMenu`, `SpeedDialMenuOverlay`) from legacy native `BackdropFilter` and solid container fallbacks onto the unified `AdaptiveGlass` shader pipeline from the `liquid_glass_widgets` package.
 - **Light Mode Tint Harmonization**: Fixed Light Mode background burnout/clipping issues where the bottom bar and FAB appeared muddy, dark, and dirty-grey or clipped into raw white by aligning their background `neutralTint` to a clean, bright, semi-transparent white (`Colors.white.withValues(alpha: 0.10)`), matching the functioning `RunningWorkoutOverlay` background exactly.
 - **Ambient Shadow Matrix Unification**: Unified and applied the deep physical depth shadow matrix (`BoxShadow` with `blurRadius: 12`, `offset: Offset(0, 6)`, `Colors.black` at `30%` opacity) across both standard (`visualStyle == 0`) and liquid (`visualStyle == 1`) navigation components to eliminate visual rift and restore parity with the workout overlay.
@@ -399,6 +1024,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Navigation Label Typography & Scaling**: Fixed a regression in the `GlassBottomBar` where uninherited Material context caused text labels to scale disproportionately large and render with yellow error underlines. Wrapped the component in a `Material` widget and applied an explicit `DefaultTextStyle` mapping directly to our absolute compact design token (`fontSize: 11.0`, `fontWeight: FontWeight.w600`, `fontFamily: 'Inter'`, `letterSpacing: -0.2`).
 - **Layout & Typography in RunningWorkoutOverlay**: Fixed a critical layout collision where the workout tracking bar overlapped the new `GlassBottomBar` by introducing an 8px layout offset. Fixed a visual regression by realigning the elapsed duration typography with the centralized `titleMedium` system style, ensuring `Inter` font rendering, correct boldness, and consistent tracking.
 
@@ -470,6 +1098,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Padding accounts for `topPadding` so the layout centres correctly behind the navigation bar.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Static Analysis**: Resolved the `use_build_context_synchronously` lint warnings inside `_showSaveAsRoutineDialog` by capturing repository and navigation handlers prior to the async bottom sheet UI transitions.
 - **Deprecated Opacity APIs**: Fixed the `deprecated_member_use` compiler warning by replacing `withOpacity` with the modern `withValues(alpha: ...)` API.
 
@@ -497,6 +1128,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Nutritional Companion Serialization**: Enhanced food companion imports to preserve complete nutritional profiles, including liquid categorization, caffeine contents, and localized designations.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Widget Integration Regression Testing**: Fully updated the presentation test suite (`recommendation_banner_test.dart`) to validate delta mathematical prefix logic, click-to-apply database updates, and multi-week isolation rules. All test specifications executed successfully with zero failures.
 
 ## [0.9.17] - 2026-06-01
@@ -527,6 +1161,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Multi-Perspective Muscle Visibility**: Removed restrictive single-view viewport constraints from the visual rendering layer, allowing dual-aspect muscle groups like Adductors and Forearms to dynamically illuminate on both the anterior (front) and posterior (back) model silhouettes.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Compliance Enforcement Gaps**: Fixed a verification vulnerability by ensuring the "Continue" button remains strictly disabled until active cryptographic acceptance tokens are verified for both distinct legal frameworks.
 - **Biceps Brachii Visual Disconnect**: Resolved a structural pipeline mismatch within the local SVG template rendering framework by linking generic biceps inputs to target and color both the long-head and short-head anatomical path coordinates concurrently.
 - **Anatomical Dropout and Mappings**: Patched an ingestion leak where unmapped compound muscle components were either completely discarded or misattributed to parent groups, stabilizing long-term data integrity for core training logs.
@@ -547,6 +1184,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Sleep Scoring Engine LaTeX Refactoring**: Refactored the 3 complex multi-line `cases` equations in `sleep_scoring_engine.md` (Sleep Duration, Light Sleep Penalty, and Circadian Timing) into clear bulleted text conditions and single-line display math blocks (`$$ ... $$`). This completely bypasses markdown backslash-escaping and HTML entity conversion bugs to guarantee robust, beautifully styled green math blocks on all viewports without any KaTeX compiler crashes or text overflows.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Shoulder Highlight Bug**: Resolved a library-level mismatch between SVG path keys and enum mappings, restoring correct anterior/posterior deltoid highlights.
 - **Core Tracking Gaps**: Re-enabled **Abs**, **Obliques**, and **Core** in the recovery tracking engine. Tapping "Abs" now correctly highlights the entire core region on the body model.
 - **Workout Summary Scroll Lock**: Moved all summary elements into a unified `ListView`, eliminating the "tiny window" scrolling limitation on compact viewports.
@@ -571,6 +1211,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Localization Architecture Hardening**: Expanded localized string dictionaries (`app_de.arb` and `app_en.arb`) by over 20 new high-density technical prose entries. Completely purged raw LaTeX syntax and legacy academic/clinical citations from translation assets to enforce bulletproof UI rendering.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Information Screen Layout Overflows**: Refactored the `ExpansionTile` headers inside `algorithm_info_sheet.dart` into a single text-wrapped flexible row, completely eliminating right-side pixel clipping and horizontal layout breaking on compact viewports.
 ## [0.9.13] - 2026-05-xx
 
@@ -597,6 +1240,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **UI Layout Cleanups**: Removed the restrictive nested Card containers from the Detail-Analyse section, turning it into a clean native Section Header with edge-to-edge, full-width `GlassProgressBar` fields.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Zero-Warning Compliance**: Resolved all remaining lint warnings and static analysis issues across the entire codebase, reaching 100% compile-time safety.
 - **Code Verification**: Validated all architectural changes against the full suite of 610+ regression tests, ensuring 100% green status.
 - **Memory & Persistence Optimization**:
@@ -610,6 +1256,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.9.12] - 2026-05-22
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **iOS Barcode Recognition & Xcode Strip Style (#399)**: Resolved a critical issue where the barcode scanner ran smoothly but failed to recognize any barcodes on iOS release builds.
   - Corrected Xcode **Strip Style** from `All Symbols` to `Non-Global Symbols` in Build Settings, preventing the aggressive compilation pipeline from stripping the essential C++ (`zxing-cpp`) native function symbols required by Dart FFI.
   - Retained the optimized `ReaderWidget` configuration (720p `ResolutionPreset.high` and `0.55` crop factor), drastically increasing the scan frame decoding speed and reducing data processing overhead over the FFI bridge without losing scanning accuracy.
@@ -665,6 +1314,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Attribution Inventory**: Added a comprehensive license and attribution inventory to the `AboutScreen` for bundled open-source dependencies.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Fluid Deduplication**: Resolved a critical analytics error in `BodyNutritionAnalyticsDataAdapter` where fluid logs linked to food entries were double-counted in daily totals.
 - **Supplement Tracking Stability**: Fixed a mapping regression in `SupplementRepositoryImpl` that caused tracking status and daily goal visibility to be lost during reactive state transitions.
 - **Android SAF Target Resolution**: Corrected `BackupManager` logic for Android Storage Access Framework (SAF) to ensure reliable archive writing to secure, user-selected external directories.
@@ -677,6 +1329,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.9.8] - 2026-05-19
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed mapping regression where supplements lost tracking status and daily goals, disappearing from the Diary screen and Supplement Hub.
 - Fixed database-level fluid food double-counting across the analytics compilation pipeline and correlation charts.
 - Fixed failing auto-backup process by resolving target directory structures through secure application documents paths.
@@ -698,6 +1353,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Progress Bar Readability**: Implemented dual-layer clipping and contrast-aware text rendering in `GlassProgressBar` to ensure legibility across all progress levels.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Analytics Layout**: Fixed various UI issues in analytics dashboards, including legend shape consistency, edge clipping in horizontal scrolls, and proper current-day filtering in body/nutrition trends.
 - **Navigation**: Resolved inconsistencies in exercise selection routing within routine and live workout editors.
 
@@ -710,6 +1368,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Pure Domain Models**: Established total Domain Purity by removing Drift database model leaks (e.g., db.DailyGoalsHistoryData) from repository contracts and use cases, mapping them cleanly to pure Dart entities (like DailyGoal) within the Data layer.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Runtime & Testing**: Eliminated the critical Drift multiple-instances database runtime warning by enforcing a strict single-instance initialization with constructor dependency injection via Provider. Adjusted timestamp delays to 1.1s to accommodate SQLite's CURRENT_TIMESTAMP clock resolution. Fixed day-inclusive range selections for diary queries.
 
 ### Removed
@@ -728,6 +1389,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Settings Overhaul**: Added manual database sync trigger and improved OFF region settings.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **App Tour Stability**: Fixed edge cases where the app tour could crash on specific navigation flows.
 - **Health Export**: Resolved minor synchronization issues with third-party health platforms.
 
@@ -745,6 +1409,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - **Design Language**: Updated "Liquid Glass" theme as the standard and improved text visibility across various UI elements.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Navigation Stability**: Hardened navigation lifecycle with strict `if (!mounted)` guards to prevent crashes during rapid screen transitions.
 - **Metric/Imperial System**: Fixed unit system inconsistencies in onboarding and various screens (#337).
 - **Database Hardening**: Fixed multiple SQL issues in the OFF database and improved batch processing stability.
@@ -768,6 +1435,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 * **Visual Style Improvements:** Adjusted spacing, chart defaults, and text visibility across the Liquid Glass theme.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 * **Database Hardening:** Optimized SQLite operations and strengthened reload logic to prevent data inconsistencies during concurrent actions.
 * **Supplement Default Time:** Fixed an issue where the Supplement Diary FAB defaulted to 00:00 instead of the current time.
@@ -790,6 +1460,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 * **Default Settings:** The default `visualStyle` has been updated to `1` in `ThemeService`.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 * **Calorie Calculation:** Fixed a bug where liquid calories were duplicated; the app now filters out fluid entries linked to food logs when calculating total daily intake.
 * **Test Stability:** Updated `SleepSettingsScreen` tests to include the explicit confirmation step required by the glass bottom menu and fixed locale-dependent string matching.
@@ -811,6 +1484,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Refined food and exercise mapping logic for better accuracy.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed Issue #323: Improved deletion logic for water and drinks to prevent orphaned database entries and enabled direct editing.
 - Fixed Issue #322: Resolved a crash occurring during certain nutrition summary updates.
 - Fixed barcode scanner issues and added necessary network permissions for catalog refreshes.
@@ -828,6 +1504,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Set scanner resolution to maximum to improve barcode detection reliability across devices.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed a crash when manually adding food items during AI meal review.
 - Fixed inconsistent border radius for uploaded images in the AI recommendation screen.
 - Improved layout and input handling on the onboarding calorie recommendation page.
@@ -850,6 +1529,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Removed unused microphone and speech recognition permission declarations and documentation references.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed several layout overflows on small screens and compact devices.
 - Fixed backup restore edge cases for some legacy backup variants.
 - Fixed hydration and caffeine totals not updating correctly after editing tracked foods/drinks.
@@ -870,6 +1552,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Improved accessibility and localization support for the nutrition recommendation controls.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Minor bug fixes and performance improvements in the nutrition recommendation flow.
 
 ## [0.9.0] - 2026-05-05
@@ -886,12 +1571,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Refined recovery, sleep, pulse, and nutrition analytics to make training guidance more transparent and robust.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Preserved compatibility for legacy Hypertrack backups and catalog files while migrating new installs to Train Libre naming.
 - Hardened loading and error handling across Statistics, Diary, Sleep, Pulse, AI meal save, feedback-report, and active workout flows.
 - Reduced Android UI stalls and ANR risk by moving production Drift database work to a background isolate and reducing repeated database lookups.
 
 ## [0.9.0-beta.6] - 2026-05-05
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed severe Pulse loading lag in Statistics by caching hourly heart-rate aggregates instead of repeatedly reprocessing large raw sample histories.
 - Hardened Pulse aggregate cache coverage so small recent caches cannot be mistaken for complete older or larger ranges.
 
@@ -905,6 +1596,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.0-beta.5] - 2025-05-05
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Renamed bundled and remote catalog database artifacts to Train Libre filenames while preserving legacy Hypertrack fallback compatibility.
 - Added English iOS permission usage descriptions for camera, microphone, speech recognition, photo library, and Apple Health access, with German InfoPlist localization kept alongside them.
 - Fixed Sleep day overview week/month loading helper wiring so analyzer, tests, and debug builds compile cleanly.
@@ -928,6 +1622,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.9.0-beta.4] - 2025-05-05
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved Statistics hub loading so slow or failing sections no longer block the entire tab.
 - Replaced shared Statistics loading behavior with section-level stale-while-refresh state.
 - Kept existing Statistics section data visible while range changes refresh in the background.
@@ -952,6 +1649,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.9.0-beta.3] - 2025-05-05
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed redundant Add Food meal-card refetching by caching meal total futures and using batched product lookup.
 - Fixed repeated Diary product lookups by batch-loading products for the selected day.
 - Fixed possible stale Statistics range results when switching range chips quickly.
@@ -984,6 +1684,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Improved share-card branding by using the current Train Libre SVG logo.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Moved the production Drift SQLite connection onto a background isolate to prevent database work from blocking touch handling and causing Android ANRs.
 - Reduced workout-history database load by fetching completed workout sets in bulk instead of issuing one set query per workout log.
 - Removed redundant food-search controller rebuilds while typing in Add Food, Food Explorer, and the general food picker.
@@ -998,10 +1701,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Renamed the app and repository branding from Hypertrack to Train Libre across Flutter, Android, iOS, widgets, documentation, and package metadata.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Preserved restore compatibility for legacy Hypertrack backups while creating new backups under the Train Libre name.
 
 ## [0.9.0-alpha.4] - 2026-05-02
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Hardened Sleep Health Score handling for ambiguous and missing stage data.
 - Prevented `unknown` and ambiguous `inBedOnly` stages from inflating wake duration, WASO, interruptions, and sleep-efficiency penalties.
 - Improved REM-missing and low-fidelity stage guardrails so scores do not imply unsupported certainty.
@@ -1036,6 +1745,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.9.0-alpha.2] - 2026-04-25
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed Pulse day-scope handling so the current day is now included as a partial-day window (`start of day -> now`) instead of behaving like a fully completed 24-hour period.
 - Added a small guard against zero-length Pulse day windows around local midnight rollover.
 - Improved sleep heart-rate fallback behavior on Android / Health Connect setups by deriving sleep HR from the general heart-rate stream when strict sleep-session-linked heart-rate samples are unavailable.
@@ -1063,6 +1775,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Added a separate opt-in setting for sending recent meal context to AI meal recommendations. It defaults off and recommendations still work without it.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved Android sleep heart-rate retrieval for Health Connect providers that store valid in-session samples inside longer heart-rate records whose record window can sit outside the strict sleep/import window.
 - Made AI meal save behavior explicit when some recognized/recommended items are unmatched, so partial saves no longer look like all AI items were saved.
 
@@ -1083,6 +1798,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.8.11] - 2026-04-23
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved workout heart-rate retrieval reliability for vendor-originated Health Connect data by adding a safe fallback query window when the strict workout window returns no records.
 - Restored the missing Measurements shortcut on the Statistics hub so body measurements are reachable again from the Body section.
 
@@ -1106,6 +1824,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.8.10] - 2026-04-15
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved backup/restore robustness so malformed or legacy-shaped payload rows no longer abort the full import as easily.
 - Hardened supplement settings/history restore handling for legacy ID mappings and more tolerant type parsing.
 - Improved body/nutrition trend loading stability so outdated async responses no longer overwrite newer range selections.
@@ -1160,6 +1881,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Reused existing health-platform data flows with lightweight workout-window matching instead of introducing a heavier persistence layer for the MVP.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Eliminated misleading or weak “correlation” outputs in sparse or noisy datasets.
 - Reduced risk of overinterpreting incomplete or low-quality data by enforcing stricter gating and clearer fallback states.
 
@@ -1181,6 +1905,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Extended the shared custom dialog helper with optional strict modal behavior (`isDismissible` / `enableDrag`) for critical confirmation flows.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Removed remaining app-level default alert style mismatches in migrated screens so action dialogs now follow one consistent Hypertrack UI pattern.
 - Preserved existing action semantics and async handling across migrated flows (confirm/cancel/save/delete outcomes unchanged).
 
@@ -1261,6 +1988,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Settings flow now clearly communicates that OFF region changes are applied through the existing next refresh/import cycle.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Hardened OFF startup safety when bundle and remote are unavailable for a selected country: imports are skipped safely without destructive side effects.
 - Preserved historical nutrition continuity under OFF region/catalog changes by keeping `off` + `off_retained` semantics intact.
 
@@ -1291,6 +2021,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Workout detail/summary/session restore paths now resolve exercises by stored `exercise_id` first, with graceful fallback.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed potential aggressive refresh behavior by avoiding replace-style writes for base exercises.
 - Fixed a history integrity risk where session restore could lose blocks if exercise names changed after catalog update.
 - Fixed set-log update behavior to preserve existing `exercise_id` linkage when name lookup no longer matches.
@@ -1317,6 +2050,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Cleaned release notes/changelog references tied only to the removed widget rollout.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Restored reliable iOS simulator install/runtime by removing broken app-extension integration from the app build.
 - Preserved and kept active the Measurements deletion persistence fix (including legacy timestamp fallback behavior).
 
@@ -1328,6 +2064,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Improved Android widget row sizing, spacing, and adaptive visibility logic so medium/large widget sizes can display more metrics.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed measurement deletion persistence in the Measurements screen: swiping to delete now removes the session from storage, not only from the current UI state.
 - Hardened measurement-session deletion for legacy records by adding a timestamp-based fallback when legacy session IDs are missing.
 
@@ -1347,6 +2086,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Added subtle AI waiting haptics during active generation/loading states.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed missing confirmation haptics on important add/save actions in several key flows.
 - Fixed AI waiting haptics so they stop correctly when generation finishes and no longer continue into review/result screens.
 - Refined the AI waiting haptic pattern to feel more periodic and less abrupt.
@@ -1361,6 +2103,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Statistics hub now groups content into Steps, Recovery, Training, and Body sections.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Removed redundant hub entries that added clutter without meaningful functionality.
 - Fixed remaining localization regressions from the hub reorganization by replacing hardcoded Statistics UI strings with proper l10n usage.
 - Standardized uppercase section-header rendering across the reorganized hub screens.
@@ -1368,6 +2113,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.8.1] - 2026-04-09
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Improved sleep day-view timeline readability with clearer timestamp labels, better spacing, and stronger light/dark-mode contrast.
 - Corrected the weekly sleep-window chart so displayed time bounds and axis labels better match actual sleep session timing, including cross-midnight sessions.
 - Sleep scoring now applies conservative stage-aware guardrails so mostly-light or REM-missing nights (especially from limited-fidelity sources such as Withings) cannot silently receive near-perfect totals.
@@ -1398,6 +2146,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Due-notification eligibility is strictly gated by due-week status, generated-state status, and notification-state status.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Hardened adaptive recommendation persistence with coherent snapshot/state checks, legacy fallback migration handling, and recovery from malformed canonical keys.
 - Ensured backup/restore continuity for adaptive recommendation settings and canonical recursive state persistence.
 
@@ -1510,6 +2261,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Manual recalculation now forces immediate regeneration without auto-applying active goals
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Safer handling of incoherent or corrupt Bayesian experimental state
 - Safer migration from legacy fragmented Bayesian persistence
 - Removed remaining active use of fragmented Bayesian write paths in normal experimental flow
@@ -1557,6 +2311,9 @@ This alpha improves the adaptive nutrition recommendation MVP with more conserva
 - EN/DE adaptive recommendation wording was revised to match the new semantics and transparency model.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Prevented sparse-data recommendations from drifting maintenance estimates despite explicitly insufficient adaptive data.
 - Reduced sensitivity of weekly trend estimation to noisy start/end bodyweight values.
 - Improved recommendation copy so unresolved food-calorie issues are surfaced more clearly before apply.
@@ -1633,6 +2390,9 @@ This alpha introduces the first end-to-end MVP of adaptive nutrition recommendat
 - Recommendation-related EN/DE strings were moved/expanded in l10n and regenerated.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Prevented implausible calorie outputs from being surfaced without explicit constrained/warning handling.
 - Hardened calorie-input aggregation paths to reduce systematic undercounting in common logging scenarios.
 - Ensured backup/restore explicitly covers adaptive recommendation settings:
@@ -1652,6 +2412,9 @@ This alpha introduces the first end-to-end MVP of adaptive nutrition recommendat
 This release includes a fix for Diary refresh behavior after saving meals through the AI meal-recognition flow.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed a Diary refresh issue after saving meals via the AI meal-recognition flow
   - when a meal was recognized with AI and saved from the Add Food flow, the Diary screen did not always refresh automatically
   - the save result is now propagated correctly so the Diary reloads immediately after the meal is saved
@@ -1668,6 +2431,9 @@ small fixes
 This release is a maintenance and stability update that prepares Hypertrack for the upcoming 0.8 / TDEE cycle.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed backup/restore integrity for meal-related data
   - meal templates and meal items are now included in backups
   - meal/nutrition restore behavior is more complete and reliable
@@ -1790,6 +2556,9 @@ This release focuses on a small set of quality-of-life improvements across AI me
   - Background timer completion now more reliably triggers a notification instead of silently finishing
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 - Fixed AI meal capture layout/actions so media input controls are placed where users expect them
 - Fixed measurement chart default selection logic
@@ -1876,6 +2645,9 @@ This release completes the main **sleep module rollout** and adds the first full
   - better distinction between app-side write problems and downstream platform display limitations
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 - Removed the previous effective **30-day export cap** for initial health export flows
 - Fixed multiple **Health Connect write-path issues**, including:
@@ -1940,6 +2712,9 @@ This beta focuses on **one-way health platform export** and the final stabilizat
   - better distinction between app-side export problems and downstream platform display limitations
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Removed the previous effective **30-day export limit** for initial export flows
 - Fixed multiple **Health Connect write-path issues** around:
   - invalid record intervals
@@ -1976,6 +2751,9 @@ This alpha focuses on one-way health export hardening for Android Health Connect
 - Nutrition/Hydration grouped export flow now records split diagnostics so failures can indicate whether nutrition and hydration failed independently.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Android body-fat export mapping now recognizes real stored measurement type variants (including `fat_percent`) so body-fat entries are no longer dropped before write.
 - Android body-fat export normalization/range handling aligned to Health Connect `BodyFatRecord` percent expectations (`0..100`).
 - Android nutrition export reliability improved:
@@ -2020,6 +2798,9 @@ This stable release includes all `0.7.3-alpha.*` and `0.7.3-beta.1` changes sinc
 - Project docs rewritten and consolidated around implementation-first references.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Manual `Import sleep data now` now performs full-history backfill import.
 - Automatic/periodic sleep import remains incremental (30-day lookback), preserving prior history while refreshing recent windows.
 - Sleep score pipeline issues that previously left scores missing/uncomputed on live import.
@@ -2066,6 +2847,9 @@ This release promotes the current Sleep feature set from alpha toward beta by fi
 - Sleep benchmark bars (duration/heart-rate details) received contrast adjustments for dark and light mode readability.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Manual `Import sleep data now` now performs all-time backfill import instead of a 30-day test-only import.
 - Automatic/sequential sleep import remains incremental (30-day lookback), preserving previously imported historical data while adding/updating newer records.
 - Diary and Statistics refresh flows now trigger periodic sleep sync checks similarly to existing steps refresh behavior.
@@ -2090,6 +2874,9 @@ This alpha finalizes the Sleep health-score pass. It documents and ships the imp
 - Project documentation was rewritten to be implementation-focused and current-state-first across the README, architecture, data/storage, overview, statistics, and sleep technical references.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed release/documentation accuracy by replacing stale or historical descriptions with implementation-grounded documentation and clearer boundaries around what is actually implemented.
 - Fixed nightly-analysis persistence gaps so newly computed score completeness and regularity fields round-trip through schema migration, DAO writes, and repository mapping.
 - Fixed score-model consistency by aligning the pipeline, persisted analysis version, and documentation around the same Sleep Health Score V1 behavior.
@@ -2115,6 +2902,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - Updated repository and aggregation layers to support broader Sleep summaries and derived period views
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed Sleep score pipeline issues that caused scores to remain missing or uncomputed on the live import path
 - Fixed interruption detection gaps that caused wake/interruption results to be missing or unavailable
 - Fixed Sleep heart-rate handling issues affecting import completeness, baseline/delta availability, and display
@@ -2166,6 +2956,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 ## [0.7.2] - 2026-03-31
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Duplicate caffeine logging for fluid entries:** Fixed an issue where saving caffeinated drinks could create duplicate caffeine supplement logs, leading to inflated caffeine totals.
 
 ### Tests
@@ -2184,6 +2977,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - **Steps charts and summaries:** Refined weekly/monthly trend rendering, baseline behavior, goal labeling, and statistics-card presentation for clearer interpretation of step progress.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Android Health Connect completeness:** Fixed paginated `readRecords` ingestion so all result pages are processed, resolving missing or undercounted daily totals on Android.
 - **Duplicate and inflated step totals:** Fixed overlap handling after disabling and re-enabling tracking, and improved multi-source aggregation to avoid double counting.
 - **Statistics steps visibility:** Steps are now shown on the statistics screen only when tracking is enabled, with live updates after settings changes.
@@ -2193,6 +2989,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 ## 0.7.1-beta.1 - 2026-03-27
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Cardio set-row header localization (#75):** Localized cardio header labels (`Distance`, `Time`, `Intensity`) in workout set rows.
 - **Statistics steps visibility (#150):** Steps metric is now shown on the statistics screen only when step tracking is enabled in settings, with live UI updates when toggled.
 - **Auto backup reliability (#151):** Fixed auto-backup failures for invalid/unwritable selected folders by validating writability and falling back to a safe app backup directory.
@@ -2201,12 +3000,18 @@ This alpha significantly expands the Sleep module from early foundation work int
 ## 0.7.1-alpha.4 — 2026-03-26
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Android Health Connect paging:** Fixed `readRecords` ingestion to read all pages instead of only the first result page.
 - **Missing steps on Android:** Resolved undercounted daily totals caused by incomplete Health Connect imports (especially visible when comparing Hypertrack vs Google Fit / Withings).
 
 ## 0.7.1-alpha.3 — 2026-03-26
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Steps inflation after re-enabling tracking:** Resolved an issue where daily totals could jump too high after disabling and re-enabling step tracking.
 - **Idempotent refresh pipeline:** Force refresh and incremental refresh now safely replace overlapping sync windows to prevent duplicate counting.
 - **Safer multi-source aggregation:** Improved handling for overlapping sources (e.g. smartwatch + phone / Withings + system) to avoid double counting.
@@ -2232,6 +3037,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - **Statistics Hub Steps Card:** Refined the reusable steps card rendering and alignment so it visually matches the redesigned steps module.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Bar Baseline Consistency:** Step bars now correctly grow from zero baseline in trend charts instead of appearing visually offset.
 - **Goal Label Alignment:** Goal labels (for example `8k`) are now positioned directly at line height instead of drifting above the dashed target line.
 - **Week Chart Scaling Accuracy:** Goal check markers no longer affect bar-height calculations, preventing subtly shortened bars.
@@ -2254,6 +3062,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - **Diary Refresh on Return:** The diary screen now automatically refreshes its data when returning from Settings or Profile, ensuring step tracking changes are immediately visible.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **"App Update Required" on Android 14+:** Added the missing `<activity-alias>` for `VIEW_PERMISSION_USAGE` with `HEALTH_PERMISSIONS` category, which Android 14+ requires to recognize the app as Health Connect-compatible.
 - **Sync Error Handling:** `StepsSyncService.sync()` now gracefully catches `PlatformException` when permissions are missing, instead of crashing or repeatedly prompting the user.
 
@@ -2271,6 +3082,9 @@ This alpha significantly expands the Sleep module from early foundation work int
 - **Data-Quality-Aware Insights:** Body/nutrition and muscle analytics now apply clearer confidence and sufficiency rules before presenting stronger guidance.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Refined Statistics Behavior:** Addressed several v0.7 alpha rough edges regarding analytics state handling and presentation consistency.
 - **Core Tracking Polish:** Targeted reliability and UX refinements for workout and nutrition logging during the v0.7 stabilization cycle.
 
@@ -2551,6 +3365,9 @@ This release represents a complete modernization of Hypertrack's core architectu
   - This screen blocks the UI during startup, displaying a progress bar and detailed status ("Updating base foods: 1500/9000..."), preventing app lag and missing data issues.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Workout Reordering**: Fixed a critical bug where reordering exercises during a live workout was not persisted upon saving. The correct order is now saved to the database history.
 - **Search Reliability**:
   - Fixed an issue where base food items (e.g., "Apple") were hidden in search results due to the sheer volume of Open Food Facts entries. Search now prioritizes local 'User' and 'Base' items.
@@ -2577,6 +3394,9 @@ This release represents a complete modernization of Hypertrack's core architectu
 - **Pause Timer**: Improved logic to persist pause time changes immediately to the routine definition.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Fixed inconsistent UI styling between routine editing and live tracking.
 
 ## [0.5.0-alpha.1] - 2025-12-27
@@ -2668,6 +3488,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 ## [0.4.0-beta.6] - 2025-11-22
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 *   **Critical: Custom Exercises**
     *   Fixed a database error that prevented users from saving new custom exercises (Issue #58).
     *   Resolved an issue where custom exercises appeared with empty titles when added to a routine.
@@ -2707,6 +3530,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 * **UI/UX**
     * changed the Appbar to blur
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 * Fixed an issue where a routine did not loaded.
     
 
@@ -2727,6 +3553,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
     *   The standard "Glass" UI remains the default.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 *   **Critical: Create Food Screen Unusable**
     *   Fixed a critical bug where the "Create Food" screen incorrectly displayed a numeric keyboard for text fields (name, brand), making it impossible to enter non-numeric characters. (Fixes #56)
 *   **Critical: Create/Edit Routine Bugs**
@@ -2746,6 +3575,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 ### Added
 * **App icon:** Now there is an App icon
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 * **Backup:** tried to fix the backup
 ### Changed
 * **App Name:** Changed the name from "Hypertrack" to "Hypertrack".
@@ -2763,6 +3595,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
     *   The "Edit Fluid Entry" dialog now includes fields for the **Name**, **Sugar per 100ml**, and **Caffeine per 100ml**, allowing for precise editing of non-water drinks.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 *   **Critical Data Consistency: Fluid/Liquid Food Deletion**
     *   Fixed a critical bug where deleting a **liquid food entry** (e.g., a juice logged via the food tracker) did not correctly remove the linked Fluid Log and Caffeine Log entries, causing orphaned data (Fixes logic in `deleteFluidEntry`).
@@ -2798,6 +3633,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
     *   A new "Create Routine" card has been added to the Workout Hub for quick access.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 
 *   **Critical: Database Name Display**
     *   Fixed a critical bug where localized food names (e.g., German, English) were not correctly retrieved from the product database, leading to the display of wrong or empty names in some parts of the app (Issue #56).
@@ -2836,6 +3674,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 *   Adjusted item labels in the bottom navigation bar to max. 1 line for a cleaner UI.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 *   Resolved critical issues with database migration and access, fixing crashes when viewing workout history or adding exercises to routines.
 *   Fixed localization issue in the base foods catalog, ensuring food names are displayed in the correct language.
 
@@ -2898,6 +3739,9 @@ This release marks a significant milestone, introducing a complete UI overhaul, 
 - Diary meal headers show macro line (kcal · P · C · F) below title.
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Save button tap area and modal layering in Meal Editor.
 - Scanner and Add Food refresh logic for recents/favorites.
 - Defensive database handling during barcode scan.
@@ -2909,6 +3753,9 @@ EOF
 
 ## [0.4.0-alpha.7] - 2025-10-03
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Backup import failed with *“no such column is_liquid”* → caused Diary/Stats to hang
 - Old backups without password could not be restored (fallback logic improved)
 - App stuck in loading when DB initialization or restore failed
@@ -2921,6 +3768,9 @@ EOF
 
 ## [0.4.0-alpha.6] - 2025-10-03
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - **Database hotfix**: ensured that all core tables (`food_entries`, `water_entries`, `meals`, `supplement_logs`, etc.) and indices are always created on upgrade, preventing missing-table errors on fresh installs or after updates.
 - Fixed `DiaryScreen` and `Statistics` not loading due to missing DB structures.
 - Backup/restore flow more robust, no crashes when tables were absent.
@@ -2992,6 +3842,9 @@ This is a hotfix release following alpha.4, focused only on database migration s
 - Minor OLED/dark mode polish for nutrient cards
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Database auto-reopen after hot reload (no more `database_closed` errors)
 - Edits in base food database now persist correctly across re-entry
 
@@ -3006,6 +3859,9 @@ This is a hotfix release following alpha.4, focused only on database migration s
 - Routine & Measurements screens: swipe actions match Nutrition design
 
 ### Fixed
+- **Global Weight Formatting Fix:** Implemented a new `formatDisplayWeight` method in `UnitService` to handle rendering of target, logged, and PR weights properly when converted. Replaced ad-hoc `.toStringAsFixed` logic across `live_workout_screen`, `workout_log_detail_screen`, and `edit_routine_screen` to consistently remove trailing decimals while preserving values like .5.
+- **Bugfix (Edit Routine Bug):** Fixed an issue where converted weights (`lbs`) in the Edit Routine view and Live Workout view would render with 3 decimal places (e.g. `22.046`) by routing them through the new global formatting method.
+
 - Back button in Add Food
 - “Done” moved to AppBar in add exercise flow
 - App version alignment (minSdk 21, targetSdk 36, versionName/Code via local.properties)
@@ -3054,3 +3910,6 @@ This is the first feature-complete, stable pre-release of Hypertrack. It establi
 - **Database-Powered Exercise Mappings:** Exercise name mappings for imports are now stored robustly in the database instead of SharedPreferences, enabling automatic application during future imports (#23).
 - **Unified UI/UX:** The application's design has been polished for a consistent user experience, especially regarding AppBars, dialogs, and buttons.
 - **Improved Exercise Creation:** The "Create Exercise" screen now features an intelligent autocomplete field for categories and a chip-based selection for muscle groups, improving data quality and usability.
+- **View Mode**: In view mode, the routine title is now only displayed in the app bar and the redundant large title below it, along with its divider, has been removed.
+- **View Mode Scroll Fix**: Fixed the initial scroll position of the exercise list in view mode so it is no longer obscured by the app bar.
+- **Edit Routine Screen**: Fixed the scroll behaviour in view mode to ensure lists scroll behind the translucent AppBar, and removed a duplicate rendering of the floating action button.

@@ -86,7 +86,8 @@ void main() {
         buildNumber: '80013',
         buildSignature: '',
       );
-      const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
+      const pathProviderChannel =
+          MethodChannel('plugins.flutter.io/path_provider');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(pathProviderChannel, (call) async {
         if (call.method == 'getTemporaryDirectory') {
@@ -113,10 +114,14 @@ void main() {
           final arguments = call.arguments as Map;
           final sqlTable = arguments['table'] as String?;
           if (sqlTable == 'sqlite_master') {
-            return [{'name': 'exercises'}];
+            return [
+              {'name': 'exercises'}
+            ];
           }
           if (sqlTable == 'metadata') {
-            return [{'value': '0'}];
+            return [
+              {'value': '0'}
+            ];
           }
           return [];
         }
@@ -125,17 +130,20 @@ void main() {
       db = AppDatabase(NativeDatabase.memory());
       DatabaseHelper.setDriftDb(db);
       await db.into(db.exercises).insert(const ExercisesCompanion(
-        id: Value('dummy-uuid'),
-      ));
-      await db.into(db.exerciseTranslations).insert(const ExerciseTranslationsCompanion(
-        exerciseId: Value('dummy-uuid'),
-        name: Value('dummy'),
-        languageCode: Value('de'),
-      ));
+            id: Value('dummy-uuid'),
+          ));
+      await db
+          .into(db.exerciseTranslations)
+          .insert(const ExerciseTranslationsCompanion(
+            exerciseId: Value('dummy-uuid'),
+            name: Value('dummy'),
+            languageCode: Value('de'),
+          ));
     });
 
     tearDown(() async {
-      const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
+      const pathProviderChannel =
+          MethodChannel('plugins.flutter.io/path_provider');
       const sqfliteChannel = MethodChannel('com.tekartik.sqflite');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(pathProviderChannel, null);
@@ -144,7 +152,8 @@ void main() {
       await db.close();
     });
 
-    test('skips update entirely when build number matches cached value', () async {
+    test('skips update entirely when build number matches cached value',
+        () async {
       SharedPreferences.setMockInitialValues({
         'is_exercise_catalog_initialized': true,
         'last_db_sync_app_version': '80013',

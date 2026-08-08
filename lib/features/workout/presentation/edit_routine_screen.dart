@@ -1,7 +1,10 @@
+import '../../../services/unit_service.dart';
+import 'package:provider/provider.dart';
 // lib/screens/edit_routine_screen.dart
 // FINAL: Cardio Clean-Up (1 Set, Cleaner Layout, Empty Defaults)
 
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter/rendering.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../sharing/share_service.dart';
@@ -16,11 +19,14 @@ import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../exercise_catalog/presentation/widgets/wger_attribution_widget.dart';
+import 'reorder_scroll_anchor.dart';
 import 'widgets/edit_routine_exercise_card.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for creating or modifying a [Routine].
 ///
@@ -39,9 +45,20 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   final _nameController = TextEditingController();
   List<RoutineExercise> _routineExercises = [];
   bool _isNewRoutine = true;
+  bool _isEditMode = true;
   int? _routineId;
   String _originalName = '';
   bool _isLoading = false;
+  bool _isDragging = false;
+  bool _isReordering = false;
+  int? _draggedExerciseId;
+  Timer? _collapseTimer;
+  Timer? _expandTimer;
+  final ScrollController _scrollController = ScrollController();
+  late final ReorderScrollAnchor _dragAnchor =
+      ReorderScrollAnchor(_scrollController);
+  final OverlayPortalController _fabOverlayController =
+      OverlayPortalController();
 
   final Map<int, TextEditingController> _repsControllers = {};
   final Map<int, TextEditingController> _weightControllers = {};
@@ -92,7 +109,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS),
               child: Text(
                 l10n.unsavedChangesContent,
                 textAlign: TextAlign.center,
@@ -103,22 +121,24 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(false);
                     },
-                    child: Text(l10n.discardButton),
+                    label: l10n.discardButton,
+                    tooltip: l10n.discardButton,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(true);
                     },
-                    child: Text(l10n.save),
+                    label: l10n.save,
+                    tooltip: l10n.save,
                   ),
                 ),
               ],
@@ -157,8 +177,16 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.routineEditor));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _fabOverlayController.show();
+      }
+    });
     if (widget.routine != null) {
       _isNewRoutine = false;
+      _isEditMode = false;
       _routineId = widget.routine!.id;
       _nameController.text = widget.routine!.name;
       _originalName = widget.routine!.name;
@@ -170,6 +198,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   @override
   void dispose() {
+    _collapseTimer?.cancel();
+    _expandTimer?.cancel();
+    _scrollController.dispose();
     _nameController.dispose();
     for (var c in _repsControllers.values) {
       c.dispose();
@@ -185,6 +216,38 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   bool _isCardio(RoutineExercise re) {
     return re.exercise.categoryName.toLowerCase() == 'cardio';
+  }
+
+  /// Collapses every card down to its header, keeping [anchorId]'s card pinned
+  /// where it is on screen.
+  void _collapseCards(int anchorId) {
+    if (!mounted || _isDragging) return;
+    _dragAnchor.capture(anchorId);
+    setState(() => _isDragging = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _dragAnchor.restore();
+    });
+  }
+
+  /// Expands the cards again, keeping [anchorId]'s card pinned where it is.
+  void _expandCards(int? anchorId) {
+    _expandTimer?.cancel();
+    _isReordering = false;
+    if (!mounted || !_isDragging) return;
+    _dragAnchor.capture(anchorId);
+    setState(() => _isDragging = false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _dragAnchor.restore();
+    });
+  }
+
+  /// Expands the cards once the drop animation and the reorder have finished.
+  void _scheduleExpandAfterDrop() {
+    _expandTimer?.cancel();
+    _expandTimer = Timer(
+      kReorderDropSettleDuration,
+      () => _expandCards(_draggedExerciseId),
+    );
   }
 
   Future<void> _loadExercisesForRoutine() async {
@@ -215,14 +278,17 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           if (isCardio && repsText == '8-12') repsText = '';
 
           _repsControllers[st.id!] = TextEditingController(text: repsText);
+          final unitService = context.read<UnitService>();
           final String weightText = (st.targetWeight == null)
               ? ''
               : (isCardio
-                  ? st.targetWeight!
+                  ? unitService
+                      .convertDisplayValue(
+                          st.targetWeight!, UnitDimension.distance)
                       .toStringAsFixed(3)
                       .replaceAll(RegExp(r'0*$'), '')
                       .replaceAll(RegExp(r'\.$'), '')
-                  : st.targetWeight!.toString());
+                  : unitService.formatDisplayWeight(st.targetWeight!));
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
             text: st.targetRir?.toString() ?? '',
@@ -266,19 +332,24 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       ); // Parameters
 
       if (newRoutineExercise != null) {
+        if (!mounted) return;
+        final unitService = context.read<UnitService>();
         for (var st in newRoutineExercise.setTemplates) {
           // FIX: Empty reps for cardio.
           final defaultReps = isCardio ? '' : st.targetReps;
 
           _repsControllers[st.id!] = TextEditingController(text: defaultReps);
+
           final String weightText = (st.targetWeight == null)
               ? ''
               : (isCardio
-                  ? st.targetWeight!
+                  ? unitService
+                      .convertDisplayValue(
+                          st.targetWeight!, UnitDimension.distance)
                       .toStringAsFixed(3)
                       .replaceAll(RegExp(r'0*$'), '')
                       .replaceAll(RegExp(r'\.$'), '')
-                  : st.targetWeight!.toString());
+                  : unitService.formatDisplayWeight(st.targetWeight!));
           _weightControllers[st.id!] = TextEditingController(text: weightText);
           _rirControllers[st.id!] = TextEditingController(
             text: st.targetRir?.toString() ?? '',
@@ -312,6 +383,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       final newRoutine = await WorkoutLocalDataSource.instance.createRoutine(
         _nameController.text.trim(),
       );
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.routineCreated));
       currentRoutineId = newRoutine.id;
       if (mounted) {
         setState(() {
@@ -342,9 +415,19 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         currentTemplates.add(
           set.copyWith(
             targetReps: _repsControllers[set.id!]?.text,
-            targetWeight: double.tryParse(
-              _weightControllers[set.id!]!.text.replaceAll(',', '.'),
-            ),
+            targetWeight: _weightControllers[set.id!]!.text.isEmpty
+                ? null
+                : (() {
+                    final raw = double.tryParse(
+                        _weightControllers[set.id!]!.text.replaceAll(',', '.'));
+                    if (raw == null) return null;
+                    final unitService = context.read<UnitService>();
+                    return unitService.convertToMetric(
+                        raw,
+                        re.exercise.categoryName.toLowerCase() == 'cardio'
+                            ? UnitDimension.distance
+                            : UnitDimension.weight);
+                  })(),
             targetRir: int.tryParse(rirText),
             clearTargetRir: rirText.isEmpty,
           ),
@@ -367,9 +450,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           content: Text(AppLocalizations.of(context)!.snackbarRoutineSaved)));
       HapticFeedbackService.instance.confirmationFeedback();
       setState(() {
+        _isEditMode = false;
         _canPop = true;
       });
-      Navigator.of(context).pop(true);
     }
     return success;
   }
@@ -503,7 +586,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       {
         'type': 'normal',
         'label': l10n.set_type_normal,
-        'symbol': buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
+        'symbol':
+            buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
       },
       {
         'type': 'warmup',
@@ -541,6 +625,26 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     final result = await showGlassBottomMenu<({bool saved, int? value})>(
       context: context,
       title: l10n.editPauseTimeTitle,
+      headerTrailing: (re.pauseSeconds != null && re.pauseSeconds! > 0)
+          ? TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () {
+                HapticFeedbackService.instance.selectionFeedback();
+                Navigator.of(context).pop((saved: true, value: null));
+              },
+              child: Text(
+                l10n.removeTimer,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.amber,
+                ),
+              ),
+            )
+          : null,
       contentBuilder: (ctx, close) {
         return RoutinePauseTimeDialog(
           initialPauseSeconds: re.pauseSeconds,
@@ -616,7 +720,6 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final double topPadding =
         MediaQuery.paddingOf(context).top + kToolbarHeight;
 
@@ -637,29 +740,43 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
               automaticallyImplyLeading: false,
               leading: Navigator.of(context).canPop()
                   ? IconButton(
+                      tooltip:
+                          MaterialLocalizations.of(context).backButtonTooltip,
                       icon: const Icon(LucideIcons.arrow_left),
                       onPressed: () => _handlePopAttempt(),
                     )
                   : null,
-              title:
-                  _isNewRoutine ? l10n.titleNewRoutine : l10n.titleEditRoutine,
+              title: _isEditMode
+                  ? (_isNewRoutine
+                      ? l10n.titleNewRoutine
+                      : l10n.titleEditRoutine)
+                  : (_nameController.text.isNotEmpty
+                      ? _nameController.text
+                      : l10n.titleEditRoutine),
               actions: [
                 if (!_isNewRoutine)
                   IconButton(
                     tooltip: l10n.share,
-                    icon: const Icon(LucideIcons.share),
+                    icon: Icon(DesignConstants.adaptiveShareIcon),
                     onPressed: _shareCurrentRoutine,
                   ),
-                TextButton(
-                  onPressed: () => _saveRoutine(),
-                  child: Text(
-                    l10n.save,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                if (_isEditMode)
+                  TextButton(
+                    onPressed: () => _saveRoutine(),
+                    child: Text(
+                      l10n.save,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(LucideIcons.pencil),
+                    tooltip: l10n.editRoutine,
+                    onPressed: () => setState(() => _isEditMode = true),
                   ),
-                ),
               ],
             ),
             body: Stack(
@@ -668,84 +785,198 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                 RepaintBoundary(
                   child: Column(
                     children: [
-                      Padding(
-                        padding: DesignConstants.cardPadding.copyWith(
-                          top: DesignConstants.cardPadding.top + topPadding,
+                      if (_isEditMode) ...[
+                        Padding(
+                          padding: DesignConstants.cardPadding.copyWith(
+                            top: DesignConstants.cardPadding.top + topPadding,
+                          ),
+                          child: TextFormField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                                labelText: l10n.formFieldRoutineName),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return l10n.validatorPleaseEnterRoutineName;
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                        child: TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                              labelText: l10n.formFieldRoutineName),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return l10n.validatorPleaseEnterRoutineName;
-                            }
-                            return null;
-                          },
+                        const SizedBox(height: DesignConstants.spacingXS),
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.1),
                         ),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingXS),
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color:
-                            colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                      ),
+                      ],
                       Expanded(
                         child: _isLoading
                             ? const Center(child: CircularProgressIndicator())
                             : _routineExercises.isEmpty
-                                ? Center(
-                                    child: Text(
-                                      l10n.emptyStateAddFirstExercise,
-                                      style: textTheme.titleMedium,
+                                ? Padding(
+                                    padding: EdgeInsets.only(
+                                      top: _isEditMode ? 0.0 : topPadding,
+                                    ),
+                                    child: ColdStartEmptyState(
+                                      icon: LucideIcons.circle_plus,
+                                      title: l10n.emptyStateAddFirstExercise,
+                                      subtitle: l10n
+                                          .emptyStateAddFirstExerciseSubtitle,
+                                      callToAction: l10n.fabAddExercise,
+                                      targetCenter: false,
+                                      customEndXOffset: 110.0,
+                                      customTargetYOffset: 100.0 +
+                                          MediaQuery.paddingOf(context).bottom,
                                     ),
                                   )
                                 : ReorderableListView.builder(
+                                    scrollController: _scrollController,
+                                    buildDefaultDragHandles: false,
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
                                     itemCount: _routineExercises.length,
-                                    padding: EdgeInsets.only(bottom: DesignConstants
+                                    padding: EdgeInsets.only(
+                                      top: _isEditMode ? 0.0 : topPadding,
+                                      bottom: DesignConstants
                                               .bottomContentSpacer +
-                                          MediaQuery.paddingOf(context).bottom,
+                                          MediaQuery.paddingOf(context).bottom +
+                                          (_isDragging ? 800.0 : 0.0),
                                     ),
                                     proxyDecorator: (Widget child, int index,
                                         Animation<double> anim) {
+                                      final routineExercise =
+                                          _routineExercises[index];
+                                      final bool isCardio =
+                                          _isCardio(routineExercise);
                                       return Material(
-                                        elevation: 4.0,
-                                        color: Theme.of(context)
-                                            .scaffoldBackgroundColor,
-                                        child: child,
+                                        elevation: 0.0,
+                                        color: Colors.transparent,
+                                        child: EditRoutineExerciseCard(
+                                          routineExercise: routineExercise,
+                                          index: index,
+                                          isCardio: isCardio,
+                                          isDragging: true,
+                                          isDraggedItem: true,
+                                          isEditMode: _isEditMode,
+                                          repsControllers: _repsControllers,
+                                          weightControllers: _weightControllers,
+                                          rirControllers: _rirControllers,
+                                          onEditNotes: () {},
+                                          onEditPauseTime: () {},
+                                          onDeleteExercise: () {},
+                                          onAddSet: () {},
+                                          onShowSetTypePicker: (_) {},
+                                          onRemoveSet: (_, __) {},
+                                        ),
                                       );
                                     },
-                                     onReorderItem: _onReorderItem,
+                                    onReorderStart: (index) {
+                                      // _isDragging is already set by the 300ms onPointerDown timer.
+                                      // Do not set it here to avoid bypassing the delay.
+                                      _expandTimer?.cancel();
+                                      _dragAnchor.discard();
+                                      _isReordering = true;
+                                      _draggedExerciseId =
+                                          _routineExercises[index].id;
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        if (_fabOverlayController.isShowing) {
+                                          _fabOverlayController.hide();
+                                          _fabOverlayController.show();
+                                        }
+                                      });
+                                    },
+                                    onReorderEnd: (index) {
+                                      // The dropped card is still animating into
+                                      // place and the reorder itself only lands
+                                      // when that animation ends. Expanding now
+                                      // would fight both.
+                                      _scheduleExpandAfterDrop();
+                                    },
+                                    onReorderItem: _onReorderItem,
                                     itemBuilder: (context, index) {
                                       final routineExercise =
                                           _routineExercises[index];
                                       final bool isCardio =
                                           _isCardio(routineExercise);
 
-                                      return EditRoutineExerciseCard(
+                                      final int exerciseId =
+                                          routineExercise.id ?? -index;
+
+                                      // Released either without ever starting a
+                                      // drag, or mid-drop – in the latter case
+                                      // the list has to settle first.
+                                      void handleRelease() {
+                                        _collapseTimer?.cancel();
+                                        if (_isReordering) {
+                                          _scheduleExpandAfterDrop();
+                                        } else {
+                                          _expandCards(exerciseId);
+                                        }
+                                      }
+
+                                      return RepaintBoundary(
                                         key: ValueKey(routineExercise.id),
-                                        routineExercise: routineExercise,
-                                        index: index,
-                                        isCardio: isCardio,
-                                        repsControllers: _repsControllers,
-                                        weightControllers: _weightControllers,
-                                        rirControllers: _rirControllers,
-                                        onEditNotes: () => _editExerciseNotes(
-                                            context, routineExercise),
-                                        onEditPauseTime: () =>
-                                            _editPauseTime(routineExercise),
-                                        onDeleteExercise: () =>
-                                            _deleteSingleExercise(
-                                                routineExercise),
-                                        onAddSet: () =>
-                                            _addSet(routineExercise),
-                                        onShowSetTypePicker: _showSetTypePicker,
-                                        onRemoveSet: (template, listIndex) =>
-                                            _removeSet(routineExercise,
-                                                template.id!, listIndex),
+                                        child: KeyedSubtree(
+                                          key: _dragAnchor.keyFor(exerciseId),
+                                          child: EditRoutineExerciseCard(
+                                            routineExercise: routineExercise,
+                                            index: index,
+                                            isCardio: isCardio,
+                                            isDragging: _isDragging,
+                                            isEditMode: _isEditMode,
+                                            onPointerDown: _isEditMode
+                                                ? (event) {
+                                                    _collapseTimer?.cancel();
+                                                    _collapseTimer = Timer(
+                                                        const Duration(
+                                                            milliseconds: 300),
+                                                        () => _collapseCards(
+                                                            exerciseId));
+                                                  }
+                                                : null,
+                                            onPointerUp: _isEditMode
+                                                ? (event) => handleRelease()
+                                                : null,
+                                            onPointerMove: _isEditMode
+                                                ? (event) {
+                                                    // Cancel timer if finger moves – user is scrolling, not drag-holding.
+                                                    if (event.delta.dy.abs() >
+                                                            4.0 ||
+                                                        event.delta.dx.abs() >
+                                                            4.0) {
+                                                      _collapseTimer?.cancel();
+                                                    }
+                                                  }
+                                                : null,
+                                            onPointerCancel: _isEditMode
+                                                ? (event) => handleRelease()
+                                                : null,
+                                            repsControllers: _repsControllers,
+                                            weightControllers:
+                                                _weightControllers,
+                                            rirControllers: _rirControllers,
+                                            onEditNotes: () =>
+                                                _editExerciseNotes(
+                                                    context, routineExercise),
+                                            onEditPauseTime: () =>
+                                                _editPauseTime(routineExercise),
+                                            onDeleteExercise: () =>
+                                                _deleteSingleExercise(
+                                                    routineExercise),
+                                            onAddSet: () =>
+                                                _addSet(routineExercise),
+                                            onShowSetTypePicker:
+                                                _showSetTypePicker,
+                                            onRemoveSet:
+                                                (template, listIndex) =>
+                                                    _removeSet(
+                                                        routineExercise,
+                                                        template.id!,
+                                                        listIndex),
+                                          ),
+                                        ),
                                       );
                                     },
                                   ),
@@ -754,34 +985,37 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                   ),
                 ),
 
-                // Layer 2 (Top): Wger attribution — pinned just below the FAB
-                Positioned(
-                  bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
-                  left: 0,
-                  right: 0,
-                  child: RepaintBoundary(
-                    child: WgerAttributionWidget(
-                      textStyle: textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            offset: const Offset(1, 1),
-                            blurRadius: 4.0,
+                if (_isEditMode)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: DesignConstants.bottomVignetteHeight,
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: DesignConstants.bottomVignetteGradient(
+                            Theme.of(context).brightness == Brightness.dark,
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                Positioned(
-                  bottom: 24.0 + MediaQuery.paddingOf(context).bottom,
-                  right: 16.0,
-                  child: RepaintBoundary(
-                    child: _EditRoutineFab(onPressed: _addExercises),
+                if (_isEditMode)
+                  OverlayPortal(
+                    controller: _fabOverlayController,
+                    overlayChildBuilder: (context) {
+                      return Positioned(
+                        bottom: 12.0 + MediaQuery.paddingOf(context).bottom,
+                        right: 16.0,
+                        child: RepaintBoundary(
+                          child: _EditRoutineFab(onPressed: _addExercises),
+                        ),
+                      );
+                    },
+                    child: const SizedBox.shrink(),
                   ),
-                ),
 
                 // --- Keyboard Done Accessory Bar ---
                 const _KeyboardDoneBar(),
@@ -861,7 +1095,8 @@ class _KeyboardDoneBarState extends State<_KeyboardDoneBar>
               ),
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+          padding:
+              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [

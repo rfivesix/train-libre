@@ -68,29 +68,48 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     // Color for the translucent glass
     final Color glassColor = isDark
-        ? Colors.black.withValues(alpha: 0.5)
-        : Colors.white.withValues(alpha: 0.3);
+        ? Colors.black.withValues(alpha: 0.50)
+        : const Color(0xFFF2F2F7).withValues(alpha: 0.70);
 
-    // Final structure with static blur
-    return ClipRect(
-      child: RepaintBoundary(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            // Decoration provides the color and bottom edge
-            decoration: BoxDecoration(
-              color: glassColor,
-              //border: Border(
-              //  bottom: BorderSide(color: dividerColor, width: 0.5),
-              //),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: SizedBox(height: kToolbarHeight, child: appBarContent),
+    // Final structure with static blur (blur sigma preserved at 14 as requested)
+    return Stack(
+      children: [
+        // Soft top fade-out vignette shadow underneath the bar (does not affect glass blur optics)
+        Positioned.fill(
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    isDark
+                        ? Colors.black.withValues(alpha: 0.25)
+                        : const Color(0xFFF2F2F7).withValues(alpha: 0.50),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
             ),
           ),
         ),
-      ),
+        ClipRect(
+          child: RepaintBoundary(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: glassColor,
+                ),
+                child: SafeArea(
+                  bottom: false,
+                  child: SizedBox(height: kToolbarHeight, child: appBarContent),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

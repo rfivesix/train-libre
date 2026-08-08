@@ -1,20 +1,31 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../generated/app_localizations.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class WelcomeSlide extends StatefulWidget {
   final bool isRestoring;
   final VoidCallback onContinue;
   final VoidCallback onRestore;
 
+  /// Optional callback for restoring from iCloud. When non-null and on iOS,
+  /// a restore button is shown below the manual restore option.
+  final VoidCallback? onRestoreICloud;
+
+  /// Whether an iCloud backup was found and is ready to restore.
+  final bool hasICloudBackup;
+
   const WelcomeSlide({
     super.key,
     required this.isRestoring,
     required this.onContinue,
     required this.onRestore,
+    this.onRestoreICloud,
+    this.hasICloudBackup = false,
   });
 
   @override
@@ -37,6 +48,8 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final showICloudButton =
+        (Platform.isIOS || Platform.isMacOS) && widget.onRestoreICloud != null;
 
     return SingleChildScrollView(
       child: Padding(
@@ -92,47 +105,43 @@ class _WelcomeSlideState extends State<WelcomeSlide> {
             // Primary CTA — continue with profile setup
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: AppButton.primary(
                 key: const Key('onboarding_continue_setup_button'),
                 onPressed: widget.isRestoring ? null : widget.onContinue,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingL),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  l10n.onboardingContinueSetup.toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+                label: l10n.onboardingContinueSetup,
+                tooltip: l10n.onboardingContinueSetup,
               ),
             ),
             const SizedBox(height: DesignConstants.spacingM),
-            // Secondary CTA — restore from backup
+            // Secondary CTA — restore from JSON backup
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: AppButton.secondary(
                 onPressed: widget.isRestoring ? null : widget.onRestore,
-                icon: widget.isRestoring
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(LucideIcons.history),
-                label: Text(
-                  widget.isRestoring
-                      ? l10n.onboardingRestoreImporting
-                      : l10n.onboardingRestoreFromBackup,
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
+                label: widget.isRestoring
+                    ? l10n.onboardingRestoreImporting
+                    : l10n.onboardingRestoreFromBackup,
+                tooltip: widget.isRestoring
+                    ? l10n.onboardingRestoreImporting
+                    : l10n.onboardingRestoreFromBackup,
               ),
             ),
+            // Tertiary CTA — iCloud restore (iOS only)
+            if (showICloudButton) ...[
+              const SizedBox(height: DesignConstants.spacingM),
+              SizedBox(
+                width: double.infinity,
+                child: AppButton.secondary(
+                  onPressed: widget.isRestoring ? null : widget.onRestoreICloud,
+                  label: widget.hasICloudBackup
+                      ? '${l10n.onboardingRestoreFromICloud} ✓'
+                      : l10n.onboardingRestoreFromICloud,
+                  tooltip: widget.hasICloudBackup
+                      ? '${l10n.onboardingRestoreFromICloud} ✓'
+                      : l10n.onboardingRestoreFromICloud,
+                ),
+              ),
+            ],
           ],
         ),
       ),

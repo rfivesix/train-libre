@@ -202,7 +202,9 @@ void main() {
     await db.close();
   });
 
-  test('importRecent correctly updates sleep session duration and avoids duplicates/ghosts on corrected sync', () async {
+  test(
+      'importRecent correctly updates sleep session duration and avoids duplicates/ghosts on corrected sync',
+      () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
@@ -230,13 +232,13 @@ void main() {
     expect(firstResult.success, isTrue);
 
     // Verify initial values
-    var sessions = await db
-        .customSelect('SELECT * FROM sleep_canonical_sessions')
-        .get();
+    var sessions =
+        await db.customSelect('SELECT * FROM sleep_canonical_sessions').get();
     expect(sessions.length, 1);
     expect(sessions.first.read<String>('id'), 's1');
     expect(
-      DateTime.fromMillisecondsSinceEpoch(sessions.first.read<int>('ended_at'), isUtc: true),
+      DateTime.fromMillisecondsSinceEpoch(sessions.first.read<int>('ended_at'),
+          isUtc: true),
       DateTime.utc(2026, 3, 30, 6),
     );
 
@@ -251,13 +253,14 @@ void main() {
 
     // Verify that session s1 has been updated with the corrected end time,
     // and there is still exactly one session record (no duplicate row)
-    var updatedSessions = await db
-        .customSelect('SELECT * FROM sleep_canonical_sessions')
-        .get();
+    var updatedSessions =
+        await db.customSelect('SELECT * FROM sleep_canonical_sessions').get();
     expect(updatedSessions.length, 1);
     expect(updatedSessions.first.read<String>('id'), 's1');
     expect(
-      DateTime.fromMillisecondsSinceEpoch(updatedSessions.first.read<int>('ended_at'), isUtc: true),
+      DateTime.fromMillisecondsSinceEpoch(
+          updatedSessions.first.read<int>('ended_at'),
+          isUtc: true),
       DateTime.utc(2026, 3, 30, 7), // 1 hour later
     );
 
@@ -278,7 +281,9 @@ void main() {
     await db.close();
   });
 
-  test('importRecent clears out overlapping ghost-sessions inside the time window', () async {
+  test(
+      'importRecent clears out overlapping ghost-sessions inside the time window',
+      () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
@@ -346,9 +351,8 @@ void main() {
     expect(result.success, isTrue);
 
     // Verify s1 is completely deleted due to temporal overlap and replaced by s2
-    final sessions = await db
-        .customSelect('SELECT * FROM sleep_canonical_sessions')
-        .get();
+    final sessions =
+        await db.customSelect('SELECT * FROM sleep_canonical_sessions').get();
     expect(sessions.length, 1);
     expect(sessions.first.read<String>('id'), 's2');
 
@@ -362,7 +366,9 @@ void main() {
     await db.close();
   });
 
-  test('importRecent respects large lookbackDays even if data exists (bypasses 72h delta cap)', () async {
+  test(
+      'importRecent respects large lookbackDays even if data exists (bypasses 72h delta cap)',
+      () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
@@ -386,20 +392,20 @@ void main() {
 
     // 1. Initial import to establish "latestEndedAt"
     await service.importRecent();
-    
+
     // 2. Trigger import with large lookback (e.g. 90 days)
     final lookback = 90;
     await service.importRecent(lookbackDays: lookback, forceFullSync: true);
 
     final lastFromUtc = kitSource.lastFromUtc ?? connectSource.lastFromUtc;
     expect(lastFromUtc, isNotNull);
-    
+
     final now = DateTime.now().toUtc();
     final expectedFromUtc = now.subtract(Duration(days: lookback));
-    
+
     // Allow small delta for execution time
     expect(
-      lastFromUtc!.difference(expectedFromUtc).inSeconds.abs(), 
+      lastFromUtc!.difference(expectedFromUtc).inSeconds.abs(),
       lessThan(5),
       reason: 'Should use full 90 day lookback, not 72h delta cap',
     );
@@ -407,7 +413,9 @@ void main() {
     await db.close();
   });
 
-  test('importRecent strictly uses 72h window for standard updates when data exists', () async {
+  test(
+      'importRecent strictly uses 72h window for standard updates when data exists',
+      () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) => rawDb.execute('PRAGMA foreign_keys = ON;'),
@@ -438,7 +446,7 @@ void main() {
 
     final lastFromUtc = kitSource.lastFromUtc ?? connectSource.lastFromUtc;
     expect(lastFromUtc, isNotNull);
-    
+
     // Expected window is exactly 72 hours before latestEndedAt
     final expectedFromUtc = latestEndedAt.subtract(const Duration(hours: 72));
     expect(lastFromUtc, expectedFromUtc);

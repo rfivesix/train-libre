@@ -94,8 +94,10 @@ class LocalNotificationService {
         playSound: true,
         enableVibration: hapticsEnabled,
       ),
-      iOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
-      macOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      iOS: const DarwinNotificationDetails(
+          presentAlert: true, presentSound: true),
+      macOS: const DarwinNotificationDetails(
+          presentAlert: true, presentSound: true),
     );
   }
 
@@ -179,21 +181,24 @@ class LocalNotificationService {
     final details = foreground
         ? NotificationDetails(
             android: AndroidNotificationDetails(
-              'rest_timer_foreground_channel_v3',
+              'rest_timer_foreground_v4',
               'Rest Timer (Foreground)',
-              channelDescription: 'Alerts when the rest timer finishes while in the foreground.',
-              importance: Importance.defaultImportance,
-              priority: Priority.defaultPriority,
+              channelDescription:
+                  'Alerts when the rest timer finishes while in the foreground.',
+              importance: Importance.max,
+              priority: Priority.high,
               playSound: true,
               enableVibration: hapticsEnabled,
             ),
             iOS: const DarwinNotificationDetails(
-              presentAlert: false,
+              presentAlert: true,
               presentSound: true,
               presentBadge: false,
+              presentBanner: true,
+              presentList: true,
             ),
             macOS: const DarwinNotificationDetails(
-              presentAlert: false,
+              presentAlert: true,
               presentSound: true,
               presentBadge: false,
             ),
@@ -240,7 +245,8 @@ class LocalNotificationService {
       android: AndroidNotificationDetails(
         _tdeeRecalculationChannelId,
         'TDEE Recalculation',
-        channelDescription: 'Alerts when a new TDEE recalculation is completed.',
+        channelDescription:
+            'Alerts when a new TDEE recalculation is completed.',
         importance: Importance.max,
         priority: Priority.high,
         playSound: true,
@@ -260,7 +266,8 @@ class LocalNotificationService {
     final l10n = lookupAppLocalizations(locale);
     return (
       title: l10n.tdeeRecalculationNotificationTitle,
-      body: l10n.tdeeRecalculationNotificationBody(calories, protein, carbs, fat),
+      body:
+          l10n.tdeeRecalculationNotificationBody(calories, protein, carbs, fat),
     );
   }
 

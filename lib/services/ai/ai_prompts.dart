@@ -1,13 +1,34 @@
 part of '../ai_service.dart';
 
 abstract class _AiPrompts {
-  /// Builds the system prompt, optionally localised to [languageCode].
-  static String buildSystemPrompt({String? languageCode}) {
-    final langRule = (languageCode != null && languageCode.isNotEmpty)
-        ? '\n5. IMPORTANT: All food "name" values MUST be in the "$languageCode" language '
-            '(e.g. use "Apfel" instead of "Apple" when language is "de"). '
-            'Never mix languages.'
-        : '';
+  /// Builds the system prompt, optionally localised to [appLanguage] and [catalogLanguage].
+  static String buildSystemPrompt({
+    String? languageCode,
+    String? appLanguage,
+    String? catalogLanguage,
+  }) {
+    final effectiveAppLang = appLanguage ?? languageCode;
+    final effectiveCatalogLang = catalogLanguage;
+
+    final langRuleBuffer = StringBuffer();
+    if (effectiveAppLang != null && effectiveAppLang.isNotEmpty) {
+      langRuleBuffer.write(
+        '\n10. IMPORTANT: All primary food "name" values MUST be in the "$effectiveAppLang" language '
+        '(e.g. use "Apfel" instead of "Apple" when app language is "de").',
+      );
+    }
+    if (effectiveCatalogLang != null &&
+        effectiveCatalogLang.isNotEmpty &&
+        effectiveAppLang != null &&
+        effectiveCatalogLang != effectiveAppLang) {
+      langRuleBuffer.write(
+        '\n11. DUAL LANGUAGE SEARCH: The active regional food catalog uses "$effectiveCatalogLang". '
+        'If an item represents a packaged product, brand, or regional dish, also provide a "catalogSearchTerm" '
+        'field in "$effectiveCatalogLang" (e.g. name: "Schinkenbaguette", catalogSearchTerm: "Baguette au jambon").',
+      );
+    }
+
+    final langRule = langRuleBuffer.toString();
 
     return '''
 You are a nutrition analysis assistant. Analyze the provided meal image(s) or description.
@@ -33,7 +54,8 @@ The JSON object must have exactly these two fields:
    - "cookingMethod": string (overall cooking method)
    - "contextNotes": string (contextual culinary details)
 2. "items": An array where each element has:
-   - "name": string (individual food component name)
+   - "name": string (individual food component name in user UI language)
+   - "catalogSearchTerm": string or null (optional search keyword in catalog language if different from UI language)
    - "estimatedGrams": integer (estimated weight in grams)
    - "confidence": number (0.0 to 1.0)
    - "stateHint": string or null (e.g. "cooked", "raw", "boiled")
@@ -52,8 +74,8 @@ Example response:
     "contextNotes": "Made with 3 eggs and 10g of butter"
   },
   "items": [
-    {"name": "Egg", "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked"},
-    {"name": "Butter", "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw"}
+    {"name": "Egg", "catalogSearchTerm": "Oeuf", "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked"},
+    {"name": "Butter", "catalogSearchTerm": "Beurre", "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw"}
   ]
 }
 ''';
@@ -61,10 +83,13 @@ Example response:
 
   static String buildRepairPrompt({
     String? languageCode,
+    String? appLanguage,
+    String? catalogLanguage,
     AiMealContext? mealContext,
   }) {
-    final langRule = (languageCode != null && languageCode.isNotEmpty)
-        ? '\n- Return food names in the "$languageCode" language.'
+    final effectiveLang = appLanguage ?? languageCode;
+    final langRule = (effectiveLang != null && effectiveLang.isNotEmpty)
+        ? '\n- Return food names in the "$effectiveLang" language.'
         : '';
 
     final anchorBlock = mealContext != null

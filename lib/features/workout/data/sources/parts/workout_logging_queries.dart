@@ -129,7 +129,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       rir: drift.Value(setLog.rir), // Direct int now, perfect.
     );
 
-    if (setLog.id != null) {
+    if (setLog.id != null && setLog.id! > 0) {
       // Update
       await (dbInstance.update(
         dbInstance.setLogs,
@@ -178,26 +178,24 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
   Future<void> updateSetLogs(List<SetLog> updatedSets) async {
     if (updatedSets.isEmpty) return;
     final dbInstance = await database;
-    await dbInstance.batch((batch) {
-      for (final s in updatedSets) {
-        if (s.id != null) {
-          batch.update(
-            dbInstance.setLogs,
-            db.SetLogsCompanion(
-              weight: drift.Value(s.weightKg),
-              reps: drift.Value(s.reps),
-              isCompleted: drift.Value(s.isCompleted ?? false),
-              notes: drift.Value(s.notes),
-              rir: drift.Value(s.rir),
-              setType: drift.Value(s.setType),
-              // FIX: logOrder must also be updated so reordering is saved.
-              logOrder: drift.Value(s.logOrder ?? 0),
-            ),
-            where: (tbl) => tbl.localId.equals(s.id!),
-          );
-        }
+    for (final s in updatedSets) {
+      if (s.id != null) {
+        await (dbInstance.update(dbInstance.setLogs)
+              ..where((tbl) => tbl.localId.equals(s.id!)))
+            .write(db.SetLogsCompanion(
+          weight: drift.Value(s.weightKg),
+          reps: drift.Value(s.reps),
+          isCompleted: drift.Value(s.isCompleted ?? false),
+          notes: drift.Value(s.notes),
+          rir: drift.Value(s.rir),
+          setType: drift.Value(s.setType),
+          logOrder: drift.Value(s.logOrder ?? 0),
+          distance: drift.Value(s.distanceKm),
+          durationSeconds: drift.Value(s.durationSeconds),
+          restTimeSeconds: drift.Value(s.restTimeSeconds),
+        ));
       }
-    });
+    }
   }
 
   Future<SetLog?> getLastPerformance(String exerciseName) async {
@@ -291,13 +289,13 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
   Stream<List<WorkoutLog>> watchFullWorkoutLogs() {
     final dbInstance = DatabaseHelper.instance.dbInstance;
     final query = dbInstance.select(dbInstance.workoutLogs)
-          ..where((tbl) => tbl.status.equals('completed'))
-          ..orderBy([
-            (t) => drift.OrderingTerm(
-                  expression: t.startTime,
-                  mode: drift.OrderingMode.desc,
-                ),
-          ]);
+      ..where((tbl) => tbl.status.equals('completed'))
+      ..orderBy([
+        (t) => drift.OrderingTerm(
+              expression: t.startTime,
+              mode: drift.OrderingMode.desc,
+            ),
+      ]);
     return query.watch().asyncMap((rows) => _loadWorkoutLogsWithSets(rows));
   }
 
@@ -412,9 +410,10 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
     final query = dbInstance.select(dbInstance.setLogs)
       ..where((tbl) => tbl.workoutLogId.equals(logRow.id))
       ..orderBy([(t) => drift.OrderingTerm(expression: t.logOrder)]);
-      
+
     yield* query.watch().map(
-          (rows) => rows.map((r) => _mapSetLogToModel(r, workoutLogId)).toList(),
+          (rows) =>
+              rows.map((r) => _mapSetLogToModel(r, workoutLogId)).toList(),
         );
   }
 
@@ -438,7 +437,8 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           // Check exercise mapping (name -> UUID).
           // Search for the exercise in the DB. If custom and present in the backup, it should already be imported.
           final exModel = re.exercise;
-          final exercise = await getExerciseByName(exModel.nameEn) ?? await getExerciseByName(exModel.nameDe);
+          final exercise = await getExerciseByName(exModel.nameEn) ??
+              await getExerciseByName(exModel.nameDe);
 
           if (exercise == null) continue;
 
@@ -450,6 +450,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   exerciseId: drift.Value(exercise.uuid!),
                   orderIndex: drift.Value(orderIndex),
                   pauseSeconds: drift.Value(re.pauseSeconds),
+                  notes: drift.Value(re.notes),
                 ),
               );
 

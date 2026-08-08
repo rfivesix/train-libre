@@ -2,6 +2,8 @@
   "@@locale": "fr",
   "selectDateTitle": "Choisir une date",
   "selectTimeTitle": "Choisir une heure",
+  "removeTimer": "Supprimer le minuteur",
+  "noTimerLabel": "Aucun minuteur",
   "appTitle": "Train Libre",
   "bannerText": "Recommandation / Entraînement actuel",
   "calories": "Calories",
@@ -11,6 +13,7 @@
   "fat": "Lipides",
   "steps": "Pas",
   "daily": "Tous les jours",
+  "nowLabel": "Now",
   "today": "Aujourd'hui",
   "workoutSection": "Section entraînement - pas encore implémentée",
   "addMenuTitle": "Que veux-tu ajouter ?",
@@ -156,9 +159,9 @@
   "addExerciseToWorkoutButton": "Ajouter de l'exercice à l'entraînement",
   "lastTimeLabel": "Dernière fois",
   "setLabel": "Ensemble",
-  "kgLabel": "Poids (kg)",
+  "kgLabel": "Weight ({unit})",
   "repsLabel": "Représentants",
-  "cardioDistanceLabel": "Distance (km)",
+  "cardioDistanceLabel": "Distance ({unit})",
   "cardioTimeLabel": "Temps",
   "cardioIntensityLabel": "Intenses.",
   "cardioIntensityShortLabel": "Int.",
@@ -222,6 +225,15 @@
   "filterToday": "Aujourd'hui",
   "filter7Days": "7 jours",
   "filter30Days": "30 jours",
+  "filter30DaysShort": "30j",
+  "filter90DaysShort": "90j",
+  "filter180DaysShort": "180j",
+  "filter7DaysShort": "7j",
+  "filter1MonthShort": "1M",
+  "filter3MonthsShort": "3M",
+  "filter6MonthsShort": "6M",
+  "filter1YearShort": "1A",
+  "filterMax": "MAX",
   "filterAll": "Tous",
   "showLess": "Afficher moins",
   "showMoreDetails": "Afficher plus de détails",
@@ -349,6 +361,7 @@
   "repsLabelShort": "représentants",
   "titleNewRoutine": "Nouvelle routine",
   "titleEditRoutine": "Modifier la routine",
+  "editRoutine": "Modifier la routine",
   "validatorPleaseEnterRoutineName": "Veuillez saisir un nom pour la routine.",
   "snackbarRoutineCreated": "Routine créée. Ajoutez maintenant quelques exercices.",
   "snackbarRoutineSaved": "Routine enregistrée.",
@@ -368,7 +381,6 @@
     }
   },
   "fabAddExercise": "Ajouter un exercice",
-  "kgLabelShort": "kilos",
   "drawerExerciseCatalog": "Catalogue d'exercices",
   "lastWorkoutTitle": "Dernier entraînement",
   "repeatButton": "Répéter",
@@ -418,6 +430,17 @@
   "doneButtonLabel": "Fait",
   "setRestTimeButton": "Définir le temps de repos",
   "deleteExerciseButton": "Supprimer l'exercice",
+  "deleteCustomExerciseTitle": "Supprimer l'exercice personnalisé",
+  "deleteCustomExerciseBody": "« {name} » sera supprimé définitivement. Cette action est irréversible.",
+  "@deleteCustomExerciseBody": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deleteCustomExerciseWithLogsWarning": "Cet exercice apparaît dans votre historique d'entraînements. Vos entrées de journal seront conservées, mais le lien vers l'exercice sera supprimé.",
+  "deleteCustomExerciseWithRoutinesWarning": "Cet exercice est utilisé dans une ou plusieurs routines. Il sera supprimé de ces routines.",
+  "deleteCustomExerciseSuccess": "Exercice supprimé.",
+
   "restOverLabel": "La pause est terminée",
   "workoutRunningLabel": "L’entraînement est actif…",
   "continueButton": "Continuer",
@@ -481,6 +504,7 @@
   "manage_all_plans": "Gérer tous les forfaits",
   "workoutSectionStart": "Commencer",
   "workoutSectionMyPlans": "Mes projets",
+  "emptyStateWorkoutRoutinesCallout": "Créez votre première routine pour suivre vos entraînements en salle de manière structurée.",
   "workoutSectionHistoryLibrary": "Histoire et bibliothèque",
   "workoutAllRoutines": "Toutes les routines",
   "workoutEntryWorkouts": "Entraînements",
@@ -733,7 +757,13 @@
   "autoBackupDefaultFolder": "Documents d'application/sauvegardes (par défaut)",
   "autoBackupChooseFolder": "Choisir un dossier",
   "autoBackupCopyPath": "Copier le chemin",
-  "autoBackupRunNow": "Vérifiez et exécutez la sauvegarde automatique maintenant",
+  "autoBackupRunNow": "Vérifier & exécuter la sauvegarde auto",
+  "icloudAutoBackupTitle": "Sauvegarde Auto iCloud",
+  "icloudAutoBackupDescription": "Synchronise automatiquement votre base de données sur iCloud Drive lorsque l'application est en arrière-plan. Vos données peuvent être restaurées sur un nouvel appareil ou après une réinstallation.",
+  "icloudBackupNow": "Sauvegarder sur iCloud maintenant",
+  "icloudBackupUploading": "Téléchargement…",
+  "icloudBackupSuccess": "Sauvegarde téléchargée avec succès.",
+  "icloudBackupFailed": "Échec de la sauvegarde. Vérifiez votre connexion iCloud.",
   "autoBackupRequestAccessSubtitle": "Pour sauvegarder automatiquement vos données, Train Libre a besoin d'accéder à un dossier que vous choisissez. Vos sauvegardes y seront stockées.",
   "snackbarAutoBackupSuccess": "Sauvegarde automatique terminée.",
   "snackbarAutoBackupFailed": "La sauvegarde automatique a échoué ou a été annulée.",
@@ -813,10 +843,11 @@
   "workout": "Entraînement",
   "addFoodTitle": "ajouter de la nourriture",
   "nutritionExplorerTitle": "Explorateur de nutrition",
-  "myMeals": "Mes repas",
-  "myMealsCL": "MES REPAS",
-  "nutritionSectionTodayInFocus": "Aujourd'hui en bref",
-  "nutritionSectionMyMeals": "Mes repas",
+  "myMeals": "Mes recettes",
+  "myMealsCL": "MES RECETTES",
+  "nutritionSectionTodayInFocus": "Aujourd’hui à l’honneur",
+  "nutritionSectionMyMeals": "Mes recettes",
+  "emptyStateNutritionRecipesCallout": "Créez votre première recette pour enregistrer rapidement vos repas fréquents.",
   "nutritionSectionToolsAndLibrary": "Outils et bibliothèque",
   "supplement_caffeine": "Caféine",
   "supplement_creatine_monohydrate": "Créatine Monohydrate",
@@ -826,41 +857,43 @@
   "emptySupplements": "Aucun supplément disponible",
   "undo": "Défaire",
   "deleteSupplementConfirm": "Êtes-vous sûr de vouloir supprimer ce supplément ? Toutes les données historiques seront perdues.\n\nAstuce : Vous pouvez simplement supprimer le suivi en modifiant le supplément à la place.",
+  "editSupplementLogTitle": "Modifier l'entrée",
+  "deleteSupplementLogConfirm": "Voulez-vous vraiment supprimer cette entrée ?",
   "fieldRequired": "Requis",
   "unitNotSupported": "Unité non prise en charge.",
   "caffeineUnitLocked": "Pour la caféine l’unité est fixe : mg.",
   "caffeineMustBeMg": "La caféine doit être enregistrée en mg.",
   "tabCatalogSearch": "Catalogue",
-  "tabMeals": "Repas",
+  "tabMeals": "Recettes",
   "emptyCategory": "Aucune entrée",
   "searchSectionBase": "Aliments de base",
   "searchSectionOther": "Autres résultats",
-  "mealsComingSoonTitle": "Repas (à venir)",
-  "mealsComingSoonBody": "Bientôt, vous pourrez créer vos propres repas à partir de plusieurs aliments.",
-  "mealsEmptyTitle": "Aucun modèle de repas enregistré",
-  "mealsEmptyBody": "Créez des repas pour enregistrer rapidement plusieurs aliments à la fois.",
-  "mealsEmptyBodyWithShortcut": "Dans le journal, utilisez l'option « Enregistrer comme repas » sous votre petit-déjeuner ou votre dîner pour enregistrer les combinaisons alimentaires courantes comme modèle rapide.",
-  "mealsCreateManually": "Créer un repas manuellement",
-  "saveMealTemplateShortcut": "Enregistrer comme repas",
-  "mealsCreate": "Créer un repas",
-  "mealsEdit": "Modifier le repas",
-  "mealsDelete": "Supprimer le repas",
+  "mealsComingSoonTitle": "Recettes (à venir)",
+  "mealsComingSoonBody": "Bientôt, vous pourrez créer vos propres recettes à partir de plusieurs aliments.",
+  "mealsEmptyTitle": "Aucun modèle de recette enregistré",
+  "mealsEmptyBody": "Créez des recettes pour enregistrer rapidement plusieurs aliments à la fois.",
+  "mealsEmptyBodyWithShortcut": "Dans le journal, utilisez l'option « Enregistrer comme recette » sous votre petit-déjeuner ou votre dîner pour enregistrer les combinaisons alimentaires courantes comme modèle rapide.",
+  "mealsCreateManually": "Créer une recette manuellement",
+  "saveMealTemplateShortcut": "Enregistrer comme recette",
+  "mealsCreate": "Créer une recette",
+  "mealsEdit": "Modifier la recette",
+  "mealsDelete": "Supprimer la recette",
   "mealsAddToDiary": "Ajouter de la nourriture",
-  "mealNameLabel": "Nom du repas",
+  "mealNameLabel": "Nom de la recette",
   "mealNotesLabel": "Remarques",
   "mealIngredientsTitle": "Ingrédients",
   "mealAddIngredient": "Ajouter un ingrédient",
   "mealIngredientAmountLabel": "Montant",
-  "mealDeleteConfirmTitle": "Supprimer le repas",
-  "mealDeleteConfirmBody": "Êtes-vous sûr de vouloir supprimer le repas « {name} » ? Tous ses ingrédients seront également supprimés.",
-  "mealAddedToDiary": "Le repas '{name}' a été ajouté à votre agenda.",
-  "mealSaved": "Repas sauvé.",
-  "mealDeleted": "Repas supprimé.",
+  "mealDeleteConfirmTitle": "Supprimer la recette",
+  "mealDeleteConfirmBody": "Êtes-vous sûr de vouloir supprimer la recette « {name} » ? Tous ses ingrédients seront également supprimés.",
+  "mealAddedToDiary": "La recette '{name}' a été ajoutée à votre agenda.",
+  "mealSaved": "Recette sauvée.",
+  "mealDeleted": "Recette supprimée.",
   "confirm": "Confirmer",
   "addMealToDiaryTitle": "Ajouter au journal",
-  "mealTypeLabel": "Repas",
+  "mealTypeLabel": "Recette",
   "amountLabel": "Montant",
-  "mealAddedToDiarySuccess": "Repas ajouté au journal",
+  "mealAddedToDiarySuccess": "Recette ajoutée au journal",
   "error": "Erreur",
   "mealsViewTitle": "repasViewTitle",
   "noNotes": "Aucune note",
@@ -930,6 +963,9 @@
   "onboardingFeaturePrivacyBody": "Aucun compte, aucun cloud obligatoire. Vos données vous appartiennent.",
   "onboardingSettingsHint": "Tous les réglages peuvent être modifiés plus tard à tout moment dans les paramètres.",
   "adaptiveRatePerWeekLabel": "Taux cible hebdomadaire",
+  "customTargetRateOption": "Personnalisé",
+  "customTargetRateDialogTitle": "Définir l'objectif personnalisé",
+
   "onboardingNameTitle": "Quel est ton nom?",
   "onboardingNameLabel": "Votre nom",
   "onboardingNameError": "Veuillez entrer votre nom",
@@ -1321,6 +1357,9 @@
   "exerciseMetricMaxWeight": "Poids maximum",
   "exerciseMetricVolume": "Volume",
   "exerciseMetricEst1RM": "HNE. 1RM",
+  "exerciseMetricDistance": "Distance",
+  "exerciseMetricDuration": "Durée",
+  "exerciseMetricPace": "Allure",
   "prBannerBestMaxWeight": "Meilleur poids maximum",
   "prBannerBestVolumeSet": "Meilleur ensemble de volumes",
   "prBannerBest1RM": "Meilleur 1 répétition maximum",
@@ -1348,7 +1387,7 @@
   "analyticsTopVolume": "Les mieux formés",
   "analyticsLowestVolume": "Volume le plus bas",
   "analyticsRecentRecords": "Enregistrements récents",
-  "analyticsPerfWithReps": "{weight} kg x {reps}",
+  "analyticsPerfWithReps": "{weight} {unit} x {reps}",
   "@analyticsPerfWithReps": {
     "placeholders": {
       "weight": {
@@ -1356,7 +1395,8 @@
       },
       "reps": {
         "type": "int"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsKgThisWeek": "kg (cette semaine)",
@@ -1366,7 +1406,7 @@
   "analyticsNoRecordYet": "Pas encore d'enregistrement",
   "analyticsNotableImprovements": "Améliorations notables",
   "analyticsNoPrTrendInWindow": "Il n’y a pas encore de tendance claire en matière de relations publiques dans cette fenêtre.",
-  "analyticsE1rmProgress": "e1RM {previous} -> {recent} kg",
+  "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
   "@analyticsE1rmProgress": {
     "placeholders": {
       "previous": {
@@ -1374,7 +1414,8 @@
       },
       "recent": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsUnitKg": "kilos",
@@ -1396,6 +1437,8 @@
   "analyticsVsPrior4Weeks": "vs les 4 semaines précédentes",
   "analyticsRollingConsistency": "Cohérence de roulement",
   "analyticsWeeksAtLeast2Workouts": "semaines avec au moins 2 séances",
+  "analyticsInTimeframe": "Dans la période",
+  "analyticsVsPriorPeriod": "vs période précédente",
   "analyticsCalendarExplainer": "L'intensité des couleurs reflète les séances quotidiennes, ce qui en fait une véritable carte de cohérence.",
   "analyticsSelectDayPrompt": "Sélectionnez un jour pour inspecter le nombre de sessions.",
   "analyticsSelectedDayWorkouts": "{date} : {count} sessions",
@@ -1429,7 +1472,7 @@
   },
   "analyticsPeriodLabel": "Période",
   "analyticsEquivalentSetsExplainer": "Les ensembles durs équivalents utilisent une pondération primaire x1,0 et secondaire x0,3. La fréquence ne compte que les jours atteignant >= 1,0 ensembles équivalents.",
-  "analyticsWeeklySetsByMuscle": "Séries hebdomadaires par muscle",
+  "analyticsWeeklySetsByMuscle": "Ø Séries hebdomadaires par muscle",
   "analyticsFrequencyByMuscle": "Fréquence par muscle",
   "analyticsRecentDistributionHeatmap": "Carte thermique de distribution récente",
   "analyticsRadarOverviewTitle": "Aperçu des radars",
@@ -1437,7 +1480,7 @@
   "analyticsGuidanceTitle": "Conseils",
   "analyticsGuidanceDirectionalDisclaimer": "Il s'agit d'un guidage directionnel basé sur votre distribution d'ensemble récente, et non d'un diagnostic absolu.",
   "analyticsGuidanceSoftenedDisclaimer": "Les informations sont intentionnellement adoucies jusqu'à ce que suffisamment de données soient disponibles.",
-  "analyticsWeekTotalEquivalentSets": "Total de la semaine : {value} ensembles équivalents",
+  "analyticsWeekTotalEquivalentSets": "Ø {value} séries équivalentes par semaine",
   "@analyticsWeekTotalEquivalentSets": {
     "placeholders": {
       "value": {
@@ -1446,28 +1489,31 @@
     }
   },
   "analyticsFrequencyRuleFooter": "La fréquence ne compte que les jours où le muscle a atteint >= 1,0 séries équivalentes.",
-  "liveWorkoutE1rmCurrentSet": "e1RM {value} kg",
+  "liveWorkoutE1rmCurrentSet": "e1RM {value} {unit}",
   "@liveWorkoutE1rmCurrentSet": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmBestSession": "Meilleur e1RM cette session : {value} kg",
+  "liveWorkoutE1rmBestSession": "Meilleur e1RM cette session : {value} {unit}",
   "@liveWorkoutE1rmBestSession": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmVsLastSession": "vs dernière séance : {delta} kg",
+  "liveWorkoutE1rmVsLastSession": "vs dernière séance : {delta} {unit}",
   "@liveWorkoutE1rmVsLastSession": {
     "placeholders": {
       "delta": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "bodyNutritionCorrelationTitle": "Tendances corps et nutrition",
@@ -1483,11 +1529,18 @@
   "analyticsLowConfidenceLabel": "Modèle de confiance inférieure",
   "analyticsObservedPatternLabel": "Modèle observé",
   "analyticsBodyNutritionTrendContext": "Poids et calories au fil du temps",
-  "analyticsBodyNutritionTrendContextHint": "Le graphique met à l'échelle chaque série pour s'adapter au même espace ; les info-bulles affichent les valeurs brutes en kg et en kcal.",
-  "analyticsBodyNutritionNormalizedHint": "Le graphique met à l'échelle le poids et les calories pour s'adapter au même espace ; les info-bulles affichent les valeurs brutes en kg et en kcal.",
-  "analyticsBodyNutritionTotalWeightLabel": "Poids total (kg)",
+  "analyticsBodyNutritionTrendContextHint": "Le graphique met à l'échelle chaque série pour s'adapter au même espace ; les info-bulles affichent les valeurs brutes en {unit} et en kcal.",
+  "analyticsBodyNutritionNormalizedHint": "Le graphique met à l'échelle le poids et les calories pour s'adapter au même espace ; les info-bulles affichent les valeurs brutes en {unit} et en kcal.",
+  "analyticsBodyNutritionTotalWeightLabel": "Poids total ({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "Calories totales (kcal)",
-  "analyticsWeightTrendLabel": "Poids (kg)",
+  "analyticsWeightTrendLabel": "Poids ({unit})",
+  "@analyticsWeightTrendLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsCaloriesTrendLabel": "Calories (kcal)",
   "analyticsInterpretationTitle": "Interprétation",
   "analyticsBodyNutritionConfidenceHighHint": "La couverture des données dans cette plage est suffisamment forte pour une lecture de modèle plus fiable.",
@@ -1532,6 +1585,9 @@
   "onboardingRestoreImporting": "Importation de la sauvegarde...",
   "onboardingRestoreSuccess": "Sauvegarde restaurée avec succès !",
   "onboardingRestoreFailed": "L'importation a échoué. Veuillez vérifier le fichier et réessayer.",
+  "onboardingRestoreFromICloud": "Restaurer depuis iCloud",
+  "onboardingRestoreICloudSuccess": "La sauvegarde iCloud a été restaurée avec succès !",
+  "onboardingRestoreICloudFailed": "La restauration iCloud a échoué. Vérifiez votre connexion et réessayez.",
   "finishWorkoutTitleLabel": "Titre de l'entraînement",
   "finishWorkoutNotesLabel": "Remarques (facultatif)",
   "finishWorkoutNotesHint": "Comment s’est passé l’entraînement ?",
@@ -1599,6 +1655,13 @@
   "sleepRawImportsSubtitle": "Afficher les charges utiles Health Connect récentes",
   "sleepDataStatusTitle": "Statut des données",
   "sleepDataStatusSubtitle": "Autorisations accordées. Si aucune veille n'apparaît encore, exécutez une importation manuelle ci-dessous.",
+  "@sleepDataStatusSubtitle": {
+    "type": "text"
+  },
+  "sleepDataStatusSubtitleIos": "Connexion active. Si des données manquent (0 sessions importées), vérifiez manuellement les autorisations de lecture dans l'application Apple Health.",
+  "@sleepDataStatusSubtitleIos": {
+    "type": "text"
+  },
   "sleepNoPermissionTitle": "Aucune autorisation",
   "sleepNoPermissionSubtitle": "Des autorisations de sommeil et de fréquence cardiaque sont requises pour importer des données de sommeil.",
   "sleepFeatureUnavailableTitle": "Fonctionnalité indisponible",
@@ -1777,12 +1840,13 @@
   "adaptiveGoalLose": "Perdre du poids",
   "adaptiveGoalMaintain": "Maintenir le poids",
   "adaptiveGoalGain": "Prendre du poids",
-  "adaptiveRatePerWeek": "{value} kg/semaine",
+  "adaptiveRatePerWeek": "{value} {unit}/semaine",
   "@adaptiveRatePerWeek": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "adaptivePriorActivityLabel": "Activité quotidienne de base",
@@ -2011,10 +2075,20 @@
   "adaptiveRecommendationMacroTargetsLabel": "Cibles recommandées",
   "adaptiveRecommendationTargetCaloriesLabel": "Kcal cible",
   "adaptiveRecommendationDataQualityLabel": "Qualité des données",
+  "adaptiveRecommendationEnergyDensityLabel": "Densité énergétique effective",
+  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
+  "@adaptiveRecommendationEnergyDensityValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationEnergyDensityExplanation": "Valeur dynamique basée sur le poids et le ratio de perte d’eau",
   "adaptiveRecommendationRecalculateNowAction": "Recalculer maintenant",
   "adaptiveRecommendationRecalculating": "Recalculer...",
   "adaptiveRecommendationApplying": "Candidature...",
-  "adaptiveRecommendationApplyAction": "Appliquer la recommandation aux objectifs actifs",
+  "adaptiveRecommendationApplyAction": "Appliquer la recommandation",
   "adaptiveRecommendationWarningCalorieFloor": "Recommandation limitée par un seuil minimum de sécurité calorique. Examinez les données de profil et les journaux récents avant de postuler.",
   "adaptiveRecommendationWarningUnresolvedFood": "Certaines entrées nutritionnelles n'ont pas pu être entièrement résolues pour les calories. Vérifiez les journaux récents avant de postuler.",
   "adaptiveRecommendationWarningLargeAdjustment": "Ajustement important détecté. Veuillez vérifier l'intégralité de votre journalisation récente avant de postuler.",
@@ -2036,6 +2110,8 @@
   "settingsAppearanceSubtitle": "Ajustez le thème, le style visuel et l'haptique",
   "settingsShowSugarInDiaryOverviewTitle": "Afficher le sucre dans l'aperçu du journal",
   "settingsShowSugarInDiaryOverviewSubtitle": "Affiche le sucre dans la section supérieure d'aperçu quotidien",
+  "settingsOverviewExtraNutrientTitle": "Nutriment supplémentaire dans l'aperçu",
+  "settingsOverviewExtraNutrientSubtitle": "Ajoutez un troisième nutriment à l'aperçu quotidien",
   "settingsSectionHealthTracking": "Santé et suivi",
   "settingsStepsSubtitle": "Suivi, politique de source et fournisseurs",
   "settingsSleepSubtitle": "Importation, autorisations et état de veille",
@@ -2192,11 +2268,33 @@
   "health_permission_continue": "Continuer",
   "health_permission_not_now": "Pas maintenant",
   "welcome_privacy_title": "Bienvenue et confidentialité",
-  "welcome_privacy_body": "En utilisant Train Libre, vous acceptez le traitement de vos données tel que décrit dans notre Politique de confidentialité et Mentions légales.",
-  "i_agree_to_privacy_policy": "J'ai lu et j'accepte le traitement de mes données de santé tel que décrit dans la politique de confidentialité.",
+  "welcome_privacy_body": "Pour fournir le suivi des entraînements et des analyses, nous traitons vos données de forme et d'activité comme décrit dans notre politique de confidentialité.",
+  "i_agree_to_privacy_policy": "J'accepte expressément le traitement de mes données de santé et de forme pour le suivi des entraînements et des analyses. Je peux retirer mon consentement à tout moment dans les paramètres.",
+  "i_agree_to_optional_telemetry": "(Optionnel) Je souhaite partager des statistiques d'utilisation anonymes pour améliorer la stabilité et les fonctionnalités (aucune donnée personnelle).",
+  "welcome_back_updated_legal_title": "Bon retour & Politiques mises à jour",
+  "legal_update_body": "Nous avons mis à jour notre politique de confidentialité et nos conditions d'utilisation (Version {version}). Pour continuer à utiliser Train Libre, veuillez accepter les conditions mises à jour. Vos données restent conservées sur votre appareil.",
+  "@legal_update_body": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "i_agree_to_updated_privacy_policy": "J'accepte expressément la politique de confidentialité mise à jour (v{version}) et le traitement de mes données de santé.",
+  "@i_agree_to_updated_privacy_policy": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accept_and_continue": "Accepter et continuer",
+  "by_tapping_accept_continue": "En appuyant sur \"Accepter et continuer\", vous acceptez les",
   "acceptTermsPrompt": "J'accepte les conditions d'utilisation",
   "viewTermsInline": "Conditions d'utilisation",
   "accept_and_get_started": "Accepter et commencer",
+  "by_tapping_accept": "En appuyant sur « Accepter et commencer », vous acceptez nos",
+  "and_acknowledge": "et prenez connaissance de notre",
   "about_section": "À propos",
   "legal_section": "Mentions légales et confidentialité",
   "aiSettingsInstructionTitle": "Comment fonctionne la reconnaissance des repas par l'IA",
@@ -2206,16 +2304,18 @@
   "aiSettingsGetApiKeyButton": "Afficher le guide de configuration",
   "legal_document_version_value": "1.2",
   "legal_document_last_updated_value": "20 mai 2026",
-  "muscleChest": "Poitrine",
+  "muscleChest": "Pectoraux",
   "muscleBack": "Dos",
   "muscleShoulders": "Épaules",
   "muscleBiceps": "Biceps",
   "muscleTriceps": "Triceps",
   "muscleQuads": "Quadriceps",
   "muscleHamstrings": "Ischio-jambiers",
+  "muscleLegs": "Jambes",
+  "muscleArms": "Bras",
   "muscleGlutes": "Fessiers",
-  "muscleCalves": "Veaux",
-  "muscleLowerBack": "Lombes",
+  "muscleCalves": "Mollets",
+  "muscleLowerBack": "Bas du dos",
   "muscleAbs": "Abdos",
   "muscleAdductors": "Adducteurs",
   "muscleForearms": "Avant-bras",
@@ -2429,6 +2529,74 @@
   "wgerPlaceholderText": "Le catalogue d'exercices nécessite le téléchargement du catalogue de base de données local.",
   "onboardingRegionTitle": "Sélectionner la région",
   "onboardingRegionExplanation": "Sélectionnez le pays où vous achetez vos courses. Cela garantit que nous téléchargeons la base de données Open Food Facts correcte pour vos produits locaux.",
-  "onboardingRegionSettingsHint": "Vous pouvez modifier cela à tout moment plus tard dans Paramètres → Nutrition → Région de la base de données."
+  "onboardingRegionSettingsHint": "Vous pouvez modifier cela à tout moment plus tard dans Paramètres → Nutrition → Région de la base de données.",
+  "clearSearch": "Effacer la recherche",
+  "rollingDaysLabel": "Les {days} derniers jours (glissant)",
+  "@rollingDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "muscleTraps": "Trapèzes",
+  "muscleObliques": "Obliques",
+  "@kgLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@cardioDistanceLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@analyticsBodyNutritionTrendContextHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionNormalizedHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionTotalWeightLabel": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "icloudSyncErrorTitle": "Échec de la synchronisation iCloud",
+  "icloudSyncErrorHelp": "Veuillez vous assurer que iCloud Drive est activé dans les réglages système d'iOS sous Réglages -> [Votre Nom] -> iCloud -> iCloud Drive.",
+  "icloudSyncErrorCopyLog": "Copier le journal technique des erreurs",
+  "icloudSyncErrorClose": "Fermer",
+  "icloudSyncErrorCopied": "Journal des erreurs copié dans le presse-papiers !",
+  "icloudLastSynced": "Dernière synchronisation : {date}",
+  "icloudNeverSynced": "Jamais synchronisé",
+  "emptyStateDiaryColdStartTitle": "Bienvenue dans votre Journal !",
+  "emptyStateDiaryColdStartSubtitle": "Gardez une trace de votre alimentation et de votre hydratation ici.",
+  "emptyStateActiveGapOverlay": "Aucune donnée disponible pour cette période",
+  "emptyStateDiaryColdStartCallToAction": "Enregistrez votre première entrée ici",
+  "statisticsColdStartTitle": "Bienvenue dans vos statistiques !",
+  "statisticsColdStartSubtitle": "Vos progrès seront visualisés ici dès que vous aurez enregistré vos premiers entraînements, repas ou suivi vos pas et votre sommeil.",
+  "statisticsActiveGapTitle": "Aucune donnée disponible",
+  "reviewPromptTitle": "Aimez-vous Train Libre ?",
+  "reviewPromptSubtitle": "Vos retours nous aident à améliorer l'application sans publicité ni traqueurs.",
+  "reviewPromptYes": "Oui, j'aime bien",
+  "reviewPromptNo": "Non, pas vraiment",
+  "reviewPromptLater": "Rappelez-moi plus tard",
+  "updateAvailableTitle": "Mise à jour disponible",
+  "statusReady": "Prêt",
+  "statusRequired": "Requis",
+  "updatesAvailableBody": "De nouvelles mises à jour sont disponibles pour vos catalogues locaux. Souhaitez-vous les mettre à jour maintenant ?",
+  "exerciseCatalogWger": "Catalogue d'exercices (wger)",
+  "nutritionCatalogOff": "Catalogue de nutrition (OFF)",
+  "workoutImportZeroNew": "0 nouvel entraînement importé (tous existaient déjà).",
+  "telemetryDeleteDialogTitle": "Supprimer les données de télémétrie ?",
+  "telemetryDeleteDialogBody": "Voulez-vous vraiment supprimer vos données de télémétrie passées ?\n\nCe qui suit va se produire :\n• Tous les UUID d'appareil, ID de session et compteurs locaux enregistrés sur cet appareil seront réinitialisés.\n• Une demande de suppression ($delete_person) sera envoyée aux serveurs PostHog dans l'UE pour y supprimer vos données.\n• Le SDK de télémétrie sera entièrement réinitialisé.",
+  "telemetryDeleteConfirmButton": "Supprimer les données maintenant"
 }
-

@@ -2,6 +2,8 @@ import 'contracts/health_export_adapter.dart';
 import 'data/health_export_data_source.dart';
 import 'data/health_export_status_store.dart';
 import 'models/export_models.dart';
+import 'dart:async';
+import '../../services/telemetry/telemetry_service.dart';
 
 class HealthExportResult {
   const HealthExportResult({
@@ -329,6 +331,13 @@ class HealthExportService {
                   '${entry.key.name} failed${entry.value.error == null ? '' : ': ${entry.value.error}'}',
             )
             .join(' | ');
+    if (success) {
+      unawaited(TelemetryService.instance.trackFeatureUsed(
+        featureKey: platform == HealthExportPlatform.appleHealth
+            ? FeatureKey.appleHealthExported
+            : FeatureKey.healthConnectExported,
+      ));
+    }
     return HealthExportResult(
       platform: platform,
       success: success,

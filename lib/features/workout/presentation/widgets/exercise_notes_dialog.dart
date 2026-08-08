@@ -3,6 +3,7 @@ import '../../../../util/design_constants.dart';
 
 import '../../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class ExerciseNotesDialog extends StatefulWidget {
   final String? initialNotes;
@@ -55,10 +56,12 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
             hintText: l10n.exerciseNoteHint,
             filled: true,
             fillColor: brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
+                ? (Theme.of(context).inputDecorationTheme.fillColor ??
+                    const Color(0xFF2C2C2E))
+                : Colors.white,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
               borderSide: BorderSide.none,
             ),
           ),
@@ -79,18 +82,20 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
               const SizedBox(width: DesignConstants.spacingS),
             ],
             Expanded(
-              child: OutlinedButton(
+              child: AppButton.secondary(
                 onPressed: widget.onCancel,
-                child: Text(l10n.cancel),
+                label: l10n.cancel,
+                tooltip: l10n.cancel,
               ),
             ),
             const SizedBox(width: DesignConstants.spacingM),
             Expanded(
-              child: FilledButton(
+              child: AppButton.primary(
                 onPressed: () {
                   widget.onSave(_controller.text.trim());
                 },
-                child: Text(l10n.save),
+                label: l10n.save,
+                tooltip: l10n.save,
               ),
             ),
           ],

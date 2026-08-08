@@ -2,6 +2,8 @@
   "@@locale": "de",
   "selectDateTitle": "Datum auswählen",
   "selectTimeTitle": "Uhrzeit auswählen",
+  "removeTimer": "Timer entfernen",
+  "noTimerLabel": "Kein Timer",
   "appTitle": "Train Libre",
   "bannerText": "Empfehlung / Aktuelles Workout",
   "calories": "Kalorien",
@@ -11,6 +13,7 @@
   "fat": "Fett",
   "steps": "Schritte",
   "daily": "Täglich",
+  "nowLabel": "Jetzt",
   "today": "Heute",
   "workoutSection": "Workout-Bereich - noch nicht implementiert",
   "addMenuTitle": "Was möchtest du hinzufügen?",
@@ -156,9 +159,9 @@
   "addExerciseToWorkoutButton": "Übung zum Workout hinzufügen",
   "lastTimeLabel": "Letztes Mal",
   "setLabel": "Satz",
-  "kgLabel": "Gewicht (kg)",
+  "kgLabel": "Weight ({unit})",
   "repsLabel": "Wdh",
-  "cardioDistanceLabel": "Distanz (km)",
+  "cardioDistanceLabel": "Distance ({unit})",
   "cardioTimeLabel": "Zeit",
   "cardioIntensityLabel": "Intens.",
   "cardioIntensityShortLabel": "Int.",
@@ -222,6 +225,15 @@
   "filterToday": "Heute",
   "filter7Days": "7 Tage",
   "filter30Days": "30 Tage",
+  "filter30DaysShort": "30T",
+  "filter90DaysShort": "90T",
+  "filter180DaysShort": "180T",
+  "filter7DaysShort": "7T",
+  "filter1MonthShort": "1M",
+  "filter3MonthsShort": "3M",
+  "filter6MonthsShort": "6M",
+  "filter1YearShort": "1J",
+  "filterMax": "MAX",
   "filterAll": "Alle",
   "showLess": "Weniger anzeigen",
   "showMoreDetails": "Mehr Details anzeigen",
@@ -349,6 +361,7 @@
   "repsLabelShort": "Wdh",
   "titleNewRoutine": "Neue Routine",
   "titleEditRoutine": "Routine bearbeiten",
+  "editRoutine": "Routine bearbeiten",
   "validatorPleaseEnterRoutineName": "Bitte gib der Routine einen Namen.",
   "snackbarRoutineCreated": "Routine erstellt. Füge nun Übungen hinzu.",
   "snackbarRoutineSaved": "Routine gespeichert.",
@@ -368,7 +381,6 @@
     }
   },
   "fabAddExercise": "Übung hinzufügen",
-  "kgLabelShort": "kg",
   "drawerExerciseCatalog": "Übungskatalog",
   "lastWorkoutTitle": "Letztes Workout",
   "repeatButton": "Wiederholen",
@@ -418,6 +430,17 @@
   "doneButtonLabel": "Fertig",
   "setRestTimeButton": "Pause einstellen",
   "deleteExerciseButton": "Übung löschen",
+  "deleteCustomExerciseTitle": "Eigene Übung löschen",
+  "deleteCustomExerciseBody": "'{name}' wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+  "@deleteCustomExerciseBody": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deleteCustomExerciseWithLogsWarning": "Diese Übung erscheint in deiner Workout-History. Deine Log-Einträge bleiben erhalten, aber der Übungs-Link wird entfernt.",
+  "deleteCustomExerciseWithRoutinesWarning": "Diese Übung wird in einer oder mehreren Routinen verwendet. Sie wird dort entfernt.",
+  "deleteCustomExerciseSuccess": "Übung gelöscht.",
+
   "restOverLabel": "Pause vorbei",
   "workoutRunningLabel": "Workout läuft …",
   "continueButton": "Weiter",
@@ -481,6 +504,7 @@
   "manage_all_plans": "Alle Pläne verwalten",
   "workoutSectionStart": "Start",
   "workoutSectionMyPlans": "Meine Pläne",
+  "emptyStateWorkoutRoutinesCallout": "Erstelle deine erste Routine, um deine Workouts im Gym strukturiert zu tracken.",
   "workoutSectionHistoryLibrary": "Verlauf & Bibliothek",
   "workoutAllRoutines": "Alle Routinen",
   "workoutEntryWorkouts": "Workouts",
@@ -520,7 +544,7 @@
   "feedbackReportSettingsEntrySubtitle": "Erstelle einen lokalen Diagnosebericht und wähle anschließend, wie du ihn teilen möchtest.",
   "about_and_legal_capslock": "ÜBER & RECHTLICHES",
   "feedbackReportScreenTitle": "Feedback-Bericht",
-  "feedbackReportPrivacyTitle": "Datenschutz zuerst",
+  "feedbackReportPrivacyTitle": "Privacy First",
   "feedbackReportPrivacyBody": "Dieser Bericht wird lokal auf deinem Gerät erzeugt. Es wird nichts automatisch gesendet. Nur die Informationen aus der Vorschau werden übernommen, wenn du kopierst, speicherst, teilst oder per E-Mail versendest. Beim E-Mail-Versand wird ein Entwurf an feedback@schotte.me geöffnet, den du vor dem Senden prüfen, bearbeiten oder abbrechen kannst.",
   "feedbackReportOptionalNoteTitle": "Optionale Notiz",
   "feedbackReportOptionalNoteLabel": "Deine Notiz (optional)",
@@ -733,7 +757,13 @@
   "autoBackupDefaultFolder": "App-Dokumente/Backups (Standard)",
   "autoBackupChooseFolder": "Ordner wählen",
   "autoBackupCopyPath": "Pfad kopieren",
-  "autoBackupRunNow": "Jetzt Auto-Backup prüfen & ausführen",
+  "autoBackupRunNow": "Jetzt prüfen & Auto-Backup ausführen",
+  "icloudAutoBackupTitle": "iCloud Auto-Backup",
+  "icloudAutoBackupDescription": "Sichert deine Datenbank automatisch in iCloud Drive, wenn die App in den Hintergrund geht. Deine Daten können bei einer Neuinstallation oder auf einem neuen Gerät wiederhergestellt werden.",
+  "icloudBackupNow": "Jetzt in iCloud sichern",
+  "icloudBackupUploading": "Wird hochgeladen…",
+  "icloudBackupSuccess": "Backup erfolgreich hochgeladen.",
+  "icloudBackupFailed": "Backup fehlgeschlagen. Bitte iCloud-Verbindung prüfen.",
   "autoBackupRequestAccessSubtitle": "Um deine Daten automatisch zu sichern, benötigt Train Libre Zugriff auf einen von dir gewählten Ordner. Deine Backups werden dort gespeichert.",
   "snackbarAutoBackupSuccess": "Auto-Backup durchgeführt.",
   "snackbarAutoBackupFailed": "Auto-Backup fehlgeschlagen oder abgebrochen.",
@@ -813,10 +843,11 @@
   "workout": "Workout",
   "addFoodTitle": "Lebensmittel hinzufügen",
   "nutritionExplorerTitle": "Lebensmittel Explorer",
-  "myMeals": "Meine Mahlzeiten",
-  "myMealsCL": "MEINE MAHLZEITEN",
+  "myMeals": "Meine Rezepte",
+  "myMealsCL": "MEINE REZEPTE",
   "nutritionSectionTodayInFocus": "Heute im Blick",
-  "nutritionSectionMyMeals": "Meine Mahlzeiten",
+  "nutritionSectionMyMeals": "Meine Rezepte",
+  "emptyStateNutritionRecipesCallout": "Erstelle dein erstes Rezept, um deine häufigen Mahlzeiten schnell zu protokollieren.",
   "nutritionSectionToolsAndLibrary": "Tools und Bibliothek",
   "supplement_caffeine": "Koffein",
   "supplement_creatine_monohydrate": "Kreatin Monohydrat",
@@ -826,41 +857,43 @@
   "emptySupplements": "Noch keine Supplements vorhanden",
   "undo": "Rückgängig",
   "deleteSupplementConfirm": "Möchtest du dieses Supplement wirklich löschen? Alle historischen Daten gehen verloren.\n\nTipp: Du kannst stattdessen auch einfach das Tracking beenden, indem du das Supplement bearbeitest.",
+  "editSupplementLogTitle": "Eintrag bearbeiten",
+  "deleteSupplementLogConfirm": "Möchtest du diesen Eintrag wirklich löschen?",
   "fieldRequired": "Pflichtfeld",
   "unitNotSupported": "Einheit wird nicht unterstützt.",
   "caffeineUnitLocked": "Bei Koffein ist die Einheit fest: mg.",
   "caffeineMustBeMg": "Koffein muss in mg erfasst werden.",
   "tabCatalogSearch": "Katalog",
-  "tabMeals": "Mahlzeiten",
+  "tabMeals": "Rezepte",
   "emptyCategory": "Keine Einträge",
   "searchSectionBase": "Grundnahrungsmittel",
   "searchSectionOther": "Weitere Treffer",
-  "mealsComingSoonTitle": "Mahlzeiten (in Vorbereitung)",
-  "mealsComingSoonBody": "Bald kannst du eigene Mahlzeiten aus mehreren Lebensmitteln zusammenstellen.",
-  "mealsEmptyTitle": "Keine Mahlzeiten gespeichert",
-  "mealsEmptyBody": "Lege Mahlzeiten an, um mehrere Lebensmittel mit einem Klick einzutragen.",
-  "mealsEmptyBodyWithShortcut": "Nutze im Tagebuch die Option „Als Mahlzeit sichern“ unter deinem Frühstück oder Abendessen, um häufige Lebensmittel-Kombinationen als schnelle Vorlage zu speichern.",
-  "mealsCreateManually": "Mahlzeit manuell erstellen",
-  "saveMealTemplateShortcut": "Als Mahlzeit sichern",
-  "mealsCreate": "Mahlzeit erstellen",
-  "mealsEdit": "Mahlzeit bearbeiten",
-  "mealsDelete": "Mahlzeit löschen",
+  "mealsComingSoonTitle": "Rezepte (in Vorbereitung)",
+  "mealsComingSoonBody": "Bald kannst du eigene Rezepte aus mehreren Lebensmitteln zusammenstellen.",
+  "mealsEmptyTitle": "Keine Rezepte gespeichert",
+  "mealsEmptyBody": "Lege Rezepte an, um mehrere Lebensmittel mit einem Klick einzutragen.",
+  "mealsEmptyBodyWithShortcut": "Nutze im Tagebuch die Option „Als Rezept sichern“ unter deinem Frühstück oder Abendessen, um häufige Lebensmittel-Kombinationen als schnelle Vorlage zu speichern.",
+  "mealsCreateManually": "Rezept manuell erstellen",
+  "saveMealTemplateShortcut": "Als Rezept sichern",
+  "mealsCreate": "Rezept erstellen",
+  "mealsEdit": "Rezept bearbeiten",
+  "mealsDelete": "Rezept löschen",
   "mealsAddToDiary": "Lebensmittel hinzufügen",
-  "mealNameLabel": "Name der Mahlzeit",
+  "mealNameLabel": "Name des Rezepts",
   "mealNotesLabel": "Notizen",
   "mealIngredientsTitle": "Zutaten",
   "mealAddIngredient": "Zutat hinzufügen",
   "mealIngredientAmountLabel": "Menge",
-  "mealDeleteConfirmTitle": "Mahlzeit löschen",
-  "mealDeleteConfirmBody": "Möchtest du die Mahlzeit '{name}' wirklich löschen? Alle Zutaten werden ebenfalls entfernt.",
-  "mealAddedToDiary": "Mahlzeit '{name}' wurde ins Tagebuch übernommen.",
-  "mealSaved": "Mahlzeit gespeichert.",
-  "mealDeleted": "Mahlzeit gelöscht.",
+  "mealDeleteConfirmTitle": "Rezept löschen",
+  "mealDeleteConfirmBody": "Möchtest du das Rezept '{name}' wirklich löschen? Alle Zutaten werden ebenfalls entfernt.",
+  "mealAddedToDiary": "Rezept '{name}' wurde ins Tagebuch übernommen.",
+  "mealSaved": "Rezept gespeichert.",
+  "mealDeleted": "Rezept gelöscht.",
   "confirm": "bestätigen",
   "addMealToDiaryTitle": "Zum Tagebuch hinzufügen",
-  "mealTypeLabel": "Mahlzeit",
+  "mealTypeLabel": "Rezept",
   "amountLabel": "Menge",
-  "mealAddedToDiarySuccess": "Mahlzeit zum Tagebuch hinzugefügt",
+  "mealAddedToDiarySuccess": "Rezept zum Tagebuch hinzugefügt",
   "error": "Fehler",
   "mealsViewTitle": "mealsViewTitle",
   "noNotes": "Keine Notizen",
@@ -930,6 +963,9 @@
   "onboardingFeaturePrivacyBody": "Keine Accounts, kein Cloud-Zwang. Deine Daten gehören dir.",
   "onboardingSettingsHint": "Alle Einstellungen können später jederzeit in den Einstellungen geändert werden.",
   "adaptiveRatePerWeekLabel": "Wöchentliche Zielrate",
+  "customTargetRateOption": "Eigener Wert",
+  "customTargetRateDialogTitle": "Eigene Zielrate festlegen",
+
   "onboardingNameTitle": "Wie heißt du?",
   "onboardingNameLabel": "Dein Name",
   "onboardingNameError": "Bitte gib deinen Namen ein",
@@ -1321,6 +1357,9 @@
   "exerciseMetricMaxWeight": "Max. Gewicht",
   "exerciseMetricVolume": "Volumen",
   "exerciseMetricEst1RM": "Schätz. 1RM",
+  "exerciseMetricDistance": "Distanz",
+  "exerciseMetricDuration": "Dauer",
+  "exerciseMetricPace": "Tempo",
   "prBannerBestMaxWeight": "Bestes Max. Gewicht",
   "prBannerBestVolumeSet": "Bestes Volumen-Set",
   "prBannerBest1RM": "Bestes 1RM",
@@ -1348,7 +1387,7 @@
   "analyticsTopVolume": "Top trainiert",
   "analyticsLowestVolume": "Niedrigstes Volumen",
   "analyticsRecentRecords": "Aktuelle Rekorde",
-  "analyticsPerfWithReps": "{weight} kg x {reps}",
+  "analyticsPerfWithReps": "{weight} {unit} x {reps}",
   "@analyticsPerfWithReps": {
     "placeholders": {
       "weight": {
@@ -1356,7 +1395,8 @@
       },
       "reps": {
         "type": "int"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsKgThisWeek": "kg (diese Woche)",
@@ -1366,7 +1406,7 @@
   "analyticsNoRecordYet": "Noch kein Rekord",
   "analyticsNotableImprovements": "Bemerkenswerte Verbesserungen",
   "analyticsNoPrTrendInWindow": "In diesem Zeitraum gibt es noch keinen klaren Rekordtrend.",
-  "analyticsE1rmProgress": "e1RM {previous} -> {recent} kg",
+  "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
   "@analyticsE1rmProgress": {
     "placeholders": {
       "previous": {
@@ -1374,7 +1414,8 @@
       },
       "recent": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "analyticsUnitKg": "kg",
@@ -1396,6 +1437,8 @@
   "analyticsVsPrior4Weeks": "gegenüber den 4 Wochen davor",
   "analyticsRollingConsistency": "Rollierende Konsistenz",
   "analyticsWeeksAtLeast2Workouts": "Wochen mit mindestens 2 Einheiten",
+  "analyticsInTimeframe": "Im Zeitraum",
+  "analyticsVsPriorPeriod": "gegenüber Vorperiode",
   "analyticsCalendarExplainer": "Die Farbdichte zeigt Einheiten pro Tag. Dadurch dient der Kalender als echte Konsistenz-Ansicht.",
   "analyticsSelectDayPrompt": "Wähle einen Tag aus, um die Anzahl der Einheiten zu sehen.",
   "analyticsSelectedDayWorkouts": "{date}: {count} Einheiten",
@@ -1429,7 +1472,7 @@
   },
   "analyticsPeriodLabel": "Zeitraum",
   "analyticsEquivalentSetsExplainer": "Äquivalente Arbeitssätze nutzen Primär x1.0 und Sekundär x0.3. Frequenz zählt nur Tage mit >= 1.0 äquivalenten Sätzen.",
-  "analyticsWeeklySetsByMuscle": "Wöchentliche Sätze je Muskel",
+  "analyticsWeeklySetsByMuscle": "Ø Wöchentliche Sätze je Muskel",
   "analyticsFrequencyByMuscle": "Frequenz je Muskel",
   "analyticsRecentDistributionHeatmap": "Aktuelle Verteilungs-Heatmap",
   "analyticsRadarOverviewTitle": "Radar-Überblick",
@@ -1437,7 +1480,7 @@
   "analyticsGuidanceTitle": "Hinweise",
   "analyticsGuidanceDirectionalDisclaimer": "Dies ist ein richtungsweisender Hinweis auf Basis deiner letzten Satzverteilung, keine absolute Diagnose.",
   "analyticsGuidanceSoftenedDisclaimer": "Hinweise werden bewusst abgeschwächt, bis genug Daten vorliegen.",
-  "analyticsWeekTotalEquivalentSets": "Wochensumme: {value} äquivalente Sätze",
+  "analyticsWeekTotalEquivalentSets": "Ø {value} äquivalente Sätze pro Woche",
   "@analyticsWeekTotalEquivalentSets": {
     "placeholders": {
       "value": {
@@ -1446,28 +1489,31 @@
     }
   },
   "analyticsFrequencyRuleFooter": "Frequenz zählt nur Tage, an denen der Muskel >= 1.0 äquivalente Sätze erreicht.",
-  "liveWorkoutE1rmCurrentSet": "e1RM {value} kg",
+  "liveWorkoutE1rmCurrentSet": "e1RM {value} {unit}",
   "@liveWorkoutE1rmCurrentSet": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmBestSession": "Beste e1RM in dieser Session: {value} kg",
+  "liveWorkoutE1rmBestSession": "Beste e1RM in dieser Session: {value} {unit}",
   "@liveWorkoutE1rmBestSession": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
-  "liveWorkoutE1rmVsLastSession": "vs letzte Session: {delta} kg",
+  "liveWorkoutE1rmVsLastSession": "vs letzte Session: {delta} {unit}",
   "@liveWorkoutE1rmVsLastSession": {
     "placeholders": {
       "delta": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "bodyNutritionCorrelationTitle": "Körper & Ernährung Trends",
@@ -1483,11 +1529,18 @@
   "analyticsLowConfidenceLabel": "Muster mit niedrigerer Verlässlichkeit",
   "analyticsObservedPatternLabel": "Beobachtetes Muster",
   "analyticsBodyNutritionTrendContext": "Gewicht und Kalorien im Zeitverlauf",
-  "analyticsBodyNutritionTrendContextHint": "Das Diagramm skaliert beide Reihen auf denselben Platz; Tooltips zeigen die Rohwerte in kg und kcal.",
-  "analyticsBodyNutritionNormalizedHint": "Das Diagramm skaliert Gewicht und Kalorien auf denselben Platz; Tooltips zeigen die Rohwerte in kg und kcal.",
-  "analyticsBodyNutritionTotalWeightLabel": "Gesamtgewicht (kg)",
+  "analyticsBodyNutritionTrendContextHint": "Das Diagramm skaliert beide Reihen auf denselben Platz; Tooltips zeigen die Rohwerte in {unit} und kcal.",
+  "analyticsBodyNutritionNormalizedHint": "Das Diagramm skaliert Gewicht und Kalorien auf denselben Platz; Tooltips zeigen die Rohwerte in {unit} und kcal.",
+  "analyticsBodyNutritionTotalWeightLabel": "Gesamtgewicht ({unit})",
   "analyticsBodyNutritionTotalCaloriesLabel": "Gesamtkalorien (kcal)",
-  "analyticsWeightTrendLabel": "Gewicht (kg)",
+  "analyticsWeightTrendLabel": "Gewicht ({unit})",
+  "@analyticsWeightTrendLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsCaloriesTrendLabel": "Kalorien (kcal)",
   "analyticsInterpretationTitle": "Interpretation",
   "analyticsBodyNutritionConfidenceHighHint": "Die Datenabdeckung in diesem Bereich ist stark genug für eine verlässlichere Muster-Einordnung.",
@@ -1532,6 +1585,9 @@
   "onboardingRestoreImporting": "Backup wird importiert...",
   "onboardingRestoreSuccess": "Backup erfolgreich wiederhergestellt!",
   "onboardingRestoreFailed": "Import fehlgeschlagen. Bitte prüfe die Datei und versuche es erneut.",
+  "onboardingRestoreFromICloud": "Von iCloud wiederherstellen",
+  "onboardingRestoreICloudSuccess": "iCloud-Backup erfolgreich wiederhergestellt!",
+  "onboardingRestoreICloudFailed": "iCloud-Wiederherstellung fehlgeschlagen. Bitte prüfe deine Verbindung und versuche es erneut.",
   "finishWorkoutTitleLabel": "Workout-Titel",
   "finishWorkoutNotesLabel": "Notizen (optional)",
   "finishWorkoutNotesHint": "Wie lief das Workout?",
@@ -1590,6 +1646,14 @@
   "sleepSettingsSectionTitle": "Schlaf",
   "sleepEnableTrackingTitle": "Schlaf-Tracking aktivieren",
   "sleepEnableTrackingSubtitle": "Schlaf- und nächtliche Herzfrequenzdaten aus Health Connect / HealthKit lesen",
+  "sleepDataStatusSubtitle": "Berechtigungen erteilt. Wenn noch kein Schlaf angezeigt wird, unten manuell importieren.",
+  "@sleepDataStatusSubtitle": {
+    "type": "text"
+  },
+  "sleepDataStatusSubtitleIos": "Verbindung aktiv. Prüfe bei fehlenden Daten (0 Sitzungen importiert) manuell die Lese-Berechtigungen in der Apple Health App.",
+  "@sleepDataStatusSubtitleIos": {
+    "type": "text"
+  },
   "sleepHealthConnectionStatusTitle": "Status der Gesundheitsverbindung",
   "sleepRequestAccessTitle": "Zugriff anfordern",
   "sleepRequestAccessSubtitle": "Schlaf-/Herzfrequenz-Berechtigungen anfordern oder erneut anfordern",
@@ -1598,10 +1662,6 @@
   "sleepRawImportsTitle": "Rohimporte anzeigen",
   "sleepRawImportsSubtitle": "Zeigt aktuelle Health-Connect-Payloads",
   "sleepDataStatusTitle": "Datenstatus",
-  "sleepDataStatusSubtitle": "Berechtigungen erteilt. Wenn noch kein Schlaf angezeigt wird, unten manuell importieren.",
-  "sleepNoPermissionTitle": "Keine Berechtigung",
-  "sleepNoPermissionSubtitle": "Schlaf- und Herzfrequenz-Berechtigungen sind für den Import erforderlich.",
-  "sleepFeatureUnavailableTitle": "Funktion nicht verfügbar",
   "sleepFeatureUnavailableSubtitle": "Der Schlafimport ist auf diesem Gerät nicht verfügbar oder Health Connect ist nicht installiert.",
   "sleepNoRawImportsFound": "Es wurden noch keine Schlaf-Rohimporte gefunden.",
   "sleepRawImportsSheetTitle": "Schlaf-Rohimporte (neueste)",
@@ -1771,18 +1831,21 @@
   "sleepRawImportApp": "App",
   "sleepRawImportConfidence": "Vertrauen",
   "sleepRawImportPayload": "Payload",
+  "sleepNoPermissionSubtitle": "Schlaf- und Pulsberechtigung sind notwendig um Schlafdaten zu importieren.",
+  "sleepFeatureUnavailableTitle": "Funktion nicht verfügbar",
   "adaptiveBodyweightTargetSectionTitle": "Adaptives Körperziel",
   "adaptiveRecommendationSettingsSectionTitle": "Empfehlungs-Einstellungen",
   "adaptiveGoalDirectionLabel": "Zielrichtung",
   "adaptiveGoalLose": "Abnehmen",
   "adaptiveGoalMaintain": "Gewicht halten",
   "adaptiveGoalGain": "Zunehmen",
-  "adaptiveRatePerWeek": "{value} kg/Woche",
+  "adaptiveRatePerWeek": "{value} {unit}/Woche",
   "@adaptiveRatePerWeek": {
     "placeholders": {
       "value": {
         "type": "String"
-      }
+      },
+      "unit": {}
     }
   },
   "adaptivePriorActivityLabel": "Alltagsaktivität (Basis)",
@@ -2011,10 +2074,20 @@
   "adaptiveRecommendationMacroTargetsLabel": "Empfohlene Ziele",
   "adaptiveRecommendationTargetCaloriesLabel": "Ziel-kcal",
   "adaptiveRecommendationDataQualityLabel": "Datenqualität",
+  "adaptiveRecommendationEnergyDensityLabel": "Effektive Energiedichte",
+  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
+  "@adaptiveRecommendationEnergyDensityValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveRecommendationEnergyDensityExplanation": "Dynamischer Wert basierend auf Gewichts- und Wasserverlust-Ratio",
   "adaptiveRecommendationRecalculateNowAction": "Jetzt neu berechnen",
   "adaptiveRecommendationRecalculating": "Wird neu berechnet...",
   "adaptiveRecommendationApplying": "Wird angewendet...",
-  "adaptiveRecommendationApplyAction": "Empfehlung auf aktive Ziele anwenden",
+  "adaptiveRecommendationApplyAction": "Empfehlung anwenden",
   "adaptiveRecommendationWarningCalorieFloor": "Empfehlung wurde durch ein Mindest-Kalorien-Sicherheitslimit begrenzt. Bitte Profil und aktuelle Logs vor dem Anwenden prüfen.",
   "adaptiveRecommendationWarningUnresolvedFood": "Einige Ernährungseinträge konnten kalorisch nicht vollständig aufgelöst werden. Bitte prüfe deine letzten Logs vor dem Anwenden.",
   "adaptiveRecommendationWarningLargeAdjustment": "Große Anpassung erkannt. Bitte prüfe vor dem Anwenden die Vollständigkeit deiner letzten Logs.",
@@ -2036,6 +2109,8 @@
   "settingsAppearanceSubtitle": "Design, Stil und Haptik anpassen",
   "settingsShowSugarInDiaryOverviewTitle": "Zucker in Tagebuch-Übersicht anzeigen",
   "settingsShowSugarInDiaryOverviewSubtitle": "Blendet Zucker in der oberen Tagesübersicht ein",
+  "settingsOverviewExtraNutrientTitle": "Zusätzlicher Nährstoff in der Übersicht",
+  "settingsOverviewExtraNutrientSubtitle": "Füge ein drittes Nährstoff-Feld zur Tagesübersicht hinzu",
   "settingsSectionHealthTracking": "Gesundheit & Tracking",
   "settingsStepsSubtitle": "Tracking, Quellenrichtlinie und Provider",
   "settingsSleepSubtitle": "Import, Berechtigungen und Schlafstatus",
@@ -2192,11 +2267,33 @@
   "health_permission_continue": "Fortfahren",
   "health_permission_not_now": "Jetzt nicht",
   "welcome_privacy_title": "Willkommen & Datenschutz",
-  "welcome_privacy_body": "Durch die Nutzung von Train Libre erklärst du dich mit der Verarbeitung deiner Daten einverstanden, wie sie in der Datenschutzerklärung und im Impressum beschrieben ist.",
-  "i_agree_to_privacy_policy": "Ich habe die Datenschutzerklärung gelesen und stimme der Verarbeitung meiner Gesundheitsdaten zu.",
+  "welcome_privacy_body": "Um Workout-Tracking und Trainingsanalysen bereitzustellen, verarbeiten wir deine Fitness- und Aktivitätsdaten wie in unserer Datenschutzerklärung beschrieben.",
+  "i_agree_to_privacy_policy": "Ich willige ausdrücklich in die Verarbeitung meiner Fitness- und Gesundheitsdaten für Workout-Tracking und Trainingsanalysen ein. Ich kann meine Einwilligung jederzeit in den Einstellungen widerrufen.",
+  "i_agree_to_optional_telemetry": "(Optional) Ich möchte anonyme Nutzungsstatistiken teilen, um die App-Stabilität und Features zu verbessern (keine persönlichen Daten).",
+  "welcome_back_updated_legal_title": "Willkommen zurück & Aktualisierte Richtlinien",
+  "legal_update_body": "Wir haben unsere Datenschutzerklärung und Nutzungsbedingungen aktualisiert (Version {version}). Um Train Libre weiterhin zu nutzen, bestätige bitte die aktualisierten Datenschutz-Bestimmungen. Deine bisherigen Daten bleiben vollständig auf deinem Gerät erhalten.",
+  "@legal_update_body": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "i_agree_to_updated_privacy_policy": "Ich willige in die aktualisierte Datenschutzerklärung (v{version}) und die Verarbeitung meiner Fitness- und Gesundheitsdaten ein.",
+  "@i_agree_to_updated_privacy_policy": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "accept_and_continue": "Akzeptieren & Weiter",
+  "by_tapping_accept_continue": "Mit dem Tippen auf \"Akzeptieren & Weiter\" stimmst du den aktualisierten",
   "acceptTermsPrompt": "Ich akzeptiere die Nutzungsbedingungen",
   "viewTermsInline": "Nutzungsbedingungen",
   "accept_and_get_started": "Akzeptieren & Loslegen",
+  "by_tapping_accept": "Mit dem Tippen auf \"Akzeptieren & Loslegen\" stimmst du unseren",
+  "and_acknowledge": "zu und nimmst unsere",
   "about_section": "Über",
   "legal_section": "Rechtliches",
   "aiSettingsInstructionTitle": "Wie die KI-Mahlzeitenerkennung funktioniert",
@@ -2212,8 +2309,10 @@
   "muscleBiceps": "Bizeps",
   "muscleTriceps": "Trizeps",
   "muscleQuads": "Quadrizeps",
-  "muscleHamstrings": "Beinbeuger",
-  "muscleGlutes": "Glutes",
+  "muscleHamstrings": "Oberschenkelrückseite",
+  "muscleLegs": "Beine",
+  "muscleArms": "Arme",
+  "muscleGlutes": "Gesäß",
   "muscleCalves": "Waden",
   "muscleLowerBack": "Unterer Rücken",
   "muscleAbs": "Bauch",
@@ -2429,6 +2528,74 @@
   "wgerPlaceholderText": "Der Übungskatalog erfordert das Herunterladen der lokalen Übungsdatenbank.",
   "onboardingRegionTitle": "Region auswählen",
   "onboardingRegionExplanation": "Wähle das Land aus, in dem du deine Lebensmittel kaufst. Dies stellt sicher, dass wir die richtige Open Food Facts-Datenbank für deine lokalen Produkte herunterladen.",
-  "onboardingRegionSettingsHint": "Du kannst dies später jederzeit unter Einstellungen → Ernährung → Datenbank-Region ändern."
+  "onboardingRegionSettingsHint": "Du kannst dies später jederzeit unter Einstellungen → Ernährung → Datenbank-Region ändern.",
+  "clearSearch": "Suche leeren",
+  "rollingDaysLabel": "Letzte {days} Tage (rollierend)",
+  "@rollingDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "muscleTraps": "Nacken",
+  "muscleObliques": "Seitliche Bauchmuskeln",
+  "@kgLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@cardioDistanceLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@analyticsBodyNutritionTrendContextHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionNormalizedHint": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "@analyticsBodyNutritionTotalWeightLabel": {
+    "placeholders": {
+      "unit": {}
+    }
+  },
+  "icloudSyncErrorTitle": "iCloud-Synchronisierung fehlgeschlagen",
+  "icloudSyncErrorHelp": "Bitte stelle sicher, dass iCloud Drive in den iOS-Systemeinstellungen unter Einstellungen -> [Dein Name] -> iCloud -> iCloud Drive aktiviert ist.",
+  "icloudSyncErrorCopyLog": "Technisches Fehlerprotokoll kopieren",
+  "icloudSyncErrorClose": "Schließen",
+  "icloudSyncErrorCopied": "Fehlerprotokoll in die Zwischenablage kopiert!",
+  "icloudLastSynced": "Letztes Backup: {date}",
+  "icloudNeverSynced": "Noch nie synchronisiert",
+  "emptyStateDiaryColdStartTitle": "Willkommen im Tagebuch!",
+  "emptyStateDiaryColdStartSubtitle": "Hier behältst du den Überblick über deine Ernährung und Flüssigkeitszufuhr.",
+  "emptyStateActiveGapOverlay": "Keine Daten für diesen Zeitraum verfügbar",
+  "emptyStateDiaryColdStartCallToAction": "Trage hier deinen ersten Eintrag ein",
+  "statisticsColdStartTitle": "Willkommen in deinen Statistiken!",
+  "statisticsColdStartSubtitle": "Hier wird dein Fortschritt visualisiert, sobald du deine ersten Workouts, Mahlzeiten oder Schritte und Schlaf trackst.",
+  "statisticsActiveGapTitle": "Keine Daten verfügbar",
+  "reviewPromptTitle": "Gefällt dir Train Libre?",
+  "reviewPromptSubtitle": "Dein Feedback hilft uns sehr, die App ohne Werbung oder Tracker weiterzuverbessern.",
+  "reviewPromptYes": "Ja, gefällt mir",
+  "reviewPromptNo": "Nein, nicht wirklich",
+  "reviewPromptLater": "Erinnere mich später",
+  "updateAvailableTitle": "Update verfügbar",
+  "statusReady": "Bereit",
+  "statusRequired": "Erforderlich",
+  "updatesAvailableBody": "Neue Updates für deine lokalen Kataloge sind verfügbar. Möchtest du sie jetzt aktualisieren?",
+  "exerciseCatalogWger": "Übungskatalog (wger)",
+  "nutritionCatalogOff": "Nährwertkatalog (OFF)",
+  "workoutImportZeroNew": "0 neue Workouts importiert (alle existierten bereits).",
+  "telemetryDeleteDialogTitle": "Telemetrie-Daten löschen?",
+  "telemetryDeleteDialogBody": "Möchtest du deine bisherigen Telemetrie-Daten wirklich löschen?\n\nFolgendes passiert dabei:\n• Alle auf diesem Gerät gespeicherten Geräte-UUIDs, Session-IDs und lokalen Zähler werden zurückgesetzt.\n• Es wird ein Löschauftrag ($delete_person) an die PostHog-Server in der EU gesendet, um deine bisherigen Daten dort zu entfernen.\n• Das Telemetrie-SDK wird vollständig zurückgesetzt.",
+  "telemetryDeleteConfirmButton": "Daten jetzt löschen"
 }
-

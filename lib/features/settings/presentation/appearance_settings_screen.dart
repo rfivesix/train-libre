@@ -46,7 +46,8 @@ class AppearanceSettingsScreen extends StatelessWidget {
                           decoration: InputDecoration(
                             labelText: l10n.settingsAppearance,
                             border: const OutlineInputBorder(),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: DesignConstants.spacingM,
                               vertical: DesignConstants.spacingS,
                             ),
                           ),
@@ -91,18 +92,6 @@ class AppearanceSettingsScreen extends StatelessWidget {
                   subtitle: Text(l10n.settingsHapticFeedbackSubtitle),
                   value: themeService.hapticsEnabled,
                   onChanged: (value) => themeService.setHapticsEnabled(value),
-                ),
-                const Divider(height: 1),
-                PlatformAdaptiveSwitchListTile(
-                  secondary: const Icon(LucideIcons.layers),
-                  title: Text(
-                    l10n.settingsColorfulMacroBadgesTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(l10n.settingsColorfulMacroBadgesSubtitle),
-                  value: themeService.useColorfulMacroBadges,
-                  onChanged: (value) =>
-                      themeService.setUseColorfulMacroBadges(value),
                 ),
               ],
             ),

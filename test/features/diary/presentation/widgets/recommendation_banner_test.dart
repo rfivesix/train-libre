@@ -15,7 +15,6 @@ import 'package:train_libre/features/nutrition_recommendation/domain/adaptive_re
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -34,7 +33,7 @@ void main() {
         repository: repository,
         databaseHelper: dbHelper,
       );
-      
+
       // Save user profile first so saveUserGoals doesn't return early
       await dbHelper.saveUserProfile(
         name: 'Jordan',
@@ -69,7 +68,8 @@ void main() {
       );
     }
 
-    NutritionRecommendation createRecommendation({required int calories, required String dueWeekKey}) {
+    NutritionRecommendation createRecommendation(
+        {required int calories, required String dueWeekKey}) {
       return NutritionRecommendation(
         recommendedCalories: calories,
         recommendedProteinGrams: 180,
@@ -130,7 +130,7 @@ void main() {
     testWidgets('renders positive calorie delta correctly', (tester) async {
       final rec = createRecommendation(calories: 2600, dueWeekKey: '2026-W22');
       final est = createEstimate(dueWeekKey: '2026-W22');
-      
+
       await repository.saveLatestRecommendationSnapshot(
         snapshot: AdaptiveRecommendationSnapshot(
           recommendation: rec,
@@ -150,14 +150,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(LucideIcons.lightbulb), findsOneWidget);
-      expect(find.textContaining('New targets available (+200 kcal).'), findsOneWidget);
+      expect(find.textContaining('New targets available (+200 kcal).'),
+          findsOneWidget);
       expect(find.text('Apply'), findsOneWidget);
     });
 
     testWidgets('renders negative calorie delta correctly', (tester) async {
       final rec = createRecommendation(calories: 2280, dueWeekKey: '2026-W22');
       final est = createEstimate(dueWeekKey: '2026-W22');
-      
+
       await repository.saveLatestRecommendationSnapshot(
         snapshot: AdaptiveRecommendationSnapshot(
           recommendation: rec,
@@ -177,14 +178,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(LucideIcons.lightbulb), findsOneWidget);
-      expect(find.textContaining('New targets available (-120 kcal).'), findsOneWidget);
+      expect(find.textContaining('New targets available (-120 kcal).'),
+          findsOneWidget);
       expect(find.text('Apply'), findsOneWidget);
     });
 
-    testWidgets('Apply button updates database targets and collapses banner', (tester) async {
+    testWidgets('Apply button updates database targets and collapses banner',
+        (tester) async {
       final rec = createRecommendation(calories: 2600, dueWeekKey: '2026-W22');
       final est = createEstimate(dueWeekKey: '2026-W22');
-      
+
       await repository.saveLatestRecommendationSnapshot(
         snapshot: AdaptiveRecommendationSnapshot(
           recommendation: rec,
@@ -224,10 +227,12 @@ void main() {
       expect(activeGoals?.targetFat, 75);
     });
 
-    testWidgets('dismissal is version-locked to recommendation dueWeekKey', (tester) async {
-      final rec22 = createRecommendation(calories: 2600, dueWeekKey: '2026-W22');
+    testWidgets('dismissal is version-locked to recommendation dueWeekKey',
+        (tester) async {
+      final rec22 =
+          createRecommendation(calories: 2600, dueWeekKey: '2026-W22');
       final est22 = createEstimate(dueWeekKey: '2026-W22');
-      
+
       await repository.saveLatestRecommendationSnapshot(
         snapshot: AdaptiveRecommendationSnapshot(
           recommendation: rec22,
@@ -260,9 +265,10 @@ void main() {
       expect(prefs.getBool('dismissed_tdee_banner_2026-W22'), isTrue);
 
       // Save a new recommendation for W23
-      final rec23 = createRecommendation(calories: 2700, dueWeekKey: '2026-W23');
+      final rec23 =
+          createRecommendation(calories: 2700, dueWeekKey: '2026-W23');
       final est23 = createEstimate(dueWeekKey: '2026-W23');
-      
+
       await repository.saveLatestRecommendationSnapshot(
         snapshot: AdaptiveRecommendationSnapshot(
           recommendation: rec23,
@@ -284,7 +290,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(LucideIcons.lightbulb), findsOneWidget);
-      expect(find.textContaining('New targets available (+300 kcal).'), findsOneWidget);
+      expect(find.textContaining('New targets available (+300 kcal).'),
+          findsOneWidget);
     });
   });
 }

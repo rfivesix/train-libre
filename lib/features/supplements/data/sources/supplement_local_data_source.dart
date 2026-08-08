@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:drift/drift.dart' as drift;
+import '../../../../services/telemetry/telemetry_service.dart';
 import '../../../../data/drift_database.dart' as db;
 import '../../../../data/database_helper.dart';
 import '../../domain/models/supplement.dart';
@@ -328,6 +330,8 @@ class SupplementLocalDataSource {
   }
 
   Future<void> insertSupplementLog(SupplementLog log) async {
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.supplementLogged));
     String? sourceNutritionLogUuid;
     if (log.sourceFoodEntryId != null) {
       final nutritionRow = await (dbInstance.select(dbInstance.nutritionLogs)
@@ -370,7 +374,8 @@ class SupplementLocalDataSource {
     if (fluidLog != null) {
       if (fluidLog.linkedNutritionLogId != null) {
         await (dbInstance.delete(dbInstance.supplementLogs)
-              ..where((tbl) => tbl.sourceNutritionLogId.equals(fluidLog.linkedNutritionLogId!)))
+              ..where((tbl) => tbl.sourceNutritionLogId
+                  .equals(fluidLog.linkedNutritionLogId!)))
             .go();
       } else {
         await (dbInstance.delete(dbInstance.supplementLogs)
@@ -380,13 +385,11 @@ class SupplementLocalDataSource {
     }
   }
 
-  Future<void> updateSupplementLog(SupplementLog log) async {
-    if (log.id == null) return;
+  Future<void> updateSupplementLog(db.SupplementLogsCompanion entry) async {
+    final id = entry.localId.value;
     await (dbInstance.update(dbInstance.supplementLogs)
-          ..where((tbl) => tbl.localId.equals(log.id!)))
-        .write(db.SupplementLogsCompanion(
-            amount: drift.Value(log.dose),
-            takenAt: drift.Value(log.timestamp)));
+          ..where((tbl) => tbl.localId.equals(id)))
+        .write(entry);
   }
 
   Future<void> deleteSupplementLog(int logId) async {
@@ -404,12 +407,6 @@ class SupplementLocalDataSource {
           db.SupplementsCompanion.insert(
               name: 'Creatine',
               dose: 5.0,
-              unit: 'g',
-              createdAt: drift.Value(now),
-              updatedAt: drift.Value(now)),
-          db.SupplementsCompanion.insert(
-              name: 'Protein',
-              dose: 30.0,
               unit: 'g',
               createdAt: drift.Value(now),
               updatedAt: drift.Value(now)),

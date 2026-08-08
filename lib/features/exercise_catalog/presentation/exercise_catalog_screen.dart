@@ -8,15 +8,16 @@ import '../../../generated/app_localizations.dart';
 import '../domain/models/exercise.dart';
 import 'exercise_detail_screen.dart';
 import '../../../util/design_constants.dart';
-import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
-import 'widgets/wger_attribution_widget.dart';
 import 'create_exercise_screen.dart';
 import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../domain/body_slug_mapper.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A searchable list of all available exercises in the database.
 class ExerciseCatalogScreen extends StatefulWidget {
@@ -45,13 +46,14 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   bool _isLoading = true;
   final _searchController = TextEditingController();
   List<String> _allCategories = [];
-  List<String> _selectedCategories = [];
+  final List<String> _selectedCategories = [];
   Timer? _searchDebounce;
 
   bool _isWgerDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance.isExerciseCatalogInitialized();
+    final initialized =
+        await BasisDataManager.instance.isExerciseCatalogInitialized();
     if (mounted) {
       setState(() {
         _isWgerDbInitialized = initialized;
@@ -65,10 +67,13 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.exerciseCatalog));
     _searchController.addListener(_onSearchChanged);
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance
+          .promptOffDatabaseDownloadIfFirstTime(context);
       await _checkDbStatus();
     });
   }
@@ -108,77 +113,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     }
   }
 
-  void _showFilterDialog(BuildContext context, AppLocalizations l10n) {
-    showGlassBottomMenu(
-      context: context,
-      title: l10n.filterByCategory,
-      contentBuilder: (ctx, close) {
-        List<String> tempSelected = List.from(_selectedCategories);
 
-        return StatefulBuilder(
-          builder: (context, setStateSB) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 400),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _allCategories.length,
-                    itemBuilder: (context, index) {
-                      final category = _allCategories[index];
-                      final isSelected = tempSelected.contains(category);
-                      return CheckboxListTile(
-                        title: Text(category),
-                        value: isSelected,
-                        activeColor: Theme.of(context).colorScheme.primary,
-                        checkColor: Theme.of(context).colorScheme.onPrimary,
-                        onChanged: (bool? value) {
-                          setStateSB(() {
-                            if (value == true) {
-                              tempSelected.add(category);
-                            } else {
-                              tempSelected.remove(category);
-                            }
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: DesignConstants.spacingL),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          close();
-                        },
-                        child: Text(l10n.cancel),
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedCategories = tempSelected;
-                          });
-                          _runFilter(_searchController.text);
-                          close();
-                        },
-                        child: Text(l10n.doneButtonLabel),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +129,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           body: l10n.wgerPlaceholderText,
           icon: LucideIcons.dumbbell,
           onDownloadPressed: () async {
-            await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+            await BasisDataManager.instance
+                .promptOffDatabaseDownloadIfFirstTime(context);
             await _checkDbStatus();
           },
         ),
@@ -224,7 +160,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           Column(
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: DesignConstants.spacingL,
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
                   right: DesignConstants.spacingL,
                   top: DesignConstants.spacingS,
                   bottom: DesignConstants.spacingS,
@@ -246,6 +183,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                               ),
                               suffixIcon: _searchController.text.isNotEmpty
                                   ? IconButton(
+                                      tooltip: l10n.clearSearch,
                                       icon: Icon(
                                         LucideIcons.x,
                                         color: colorScheme.onSurfaceVariant,
@@ -280,14 +218,14 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                             ),
                           )
                         : ListView.builder(
-                            scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
+                            scrollCacheExtent:
+                                const ScrollCacheExtent.pixels(1500.0),
                             padding: DesignConstants.cardPadding,
                             itemCount: _foundExercises.length,
                             itemBuilder: (context, index) {
                               final exercise = _foundExercises[index];
                               return SummaryCard(
                                 child: ListTile(
-                                  leading: const Icon(LucideIcons.dumbbell),
                                   title: Row(
                                     children: [
                                       Expanded(
@@ -298,15 +236,22 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                         ),
                                       ),
                                       if (exercise.source == 'user') ...[
-                                        const SizedBox(width: DesignConstants.spacingS),
+                                        const SizedBox(
+                                            width: DesignConstants.spacingS),
                                         _buildSourceBadge(
                                             context, exercise.source),
                                       ],
                                     ],
                                   ),
-                                  subtitle: Text(exercise.categoryName),
+                                  subtitle: Text(
+                                    BodySlugMapper.localize(
+                                      context,
+                                      exercise.categoryName,
+                                    ),
+                                  ),
                                   trailing: widget.isSelectionMode
                                       ? IconButton(
+                                          tooltip: l10n.add_button,
                                           icon: Icon(
                                             LucideIcons.circle_plus,
                                             color: colorScheme.primary,
@@ -330,7 +275,11 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                   exercise: exercise,
                                                   repository: _repository),
                                         ),
-                                      );
+                                      ).then((result) {
+                                        if (result == 'deleted') {
+                                          _runFilter(_searchController.text);
+                                        }
+                                      });
                                     }
                                   },
                                 ),
@@ -340,22 +289,17 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
               ),
             ],
           ),
-          // Wger attribution — pinned just above the safe area bottom
           Positioned(
-            bottom: 8.0 + MediaQuery.paddingOf(context).bottom / 2,
+            bottom: 0,
             left: 0,
             right: 0,
-            child: RepaintBoundary(
-              child: WgerAttributionWidget(
-                textStyle: textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      offset: const Offset(1, 1),
-                      blurRadius: 4.0,
-                    ),
-                  ],
+            height: DesignConstants.bottomVignetteHeight,
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: DesignConstants.bottomVignetteGradient(
+                    Theme.of(context).brightness == Brightness.dark,
+                  ),
                 ),
               ),
             ),
@@ -392,31 +336,46 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         ? colorScheme.primary
         : (theme.inputDecorationTheme.fillColor ??
             (theme.brightness == Brightness.dark
-                ? const Color(0xFF1C1C1C)
+                ? const Color(0xFF2C2C2E)
                 : const Color(0xFFF3F3F3)));
 
     final iconColor =
         hasFilter ? colorScheme.onPrimary : colorScheme.onSurfaceVariant;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      height: 48,
-      width: 48,
-      decoration: BoxDecoration(
-        color: fillColor,
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-      ),
-      child: IconButton(
-        icon: Icon(
-          LucideIcons.list_filter,
-          color: iconColor,
-          size: 22,
+    return PlatformAdaptivePopupMenu<String>(
+      icon: Container(
+        height: 48,
+        width: 48,
+        decoration: BoxDecoration(
+          color: fillColor,
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         ),
-        onPressed: () => _showFilterDialog(context, l10n),
-        tooltip: l10n.filterByCategory,
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(),
+        child: Center(
+          child: Icon(
+            LucideIcons.list_filter,
+            color: iconColor,
+            size: 22,
+          ),
+        ),
       ),
+      items: _allCategories.map((category) {
+        final isSelected = _selectedCategories.contains(category);
+        return PlatformAdaptivePopupMenuItem<String>(
+          value: category,
+          label: BodySlugMapper.localize(context, category),
+          icon: isSelected ? LucideIcons.check : null,
+        );
+      }).toList(),
+      onSelected: (value) {
+        setState(() {
+          if (_selectedCategories.contains(value)) {
+            _selectedCategories.remove(value);
+          } else {
+            _selectedCategories.add(value);
+          }
+        });
+        _runFilter(_searchController.text);
+      },
     );
   }
 
@@ -425,7 +384,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     const color = Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),

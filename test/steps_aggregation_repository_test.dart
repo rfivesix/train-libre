@@ -22,7 +22,8 @@ void main() {
       },
     );
 
-    test('watchDayAggregation returns stream that emits initial aggregation', () async {
+    test('watchDayAggregation returns stream that emits initial aggregation',
+        () async {
       final targetDate = DateTime(2026, 3, 26, 14, 30);
       final stream = repository.watchDayAggregation(targetDate);
       final day = await stream.first;

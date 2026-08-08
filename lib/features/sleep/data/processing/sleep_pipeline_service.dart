@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -370,10 +372,12 @@ class SleepPipelineService {
         .toList(growable: false);
 
     // Filter out lookback sessions that are being replaced by the incoming batch
-    final activeLookbackSessions = params.lookbackSessions.map(_toDomainSession).where((existing) {
-      final hasIdMatch = mapped.sessions.any((incoming) => incoming.id == existing.id);
+    final activeLookbackSessions =
+        params.lookbackSessions.map(_toDomainSession).where((existing) {
+      final hasIdMatch =
+          mapped.sessions.any((incoming) => incoming.id == existing.id);
       if (hasIdMatch) return false;
-      
+
       final hasOverlap = mapped.sessions.any((incoming) =>
           incoming.startAtUtc.isBefore(existing.endAtUtc) &&
           incoming.endAtUtc.isAfter(existing.startAtUtc));
@@ -395,7 +399,8 @@ class SleepPipelineService {
       final nightSessions = entry.value;
       if (nightSessions.isEmpty) continue;
 
-      final hasMain = nightSessions.any((s) => s.endAtUtc.difference(s.startAtUtc) >= const Duration(hours: 3));
+      final hasMain = nightSessions.any((s) =>
+          s.endAtUtc.difference(s.startAtUtc) >= const Duration(hours: 3));
       if (!hasMain) {
         nightSessions.sort((a, b) {
           final durA = a.endAtUtc.difference(a.startAtUtc);
@@ -429,7 +434,8 @@ class SleepPipelineService {
             sourceRecordHash: session.sourceRecordHash ??
                 _hashRecord('session:${session.id}'),
             normalizationVersion: normalizationVersion,
-            sessionType: (classifications[session.id] ?? SleepSessionType.unknown).name,
+            sessionType:
+                (classifications[session.id] ?? SleepSessionType.unknown).name,
             startedAt: session.startAtUtc,
             endedAt: session.endAtUtc,
             timezone: null,
@@ -506,7 +512,8 @@ class SleepPipelineService {
         )
         .toList(growable: false);
 
-    final activeLookbackSessionsRecords = params.lookbackSessions.where((dbSession) {
+    final activeLookbackSessionsRecords =
+        params.lookbackSessions.where((dbSession) {
       return activeLookbackSessions.any((s) => s.id == dbSession.id);
     }).toList();
 
@@ -522,9 +529,10 @@ class SleepPipelineService {
       lookbackSessions: activeLookbackSessionsRecords,
     );
 
-    final targetNights = mapped.sessions.map((s) => _nightKey(s.endAtUtc.toLocal())).toSet();
+    final targetNights =
+        mapped.sessions.map((s) => _nightKey(s.endAtUtc.toLocal())).toSet();
     final analysisRows = <SleepNightlyAnalysisCompanion>[];
-    
+
     final lookbackSegmentsBySession = <String, List<SleepStageSegment>>{};
     for (final row in params.lookbackSegments) {
       lookbackSegmentsBySession
@@ -563,7 +571,8 @@ class SleepPipelineService {
               : hr.fold<double>(0, (sum, item) => sum + item.bpm) / hr.length;
         } else {
           segments = lookbackSegmentsBySession[s.id] ?? const [];
-          final matches = params.lookbackAnalyses.where((a) => a.sessionId == s.id);
+          final matches =
+              params.lookbackAnalyses.where((a) => a.sessionId == s.id);
           final existingAnalysis = matches.isNotEmpty ? matches.first : null;
           avgHr = existingAnalysis?.restingHeartRateBpm;
         }
@@ -596,10 +605,16 @@ class SleepPipelineService {
         combinedWasoMinutes += m.wakeAfterSleepOnset.inMinutes;
         combinedInterruptionsCount += m.interruptionsCount;
 
-        combinedLightSeconds += m.stageDurations[CanonicalSleepStage.light]?.inSeconds ?? 0;
-        combinedDeepSeconds += m.stageDurations[CanonicalSleepStage.deep]?.inSeconds ?? 0;
-        combinedRemSeconds += m.stageDurations[CanonicalSleepStage.rem]?.inSeconds ?? 0;
-        combinedAsleepUnspecifiedSeconds += m.stageDurations[CanonicalSleepStage.asleepUnspecified]?.inSeconds ?? 0;
+        combinedLightSeconds +=
+            m.stageDurations[CanonicalSleepStage.light]?.inSeconds ?? 0;
+        combinedDeepSeconds +=
+            m.stageDurations[CanonicalSleepStage.deep]?.inSeconds ?? 0;
+        combinedRemSeconds +=
+            m.stageDurations[CanonicalSleepStage.rem]?.inSeconds ?? 0;
+        combinedAsleepUnspecifiedSeconds += m
+                .stageDurations[CanonicalSleepStage.asleepUnspecified]
+                ?.inSeconds ??
+            0;
       }
 
       bool hasLight = false;
@@ -609,10 +624,14 @@ class SleepPipelineService {
 
       for (final s in nightSessions) {
         final m = sessionMetrics[s.id]!;
-        if (m.stageDurations.containsKey(CanonicalSleepStage.light)) hasLight = true;
-        if (m.stageDurations.containsKey(CanonicalSleepStage.deep)) hasDeep = true;
-        if (m.stageDurations.containsKey(CanonicalSleepStage.rem)) hasRem = true;
-        if (m.stageDurations.containsKey(CanonicalSleepStage.asleepUnspecified)) hasUnspecified = true;
+        if (m.stageDurations.containsKey(CanonicalSleepStage.light))
+          hasLight = true;
+        if (m.stageDurations.containsKey(CanonicalSleepStage.deep))
+          hasDeep = true;
+        if (m.stageDurations.containsKey(CanonicalSleepStage.rem))
+          hasRem = true;
+        if (m.stageDurations.containsKey(CanonicalSleepStage.asleepUnspecified))
+          hasUnspecified = true;
       }
 
       final combinedSleepEfficiencyPct = combinedTimeInBedSeconds == 0
@@ -628,12 +647,15 @@ class SleepPipelineService {
       final combinedRemPct = !hasRem || combinedTotalSleepTimeSeconds == 0
           ? null
           : (combinedRemSeconds / combinedTotalSleepTimeSeconds) * 100.0;
-      final combinedAsleepUnspecifiedPct = !hasUnspecified || combinedTotalSleepTimeSeconds == 0
+      final combinedAsleepUnspecifiedPct = !hasUnspecified ||
+              combinedTotalSleepTimeSeconds == 0
           ? null
-          : (combinedAsleepUnspecifiedSeconds / combinedTotalSleepTimeSeconds) * 100.0;
+          : (combinedAsleepUnspecifiedSeconds / combinedTotalSleepTimeSeconds) *
+              100.0;
 
       final coreLocalStart = coreSession.startAtUtc.toLocal();
-      final coreSleepOnsetHourLocal = coreLocalStart.hour + (coreLocalStart.minute / 60.0);
+      final coreSleepOnsetHourLocal =
+          coreLocalStart.hour + (coreLocalStart.minute / 60.0);
 
       final regularityResult = regularityByNight[night];
 
@@ -648,7 +670,8 @@ class SleepPipelineService {
         deepSleepPct: combinedDeepPct,
         remSleepPct: combinedRemPct,
         asleepUnspecifiedPct: combinedAsleepUnspecifiedPct,
-        stageDataConfidence: _timelineConfidence(sessionRepairedSegments[coreSession.id] ?? const []),
+        stageDataConfidence: _timelineConfidence(
+            sessionRepairedSegments[coreSession.id] ?? const []),
         sourcePlatform: coreSession.sourcePlatform,
         sourceAppId: coreSession.sourceAppId,
         sleepOnsetHourLocal: coreSleepOnsetHourLocal,
@@ -667,7 +690,8 @@ class SleepPipelineService {
           sourcePlatform: coreSession.sourcePlatform,
           sourceAppId: coreSession.sourceAppId,
           sourceConfidence: coreSession.sourceConfidence,
-          sourceRecordHash: coreSession.sourceRecordHash ?? _hashRecord('analysis:${coreSession.id}'),
+          sourceRecordHash: coreSession.sourceRecordHash ??
+              _hashRecord('analysis:${coreSession.id}'),
           normalizationVersion: normalizationVersion,
           analysisVersion: analysisVersion,
           nightDate: night,
@@ -695,7 +719,8 @@ class SleepPipelineService {
             sourcePlatform: nap.sourcePlatform,
             sourceAppId: nap.sourceAppId,
             sourceConfidence: nap.sourceConfidence,
-            sourceRecordHash: nap.sourceRecordHash ?? _hashRecord('analysis:${nap.id}'),
+            sourceRecordHash:
+                nap.sourceRecordHash ?? _hashRecord('analysis:${nap.id}'),
             normalizationVersion: normalizationVersion,
             analysisVersion: analysisVersion,
             nightDate: night,
@@ -733,7 +758,8 @@ class SleepPipelineService {
       ..sort((a, b) => a.startAtUtc.compareTo(b.startAtUtc));
 
     final mergedSessions = <SleepSession>[];
-    final sessionIdMap = <String, String>{}; // Map from original sessionId to merged sessionId
+    final sessionIdMap =
+        <String, String>{}; // Map from original sessionId to merged sessionId
 
     var current = sorted.first;
     sessionIdMap[current.id] = current.id;
@@ -958,7 +984,7 @@ class SleepPipelineService {
     required List<SleepCanonicalSessionRecord> lookbackSessions,
   }) {
     if (targetSessions.isEmpty) return const {};
-    
+
     final targetNights = targetSessions
         .map((session) => _normalizeDay(session.endAtUtc.toLocal()))
         .toSet()
@@ -980,7 +1006,8 @@ class SleepPipelineService {
       final night = _nightKey(s.endAtUtc.toLocal());
       final existing = sessionsByNight[night];
       if (existing == null ||
-          s.endAtUtc.difference(s.startAtUtc) > existing.endAtUtc.difference(existing.startAtUtc)) {
+          s.endAtUtc.difference(s.startAtUtc) >
+              existing.endAtUtc.difference(existing.startAtUtc)) {
         sessionsByNight[night] = s;
       }
     }
@@ -991,7 +1018,7 @@ class SleepPipelineService {
 
     for (final night in targetNights) {
       final windowStart = night.subtract(const Duration(days: 14));
-      
+
       final windowSessions = coreSessionsList.where((s) {
         final d = _normalizeDay(s.endAtUtc.toLocal());
         return !d.isBefore(windowStart) && !d.isAfter(night);
@@ -1025,7 +1052,10 @@ class SleepPipelineService {
       }
 
       final mean = midSleeps.reduce((a, b) => a + b) / midSleeps.length;
-      final variance = midSleeps.map((ms) => math.pow(ms - mean, 2)).reduce((a, b) => a + b) / (midSleeps.length - 1);
+      final variance = midSleeps
+              .map((ms) => math.pow(ms - mean, 2))
+              .reduce((a, b) => a + b) /
+          (midSleeps.length - 1);
       byNight[_nightKey(night)] = math.sqrt(variance);
     }
 

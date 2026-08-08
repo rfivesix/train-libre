@@ -5,10 +5,12 @@ import '../../../generated/app_localizations.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../../../util/design_constants.dart';
 import '../../profile/presentation/widgets/measurement_chart_widget.dart';
-import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/value_summary_card.dart';
 import '../../sleep/presentation/widgets/sleep_period_scope_layout.dart';
 import '../data/pulse_repository.dart';
 import '../domain/pulse_models.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class PulseAnalysisScreen extends StatefulWidget {
   const PulseAnalysisScreen({
@@ -37,6 +39,8 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.pulseOverview));
     _repository = widget._repository ?? HealthPulseAnalysisRepository();
     _scope = widget.initialScope;
     final seed = widget.initialDate ?? DateTime.now();
@@ -102,14 +106,35 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
       anchorDate: _anchorDate,
       onScopeChanged: _onScopeChanged,
       onShiftPeriod: _shiftPeriod,
-      child: _isLoading
+      onAnchorChanged: (selection) {
+        final date = selection.anchorDate;
+        setState(() {
+          _anchorDate = date;
+        });
+        _loadAnalysis();
+      },
+      child: _summary == null
           ? const SizedBox(
               height: 240,
               child: Center(child: CircularProgressIndicator()),
             )
-          : _PulseAnalysisContent(
-              summary: _summary!,
-              scope: _scope,
+          : Stack(
+              children: [
+                _PulseAnalysisContent(
+                  summary: _summary!,
+                  scope: _scope,
+                ),
+                if (_isLoading)
+                  const Positioned(
+                    top: DesignConstants.spacingM,
+                    right: DesignConstants.screenPaddingHorizontal,
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+              ],
             ),
     );
   }
@@ -180,37 +205,46 @@ class _PulseAnalysisContent extends StatelessWidget {
       children: [
         _KpiCard(summary: summary),
         const SizedBox(height: DesignConstants.spacingM),
-        SummaryCard(
-          margin: EdgeInsets.zero,
-          padding: const EdgeInsets.all(DesignConstants.spacingL),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                copy.chartTitle,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.screenPaddingHorizontal,
+              ),
+              child: Text(
+                scope == SleepPeriodScope.day
+                    ? copy.chartTitle
+                    : copy.restingLabel,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
               ),
-              const SizedBox(height: DesignConstants.spacingS),
-              if (summary.canRenderChart)
-                MeasurementChartWidget.fromData(
-                  dataPoints: points,
-                  unit: l10n.sleepBpmUnit,
-                  axisMode: MeasurementChartAxisMode.time,
-                  valueFractionDigits: 0,
-                  valueLabelBuilder: (value, unit) => '${value.round()} $unit',
-                  selectedDateLabelBuilder: (value) =>
-                      scope == SleepPeriodScope.day
-                          ? timeFormatter.format(value)
-                          : DateFormat.MMMd(locale).add_Hm().format(value),
-                  axisLabelBuilder: (value, _) => scope == SleepPeriodScope.day
-                      ? timeFormatter.format(value)
-                      : DateFormat.MMMd(locale).format(value),
-                  emptyStateLabel: copy.noDataMessage(summary.noDataReason),
-                )
-              else
-                SizedBox(
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            if (summary.canRenderChart)
+              MeasurementChartWidget.fromData(
+                dataPoints: points,
+                unit: l10n.sleepBpmUnit,
+                axisMode: MeasurementChartAxisMode.time,
+                valueFractionDigits: 0,
+                valueLabelBuilder: (value, unit) => '${value.round()} $unit',
+                selectedDateLabelBuilder: (value) =>
+                    scope == SleepPeriodScope.day
+                        ? timeFormatter.format(value)
+                        : DateFormat.MMMd(locale).format(value),
+                axisLabelBuilder: (value, _) => scope == SleepPeriodScope.day
+                    ? timeFormatter.format(value)
+                    : DateFormat.MMMd(locale).format(value),
+                emptyStateLabel: copy.noDataMessage(summary.noDataReason),
+                edgeToEdge: true,
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.screenPaddingHorizontal,
+                ),
+                child: SizedBox(
                   height: 220,
                   child: Center(
                     child: Text(
@@ -222,22 +256,32 @@ class _PulseAnalysisContent extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(
+              ),
+            const SizedBox(height: DesignConstants.spacingS),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.screenPaddingHorizontal,
+              ),
+              child: Text(
                 '${copy.sampleCount(summary.sampleCount)} - ${copy.qualityLabel(summary.quality)}',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline,
                     ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        Text(
-          copy.methodNote,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.screenPaddingHorizontal,
+          ),
+          child: Text(
+            copy.methodNote,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+          ),
         ),
       ],
     );
@@ -249,68 +293,65 @@ class _KpiCard extends StatelessWidget {
 
   final PulseAnalysisSummary summary;
 
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i += 2) {
+      final left = items[i];
+      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
+            ],
+          ),
+        ),
+      );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
+  }
+
   @override
   Widget build(BuildContext context) {
     final copy = _PulseCopy(context);
     final l10n = AppLocalizations.of(context)!;
+
     final range = summary.minBpm == null || summary.maxBpm == null
         ? '--'
-        : '${summary.minBpm!.round()}-${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}';
-    final average = summary.averageBpm == null
-        ? '--'
-        : '${summary.averageBpm!.round()} ${l10n.sleepBpmUnit}';
-    final resting = summary.restingBpm == null
-        ? '--'
-        : '${summary.restingBpm!.round()} ${l10n.sleepBpmUnit}';
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _MetricTile(label: copy.rangeLabel, value: range),
-            _MetricTile(label: copy.averageLabel, value: average),
-            _MetricTile(label: copy.restingLabel, value: resting),
-          ],
+        : '${summary.minBpm!.round()}-${summary.maxBpm!.round()}';
+    final average =
+        summary.averageBpm == null ? '--' : '${summary.averageBpm!.round()}';
+    final resting =
+        summary.restingBpm == null ? '--' : '${summary.restingBpm!.round()}';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.screenPaddingHorizontal,
+      ),
+      child: _buildTwoColumnGrid([
+        ValueSummaryCard(
+          label: copy.rangeLabel,
+          value: summary.minBpm == null ? range : '$range ${l10n.sleepBpmUnit}',
         ),
-      ),
-    );
-  }
-}
-
-class _MetricTile extends StatelessWidget {
-  const _MetricTile({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
-      ),
+        ValueSummaryCard(
+          label: copy.averageLabel,
+          value: summary.averageBpm == null
+              ? average
+              : '$average ${l10n.sleepBpmUnit}',
+        ),
+        ValueSummaryCard(
+          label: copy.restingLabel,
+          value: summary.restingBpm == null
+              ? resting
+              : '$resting ${l10n.sleepBpmUnit}',
+        ),
+      ]),
     );
   }
 }

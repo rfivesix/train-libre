@@ -1,3 +1,5 @@
+import '../../../../generated/app_localizations.dart';
+import 'package:flutter/material.dart';
 // lib/features/exercise_catalog/domain/body_slug_mapper.dart
 
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
@@ -83,18 +85,26 @@ class BodySlugMapper {
   ///
   /// Returns an empty list when no mapping can be determined.
   static List<BodyPartSlug> fromRawName(String rawName) {
-    final cleaned = rawName.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
+    final cleaned =
+        rawName.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
 
     // Explicit manual mappings for specific muscle queries to bridge cleanly to visual slugs
-    if (cleaned == 'traps' || cleaned == 'trapezius' || cleaned == 'neck' || cleaned == 'lower neck') {
+    if (cleaned == 'traps' ||
+        cleaned == 'trapezius' ||
+        cleaned == 'neck' ||
+        cleaned == 'lower neck') {
       return [BodyPartSlug.trapezius];
     }
-    if (cleaned == 'lower back' || cleaned == 'erector spinae' ||
-        cleaned == 'erectors' || cleaned == 'spinal erectors') {
+    if (cleaned == 'lower back' ||
+        cleaned == 'erector spinae' ||
+        cleaned == 'erectors' ||
+        cleaned == 'spinal erectors') {
       return [BodyPartSlug.lowerBack];
     }
-    if (cleaned == 'adductor' || cleaned == 'adductors' ||
-        cleaned == 'hip adductor' || cleaned == 'hip adductors') {
+    if (cleaned == 'adductor' ||
+        cleaned == 'adductors' ||
+        cleaned == 'hip adductor' ||
+        cleaned == 'hip adductors') {
       return [BodyPartSlug.adductors];
     }
     if (cleaned == 'forearm' || cleaned == 'forearms') {
@@ -211,5 +221,54 @@ class BodySlugMapper {
       // If slug has no side mapping, show it on both views
       return slugSide == null || slugSide == side;
     }).toList(growable: false);
+  }
+
+  static String localize(BuildContext context, String rawName) {
+    final l10n = AppLocalizations.of(context)!;
+    final cleaned =
+        rawName.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
+
+    final canonical =
+        RecoveryDomainService.majorMuscleGroupFor(cleaned) ?? cleaned;
+
+    switch (canonical) {
+      case 'chest':
+        return l10n.muscleChest;
+      case 'back':
+        return l10n.muscleBack;
+      case 'shoulders':
+        return l10n.muscleShoulders;
+      case 'biceps':
+        return l10n.muscleBiceps;
+      case 'triceps':
+        return l10n.muscleTriceps;
+      case 'quads':
+        return l10n.muscleQuads;
+      case 'hamstrings':
+        return l10n.muscleHamstrings;
+      case 'legs':
+        return l10n.muscleLegs;
+      case 'arms':
+        return l10n.muscleArms;
+      case 'calves':
+        return l10n.muscleCalves;
+      case 'lower back':
+        return l10n.muscleLowerBack;
+      case 'abs':
+        return l10n.muscleAbs;
+      case 'adductors':
+        return l10n.muscleAdductors;
+      case 'forearms':
+        return l10n.muscleForearms;
+      case 'traps':
+      case 'trapezius':
+      case 'neck':
+        return l10n.muscleTraps;
+      case 'obliques':
+        return l10n.muscleObliques;
+      default:
+        if (rawName.isEmpty) return '';
+        return rawName[0].toUpperCase() + rawName.substring(1).toLowerCase();
+    }
   }
 }

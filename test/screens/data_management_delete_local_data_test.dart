@@ -6,6 +6,7 @@ import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/features/settings/presentation/data_management_screen.dart';
 import 'package:train_libre/services/local_app_data_reset_service.dart';
 import 'package:train_libre/services/theme_service.dart';
+import 'package:train_libre/widgets/common/app_button.dart';
 
 class _FakeResetter implements LocalAppDataResetter {
   int calls = 0;
@@ -79,7 +80,7 @@ void main() {
     expect(find.text('Delete all local app data?'), findsOneWidget);
     expect(
       tester
-          .widget<FilledButton>(
+          .widget<AppButton>(
             find.byKey(const Key('confirm_delete_local_data_button')),
           )
           .onPressed,

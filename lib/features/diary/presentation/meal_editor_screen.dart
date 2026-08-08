@@ -4,7 +4,9 @@ import '../../../util/design_constants.dart';
 import '../../../generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
-
+import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 enum MealType { breakfast, lunch, dinner, snack }
 
@@ -43,7 +45,6 @@ extension MealTypeTimeExtension on MealType {
   }
 }
 
-
 /// A screen for creating or editing the basic metadata of a meal.
 ///
 /// Allows users to specify a name and categorise the meal by [MealType].
@@ -75,6 +76,8 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.mealEditor));
     _nameCtrl = TextEditingController(text: widget.initialName ?? '');
     _type = widget.initialType;
     _nameCtrl.addListener(() => setState(() {})); // Update button state
@@ -96,11 +99,12 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
       await Future.delayed(const Duration(milliseconds: 150));
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
+      debugPrint('Error saving meal: $e');
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('${l10n.error}: $e')));
+      ).showSnackBar(SnackBar(content: Text(l10n.error)));
       setState(() => _saving = false);
     }
   }
@@ -113,16 +117,13 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
         title: Text(l10n.mealsEdit),
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 6),
-            child: ElevatedButton(
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingS, vertical: 6),
+            child: AppButton.primary(
               onPressed: _canSave ? _onSave : null,
-              child: _saving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.save),
+              label: l10n.save,
+              tooltip: l10n.save,
+              isLoading: _saving,
             ),
           ),
         ],
@@ -158,6 +159,7 @@ class _MealEditorScreenState extends State<MealEditorScreen> {
               title: Text(l10n.mealIngredientsTitle),
               subtitle: Text(l10n.mealEditorNoIngredientsYet),
               trailing: IconButton(
+                tooltip: l10n.add_button,
                 icon: const Icon(LucideIcons.plus),
                 onPressed: () {
                   // Later: open product picker

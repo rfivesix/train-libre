@@ -8,14 +8,14 @@ import 'analytics_card_base.dart';
 
 class PerformanceSectionCard extends StatelessWidget {
   final SectionLoadState<PerformanceRecordsSectionData> state;
-  final String chipText;
+  final String? chipText;
   final VoidCallback onRetry;
   final VoidCallback onTap;
 
   const PerformanceSectionCard({
     super.key,
     required this.state,
-    required this.chipText,
+    this.chipText,
     required this.onRetry,
     required this.onTap,
   });
@@ -26,14 +26,7 @@ class PerformanceSectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.performanceRecords;
     final title = l10n.exerciseAnalyticsTitle;
 
-    if (state.isLoading && !state.hasData) {
-      return AnalyticsCardBase.buildSectionLoadingCard(
-        context,
-        l10n,
-        sectionId,
-        title,
-      );
-    }
+
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,
@@ -47,9 +40,8 @@ class PerformanceSectionCard extends StatelessWidget {
     final data = state.data;
     final notableImprovements = data?.notableImprovements ?? const [];
 
-    final topImprovement = notableImprovements.isNotEmpty
-        ? notableImprovements.first
-        : null;
+    final topImprovement =
+        notableImprovements.isNotEmpty ? notableImprovements.first : null;
     final momentumValue = topImprovement == null
         ? '-'
         : '+${((topImprovement['improvementPct'] as num).toDouble()).toStringAsFixed(1)}%';
@@ -103,7 +95,8 @@ class PerformanceSectionCard extends StatelessWidget {
                     ),
               ),
               const SizedBox(height: DesignConstants.spacingS),
-              AnalyticsCardBase.buildMicroCaption(context, l10n.analyticsRecentRecords),
+              AnalyticsCardBase.buildMicroCaption(
+                  context, l10n.analyticsRecentRecords),
               const SizedBox(height: DesignConstants.spacingXS),
               AnalyticsCardBase.buildMiniBars(
                 context,

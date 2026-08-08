@@ -41,4 +41,47 @@ platform :ios do
       changelog: "We are constantly working on improvements. To view the full changelog, please visit our GitHub repository."
     )
   end
+
+  desc "Upload screenshots to App Store Connect"
+  lane :upload_screenshots do |options|
+    screenshots_dir = options[:path] || File.expand_path("../screenshots", __FILE__)
+    UI.message("Uploading screenshots from: #{screenshots_dir}")
+
+    upload_to_app_store(
+      app_identifier: "com.rfivesix.trainlibre",
+      username: "accounts.richard@schotte.me",
+      app: "6767055511",
+      team_id: "QUXZN5283U",
+      skip_binary_upload: true,
+      skip_metadata: true,
+      screenshots_path: screenshots_dir,
+      overwrite_screenshots: true,
+      force: true
+    )
+  end
+
+  desc "Download store metadata from App Store Connect"
+  lane :download_metadata do
+    meta_dir = File.expand_path("../metadata", __FILE__)
+    UI.message("Downloading metadata to: #{meta_dir}")
+
+    sh("bundle exec fastlane deliver download_metadata --force --metadata_path '#{meta_dir}' --app_identifier 'com.rfivesix.trainlibre' --username 'accounts.richard@schotte.me' --team_id 'QUXZN5283U'")
+  end
+
+  desc "Upload store metadata to App Store Connect"
+  lane :upload_metadata do
+    meta_dir = File.expand_path("../metadata", __FILE__)
+    UI.message("Uploading metadata from: #{meta_dir}")
+
+    deliver(
+      app_identifier: "com.rfivesix.trainlibre",
+      username: "accounts.richard@schotte.me",
+      app: "6767055511",
+      team_id: "QUXZN5283U",
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      metadata_path: meta_dir,
+      force: true
+    )
+  end
 end

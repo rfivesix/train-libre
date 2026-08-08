@@ -71,13 +71,17 @@ class ExerciseE1rmSummary extends StatelessWidget {
         final deltaPrefix = isPositive ? '+' : '-';
 
         return Padding(
-          padding: const EdgeInsets.only(left: DesignConstants.spacingL, right: DesignConstants.spacingL, bottom: DesignConstants.spacingS),
+          padding: const EdgeInsets.only(
+              left: DesignConstants.spacingL,
+              right: DesignConstants.spacingL,
+              bottom: DesignConstants.spacingS),
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   l10n.liveWorkoutE1rmBestSession(
-                    _formatDisplayWeightValue(sessionBest, unitService),
+                    unitService.formatDisplayWeight(sessionBest),
+                    unitService.suffixFor(UnitDimension.weight),
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -87,7 +91,8 @@ class ExerciseE1rmSummary extends StatelessWidget {
               if (hasDelta)
                 Text(
                   l10n.liveWorkoutE1rmVsLastSession(
-                    '$deltaPrefix${_formatDisplayWeightValue(delta!.abs(), unitService)}',
+                    '$deltaPrefix${unitService.formatDisplayWeight(delta!.abs())}',
+                    unitService.suffixFor(UnitDimension.weight),
                   ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: isPositive
@@ -135,8 +140,6 @@ class ExerciseE1rmSummary extends StatelessWidget {
     return weight * (36 / (37 - reps));
   }
 
-
-
   double? _getLastSessionBestE1rm(String exerciseName) {
     final lastSets = manager.lastPerformances[exerciseName] ?? const <SetLog>[];
     double? best;
@@ -151,16 +154,5 @@ class ExerciseE1rmSummary extends StatelessWidget {
     }
 
     return best;
-  }
-
-  String _formatDisplayWeightValue(
-    double metricValue,
-    UnitService unitService, {
-    int fractionDigits = 1,
-  }) {
-    return unitService
-        .convertDisplayValue(metricValue, UnitDimension.weight)
-        .toStringAsFixed(fractionDigits)
-        .replaceAll('.0', '');
   }
 }

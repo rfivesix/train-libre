@@ -7,3 +7,4 @@ output-localization-file: app_localizations.dart
 # Tells the generator to place output files in the standard directory
 # where Flutter expects them.
 output-dir: lib/generated/
+untranslated-messages-file: lib/generated/untranslated_items.txt

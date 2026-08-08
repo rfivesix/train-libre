@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum UnitSystem { metric, imperial }
 
-enum UnitDimension { weight, height, liquid }
+enum UnitDimension { weight, height, liquid, distance }
 
 /// Centralizes the user's preferred unit system and conversions.
 class UnitService extends ChangeNotifier {
@@ -21,6 +21,10 @@ class UnitService extends ChangeNotifier {
 
   bool get isImperial => _unitSystem == UnitSystem.imperial;
 
+  Future<void> reload() async {
+    await _loadUnitSystem();
+  }
+
   Future<void> _loadUnitSystem() async {
     final prefs = await SharedPreferences.getInstance();
     final storedValue = prefs.getString(_unitSystemKey);
@@ -29,6 +33,11 @@ class UnitService extends ChangeNotifier {
         : storedValue == UnitSystem.imperial.name
             ? UnitSystem.imperial
             : UnitSystem.metric;
+
+    if (storedValue == null) {
+      await prefs.setString(_unitSystemKey, loadedSystem.name);
+    }
+
     if (_unitSystem == loadedSystem) return;
     _unitSystem = loadedSystem;
     notifyListeners();
@@ -44,11 +53,13 @@ class UnitService extends ChangeNotifier {
   }
 
   Future<void> setUnitSystem(UnitSystem value) async {
-    if (value == _unitSystem) return;
+    final bool isChanged = value != _unitSystem;
     _unitSystem = value;
-    notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_unitSystemKey, value.name);
+    if (isChanged) {
+      notifyListeners();
+    }
   }
 
   Future<void> toggleUnitSystem() {
@@ -61,6 +72,7 @@ class UnitService extends ChangeNotifier {
       UnitDimension.height => isMetric ? metricValue : cmToInches(metricValue),
       UnitDimension.liquid =>
         isMetric ? metricValue : mlToFluidOunces(metricValue),
+      UnitDimension.distance => isMetric ? metricValue : kmToMi(metricValue),
     };
   }
 
@@ -71,7 +83,20 @@ class UnitService extends ChangeNotifier {
         isMetric ? displayValue : inchesToCm(displayValue),
       UnitDimension.liquid =>
         isMetric ? displayValue : fluidOuncesToMl(displayValue),
+      UnitDimension.distance => isMetric ? displayValue : miToKm(displayValue),
     };
+  }
+
+  String formatDisplayWeight(double metricValue, {int fractionDigits = 1}) {
+    final val = convertDisplayValue(metricValue, UnitDimension.weight);
+    if (val == val.truncateToDouble()) {
+      return val.toInt().toString();
+    }
+    final str = val.toStringAsFixed(fractionDigits);
+    if (str.endsWith('.0') || str.endsWith('.00')) {
+      return str.split('.')[0];
+    }
+    return str;
   }
 
   String suffixFor(UnitDimension dimension) {
@@ -79,6 +104,7 @@ class UnitService extends ChangeNotifier {
       UnitDimension.weight => isMetric ? 'kg' : 'lbs',
       UnitDimension.height => isMetric ? 'cm' : 'in',
       UnitDimension.liquid => isMetric ? 'ml' : 'fl oz',
+      UnitDimension.distance => isMetric ? 'km' : 'mi',
     };
   }
 
@@ -87,6 +113,7 @@ class UnitService extends ChangeNotifier {
       UnitDimension.weight => 'kg',
       UnitDimension.height => 'cm',
       UnitDimension.liquid => 'ml',
+      UnitDimension.distance => 'km',
     };
   }
 
@@ -101,4 +128,8 @@ class UnitService extends ChangeNotifier {
   static double mlToFluidOunces(double value) => value * 0.033814;
 
   static double fluidOuncesToMl(double value) => value / 0.033814;
+
+  static double kmToMi(double value) => value * 0.621371;
+
+  static double miToKm(double value) => value / 0.621371;
 }

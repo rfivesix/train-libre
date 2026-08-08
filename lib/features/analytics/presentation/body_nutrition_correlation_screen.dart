@@ -1,3 +1,5 @@
+import '../../statistics/domain/statistics_data_quality_policy.dart';
+import '../../statistics/domain/timeframe_block.dart';
 import 'package:flutter/material.dart';
 
 import '../../statistics/presentation/widgets/body_nutrition_normalized_trend_chart.dart';
@@ -6,11 +8,17 @@ import '../../statistics/presentation/statistics_formatter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/body_nutrition_analytics_utils.dart';
 import '../../../util/design_constants.dart';
-import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
+
+import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
+import '../../../util/timeframe_label_formatter.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
+import 'package:skeletonizer/skeletonizer.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class BodyNutritionCorrelationScreen extends StatefulWidget {
   final int initialRangeIndex;
@@ -24,17 +32,31 @@ class BodyNutritionCorrelationScreen extends StatefulWidget {
 
 class _BodyNutritionCorrelationScreenState
     extends State<BodyNutritionCorrelationScreen> {
+  bool _isRolling = true;
   final _rangePolicy = StatisticsRangePolicyService.instance;
   bool _isLoading = true;
-  late int _rangeIndex;
+
+  TimeframeBlock _activeBlock = TimeframeBlock.month;
+  DateTime _anchorDate = DateTime.now();
+
+  final List<TimeframeBlock> _validBlocks = const [
+    TimeframeBlock.week,
+    TimeframeBlock.month,
+    TimeframeBlock.threeMonths,
+    TimeframeBlock.sixMonths,
+    TimeframeBlock.maxBlock,
+  ];
+
   BodyNutritionAnalyticsResult? _analytics;
-  bool _loadFailed = false;
   int _loadEpoch = 0;
 
   @override
   void initState() {
     super.initState();
-    _rangeIndex = widget.initialRangeIndex.clamp(0, 4);
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.bodyNutritionCorrelation));
+    final index = widget.initialRangeIndex.clamp(0, 4);
+    _activeBlock = _validBlocks[index];
     _load();
   }
 
@@ -43,30 +65,30 @@ class _BodyNutritionCorrelationScreenState
     setState(() => _isLoading = true);
     try {
       final analytics = await BodyNutritionAnalyticsUtils.build(
-        rangeIndex: _rangeIndex,
+        selectedBlockType: _activeBlock,
+        anchorDate: _anchorDate,
+        isRolling: _isRolling,
       );
       if (!mounted || loadEpoch != _loadEpoch) return;
       setState(() {
         _analytics = analytics;
-        _loadFailed = false;
         _isLoading = false;
       });
     } catch (_) {
       if (!mounted || loadEpoch != _loadEpoch) return;
       setState(() {
         _analytics = null;
-        _loadFailed = true;
         _isLoading = false;
       });
     }
   }
 
   List<String> _ranges(AppLocalizations l10n) => [
-        l10n.filter7Days,
-        l10n.filter30Days,
-        l10n.filter3Months,
-        l10n.filter6Months,
-        l10n.filterAll,
+        l10n.filter7DaysShort,
+        l10n.filter1MonthShort,
+        l10n.filter3MonthsShort,
+        l10n.filter6MonthsShort,
+        l10n.filterMax,
       ];
 
   @override
@@ -74,105 +96,161 @@ class _BodyNutritionCorrelationScreenState
     final l10n = AppLocalizations.of(context)!;
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
 
+    final hasNoData = _analytics == null;
+    final displayAnalytics = _analytics ?? getMockCorrelationResult(
+      _isRolling
+          ? _activeBlock.getRollingBounds()
+          : _activeBlock.getBounds(_anchorDate, DateTime(2020)),
+    );
+
+    Widget bodyContent = _buildBodyContent(l10n, displayAnalytics);
+
+    if (hasNoData) {
+      bodyContent = ActiveGapOverlay(
+        message: "Nicht genügend Korrelationsdaten vorhanden",
+        background: Skeletonizer(
+          enabled: true,
+          child: IgnorePointer(child: bodyContent),
+        ),
+      );
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.bodyNutritionCorrelationTitle),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _analytics == null
-              ? _buildUnavailableState(l10n)
-              : SingleChildScrollView(
-                  padding: EdgeInsets.only(top: DesignConstants.screenPadding.top + topPadding,
-                    bottom: DesignConstants.bottomContentSpacer,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildRangeChips(l10n),
-                      const SizedBox(height: DesignConstants.spacingM),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: DesignConstants.screenPaddingHorizontal,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSummaryCard(l10n, _analytics!),
-                            const SizedBox(height: DesignConstants.spacingM),
-                            AppSectionHeader(
-                              title: l10n.analyticsBodyNutritionTrendContext,
-                            ),
-                            _buildTrendComparisonCard(l10n, _analytics!),
-                            const SizedBox(height: DesignConstants.spacingM),
-                            AppSectionHeader(
-                              title: l10n.analyticsInterpretationTitle,
-                            ),
-                            _buildInterpretationCard(l10n, _analytics!),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-    );
-  }
-
-  Widget _buildUnavailableState(AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: DesignConstants.screenPadding,
-        child: SummaryCard(
-          child: Padding(
-            padding: const EdgeInsets.all(DesignConstants.spacingL),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.only(
+              top: DesignConstants.screenPadding.top + topPadding,
+              bottom: DesignConstants.bottomContentSpacer,
+            ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _loadFailed ? l10n.error : l10n.analyticsInsightNotEnoughData,
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                TimeRangeFilter(
+                  ranges: _ranges(l10n),
+                  selectedIndex: _validBlocks.indexOf(_activeBlock),
+                  onSelected: (index) {
+                    setState(() {
+                      _activeBlock = _validBlocks[index];
+                      _isRolling = false;
+                    });
+                    _load();
+                  },
+                  onPrevious: _activeBlock == TimeframeBlock.maxBlock
+                      ? null
+                      : () {
+                          setState(() {
+                            final currentBounds =
+                                _activeBlock.getBounds(
+                                    DateTime.now(), DateTime(2020));
+                            final myBounds = _activeBlock.getBounds(
+                                _anchorDate, DateTime(2020));
+                            final isOngoing = !_isRolling &&
+                                myBounds.start.isAtSameMomentAs(
+                                    currentBounds.start);
+
+                            if (isOngoing) {
+                              _isRolling = true;
+                            } else if (_isRolling) {
+                              _isRolling = false;
+                              _anchorDate = _activeBlock.shift(
+                                  DateTime.now(), -1);
+                            } else {
+                              _anchorDate =
+                                  _activeBlock.shift(_anchorDate, -1);
+                            }
+                          });
+                          _load();
+                        },
+                  onNext: _activeBlock == TimeframeBlock.maxBlock
+                      ? null
+                      : () {
+                          setState(() {
+                            if (_isRolling) {
+                              _isRolling = false;
+                              _anchorDate = DateTime.now();
+                            } else {
+                              final previousAnchor = _activeBlock
+                                  .shift(DateTime.now(), -1);
+                              final previousBounds =
+                                  _activeBlock.getBounds(
+                                      previousAnchor, DateTime(2020));
+                              final myBounds = _activeBlock.getBounds(
+                                  _anchorDate, DateTime(2020));
+                              final isPreviousToOngoing =
+                                  !_isRolling &&
+                                      myBounds.start.isAtSameMomentAs(
+                                          previousBounds.start);
+
+                              if (isPreviousToOngoing) {
+                                _isRolling = true;
+                              } else {
+                                _anchorDate = _activeBlock.shift(
+                                    _anchorDate, 1);
+                              }
+                            }
+                          });
+                          _load();
+                        },
+                  displayDate: _isRolling
+                      ? TimeframeLabelFormatter.formatRolling(
+                          _activeBlock, l10n)
+                      : TimeframeLabelFormatter.format(
+                          _activeBlock, _anchorDate, l10n),
+                  onTapDateDisplay: () async {
+                    final selected = await adaptive_pickers
+                        .showAdaptiveTimeframePicker(
+                      context: context,
+                      activeBlock: _activeBlock,
+                      initialAnchor: _anchorDate,
+                      earliestAvailableDay: DateTime(2020),
+                      initialIsRolling: _isRolling,
+                    );
+                    if (selected != null) {
+                      setState(() {
+                        _anchorDate = selected.anchorDate;
+                        _isRolling = selected.isRolling;
+                      });
+                      _load();
+                    }
+                  },
+                  nextEnabled: _activeBlock == TimeframeBlock.maxBlock
+                      ? false
+                      : (_isRolling
+                          ? true
+                          : !_activeBlock
+                              .getBounds(_anchorDate, DateTime(2020))
+                              .start
+                              .isAtSameMomentAs(_activeBlock
+                                  .getBounds(
+                                      DateTime.now(), DateTime(2020))
+                                  .start)),
+                  showDateNavigation:
+                      _activeBlock != TimeframeBlock.maxBlock,
                 ),
-                const SizedBox(height: DesignConstants.spacingS),
-                Text(
-                  _loadFailed
-                      ? l10n.aiErrorNetwork
-                      : l10n.analyticsInsightNotEnoughData,
-                  style: theme.textTheme.bodyMedium,
-                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                bodyContent,
               ],
             ),
           ),
-        ),
+          if (_isLoading)
+            Positioned(
+              top: topPadding + DesignConstants.spacingM,
+              right: DesignConstants.spacingM,
+              child: const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _buildRangeChips(AppLocalizations l10n) {
-    final labels = _ranges(l10n);
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.screenPaddingHorizontal,
-      ),
-      clipBehavior: Clip.none,
-      child: Row(
-        children: List.generate(labels.length, (index) {
-          return Padding(
-            padding: const EdgeInsets.only(right: DesignConstants.spacingS),
-            child: ChoiceChip(
-              label: Text(labels[index]),
-              selected: _rangeIndex == index,
-              onSelected: (selected) {
-                if (!selected) return;
-                setState(() => _rangeIndex = index);
-                _load();
-              },
-            ),
-          );
-        }),
-      ),
-    );
-  }
+  // Removed _buildRangeChips
 
   Widget _buildSummaryCard(
     AppLocalizations l10n,
@@ -181,10 +259,10 @@ class _BodyNutritionCorrelationScreenState
     final unitService = Provider.of<UnitService>(context);
     final currentWeight = data.currentWeightKg == null
         ? '-'
-        : '${unitService.convertDisplayValue(data.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.suffixFor(UnitDimension.weight)}';
+        : '${unitService.convertDisplayValue(data.currentWeightKg!, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
     final weightChange = data.weightChangeKg == null
         ? '-'
-        : '${data.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(data.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} ${unitService.suffixFor(UnitDimension.weight)}';
+        : '${data.weightChangeKg! >= 0 ? '+' : '-'}${unitService.convertDisplayValue(data.weightChangeKg!.abs(), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
     final avgCalories = data.loggedCalorieDays <= 0
         ? '-'
         : '${data.avgDailyCalories.round()} ${l10n.analyticsKcalPerDay}';
@@ -199,120 +277,81 @@ class _BodyNutritionCorrelationScreenState
       data.relationship,
     );
 
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sectionBodyNutrition,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _kpiPill(l10n.metricsCurrentWeight, currentWeight),
-                _kpiPill(l10n.metricsWeightChange, weightChange),
-                _kpiPill(l10n.metricsAvgCalories, avgCalories),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _trendChipRow(l10n, data),
-            const SizedBox(height: 10),
-            Text(
-              relationship,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(
-              '${l10n.analyticsEffectiveRangeLabel}: ${_effectiveRangeDisclosure()}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-            Text(
-              '$confidenceLabel • ${l10n.analyticsBasedOnDataCoverage(data.weightDays, data.loggedCalorieDays)}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _trendChipRow(
-      AppLocalizations l10n, BodyNutritionAnalyticsResult data) {
-    final weightLabel =
-        StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
-            l10n, data.weightTrend.direction);
-    final calorieLabel =
-        StatisticsPresentationFormatter.bodyNutritionTrendDirectionLabel(
-            l10n, data.calorieTrend.direction);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _trendChip(l10n.analyticsWeightTrendLabel, weightLabel),
-        _trendChip(l10n.analyticsCaloriesTrendLabel, calorieLabel),
+        AppSectionHeader(
+          title: l10n.sectionBodyNutrition,
+        ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = constraints.maxWidth < 430 ? 2 : 4;
+            final gridItems = [
+              ValueSummaryCard(
+                  label: l10n.metricsCurrentWeight, value: currentWeight),
+              ValueSummaryCard(
+                  label: l10n.metricsWeightChange, value: weightChange),
+              ValueSummaryCard(
+                  label: l10n.metricsAvgCalories, value: avgCalories),
+              ValueSummaryCard(
+                label: l10n.analyticsWeightTrendLabel(context
+                    .read<UnitService>()
+                    .suffixFor(UnitDimension.weight)),
+                value: StatisticsPresentationFormatter
+                    .bodyNutritionTrendDirectionLabel(
+                        l10n, data.weightTrend.direction),
+              ),
+              ValueSummaryCard(
+                label: l10n.analyticsCaloriesTrendLabel,
+                value: StatisticsPresentationFormatter
+                    .bodyNutritionTrendDirectionLabel(
+                        l10n, data.calorieTrend.direction),
+              ),
+            ];
+
+            final rows = <Widget>[];
+            for (var i = 0; i < gridItems.length; i += crossAxisCount) {
+              final rowChildren = <Widget>[];
+              for (var j = 0; j < crossAxisCount; j++) {
+                if (j > 0) {
+                  rowChildren
+                      .add(const SizedBox(width: DesignConstants.spacingS));
+                }
+                final itemIndex = i + j;
+                rowChildren.add(
+                  Expanded(
+                    child: itemIndex < gridItems.length
+                        ? gridItems[itemIndex]
+                        : const SizedBox(),
+                  ),
+                );
+              }
+              rows.add(
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: rowChildren,
+                  ),
+                ),
+              );
+              if (i + crossAxisCount < gridItems.length) {
+                rows.add(const SizedBox(height: DesignConstants.spacingS));
+              }
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rows,
+            );
+          },
+        ),
+        const SizedBox(height: DesignConstants.spacingM),
+        AppInfoRow(
+          padding: EdgeInsets.zero,
+          title: relationship,
+          subtitle:
+              '${l10n.analyticsEffectiveRangeLabel}: ${_effectiveRangeDisclosure()}\n$confidenceLabel • ${l10n.analyticsBasedOnDataCoverage(data.weightDays, data.loggedCalorieDays)}',
+        ),
       ],
-    );
-  }
-
-  Widget _trendChip(String title, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _kpiPill(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
     );
   }
 
@@ -320,51 +359,49 @@ class _BodyNutritionCorrelationScreenState
     AppLocalizations l10n,
     BodyNutritionAnalyticsResult data,
   ) {
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingM),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.analyticsBodyNutritionNormalizedHint,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                _legendDot(
-                  color: Theme.of(context).colorScheme.primary,
-                  label: l10n.analyticsWeightTrendLabel,
-                  shape: BoxShape.circle,
-                ),
-                _legendDot(
-                  color: const Color(0xFFF97316),
-                  label: l10n.analyticsCaloriesTrendLabel,
-                  shape: BoxShape.rectangle,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            RepaintBoundary(
-              child: SizedBox(
-                height: 250,
-                child: BodyNutritionNormalizedTrendChart(
-                  range: data.range,
-                  weightSeries: data.weightDaily,
-                  calorieSeries: data.caloriesDaily
-                      .where((point) => point.value > 0)
-                      .toList(growable: false),
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.analyticsBodyNutritionNormalizedHint(
+              context.read<UnitService>().suffixFor(UnitDimension.weight)),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
               ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            _legendDot(
+              color: Theme.of(context).colorScheme.primary,
+              label: l10n.analyticsWeightTrendLabel(
+                  context.read<UnitService>().suffixFor(UnitDimension.weight)),
+              shape: BoxShape.circle,
+            ),
+            _legendDot(
+              color: const Color(0xFFF97316),
+              label: l10n.analyticsCaloriesTrendLabel,
+              shape: BoxShape.rectangle,
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 10),
+        RepaintBoundary(
+          child: SizedBox(
+            height: 250,
+            child: BodyNutritionNormalizedTrendChart(
+              range: data.range,
+              weightSeries: data.weightDaily,
+              calorieSeries: data.caloriesDaily
+                  .where((point) => point.value > 0)
+                  .toList(growable: false),
+              edgeToEdge: true,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -399,54 +436,23 @@ class _BodyNutritionCorrelationScreenState
     AppLocalizations l10n,
     BodyNutritionAnalyticsResult data,
   ) {
-    return SummaryCard(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.analyticsObservedPatternLabel,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: DesignConstants.spacingXS),
-            Text(
-              StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
-                l10n,
-                data.relationship,
-              ),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
-                l10n,
-                data.confidence,
-              ),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              _confidenceHint(l10n, data.confidence),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              l10n.analyticsCorrelationDisclaimer,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-          ],
-        ),
-      ),
+    final relationship =
+        StatisticsPresentationFormatter.bodyNutritionRelationshipLabel(
+      l10n,
+      data.relationship,
+    );
+    final confidence =
+        StatisticsPresentationFormatter.bodyNutritionConfidenceLabel(
+      l10n,
+      data.confidence,
+    );
+    final hint = _confidenceHint(l10n, data.confidence);
+    final disclaimer = l10n.analyticsCorrelationDisclaimer;
+
+    return AppInfoRow(
+      padding: EdgeInsets.zero,
+      title: relationship,
+      subtitle: '$confidence\n$hint\n\n$disclaimer',
     );
   }
 
@@ -469,17 +475,109 @@ class _BodyNutritionCorrelationScreenState
   String _effectiveRangeDisclosure() {
     final resolved = _rangePolicy.resolve(
       metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedRangeIndex: _rangeIndex,
+      selectedBlockType: _activeBlock,
+      now: _anchorDate,
       earliestAvailableDay: _analytics?.range.start,
     );
     final days = resolved.effectiveDays;
     final l10n = AppLocalizations.of(context)!;
     if (days == null || days <= 0) {
-      return _ranges(l10n)[_rangeIndex];
+      return _isRolling
+          ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
+          : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
     }
-    if (_rangePolicy.isAllTimeRangeIndex(_rangeIndex)) {
+    if (_activeBlock == TimeframeBlock.maxBlock) {
       return '$days ${l10n.analyticsDayUnitLabel}';
     }
-    return _ranges(l10n)[_rangeIndex];
+    return _isRolling
+        ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
+        : TimeframeLabelFormatter.format(_activeBlock, _anchorDate, l10n);
+  }
+
+  BodyNutritionAnalyticsResult getMockCorrelationResult(DateTimeRange range) {
+    final start = range.start;
+    final end = range.end;
+    final duration = end.difference(start).inDays.clamp(7, 180);
+
+    final mockDailyWeight = List.generate(duration, (i) {
+      final date = start.add(Duration(days: i));
+      return DailyValuePoint(day: date, value: 80.0 - (i * 0.05));
+    });
+
+    final mockDailyCalories = List.generate(duration, (i) {
+      final date = start.add(Duration(days: i));
+      return DailyValuePoint(day: date, value: 2500.0 + (i * 10.0));
+    });
+
+    return BodyNutritionAnalyticsResult(
+      range: range,
+      totalDays: duration,
+      currentWeightKg: 78.5,
+      weightChangeKg: -1.5,
+      avgDailyCalories: 2600.0,
+      weightDays: duration,
+      loggedCalorieDays: duration,
+      weightDaily: mockDailyWeight,
+      smoothedWeight: mockDailyWeight,
+      caloriesDaily: mockDailyCalories,
+      smoothedCalories: mockDailyCalories,
+      normalizedWeightTrend: mockDailyWeight,
+      normalizedCaloriesTrend: mockDailyCalories,
+      normalizedTrendRange: range,
+      weightTrend: const BodyNutritionTrendSnapshot(
+        direction: BodyNutritionTrendDirection.falling,
+        slopePerWeek: -0.35,
+        netChange: -1.5,
+        signalToNoise: 2.5,
+      ),
+      calorieTrend: const BodyNutritionTrendSnapshot(
+        direction: BodyNutritionTrendDirection.rising,
+        slopePerWeek: 70.0,
+        netChange: 300.0,
+        signalToNoise: 1.8,
+      ),
+      relationship: BodyNutritionRelationshipType.alignedCutLike,
+      confidence: BodyNutritionConfidence.high,
+      qualitySummary: BodyNutritionDataQualitySummary(
+        spanDays: duration,
+        weightDays: duration,
+        calorieDays: duration,
+        overlapDays: duration,
+        weightCoverage: 1.0,
+        calorieCoverage: 1.0,
+        overlapCoverage: 1.0,
+        weightLargestGapDays: 0,
+        calorieLargestGapDays: 0,
+      ),
+      insightType: BodyNutritionInsightType.weightDownCaloriesDown,
+      insightDataQuality: const StatisticsDataQualityAssessment(
+        hasSufficientData: true,
+        reasonHook: '',
+      ),
+    );
+  }
+
+  Widget _buildBodyContent(AppLocalizations l10n, BodyNutritionAnalyticsResult analytics) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.screenPaddingHorizontal,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSummaryCard(l10n, analytics),
+          const SizedBox(height: DesignConstants.spacingM),
+          AppSectionHeader(
+            title: l10n.analyticsBodyNutritionTrendContext,
+          ),
+          _buildTrendComparisonCard(l10n, analytics),
+          const SizedBox(height: DesignConstants.spacingM),
+          AppSectionHeader(
+            title: l10n.analyticsInterpretationTitle,
+          ),
+          _buildInterpretationCard(l10n, analytics),
+        ],
+      ),
+    );
   }
 }

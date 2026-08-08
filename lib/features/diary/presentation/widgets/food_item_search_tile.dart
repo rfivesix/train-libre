@@ -31,27 +31,16 @@ class FoodItemSearchTile extends StatelessWidget {
       context: context,
     );
 
-    IconData sourceIcon;
-    switch (item.source) {
-      case FoodItemSource.base:
-        sourceIcon = LucideIcons.star;
-        break;
-      case FoodItemSource.off:
-      case FoodItemSource.user:
-        sourceIcon = LucideIcons.archive;
-        break;
-    }
-
     return SummaryCard(
       child: ListTile(
-        leading: Icon(sourceIcon, color: colorScheme.primary),
         title: Row(
           children: [
             Expanded(
               child: Text(
                 () {
                   final name = item.source == FoodItemSource.base
-                      ? item.getLocalizedName(context, languageCode: baseFoodLang)
+                      ? item.getLocalizedName(context,
+                          languageCode: baseFoodLang)
                       : item.getLocalizedName(context);
                   return name.isNotEmpty ? name : l10n.unknown;
                 }(),
@@ -67,7 +56,9 @@ class FoodItemSearchTile extends StatelessWidget {
         subtitle: Row(
           children: [
             Text(
-              l10n.foodItemSubtitle('', item.calories).replaceFirst(RegExp(r'^.*?-\s*'), ''),
+              l10n
+                  .foodItemSubtitle('', item.calories)
+                  .replaceFirst(RegExp(r'^.*?-\s*'), ''),
             ),
             if (item.brand.isNotEmpty &&
                 item.brand != 'Keine Marke' &&
@@ -84,6 +75,7 @@ class FoodItemSearchTile extends StatelessWidget {
           ],
         ),
         trailing: IconButton(
+          tooltip: l10n.add_button,
           icon: Icon(
             LucideIcons.circle_plus,
             color: colorScheme.primary,
@@ -101,7 +93,8 @@ class FoodItemSearchTile extends StatelessWidget {
     const color = Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingS, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),

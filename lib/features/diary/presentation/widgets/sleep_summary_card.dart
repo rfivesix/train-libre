@@ -29,17 +29,21 @@ class SleepSummaryCard extends StatelessWidget {
           bool isSleepWidgetLoading,
           SleepDayOverviewData? sleepOverview,
           DateTime selectedDate,
+          bool showSkeleton,
         })>(
       selector: (context, vm) => (
         isSleepWidgetLoading: vm.isSleepWidgetLoading,
         sleepOverview: vm.sleepOverview,
         selectedDate: vm.selectedDate,
+        showSkeleton: !vm.hasDataForSelectedDate,
       ),
       builder: (context, data, child) {
-        if (data.isSleepWidgetLoading) {
+        final showSkeleton = data.showSkeleton;
+        if (data.isSleepWidgetLoading && !showSkeleton) {
           return SummaryCard(
             padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            margin:
+                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
               contentPadding: DesignConstants.screenPadding,
               title: Text(
@@ -57,18 +61,19 @@ class SleepSummaryCard extends StatelessWidget {
         }
 
         final overview = data.sleepOverview;
-        if (overview == null) {
+        if (overview == null && !showSkeleton) {
           return const SizedBox.shrink();
         }
 
-        final durationText = _formatSleepDuration(overview.totalSleepDuration);
-        final score = overview.analysis.score;
+        final durationText = showSkeleton ? '8h 0m' : _formatSleepDuration(overview!.totalSleepDuration);
+        final score = showSkeleton ? 100.0 : overview!.analysis.score;
         final scoreText = score == null ? '--' : score.round().toString();
 
         return RepaintBoundary(
           child: SummaryCard(
             padding: EdgeInsets.zero,
-            margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+            margin:
+                const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
               onTap: () =>
                   SleepNavigation.openDayForDate(context, data.selectedDate),

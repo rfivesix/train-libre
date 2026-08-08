@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/onboarding/presentation/initial_consent_screen.dart';
+import 'package:train_libre/widgets/common/app_button.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Widget _wrap(Widget child) {
@@ -20,7 +22,9 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('InitialConsentScreen button remains disabled until both checkboxes are checked', (
+  testWidgets(
+      'InitialConsentScreen button remains disabled until GDPR consent checkbox is checked',
+      (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -30,30 +34,20 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final nextButton = find.byType(FilledButton);
-    expect(nextButton, findsOneWidget);
-    
-    // Check if button is disabled
-    var button = tester.widget<FilledButton>(nextButton);
+    final nextButtonFinder = find.byType(AppButton);
+    expect(nextButtonFinder, findsAtLeastNWidgets(1));
+
+    // Check if button is disabled initially
+    var button = tester.widgetList<AppButton>(nextButtonFinder).first;
     expect(button.onPressed, isNull);
 
-    // Find and tap the privacy policy checkbox
-    final checkboxes = find.byType(Checkbox);
-    expect(checkboxes, findsNWidgets(2));
-
-    await tester.tap(checkboxes.first);
-    await tester.pumpAndSettle();
-
-    // Still disabled
-    button = tester.widget<FilledButton>(nextButton);
-    expect(button.onPressed, isNull);
-
-    // Tap second checkbox (Terms of Service)
-    await tester.tap(checkboxes.last);
+    // Find and tap the GDPR health data consent tile (circle icon)
+    final consentIcon = find.byIcon(LucideIcons.circle).first;
+    await tester.tap(consentIcon);
     await tester.pumpAndSettle();
 
     // Now enabled
-    button = tester.widget<FilledButton>(nextButton);
+    button = tester.widgetList<AppButton>(nextButtonFinder).first;
     expect(button.onPressed, isNotNull);
   });
 }

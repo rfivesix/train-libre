@@ -17,6 +17,9 @@ import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'live_workout_view_model.dart';
+import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// The central management screen for all workout-related activities.
 ///
@@ -102,6 +105,8 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     final newLog = await WorkoutLocalDataSource.instance.startWorkout(
       routineName: routine.name,
     );
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.routineStarted));
     if (mounted) {
       HapticFeedbackService.instance.confirmationFeedback();
       Navigator.of(context).push(
@@ -133,8 +138,8 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     ).padding.top; // + kToolbarHeight;
 
     // 2. Get your base padding from your design constants
-    const EdgeInsets basePadding =
-        DesignConstants.cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
+    const EdgeInsets basePadding = DesignConstants
+        .cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
 
     // 3. Create the final combined padding
     final EdgeInsets finalPadding = basePadding.copyWith(
@@ -179,6 +184,41 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               final routines = snapshot.data ?? [];
+              if (routines.isEmpty) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildCreateRoutineCard(context, l10n),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: DesignConstants.spacingS,
+                          vertical: DesignConstants.spacingM,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.emptyStateWorkoutRoutinesCallout,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
+                                    height: 1.3,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 clipBehavior: Clip.none,
@@ -298,9 +338,11 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  ElevatedButton(
+                  AppButton.primary(
                     onPressed: () => _startRoutine(routine),
-                    child: Text(l10n.start_button),
+                    label: l10n.start_button,
+                    tooltip: l10n.start_button,
+                    size: AppButtonSize.medium,
                   ),
                 ],
               ),

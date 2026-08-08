@@ -1,4 +1,5 @@
 //lib/widgets/frosted_container.dart
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import '../../util/design_constants.dart';
 
@@ -24,10 +25,12 @@ class FrostedContainer extends StatelessWidget {
   const FrostedContainer({
     super.key,
     required this.child,
-    this.margin = const EdgeInsets.symmetric(horizontal: DesignConstants.screenPaddingHorizontal,
+    this.margin = const EdgeInsets.symmetric(
+      horizontal: DesignConstants.screenPaddingHorizontal,
       vertical: DesignConstants.screenPaddingVertical,
     ),
-    this.padding = const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL,
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: DesignConstants.spacingL,
       vertical: DesignConstants.spacingM,
     ),
     this.radius = DesignConstants.borderRadiusL,
@@ -39,25 +42,36 @@ class FrostedContainer extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+
+    final squircleRadius = SmoothBorderRadius(
+      cornerRadius: radius,
+      cornerSmoothing: 0.6,
+    );
+    final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
+    final clipper = ShapeBorderClipper(shape: squircle);
+
     return Padding(
       padding: margin,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
+      child: ClipPath(
+        clipper: clipper,
         child: Container(
           padding: padding,
-          decoration: BoxDecoration(
+          decoration: ShapeDecoration(
             color: isDark
-                ? const Color(0xFF2A2A2A)
+                ? DesignConstants.summaryCardDarkMode
                 : cs.surface.withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(
-              color: cs.onSurface.withValues(alpha: 0.08),
-              width: 1,
+            shape: squircle.copyWith(
+              side: isDark
+                  ? BorderSide.none
+                  : BorderSide(
+                      color: cs.onSurface.withValues(alpha: 0.08),
+                      width: 1,
+                    ),
             ),
-            boxShadow: [
+            shadows: [
               BoxShadow(
                 blurRadius: 18,
-                offset: Offset(0, 6),
+                offset: const Offset(0, 6),
                 color: cs.shadow.withValues(alpha: isDark ? 0.4 : 0.16),
               ),
             ],

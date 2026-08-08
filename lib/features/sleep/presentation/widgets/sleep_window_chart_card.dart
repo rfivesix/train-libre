@@ -1,11 +1,9 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
 import 'package:intl/intl.dart';
 
-import '../../../../widgets/common/summary_card.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
 
 typedef SleepWindowDayLabelBuilder = String Function(
@@ -33,59 +31,71 @@ class SleepWindowChartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bounds = _resolveBounds(windows);
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: DesignConstants.spacingS),
-            SizedBox(
-              height: chartHeight,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  SizedBox(
-                    width: 44,
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: _TimeAxisLabels(
-                            tickMinutes: bounds.tickMinutes,
-                            minMinutes: bounds.minMinutes,
-                            maxMinutes: bounds.maxMinutes,
-                          ),
-                        ),
-                        const SizedBox(height: _labelSpacing),
-                        const SizedBox(height: _labelRowHeight),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: _SleepWindowChart(
-                      windows: windows,
-                      minMinutes: bounds.minMinutes,
-                      maxMinutes: bounds.maxMinutes,
-                      tickMinutes: bounds.tickMinutes,
-                      labelRowHeight: _labelRowHeight,
-                      labelSpacing: _labelSpacing,
-                      dayLabelBuilder: dayLabelBuilder,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.cardPaddingInternal),
+          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
         ),
-      ),
+        const SizedBox(height: DesignConstants.spacingS),
+        SizedBox(
+          height: chartHeight,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              SizedBox(
+                width: 44,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: _TimeAxisLabels(
+                        tickMinutes: bounds.tickMinutes,
+                        minMinutes: bounds.minMinutes,
+                        maxMinutes: bounds.maxMinutes,
+                      ),
+                    ),
+                    const SizedBox(height: _labelSpacing),
+                    const SizedBox(height: _labelRowHeight),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: _SleepWindowChart(
+                  windows: windows,
+                  minMinutes: bounds.minMinutes,
+                  maxMinutes: bounds.maxMinutes,
+                  tickMinutes: bounds.tickMinutes,
+                  labelRowHeight: _labelRowHeight,
+                  labelSpacing: _labelSpacing,
+                  dayLabelBuilder: dayLabelBuilder,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   _SleepWindowBounds _resolveBounds(List<SleepWindowSegment> windows) {
-    final dataWindows = windows.where((window) => window.hasData).toList();
-    if (dataWindows.isEmpty) {
+    int? earliestStart;
+    int? latestEnd;
+
+    for (final window in windows) {
+      if (window.hasData) {
+        if (earliestStart == null ||
+            window.displayStartMinutes < earliestStart) {
+          earliestStart = window.displayStartMinutes;
+        }
+        if (latestEnd == null || window.displayEndMinutes > latestEnd) {
+          latestEnd = window.displayEndMinutes;
+        }
+      }
+    }
+
+    if (earliestStart == null || latestEnd == null) {
       return _SleepWindowBounds(
         minMinutes: _fallbackMinMinutes,
         maxMinutes: _fallbackMaxMinutes,
@@ -95,12 +105,6 @@ class SleepWindowChartCard extends StatelessWidget {
         ),
       );
     }
-
-    final earliestStart = dataWindows
-        .map((window) => window.displayStartMinutes)
-        .reduce(math.min);
-    final latestEnd =
-        dataWindows.map((window) => window.displayEndMinutes).reduce(math.max);
 
     final flooredHour = (earliestStart ~/ 60) * 60;
     final minMinutes = earliestStart % 60 == 0 ? flooredHour - 60 : flooredHour;

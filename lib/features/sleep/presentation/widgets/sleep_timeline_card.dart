@@ -4,7 +4,6 @@ import '../../../../util/design_constants.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../../../generated/app_localizations.dart';
-import '../../../../widgets/common/summary_card.dart';
 import '../../domain/sleep_domain.dart';
 import '../../data/sleep_day_repository.dart';
 
@@ -18,21 +17,19 @@ class SleepTimelineCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final chartSegments = _toChartSegments(overview.timelineSegments);
     if (chartSegments.isEmpty) {
-      return SummaryCard(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(DesignConstants.spacingL),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.sleepTimelineTitle,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: DesignConstants.spacingS),
-              Text(l10n.sleepTimelineUnavailable),
-            ],
-          ),
+      return Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.sleepTimelineTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            Text(l10n.sleepTimelineUnavailable),
+          ],
         ),
       );
     }
@@ -41,31 +38,34 @@ class SleepTimelineCard extends StatelessWidget {
     final labels = _timelineLegend(chartSegments, l10n);
     final colors = _sleepStageColors();
     final use24h = MediaQuery.of(context).alwaysUse24HourFormat;
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sleepTimelineTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: DesignConstants.spacingM),
-            _SleepTimelineLegend(labels: labels),
-            const SizedBox(height: 14),
-            _SleepTimelinePlot(
-              segments: chartSegments,
-              startAtUtc: chartStart,
-              endAtUtc: chartEnd,
-              colors: colors,
-              gridColor: Theme.of(context).colorScheme.outlineVariant,
-              use24HourFormat: use24h,
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.sleepTimelineTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: DesignConstants.spacingM),
+              _SleepTimelineLegend(labels: labels),
+            ],
+          ),
         ),
-      ),
+        const SizedBox(height: 14),
+        _SleepTimelinePlot(
+          segments: chartSegments,
+          startAtUtc: chartStart,
+          endAtUtc: chartEnd,
+          colors: colors,
+          gridColor: Theme.of(context).colorScheme.outlineVariant,
+          use24HourFormat: use24h,
+        ),
+      ],
     );
   }
 }
@@ -108,7 +108,7 @@ class _SleepTimelinePlot extends StatelessWidget {
         return Column(
           children: [
             SizedBox(
-              height: 108,
+              height: 136,
               width: double.infinity,
               child: CustomPaint(
                 painter: _SleepStagesPainter(
@@ -207,8 +207,8 @@ List<_TimelineAxisTick> _buildTimelineTicks({
     )..layout();
     final labelWidth = painter.width;
     final left = (anchorX - (labelWidth / 2)).clamp(
-      0.0,
-      availableWidth - labelWidth,
+      DesignConstants.spacingL,
+      availableWidth - labelWidth - DesignConstants.spacingL,
     );
     candidates.add(
       _TimelineAxisTick(

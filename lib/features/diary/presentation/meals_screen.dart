@@ -17,6 +17,8 @@ import 'widgets/confirm_log_meal_bottom_sheet.dart';
 import 'add_food_screen.dart';
 import 'meal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen that displays a list of the user's saved meals.
 ///
@@ -38,6 +40,8 @@ class _MealsScreenState extends State<MealsScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.mealList));
     _reloadMeals();
   }
 
@@ -124,6 +128,7 @@ class _MealsScreenState extends State<MealsScreen> {
                   quantityInGrams: qty,
                   mealType: mealType,
                 ),
+                telemetrySource: FoodLogSource.meal,
               );
 
               final fi = products[bc];
@@ -228,8 +233,15 @@ class _MealsScreenState extends State<MealsScreen> {
 
     try {
       final items = await DatabaseHelper.instance.getMealItems(newMealId);
-      final created = _meals.firstWhere((m) => m['id'] == newMealId);
-      if ((created['name'] as String) == defaultName && items.isEmpty) {
+      Map<String, dynamic>? created;
+      for (final m in _meals) {
+        if (m['id'] == newMealId) {
+          created = m;
+          break;
+        }
+      }
+
+      if (created != null && (created['name'] as String) == defaultName && items.isEmpty) {
         await DatabaseHelper.instance.deleteMeal(newMealId);
         await _reloadMeals();
       }
@@ -248,120 +260,133 @@ class _MealsScreenState extends State<MealsScreen> {
       extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: GlobalAppBar(title: l10n.tabMeals),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _meals.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      24,
-                      topPadding + 24,
-                      24,
-                      96,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Icon in a circular accent background container
-                        Container(
-                          width: 88,
-                          height: 88,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withValues(alpha: 0.12),
-                          ),
-                          child: Icon(
-                            LucideIcons.utensils,
-                            size: 40,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+      body: Stack(
+        children: [
+          _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _meals.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          24,
+                          topPadding + 24,
+                          24,
+                          96,
                         ),
-                        const SizedBox(height: DesignConstants.spacingL),
-                        // Bold headline
-                        Text(
-                          l10n.mealsEmptyTitle,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                          textAlign: TextAlign.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Icon in a circular accent background container
+                            Container(
+                              width: 88,
+                              height: 88,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.12),
+                              ),
+                              child: Icon(
+                                LucideIcons.utensils,
+                                size: 40,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
+                            // Bold headline
+                            Text(
+                              l10n.mealsEmptyTitle,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            // Low-opacity instructional subtext
+                            Text(
+                              l10n.mealsEmptyBodyWithShortcut,
+                              textAlign: TextAlign.center,
+                              style:
+                                  Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant
+                                            .withValues(alpha: 0.75),
+                                        height: 1.45,
+                                      ),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
+                            // Outlined CTA to build a template from scratch
+                            AppButton.secondary(
+                              onPressed: () => _createMealAndOpenEditor(l10n),
+                              label: l10n.mealsCreateManually,
+                              tooltip: l10n.mealsCreateManually,
+                              icon: LucideIcons.plus,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: DesignConstants.spacingS),
-                        // Low-opacity instructional subtext
-                        Text(
-                          l10n.mealsEmptyBodyWithShortcut,
-                          textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant
-                                        .withValues(alpha: 0.75),
-                                    height: 1.45,
-                                  ),
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _reloadMeals,
+                      child: ListView.builder(
+                        padding: EdgeInsets.fromLTRB(
+                          DesignConstants.screenPaddingHorizontal,
+                          12.0 + topPadding,
+                          DesignConstants.screenPaddingHorizontal,
+                          96.0,
                         ),
-                        const SizedBox(height: DesignConstants.spacingL),
-                        // Outlined CTA to build a template from scratch
-                        OutlinedButton.icon(
-                          onPressed: () => _createMealAndOpenEditor(l10n),
-                          icon: const Icon(LucideIcons.plus),
-                          label: Text(l10n.mealsCreateManually),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _reloadMeals,
-                  child: GridView.builder(
-                    padding: EdgeInsets.fromLTRB(
-                      DesignConstants.screenPaddingHorizontal,
-                      12.0 + topPadding,
-                      DesignConstants.screenPaddingHorizontal,
-                      96.0,
-                    ),
-                    gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 400,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      mainAxisExtent: 135,
-                    ),
-                    itemCount: _meals.length,
-                    itemBuilder: (context, i) {
-                      final meal = _meals[i];
-                      final mealId = meal['id'] as int;
+                        itemCount: _meals.length,
+                        itemBuilder: (context, i) {
+                          final meal = _meals[i];
+                          final mealId = meal['id'] as int;
 
-                      return MealItemCard(
-                        meal: meal,
-                        mealTotalsFuture: _getMealTotals(mealId),
-                        ingredientCount: _mealItemsCache[mealId]?.length ?? 0,
-                        onAdd: () => _confirmAndLogMeal(meal, l10n),
-                        onEdit: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  MealScreen(meal: meal, startInEdit: true),
-                            ),
+                          return MealItemCard(
+                            meal: meal,
+                            mealTotalsFuture: _getMealTotals(mealId),
+                            ingredientCount: _mealItemsCache[mealId]?.length ?? 0,
+                            onAdd: () => _confirmAndLogMeal(meal, l10n),
+                            onEdit: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      MealScreen(meal: meal, startInEdit: true),
+                                ),
+                              );
+                              await _reloadMeals();
+                            },
+                            onDelete: () => _deleteMeal(meal, l10n),
+                            onTap: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => MealScreen(meal: meal),
+                                ),
+                              );
+                              await _reloadMeals();
+                            },
                           );
-                          await _reloadMeals();
                         },
-                        onDelete: () => _deleteMeal(meal, l10n),
-                        onTap: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => MealScreen(meal: meal),
-                            ),
-                          );
-                          await _reloadMeals();
-                        },
-                      );
-                    },
+                      ),
+                    ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: DesignConstants.bottomVignetteHeight,
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: DesignConstants.bottomVignetteGradient(
+                    Theme.of(context).brightness == Brightness.dark,
                   ),
                 ),
+              ),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: GlassFab(
         label: l10n.mealsCreate,
         onPressed: () => _createMealAndOpenEditor(l10n),

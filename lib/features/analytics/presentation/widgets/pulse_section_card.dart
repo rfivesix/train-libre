@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
 
-import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../../pulse/domain/pulse_models.dart';
 import '../statistics_hub_view_model.dart';
 import 'analytics_card_base.dart';
@@ -28,14 +28,7 @@ class PulseSectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.pulse;
     final title = l10n.pulseTitle;
 
-    if (state.isLoading && !state.hasData) {
-      return AnalyticsCardBase.buildSectionLoadingCard(
-        context,
-        l10n,
-        sectionId,
-        title,
-      );
-    }
+
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,
@@ -47,18 +40,15 @@ class PulseSectionCard extends StatelessWidget {
     }
 
     final summary = state.data;
-    final chipLabel =
-        summary == null ? fallbackRangeLabel : _pulseRangeLabel(context, summary);
+    final chipLabel = fallbackRangeLabel;
     final hasMetrics = summary?.hasCoreMetrics ?? false;
     final rangeValue = !hasMetrics
         ? '--'
-        : '${summary!.minBpm!.round()}-${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}';
-    final averageValue = summary?.averageBpm == null
-        ? '--'
-        : '${summary!.averageBpm!.round()} ${l10n.sleepBpmUnit}';
-    final restingValue = summary?.restingBpm == null
-        ? '--'
-        : '${summary!.restingBpm!.round()} ${l10n.sleepBpmUnit}';
+        : '${summary!.minBpm!.round()}-${summary.maxBpm!.round()}';
+    final averageValue =
+        summary?.averageBpm == null ? '--' : '${summary!.averageBpm!.round()}';
+    final restingValue =
+        summary?.restingBpm == null ? '--' : '${summary!.restingBpm!.round()}';
     final stateText = summary == null
         ? l10n.load_dots
         : summary.hasData
@@ -81,19 +71,33 @@ class PulseSectionCard extends StatelessWidget {
                 label: title,
                 chipText: chipLabel,
               ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildPulseMetricTile(
-                      context, l10n.pulseRangeLabel, rangeValue),
-                  _buildPulseMetricTile(
-                      context, l10n.pulseAverageLabel, averageValue),
-                  _buildPulseMetricTile(
-                      context, l10n.pulseRestingLabel, restingValue),
-                ],
-              ),
+              const SizedBox(height: DesignConstants.spacingL),
+              _buildTwoColumnGrid([
+                ValueSummaryCard(
+                  label: l10n.pulseRangeLabel,
+                  value: summary?.minBpm == null
+                      ? rangeValue
+                      : '$rangeValue ${l10n.sleepBpmUnit}',
+                  disableShadow: true,
+                  useSecondarySurface: true,
+                ),
+                ValueSummaryCard(
+                  label: l10n.pulseAverageLabel,
+                  value: summary?.averageBpm == null
+                      ? averageValue
+                      : '$averageValue ${l10n.sleepBpmUnit}',
+                  disableShadow: true,
+                  useSecondarySurface: true,
+                ),
+                ValueSummaryCard(
+                  label: l10n.pulseRestingLabel,
+                  value: summary?.restingBpm == null
+                      ? restingValue
+                      : '$restingValue ${l10n.sleepBpmUnit}',
+                  disableShadow: true,
+                  useSecondarySurface: true,
+                ),
+              ]),
               const SizedBox(height: DesignConstants.spacingS),
               Text(
                 stateText,
@@ -108,45 +112,28 @@ class PulseSectionCard extends StatelessWidget {
     );
   }
 
-  String _pulseRangeLabel(BuildContext context, PulseAnalysisSummary summary) {
-    final localeCode = Localizations.localeOf(context).languageCode;
-    final start = summary.window.startUtc.toLocal();
-    final endExclusive = summary.window.endUtc.toLocal();
-    final end = DateTime(
-      endExclusive.year,
-      endExclusive.month,
-      endExclusive.day,
-    ).subtract(const Duration(days: 1));
-    final startDay = DateTime(start.year, start.month, start.day);
-    final spansYear = startDay.year != end.year;
-    final formatter =
-        spansYear ? DateFormat.yMMMd(localeCode) : DateFormat.MMMd(localeCode);
-    return '${formatter.format(startDay)} - ${formatter.format(end)}';
-  }
-
-  Widget _buildPulseMetricTile(
-      BuildContext context, String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: DesignConstants.spacingS),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+  Widget _buildTwoColumnGrid(List<Widget> items) {
+    final rows = <Widget>[];
+    for (var i = 0; i < items.length; i += 2) {
+      final left = items[i];
+      final right = i + 1 < items.length ? items[i + 1] : const SizedBox();
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: left),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(child: right),
+            ],
           ),
-        ],
-      ),
-    );
+        ),
+      );
+      if (i + 2 < items.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+    return Column(children: rows);
   }
 
   String _pulseQualityLabel(AppLocalizations l10n, PulseDataQuality quality) {

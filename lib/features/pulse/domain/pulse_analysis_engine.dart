@@ -24,9 +24,13 @@ class PulseAnalysisEngine {
       );
     }
 
-    final bpms = samples.map((sample) => sample.bpm).toList(growable: false);
-    final minBpm = bpms.reduce(math.min);
-    final maxBpm = bpms.reduce(math.max);
+    double minBpm = double.infinity;
+    double maxBpm = double.negativeInfinity;
+    for (final sample in samples) {
+      final bpm = sample.bpm;
+      if (bpm < minBpm) minBpm = bpm;
+      if (bpm > maxBpm) maxBpm = bpm;
+    }
     final averageBpm = _durationWeightedAverage(samples, window);
     final restingBpm = _restingPulse(samples);
     final quality = _classifyQuality(

@@ -93,9 +93,8 @@ Der Austausch mit Apple HealthKit oder Google Health Connect erfolgt rein lokal 
 Daten werden nur nach Ihrer expliziten Freigabe gelesen oder geschrieben.
 Bitte beachten Sie zusätzlich die Datenschutzhinweise von Apple bzw. Google für HealthKit bzw. Health Connect.
 
-7. Kein Tracking / Keine Analyse
-Die App verwendet keine Tracking- oder Analyse-SDKs (wie Firebase Analytics, Google Analytics oder
-Sentry). Es findet keine Profilbildung zu Marketingzwecken statt.
+7. Kein kommerzielles Tracking / Optionale anonyme Telemetrie
+Die App verzichtet auf Werbenetzwerke, kommerzielles Tracking und verhaltensbasierte Werbe-SDKs. Es steht eine rein optionale, anonyme Nutzungsstatistik (PostHog EU) zur Verfügung, die standardmäßig deaktiviert ist und keinerlei personenbezogene Daten (PII) überträgt.
 
 8. Speicherdauer
  - App-Daten: Verbleiben auf Ihrem Gerät, bis Sie diese löschen oder die App deinstallieren.
@@ -193,9 +192,8 @@ Art. 44 et seq. GDPR.
 Train Libre can read and write health data via Apple HealthKit and Google Health Connect. This synchronization happens entirely on your device. The app only accesses these services if you explicitly grant permission in your system settings. Please also review Apple’s and Google’s separate privacy policies for these health platforms.
 
 
-7. No Tracking / No Analytics
-The app does not use tracking or analytics SDKs (e.g., Firebase Analytics, Google Analytics,
-Sentry). No profiling for marketing purposes is performed.
+7. No Commercial Tracking / Optional Anonymous Telemetry
+The app dispenses with advertising networks, commercial tracking, and behavior profiling. A purely optional, anonymous usage statistics integration (PostHog EU) is disabled by default and captures zero personally identifiable information (PII).
 
 8. Retention Periods
  - App Data: Stored on your device until deleted or uninstalled.

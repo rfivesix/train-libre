@@ -8,6 +8,7 @@ import '../../diary/domain/models/fluid_entry.dart';
 import '../../diary/domain/models/food_item.dart';
 import '../../../util/perf_debug_timer.dart';
 import '../domain/statistics_range_policy.dart';
+import '../domain/timeframe_block.dart';
 
 class BodyNutritionAnalyticsRawData {
   final DateTimeRange range;
@@ -57,23 +58,25 @@ class BodyNutritionAnalyticsDataAdapter {
   }
 
   Future<BodyNutritionAnalyticsRawData> fetch({
-    required int rangeIndex,
-    DateTime? now,
+    required TimeframeBlock selectedBlockType,
+    required DateTime anchorDate,
+    bool isRolling = false,
   }) async {
     return PerfDebugTimer.time(
       area: 'statistics',
       label: 'bodyNutritionFetchRaw',
       action: () async {
-        final normalizedNow = normalizeDay(now ?? DateTime.now());
+        final normalizedNow = normalizeDay(anchorDate);
         final earliest = await PerfDebugTimer.time(
           area: 'statistics',
           label: 'bodyNutritionEarliest',
           action: _earliestRelevantDate,
         );
         final range = await _resolveRange(
-          rangeIndex: rangeIndex,
+          selectedBlockType: selectedBlockType,
           now: normalizedNow,
           earliestRelevantDate: earliest,
+          isRolling: isRolling,
         );
 
         final results = await Future.wait([
@@ -108,15 +111,17 @@ class BodyNutritionAnalyticsDataAdapter {
   }
 
   Future<DateTimeRange> _resolveRange({
-    required int rangeIndex,
+    required TimeframeBlock selectedBlockType,
     required DateTime now,
     required DateTime? earliestRelevantDate,
+    required bool isRolling,
   }) async {
     final resolved = _rangePolicy.resolve(
       metricId: StatisticsMetricId.bodyNutritionTrend,
-      selectedRangeIndex: rangeIndex,
+      selectedBlockType: selectedBlockType,
       now: now,
       earliestAvailableDay: earliestRelevantDate,
+      isRolling: isRolling,
     );
     return resolved.dateRange ?? DateTimeRange(start: now, end: endOfDay(now));
   }
@@ -144,9 +149,37 @@ class BodyNutritionAnalyticsDataAdapter {
     required List<FluidEntry> fluidEntries,
   }) async {
     final map = <DateTime, double>{};
-    final foodProductsByBarcode = await _hydrateProductsByBarcode(
-      foodEntries,
-    );
+
+    // O(N) single-pass iteration to extract unique IDs without intermediate list allocations
+    final Set<int> archiveIdsSet = {};
+    final Set<String> barcodesSet = {};
+
+    for (final entry in foodEntries) {
+      if (entry.archiveLocalId != null) {
+        archiveIdsSet.add(entry.archiveLocalId!);
+      } else {
+        barcodesSet.add(entry.barcode);
+      }
+    }
+
+    final Map<int, FoodItem> archiveProductsMap = {};
+    final Map<String, FoodItem> legacyProductsMap = {};
+
+    if (archiveIdsSet.isNotEmpty) {
+      final archiveIds = archiveIdsSet.toList();
+      final archivedProducts =
+          await _productDatabaseHelper.getProductsByArchiveIds(archiveIds);
+      archiveProductsMap.addAll(archivedProducts);
+    }
+
+    if (barcodesSet.isNotEmpty) {
+      final barcodes = barcodesSet.toList();
+      final legacyProducts =
+          await _productDatabaseHelper.getProductsByBarcodes(barcodes);
+      for (final p in legacyProducts) {
+        legacyProductsMap[p.barcode] = p;
+      }
+    }
 
     for (final entry in foodEntries) {
       final day = DateTime.utc(
@@ -154,8 +187,9 @@ class BodyNutritionAnalyticsDataAdapter {
         entry.timestamp.month,
         entry.timestamp.day,
       );
-      final barcode = entry.barcode;
-      final product = foodProductsByBarcode[barcode];
+      final product = entry.archiveLocalId != null
+          ? archiveProductsMap[entry.archiveLocalId!]
+          : legacyProductsMap[entry.barcode];
       final caloriesPer100g = product?.calories ?? 0;
       final amountGrams = entry.quantityInGrams.toDouble();
       final added = caloriesPer100g * (amountGrams / 100.0);
@@ -165,7 +199,9 @@ class BodyNutritionAnalyticsDataAdapter {
     for (final entry in fluidEntries) {
       final isLinked = entry.linkedFoodEntryId != null;
       final isDuplicateOfFood = foodEntries.any((food) {
-        final foodItem = foodProductsByBarcode[food.barcode];
+        final foodItem = food.archiveLocalId != null
+            ? archiveProductsMap[food.archiveLocalId!]
+            : legacyProductsMap[food.barcode];
         final isFluidFood = foodItem != null &&
             (foodItem.isFluid || (foodItem.isLiquid ?? false));
         if (!isFluidFood) return false;
@@ -196,25 +232,5 @@ class BodyNutritionAnalyticsDataAdapter {
     }
 
     return map;
-  }
-
-  Future<Map<String, FoodItem>> _hydrateProductsByBarcode(
-    List<FoodEntry> foodEntries,
-  ) async {
-    final uniqueBarcodes = foodEntries
-        .map((e) => e.barcode)
-        .where((barcode) => barcode.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
-    if (uniqueBarcodes.isEmpty) {
-      return const {};
-    }
-
-    final products = await _productDatabaseHelper.getProductsByBarcodes(
-      uniqueBarcodes,
-    );
-    return {
-      for (final product in products) product.barcode: product,
-    };
   }
 }

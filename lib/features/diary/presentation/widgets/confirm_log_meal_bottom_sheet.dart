@@ -7,6 +7,10 @@ import '../../../../util/date_util.dart';
 import '../../domain/models/food_item.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../widgets/common/common.dart';
+import 'package:provider/provider.dart';
+import '../../../../services/theme_service.dart';
+import '../../../../services/base_food_language_service.dart';
+import '../../../../widgets/common/app_button.dart';
 
 class ConfirmLogMealBottomSheet extends StatefulWidget {
   final String mealName;
@@ -159,8 +163,8 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
             isDense: true,
             filled: true,
             fillColor: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
+                ? (Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E))
+                : Colors.white,
           ),
           items: _internalTypes
               .map(
@@ -191,8 +195,20 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
               final it = widget.rawItems[i];
               final bc = it['barcode'] as String;
               final fi = widget.products[bc];
-              final displayName =
-                  (fi?.name.isNotEmpty ?? false) ? fi!.name : bc;
+              final displayName = fi != null
+                  ? (() {
+                      final themeService = Provider.of<ThemeService>(context);
+                      final baseFoodLang =
+                          BaseFoodLanguageService.resolveLanguageCode(
+                        choice: themeService.baseFoodLanguage,
+                        context: context,
+                      );
+                      return fi.source == FoodItemSource.base
+                          ? fi.getLocalizedName(context,
+                              languageCode: baseFoodLang)
+                          : fi.getLocalizedName(context);
+                    })()
+                  : bc;
               final unit = (fi?.isLiquid == true)
                   ? l10n.unit_milliliters
                   : l10n.unit_grams;
@@ -217,13 +233,15 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                         filled: true,
                         fillColor:
                             Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white.withValues(alpha: 0.05)
+                                ? (Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E))
                                 : Colors.black.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                          borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusM),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: DesignConstants.spacingM,
                           vertical: 14,
                         ),
                       ),
@@ -240,17 +258,18 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: AppButton.secondary(
                 onPressed: () {
                   widget.onClose();
                   Navigator.of(context).pop(false);
                 },
-                child: Text(l10n.cancel),
+                label: l10n.cancel,
+                tooltip: l10n.cancel,
               ),
             ),
             const SizedBox(width: DesignConstants.spacingM),
             Expanded(
-              child: FilledButton(
+              child: AppButton.primary(
                 onPressed: () {
                   // Build final quantities map to hand over
                   final Map<String, int> finalQuantities = {};
@@ -267,7 +286,8 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                   widget.onClose();
                   Navigator.of(context).pop(true);
                 },
-                child: Text(l10n.save),
+                label: l10n.save,
+                tooltip: l10n.save,
               ),
             ),
           ],

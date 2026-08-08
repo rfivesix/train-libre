@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../data/database_helper.dart';
+
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../diary/presentation/dialogs/fluid_dialog_content.dart';
 import '../../supplements/presentation/dialogs/log_supplement_menu.dart';
@@ -18,7 +21,7 @@ import '../../diary/presentation/add_food_navigation_result.dart';
 import '../../diary/presentation/add_food_screen.dart';
 import '../../diary/presentation/meal_editor_screen.dart';
 import '../../diary/presentation/ai_meal_capture_screen.dart';
-import '../../profile/presentation/add_measurement_screen.dart';
+import '../../profile/presentation/measurements_screen.dart';
 import '../../diary/presentation/diary_screen.dart';
 import '../../workout/presentation/edit_routine_screen.dart';
 import '../../workout/presentation/live_workout_screen.dart';
@@ -30,6 +33,7 @@ import '../../../services/profile_service.dart';
 import '../../steps/data/steps_aggregation_repository.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
+import '../../../services/base_food_language_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
@@ -43,6 +47,8 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../navigation/app_route_observer.dart';
 import '../../../services/app_tour_service.dart';
 import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
+import '../../../services/app_review_service.dart';
+import '../../../widgets/common/app_button.dart';
 
 /// The root scaffold containing the main navigation structure.
 ///
@@ -57,11 +63,13 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen>
-    with TickerProviderStateMixin, RouteAware {
+    with TickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   late PageController _pageController;
   int _currentIndex = 0;
   final GlobalKey<DiaryScreenState> _tagebuchKey =
       GlobalKey<DiaryScreenState>();
+  final GlobalKey<StatisticsHubScreenState> _statsKey =
+      GlobalKey<StatisticsHubScreenState>();
   final GlobalKey _tourNavigationBarKey = GlobalKey();
   final GlobalKey _tourFabKey = GlobalKey();
   final GlobalKey _tourDiaryTabKey = GlobalKey();
@@ -70,7 +78,7 @@ class _MainScreenState extends State<MainScreen>
   final GlobalKey _tourNutritionTabKey = GlobalKey();
   bool _isAddMenuOpen = false;
   bool _isTourActive = false;
-  bool _isTourOfferVisible = false;
+  final bool _isTourOfferVisible = false;
   bool _isRouteObserverAttached = false;
   int _tourStepIndex = 0;
   Rect? _tourTargetRect;
@@ -81,7 +89,7 @@ class _MainScreenState extends State<MainScreen>
   ThemeService get themeService =>
       Provider.of<ThemeService>(context, listen: false);
 
-  double get kNavBarHeight => 62;
+  double get kNavBarHeight => DesignConstants.bottomNavigationBarHeight;
   double kBarFabGap = 12.0;
 
   DateTime get _currentActiveDate {
@@ -91,9 +99,18 @@ class _MainScreenState extends State<MainScreen>
     return DateTime.now().dateOnly;
   }
 
+  static const List<String> _tabScreenNames = [
+    ScreenName.diaryTab,
+    ScreenName.workoutTab,
+    ScreenName.analyticsTab,
+    ScreenName.profileTab,
+    ScreenName.settingsTab,
+  ];
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _currentIndex = widget.initialTabIndex ?? 0;
     _pageController = PageController(initialPage: _currentIndex);
     _menuController = AnimationController(
@@ -102,7 +119,20 @@ class _MainScreenState extends State<MainScreen>
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePendingAppTourEntry();
+      AppReviewService.instance.checkAndRequestReview(context);
+      if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
+        unawaited(TelemetryService.instance.trackScreenView(
+          screenName: _tabScreenNames[_currentIndex],
+        ));
+      }
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      unawaited(TelemetryService.instance.flushDailyFoodLog());
+    }
   }
 
   @override
@@ -127,6 +157,7 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
     }
@@ -140,7 +171,18 @@ class _MainScreenState extends State<MainScreen>
       return;
     }
     setState(() => _currentIndex = index);
+    if (index >= 0 && index < _tabScreenNames.length) {
+      unawaited(TelemetryService.instance.trackScreenView(
+        screenName: _tabScreenNames[index],
+      ));
+    }
+    if (index == 2) {
+      if (mounted && _currentIndex == 2) {
+        _statsKey.currentState?.refresh();
+      }
+    }
   }
+
 
   final bool _isWarping = false;
 
@@ -167,17 +209,7 @@ class _MainScreenState extends State<MainScreen>
         _showStartWorkoutMenu();
         break;
       case 'add_measurement':
-        // New: get date
-        final targetDate = _currentActiveDate;
-
-        final success = await Navigator.of(context).push<bool>(
-          MaterialPageRoute(
-            builder: (context) => AddMeasurementScreen(
-              initialDate: targetDate, // <--- Pass-through
-            ),
-          ),
-        );
-        if (success == true) _refreshHomeScreen();
+        _showAddMeasurementMenu();
         break;
       case 'add_food':
         _handleAddFood();
@@ -209,6 +241,7 @@ class _MainScreenState extends State<MainScreen>
       // If we're not on the diary tab, we still want to trigger a background sync if due
       await _stepsRepository.refresh(force: false);
     }
+    _statsKey.currentState?.markDirty();
   }
 
   Future<void> _refreshDiaryForActiveDate({
@@ -273,6 +306,23 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
+  void _showAddMeasurementMenu() {
+    final l10n = AppLocalizations.of(context)!;
+    showGlassBottomMenu<bool?>(
+      context: context,
+      title: l10n.addMeasurement,
+      contentBuilder: (ctx, close) {
+        return MeasurementFormSheet(
+          initialDate: _currentActiveDate,
+          onSaved: () {
+            close();
+            _refreshHomeScreen();
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _showStartWorkoutMenu() async {
     final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
     if (manager.isActive) {
@@ -314,7 +364,9 @@ class _MainScreenState extends State<MainScreen>
         await showGlassBottomMenu<({WorkoutLog log, Routine? routine})>(
       context: context,
       title: l10n.startWorkout,
+      applySafeAreaBottom: false,
       contentBuilder: (ctx, close) {
+        final bottomInset = MediaQuery.of(ctx).viewPadding.bottom;
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         Widget glassCard({required Widget child, EdgeInsets? padding}) {
           return Material(
@@ -364,7 +416,7 @@ class _MainScreenState extends State<MainScreen>
         final routinesList = ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 420),
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+            padding: EdgeInsets.fromLTRB(4, 0, 4, 4 + bottomInset),
             shrinkWrap: true,
             itemCount: routines.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -374,7 +426,7 @@ class _MainScreenState extends State<MainScreen>
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    FilledButton(
+                    AppButton.primary(
                       onPressed: () async {
                         // Show loading indicator on top of the menu.
                         showDialog(
@@ -401,7 +453,9 @@ class _MainScreenState extends State<MainScreen>
                           ).pop((log: newWorkoutLog, routine: fullRoutine));
                         }
                       },
-                      child: Text(l10n.startButton),
+                      label: l10n.startButton,
+                      tooltip: l10n.startButton,
+                      size: AppButtonSize.small,
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
                     Expanded(
@@ -464,6 +518,8 @@ class _MainScreenState extends State<MainScreen>
             if (routines.isNotEmpty) ...[
               const SizedBox(height: DesignConstants.spacingM),
               routinesList,
+            ] else ...[
+              SizedBox(height: bottomInset),
             ],
           ],
         );
@@ -545,6 +601,7 @@ class _MainScreenState extends State<MainScreen>
     try {
       final newFoodEntryId = await DatabaseHelper.instance.insertFoodEntry(
         newFoodEntry,
+        telemetrySource: addFoodResult.source,
       );
       HapticFeedbackService.instance.confirmationFeedback();
 
@@ -603,14 +660,15 @@ class _MainScreenState extends State<MainScreen>
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: close,
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () async {
                       final state = key.currentState;
                       if (state == null) return;
@@ -663,7 +721,8 @@ class _MainScreenState extends State<MainScreen>
                         await _refreshDiaryForActiveDate(queueIfInFlight: true);
                       }
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],
@@ -684,19 +743,18 @@ class _MainScreenState extends State<MainScreen>
 
     final supplements = await DatabaseHelper.instance.getAllSupplements();
     Supplement? caffeineSupplement;
-    try {
-      caffeineSupplement = supplements.firstWhere(
-        (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
-      );
-    } catch (e) {
-      return;
+    for (final s in supplements) {
+      if ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine') {
+        caffeineSupplement = s;
+        break;
+      }
     }
 
-    if (caffeineSupplement.id == null) return;
+    if (caffeineSupplement?.id == null) return;
 
     await DatabaseHelper.instance.insertSupplementLog(
       SupplementLog(
-        supplementId: caffeineSupplement.id!,
+        supplementId: caffeineSupplement!.id!,
         dose: doseMg,
         unit: 'mg',
         timestamp: timestamp,
@@ -724,7 +782,16 @@ class _MainScreenState extends State<MainScreen>
 
     return showGlassBottomMenu(
       context: context,
-      title: item.name,
+      title: () {
+        final themeService = Provider.of<ThemeService>(context, listen: false);
+        final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+          choice: themeService.baseFoodLanguage,
+          context: context,
+        );
+        return item.source == FoodItemSource.base
+            ? item.getLocalizedName(context, languageCode: baseFoodLang)
+            : item.getLocalizedName(context);
+      }(),
       contentBuilder: (ctx, close) {
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -739,17 +806,18 @@ class _MainScreenState extends State<MainScreen>
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton.secondary(
                     onPressed: () {
                       close();
                       Navigator.of(ctx).pop(null);
                     },
-                    child: Text(l10n.cancel),
+                    label: l10n.cancel,
+                    tooltip: l10n.cancel,
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: FilledButton(
+                  child: AppButton.primary(
                     onPressed: () {
                       final state = dialogStateKey.currentState;
                       if (state != null) {
@@ -774,7 +842,8 @@ class _MainScreenState extends State<MainScreen>
                         }
                       }
                     },
-                    child: Text(l10n.add_button),
+                    label: l10n.add_button,
+                    tooltip: l10n.add_button,
                   ),
                 ),
               ],
@@ -828,10 +897,15 @@ class _MainScreenState extends State<MainScreen>
           ),
           actions: [
             IconButton(
-              icon: const Icon(LucideIcons.share_2),
+              icon: Icon(
+                DesignConstants.adaptiveShareIcon,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+              ),
               tooltip: l10n.share,
               onPressed: () {
-                _tagebuchKey.currentState?.showShareMenu();
+                _tagebuchKey.currentState?.shareAsText();
               },
             ),
             _profileAppBarButton(context),
@@ -924,7 +998,30 @@ class _MainScreenState extends State<MainScreen>
     final renderObject = targetContext.findRenderObject();
     if (renderObject is! RenderBox || !renderObject.hasSize) return null;
     final topLeft = renderObject.localToGlobal(Offset.zero);
-    return topLeft & renderObject.size;
+    final rect = topLeft & renderObject.size;
+
+    if (key == _tourNavigationBarKey) {
+      return Rect.fromLTWH(
+        rect.left + 16,
+        rect.top,
+        rect.width,
+        rect.height,
+      );
+    }
+
+    if (key == _tourDiaryTabKey ||
+        key == _tourWorkoutTabKey ||
+        key == _tourStatisticsTabKey ||
+        key == _tourNutritionTabKey) {
+      return Rect.fromLTWH(
+        rect.left - 12,
+        rect.top - 4,
+        rect.width + 24,
+        rect.height + 28,
+      );
+    }
+
+    return rect;
   }
 
   Future<void> _handlePendingAppTourEntry() async {
@@ -934,7 +1031,7 @@ class _MainScreenState extends State<MainScreen>
 
     switch (entry) {
       case AppTourEntryPoint.postOnboardingOffer:
-        await _showPostOnboardingTourOffer();
+        await _startAppTour();
         break;
       case AppTourEntryPoint.settingsRestart:
         await _startAppTour();
@@ -942,57 +1039,10 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  Future<void> _showPostOnboardingTourOffer() async {
-    if (!mounted || _isTourOfferVisible) return;
-    final l10n = AppLocalizations.of(context)!;
-    setState(() => _isTourOfferVisible = true);
-    final shouldStartTour = await showGlassBottomMenu<bool>(
-      context: context,
-      title: l10n.appTourOfferTitle,
-      contentBuilder: (ctx, close) => Column(
-        key: const Key('app_tour_offer_dialog'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l10n.appTourOfferBody,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  key: const Key('app_tour_offer_skip_button'),
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text(l10n.appTourOfferSkip),
-                ),
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: FilledButton(
-                  key: const Key('app_tour_offer_start_button'),
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text(l10n.appTourOfferStart),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    setState(() => _isTourOfferVisible = false);
-    await AppTourService.instance.markOfferShown();
-
-    if (shouldStartTour == true) {
-      await _startAppTour();
-      return;
-    }
-    await AppTourService.instance.markSkipped();
-  }
-
   Future<void> _startAppTour() async {
     if (!mounted) return;
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.appTourStarted));
     await AppTourService.instance.markOfferShown();
     setState(() {
       _isTourActive = true;
@@ -1022,9 +1072,12 @@ class _MainScreenState extends State<MainScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_isTourActive) return;
-      final targetRect =
-          _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
-      setState(() => _tourTargetRect = targetRect);
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (!mounted || !_isTourActive || _tourStepIndex != index) return;
+        final targetRect =
+            _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
+        setState(() => _tourTargetRect = targetRect);
+      });
     });
   }
 
@@ -1047,16 +1100,20 @@ class _MainScreenState extends State<MainScreen>
       _tourTargetRect = null;
       _tourStepIndex = 0;
     });
+    _onNavigationTapped(0);
     await AppTourService.instance.markSkipped();
   }
 
   Future<void> _completeAppTour() async {
     if (!mounted || !_isTourActive) return;
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.appTourCompleted));
     setState(() {
       _isTourActive = false;
       _tourTargetRect = null;
       _tourStepIndex = 0;
     });
+    _onNavigationTapped(0);
     await AppTourService.instance.markCompleted();
   }
 
@@ -1095,7 +1152,11 @@ class _MainScreenState extends State<MainScreen>
     // the system Scaffold does not automatically inset floating Snackbars.
     // By providing a transparent dummy bottomNavigationBar, ScaffoldMessenger
     // will natively push up all Snackbars (including those from settings).
-    final double dynamicBottomPadding = isWorkoutRunning ? 120 + 68 : 120;
+    final double dynamicBottomPadding = isWorkoutRunning
+        ? (DesignConstants.bottomNavigationBarHeight +
+            DesignConstants.workoutOverlayHeight +
+            48.0)
+        : (DesignConstants.bottomNavigationBarHeight + 48.0);
 
     return Stack(
       children: [
@@ -1117,9 +1178,9 @@ class _MainScreenState extends State<MainScreen>
                   storageKey: PageStorageKey('tab_workout'),
                   child: WorkoutHubScreen(),
                 ),
-                const KeepAlivePage(
-                  storageKey: PageStorageKey('tab_stats'),
-                  child: StatisticsHubScreen(),
+                KeepAlivePage(
+                  storageKey: const PageStorageKey('tab_stats'),
+                  child: StatisticsHubScreen(key: _statsKey),
                 ),
                 const KeepAlivePage(
                   storageKey: PageStorageKey('tab_nutrition'),
@@ -1129,10 +1190,27 @@ class _MainScreenState extends State<MainScreen>
             ),
           ),
         ),
+        // Soft bottom fade-out vignette shadow underneath bottom navigation & running workout overlay
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: DesignConstants.bottomVignetteHeight,
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: DesignConstants.bottomVignetteGradient(isDark),
+              ),
+            ),
+          ),
+        ),
         // Laufendes Workout Overlay
         if (isWorkoutRunning)
           Positioned(
-            bottom: 36 + kNavBarHeight,
+            bottom: 8 +
+                8 +
+                DesignConstants.bottomNavigationBarHeight +
+                8, // 8px (Positioned bottom) + 8px (verticalPadding) + 64px (barHeight) + 8px (gap) = 88.0px
             left: 16,
             right: 16,
             child: RepaintBoundary(
@@ -1177,18 +1255,16 @@ class _MainScreenState extends State<MainScreen>
           ),
         // Bottom Nav Bar & FAB
         Positioned(
-          bottom: 12,
+          bottom: 8,
           left: 16,
           right: 16,
           child: RepaintBoundary(
-            child: KeyedSubtree(
-              key: _tourNavigationBarKey,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
+            child: LayoutBuilder(
+              builder: (context, constraints) {
                   final double horizontalPadding = 0.0;
-                  final double verticalPadding = 20.0;
+                  final double verticalPadding = 8.0;
                   final double spacing = 8.0;
-                  final double extraButtonSize = 74.0;
+                  final double extraButtonSize = DesignConstants.fabSize;
                   final double maxTabW = constraints.maxWidth -
                       (horizontalPadding * 2) -
                       (extraButtonSize + spacing);
@@ -1205,26 +1281,36 @@ class _MainScreenState extends State<MainScreen>
                           child: Row(
                             children: [
                               ClipPath(
-                                clipper: ShadowOuterClipper(borderRadius: 37),
+                                clipper: ShadowOuterClipper(
+                                    borderRadius: DesignConstants
+                                            .bottomNavigationBarHeight /
+                                        2),
                                 child: Container(
                                   width: maxTabW,
-                                  height: 74.0, // Match barHeight
+                                  height: DesignConstants
+                                      .bottomNavigationBarHeight, // Match barHeight
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(37),
-                                    boxShadow: DesignConstants.glassShadow,
+                                    borderRadius: BorderRadius.circular(
+                                        DesignConstants
+                                                .bottomNavigationBarHeight /
+                                            2),
+                                    boxShadow: DesignConstants.glassShadow(isDark),
                                   ),
                                 ),
                               ),
                               SizedBox(width: spacing),
                               ClipPath(
                                 clipper: ShadowOuterClipper(
-                                    borderRadius: 37, isOval: true),
+                                    borderRadius: DesignConstants.fabSize / 2,
+                                    isOval: true),
                                 child: Container(
                                   width: extraButtonSize,
-                                  height: 74.0, // Match barHeight
+                                  height: DesignConstants
+                                      .fabSize, // Match barHeight
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(37),
-                                    boxShadow: DesignConstants.glassShadow,
+                                    borderRadius: BorderRadius.circular(
+                                        DesignConstants.fabSize / 2),
+                                    boxShadow: DesignConstants.glassShadow(isDark),
                                   ),
                                 ),
                               ),
@@ -1247,92 +1333,96 @@ class _MainScreenState extends State<MainScreen>
                               vertical: verticalPadding,
                             ),
                             child: GlassAdaptiveScope(
-                              minQuality: GlassQuality.premium,
-                              maxQuality: GlassQuality.premium,
+                              maxQuality: DesignConstants.defaultGlassQuality,
+                              minQuality: DesignConstants.minGlassQuality,
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: GlassBottomBar(
-                                      selectedIndex: _currentIndex,
-                                      onTabSelected: _onNavigationTapped,
-                                      barHeight: 74,
-                                      barBorderRadius:
-                                          37, // Half of height for perfectly rounded semi-circle ends
-                                      tabWidth:
-                                          null, // Stretches to occupy all horizontal space
-                                      horizontalPadding: 0.0,
-                                      verticalPadding: 0.0,
-                                      quality: GlassQuality.premium,
-                                      indicatorExpansion: 14,
-                                      selectedIconColor:
-                                          theme.colorScheme.primary,
-                                      unselectedIconColor:
-                                          isDark ? Colors.white : Colors.black,
-                                      indicatorColor:
-                                          (isDark ? Colors.white : Colors.black)
-                                              .withValues(alpha: 0.15),
-                                      settings:
-                                          DesignConstants.liquidGlassSettings(
-                                              isDark),
-                                      tabs: [
-                                        GlassBottomBarTab(
-                                          label: l10n.diary,
-                                          icon: Icon(
-                                            LucideIcons.notebook,
-                                            key: _tourDiaryTabKey,
+                                    child: KeyedSubtree(
+                                      key: _tourNavigationBarKey,
+                                      child: GlassTabBar.bottom(
+                                        selectedIndex: _currentIndex,
+                                        onTabSelected: _onNavigationTapped,
+                                        barHeight: DesignConstants
+                                            .bottomNavigationBarHeight,
+                                        barBorderRadius: GlassDefaults.capsuleRadius,
+                                        indicatorBorderRadius: GlassDefaults.capsuleRadius,
+                                        tabWidth: null,
+                                        horizontalPadding: 0.0,
+                                        verticalPadding: 0.0,
+                                        quality: DesignConstants.defaultGlassQuality,
+                                        indicatorExpansion:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 14, vertical: 8),
+                                        selectedIconColor:
+                                            theme.colorScheme.primary,
+                                        unselectedIconColor:
+                                            isDark ? Colors.white : Colors.black,
+                                        indicatorColor:
+                                            (isDark ? Colors.white : Colors.black)
+                                                .withValues(alpha: 0.15),
+                                        settings:
+                                            DesignConstants.liquidGlassSettings(
+                                                isDark),
+                                        tabs: [
+                                          GlassTab(
+                                            label: l10n.diary,
+                                            icon: Icon(
+                                              LucideIcons.notebook,
+                                              key: _tourDiaryTabKey,
+                                            ),
+                                            activeIcon:
+                                                const Icon(LucideIcons.notebook),
                                           ),
-                                          activeIcon:
-                                              const Icon(LucideIcons.notebook),
-                                        ),
-                                        GlassBottomBarTab(
-                                          label: l10n.workout,
-                                          icon: Icon(
-                                            LucideIcons.dumbbell,
-                                            key: _tourWorkoutTabKey,
+                                          GlassTab(
+                                            label: l10n.workout,
+                                            icon: Icon(
+                                              LucideIcons.dumbbell,
+                                              key: _tourWorkoutTabKey,
+                                            ),
+                                            activeIcon:
+                                                const Icon(LucideIcons.dumbbell),
                                           ),
-                                          activeIcon:
-                                              const Icon(LucideIcons.dumbbell),
-                                        ),
-                                        GlassBottomBarTab(
-                                          label: l10n.statistics,
-                                          icon: Icon(
-                                            LucideIcons.chart_no_axes_column,
-                                            key: _tourStatisticsTabKey,
+                                          GlassTab(
+                                            label: l10n.statistics,
+                                            icon: Icon(
+                                              LucideIcons.chart_no_axes_column,
+                                              key: _tourStatisticsTabKey,
+                                            ),
+                                            activeIcon: const Icon(
+                                                LucideIcons.chart_no_axes_column),
                                           ),
-                                          activeIcon: const Icon(
-                                              LucideIcons.chart_no_axes_column),
-                                        ),
-                                        GlassBottomBarTab(
-                                          label: l10n.nutrition,
-                                          icon: Icon(
-                                            LucideIcons.utensils,
-                                            key: _tourNutritionTabKey,
+                                          GlassTab(
+                                            label: l10n.nutrition,
+                                            icon: Icon(
+                                              LucideIcons.utensils,
+                                              key: _tourNutritionTabKey,
+                                            ),
+                                            activeIcon:
+                                                const Icon(LucideIcons.utensils),
                                           ),
-                                          activeIcon:
-                                              const Icon(LucideIcons.utensils),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                   SizedBox(width: spacing),
                                   AnimatedBuilder(
                                     animation: _menuController,
                                     builder: (context, child) {
-                                      final double v = _menuController.value;
-                                      return Transform.scale(
-                                        scale: 1.0 - v,
-                                        child: Opacity(
-                                          opacity: (1.0 - v).clamp(0.0, 1.0),
-                                          child: child,
-                                        ),
-                                      );
+                                      if (_menuController.value > 0.0) {
+                                        return SizedBox(
+                                          width: extraButtonSize,
+                                          height: DesignConstants.fabSize,
+                                        );
+                                      }
+                                      return child!;
                                     },
                                     child: AdaptiveGlass(
                                       shape: const LiquidOval(),
                                       settings:
                                           DesignConstants.liquidGlassSettings(
                                               isDark),
-                                      quality: GlassQuality.premium,
+                                      quality: DesignConstants.defaultGlassQuality,
                                       useOwnLayer: true,
                                       isInteractive:
                                           true, //false, // Force blur in minimal quality
@@ -1343,7 +1433,7 @@ class _MainScreenState extends State<MainScreen>
                                           onTap: _toggleAddMenu,
                                           child: SizedBox(
                                             width: extraButtonSize,
-                                            height: 74.0,
+                                            height: DesignConstants.fabSize,
                                             child: Center(
                                               child: Icon(
                                                 LucideIcons.plus,
@@ -1371,7 +1461,6 @@ class _MainScreenState extends State<MainScreen>
               ),
             ),
           ),
-        ),
         // Speed Dial Menu Animation
         SpeedDialMenuOverlay(
           animation: _menuController,
@@ -1412,33 +1501,59 @@ class _MainScreenState extends State<MainScreen>
       padding: const EdgeInsets.only(
         right: DesignConstants.screenPaddingHorizontal,
       ),
-      child: Semantics(
-        label: AppLocalizations.of(context)!.profile,
-        button: true,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: () async {
-            await Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
-            // Refresh diary data when returning from profile/settings
-            _refreshHomeScreen();
-          },
-          child: Consumer<ProfileService>(
-            builder: (context, profileService, _) {
-              return CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors
-                    .grey, //Theme.of(context).colorScheme.onSurfaceVariant,
-                backgroundImage: (profileService.profileImagePath != null)
-                    ? FileImage(File(profileService.profileImagePath!))
-                    : null,
-                child: (profileService.profileImagePath == null)
-                    ? const Icon(LucideIcons.user,
-                        size: 20, color: Colors.black54)
-                    : null,
-              );
+      child: Tooltip(
+        message: AppLocalizations.of(context)!.profile,
+        child: Semantics(
+          label: AppLocalizations.of(context)!.profile,
+          button: true,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: () async {
+              await Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
+              // Refresh diary data when returning from profile/settings
+              _refreshHomeScreen();
             },
+            child: Consumer<ProfileService>(
+              builder: (context, profileService, _) {
+                final hasImage = profileService.profileImagePath != null;
+                final colorScheme = Theme.of(context).colorScheme;
+                final bgCircleColor = colorScheme.onSurface;
+                final initialTextColor = colorScheme.surface;
+                final initial = profileService.initialLetter;
+
+                return Center(
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: hasImage ? Colors.transparent : bgCircleColor,
+                    ),
+                    child: hasImage
+                        ? CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.transparent,
+                            backgroundImage: FileImage(
+                              File(profileService.profileImagePath!),
+                            ),
+                          )
+                        : Center(
+                            child: Text(
+                              initial,
+                              style: TextStyle(
+                                color: initialTextColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                  ),
+                );
+              },
+            ),
+
           ),
         ),
       ),

@@ -19,6 +19,7 @@ class NutritionSummaryWidget extends StatelessWidget {
   /// Whether to show the expanded set of macros (e.g., sugar, fiber, salt, caffeine).
   final bool isExpandedView;
   final bool showSugarInOverview;
+  final String extraNutrient;
 
   /// Localization instance for labels.
   final AppLocalizations l10n;
@@ -28,12 +29,44 @@ class NutritionSummaryWidget extends StatelessWidget {
     required this.nutritionData,
     this.isExpandedView = false,
     this.showSugarInOverview = false,
+    this.extraNutrient = 'fiber',
     required this.l10n,
   });
 
+  Widget _buildExtraNutrientBar(
+    AppLocalizations l10n,
+    DailyNutrition nutritionData,
+  ) {
+    final key = extraNutrient.toLowerCase();
+    if (key == 'sugar') {
+      return GlassProgressBar(
+        label: l10n.sugar,
+        unit: 'g',
+        value: nutritionData.sugar,
+        target: nutritionData.targetSugar.toDouble(),
+        color: Colors.pink.shade200,
+      );
+    } else if (key == 'salt') {
+      return GlassProgressBar(
+        label: l10n.salt,
+        unit: 'g',
+        value: nutritionData.salt,
+        target: nutritionData.targetSalt.toDouble(),
+        color: Colors.grey.shade500,
+      );
+    } else {
+      return GlassProgressBar(
+        label: l10n.fiber,
+        unit: 'g',
+        value: nutritionData.fiber,
+        target: nutritionData.targetFiber.toDouble(),
+        color: Colors.brown.shade400,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final showSugarTile = !isExpandedView && showSugarInOverview;
     final unitService = context.watch<UnitService>();
 
     return IntrinsicHeight(
@@ -41,7 +74,7 @@ class NutritionSummaryWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            flex: 3,
+            flex: 1,
             child: Column(
               children: [
                 Expanded(
@@ -69,16 +102,10 @@ class NutritionSummaryWidget extends StatelessWidget {
                     color: Colors.blue,
                   ),
                 ),
-                if (showSugarTile) ...[
+                if (!isExpandedView) ...[
                   const SizedBox(height: DesignConstants.spacingS),
                   Expanded(
-                    child: GlassProgressBar(
-                      label: l10n.sugar,
-                      unit: 'g',
-                      value: nutritionData.sugar,
-                      target: nutritionData.targetSugar.toDouble(),
-                      color: Colors.pink.shade200,
-                    ),
+                    child: _buildExtraNutrientBar(l10n, nutritionData),
                   ),
                 ],
               ],
@@ -86,7 +113,7 @@ class NutritionSummaryWidget extends StatelessWidget {
           ),
           const SizedBox(width: DesignConstants.spacingS),
           Expanded(
-            flex: 4,
+            flex: 1,
             child: Column(
               children: [
                 Expanded(
@@ -95,7 +122,7 @@ class NutritionSummaryWidget extends StatelessWidget {
                     unit: 'g',
                     value: nutritionData.protein.toDouble(),
                     target: nutritionData.targetProtein.toDouble(),
-                    color: Colors.red.shade400,
+                    color: DesignConstants.brandRedColor,
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingS),
@@ -124,7 +151,7 @@ class NutritionSummaryWidget extends StatelessWidget {
           if (isExpandedView) ...[
             const SizedBox(width: DesignConstants.spacingS),
             Expanded(
-              flex: 4,
+              flex: 1,
               child: Column(
                 children: [
                   Expanded(

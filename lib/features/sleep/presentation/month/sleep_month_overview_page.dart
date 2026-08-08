@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/summary_card.dart';
+import '../../../statistics/domain/timeframe_block.dart';
+import '../../../../widgets/common/seamless_loading_overlay.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../data/repository/sleep_query_repository.dart';
 import '../../domain/aggregation/sleep_period_aggregations.dart';
 import '../../domain/sleep_enums.dart';
@@ -31,6 +34,7 @@ class _SleepMonthOverviewPageState extends State<SleepMonthOverviewPage> {
   late final SleepQueryRepository _repository;
   MonthSleepAggregation? _aggregation;
   bool _isLoading = true;
+  bool _isRolling = false;
 
   @override
   void initState() {
@@ -51,29 +55,42 @@ class _SleepMonthOverviewPageState extends State<SleepMonthOverviewPage> {
       appBarTitle: l10n.sleepSectionTitle,
       selectedScope: SleepPeriodScope.month,
       anchorDate: _anchorDay,
+      isRolling: _isRolling,
       onScopeChanged: _onScopeChanged,
       onShiftPeriod: _shiftPeriod,
-      child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MonthSummaryCard(aggregation: _aggregation!),
-                const SizedBox(height: _sleepOverviewSectionSpacing),
-                MonthCalendarGrid(
-                  aggregation: _aggregation!,
-                  onTapDay: (day) =>
-                      SleepNavigation.openDayForDate(context, day),
-                ),
-                if (_aggregation!.days.every((day) => day.score == null)) ...[
+      onAnchorChanged: (selection) {
+        final date = selection.anchorDate;
+        setState(() {
+          _anchorDay = date;
+          _isRolling = false;
+        });
+        _loadMonth();
+      },
+      child: SeamlessLoadingOverlay(
+        isLoading: _isLoading,
+        isEmpty: _aggregation == null,
+        child: _aggregation == null
+            ? const SizedBox.shrink()
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MonthSummaryCard(aggregation: _aggregation!),
                   const SizedBox(height: _sleepOverviewSectionSpacing),
-                  SleepDataUnavailableCard(
-                    message: l10n.sleepMonthNoScoredNights,
-                    margin: EdgeInsets.zero,
+                  MonthCalendarGrid(
+                    aggregation: _aggregation!,
+                    onTapDay: (day) =>
+                        SleepNavigation.openDayForDate(context, day),
                   ),
+                  if (_aggregation!.days.every((day) => day.score == null)) ...[
+                    const SizedBox(height: _sleepOverviewSectionSpacing),
+                    SleepDataUnavailableCard(
+                      message: l10n.sleepMonthNoScoredNights,
+                      margin: EdgeInsets.zero,
+                    ),
+                  ],
                 ],
-              ],
-            ),
+              ),
+      ),
     );
   }
 
@@ -115,7 +132,26 @@ class _SleepMonthOverviewPageState extends State<SleepMonthOverviewPage> {
 
   void _shiftPeriod(int direction) {
     setState(() {
-      _anchorDay = DateTime(_anchorDay.year, _anchorDay.month + direction, 1);
+      if (direction < 0) {
+        if (_isRolling) {
+          _isRolling = false;
+          _anchorDay = DateTime.now();
+        } else {
+          _anchorDay = DateTime(_anchorDay.year, _anchorDay.month - 1, 1);
+        }
+      } else {
+        if (_isRolling) return;
+        final currentBounds = SleepPeriodScope.month.block
+            .getBounds(DateTime.now(), DateTime(2020));
+        final myBounds =
+            SleepPeriodScope.month.block.getBounds(_anchorDay, DateTime(2020));
+        if (myBounds.start.isAtSameMomentAs(currentBounds.start) ||
+            myBounds.start.isAfter(currentBounds.start)) {
+          _isRolling = true;
+        } else {
+          _anchorDay = DateTime(_anchorDay.year, _anchorDay.month + 1, 1);
+        }
+      }
     });
     _loadMonth();
   }
@@ -139,31 +175,43 @@ class MonthSummaryCard extends StatelessWidget {
     final mean = aggregation.meanScore == null
         ? '--'
         : aggregation.meanScore!.toStringAsFixed(0);
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sleepMonthSummaryTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            Text(l10n.sleepMeanScoreLabel(mean)),
-            Text(
-              l10n.sleepWeekdayAvgDurationLabel(
-                formatDuration(aggregation.weekdayAverageDuration),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.cardPaddingInternal),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ValueSummaryCard(
+                  value: mean,
+                  label: l10n.sleepMeanScoreLabel(''),
+                ),
               ),
-            ),
-            Text(
-              l10n.sleepWeekendAvgDurationLabel(
-                formatDuration(aggregation.weekendAverageDuration),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: ValueSummaryCard(
+                  value: formatDuration(aggregation.weekdayAverageDuration),
+                  label: l10n.sleepWeekdayAvgDurationLabel(''),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Row(
+            children: [
+              Expanded(
+                child: ValueSummaryCard(
+                  value: formatDuration(aggregation.weekendAverageDuration),
+                  label: l10n.sleepWeekendAvgDurationLabel(''),
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingS),
+              const Spacer(),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -182,6 +230,7 @@ class MonthCalendarGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final localeCode = Localizations.localeOf(context).toString();
     final days = aggregation.days;
     final firstWeekdayOffset = aggregation.monthStart.weekday - DateTime.monday;
     final padded = <SleepDayAggregate?>[
@@ -192,72 +241,128 @@ class MonthCalendarGrid extends StatelessWidget {
     if (remainder != 0) {
       padded.addAll(List<SleepDayAggregate?>.filled(7 - remainder, null));
     }
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.sleepMonthDailyScoreStatesTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: padded.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                mainAxisSpacing: 6,
-                crossAxisSpacing: 6,
-                childAspectRatio: 1,
-              ),
-              itemBuilder: (context, index) {
-                final day = padded[index];
-                if (day == null) {
-                  return const SizedBox.shrink();
-                }
-                return InkWell(
-                  onTap: () => onTapDay(day.date),
-                  borderRadius: BorderRadius.circular(
-                    DesignConstants.borderRadiusS,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.cardPaddingInternal),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.sleepMonthDailyScoreStatesTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Row(
+            children: List.generate(7, (index) {
+              final referenceDay = DateTime(2024, 1, 1).add(
+                Duration(days: index),
+              );
+              return Expanded(
+                child: Center(
+                  child: Text(
+                    DateFormat.E(localeCode).format(referenceDay),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
                   ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _chipColor(context, day.sleepQuality),
-                      borderRadius: BorderRadius.circular(
-                        DesignConstants.borderRadiusS,
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 6),
+          GridView.builder(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: padded.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 6,
+              crossAxisSpacing: 6,
+              childAspectRatio: 1,
+            ),
+            itemBuilder: (context, index) {
+              final day = padded[index];
+              if (day == null) {
+                return const SizedBox.shrink();
+              }
+              final score = day.score;
+              final scoreText = score == null ? '--' : score.round().toString();
+              final scoreFill = _scoreFillColor(context, day.sleepQuality);
+              return InkWell(
+                onTap: () => onTapDay(day.date),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusS,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: scoreFill,
+                    borderRadius: BorderRadius.circular(
+                      DesignConstants.borderRadiusS,
+                    ),
+                    border: Border.all(
+                      color: scoreFill.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Text(
+                          '${day.date.day}',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: _fixedTextColor(context),
+                                  ),
+                        ),
                       ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${day.date.day}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                          ),
-                    ),
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                scoreText,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: _fixedTextColor(context),
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
-          ],
-        ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Color _chipColor(BuildContext context, SleepQualityBucket quality) {
-    final scheme = Theme.of(context).colorScheme;
+  Color _scoreFillColor(BuildContext context, SleepQualityBucket quality) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return switch (quality) {
-      SleepQualityBucket.good => Colors.green.shade300,
-      SleepQualityBucket.average => Colors.amber.shade300,
-      SleepQualityBucket.poor => Theme.of(context).colorScheme.error,
-      SleepQualityBucket.unavailable => scheme.surfaceContainerHighest,
+      SleepQualityBucket.good => const Color(0xFF81C784),
+      SleepQualityBucket.average => const Color(0xFFFFD54F),
+      SleepQualityBucket.poor => const Color(0xFFEF5350),
+      SleepQualityBucket.unavailable =>
+        isDark ? const Color(0xFF3A3A3A) : const Color(0xFFE0E0E0),
     };
+  }
+
+  Color _fixedTextColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
   }
 }

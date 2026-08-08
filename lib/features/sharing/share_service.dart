@@ -1,3 +1,6 @@
+import "package:provider/provider.dart";
+import "../../services/unit_service.dart";
+
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -16,6 +19,8 @@ import 'share_card_renderer.dart';
 import 'share_labels.dart';
 import 'workout_share_formatter.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'dart:async';
+import '../../services/telemetry/telemetry_service.dart';
 
 class ShareService {
   const ShareService({ShareCardRenderer renderer = const ShareCardRenderer()})
@@ -53,6 +58,8 @@ class ShareService {
     required BuildContext context,
     required Routine routine,
   }) async {
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.routineShared));
     final l10n = AppLocalizations.of(context)!;
     await showGlassBottomMenu<void>(
       context: context,
@@ -159,9 +166,17 @@ class ShareService {
     required BuildContext context,
     required WorkoutLog workout,
   }) async {
-    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!);
+    final unitService = context.read<UnitService>();
+    final labels =
+        ShareLabels.fromL10n(AppLocalizations.of(context)!, unitService);
     final locale = Localizations.localeOf(context).toString();
-    final text = WorkoutShareFormatter(labels, locale: locale).format(workout);
+    final details = await _loadExerciseDetails(workout);
+    final text = WorkoutShareFormatter(
+      labels,
+      locale: locale,
+      exerciseDetails: details,
+      unitService: unitService,
+    ).format(workout);
     await _shareText(text, subject: workout.routineName ?? labels.appName);
   }
 
@@ -169,7 +184,8 @@ class ShareService {
     required BuildContext context,
     required Routine routine,
   }) async {
-    final labels = ShareLabels.fromL10n(AppLocalizations.of(context)!);
+    final labels = ShareLabels.fromL10n(
+        AppLocalizations.of(context)!, context.read<UnitService>());
     final locale = Localizations.localeOf(context).toString();
     final text = RoutineShareFormatter(labels, locale: locale).format(routine);
     await _shareText(text, subject: routine.name);
@@ -181,14 +197,18 @@ class ShareService {
     WorkoutShareCardLayout layout = WorkoutShareCardLayout.summary,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    final labels = ShareLabels.fromL10n(l10n);
+    final unitService = context.read<UnitService>();
+    final labels = ShareLabels.fromL10n(l10n, unitService);
     final locale = Localizations.localeOf(context).toString();
     try {
+      final details = await _loadExerciseDetails(workout);
       final muscleSummaries = layout == WorkoutShareCardLayout.muscleFocus
           ? await _loadMuscleSummaries(
               workout: workout,
               labels: labels,
               locale: locale,
+              exerciseDetails: details,
+              unitService: unitService,
             )
           : const <MuscleVolumeSummary>[];
       if (!context.mounted) return;
@@ -199,6 +219,7 @@ class ShareService {
         locale: locale,
         layout: layout,
         muscleSummaries: muscleSummaries,
+        exerciseDetails: details,
       );
       await _shareImage(file, subject: workout.routineName ?? labels.appName);
     } catch (_) {
@@ -219,7 +240,7 @@ class ShareService {
     RoutineShareCardLayout layout = RoutineShareCardLayout.summary,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    final labels = ShareLabels.fromL10n(l10n);
+    final labels = ShareLabels.fromL10n(l10n, context.read<UnitService>());
     final locale = Localizations.localeOf(context).toString();
     try {
       final file = await _renderer.renderRoutineCard(
@@ -262,11 +283,7 @@ class ShareService {
     );
   }
 
-  Future<List<MuscleVolumeSummary>> _loadMuscleSummaries({
-    required WorkoutLog workout,
-    required ShareLabels labels,
-    required String locale,
-  }) async {
+  Future<Map<String, Exercise>> _loadExerciseDetails(WorkoutLog workout) async {
     final details = <String, Exercise>{};
     for (final set in workout.sets) {
       if (details.containsKey(set.exerciseName)) continue;
@@ -276,10 +293,22 @@ class ShareService {
         details[set.exerciseName] = exercise;
       }
     }
+    return details;
+  }
+
+  Future<List<MuscleVolumeSummary>> _loadMuscleSummaries({
+    required WorkoutLog workout,
+    required ShareLabels labels,
+    required String locale,
+    required Map<String, Exercise> exerciseDetails,
+    required UnitService unitService,
+  }) async {
     return WorkoutShareFormatter(
       labels,
       locale: locale,
-    ).muscleVolumeSummaries(workout, details);
+      exerciseDetails: exerciseDetails,
+      unitService: unitService,
+    ).muscleVolumeSummaries(workout, exerciseDetails);
   }
 
   ui.Rect _sharePositionOrigin() {

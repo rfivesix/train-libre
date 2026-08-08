@@ -9,6 +9,8 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen providing a form to create a new custom [FoodItem] or edit an existing one.
 ///
@@ -42,6 +44,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.createFood));
     if (_isEditing) {
       final item = widget.foodItemToEdit!;
       _nameController.text = item.name;
@@ -75,9 +79,12 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
 
   void _calculateCaloriesFromMacros() {
     HapticFeedbackService.instance.selectionFeedback();
-    final protein = double.tryParse(_proteinController.text.replaceAll(',', '.')) ?? 0.0;
-    final carbs = double.tryParse(_carbsController.text.replaceAll(',', '.')) ?? 0.0;
-    final fat = double.tryParse(_fatController.text.replaceAll(',', '.')) ?? 0.0;
+    final protein =
+        double.tryParse(_proteinController.text.replaceAll(',', '.')) ?? 0.0;
+    final carbs =
+        double.tryParse(_carbsController.text.replaceAll(',', '.')) ?? 0.0;
+    final fat =
+        double.tryParse(_fatController.text.replaceAll(',', '.')) ?? 0.0;
     final calories = (protein * 4) + (carbs * 4) + (fat * 9);
     _caloriesController.text = calories.round().toString();
   }
@@ -85,8 +92,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
   Future<void> _saveFoodItem() async {
     if (_formKey.currentState?.validate() ?? false) {
       final l10n = AppLocalizations.of(context)!;
-      final isLiquidOrFluid =
-          widget.foodItemToEdit?.isLiquid == true || widget.foodItemToEdit?.isFluid == true;
+      final isLiquidOrFluid = widget.foodItemToEdit?.isLiquid == true ||
+          widget.foodItemToEdit?.isFluid == true;
       final caffeineVal = double.tryParse(_caffeineController.text);
 
       final foodData = FoodItem(
@@ -114,6 +121,8 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
         await ProductLocalDataSource.instance.updateProduct(foodData);
       } else {
         await ProductLocalDataSource.instance.insertProduct(foodData);
+        unawaited(TelemetryService.instance
+            .trackFeatureUsed(featureKey: FeatureKey.customFoodCreated));
       }
 
       if (mounted) {
@@ -180,11 +189,12 @@ class _CreateFoodScreenState extends State<CreateFoodScreen> {
               const SizedBox(height: DesignConstants.spacingXL),
               AppSectionHeader(title: l10n.formSectionMainNutrients),
               const SizedBox(height: DesignConstants.spacingL),
-               _buildFoodInputField(
+              _buildFoodInputField(
                 controller: _caloriesController,
                 label: l10n.formFieldCalories,
                 isNumeric: true, // Fix
                 suffixIcon: IconButton(
+                  tooltip: l10n.adaptiveRecommendationRecalculateNowAction,
                   icon: const Icon(LucideIcons.refresh_cw, size: 20),
                   onPressed: _calculateCaloriesFromMacros,
                 ),

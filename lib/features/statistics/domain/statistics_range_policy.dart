@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'recovery_domain_service.dart';
+import 'timeframe_block.dart';
 
 enum StatisticsRangeSemantics { selected, fixed, capped, dynamicAll }
 
@@ -42,6 +43,7 @@ class StatisticsResolvedRange {
   final int? effectiveDays;
   final int? effectiveWeeks;
   final DateTimeRange? dateRange;
+  final TimeframeBlock? block;
   final String disclosureHook;
 
   const StatisticsResolvedRange({
@@ -50,6 +52,7 @@ class StatisticsResolvedRange {
     this.effectiveDays,
     this.effectiveWeeks,
     this.dateRange,
+    this.block,
   });
 }
 
@@ -58,8 +61,6 @@ class StatisticsRangePolicyService {
 
   static const StatisticsRangePolicyService instance =
       StatisticsRangePolicyService._();
-
-  static const List<int> selectableDayRanges = [7, 30, 90, 180, 3650];
 
   static const Map<StatisticsMetricId, StatisticsMetricRangeMetadata> metadata =
       {
@@ -133,73 +134,71 @@ class StatisticsRangePolicyService {
     ),
   };
 
-  int selectedDaysFromIndex(int index) {
-    if (index < 0 || index >= selectableDayRanges.length) {
-      return 30;
-    }
-    return selectableDayRanges[index];
-  }
-
-  bool isAllTimeRangeIndex(int index) =>
-      index == selectableDayRanges.length - 1;
-
   StatisticsResolvedRange resolve({
     required StatisticsMetricId metricId,
-    int? selectedRangeIndex,
-    int? selectedDays,
+    TimeframeBlock? selectedBlockType,
     DateTime? now,
     DateTime? earliestAvailableDay,
     int? effectiveWeeks,
+    bool isRolling = false,
   }) {
     final policy = metadata[metricId]!;
     final anchor = _normalizeDay(now ?? DateTime.now());
-    final resolvedSelectedDays =
-        selectedDays ?? selectedDaysFromIndex(selectedRangeIndex ?? 1);
-    final isAllSelection = selectedRangeIndex != null &&
-        isAllTimeRangeIndex(selectedRangeIndex) &&
-        selectedDays == null;
 
     int? days = policy.fixedDays;
+    DateTimeRange? dateRange;
+
     switch (policy.semantics) {
       case StatisticsRangeSemantics.selected:
-        days = resolvedSelectedDays;
+      case StatisticsRangeSemantics.capped:
+      case StatisticsRangeSemantics.dynamicAll:
+        if (selectedBlockType != null) {
+          if (isRolling) {
+            dateRange = selectedBlockType.getRollingBounds();
+          } else {
+            dateRange = selectedBlockType.getBounds(
+              anchor,
+              earliestAvailableDay ?? DateTime(2020),
+            );
+          }
+          days = dateRange.end.difference(dateRange.start).inDays + 1;
+        } else {
+          days = 30;
+          dateRange = DateTimeRange(
+            start: anchor.subtract(Duration(days: days - 1)),
+            end: _endOfDay(anchor),
+          );
+        }
+
+        if (policy.semantics == StatisticsRangeSemantics.capped &&
+            policy.capDays != null) {
+          if (days > policy.capDays!) {
+            days = policy.capDays;
+            dateRange = DateTimeRange(
+              start: anchor.subtract(Duration(days: days! - 1)),
+              end: _endOfDay(anchor),
+            );
+          }
+        }
         break;
       case StatisticsRangeSemantics.fixed:
         days = policy.fixedDays;
-        break;
-      case StatisticsRangeSemantics.capped:
-        final cap = policy.capDays ?? resolvedSelectedDays;
-        days = resolvedSelectedDays < cap ? resolvedSelectedDays : cap;
-        break;
-      case StatisticsRangeSemantics.dynamicAll:
-        if (isAllSelection) {
-          if (earliestAvailableDay != null) {
-            final start = _normalizeDay(earliestAvailableDay);
-            final dynamicDays = anchor.difference(start).inDays + 1;
-            days = dynamicDays > 0 ? dynamicDays : 1;
-          } else {
-            days = 1;
-          }
-        } else {
-          days = resolvedSelectedDays;
+        if (days != null && days > 0) {
+          dateRange = DateTimeRange(
+            start: anchor.subtract(Duration(days: days - 1)),
+            end: _endOfDay(anchor),
+          );
         }
         break;
     }
-
-    final hasRange = days != null && days > 0;
-    final range = hasRange
-        ? DateTimeRange(
-            start: anchor.subtract(Duration(days: days - 1)),
-            end: _endOfDay(anchor),
-          )
-        : null;
 
     return StatisticsResolvedRange(
       semantics: policy.semantics,
       disclosureHook: policy.disclosureHook,
       effectiveDays: days,
       effectiveWeeks: effectiveWeeks ?? policy.fixedWeeks,
-      dateRange: range,
+      dateRange: dateRange,
+      block: selectedBlockType,
     );
   }
 

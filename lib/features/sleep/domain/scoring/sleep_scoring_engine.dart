@@ -181,10 +181,9 @@ SleepScoringResult calculateSleepScore(
   final double? seComponent = input.sleepEfficiencyPct != null
       ? scoreSleepEfficiencyV3(input.sleepEfficiencyPct!)
       : null;
-  final double? wasoComponent = input.wasoMinutes != null
-      ? scoreWasoV3(input.wasoMinutes!)
-      : null;
-  
+  final double? wasoComponent =
+      input.wasoMinutes != null ? scoreWasoV3(input.wasoMinutes!) : null;
+
   double? continuityScore;
   if (seComponent != null && wasoComponent != null) {
     continuityScore = 0.5 * seComponent + 0.5 * wasoComponent;
@@ -196,11 +195,13 @@ SleepScoringResult calculateSleepScore(
     final double lightSleepPctVal = input.lightSleepPct ?? 0.0;
     double pLight = 1.0;
     if (lightSleepPctVal > 65.0) {
-      pLight = math.exp(-math.pow(lightSleepPctVal - 65.0, 2) / (2.0 * math.pow(7.0, 2)));
+      pLight = math.exp(
+          -math.pow(lightSleepPctVal - 65.0, 2) / (2.0 * math.pow(7.0, 2)));
     }
     final double lightSleepPenalty = 1.0 - pLight;
 
-    continuityScore = 0.9 * (1.0 - lightSleepPenalty) + 0.1 * (durationScore ?? 0.0);
+    continuityScore =
+        0.9 * (1.0 - lightSleepPenalty) + 0.1 * (durationScore ?? 0.0);
   }
 
   // --- Architecture Score (A) ---
@@ -212,19 +213,19 @@ SleepScoringResult calculateSleepScore(
   );
 
   // --- Timing Score (T_circ) ---
-  final double? timingScore = (input.sleepOnsetHourLocal != null && input.durationMinutes != null)
-      ? scoreTimingV3(input.sleepOnsetHourLocal!, input.durationMinutes!)
-      : null;
+  final double? timingScore =
+      (input.sleepOnsetHourLocal != null && input.durationMinutes != null)
+          ? scoreTimingV3(input.sleepOnsetHourLocal!, input.durationMinutes!)
+          : null;
 
   // --- Regularity Score (R) ---
   final regularityUsed = input.rollingMidSleepSd != null &&
       input.regularityValidDays >= config.regularityMinDays;
   final regularityStable = regularityUsed &&
       input.regularityValidDays >= config.regularityStableDays;
-  
-  final double? regularityScore = regularityUsed 
-      ? scoreRegularityV3(input.rollingMidSleepSd!)
-      : null;
+
+  final double? regularityScore =
+      regularityUsed ? scoreRegularityV3(input.rollingMidSleepSd!) : null;
 
   // Combine Scores
   final scoredComponents = [
@@ -235,7 +236,8 @@ SleepScoringResult calculateSleepScore(
     (config.weightRegularity, regularityScore),
   ];
 
-  final topLevel = _renormalizedWeightedScore(scoredComponents: scoredComponents);
+  final topLevel =
+      _renormalizedWeightedScore(scoredComponents: scoredComponents);
   final activeWeight = _activeWeight(weightedComponents: scoredComponents);
 
   if (topLevel == null || activeWeight <= 0) {
@@ -248,7 +250,8 @@ SleepScoringResult calculateSleepScore(
       seScore: seComponent != null ? seComponent * 100 : null,
       wasoScore: wasoComponent != null ? wasoComponent * 100 : null,
       regularityScore: regularityScore != null ? regularityScore * 100 : null,
-      architectureScore: architectureScore != null ? architectureScore * 100 : null,
+      architectureScore:
+          architectureScore != null ? architectureScore * 100 : null,
       timingScore: timingScore != null ? timingScore * 100 : null,
       stageScoreCap: null,
       regularityValidDays: input.regularityValidDays,
@@ -266,7 +269,8 @@ SleepScoringResult calculateSleepScore(
   // 1. Smooth REM Penalty
   // Optimal: >= 60 min (multiplier = 1.0). Suboptimal down to 40 min (multiplier = 0.65).
   if (input.remMinutes != null) {
-    final double remM = _linear(input.remMinutes!.toDouble(), 40.0, 60.0, 0.65, 1.0);
+    final double remM =
+        _linear(input.remMinutes!.toDouble(), 40.0, 60.0, 0.65, 1.0);
     if (remM < dynamicMultiplier) {
       dynamicMultiplier = remM;
       multiplierBottleneck = 'rem';
@@ -276,7 +280,8 @@ SleepScoringResult calculateSleepScore(
   // 2. Smooth Deep Sleep (N3) Penalty
   // Optimal: >= 70 min (multiplier = 1.0). Suboptimal down to 40 min (multiplier = 0.60).
   if (input.n3Minutes != null) {
-    final double n3M = _linear(input.n3Minutes!.toDouble(), 40.0, 70.0, 0.60, 1.0);
+    final double n3M =
+        _linear(input.n3Minutes!.toDouble(), 40.0, 70.0, 0.60, 1.0);
     if (n3M < dynamicMultiplier) {
       dynamicMultiplier = n3M;
       multiplierBottleneck = 'n3';
@@ -297,7 +302,8 @@ SleepScoringResult calculateSleepScore(
   // 4. Smooth Circadian Timing Penalty (Mid-Sleep Hour)
   // Optimal: Mid-sleep <= 5.5 (multiplier = 1.0). Late-phase delay up to 7.5 (multiplier = 0.55).
   if (input.sleepOnsetHourLocal != null && input.durationMinutes != null) {
-    final double midSleep = _calculateMidSleep(input.sleepOnsetHourLocal!, input.durationMinutes!);
+    final double midSleep =
+        _calculateMidSleep(input.sleepOnsetHourLocal!, input.durationMinutes!);
     final double timingM = _linear(midSleep, 7.5, 5.5, 0.55, 1.0);
     if (timingM < dynamicMultiplier) {
       dynamicMultiplier = timingM;
@@ -309,7 +315,7 @@ SleepScoringResult calculateSleepScore(
   finalScore *= dynamicMultiplier;
 
   final clamped = finalScore.clamp(0.0, 100.0);
-  
+
   return SleepScoringResult(
     score: clamped,
     state: _scoreState(clamped),
@@ -319,7 +325,8 @@ SleepScoringResult calculateSleepScore(
     seScore: seComponent != null ? seComponent * 100 : null,
     wasoScore: wasoComponent != null ? wasoComponent * 100 : null,
     regularityScore: regularityScore != null ? regularityScore * 100 : null,
-    architectureScore: architectureScore != null ? architectureScore * 100 : null,
+    architectureScore:
+        architectureScore != null ? architectureScore * 100 : null,
     timingScore: timingScore != null ? timingScore * 100 : null,
     stageScoreCap: dynamicMultiplier < 1.0 ? clamped : null,
     regularityValidDays: input.regularityValidDays,
@@ -337,11 +344,11 @@ SleepScoringResult calculateSleepScore(
 double scoreDurationV3(int durationMinutes) {
   final double hours = durationMinutes / 60.0;
   if (hours > 10.5) return 0.0;
-  
+
   if (hours >= 7.0 && hours <= 9.0) {
     return 1.0; // Plateau
   }
-  
+
   final double mu = hours < 7.0 ? 7.0 : 9.0;
   return math.exp(-math.pow(hours - mu, 2) / (2 * math.pow(1.0, 2)));
 }
@@ -371,17 +378,20 @@ double? scoreArchitectureV3({
   if (durationMinutes == null || deepSleepPct == null || remSleepPct == null) {
     return null;
   }
-  
+
   final double n3Min = (deepSleepPct / 100.0) * durationMinutes;
   final double remMin = (remSleepPct / 100.0) * durationMinutes;
   final double lightSleepPctVal = lightSleepPct ?? 0.0;
 
-  final double aN3 = math.min(1.0, n3Min / 90.0) * math.exp(-math.pow(n3Min - 90.0, 2) / (2.0 * math.pow(40.0, 2)));
-  final double aRem = math.min(1.0, remMin / 100.0) * math.exp(-math.pow(remMin - 100.0, 2) / (2.0 * math.pow(40.0, 2)));
-  
+  final double aN3 = math.min(1.0, n3Min / 90.0) *
+      math.exp(-math.pow(n3Min - 90.0, 2) / (2.0 * math.pow(40.0, 2)));
+  final double aRem = math.min(1.0, remMin / 100.0) *
+      math.exp(-math.pow(remMin - 100.0, 2) / (2.0 * math.pow(40.0, 2)));
+
   double pLight = 1.0;
   if (lightSleepPctVal > 65.0) {
-    pLight = math.exp(-math.pow(lightSleepPctVal - 65.0, 2) / (2.0 * math.pow(7.0, 2)));
+    pLight = math
+        .exp(-math.pow(lightSleepPctVal - 65.0, 2) / (2.0 * math.pow(7.0, 2)));
   }
 
   double score = (0.45 * aN3 + 0.45 * aRem) * pLight + 0.10;
@@ -393,16 +403,17 @@ double? scoreArchitectureV3({
 /// Returns a [0, 1] continuous score.
 double scoreTimingV3(double onsetHourLocal, int durationMinutes) {
   final double ms = _calculateMidSleep(onsetHourLocal, durationMinutes);
-  
+
   // Gaussian centered at 03:30 (3.5), sigma = 1.0
-  double baseScore = math.exp(-math.pow(ms - 3.5, 2) / (2.0 * math.pow(1.0, 2)));
-  
+  double baseScore =
+      math.exp(-math.pow(ms - 3.5, 2) / (2.0 * math.pow(1.0, 2)));
+
   // Exponential late-phase penalty drop
   if (ms > 5.5) {
     double pLate = math.exp(-math.pow(ms - 5.5, 2) / (2.0 * math.pow(0.5, 2)));
     baseScore *= pLate;
   }
-  
+
   return baseScore.clamp(0.0, 1.0);
 }
 
@@ -417,15 +428,15 @@ double scoreRegularityV3(double rollingMidSleepSd) {
 double _calculateMidSleep(double onsetHourLocal, int durationMinutes) {
   double onset = onsetHourLocal;
   // If onset is early in the evening (e.g., 20:00), we want mid sleep to cross midnight cleanly.
-  // We'll anchor around noon. 
+  // We'll anchor around noon.
   // If onset is between 12:00 and 24:00, subtract 24 or just treat 00:00 as 24:00.
   if (onset > 12.0) {
-    onset -= 24.0; 
+    onset -= 24.0;
   }
   // Now onset is usually negative (e.g., 23:00 -> -1.0) or early morning (01:00 -> 1.0)
-  
+
   double ms = onset + ((durationMinutes / 60.0) / 2.0);
-  
+
   // Shift back if needed so 03:30 is 3.5
   while (ms < 0) {
     ms += 24.0;
@@ -468,12 +479,12 @@ SleepScoreState _scoreState(double score) {
   return SleepScoreState.poor;
 }
 
-double _linear(double value, double xMin, double xMax, double yMin, double yMax) {
+double _linear(
+    double value, double xMin, double xMax, double yMin, double yMax) {
   if (xMin == xMax) return yMax;
   final bool isIncreasing = xMin < xMax;
-  final double clampedX = isIncreasing
-      ? value.clamp(xMin, xMax)
-      : value.clamp(xMax, xMin);
+  final double clampedX =
+      isIncreasing ? value.clamp(xMin, xMax) : value.clamp(xMax, xMin);
   final double t = (clampedX - xMin) / (xMax - xMin);
   return yMin + t * (yMax - yMin);
 }

@@ -1,6 +1,8 @@
 // lib/features/diary/data/sources/meal_local_data_source.dart
 
 import 'package:drift/drift.dart' as drift;
+import 'dart:async';
+import '../../../../services/telemetry/telemetry_service.dart';
 import '../../../../data/database_helper.dart';
 import '../../../../data/drift_database.dart' as db;
 
@@ -19,6 +21,8 @@ class MealLocalDataSource {
   }
 
   Future<int> insertMeal({required String name, String? notes}) async {
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.recipeCreated));
     final dbInstance = await database;
     final row = await dbInstance.into(dbInstance.meals).insertReturning(
           db.MealsCompanion(name: drift.Value(name), notes: drift.Value(notes)),

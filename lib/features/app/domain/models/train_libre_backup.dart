@@ -181,7 +181,8 @@ class TrainLibreBackup {
                               )
                               .toList() ??
                           [],
-                      pauseSeconds: reMap['pause_seconds'],
+                      pauseSeconds: (reMap['pause_seconds'] as num?)?.toInt() ?? (reMap['pauseSeconds'] as num?)?.toInt(),
+                      notes: reMap['notes'] as String?,
                     );
                   }).toList() ??
                   [],
@@ -230,10 +231,11 @@ class TrainLibreBackup {
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
-      userFoodOverrideTranslations: (json['userFoodOverrideTranslations'] as List<dynamic>?)
-              ?.map((e) => Map<String, dynamic>.from(e as Map))
-              .toList() ??
-          [],
+      userFoodOverrideTranslations:
+          (json['userFoodOverrideTranslations'] as List<dynamic>?)
+                  ?.map((e) => Map<String, dynamic>.from(e as Map))
+                  .toList() ??
+              [],
       healthStepSegments: (json['healthStepSegments'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??

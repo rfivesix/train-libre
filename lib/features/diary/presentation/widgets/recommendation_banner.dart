@@ -1,9 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../theme/color_constants.dart';
 import '../../../nutrition_recommendation/data/recommendation_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -179,7 +177,9 @@ class _RecommendationBannerState extends State<RecommendationBanner>
 
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? summaryCardDarkMode : summaryCardWhiteMode;
+    final bg = isDark
+        ? DesignConstants.summaryCardDarkMode
+        : DesignConstants.summaryCardWhiteMode;
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
 
@@ -192,26 +192,23 @@ class _RecommendationBannerState extends State<RecommendationBanner>
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: DesignConstants.cardPaddingExternal),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            child: RepaintBoundary(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: bg.withValues(alpha: 0.75),
-                    borderRadius:
-                        BorderRadius.circular(DesignConstants.borderRadiusM),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.15)
-                          : Colors.black.withValues(alpha: 0.08),
-                      width: 1.0,
-                    ),
-                  ),
+          padding: const EdgeInsets.symmetric(
+              vertical: DesignConstants.cardPaddingExternal),
+          child: Container(
+            decoration: BoxDecoration(
+              color: bg.withValues(alpha: isDark ? 0.85 : 0.95),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.black.withValues(alpha: 0.08),
+                width: 1.0,
+              ),
+            ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL, vertical: 14.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingL, vertical: 14.0),
                     child: Row(
                       children: [
                         Icon(
@@ -240,11 +237,14 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                             behavior: HitTestBehavior.opaque,
                             onTap: _applyRecommendation,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingM, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: DesignConstants.spacingM,
+                                  vertical: 6),
                               decoration: BoxDecoration(
                                 color: accent.withValues(
                                     alpha: isDark ? 0.2 : 0.1),
-                                borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+                                borderRadius: BorderRadius.circular(
+                                    DesignConstants.borderRadiusS),
                                 border: Border.all(
                                     color: accent.withValues(alpha: 0.3)),
                               ),
@@ -267,7 +267,8 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                             behavior: HitTestBehavior.opaque,
                             onTap: _dismissBanner,
                             child: Padding(
-                              padding: const EdgeInsets.all(DesignConstants.spacingS),
+                              padding: const EdgeInsets.all(
+                                  DesignConstants.spacingS),
                               child: Icon(
                                 LucideIcons.x,
                                 size: DesignConstants.iconSizeM,
@@ -279,9 +280,6 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                       ],
                     ),
                   ),
-                ),
-              ),
-            ),
           ),
         ),
       ),

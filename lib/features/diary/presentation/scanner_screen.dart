@@ -12,6 +12,9 @@ import '../../../services/haptic_feedback_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../../util/design_constants.dart';
+import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
@@ -49,7 +52,8 @@ class _ScannerScreenState extends State<ScannerScreen>
   bool _isOffDbInitialized = false;
 
   Future<void> _checkDbStatus() async {
-    final initialized = await BasisDataManager.instance.isOffDatabaseInitialized();
+    final initialized =
+        await BasisDataManager.instance.isOffDatabaseInitialized();
     if (mounted) {
       setState(() {
         _isOffDbInitialized = initialized;
@@ -60,6 +64,8 @@ class _ScannerScreenState extends State<ScannerScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.barcodeScanner));
     _checkDbStatus();
     WidgetsBinding.instance.addObserver(this);
     _checkPermission(initial: true);
@@ -185,7 +191,8 @@ class _ScannerScreenState extends State<ScannerScreen>
           body: l10n.offPlaceholderText,
           icon: LucideIcons.database,
           onDownloadPressed: () async {
-            await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(context);
+            await BasisDataManager.instance
+                .promptOffDatabaseDownloadIfFirstTime(context);
             await _checkDbStatus();
           },
         ),
@@ -193,11 +200,11 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
 
     return PopScope(
-      canPop: _cameraPermissionStatus.isGranted,
+      canPop: true,
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          automaticallyImplyLeading: _cameraPermissionStatus.isGranted,
+          automaticallyImplyLeading: true,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           foregroundColor: Theme.of(context).colorScheme.onSurface,
           elevation: 0,
@@ -277,10 +284,11 @@ class _ScannerScreenState extends State<ScannerScreen>
                     height: 2,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.redAccent,
+                        color: DesignConstants.brandRedColor,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.redAccent.withValues(alpha: 0.8),
+                            color: DesignConstants.brandRedColor
+                                .withValues(alpha: 0.8),
                             blurRadius: 6,
                             spreadRadius: 1.5,
                           ),
@@ -337,26 +345,22 @@ class _ScannerScreenState extends State<ScannerScreen>
                   ? l10n.scannerPermissionPermanentlyDenied
                   : l10n.scannerPermissionRequired,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            AppButton.primary(
               onPressed: _isRequestingPermission
                   ? null
                   : (_cameraPermissionStatus.isPermanentlyDenied
                       ? _openSettings
                       : _requestPermission),
-              child: _isRequestingPermission
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(
-                      _cameraPermissionStatus.isPermanentlyDenied
-                          ? l10n.scannerOpenSettings
-                          : l10n.scannerGrantPermission,
-                    ),
+              label: _cameraPermissionStatus.isPermanentlyDenied
+                  ? l10n.scannerOpenSettings
+                  : l10n.scannerGrantPermission,
+              tooltip: _cameraPermissionStatus.isPermanentlyDenied
+                  ? l10n.scannerOpenSettings
+                  : l10n.scannerGrantPermission,
+              isLoading: _isRequestingPermission,
             ),
           ],
         ),

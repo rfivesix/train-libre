@@ -8,9 +8,11 @@ import 'package:excel_community/excel_community.dart' as xl;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../data/drift_database.dart' as db;
 import '../../features/workout/domain/models/set_log.dart';
+import '../../features/exercise_catalog/domain/models/exercise.dart';
 import '../../services/unit_service.dart';
 
 class WorkoutImportData {
@@ -82,23 +84,49 @@ class ImportManager {
 
       if (workoutGroups.isEmpty) return 0;
 
-      // 3. Write to DB in atomic batches
+      // 3. Query existing completed workouts for deduplication
       final workoutHelper = WorkoutLocalDataSource.instance;
       final database = await workoutHelper.database;
 
-      int importedWorkouts = 0;
+      final existingLogs = await (database.select(database.workoutLogs)
+            ..where((tbl) => tbl.status.equals('completed')))
+          .get();
 
-      // Use a single transaction for all imported workouts to ensure integrity and performance
+      final existingSignatures = <String>{
+        for (final log in existingLogs)
+          "${log.startTime.millisecondsSinceEpoch}",
+      };
+
+      // Filter out duplicate workouts that already exist
+      final newWorkoutGroups = workoutGroups.where((group) {
+        final sig = "${group.startTime.millisecondsSinceEpoch}";
+        return !existingSignatures.contains(sig);
+      }).toList();
+
+      if (newWorkoutGroups.isEmpty) return 0;
+
+      int importedWorkouts = 0;
+      final exerciseCache = <String, Exercise?>{};
+
+      // Pre-seed exercise cache for all unique exercise names in this import
+      final uniqueExerciseNames = newWorkoutGroups
+          .expand((g) => g.sets)
+          .map((s) => s.exerciseName)
+          .toSet();
+
+      for (final exName in uniqueExerciseNames) {
+        exerciseCache[exName] =
+            await workoutHelper.getExactExerciseByName(exName);
+      }
+
       await database.transaction(() async {
-        for (var workoutData in workoutGroups) {
-          // A. Create workout
+        for (var workoutData in newWorkoutGroups) {
           final newLog = await workoutHelper.startWorkout(
             routineName: workoutData.title,
           );
 
           if (newLog.id == null) continue;
 
-          // B. Update workout details
           await (database.update(database.workoutLogs)
                 ..where((tbl) => tbl.localId.equals(newLog.id!)))
               .write(db.WorkoutLogsCompanion(
@@ -108,13 +136,14 @@ class ImportManager {
             notes: drift.Value(workoutData.notes),
           ));
 
-          // C. Insert sets using a batch for this workout
-          // Note: We use the helper's individual insert for now because it handles
-          // complex exercise mapping and usage counts, but within a transaction
-          // it is still significantly faster than outside.
           for (var set in workoutData.sets) {
+            final cachedExercise = exerciseCache[set.exerciseName];
             final setWithCorrectId = set.copyWith(workoutLogId: newLog.id!);
-            await workoutHelper.insertSetLog(setWithCorrectId);
+            await _insertSetLogWithCachedExercise(
+              database,
+              setWithCorrectId,
+              cachedExercise,
+            );
           }
           importedWorkouts++;
         }
@@ -127,10 +156,58 @@ class ImportManager {
     }
   }
 
+  static Future<void> _insertSetLogWithCachedExercise(
+    db.AppDatabase database,
+    SetLog setLog,
+    Exercise? cachedExercise,
+  ) async {
+    final workoutLogUuid = await (database.select(database.workoutLogs)
+          ..where((tbl) => tbl.localId.equals(setLog.workoutLogId))
+          ..limit(1))
+        .getSingleOrNull();
+
+    if (workoutLogUuid == null) return;
+
+    final companion = db.SetLogsCompanion(
+      workoutLogId: drift.Value(workoutLogUuid.id),
+      exerciseId: drift.Value(cachedExercise?.uuid),
+      exerciseNameSnapshot: drift.Value(setLog.exerciseName),
+      weight: drift.Value(setLog.weightKg),
+      reps: drift.Value(setLog.reps),
+      setType: drift.Value(setLog.setType),
+      restTimeSeconds: drift.Value(setLog.restTimeSeconds),
+      isCompleted: drift.Value(setLog.isCompleted ?? false),
+      logOrder: drift.Value(setLog.logOrder ?? 0),
+      notes: drift.Value(setLog.notes),
+      distance: drift.Value(setLog.distanceKm),
+      durationSeconds: drift.Value(setLog.durationSeconds),
+      rpe: drift.Value(setLog.rpe),
+      rir: drift.Value(setLog.rir),
+    );
+
+    await database.into(database.setLogs).insert(companion);
+
+    if (cachedExercise?.uuid != null) {
+      try {
+        await database.customUpdate(
+          'UPDATE exercises SET usage_count = usage_count + 1 WHERE id = ?',
+          variables: [drift.Variable.withString(cachedExercise!.uuid!)],
+          updates: {database.exercises},
+        );
+      } catch (_) {}
+    }
+  }
+
   @visibleForTesting
-  static List<WorkoutImportData> decodeAndGroupWorkouts(
+  static Future<List<WorkoutImportData>> decodeAndGroupWorkouts(
     ImportBackgroundTaskParams params,
-  ) {
+  ) async {
+    try {
+      await initializeDateFormatting();
+    } catch (e) {
+      debugPrint("Failed to initialize date formatting in isolate: $e");
+    }
+
     final extension = params.extension;
     final isImperial = params.isImperial;
     final bytes = params.fileBytes;
@@ -295,21 +372,40 @@ class ImportManager {
       return DateTime.now();
     }
 
-    final List<DateFormat> formats = [
-      DateFormat("dd MMM yyyy, HH:mm", "en_US"),
-      DateFormat("dd MMM yyyy, HH:mm", "de_DE"),
-      DateFormat("yyyy-MM-dd HH:mm:ss"),
-      DateFormat("yyyy-MM-dd HH:mm"),
-      DateFormat("dd.MM.yyyy, HH:mm"),
-      DateFormat("dd.MM.yyyy HH:mm"),
-      DateFormat("MM/dd/yyyy HH:mm"),
+    final patterns = [
+      'dd MMMM yyyy, HH:mm',
+      'dd MMM yyyy, HH:mm',
+      'd MMMM yyyy, HH:mm',
+      'd MMM yyyy, HH:mm',
+      'dd. MMMM yyyy, HH:mm',
+      'dd. MMM yyyy, HH:mm',
+      'd. MMMM yyyy, HH:mm',
+      'd. MMM yyyy, HH:mm',
+      'MMM dd, yyyy, HH:mm',
+      'MMMM dd, yyyy, HH:mm',
+      'MMM d, yyyy, HH:mm',
+      'MMMM d, yyyy, HH:mm',
+      'yyyy-MM-dd HH:mm:ss',
+      'yyyy-MM-dd HH:mm',
+      'yyyy-MM-ddTHH:mm:ss',
+      'dd.MM.yyyy, HH:mm',
+      'dd.MM.yyyy HH:mm',
+      'MM/dd/yyyy HH:mm',
+      'MM/dd/yyyy, HH:mm',
+      'dd/MM/yyyy HH:mm',
+      'dd/MM/yyyy, HH:mm',
     ];
 
-    for (final format in formats) {
-      try {
-        return format.parse(dateString);
-      } catch (e) {
-        continue;
+    final locales = ['de_DE', 'en_US', 'en_GB', 'fr_FR', 'es_ES', null];
+
+    for (final pattern in patterns) {
+      for (final locale in locales) {
+        try {
+          final format = DateFormat(pattern, locale);
+          return format.parse(dateString);
+        } catch (_) {
+          continue;
+        }
       }
     }
 

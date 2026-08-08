@@ -99,7 +99,8 @@ class _MealReviewValidationSummaryState
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.only(top: DesignConstants.spacingXS, left: 26),
+                padding: const EdgeInsets.only(
+                    top: DesignConstants.spacingXS, left: 26),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -111,7 +112,8 @@ class _MealReviewValidationSummaryState
                     ),
                     const SizedBox(width: DesignConstants.spacingXS),
                     Text(
-                      l10n.aiValidationCostEstimation(1200 + (widget.itemsCount * 80)),
+                      l10n.aiValidationCostEstimation(
+                          1200 + (widget.itemsCount * 80)),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 10,
                         color: theme.colorScheme.onSurfaceVariant
@@ -188,7 +190,8 @@ class _MealReviewValidationSummaryState
               const SizedBox(height: DesignConstants.spacingM),
               ...issues.map(
                 (issue) => Padding(
-                  padding: const EdgeInsets.only(bottom: DesignConstants.spacingXS),
+                  padding:
+                      const EdgeInsets.only(bottom: DesignConstants.spacingXS),
                   child: Text(
                     '\u2022 ${aiValidationIssueText(l10n, issue)}',
                     style: Theme.of(ctx).textTheme.bodySmall,
