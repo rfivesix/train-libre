@@ -267,16 +267,49 @@ class _AppButtonState extends State<AppButton>
       );
 
       // ── Clean Glass Stack without any shadow ───────────────────────────────
+      //
+      // PERFORMANCE: the glass shader itself is cheap, but the `BackdropFilter`
+      // it pushes is not. `AdaptiveGlass` runs the Standard renderer here
+      // (quality defaults to `GlassQuality.standard`, so the global
+      // `DesignConstants.defaultGlassQuality` scope never applies to buttons),
+      // and `LightweightLiquidGlass` pushes one `BackdropFilterLayer` per
+      // instance whenever `blur > 0`. Every such layer forces the rasterizer to
+      // break the render pass and re-read the backdrop — on a tile-based iOS GPU
+      // that means a full framebuffer store/load each time. On screens that show
+      // several buttons at once (Nutrition Hub: recalculate + apply + goals +
+      // one per recipe card) this dominated the raster thread and dropped
+      // scrolling below 120 Hz on device, while a Mac's memory bandwidth hid it
+      // completely.
+      //
+      // `InheritedLiquidGlass(isBlurProvidedByAncestor: true)` makes
+      // `LightweightLiquidGlass` take its `skipBlur` path, so the shader still
+      // paints tint, rim and Fresnel exactly as before but no backdrop layer is
+      // pushed. `allowElevation: false` keeps `AdaptiveGlass` off its "elevated"
+      // branch, which would otherwise boost lightIntensity/ambientStrength and
+      // visibly change the button.
+      //
+      // This is visually safe because every button in the app sits on a flat,
+      // near-neutral surface: a σ=1.5 blur over a flat area is the identity, and
+      // the shader's saturation boost is a no-op on neutral pixels. Measured
+      // delta versus the previous rendering is a single physical AA pixel on the
+      // outer edge (1/3 logical px at 3×). Do NOT drop this optimisation for a
+      // button placed over a photo, camera preview or other high-frequency
+      // backdrop — there the missing blur would be visible.
       buttonContent = SizedBox(
         height: height,
         child: RepaintBoundary(
-          child: AdaptiveGlass(
+          child: InheritedLiquidGlass(
             settings: glassSettings,
-            shape: LiquidRoundedSuperellipse(borderRadius: radius),
-            child: GlassGlow(
-              glowColor: glowColor,
-              glowRadius: 1.0,
-              child: innerContent,
+            isBlurProvidedByAncestor: true,
+            child: AdaptiveGlass(
+              settings: glassSettings,
+              allowElevation: false,
+              shape: LiquidRoundedSuperellipse(borderRadius: radius),
+              child: GlassGlow(
+                glowColor: glowColor,
+                glowRadius: 1.0,
+                child: innerContent,
+              ),
             ),
           ),
         ),
