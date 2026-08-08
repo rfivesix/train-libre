@@ -123,10 +123,9 @@ class PulseAnalysisEngine {
   double _restingPulse(List<PulseSamplePoint> samples) {
     final sorted = samples.map((sample) => sample.bpm).toList()..sort();
     final count = math.max(1, (sorted.length * 0.2).ceil());
-    final lowWindow = sorted.take(count).toList(growable: false);
-    final middle = lowWindow.length ~/ 2;
-    if (lowWindow.length.isOdd) return lowWindow[middle];
-    return (lowWindow[middle - 1] + lowWindow[middle]) / 2;
+    final middle = count ~/ 2;
+    if (count.isOdd) return sorted[middle];
+    return (sorted[middle - 1] + sorted[middle]) / 2;
   }
 
   PulseDataQuality _classifyQuality({
