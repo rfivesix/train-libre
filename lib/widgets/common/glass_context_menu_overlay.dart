@@ -236,7 +236,7 @@ class _GlassContextMenuOverlay extends StatelessWidget {
                   color: isDark
                       ? Colors.white.withValues(alpha: 0.15)
                       : cs.onSurface.withValues(alpha: 0.1),
-                  width: 1.0,
+                  width: 0.5,
                 ),
               ),
               child: Column(

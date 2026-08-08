@@ -69,8 +69,7 @@ class _GlassProgressBarState extends State<GlassProgressBar> {
     super.didUpdateWidget(oldWidget);
     // Store the old rendered values so the tween starts from where the bar
     // visually was, not from 0.
-    if (oldWidget.value != widget.value ||
-        oldWidget.target != widget.target) {
+    if (oldWidget.value != widget.value || oldWidget.target != widget.target) {
       _previousValue = oldWidget.value;
       _previousTarget = oldWidget.target;
     }
@@ -139,13 +138,6 @@ class _GlassProgressBarPainter extends StatelessWidget {
     final rawProgress = hasTarget ? (value / target) : 0.0;
     final progress = rawProgress.clamp(0.0, 1.0);
 
-    final squircleRadius = SmoothBorderRadius(
-      cornerRadius: borderRadius,
-      cornerSmoothing: 0.6,
-    );
-    final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
-    final clipper = ShapeBorderClipper(shape: squircle);
-
     // Crisp, minimal text shadow for edge definition, only if bar has progress
     final textShadows = value > 0
         ? [
@@ -163,16 +155,28 @@ class _GlassProgressBarPainter extends StatelessWidget {
     final luminance = color.computeLuminance();
     final bool isLowContrast = isDark ? (luminance > 0.5) : (luminance < 0.5);
 
+    // Identical to SummaryCard: same cornerRadius, same cornerSmoothing.
+    // NOTE: do not wrap this widget in a LayoutBuilder to derive the radius from
+    // the laid-out height — LayoutBuilder reports 0 for intrinsic dimensions, and
+    // NutritionSummaryWidget puts these bars inside an IntrinsicHeight, which
+    // then collapses the whole grid to zero height.
+    final squircleRadius = SmoothBorderRadius(
+      cornerRadius: borderRadius,
+      cornerSmoothing: 0.6,
+    );
+    final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
+    final clipper = ShapeBorderClipper(shape: squircle);
+
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: (disableShadow || !isDark)
+      decoration: ShapeDecoration(
+        shape: squircle,
+        shadows: (disableShadow || isDark)
             ? null
             : [
                 BoxShadow(
-                  blurRadius: 7,
+                  blurRadius: 8,
                   offset: const Offset(0, 2),
-                  color: cs.shadow.withValues(alpha: 0.2),
+                  color: cs.shadow.withValues(alpha: 0.05),
                 ),
               ],
       ),
@@ -181,16 +185,9 @@ class _GlassProgressBarPainter extends StatelessWidget {
         child: Container(
           height: height,
           decoration: ShapeDecoration(
-            color: isDark
-                ? const Color(0xFF2A2A2A)
-                : Colors.white,
+            color: isDark ? DesignConstants.summaryCardDarkMode : Colors.white,
             shape: squircle.copyWith(
-              side: isDark
-                  ? BorderSide(
-                      color: cs.onSurface.withValues(alpha: 0.08),
-                      width: 1,
-                    )
-                  : BorderSide.none,
+              side: BorderSide.none,
             ),
           ),
           child: LayoutBuilder(

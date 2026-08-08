@@ -24,10 +24,62 @@ class PostHogTelemetryService implements TelemetryService {
       defaultValue: 'phc_vmLGxjjWfVB58y7smThJX9mQte9Y97Kff62EmLDtNWTB');
   static const String _postHogEuHost = 'https://eu.i.posthog.com';
 
+  /// Reported as `$lib_version` on the direct-HTTP `app_launched` payload so it
+  /// lines up with what the SDK stamps on its own events. Keep in sync with the
+  /// `posthog_flutter` constraint in pubspec.yaml.
+  static const String _libVersion = '5.36.0';
+
+  /// Events that must never leave the device. All of these are emitted by the
+  /// native iOS/Android SDKs or by PostHog's own subsystems and would carry
+  /// touch coordinates, view hierarchies or person-profile writes that this
+  /// app's privacy contract forbids (see TELEMETRY.md section 3).
+  static const Set<String> _deniedEvents = {
+    r'$rageclick',
+    r'$autocapture',
+    r'$identify',
+    r'$set',
+    r'$create_alias',
+    r'$groupidentify',
+    r'$feature_flag_called',
+    r'$snapshot',
+    r'$push_notification_opened',
+    r'$web_vitals',
+    'survey shown',
+    'survey sent',
+    'survey dismissed',
+  };
+
   bool _initialized = false;
+
+  /// Whether `Posthog().setup()` has run. Stays false for the entire lifetime of
+  /// an install that never opts in, so the SDK never opens a connection.
+  bool _sdkConfigured = false;
   bool _optedIn = false;
   String? _persistentDeviceId;
   CountryMetadata? _cachedCountryMetadata;
+
+  /// Privacy properties that must ride along on *every* payload, whether it is
+  /// captured through the SDK or posted directly to the PostHog EU capture API.
+  ///
+  /// `$geoip_disable` is what actually stops PostHog's server-side GeoIP
+  /// transformation from resolving city / postal code / lat-long out of the
+  /// request IP. `$ip: 0.0.0.0` alone does NOT prevent that.
+  Map<String, Object> get _privacyProperties {
+    final meta = _cachedCountryMetadata;
+    return {
+      r'$process_person_profile': false,
+      r'$ip': '0.0.0.0',
+      r'$geoip_disable': true,
+      if (meta != null) ...{
+        r'$geoip_country_code': meta.countryCode,
+        r'$geoip_country_name': meta.countryName,
+        r'$geoip_continent_code': meta.continentCode,
+        r'$geoip_continent_name': meta.continentName,
+        'country': meta.countryCode,
+        'country_code': meta.countryCode,
+      },
+    };
+  }
 
   @override
   Future<void> init() async {
@@ -44,55 +96,85 @@ class PostHogTelemetryService implements TelemetryService {
         await prefs.setString(_prefDeviceIdKey, _persistentDeviceId!);
       }
 
-      final (localeStr, countryCode) =
-          TelemetryService.resolveSystemLocaleAndCountry();
-      _cachedCountryMetadata =
-          TelemetryService.getCountryMetadata(countryCode);
+      final (_, countryCode) = TelemetryService.resolveSystemLocaleAndCountry();
+      _cachedCountryMetadata = TelemetryService.getCountryMetadata(countryCode);
 
+      _initialized = true;
+
+      // The SDK is deliberately NOT touched for users who have not opted in.
+      // `Posthog().setup()` unconditionally triggers the native SDK's remote
+      // config fetch — `PostHogRemoteConfig.preloadRemoteConfig()` is gated only
+      // by a testing flag and ignores the opt-out state entirely — so merely
+      // setting it up would open a connection to PostHog EU and expose the
+      // device's IP address before any consent was given. Setup is deferred to
+      // [optIn].
+      if (_optedIn) {
+        await _configureSdk();
+        unawaited(flushDailyFoodLog());
+      }
+    } catch (e) {
+      debugPrint('PostHogTelemetryService init error: $e');
+    }
+  }
+
+  /// Performs the one-time PostHog SDK setup. Only ever called once the user has
+  /// opted in; the native SDK ignores a second `setup()` call, so the flag also
+  /// guards an opt-out/opt-in cycle within the same app session.
+  Future<void> _configureSdk() async {
+    if (_sdkConfigured) return;
+    try {
       final config = PostHogConfig(_defaultApiKey)
         ..host = _postHogEuHost
         ..captureApplicationLifecycleEvents = false
+        // Never let PostHog build person profiles, identity graphs or user
+        // timelines from our events.
+        ..personProfiles = PostHogPersonProfiles.never
+        // Every one of these subsystems emits its own events that bypass
+        // `beforeSend` (they are native-initiated), so they are switched off at
+        // the source rather than filtered after the fact.
+        ..sessionReplay = false
+        ..surveys = false
+        ..sendFeatureFlagEvents = false
+        ..preloadFeatureFlags = false
+        ..capturePushNotificationSubscriptions = false
+        ..capturePushNotificationOpened = false
         ..debug = kDebugMode
         ..beforeSend = [
           (event) {
-            if (event.event == r'$rageclick' ||
-                event.event == r'$autocapture' ||
-                event.event.startsWith(r'$rage')) {
+            if (_deniedEvents.contains(event.event) ||
+                event.event.startsWith(r'$rage') ||
+                event.event.startsWith(r'$auto') ||
+                event.event.startsWith('survey ')) {
               return null;
             }
-            final props = event.properties ??= <String, Object>{};
-            props[r'$ip'] = '0.0.0.0';
-            props[r'$process_person_profile'] = false;
-
-            final meta = _cachedCountryMetadata;
-            if (meta != null) {
-              props[r'$geoip_country_code'] ??= meta.countryCode;
-              props[r'$geoip_country_name'] ??= meta.countryName;
-              props[r'$geoip_continent_code'] ??= meta.continentCode;
-              props[r'$geoip_continent_name'] ??= meta.continentName;
-              props['country'] ??= meta.countryCode;
-              props['country_code'] ??= meta.countryCode;
+            final props = _privacyProperties;
+            if (event.event == r'$delete_person') {
+              // Person processing is what performs the deletion — suppressing
+              // it here would make the deletion request a no-op.
+              props.remove(r'$process_person_profile');
             }
+            (event.properties ??= <String, Object>{}).addAll(props);
             return event;
           },
         ];
 
+      // iOS/macCatalyst rage-click autocapture is ON by default in the native
+      // SDK and emits `$rageclick` with raw touch coordinates through a channel
+      // `beforeSend` cannot reach. It has to be disabled in the config itself.
+      config.rageClickConfig.enabled = false;
+
       await Posthog().setup(config);
+      _sdkConfigured = true;
 
-      // Rotate in-app SDK distinct_id on every app launch for privacy
-      final ephemeralSessionId = const Uuid().v4();
-      await Posthog().identify(userId: ephemeralSessionId);
-
-      if (_optedIn) {
-        await Posthog().enable();
-        unawaited(flushDailyFoodLog());
-      } else {
-        await Posthog().disable();
-      }
-
-      _initialized = true;
+      // Rotate the in-app SDK distinct_id on every app launch for privacy.
+      // `reset()` discards the stored anonymous ID and the native SDK mints a
+      // fresh one — unlike `identify()`, which marks the user as identified and
+      // makes PostHog create a person profile complete with IP-derived city,
+      // postal code and coordinates.
+      await Posthog().reset();
+      await Posthog().enable();
     } catch (e) {
-      debugPrint('PostHogTelemetryService init error: $e');
+      debugPrint('PostHogTelemetryService _configureSdk error: $e');
     }
   }
 
@@ -113,8 +195,11 @@ class PostHogTelemetryService implements TelemetryService {
             'distinct_id': _persistentDeviceId,
             'properties': {
               'token': _defaultApiKey,
-              r'$process_person_profile': false,
+              // `$process_person_profile` is deliberately NOT set to false here:
+              // it would tell the ingestion pipeline to skip person processing,
+              // which is exactly the step that carries out the deletion.
               r'$ip': '0.0.0.0',
+              r'$geoip_disable': true,
               r'$delete_person': true,
             },
           });
@@ -128,17 +213,21 @@ class PostHogTelemetryService implements TelemetryService {
         }
       }
 
-      try {
-        await Posthog().capture(
-          eventName: r'$delete_person',
-          properties: {
-            r'$process_person_profile': false,
-            r'$ip': '0.0.0.0',
-            r'$delete_person': true,
-          },
-        );
-      } catch (e) {
-        debugPrint('PostHog capture delete_person error: $e');
+      // Only meaningful when the SDK was ever configured; an install that never
+      // opted in has no SDK-side events to erase.
+      if (_sdkConfigured) {
+        try {
+          await Posthog().capture(
+            eventName: r'$delete_person',
+            properties: {
+              r'$ip': '0.0.0.0',
+              r'$geoip_disable': true,
+              r'$delete_person': true,
+            },
+          );
+        } catch (e) {
+          debugPrint('PostHog capture delete_person error: $e');
+        }
       }
 
       // Clear local SharedPreferences storage
@@ -150,9 +239,10 @@ class PostHogTelemetryService implements TelemetryService {
       _persistentDeviceId = const Uuid().v4();
       await prefs.setString(_prefDeviceIdKey, _persistentDeviceId!);
 
-      await Posthog().reset();
-      final ephemeralSessionId = const Uuid().v4();
-      await Posthog().identify(userId: ephemeralSessionId);
+      // Discards the stored anonymous ID; the native SDK mints a fresh one.
+      if (_sdkConfigured) {
+        await Posthog().reset();
+      }
     } catch (e) {
       debugPrint('PostHogTelemetryService resetLocalData error: $e');
     }
@@ -164,7 +254,11 @@ class PostHogTelemetryService implements TelemetryService {
       _optedIn = true;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefOptInKey, true);
-      await Posthog().enable();
+      // First contact with PostHog happens here, never earlier.
+      await _configureSdk();
+      if (_sdkConfigured) {
+        await Posthog().enable();
+      }
     } catch (e) {
       debugPrint('PostHogTelemetryService optIn error: $e');
     }
@@ -176,7 +270,9 @@ class PostHogTelemetryService implements TelemetryService {
       _optedIn = false;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_prefOptInKey, false);
-      await Posthog().disable();
+      if (_sdkConfigured) {
+        await Posthog().disable();
+      }
     } catch (e) {
       debugPrint('PostHogTelemetryService optOut error: $e');
     }
@@ -194,30 +290,17 @@ class PostHogTelemetryService implements TelemetryService {
     String eventName, {
     Map<String, dynamic>? properties,
   }) async {
-    if (!_optedIn) return;
+    if (!_optedIn || !_sdkConfigured) return;
     try {
-      final meta = _cachedCountryMetadata;
-      final Map<String, Object> enrichedProps = {
-        r'$process_person_profile': false,
-        r'$ip': '0.0.0.0',
-        if (meta != null) ...{
-          r'$geoip_country_code': meta.countryCode,
-          r'$geoip_country_name': meta.countryName,
-          r'$geoip_continent_code': meta.continentCode,
-          r'$geoip_continent_name': meta.continentName,
-          'country': meta.countryCode,
-          'country_code': meta.countryCode,
-        },
-        if (properties != null)
-          ...properties.map((key, value) => MapEntry(key, value as Object)),
-      };
-
+      // Privacy properties are applied centrally in `beforeSend`, so every
+      // Dart-captured event gets them regardless of which helper produced it.
       await Posthog().capture(
         eventName: eventName,
-        properties: enrichedProps,
+        properties: {
+          if (properties != null)
+            ...properties.map((key, value) => MapEntry(key, value as Object)),
+        },
       );
-
-
     } catch (e) {
       debugPrint('PostHogTelemetryService track error ($eventName): $e');
     }
@@ -285,9 +368,6 @@ class PostHogTelemetryService implements TelemetryService {
       final osName = platform == 'ios'
           ? 'iOS'
           : (platform == 'android' ? 'Android' : platform);
-      final deviceManufacturer = platform == 'ios' ? 'Apple' : 'Android';
-      final deviceModel = platform == 'ios' ? 'arm64' : 'Mobile';
-      final deviceName = platform == 'ios' ? 'iPhone' : 'Mobile Device';
 
       final meta = TelemetryService.getCountryMetadata(country);
       _cachedCountryMetadata = meta;
@@ -302,32 +382,24 @@ class PostHogTelemetryService implements TelemetryService {
         'distinct_id': _persistentDeviceId,
         'properties': {
           'token': _defaultApiKey,
-          r'$process_person_profile': false,
-          r'$ip': '0.0.0.0',
+          ..._privacyProperties,
 
           // PostHog Native Feature / Metadata fields for GeoIP & Locale
-          r'$geoip_country_code': meta.countryCode,
-          r'$geoip_country_name': meta.countryName,
-          r'$geoip_continent_code': meta.continentCode,
-          r'$geoip_continent_name': meta.continentName,
           r'$locale': locale,
-          'country': meta.countryCode,
-          'country_code': meta.countryCode,
 
-          // Full standard environment & device metadata matching SDK events
+          // Environment metadata. Only values we can actually observe are sent —
+          // device manufacturer/model/name and the TestFlight/sideload flags
+          // used to be filled in with guesses derived from `platform`, which put
+          // fabricated hardware data ("Apple"/"arm64"/"iPhone" for every iOS
+          // device, "Android"/"Mobile" for every Android one) into analytics.
           if (appBuild != null) r'$app_build': appBuild,
           r'$app_name': 'Train Libre',
           r'$app_version': appVersion,
           r'$app_namespace': 'com.rfivesix.trainlibre',
-          r'$device_manufacturer': deviceManufacturer,
-          r'$device_model': deviceModel,
-          r'$device_name': deviceName,
           r'$device_type': 'Mobile',
           r'$is_emulator': isEmulator,
-          r'$is_sideloaded': false,
-          r'$is_testflight': false,
           r'$lib': 'posthog-flutter',
-          r'$lib_version': '5.34.2',
+          r'$lib_version': _libVersion,
           r'$os': osName,
           r'$os_name': osName,
           r'$os_version': osVersion,
@@ -397,12 +469,23 @@ class PostHogTelemetryService implements TelemetryService {
     });
   }
 
+  /// Shape every enum-like telemetry value must have: lower_snake_case ASCII.
+  ///
+  /// User-authored text (routine names, food names) never matches, so this
+  /// catches the class of leak that once sent a routine title as
+  /// `workout_type`. Checking the shape rather than a hard-coded allow-list
+  /// keeps the guard from silently rotting as [ScreenName] gains entries.
+  static final RegExp _enumValuePattern = RegExp(r'^[a-z][a-z0-9_]*$');
+
+  static String _sanitizeEnumValue(String value) =>
+      _enumValuePattern.hasMatch(value) ? value : 'unknown';
+
   @override
   Future<void> trackScreenView({
     required String screenName,
   }) async {
     await track('screen_viewed', properties: {
-      'screen_name': screenName,
+      'screen_name': _sanitizeEnumValue(screenName),
     });
   }
 
@@ -412,52 +495,82 @@ class PostHogTelemetryService implements TelemetryService {
     Map<String, dynamic>? extraProps,
   }) async {
     await track('feature_used', properties: {
-      'feature_key': featureKey,
+      'feature_key': _sanitizeEnumValue(featureKey),
       if (extraProps != null) ...extraProps,
     });
+  }
+
+  /// Serializes the read-modify-write cycles on the food-log counter.
+  ///
+  /// Logging a saved meal or confirming an AI meal scan inserts every item in a
+  /// tight loop, and each insert fires an unawaited increment. Without this
+  /// queue those increments interleave — several of them read the same starting
+  /// value and write back the same result, so a five-item meal is recorded as a
+  /// single entry. It also stops a flush from zeroing the counter while an
+  /// increment is still in flight.
+  Future<void> _foodLogQueue = Future<void>.value();
+
+  Future<void> _serializeFoodLog(Future<void> Function() action) {
+    final completer = Completer<void>();
+    _foodLogQueue = _foodLogQueue.then((_) async {
+      try {
+        await action();
+      } catch (e) {
+        debugPrint('food log counter error: $e');
+      } finally {
+        completer.complete();
+      }
+    });
+    return completer.future;
   }
 
   @override
   Future<void> incrementFoodLogCount({
     required String source,
-  }) async {
-    if (!_optedIn) return;
-    try {
+  }) {
+    if (!_optedIn) return Future<void>.value();
+    // Sanitized here rather than trusting callers, so no code path can put
+    // free-form text (a routine name, a food name) into the sources list.
+    final safeSource = FoodLogSource.sanitize(source);
+    return _serializeFoodLog(() async {
       final prefs = await SharedPreferences.getInstance();
       final currentCount = prefs.getInt(_prefFoodLogCountKey) ?? 0;
       final currentSources =
           prefs.getStringList(_prefFoodLogSourcesKey) ?? <String>[];
 
       await prefs.setInt(_prefFoodLogCountKey, currentCount + 1);
-      if (!currentSources.contains(source)) {
-        currentSources.add(source);
+      if (!currentSources.contains(safeSource)) {
+        currentSources.add(safeSource);
         await prefs.setStringList(_prefFoodLogSourcesKey, currentSources);
       }
-    } catch (e) {
-      debugPrint('incrementFoodLogCount error: $e');
-    }
+    });
   }
 
   @override
-  Future<void> flushDailyFoodLog() async {
-    if (!_optedIn) return;
-    try {
+  Future<void> flushDailyFoodLog() {
+    if (!_optedIn) return Future<void>.value();
+    return _serializeFoodLog(() async {
       final prefs = await SharedPreferences.getInstance();
       final count = prefs.getInt(_prefFoodLogCountKey) ?? 0;
-      if (count > 0) {
-        final sources =
-            prefs.getStringList(_prefFoodLogSourcesKey) ?? <String>[];
-        await track('daily_food_logged', properties: {
-          'count': count,
-          'sources': sources,
-        });
+      if (count <= 0) return;
 
-        await prefs.setInt(_prefFoodLogCountKey, 0);
-        await prefs.setStringList(_prefFoodLogSourcesKey, <String>[]);
+      final sources = prefs.getStringList(_prefFoodLogSourcesKey) ?? <String>[];
+
+      // Clear before sending: a failed capture is preferable to double counting
+      // the same entries on the next flush.
+      await prefs.setInt(_prefFoodLogCountKey, 0);
+      await prefs.setStringList(_prefFoodLogSourcesKey, <String>[]);
+
+      await track('daily_food_logged', properties: {
+        'count': count,
+        'sources': sources,
+      });
+      // The app is usually on its way to the background at this point, so hand
+      // the batch to the network instead of leaving it in the SDK queue.
+      if (_sdkConfigured) {
+        await Posthog().flush();
       }
-    } catch (e) {
-      debugPrint('flushDailyFoodLog error: $e');
-    }
+    });
   }
 
   @override

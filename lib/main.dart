@@ -48,6 +48,7 @@ import 'features/supplements/data/sources/supplement_local_data_source.dart';
 import 'package:workmanager/workmanager.dart';
 import 'features/nutrition_recommendation/data/recommendation_service.dart';
 import 'services/local_notification_service.dart';
+import 'services/telemetry/telemetry_service.dart';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -131,6 +132,7 @@ void main() async {
         initialQuality:
             initialGlassQuality ?? DesignConstants.defaultGlassQuality,
         maxQuality: DesignConstants.defaultGlassQuality,
+        minQuality: DesignConstants.minGlassQuality,
         allowStepUp: true,
         onQualityChanged: (_, to) => prefs.setString('glass_quality', to.name),
       ),
@@ -262,6 +264,11 @@ class _MyAppState extends State<MyApp> {
   /// Silently snapshot and upload the database to iCloud when the app is
   /// backgrounded. Only runs if the user has enabled iCloud sync.
   Future<void> _onAppPause() async {
+    // Flush the aggregated food-log counter here rather than only from
+    // MainScreen, so entries still get reported when the app is backgrounded
+    // from onboarding or any other screen outside the tab shell.
+    unawaited(TelemetryService.instance.flushDailyFoodLog());
+
     final db = DatabaseHelper.driftDb;
     if (db == null) return;
     // Fire-and-forget — we intentionally do not await so the UI is never
@@ -275,7 +282,7 @@ class _MyAppState extends State<MyApp> {
       const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
 
-    const cardDark = Color(0xFF171717);
+    const cardDark = Color(0xFF1C1C1E);
     const cardLight = Colors.white;
 
     return DynamicColorBuilder(
@@ -584,7 +591,7 @@ class _MyAppState extends State<MyApp> {
 
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFF1C1C1C),
+            fillColor: const Color(0xFF2C2C2E),
             border: OutlineInputBorder(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusM),

@@ -10,9 +10,23 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
-class AboutScreen extends StatelessWidget {
+class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
+
+  @override
+  State<AboutScreen> createState() => _AboutScreenState();
+}
+
+class _AboutScreenState extends State<AboutScreen> {
+  @override
+  void initState() {
+    super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.aboutApp));
+  }
 
   @override
   Widget build(BuildContext context) {

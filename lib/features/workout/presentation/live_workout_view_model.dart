@@ -17,7 +17,6 @@ import '../../../services/sound_service.dart';
 import '../../../util/time_util.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 
-
 class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final IWorkoutRepository _repository;
   final DetectPersonalRecordUseCase _detectPRUseCase;
@@ -660,10 +659,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Moves the exercise at [oldIndex] to [newIndex].
+  ///
+  /// [newIndex] is expected in post-removal coordinates, matching the
+  /// `onReorderItem` callback of ReorderableListView (which already accounts
+  /// for the removed item — unlike the obsolete `onReorder`).
   Future<void> reorderExercise(int oldIndex, int newIndex) async {
-    if (oldIndex < newIndex) {
-      newIndex -= 1;
-    }
     final newExercises = List<RoutineExercise>.from(_exercises);
     final item = newExercises.removeAt(oldIndex);
     newExercises.insert(newIndex, item);
@@ -761,7 +762,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           timer.cancel();
           _remainingRestSeconds = 0;
           _showRestDone = true;
-          
+
           if (_isAppInForeground) {
             try {
               unawaited(HapticFeedbackService.instance.vibrate());
@@ -770,7 +771,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
                   .showRestTimerDoneNotification(foreground: true));
             } catch (_) {}
           }
-          
+
           _restDoneBannerTimer = Timer(const Duration(seconds: 10), () {
             _showRestDone = false;
             notifyListeners();
@@ -797,9 +798,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       _targetRestEndTime =
           _targetRestEndTime!.add(Duration(seconds: deltaSeconds));
     }
-    
+
     LocalNotificationService.instance.cancelRestTimerNotification();
-    
+
     if (_remainingRestSeconds <= 0) {
       _remainingRestSeconds = 0;
       _restTimer?.cancel();
@@ -903,7 +904,6 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         }
       }
 
-
       await _repository.finishWorkout(logId, title: title, notes: notes);
 
       unawaited(TelemetryService.instance.trackWorkoutCompleted(
@@ -922,7 +922,6 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         hasFailureSets: hasFailureSets,
         hasWorkoutNotes: notes != null && notes.trim().isNotEmpty,
       ));
-
 
       _workoutLog = null;
       _setLogs.clear();

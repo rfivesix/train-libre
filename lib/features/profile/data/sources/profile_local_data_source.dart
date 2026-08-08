@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:drift/drift.dart' as drift;
+import '../../../../services/telemetry/telemetry_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../data/drift_database.dart' as db;
@@ -324,6 +326,8 @@ class ProfileLocalDataSource {
   }
 
   Future<int> insertMeasurementSession(MeasurementSession session) async {
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.bodyMeasurementLogged));
     await dbInstance.batch((batch) {
       for (final m in session.measurements) {
         batch.insert(

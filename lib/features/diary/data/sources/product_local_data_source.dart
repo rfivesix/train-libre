@@ -497,24 +497,24 @@ class ProductLocalDataSource {
     variables.add(Variable.withDateTime(thirtyDaysAgo));
     variables.add(Variable.withDateTime(thirtyDaysAgo));
 
-    // Für die Relevanz-Gewichtung im ORDER BY übergeben wir den rohen Suchbegriff
+    // Pass raw search term for relevance scoring in ORDER BY
     final rawSearchLower = keyword.trim().toLowerCase();
-    variables.add(Variable.withString(rawSearchLower)); // Für exakten Match (Name)
+    variables.add(Variable.withString(rawSearchLower)); // Exact match (Name)
     variables.add(
-        Variable.withString(rawSearchLower)); // Für exakten Match (Marke + Name)
+        Variable.withString(rawSearchLower)); // Exact match (Brand + Name)
     variables.add(
-        Variable.withString(rawSearchLower)); // Für exakten Match (Name + Marke)
+        Variable.withString(rawSearchLower)); // Exact match (Name + Brand)
     variables.add(
-        Variable.withString('$rawSearchLower%')); // Für Wortanfang-Match (Name)
+        Variable.withString('$rawSearchLower%')); // Prefix match (Name)
     variables.add(Variable.withString(
-        '$rawSearchLower%')); // Für Wortanfang-Match (Marke + Name)
+        '$rawSearchLower%')); // Prefix match (Brand + Name)
     variables.add(Variable.withString(
-        '$rawSearchLower%')); // Für Wortanfang-Match (Name + Marke)
+        '$rawSearchLower%')); // Prefix match (Name + Brand)
 
     final whereClauses = <String>["p.source IN ('user', 'base', 'off')"];
     for (final token in tokens) {
-      // WICHTIGER KNIEFALL FÜR DEN DEUTSCHEN PLURAL:
-      // Wenn das Token auf "er" endet (z.B. "eier"), erlauben wir auch den Match auf den Stamm ("ei")
+      // German plural stemming fallback:
+      // If token ends with "er" (e.g. "eier"), allow matching on the stem ("ei") as well.
       if (token.endsWith('er') && token.length > 3) {
         final stem = token.substring(0, token.length - 2);
         whereClauses.add(

@@ -10,6 +10,7 @@ import '../../domain/models/food_entry.dart';
 import '../../domain/models/fluid_entry.dart';
 import '../../../supplements/domain/models/supplement.dart' as domain;
 import '../../../supplements/data/sources/supplement_local_data_source.dart';
+import '../../../../services/telemetry/telemetry_service.dart';
 
 class DiaryLocalDataSource {
   final drift_db.AppDatabase _db;
@@ -437,7 +438,19 @@ class DiaryLocalDataSource {
         );
   }
 
-  Future<int> insertFoodEntry(FoodEntry entry) async {
+  /// Inserts a nutrition log entry.
+  ///
+  /// [telemetrySource] records which surface the entry came from for the
+  /// aggregated `daily_food_logged` event. The counter lives here rather than in
+  /// [NutritionRepository] because every logging path in the app funnels through
+  /// this method, while only one of them goes through the repository.
+  Future<int> insertFoodEntry(
+    FoodEntry entry, {
+    String telemetrySource = FoodLogSource.manualSearch,
+  }) async {
+    unawaited(TelemetryService.instance.incrementFoodLogCount(
+      source: FoodLogSource.sanitize(telemetrySource),
+    ));
     final product = await (_db.select(_db.products)
           ..where((tbl) => tbl.barcode.equals(entry.barcode))
           ..limit(1))

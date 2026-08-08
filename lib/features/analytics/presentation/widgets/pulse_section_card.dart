@@ -79,6 +79,7 @@ class PulseSectionCard extends StatelessWidget {
                       ? rangeValue
                       : '$rangeValue ${l10n.sleepBpmUnit}',
                   disableShadow: true,
+                  useSecondarySurface: true,
                 ),
                 ValueSummaryCard(
                   label: l10n.pulseAverageLabel,
@@ -86,6 +87,7 @@ class PulseSectionCard extends StatelessWidget {
                       ? averageValue
                       : '$averageValue ${l10n.sleepBpmUnit}',
                   disableShadow: true,
+                  useSecondarySurface: true,
                 ),
                 ValueSummaryCard(
                   label: l10n.pulseRestingLabel,
@@ -93,6 +95,7 @@ class PulseSectionCard extends StatelessWidget {
                       ? restingValue
                       : '$restingValue ${l10n.sleepBpmUnit}',
                   disableShadow: true,
+                  useSecondarySurface: true,
                 ),
               ]),
               const SizedBox(height: DesignConstants.spacingS),

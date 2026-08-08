@@ -19,6 +19,8 @@ import 'share_card_renderer.dart';
 import 'share_labels.dart';
 import 'workout_share_formatter.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'dart:async';
+import '../../services/telemetry/telemetry_service.dart';
 
 class ShareService {
   const ShareService({ShareCardRenderer renderer = const ShareCardRenderer()})
@@ -56,6 +58,8 @@ class ShareService {
     required BuildContext context,
     required Routine routine,
   }) async {
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.routineShared));
     final l10n = AppLocalizations.of(context)!;
     await showGlassBottomMenu<void>(
       context: context,

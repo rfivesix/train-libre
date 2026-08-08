@@ -1,7 +1,7 @@
 # Charte de confidentialité pour l'application mobile « Train Libre » et le site web
 
-**Version 1.6**  
-**En date du : 27 juillet 2026**
+**Version 1.7**  
+**En date du : 7 août 2026**
 
 Cette charte de confidentialité vous informe conformément aux articles 13 et 14 du Règlement Général sur la Protection des Données (RGPD) du traitement des données à caractère personnel et des données relatives à la santé dans l'application mobile « Train Libre » ainsi que lors de votre visite sur ce site web.
 
@@ -113,16 +113,35 @@ Le système d'exploitation isole l'application dans un bac à sable (sandbox), e
 4. **Sauvegardes système :** Incluses dans iCloud/Google Drive Backup si activé au niveau système.
 5. **Sauvegarde iCloud (iOS uniquement) :** Optionnelle et gérée par votre identifiant Apple. Chiffrée par Apple.
 
-### C. Télémétrie anonyme optionnelle
-Train Libre intègre une mesure d'utilisation optionnelle et respectueuse de la vie privée, propulsée par PostHog EU (https://eu.i.posthog.com).
+### C. Statistiques d'utilisation pseudonymisées optionnelles
 
-1. **Opt-In strict par défaut :** La télémétrie est entièrement désactivée par défaut. Aucune donnée ni requête réseau n'est transmise tant que vous n'activez pas explicitement l'option "Partager des statistiques d'utilisation anonymes" dans les Paramètres sous Support & Info.
-2. **Zéro donnée directement identifiable (Zero PII) :** La télémétrie ne collecte aucun identifiant personnel, nom, adresse e-mail, adresse IP, poids corporel, répétition d'exercice ni nom d'aliment. Les adresses IP sont immédiatement supprimées lors de la collecte.
-3. **Intervalles d'agrégation approximatifs :** Les données d'événement sont exclusivement regroupées sous forme d'intervalles approximatifs non identifiables (par ex. version de l'application, plateforme système, plages de durée d'entraînement comme 15-30 min, nombre d'exercices comme 4-7, temps de réponse IA et statut de migration de base de données).
-4. **Révocation immédiate :** Vous pouvez retirer votre consentement et désactiver la télémétrie à tout moment dans les Paramètres, ce qui interrompt immédiatement toute transmission.
-5. **Base légale :** Le traitement des données de télémétrie repose exclusivement sur votre consentement explicite conformément à l'article 6, paragraphe 1, point a) du RGPD.
-6. **Sous-traitant :** PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA) agit en qualité de sous-traitant conformément à l'article 28 du RGPD. Un contrat de traitement des données (DPA) est conclu.
-7. **Lieu de stockage, durée de conservation et garanties de transfert :** Les données de télémétrie sont stockées exclusivement sur une infrastructure basée dans l'UE (AWS eu-central-1, Francfort, Allemagne) et conservées pendant une durée maximale de 12 mois, après quoi elles sont automatiquement supprimées. Bien que le stockage principal reste strictement dans l'UE, des accès d'assistance technique par PostHog, Inc. peuvent intervenir sous les garanties du EU-US Data Privacy Framework (DPF).
+Train Libre propose une mesure d'utilisation purement optionnelle et respectueuse de la vie privée, destinée à améliorer la stabilité de l'application et l'usage des fonctionnalités, opérée via PostHog EU (https://eu.i.posthog.com). Dans l'application, la fonction est intitulée « Partager des statistiques d'utilisation anonymes ». PostHog associant des identifiants techniques aux événements transmis, il s'agit juridiquement de données pseudonymisées ; une anonymité complète ne peut être garantie pour des données techniques d'utilisation.
+
+1. **Opt-in strict par défaut:** La télémétrie est entièrement désactivée par défaut. Tant que vous n'avez pas expressément consenti, la bibliothèque de télémétrie n'est même pas initialisée. Aucun événement n'est transmis et aucune connexion réseau vers PostHog n'est établie — pas même une requête technique de configuration. Ce n'est qu'au moment où vous activez « Partager des statistiques d'utilisation anonymes » dans les Paramètres, sous Support & Info, que l'application contacte PostHog pour la première fois. Un identifiant d'appareil aléatoire est certes généré localement dès le premier lancement, afin que le décompte des appareils actifs fonctionne à partir de votre consentement ; cette génération a lieu exclusivement sur votre appareil et sans aucune transmission.
+2. **Étendue des événements collectés:** Si vous avez consenti, seules les catégories suivantes sont collectées :
+
+   - Lancements de l'application (pour déterminer le nombre d'appareils actifs)
+   - Écrans ouverts, identifiés uniquement par des identifiants techniques issus d'une liste figée dans le code source (par exemple diary_tab, live_workout)
+   - Fonctions déclenchées, également au moyen d'identifiants fixes (par exemple routine_created, barcode_scanned)
+   - Un compteur agrégé des entrées alimentaires enregistrées (le nombre ainsi que le mode de saisie, par exemple recherche, scan de code-barres ou reconnaissance par IA)
+   - Indicateurs des séances d'entraînement terminées : nombre d'exercices, de séries et de minuteurs de repos, durée en minutes, ainsi que des indications par oui/non sur les fonctions d'entraînement utilisées. Le type de séance est transmis exclusivement sous la forme « routine » ou « custom », jamais sous forme de nom
+   - Progression dans l'intégration initiale (numéro d'étape, nom de l'étape, temps passé)
+   - Paramètres modifiés (identifiant du paramètre et nouvelle valeur)
+   - État des requêtes IA de reconnaissance de repas (fournisseur choisi, succès ou code d'erreur, temps de réponse par plages larges telles que « 2-5s »)
+   - État des migrations de base de données (version de départ et version cible, succès)
+   - Indicateurs de l'estimation calorique adaptative : nombre d'entrées de poids et d'alimentation prises en compte, longueur de la fenêtre d'analyse, niveau de confiance et indicateurs de qualité — mais aucune valeur de poids, de calories ou d'objectif
+   - Données techniques de contexte : version de l'application, build, système d'exploitation et sa version, plateforme, fuseau horaire, ainsi qu'une indication précisant si l'application s'exécute dans un émulateur
+
+   Les compteurs tels que le nombre d'exercices ou de séries et la durée de l'entraînement sont transmis sous forme de valeurs numériques exactes et non de plages. Ces valeurs sont transmises sans nom, adresse e-mail ni identifiant d'appareil du fabricant. L'identification d'utilisateurs individuels n'est ni recherchée ni techniquement prévue.
+
+3. **Aucun contenu ni valeur de santé:** Aucun nom, adresse e-mail, identifiant de compte ou identifiant d'appareil du fabricant n'est collecté, ni aucun contenu que vous saisissez — en particulier aucun titre de programme d'entraînement, nom d'exercice ou d'aliment, nom de recette, note ou texte libre. De même, aucune mensuration corporelle, aucun poids, aucune valeur calorique ou nutritionnelle n'est transmis. Tous les événements sont envoyés avec $ip : 0.0.0.0 ; les adresses IP ne sont pas conservées comme données d'événement et la résolution de localisation basée sur l'IP est expressément désactivée au moyen de $geoip_disable.
+4. **Pays et langue:** Afin d'analyser la répartition géographique de l'application, votre pays, votre continent et votre paramètre de langue sont transmis (par exemple « DE », « Europe », « de_DE »). Ces informations sont déduites sur votre appareil à partir de vos réglages système, et non de votre adresse IP. Aucune résolution jusqu'à la ville, la région, le code postal ou les coordonnées n'a lieu ; elle est désactivée côté serveur.
+5. **Rapport de diagnostic volontaire:** Dans la section Retour d'expérience, vous pouvez envoyer activement un rapport de diagnostic au développeur. Le rapport vous est présenté intégralement dans un aperçu avant l'envoi, et vous sélectionnez individuellement les sections incluses. Si vous le transmettez par e-mail, via le menu de partage, le presse-papiers ou l'export de fichier, il parvient directement au développeur sous votre propre contrôle et non par l'intermédiaire de PostHog. Pour l'envoi direct vers PostHog proposé en complément, le point 3 s'applique sans changement : votre note en texte libre, votre poids corporel ainsi que vos valeurs caloriques et de macronutriments ne sont pas transmis ; seules le sont des mesures techniques telles que le nombre d'entrées, les niveaux de confiance, les indicateurs de qualité et l'état de vos sauvegardes. L'envoi direct suppose un consentement actif au sens du point 1 ; si les statistiques d'utilisation sont désactivées, l'application vous en informe au lieu de signaler un envoi.
+6. **Révocation et effacement:** Vous pouvez retirer votre consentement à tout moment dans les Paramètres, ce qui interrompt immédiatement toute transmission. Le bouton « Supprimer les données de télémétrie » dans les Paramètres vous permet en outre de demander l'effacement des données associées à votre identifiant de télémétrie chez PostHog ; dans le même temps, tous les identifiants stockés localement sont réinitialisés. L'effacement peut faire l'objet d'exceptions techniques, par exemple pour les copies de sauvegarde. Un simple e-mail à feedback@schotte.me suffit également.
+7. **Base légale:** Le traitement des données de télémétrie repose exclusivement sur votre consentement explicite conformément à l'article 6, paragraphe 1, point a) du RGPD.
+8. **Sous-traitant:** PostHog, Inc. (2261 Market St., #4008, San Francisco, CA 94114, USA) agit en qualité de sous-traitant au sens de l'article 28 du RGPD. Un contrat de sous-traitance (Data Processing Agreement, DPA) a été conclu.
+9. **Lieu de stockage, durée de conservation et transferts hors UE:** Le projet PostHog EU utilisé s'appuie, comme infrastructure d'hébergement principale, sur des serveurs situés à Francfort-sur-le-Main, en Allemagne (AWS eu-central-1). Les données de télémétrie sont automatiquement supprimées après 12 mois au maximum. Selon les processus d'assistance, de sécurité et de sous-traitance ultérieure, des accès ou des traitements peuvent également avoir lieu en dehors de l'UE. De tels transferts sont couverts par les garanties appropriées convenues dans le contrat de sous-traitance, complétées par la certification au titre du EU-US Data Privacy Framework (DPF).
+10. **Transparence complète:** Le catalogue complet de tous les événements et des attributs transmis pour chacun d'eux est consultable publiquement dans le dépôt du code source, dans le fichier TELEMETRY.md. Les versions F-Droid et hors ligne sont compilées sans la bibliothèque de télémétrie et n'en contiennent pas le code.
 
 ---
 

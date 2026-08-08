@@ -14,6 +14,8 @@ import '../../../services/unit_service.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class PRDashboardScreen extends StatefulWidget {
   const PRDashboardScreen({super.key});
@@ -53,6 +55,8 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.prDashboard));
     _loadData();
   }
 

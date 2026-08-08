@@ -88,16 +88,19 @@ class BodyMetricsSectionCard extends StatelessWidget {
                   label: l10n.metricsCurrentWeight,
                   value: weightValue,
                   disableShadow: true,
+                  useSecondarySurface: true,
                 ),
                 ValueSummaryCard(
                   label: l10n.metricsWeightChange,
                   value: weightChangeValue,
                   disableShadow: true,
+                  useSecondarySurface: true,
                 ),
                 ValueSummaryCard(
                   label: l10n.metricsAvgCalories,
                   value: caloriesValue,
                   disableShadow: true,
+                  useSecondarySurface: true,
                 ),
                 ValueSummaryCard(
                   label: l10n.analyticsWeightTrendLabel(
@@ -110,6 +113,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
                           body.weightTrend.direction,
                         ),
                   disableShadow: true,
+                  useSecondarySurface: true,
                 ),
                 ValueSummaryCard(
                   label: l10n.analyticsCaloriesTrendLabel,
@@ -121,6 +125,7 @@ class BodyMetricsSectionCard extends StatelessWidget {
                           body.calorieTrend.direction,
                         ),
                   disableShadow: true,
+                  useSecondarySurface: true,
                 ),
               ]),
               const SizedBox(height: 10),

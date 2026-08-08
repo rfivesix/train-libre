@@ -9,6 +9,8 @@ import '../../../widgets/common/value_summary_card.dart';
 import '../../sleep/presentation/widgets/sleep_period_scope_layout.dart';
 import '../data/pulse_repository.dart';
 import '../domain/pulse_models.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class PulseAnalysisScreen extends StatefulWidget {
   const PulseAnalysisScreen({
@@ -37,6 +39,8 @@ class _PulseAnalysisScreenState extends State<PulseAnalysisScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.pulseOverview));
     _repository = widget._repository ?? HealthPulseAnalysisRepository();
     _scope = widget.initialScope;
     final seed = widget.initialDate ?? DateTime.now();

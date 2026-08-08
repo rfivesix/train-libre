@@ -39,7 +39,8 @@ class ThemeService extends ChangeNotifier {
   bool get hapticsEnabled => _hapticsEnabled;
 
   /// Whether to use colorful macro badges in the diary.
-  bool get useColorfulMacroBadges => _useColorfulMacroBadges;
+  /// Hardcoded to always return true per requirements.
+  bool get useColorfulMacroBadges => true;
 
   /// The user's preferred display language for base foods.
   BaseFoodLanguage get baseFoodLanguage => _baseFoodLanguage;

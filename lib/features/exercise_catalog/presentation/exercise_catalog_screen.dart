@@ -17,6 +17,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../domain/body_slug_mapper.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A searchable list of all available exercises in the database.
 class ExerciseCatalogScreen extends StatefulWidget {
@@ -66,6 +67,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.exerciseCatalog));
     _searchController.addListener(_onSearchChanged);
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -290,7 +293,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            height: 160,
+            height: DesignConstants.bottomVignetteHeight,
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
@@ -333,7 +336,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         ? colorScheme.primary
         : (theme.inputDecorationTheme.fillColor ??
             (theme.brightness == Brightness.dark
-                ? const Color(0xFF1C1C1C)
+                ? const Color(0xFF2C2C2E)
                 : const Color(0xFFF3F3F3)));
 
     final iconColor =

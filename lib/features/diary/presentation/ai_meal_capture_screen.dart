@@ -22,6 +22,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// Screen for capturing meal input via photo(s) or text before AI analysis.
 ///
@@ -72,6 +74,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.aiMealCapture));
     _checkDbStatus();
     _analyzeButtonAnimationController = AnimationController(
       vsync: this,

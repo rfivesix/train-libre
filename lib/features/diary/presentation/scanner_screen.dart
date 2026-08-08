@@ -14,6 +14,7 @@ import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
@@ -63,6 +64,8 @@ class _ScannerScreenState extends State<ScannerScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.barcodeScanner));
     _checkDbStatus();
     WidgetsBinding.instance.addObserver(this);
     _checkPermission(initial: true);

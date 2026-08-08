@@ -267,7 +267,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                             : theme.colorScheme.onSurface
                                 .withValues(alpha: 0.08),
                         radius: r,
-                        strokeWidth: 1.5,
+                        strokeWidth: 0.5,
                         bottomPadding: bottomInset,
                       ),
                     ),

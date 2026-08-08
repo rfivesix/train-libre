@@ -113,11 +113,11 @@ class NutritionRepository implements IDiaryRepository {
       _localDataSource.insertFluidEntry(entry);
 
   @override
-  Future<int> insertFoodEntry(FoodEntry entry) async {
-    final id = await _localDataSource.insertFoodEntry(entry);
-    unawaited(TelemetryService.instance.incrementFoodLogCount(source: 'diary_entry'));
-    return id;
-  }
+  Future<int> insertFoodEntry(
+    FoodEntry entry, {
+    String telemetrySource = FoodLogSource.manualSearch,
+  }) =>
+      _localDataSource.insertFoodEntry(entry, telemetrySource: telemetrySource);
 
 
   @override

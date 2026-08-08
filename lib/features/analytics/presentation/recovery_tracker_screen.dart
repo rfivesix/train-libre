@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,8 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class RecoveryTrackerScreen extends StatefulWidget {
   const RecoveryTrackerScreen({super.key});
@@ -29,6 +32,8 @@ class RecoveryTrackerScreen extends StatefulWidget {
 }
 
 class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
+  static const Duration _expandDuration = Duration(milliseconds: 280);
+
   final ScrollController _scrollController = ScrollController();
   final Map<String, GlobalKey> _muscleKeys = {};
 
@@ -52,6 +57,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.recoveryTracker));
     _loadRecovery();
   }
 
@@ -171,8 +178,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
     // Blend: card surface + color tint as a single background
     final surfaceBase = isDark
-        ? DesignConstants.summaryCardDarkMode
-        : theme.colorScheme.surface.withValues(alpha: 0.95);
+        ? DesignConstants.summaryCardSecondaryDarkMode
+        : DesignConstants.summaryCardSecondaryLightMode;
 
     return Expanded(
       child: Container(
@@ -281,33 +288,61 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     return tracked < trackedFromStates ? trackedFromStates : tracked;
   }
 
-  void _scrollToMuscle(String muscleGroup) {
-    final muscle = _recovery.muscles.firstWhere(
-      (m) => m.muscleGroup == muscleGroup,
-      orElse: () => _recovery.muscles.first,
-    );
+  Future<void> _scrollToMuscle(String muscleGroup) async {
+    final index =
+        _recovery.muscles.indexWhere((m) => m.muscleGroup == muscleGroup);
+    if (index < 0) return;
+    final muscle = _recovery.muscles[index];
 
+    var didExpand = false;
     setState(() {
-      if (muscle.state == RecoveryDomainService.stateRecovering) {
+      if (muscle.state == RecoveryDomainService.stateRecovering &&
+          !_isRecoveringExpanded) {
         _isRecoveringExpanded = true;
-      } else if (muscle.state == RecoveryDomainService.stateReady) {
+        didExpand = true;
+      } else if (muscle.state == RecoveryDomainService.stateReady &&
+          !_isReadyExpanded) {
         _isReadyExpanded = true;
-      } else if (muscle.state == RecoveryDomainService.stateFresh) {
+        didExpand = true;
+      } else if (muscle.state == RecoveryDomainService.stateFresh &&
+          !_isFreshExpanded) {
         _isFreshExpanded = true;
+        didExpand = true;
       }
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final key = _muscleKeys[muscleGroup];
-      if (key != null && key.currentContext != null) {
-        Scrollable.ensureVisible(
-          key.currentContext!,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          alignment: 0.1,
-        );
-      }
-    });
+    // Wait until the expand animation settled, otherwise the target position is
+    // measured against a layout that is still growing.
+    if (didExpand) {
+      await Future<void>.delayed(
+          _expandDuration + const Duration(milliseconds: 32));
+    } else {
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted || !_scrollController.hasClients) return;
+
+    final renderObject =
+        _muscleKeys[muscleGroup]?.currentContext?.findRenderObject();
+    if (renderObject == null || !renderObject.attached) return;
+
+    // The body extends behind the app bar, so the first visually usable pixel
+    // sits below status bar + toolbar.
+    final topInset = MediaQuery.of(context).padding.top +
+        kToolbarHeight +
+        DesignConstants.spacingM;
+
+    final viewport = RenderAbstractViewport.of(renderObject);
+    final revealOffset = viewport.getOffsetToReveal(renderObject, 0.0).offset;
+
+    final position = _scrollController.position;
+    final target = (revealOffset - topInset)
+        .clamp(position.minScrollExtent, position.maxScrollExtent);
+
+    await _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   Widget _buildBodyView(
@@ -338,7 +373,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
       height: 320,
       onBodyPartTap: (slug, data) {
         if (data.payload is String) {
-          _scrollToMuscle(data.payload as String);
+          unawaited(_scrollToMuscle(data.payload as String));
         }
       },
     );
@@ -591,9 +626,10 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                 ),
               ),
             ),
-            AnimatedCrossFade(
-              firstChild: const SizedBox.shrink(),
-              secondChild: Padding(
+            _ExpandReveal(
+              isExpanded: isExpanded,
+              duration: _expandDuration,
+              child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Column(
                   children: [
@@ -619,10 +655,6 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   ],
                 ),
               ),
-              crossFadeState: isExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 250),
             ),
           ],
         ),
@@ -862,6 +894,89 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Expand/collapse reveal that clips its child instead of resizing it.
+///
+/// The child keeps its natural layout for the whole animation, so text never
+/// reflows or collapses onto itself while the section closes.
+class _ExpandReveal extends StatefulWidget {
+  const _ExpandReveal({
+    required this.isExpanded,
+    required this.duration,
+    required this.child,
+  });
+
+  final bool isExpanded;
+  final Duration duration;
+  final Widget child;
+
+  @override
+  State<_ExpandReveal> createState() => _ExpandRevealState();
+}
+
+class _ExpandRevealState extends State<_ExpandReveal>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+    value: widget.isExpanded ? 1.0 : 0.0,
+  );
+
+  late final Animation<double> _reveal = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeOutCubic,
+    reverseCurve: Curves.easeInCubic,
+  );
+
+  // Fades in only after the section already opened a bit, and fades out during
+  // the first part of the collapse so the content is gone before it is clipped.
+  late final Animation<double> _fade = CurvedAnimation(
+    parent: _controller,
+    curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
+    reverseCurve: const Interval(0.55, 1.0, curve: Curves.easeIn),
+  );
+
+  @override
+  void didUpdateWidget(covariant _ExpandReveal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _controller.duration = widget.duration;
+    if (widget.isExpanded != oldWidget.isExpanded) {
+      if (widget.isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        final heightFactor = _reveal.value.clamp(0.0, 1.0);
+        if (heightFactor == 0.0) return const SizedBox.shrink();
+        return ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: heightFactor,
+            child: Opacity(
+              opacity: _fade.value.clamp(0.0, 1.0),
+              child: child,
+            ),
+          ),
+        );
+      },
     );
   }
 }

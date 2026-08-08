@@ -138,8 +138,8 @@ class RecoverySectionCard extends StatelessWidget {
     final radius = BorderRadius.circular(DesignConstants.borderRadiusL);
 
     final surfaceBase = isDark
-        ? DesignConstants.summaryCardDarkMode
-        : theme.colorScheme.surface.withValues(alpha: 0.95);
+        ? DesignConstants.summaryCardSecondaryDarkMode
+        : DesignConstants.summaryCardSecondaryLightMode;
 
     return Expanded(
       child: Container(

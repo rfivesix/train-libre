@@ -25,6 +25,7 @@ import '../../../widgets/common/swipe_action_background.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A comprehensive screen for viewing and editing a meal and its ingredients.
 ///
@@ -353,7 +354,7 @@ class _MealScreenState extends State<MealScreen> {
               bottom: 0,
               left: 0,
               right: 0,
-              height: 160,
+              height: DesignConstants.bottomVignetteHeight,
               child: IgnorePointer(
                 child: Container(
                   decoration: BoxDecoration(
@@ -683,6 +684,7 @@ class _MealScreenState extends State<MealScreen> {
           quantityInGrams: qty,
           mealType: selectedMealType,
         ),
+        telemetrySource: FoodLogSource.meal,
       );
 
       final fi = await ProductLocalDataSource.instance.getProductByBarcode(bc);

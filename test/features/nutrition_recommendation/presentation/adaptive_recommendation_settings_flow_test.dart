@@ -311,12 +311,15 @@ void main() {
           find.byKey(const Key('onboarding_prior_activity_dropdown'));
       expect(onboardingDropdown, findsOneWidget);
       await tester.ensureVisible(onboardingDropdown);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(onboardingDropdown);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.text(l10n.adaptivePriorActivityVeryHigh), findsOneWidget);
       await tester.tap(find.text(l10n.adaptivePriorActivityVeryHigh).last);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       await tester.pumpWidget(
         wrapWithProviders(
@@ -387,14 +390,36 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(nextButton); // measurements -> adaptive
+      await tester.tap(nextButton); // measurements(4) -> adaptive(5)
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byKey(const Key('onboarding_adaptive_goal_page')),
+          findsOneWidget);
 
-      await tester.tap(nextButton); // adaptive -> nutrition
-      await tester.pumpAndSettle();
-      await tester.tap(nextButton); // nutrition -> ai_health (last page)
-      await tester.pumpAndSettle();
+      // 1. Wait for initial preview generation triggered by entering adaptive page to finish
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 600));
+      });
+      await tester.pump();
+
+      // 2. Tap nextButton on adaptive page (5 -> 6)
+      await tester.tap(nextButton);
+      await tester.pump();
+
+      // 3. Wait for _nextPage async preview re-check and animateToPage(6) to complete
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 600));
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+          find.byKey(const Key('onboarding_nutrition_page')), findsOneWidget);
+
+      await tester.tap(nextButton); // nutrition(6) -> ai_health(7, last page)
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(
+          find.byKey(const Key('onboarding_ai_health_page')), findsOneWidget);
 
       // The bottom button on the last page should display FINISH.
       expect(find.text(l10n.onboardingFinish.toUpperCase()), findsOneWidget);

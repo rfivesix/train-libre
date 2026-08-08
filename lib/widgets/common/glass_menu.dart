@@ -171,7 +171,7 @@ class _GlassMenuState extends State<GlassMenu>
           shape: squircle.copyWith(
             side: BorderSide(
               color: Colors.white.withValues(alpha: 0.3),
-              width: 1.5,
+              width: 0.5,
             ),
           ),
           shadows: [

@@ -22,6 +22,8 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 // Dev flag: keep disabled for production or remove dev-only sections entirely.
 const bool kDevEditEnabled = false;
@@ -88,6 +90,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.foodDetail));
     if (widget.trackedItem != null) {
       _displayItem = widget.trackedItem!.item;
       _trackedQuantity = widget.trackedItem!.entry.quantityInGrams;
@@ -1016,14 +1020,14 @@ class _PortionChip extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════════════════
 class _GlassBadge extends StatelessWidget {
   final String label;
-  final bool isVegan; // Oder ein Enum für den Status
+  final bool isVegan; // Or status enum
 
   const _GlassBadge({required this.label}) : isVegan = true;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Wir nutzen deine definierten App-Farben statt Hartcodierung
+    // Uses defined app colors for badge tinting
     final primaryBadgeColor = Colors.green;
     final isDarkMode = theme.brightness == Brightness.dark;
 
@@ -1033,13 +1037,13 @@ class _GlassBadge extends StatelessWidget {
         vertical: DesignConstants.spacingXS,
       ),
       decoration: BoxDecoration(
-        // Im Dark Mode helles Glas, im Light Mode dunkles Glas
+        // Light glass tint depending on dark/light mode
         color: isDarkMode
             ? primaryBadgeColor.withValues(alpha: 0.15)
             : primaryBadgeColor.withValues(alpha: 0.20),
         borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
         border: Border.all(
-          // Border erhält jetzt die Badge-Farbe mit etwas mehr Deckkraft
+          // Border uses badge color with higher opacity
           color: primaryBadgeColor.withValues(alpha: 0.5),
           width: 0.5,
         ),

@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../../../services/haptic_feedback_service.dart';
 
 import '../../../../generated/app_localizations.dart';
+import '../../../../util/design_constants.dart';
 import '../../../analytics/presentation/widgets/analytics_chart_defaults.dart';
 import '../../domain/analytics_state.dart';
 import '../../domain/body_nutrition_analytics_models.dart';
@@ -587,11 +588,8 @@ class _BodyNutritionNormalizedTrendChartState
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF2A2A2A)
-                  : Theme.of(context)
-                      .colorScheme
-                      .surface
-                      .withValues(alpha: 0.95),
+                  ? DesignConstants.summaryCardDarkMode
+                  : DesignConstants.summaryCardSecondaryLightMode,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: Theme.of(context)

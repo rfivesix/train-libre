@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import '../../services/haptic_feedback_service.dart';
 import '../../util/design_constants.dart';
 
 enum AppButtonVariant { primary, secondary, danger }
@@ -63,20 +64,16 @@ class _AppButtonState extends State<AppButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
-  late final Animation<double> _opacityAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 120),
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    _opacityAnimation = Tween<double>(begin: 1.0, end: 0.82).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
   }
 
@@ -87,7 +84,14 @@ class _AppButtonState extends State<AppButton>
   }
 
   void _handleTapDown(TapDownDetails _) {
-    if (widget.onPressed != null && !widget.isLoading) _controller.forward();
+    if (widget.onPressed != null && !widget.isLoading) {
+      _controller.forward();
+      if (widget.variant == AppButtonVariant.danger) {
+        HapticFeedbackService.instance.chartSelectionFeedback();
+      } else {
+        HapticFeedbackService.instance.lightImpact();
+      }
+    }
   }
 
   void _handleTapUp(TapUpDetails _) {
@@ -115,11 +119,11 @@ class _AppButtonState extends State<AppButton>
       case AppButtonVariant.primary:
         foregroundColor = theme.colorScheme.onPrimary;
         glassSettings = LiquidGlassSettings(
-          thickness: 18, // Dünneres Glas = weniger graue Brechung
-          blur: 1.5, // Etwas weniger Weichzeichner für klarere Farben
-          glassColor: primaryColor.withValues(alpha: 0.35), // Schön transparent
-          lightIntensity: isDark ? 0.85 : 0.95, // Keine graue Suppe mehr
-          saturation: 1.60, // Sättigung hochgeschraubt für sattes Grün
+          thickness: 18, // Thinner glass = reduced gray refraction
+          blur: 1.5, // Subtle blur for sharper colors
+          glassColor: primaryColor.withValues(alpha: 0.35), // Transparent glass base
+          lightIntensity: isDark ? 0.85 : 0.95, // High light intensity for clarity
+          saturation: 1.60, // Enhanced saturation for vibrant tint
           ambientRim: 0.15,
         );
         glowColor = Colors.white.withValues(alpha: isDark ? 0.15 : 0.10);
@@ -181,7 +185,7 @@ class _AppButtonState extends State<AppButton>
         break;
     }
 
-    const double radius = 12.0;
+    const double radius = 14.0;
 
     // ── Build the button label/icon row ─────────────────────────────────────
     Widget labelRow = Row(
@@ -252,28 +256,60 @@ class _AppButtonState extends State<AppButton>
               ? primaryColor
               : widget.variant == AppButtonVariant.danger
                   ? DesignConstants.brandRedColor
-                  : DesignConstants.glassNeutralTint(
-                      isDark), // Secondary bleibt transluzent
+                  : primaryColor.withValues(alpha: isDark ? 0.18 : 0.12),
           borderRadius: BorderRadius.circular(radius),
         ),
         foregroundDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius),
-          border: Border.all(color: rimColor, width: 1.1),
+          border: Border.all(color: rimColor, width: 0.5),
         ),
         child: labelRow,
       );
 
       // ── Clean Glass Stack without any shadow ───────────────────────────────
+      //
+      // PERFORMANCE: the glass shader itself is cheap, but the `BackdropFilter`
+      // it pushes is not. `AdaptiveGlass` runs the Standard renderer here
+      // (quality defaults to `GlassQuality.standard`, so the global
+      // `DesignConstants.defaultGlassQuality` scope never applies to buttons),
+      // and `LightweightLiquidGlass` pushes one `BackdropFilterLayer` per
+      // instance whenever `blur > 0`. Every such layer forces the rasterizer to
+      // break the render pass and re-read the backdrop — on a tile-based iOS GPU
+      // that means a full framebuffer store/load each time. On screens that show
+      // several buttons at once (Nutrition Hub: recalculate + apply + goals +
+      // one per recipe card) this dominated the raster thread and dropped
+      // scrolling below 120 Hz on device, while a Mac's memory bandwidth hid it
+      // completely.
+      //
+      // `InheritedLiquidGlass(isBlurProvidedByAncestor: true)` makes
+      // `LightweightLiquidGlass` take its `skipBlur` path, so the shader still
+      // paints tint, rim and Fresnel exactly as before but no backdrop layer is
+      // pushed. `allowElevation: false` keeps `AdaptiveGlass` off its "elevated"
+      // branch, which would otherwise boost lightIntensity/ambientStrength and
+      // visibly change the button.
+      //
+      // This is visually safe because every button in the app sits on a flat,
+      // near-neutral surface: a σ=1.5 blur over a flat area is the identity, and
+      // the shader's saturation boost is a no-op on neutral pixels. Measured
+      // delta versus the previous rendering is a single physical AA pixel on the
+      // outer edge (1/3 logical px at 3×). Do NOT drop this optimisation for a
+      // button placed over a photo, camera preview or other high-frequency
+      // backdrop — there the missing blur would be visible.
       buttonContent = SizedBox(
         height: height,
         child: RepaintBoundary(
-          child: AdaptiveGlass(
+          child: InheritedLiquidGlass(
             settings: glassSettings,
-            shape: LiquidRoundedSuperellipse(borderRadius: radius),
-            child: GlassGlow(
-              glowColor: glowColor,
-              glowRadius: 1.0,
-              child: innerContent,
+            isBlurProvidedByAncestor: true,
+            child: AdaptiveGlass(
+              settings: glassSettings,
+              allowElevation: false,
+              shape: LiquidRoundedSuperellipse(borderRadius: radius),
+              child: GlassGlow(
+                glowColor: glowColor,
+                glowRadius: 1.0,
+                child: innerContent,
+              ),
             ),
           ),
         ),
@@ -298,7 +334,7 @@ class _AppButtonState extends State<AppButton>
           animation: _controller,
           builder: (context, child) => Transform.scale(
             scale: _scaleAnimation.value,
-            child: Opacity(opacity: _opacityAnimation.value, child: child),
+            child: child,
           ),
           child: buttonContent,
         ),

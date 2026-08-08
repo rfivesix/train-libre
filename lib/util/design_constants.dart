@@ -92,7 +92,9 @@ class DesignConstants {
   );
 
   // === COLORS ===
-  static const Color summaryCardDarkMode = Color(0xFF2A2A2A);
+  static const Color summaryCardDarkMode = Color(0xFF1C1C1E);
+  static const Color summaryCardSecondaryDarkMode = Color(0xFF2C2C2E);
+  static const Color summaryCardSecondaryLightMode = Color(0xFFF2F2F7);
 
   // === GLASSMORPHISM ===
   // Glassmorphic Component Sizes (Apple HIG Aligned)
@@ -122,8 +124,26 @@ class DesignConstants {
           ),
         ];
 
+  /// Shared height for the bottom fade-out vignette painted behind the
+  /// floating glass nav bar / FAB / overlays. Single source of truth so the
+  /// container height and [bottomVignetteGradient]'s stops can be tuned
+  /// together — the stops are relative to *this* height, not the screen.
+  ///
+  /// Sized relative to the bar itself (1.75x [bottomNavigationBarHeight])
+  /// so the fade becomes visible roughly half a bar-height above the bar's
+  /// top edge, and is fully transparent by about one bar-height above it —
+  /// a short, close scrim rather than one that reaches far up the screen.
+  static const double bottomVignetteHeight = bottomNavigationBarHeight * 1.75;
+
   /// Global bottom vignette gradient that ramps up towards the bottom edge,
   /// reaching 100% opacity right at the very bottom screen boundary.
+  ///
+  /// The tail uses closely-spaced stops with small alpha steps so the onset
+  /// is imperceptible. The final stop is [baseColor] at alpha 0 rather than
+  /// [Colors.transparent] — the latter is `#00000000` (black), so
+  /// interpolating a light-grey/white stop into it drags the intermediate
+  /// RGB values towards black as alpha fades out, producing a visible dark
+  /// seam right before the gradient disappears.
   static LinearGradient bottomVignetteGradient(bool isDark) {
     final baseColor = isDark ? Colors.black : const Color(0xFFF2F2F7);
     return LinearGradient(
@@ -131,12 +151,14 @@ class DesignConstants {
       end: Alignment.topCenter,
       colors: [
         baseColor.withValues(alpha: 1.00),
-        baseColor.withValues(alpha: 0.70),
-        baseColor.withValues(alpha: 0.35),
-        baseColor.withValues(alpha: 0.08),
-        Colors.transparent,
+        baseColor.withValues(alpha: 0.78),
+        baseColor.withValues(alpha: 0.55),
+        baseColor.withValues(alpha: 0.34),
+        baseColor.withValues(alpha: 0.18),
+        baseColor.withValues(alpha: 0.07),
+        baseColor.withValues(alpha: 0.0),
       ],
-      stops: const [0.0, 0.12, 0.30, 0.55, 1.0],
+      stops: const [0.0, 0.18, 0.36, 0.54, 0.72, 0.88, 1.0],
     );
   }
 
@@ -159,15 +181,51 @@ class DesignConstants {
     return GlassQuality.premium;
   }
 
+  /// Floor for the adaptive glass quality scope.
+  ///
+  /// On iOS/macOS the adaptive downgrade logic is disabled by pinning the
+  /// floor to [defaultGlassQuality] (premium) — Apple GPUs render the premium
+  /// shader without trouble, and a runtime step-down only causes a visible
+  /// quality change. On Android the scope may degrade all the way down to
+  /// [GlassQuality.minimal] when frames run over budget.
+  static GlassQuality get minGlassQuality {
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return defaultGlassQuality;
+    }
+    return GlassQuality.minimal;
+  }
+
   /// Unified settings for liquid glassmorphic rendering.
+  ///
+  /// Tuned to match real iOS *system UI* glass (UITabBar / navigation
+  /// chrome), not the "simulated glass object" look used for buttons and
+  /// panels:
+  /// - [fresnelStrength]: 0 disables the physics-based lens rim that makes
+  ///   glass read as a thick optical object. Per the package docs, 0.0 is
+  ///   what matches "iOS 26 system UI glass such as Messages buttons,
+  ///   notification banners, and lock screen controls" — i.e. our tab bar.
+  /// - [blur]: raised so the backdrop frosts the way a real `UIBlurEffect`
+  ///   material does (content behind the bar should read as soft color, not
+  ///   a legible warped image).
+  /// - [whitenStrength]: adds the light-mode "legibility veil" real iOS glass
+  ///   lays over bright backgrounds; gated ([whitenGated]) so it only lifts
+  ///   bright pixels and dark icons/text stay crisp. In dark mode this is
+  ///   applied *ungated* instead — a small uniform lift so the bar reads as
+  ///   dark grey (matching `UIBlurEffect` dark materials) instead of pure
+  ///   black when there's nothing behind it to blur; a gated lift would be a
+  ///   no-op there since an all-black backdrop has no bright pixels to gate on.
   static LiquidGlassSettings liquidGlassSettings(bool isDark) =>
       LiquidGlassSettings(
         thickness: 30,
         blur: 2.0,
         glassColor: glassColor(isDark),
         lightIntensity: isDark ? 0.55 : 0.80,
-        saturation: 0.70,
-        ambientRim: 0.2,
+        saturation: 1.90,
+        ambientRim: 0.01,
+        fresnelStrength: 0.0,
+        whitenStrength: isDark ? 0.00 : 0.05,
+        whitenGated: !isDark,
       );
 
   /// The primary brand color for Train Libre, sourced from the app icon.

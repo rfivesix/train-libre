@@ -23,6 +23,7 @@ import 'statistics_steps_card.dart';
 import 'widgets/steps_day_chart.dart';
 import 'widgets/steps_month_chart.dart';
 import 'widgets/steps_week_chart.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class StepsModuleScreen extends StatefulWidget {
   const StepsModuleScreen({
@@ -88,6 +89,8 @@ class _StepsModuleScreenState extends State<StepsModuleScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.stepsOverview));
     _repository = widget.repository ?? HealthStepsAggregationRepository();
 
     switch (widget.initialScope) {

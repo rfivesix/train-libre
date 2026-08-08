@@ -25,6 +25,8 @@ import '../../../util/date_util.dart';
 import '../../../features/statistics/domain/timeframe_block.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for viewing and analyzing body measurement history.
 class MeasurementsScreen extends StatefulWidget {
@@ -139,6 +141,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.bodyMeasurements));
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _loadMeasurements();

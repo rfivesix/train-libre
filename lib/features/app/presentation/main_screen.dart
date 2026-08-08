@@ -100,11 +100,11 @@ class _MainScreenState extends State<MainScreen>
   }
 
   static const List<String> _tabScreenNames = [
-    'diary_tab',
-    'workout_tab',
-    'analytics_tab',
-    'profile_tab',
-    'settings_tab',
+    ScreenName.diaryTab,
+    ScreenName.workoutTab,
+    ScreenName.analyticsTab,
+    ScreenName.profileTab,
+    ScreenName.settingsTab,
   ];
 
   @override
@@ -601,6 +601,7 @@ class _MainScreenState extends State<MainScreen>
     try {
       final newFoodEntryId = await DatabaseHelper.instance.insertFoodEntry(
         newFoodEntry,
+        telemetrySource: addFoodResult.source,
       );
       HapticFeedbackService.instance.confirmationFeedback();
 
@@ -1040,6 +1041,8 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _startAppTour() async {
     if (!mounted) return;
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.appTourStarted));
     await AppTourService.instance.markOfferShown();
     setState(() {
       _isTourActive = true;
@@ -1103,6 +1106,8 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _completeAppTour() async {
     if (!mounted || !_isTourActive) return;
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.appTourCompleted));
     setState(() {
       _isTourActive = false;
       _tourTargetRect = null;
@@ -1190,7 +1195,7 @@ class _MainScreenState extends State<MainScreen>
           bottom: 0,
           left: 0,
           right: 0,
-          height: 200,
+          height: DesignConstants.bottomVignetteHeight,
           child: IgnorePointer(
             child: Container(
               decoration: BoxDecoration(
@@ -1329,6 +1334,7 @@ class _MainScreenState extends State<MainScreen>
                             ),
                             child: GlassAdaptiveScope(
                               maxQuality: DesignConstants.defaultGlassQuality,
+                              minQuality: DesignConstants.minGlassQuality,
                               child: Row(
                                 children: [
                                   Expanded(

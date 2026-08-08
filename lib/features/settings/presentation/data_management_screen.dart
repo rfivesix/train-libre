@@ -36,6 +36,8 @@ import '../../../core/infrastructure/icloud_sync_service.dart';
 import '../../../data/database_helper.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen for managing application data and backups.
 ///
@@ -69,6 +71,8 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.dataManagement));
     _loadAutoBackupDir(); // New
   }
 
@@ -275,6 +279,10 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
             defaultWorkoutTitle: l10n.importedWorkout,
             defaultExerciseName: l10n.unknownExercise,
           );
+          if (count > 0) {
+            unawaited(TelemetryService.instance
+                .trackFeatureUsed(featureKey: FeatureKey.workoutImported));
+          }
           updateProgress(l10n.workoutImportButton, 1.0);
         },
       );

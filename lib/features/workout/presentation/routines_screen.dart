@@ -17,6 +17,8 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen that displays a list of all saved [Routine] templates.
 ///
@@ -39,6 +41,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.routineList));
     _routinesStream = Provider.of<IWorkoutRepository>(context, listen: false)
         .watchAllRoutines();
   }

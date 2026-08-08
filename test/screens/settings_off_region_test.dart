@@ -143,7 +143,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(TextButton, 'Save'));
+    final saveButton = find.widgetWithText(TextButton, 'Save');
+    await tester.ensureVisible(saveButton);
+    await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();

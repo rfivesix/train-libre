@@ -18,6 +18,7 @@ import 'add_food_screen.dart';
 import 'meal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen that displays a list of the user's saved meals.
 ///
@@ -39,6 +40,8 @@ class _MealsScreenState extends State<MealsScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.mealList));
     _reloadMeals();
   }
 
@@ -125,6 +128,7 @@ class _MealsScreenState extends State<MealsScreen> {
                   quantityInGrams: qty,
                   mealType: mealType,
                 ),
+                telemetrySource: FoodLogSource.meal,
               );
 
               final fi = products[bc];
@@ -370,7 +374,7 @@ class _MealsScreenState extends State<MealsScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            height: 160,
+            height: DesignConstants.bottomVignetteHeight,
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(

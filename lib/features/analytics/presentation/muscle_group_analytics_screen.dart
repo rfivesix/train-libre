@@ -22,6 +22,8 @@ import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../statistics/domain/timeframe_block.dart';
+import 'dart:async';
+import '../../../services/telemetry/telemetry_service.dart';
 
 class MuscleGroupAnalyticsScreen extends StatefulWidget {
   const MuscleGroupAnalyticsScreen({super.key});
@@ -60,6 +62,8 @@ class _MuscleGroupAnalyticsScreenState
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.muscleGroupAnalytics));
     _loadData();
   }
 
@@ -551,11 +555,8 @@ class _MuscleGroupAnalyticsScreenState
                     final isDark =
                         Theme.of(context).brightness == Brightness.dark;
                     return isDark
-                        ? const Color(0xFF2A2A2A)
-                        : Theme.of(context)
-                            .colorScheme
-                            .surface
-                            .withValues(alpha: 0.95);
+                        ? DesignConstants.summaryCardDarkMode
+                        : DesignConstants.summaryCardSecondaryLightMode;
                   },
                   tooltipBorder: BorderSide(
                     color: Theme.of(context)

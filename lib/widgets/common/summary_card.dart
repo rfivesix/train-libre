@@ -21,6 +21,12 @@ class SummaryCard extends StatelessWidget {
   /// Whether to disable the drop shadow.
   final bool disableShadow;
 
+  /// Optional background color override.
+  final Color? backgroundColor;
+
+  /// Whether to use the secondary surface color (tertiarySystemGroupedBackground in iOS).
+  final bool useSecondarySurface;
+
   const SummaryCard({
     super.key,
     required this.child,
@@ -28,6 +34,8 @@ class SummaryCard extends StatelessWidget {
     this.margin = const EdgeInsets.symmetric(vertical: 6.0),
     this.onTap,
     this.disableShadow = false,
+    this.backgroundColor,
+    this.useSecondarySurface = false,
   });
 
   @override
@@ -35,6 +43,16 @@ class SummaryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+
+    final defaultBg = isDark
+        ? (useSecondarySurface
+            ? DesignConstants.summaryCardSecondaryDarkMode
+            : DesignConstants.summaryCardDarkMode)
+        : (useSecondarySurface
+            ? DesignConstants.summaryCardSecondaryLightMode
+            : Colors.white);
+    final cardBg = backgroundColor ?? defaultBg;
+
     // True Apple-style squircle using the figma_squircle package.
     // smoothness: 0.6 matches iOS system cards exactly.
     // Unlike Flutter's ContinuousRectangleBorder, this superellipse
@@ -51,13 +69,13 @@ class SummaryCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-          boxShadow: (disableShadow || !isDark)
+          boxShadow: (disableShadow || isDark)
               ? null
               : [
                   BoxShadow(
-                    blurRadius: 9,
-                    offset: const Offset(0, 3),
-                    color: cs.shadow.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                    color: cs.shadow.withValues(alpha: 0.05),
                   ),
                 ],
         ),
@@ -66,16 +84,9 @@ class SummaryCard extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: ShapeDecoration(
-              color: isDark
-                  ? DesignConstants.summaryCardDarkMode
-                  : Colors.white,
+              color: cardBg,
               shape: squircle.copyWith(
-                side: isDark
-                    ? BorderSide(
-                        color: cs.onSurface.withValues(alpha: 0.08),
-                        width: 1,
-                      )
-                    : BorderSide.none,
+                side: BorderSide.none,
               ),
             ),
             child: Material(

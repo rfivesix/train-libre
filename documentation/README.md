@@ -18,6 +18,7 @@ For software engineers, system architects, and technical contributors.
 *   [**System Overview & Testing Philosophy**](developer/overview.md): High-level system purpose, tech stack, and details on our highly stable 116-file, 670+ test suite.
 *   [**System Architecture & SQLite Lifecycle**](developer/architecture.md): Our strict Clean Architecture boundaries (Presentation $\rightarrow$ Domain $\leftarrow$ Data) and thread-safe lazy-initializing private constructor for SQLite.
 *   [**Data Flow & State Lifecycle**](developer/data_flow_and_state.md): Detail on our "Reactive Reads / Imperative Writes" paradigm, reactive Drift stream handlers, subscription lifecycles, and edit-mode user interface input blocking.
+*   [**Localization Architecture**](developer/localization_architecture.md): Offline-first relational localization strategy for the app's catalogs and UI strings, plus the step-by-step guide for adding a new locale.
 
 ### 2. Feature Transparency & Algorithmic Logic (`documentation/features/`)
 For advanced users, mathematical evaluators, and privacy auditors who seek complete transparency into our smart processing engines.
@@ -28,3 +29,4 @@ For advanced users, mathematical evaluators, and privacy auditors who seek compl
 *   [**Native Health Sync & Export**](features/health_sync_export.md): Technical overview of the Apple HealthKit and Google Health Connect data syncing pipelines (bidirectional for vitals), details on step segment merging, and the SQLite-backed Single Source of Truth (SSOT) idempotency architecture.
 *   [**Sleep Health Score Engine (SHS v3.5)**](features/sleep_scoring_engine.md): Complete technical specification of our sleep scoring algorithms, including Gaussian, logistic, and quadratic curves for 5 domains and the continuous soft-cap multiplier penalty logic.
 *   [**Muscle Recovery & Fatigue Modeling**](features/muscle_recovery_model.md): Detailed heuristic for estimating muscle-specific readiness using piecewise interpolation, volume-based recovery windows, and intensity-based fatigue extensions.
+*   [**Estimated 1-Rep Max Heuristic**](features/intelligent_workouts.md): The Epley-based submaximal strength estimation model behind personal records and strength progression, including its non-medical scope.

@@ -209,8 +209,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final log =
-        context.select<LiveWorkoutViewModel, SetLog?>(
+    final log = context.select<LiveWorkoutViewModel, SetLog?>(
           (vm) => vm.setLogs[templateId],
         ) ??
         setLog;
@@ -218,14 +217,13 @@ class LiveWorkoutSetRow extends StatelessWidget {
     final unitService = context.read<UnitService>();
 
     final isLightMode = Theme.of(context).brightness == Brightness.light;
-    final Color? textColor = isCompleted
-        ? (isLightMode ? Colors.black : Colors.white)
-        : null;
+    final Color? textColor =
+        isCompleted ? (isLightMode ? Colors.black : Colors.white) : null;
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
     final Color rowColor = isColoredRow
         ? (isLightMode
-              ? Colors.grey.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.1))
+            ? Colors.grey.withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.1))
         : Colors.transparent;
 
     // Hint Logic
@@ -242,9 +240,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
       final double tWeight = template.targetWeight ?? 0.0;
       weightHint = tWeight > 0
           ? unitService
-                .convertDisplayValue(tWeight, UnitDimension.weight)
-                .toStringAsFixed(1)
-                .replaceAll('.0', '')
+              .convertDisplayValue(tWeight, UnitDimension.weight)
+              .toStringAsFixed(1)
+              .replaceAll('.0', '')
           : '0';
       repHint = (template.targetReps?.isNotEmpty == true)
           ? template.targetReps!
@@ -265,8 +263,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 style: TextStyle(
                   color: isCompleted
                       ? (log.setType == 'normal'
-                            ? (isLightMode ? Colors.black : Colors.white)
-                            : _getSetTypeColor(log.setType))
+                          ? (isLightMode ? Colors.black : Colors.white)
+                          : _getSetTypeColor(log.setType))
                       : _getSetTypeColor(log.setType),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -303,9 +301,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           }
                           // Apply reps
                           if (lastSet.reps != null) {
-                            manager.repsControllers[templateId]?.text = lastSet
-                                .reps
-                                .toString();
+                            manager.repsControllers[templateId]?.text =
+                                lastSet.reps.toString();
                             reps = lastSet.reps;
                           }
 
@@ -436,11 +433,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 ? () async {
                     final currentSeconds =
                         manager.setLogs[templateId]?.durationSeconds ?? 0;
-                    final newDuration = await adaptive_pickers
-                        .showAdaptiveDurationPicker(
-                          context: context,
-                          initialDuration: Duration(seconds: currentSeconds),
-                        );
+                    final newDuration =
+                        await adaptive_pickers.showAdaptiveDurationPicker(
+                      context: context,
+                      initialDuration: Duration(seconds: currentSeconds),
+                    );
                     if (newDuration != null) {
                       final seconds = newDuration.inSeconds;
                       final clearDuration = seconds == 0;
@@ -574,11 +571,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           }
                         } else {
                           if (updatedSet.weightKg != null) {
-                            final displayWeight = unitService
-                                .convertDisplayValue(
-                                  updatedSet.weightKg!,
-                                  UnitDimension.weight,
-                                );
+                            final displayWeight =
+                                unitService.convertDisplayValue(
+                              updatedSet.weightKg!,
+                              UnitDimension.weight,
+                            );
                             manager.weightControllers[templateId]?.text =
                                 displayWeight
                                     .toStringAsFixed(2)
@@ -591,9 +588,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
                           }
                         }
                         if (updatedSet.rir != null) {
-                          manager.rirControllers[templateId]?.text = updatedSet
-                              .rir!
-                              .toString();
+                          manager.rirControllers[templateId]?.text =
+                              updatedSet.rir!.toString();
                         } else {
                           manager.rirControllers[templateId]?.text = '';
                         }
@@ -611,8 +607,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
     final currentSetE1rm = _calculateBrzyckiE1rm(log, requireCompleted: false);
     final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
 
-    final bool hasPR =
-        isCompleted &&
+    final bool hasPR = isCompleted &&
         (log.isMaxWeightPR ||
             log.isMaxVolumePR ||
             log.isMaxEst1RMPR ||
@@ -653,9 +648,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     return Dismissible(
       key: ValueKey('set_$templateId'),
-      direction: isCompleted
-          ? DismissDirection.none
-          : DismissDirection.endToStart,
+      direction:
+          isCompleted ? DismissDirection.none : DismissDirection.endToStart,
       onDismissed: (_) => _removeSet(templateId),
       background: Container(
         color: DesignConstants.brandRedColor,
@@ -667,9 +661,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
         children: [
           Positioned.fill(
             child: Container(
-              color: isCompleted
-                  ? Colors.green.withValues(alpha: 0.3)
-                  : rowColor,
+              color:
+                  isCompleted ? Colors.green.withValues(alpha: 0.3) : rowColor,
             ),
           ),
           rowWithSubInfo,

@@ -26,6 +26,8 @@ import 'widgets/food_item_search_tile.dart';
 import 'widgets/meal_item_card.dart';
 import 'widgets/catalog_category_tile.dart';
 import 'widgets/confirm_log_meal_bottom_sheet.dart';
+import 'add_food_navigation_result.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import 'package:provider/provider.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
@@ -260,6 +262,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.addFoodSearch));
     _tabController = TabController(
       length: 4,
       vsync: this,
@@ -524,7 +528,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
             right: 0,
             child: IgnorePointer(
               child: Container(
-                height: 180,
+                height: DesignConstants.bottomVignetteHeight,
                 decoration: BoxDecoration(
                   gradient: DesignConstants.bottomVignetteGradient(
                     !isLightMode,
@@ -645,8 +649,11 @@ class _AddFoodScreenState extends State<AddFoodScreen>
 
       // If the product was found...
       if (foodItem != null) {
-        // ...close AddFoodScreen and return the found item.
-        Navigator.of(context).pop(foodItem);
+        unawaited(TelemetryService.instance
+            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        // ...close AddFoodScreen and return the found item, tagged so the
+        // logging screen can attribute the entry to the scanner.
+        Navigator.of(context).pop(ScannedFoodItem(foodItem));
       } else {
         // Otherwise, show a short info message.
         if (mounted) {
@@ -707,7 +714,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (_searchController.text.isNotEmpty) ...[
-                        // Zustand A: Text ist da -> Zeige NUR das X zum Löschen
+                        // State A: Text present -> Show clear button
                         SizedBox(
                           width: 48,
                           height: 48,
@@ -726,7 +733,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           ),
                         ),
                       ] else ...[
-                        // Zustand B: Feld ist leer -> Zeige NUR den Barcode-Scanner
+                        // State B: Empty field -> Show barcode scanner
                         SizedBox(
                           width: 48,
                           height: 48,
@@ -744,10 +751,10 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                       ],
                       const SizedBox(
                           width: DesignConstants
-                              .spacingXS), // Minimaler Abstand zum Kapselrand
+                              .spacingXS), // Minimal spacing to capsule border
                     ],
                   ),
-                  // Symmetrisches Padding für links und rechts im Gehäuse
+                  // Symmetric horizontal padding inside container
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: DesignConstants.spacingM,
                       vertical: DesignConstants.spacingM),
@@ -755,7 +762,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               ),
             ),
           ),
-          // 2. Action Tile (Nur für KI, falls aktiviert)
+          // 2. Action Tile (AI meal capture, if enabled)
           if (Provider.of<ThemeService>(context).isAiEnabled) ...[
             const SizedBox(width: DesignConstants.spacingM),
             Container(
@@ -764,7 +771,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(DesignConstants
-                    .borderRadiusM), // Behält die eckigeren Ecken
+                    .borderRadiusM), // Matches medium border radius
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,
@@ -1079,6 +1086,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   quantityInGrams: qty,
                   mealType: mealType,
                 ),
+                telemetrySource: FoodLogSource.meal,
               );
 
               final fi = products[bc];
