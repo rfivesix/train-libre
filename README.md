@@ -163,18 +163,13 @@ For the full interlinked documentation map, see the main [Documentation Entry Po
 The long-term vision, future modules, and planned features are maintained in the [ROADMAP.md](ROADMAP.md) file.
 
 ## Star history
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&style=landscape1&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&style=landscape1" />
-  <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=rfivesix/train-libre&style=landscape1" />
-</picture>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&type=date&theme=dark&legend=top-left" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&type=date&legend=top-left" />
-  <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=rfivesix/train-libre&type=date&legend=top-left" />
-</picture>
-
+<a href="https://www.star-history.com/?repos=rfivesix%2Ftrain-libre&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&type=date&theme=dark&legend=top-left&sealed_token=uCVD0jnyfrvzC_57pRktWEv0SpKUe4VNur4zd9E3wQ7YcN2pCR_Ht8P12saj1W0LcF5WhxY4Im2Xh2nwL6nsGkoRtL3gbZmvMLCpYsJV9DSJDQLjyFT4hKgjHduLNHyXCO6ly3W4yTpRhNpdCyMeqNAS3BXWw0tkdmOdoagdmQoHAKTfcTWu9gaH-arX" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=rfivesix/train-libre&type=date&legend=top-left&sealed_token=uCVD0jnyfrvzC_57pRktWEv0SpKUe4VNur4zd9E3wQ7YcN2pCR_Ht8P12saj1W0LcF5WhxY4Im2Xh2nwL6nsGkoRtL3gbZmvMLCpYsJV9DSJDQLjyFT4hKgjHduLNHyXCO6ly3W4yTpRhNpdCyMeqNAS3BXWw0tkdmOdoagdmQoHAKTfcTWu9gaH-arX" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=rfivesix/train-libre&type=date&legend=top-left&sealed_token=uCVD0jnyfrvzC_57pRktWEv0SpKUe4VNur4zd9E3wQ7YcN2pCR_Ht8P12saj1W0LcF5WhxY4Im2Xh2nwL6nsGkoRtL3gbZmvMLCpYsJV9DSJDQLjyFT4hKgjHduLNHyXCO6ly3W4yTpRhNpdCyMeqNAS3BXWw0tkdmOdoagdmQoHAKTfcTWu9gaH-arX" />
+ </picture>
+</a>
 
 ## Credits
 
