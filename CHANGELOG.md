@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.1] - 2026-08-08
 
+### Fixed
+- **Missing Tooltip on Onboarding Back Button:** Added a localized `tooltip` (`MaterialLocalizations.of(context).previousPageTooltip`) to the icon-only back button in the onboarding flow, so screen readers announce its purpose instead of just "button".
+
+### Changed
+- **Reduced Redundant Iteration Passes in Hot Paths:** Replaced chained `.where()/.map()/.reduce()/.fold()` pipelines with single-pass `for` loops in several frequently-executed code paths, cutting allocations and repeated traversals of the same collection: pulse summary metric extraction (`PulseRepository._summaryFromBuckets`), resting pulse median calculation (`PulseRepository._restingFromAggregateBuckets`, `PulseAnalysisEngine._restingPulse`), and live workout completion stats (`LiveWorkoutViewModel.finishWorkout`). No behavioral change; output is identical to the previous implementation.
+
 ## [1.0.0] - 2026-08-08
 
 ### Fixed
