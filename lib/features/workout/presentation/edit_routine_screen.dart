@@ -19,6 +19,7 @@ import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import 'reorder_scroll_anchor.dart';
 import 'widgets/edit_routine_exercise_card.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
@@ -49,8 +50,13 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   String _originalName = '';
   bool _isLoading = false;
   bool _isDragging = false;
+  bool _isReordering = false;
+  int? _draggedExerciseId;
   Timer? _collapseTimer;
+  Timer? _expandTimer;
   final ScrollController _scrollController = ScrollController();
+  late final ReorderScrollAnchor _dragAnchor =
+      ReorderScrollAnchor(_scrollController);
   final OverlayPortalController _fabOverlayController =
       OverlayPortalController();
 
@@ -193,6 +199,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   @override
   void dispose() {
     _collapseTimer?.cancel();
+    _expandTimer?.cancel();
     _scrollController.dispose();
     _nameController.dispose();
     for (var c in _repsControllers.values) {
@@ -211,41 +218,36 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     return re.exercise.categoryName.toLowerCase() == 'cardio';
   }
 
-  double _calculateScrollAdjustment(
-      int draggedIndex, List<RoutineExercise> exercises) {
-    double adjustment = 0;
-    for (int i = 0; i < draggedIndex; i++) {
-      final re = exercises[i];
-      double detailsHeight = 0;
-      if (re.notes != null && re.notes!.isNotEmpty) {
-        detailsHeight += 80.0;
-      }
-      detailsHeight += 40.0; // Header row
-      detailsHeight += re.setTemplates.length * 48.0; // Set rows
-      detailsHeight += 48.0; // Add set button
-      detailsHeight += 16.0; // Margin/padding/gaps
-      adjustment += detailsHeight;
-    }
-    return adjustment;
+  /// Collapses every card down to its header, keeping [anchorId]'s card pinned
+  /// where it is on screen.
+  void _collapseCards(int anchorId) {
+    if (!mounted || _isDragging) return;
+    _dragAnchor.capture(anchorId);
+    setState(() => _isDragging = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _dragAnchor.restore();
+    });
   }
 
-  double _calculateScrollPosition(
-      int targetIndex, List<RoutineExercise> exercises) {
-    double position = 0;
-    for (int i = 0; i < targetIndex; i++) {
-      final re = exercises[i];
-      double cardHeight = 0;
-      cardHeight += 70.0; // ListTile height estimation
-      if (re.notes != null && re.notes!.isNotEmpty) {
-        cardHeight += 80.0; // Notes container
-      }
-      cardHeight += 40.0; // Header row
-      cardHeight += re.setTemplates.length * 48.0; // Set rows
-      cardHeight += 48.0; // Add set button
-      cardHeight += 16.0; // Padding/gaps/margins
-      position += cardHeight;
-    }
-    return position;
+  /// Expands the cards again, keeping [anchorId]'s card pinned where it is.
+  void _expandCards(int? anchorId) {
+    _expandTimer?.cancel();
+    _isReordering = false;
+    if (!mounted || !_isDragging) return;
+    _dragAnchor.capture(anchorId);
+    setState(() => _isDragging = false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _dragAnchor.restore();
+    });
+  }
+
+  /// Expands the cards once the drop animation and the reorder have finished.
+  void _scheduleExpandAfterDrop() {
+    _expandTimer?.cancel();
+    _expandTimer = Timer(
+      kReorderDropSettleDuration,
+      () => _expandCards(_draggedExerciseId),
+    );
   }
 
   Future<void> _loadExercisesForRoutine() async {
@@ -738,7 +740,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
               automaticallyImplyLeading: false,
               leading: Navigator.of(context).canPop()
                   ? IconButton(
-                      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                      tooltip:
+                          MaterialLocalizations.of(context).backButtonTooltip,
                       icon: const Icon(LucideIcons.arrow_left),
                       onPressed: () => _handlePopAttempt(),
                     )
@@ -818,11 +821,13 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     child: ColdStartEmptyState(
                                       icon: LucideIcons.circle_plus,
                                       title: l10n.emptyStateAddFirstExercise,
-                                      subtitle: l10n.emptyStateAddFirstExerciseSubtitle,
+                                      subtitle: l10n
+                                          .emptyStateAddFirstExerciseSubtitle,
                                       callToAction: l10n.fabAddExercise,
                                       targetCenter: false,
                                       customEndXOffset: 110.0,
-                                      customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
+                                      customTargetYOffset: 100.0 +
+                                          MediaQuery.paddingOf(context).bottom,
                                     ),
                                   )
                                 : ReorderableListView.builder(
@@ -869,6 +874,11 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     onReorderStart: (index) {
                                       // _isDragging is already set by the 300ms onPointerDown timer.
                                       // Do not set it here to avoid bypassing the delay.
+                                      _expandTimer?.cancel();
+                                      _dragAnchor.discard();
+                                      _isReordering = true;
+                                      _draggedExerciseId =
+                                          _routineExercises[index].id;
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
                                         if (_fabOverlayController.isShowing) {
@@ -878,22 +888,11 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       });
                                     },
                                     onReorderEnd: (index) {
-                                      setState(() {
-                                        _isDragging = false;
-                                      });
-                                      WidgetsBinding.instance
-                                          .addPostFrameCallback((_) {
-                                        if (_scrollController.hasClients) {
-                                          final targetOffset =
-                                              _calculateScrollPosition(
-                                                  index, _routineExercises);
-                                          _scrollController.jumpTo(
-                                              targetOffset.clamp(
-                                                  0.0,
-                                                  _scrollController.position
-                                                      .maxScrollExtent));
-                                        }
-                                      });
+                                      // The dropped card is still animating into
+                                      // place and the reorder itself only lands
+                                      // when that animation ends. Expanding now
+                                      // would fight both.
+                                      _scheduleExpandAfterDrop();
                                     },
                                     onReorderItem: _onReorderItem,
                                     itemBuilder: (context, index) {
@@ -902,99 +901,81 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       final bool isCardio =
                                           _isCardio(routineExercise);
 
+                                      final int exerciseId =
+                                          routineExercise.id ?? -index;
+
+                                      // Released either without ever starting a
+                                      // drag, or mid-drop – in the latter case
+                                      // the list has to settle first.
+                                      void handleRelease() {
+                                        _collapseTimer?.cancel();
+                                        if (_isReordering) {
+                                          _scheduleExpandAfterDrop();
+                                        } else {
+                                          _expandCards(exerciseId);
+                                        }
+                                      }
+
                                       return RepaintBoundary(
                                         key: ValueKey(routineExercise.id),
-                                        child: EditRoutineExerciseCard(
-                                          routineExercise: routineExercise,
-                                          index: index,
-                                          isCardio: isCardio,
-                                          isDragging: _isDragging,
-                                          isEditMode: _isEditMode,
-                                          onPointerDown: _isEditMode
-                                              ? (event) {
-                                                  _collapseTimer?.cancel();
-                                                  _collapseTimer = Timer(
-                                                      const Duration(
-                                                          milliseconds: 300),
-                                                      () {
-                                                    if (mounted) {
-                                                      setState(() {
-                                                        _isDragging = true;
-                                                      });
-                                                      WidgetsBinding.instance
-                                                          .addPostFrameCallback(
-                                                              (_) {
-                                                        if (_scrollController
-                                                            .hasClients) {
-                                                          final currentOffset =
-                                                              _scrollController
-                                                                  .offset;
-                                                          final adjustment =
-                                                              _calculateScrollAdjustment(
-                                                                  index,
-                                                                  _routineExercises);
-                                                          _scrollController.jumpTo(
-                                                              (currentOffset -
-                                                                      adjustment)
-                                                                  .clamp(
-                                                                      0.0,
-                                                                      _scrollController
-                                                                          .position
-                                                                          .maxScrollExtent));
-                                                        }
-                                                      });
-                                                    }
-                                                  });
-                                                }
-                                              : null,
-                                          onPointerUp: _isEditMode
-                                              ? (event) {
-                                                  _collapseTimer?.cancel();
-                                                  if (_isDragging) {
-                                                    setState(() {
-                                                      _isDragging = false;
-                                                    });
-                                                  }
-                                                }
-                                              : null,
-                                          onPointerMove: _isEditMode
-                                              ? (event) {
-                                                  // Cancel timer if finger moves – user is scrolling, not drag-holding.
-                                                  if (event.delta.dy.abs() >
-                                                          4.0 ||
-                                                      event.delta.dx.abs() >
-                                                          4.0) {
+                                        child: KeyedSubtree(
+                                          key: _dragAnchor.keyFor(exerciseId),
+                                          child: EditRoutineExerciseCard(
+                                            routineExercise: routineExercise,
+                                            index: index,
+                                            isCardio: isCardio,
+                                            isDragging: _isDragging,
+                                            isEditMode: _isEditMode,
+                                            onPointerDown: _isEditMode
+                                                ? (event) {
                                                     _collapseTimer?.cancel();
+                                                    _collapseTimer = Timer(
+                                                        const Duration(
+                                                            milliseconds: 300),
+                                                        () => _collapseCards(
+                                                            exerciseId));
                                                   }
-                                                }
-                                              : null,
-                                          onPointerCancel: _isEditMode
-                                              ? (event) {
-                                                  _collapseTimer?.cancel();
-                                                  if (_isDragging) {
-                                                    setState(() {
-                                                      _isDragging = false;
-                                                    });
+                                                : null,
+                                            onPointerUp: _isEditMode
+                                                ? (event) => handleRelease()
+                                                : null,
+                                            onPointerMove: _isEditMode
+                                                ? (event) {
+                                                    // Cancel timer if finger moves – user is scrolling, not drag-holding.
+                                                    if (event.delta.dy.abs() >
+                                                            4.0 ||
+                                                        event.delta.dx.abs() >
+                                                            4.0) {
+                                                      _collapseTimer?.cancel();
+                                                    }
                                                   }
-                                                }
-                                              : null,
-                                          repsControllers: _repsControllers,
-                                          weightControllers: _weightControllers,
-                                          rirControllers: _rirControllers,
-                                          onEditNotes: () => _editExerciseNotes(
-                                              context, routineExercise),
-                                          onEditPauseTime: () =>
-                                              _editPauseTime(routineExercise),
-                                          onDeleteExercise: () =>
-                                              _deleteSingleExercise(
-                                                  routineExercise),
-                                          onAddSet: () =>
-                                              _addSet(routineExercise),
-                                          onShowSetTypePicker:
-                                              _showSetTypePicker,
-                                          onRemoveSet: (template, listIndex) =>
-                                              _removeSet(routineExercise,
-                                                  template.id!, listIndex),
+                                                : null,
+                                            onPointerCancel: _isEditMode
+                                                ? (event) => handleRelease()
+                                                : null,
+                                            repsControllers: _repsControllers,
+                                            weightControllers:
+                                                _weightControllers,
+                                            rirControllers: _rirControllers,
+                                            onEditNotes: () =>
+                                                _editExerciseNotes(
+                                                    context, routineExercise),
+                                            onEditPauseTime: () =>
+                                                _editPauseTime(routineExercise),
+                                            onDeleteExercise: () =>
+                                                _deleteSingleExercise(
+                                                    routineExercise),
+                                            onAddSet: () =>
+                                                _addSet(routineExercise),
+                                            onShowSetTypePicker:
+                                                _showSetTypePicker,
+                                            onRemoveSet:
+                                                (template, listIndex) =>
+                                                    _removeSet(
+                                                        routineExercise,
+                                                        template.id!,
+                                                        listIndex),
+                                          ),
                                         ),
                                       );
                                     },

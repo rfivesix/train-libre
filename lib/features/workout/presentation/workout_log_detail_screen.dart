@@ -34,6 +34,7 @@ import 'widgets/muscle_color_helper.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'edit_routine_screen.dart';
+import 'reorder_scroll_anchor.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
@@ -65,8 +66,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   Map<String, String> _exerciseNotes = {};
   bool _isEditMode = false;
   bool _isDragging = false;
+  bool _isReordering = false;
+  String? _draggedExerciseName;
   Timer? _collapseTimer;
+  Timer? _expandTimer;
   final ScrollController _scrollController = ScrollController();
+  late final ReorderScrollAnchor _dragAnchor =
+      ReorderScrollAnchor(_scrollController);
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _notesController;
 
@@ -98,6 +104,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   @override
   void dispose() {
     _setLogsSubscription?.cancel();
+    _collapseTimer?.cancel();
+    _expandTimer?.cancel();
     _notesController.dispose();
     _clearControllers();
     super.dispose();
@@ -167,46 +175,36 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     return ex?.categoryName.toLowerCase() == 'cardio';
   }
 
-  double _calculateScrollAdjustment(
-      int draggedIndex, List<MapEntry<String, List<SetLog>>> entries) {
-    double adjustment = 0;
-    for (int i = 0; i < draggedIndex; i++) {
-      final entry = entries[i];
-      final sets = entry.value;
-      double detailsHeight = 0;
-      final note = _exerciseNotes[entry.key];
-      if (note != null && note.isNotEmpty) {
-        detailsHeight += 80.0;
-      }
-      detailsHeight += 40.0; // Header row
-      detailsHeight += sets.length * 48.0; // Set rows
-      detailsHeight += 48.0; // Add set button
-      detailsHeight += 16.0; // Margin/padding/gaps
-      adjustment += detailsHeight;
-    }
-    return adjustment;
+  /// Collapses every card down to its header, keeping [anchorId]'s card pinned
+  /// where it is on screen.
+  void _collapseCards(String anchorId) {
+    if (!mounted || _isDragging) return;
+    _dragAnchor.capture(anchorId);
+    setState(() => _isDragging = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _dragAnchor.restore();
+    });
   }
 
-  double _calculateScrollPosition(
-      int targetIndex, List<MapEntry<String, List<SetLog>>> entries) {
-    double position = 0;
-    position += 320.0; // Account for SummaryCard and header list items
-    for (int i = 0; i < targetIndex; i++) {
-      final entry = entries[i];
-      final sets = entry.value;
-      double cardHeight = 0;
-      cardHeight += 70.0; // ListTile height estimation
-      final note = _exerciseNotes[entry.key];
-      if (note != null && note.isNotEmpty) {
-        cardHeight += 80.0; // Notes container
-      }
-      cardHeight += 40.0; // Header row
-      cardHeight += sets.length * 48.0; // Set rows
-      cardHeight += 48.0; // Add set button
-      cardHeight += 16.0; // Padding/gaps/margins
-      position += cardHeight;
-    }
-    return position;
+  /// Expands the cards again, keeping [anchorId]'s card pinned where it is.
+  void _expandCards(String? anchorId) {
+    _expandTimer?.cancel();
+    _isReordering = false;
+    if (!mounted || !_isDragging) return;
+    _dragAnchor.capture(anchorId);
+    setState(() => _isDragging = false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _dragAnchor.restore();
+    });
+  }
+
+  /// Expands the cards once the drop animation and the reorder have finished.
+  void _scheduleExpandAfterDrop() {
+    _expandTimer?.cancel();
+    _expandTimer = Timer(
+      kReorderDropSettleDuration,
+      () => _expandCards(_draggedExerciseName),
+    );
   }
 
   Future<void> _loadDetails({bool preserveEditState = false}) async {
@@ -1179,25 +1177,17 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               onReorderStart: (index) {
                                 // _isDragging is already set by the 300ms onPointerDown timer.
                                 // Do not set it here to avoid bypassing the delay.
+                                _expandTimer?.cancel();
+                                _dragAnchor.discard();
+                                _isReordering = true;
+                                _draggedExerciseName =
+                                    _groupedSets.keys.elementAt(index);
                               },
                               onReorderEnd: (index) {
-                                setState(() {
-                                  _isDragging = false;
-                                });
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
-                                  if (_scrollController.hasClients) {
-                                    final entries =
-                                        _groupedSets.entries.toList();
-                                    final targetOffset =
-                                        _calculateScrollPosition(
-                                            index, entries);
-                                    _scrollController.jumpTo(targetOffset.clamp(
-                                        0.0,
-                                        _scrollController
-                                            .position.maxScrollExtent));
-                                  }
-                                });
+                                // The dropped card is still animating into place
+                                // and the reorder itself only lands when that
+                                // animation ends. Expanding now would fight both.
+                                _scheduleExpandAfterDrop();
                               },
                               proxyDecorator: (Widget child, int index,
                                   Animation<double> anim) {
@@ -1254,128 +1244,107 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 final List<SetLog> sets = entry.value;
                                 final isCardio = _isCardio(exerciseName);
 
+                                // Released either without ever starting a drag,
+                                // or mid-drop – in the latter case the list has
+                                // to settle first.
+                                void handleRelease() {
+                                  _collapseTimer?.cancel();
+                                  if (_isReordering) {
+                                    _scheduleExpandAfterDrop();
+                                  } else {
+                                    _expandCards(exerciseName);
+                                  }
+                                }
+
                                 return RepaintBoundary(
                                   key: ValueKey(exerciseName),
-                                  child: WorkoutExerciseLogCard(
-                                    exerciseName: exerciseName,
-                                    exercise: exercise,
-                                    sets: sets,
-                                    isEditMode: true,
-                                    isCardio: isCardio,
-                                    isDragging: _isDragging,
-                                    onPointerDown: (event) {
-                                      _collapseTimer?.cancel();
-                                      _collapseTimer = Timer(
-                                          const Duration(milliseconds: 300),
-                                          () {
-                                        if (mounted) {
-                                          setState(() {
-                                            _isDragging = true;
-                                          });
-                                          WidgetsBinding.instance
-                                              .addPostFrameCallback((_) {
-                                            if (_scrollController.hasClients) {
-                                              final currentOffset =
-                                                  _scrollController.offset;
-                                              final entries =
-                                                  _groupedSets.entries.toList();
-                                              final adjustment =
-                                                  _calculateScrollAdjustment(
-                                                      index, entries);
-                                              _scrollController.jumpTo(
-                                                  (currentOffset - adjustment)
-                                                      .clamp(
-                                                          0.0,
-                                                          _scrollController
-                                                              .position
-                                                              .maxScrollExtent));
-                                            }
-                                          });
-                                        }
-                                      });
-                                    },
-                                    onPointerUp: (event) {
-                                      _collapseTimer?.cancel();
-                                      if (_isDragging) {
-                                        setState(() {
-                                          _isDragging = false;
-                                        });
-                                      }
-                                    },
-                                    onPointerMove: (event) {
-                                      // Cancel timer if finger moves – user is scrolling, not drag-holding.
-                                      if (event.delta.dy.abs() > 4.0 ||
-                                          event.delta.dx.abs() > 4.0) {
+                                  child: KeyedSubtree(
+                                    key: _dragAnchor.keyFor(exerciseName),
+                                    child: WorkoutExerciseLogCard(
+                                      exerciseName: exerciseName,
+                                      exercise: exercise,
+                                      sets: sets,
+                                      isEditMode: true,
+                                      isCardio: isCardio,
+                                      isDragging: _isDragging,
+                                      onPointerDown: (event) {
                                         _collapseTimer?.cancel();
-                                      }
-                                    },
-                                    onPointerCancel: (event) {
-                                      _collapseTimer?.cancel();
-                                      if (_isDragging) {
+                                        _collapseTimer = Timer(
+                                            const Duration(milliseconds: 300),
+                                            () => _collapseCards(exerciseName));
+                                      },
+                                      onPointerUp: (event) => handleRelease(),
+                                      onPointerMove: (event) {
+                                        // Cancel timer if finger moves – user is scrolling, not drag-holding.
+                                        if (event.delta.dy.abs() > 4.0 ||
+                                            event.delta.dx.abs() > 4.0) {
+                                          _collapseTimer?.cancel();
+                                        }
+                                      },
+                                      onPointerCancel: (event) =>
+                                          handleRelease(),
+                                      weightControllers: _weightControllers,
+                                      repsControllers: _repsControllers,
+                                      rirControllers: _rirControllers,
+                                      exerciseNote:
+                                          _exerciseNotes[exerciseName],
+                                      onEditNotes: (exName) =>
+                                          _editExerciseNotes(context, exName),
+                                      onDeleteExercise: (exName) {
                                         setState(() {
-                                          _isDragging = false;
+                                          for (var set in sets) {
+                                            _weightControllers
+                                                .remove(set.id!)
+                                                ?.dispose();
+                                            _repsControllers
+                                                .remove(set.id!)
+                                                ?.dispose();
+                                            _rirControllers
+                                                .remove(set.id!)
+                                                ?.dispose();
+                                          }
+                                          _groupedSets.remove(exName);
+                                          _exerciseNotes.remove(exName);
                                         });
-                                      }
-                                    },
-                                    weightControllers: _weightControllers,
-                                    repsControllers: _repsControllers,
-                                    rirControllers: _rirControllers,
-                                    exerciseNote: _exerciseNotes[exerciseName],
-                                    onEditNotes: (exName) =>
-                                        _editExerciseNotes(context, exName),
-                                    onDeleteExercise: (exName) {
-                                      setState(() {
-                                        for (var set in sets) {
+                                      },
+                                      onAddSet: () {
+                                        final newSet = SetLog(
+                                          id: -DateTime.now()
+                                              .millisecondsSinceEpoch,
+                                          workoutLogId: _log!.id!,
+                                          exerciseName: exerciseName,
+                                          setType: 'normal',
+                                          isCompleted: true,
+                                        );
+                                        setState(() {
+                                          sets.add(newSet);
+                                          _weightControllers[newSet.id!] =
+                                              TextEditingController();
+                                          _repsControllers[newSet.id!] =
+                                              TextEditingController();
+                                          _rirControllers[newSet.id!] =
+                                              TextEditingController();
+                                        });
+                                      },
+                                      onDeleteSet: (setId) {
+                                        setState(() {
+                                          sets.removeWhere(
+                                              (s) => s.id == setId);
                                           _weightControllers
-                                              .remove(set.id!)
+                                              .remove(setId)
                                               ?.dispose();
                                           _repsControllers
-                                              .remove(set.id!)
+                                              .remove(setId)
                                               ?.dispose();
                                           _rirControllers
-                                              .remove(set.id!)
+                                              .remove(setId)
                                               ?.dispose();
-                                        }
-                                        _groupedSets.remove(exName);
-                                        _exerciseNotes.remove(exName);
-                                      });
-                                    },
-                                    onAddSet: () {
-                                      final newSet = SetLog(
-                                        id: -DateTime.now()
-                                            .millisecondsSinceEpoch,
-                                        workoutLogId: _log!.id!,
-                                        exerciseName: exerciseName,
-                                        setType: 'normal',
-                                        isCompleted: true,
-                                      );
-                                      setState(() {
-                                        sets.add(newSet);
-                                        _weightControllers[newSet.id!] =
-                                            TextEditingController();
-                                        _repsControllers[newSet.id!] =
-                                            TextEditingController();
-                                        _rirControllers[newSet.id!] =
-                                            TextEditingController();
-                                      });
-                                    },
-                                    onDeleteSet: (setId) {
-                                      setState(() {
-                                        sets.removeWhere((s) => s.id == setId);
-                                        _weightControllers
-                                            .remove(setId)
-                                            ?.dispose();
-                                        _repsControllers
-                                            .remove(setId)
-                                            ?.dispose();
-                                        _rirControllers
-                                            .remove(setId)
-                                            ?.dispose();
-                                      });
-                                    },
-                                    onSetTypeTap: (setId) =>
-                                        _showSetTypePicker(setId),
-                                    index: index,
+                                        });
+                                      },
+                                      onSetTypeTap: (setId) =>
+                                          _showSetTypePicker(setId),
+                                      index: index,
+                                    ),
                                   ),
                                 );
                               },

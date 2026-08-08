@@ -56,7 +56,8 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
             hintText: l10n.exerciseNoteHint,
             filled: true,
             fillColor: brightness == Brightness.dark
-                ? (Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E))
+                ? (Theme.of(context).inputDecorationTheme.fillColor ??
+                    const Color(0xFF2C2C2E))
                 : Colors.white,
             border: OutlineInputBorder(
               borderRadius:

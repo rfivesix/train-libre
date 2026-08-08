@@ -679,11 +679,41 @@ void main() {
 
       expect(manager.exercises.first.id, 400);
 
-      await manager.reorderExercise(0,
-          2); // Move 400 from index 0 to after index 1 (newIndex = 2 in ReorderableListView logic)
+      // Move 400 from index 0 to index 1. onReorderItem already reports the
+      // post-removal index, so no further adjustment must happen.
+      await manager.reorderExercise(0, 1);
 
       expect(manager.exercises.first.id, 500);
       expect(manager.exercises.last.id, 400);
+    });
+
+    test('reorderExercise moves an exercise upwards to the exact index',
+        () async {
+      final log = await workoutDb.startWorkout(routineName: 'Session');
+      model.Exercise makeExercise(int id) => model.Exercise(
+            id: id,
+            nameDe: 'E$id',
+            nameEn: 'Exercise $id',
+            descriptionDe: '',
+            descriptionEn: '',
+            categoryName: 'Strength',
+            primaryMuscles: ['x'],
+            secondaryMuscles: [],
+          );
+
+      await manager.startWorkout(log, [
+        for (var i = 1; i <= 3; i++)
+          RoutineExercise(
+            id: i * 100,
+            exercise: makeExercise(i),
+            pauseSeconds: null,
+            setTemplates: [SetTemplate(id: i * 1000 + 1, setType: 'normal')],
+          ),
+      ]);
+
+      await manager.reorderExercise(2, 0);
+
+      expect(manager.exercises.map((e) => e.id).toList(), [300, 100, 200]);
     });
 
     test('updatePauseTime updates memory and repository', () async {
