@@ -1,6 +1,9 @@
 # Train Libre Roadmap
 
 ## What's Next
+* **Native Activity & Live Activity Support:** Add Android and iOS activity tracking support, including Dynamic Island support on iOS for live workout sessions.
+* **System Integration (Shortcuts, Control Center & Siri):** Support Apple Shortcuts, Control Center, a home-screen icon long-press menu, and Siri integration for quick actions.
+* **Home Screen Widgets:** Implement home-screen widgets for at-a-glance stats and quick logging.
 * **Comprehensive Analytics & Screen Accessibility Overhaul:** Rethink and redesign the core Statistics screen alongside the layout structures of the Workout and Nutrition tabs. The goal is to optimize data density and navigation, allowing users to view and reach their target progression metrics significantly faster and with fewer taps. (Exact UX wireframes and scope are fully open to iteration).
 * **Advanced Target Setting & Training Experience Leveling:** Expand the onboarding and goal logic. Instead of just picking a general goal, users can define time-bound targets (e.g., losing 10 kg in 3 months). It will also feature a system to determine the user's current training experience level (e.g., beginner, intermediate, advanced) based on strength-to-bodyweight ratios or training history to better tailor recommendations.
 * **Curated Training Plan Library ("Store"):** A program library of curated training plans (e.g., PPL, upper/lower, hypertrophy blocks) that can be copied directly into personal routines. This includes building a clean, rigid internal infrastructure to handle preset templates that users can easily duplicate and edit.
