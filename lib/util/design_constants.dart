@@ -206,10 +206,10 @@ class DesignConstants {
         blur: 2.0,
         glassColor: glassColor(isDark),
         lightIntensity: isDark ? 0.55 : 0.80,
-        saturation: 0.90,
+        saturation: 1.90,
         ambientRim: 0.01,
         fresnelStrength: 0.0,
-        whitenStrength: isDark ? 0.07 : 0.15,
+        whitenStrength: isDark ? 0.00 : 0.05,
         whitenGated: !isDark,
       );
 
