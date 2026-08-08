@@ -41,3 +41,7 @@
 ## 2025-02-14 - Prevent array copy in median calculations
 **Learning:** Found median calculations using `.take(count).toList()` to create a slice of a sorted array before calculating the median. This creates an unneeded intermediate array and O(K) allocation when the median could be computed directly from indices.
 **Action:** When computing medians on a sorted subset (like the bottom 20%), calculate the indices directly on the source array instead of slicing it into a new list.
+
+## 2024-05-19 - Single-Pass Iteration over Chained Iterables in Live Workouts
+**Learning:** In Dart/Flutter, using chained Iterable methods like `.where()`, `.map()`, and multiple `.any()` passes on highly active ViewModels (like `LiveWorkoutViewModel`) causes redundant iterations (O(M*N)) and allocates intermediate memory (`toList()`, `toSet()`). In performance-critical reactive classes, manually managing state accumulation in a single-pass loop drastically reduces overhead compared to functional-style pipelines.
+**Action:** When aggregating multiple statistics or filtering items in ViewModels handling real-time data tracking (like live workouts), always prefer a single `for` loop that accumulates all flags, lists, and maps simultaneously rather than making multiple passes over the same collection.
