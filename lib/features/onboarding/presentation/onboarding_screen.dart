@@ -566,9 +566,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         SnackBar(content: Text(l10n.onboardingRestoreICloudSuccess)),
       );
 
-      // Close old connection so SQLite releases the file lock
-      DatabaseHelper.driftDb?.close();
-
+      // The old connection was already closed and cleared by
+      // downloadAndRestore before it swapped the file; these reads open a
+      // fresh connection against the restored database.
       await context.read<UnitService>().reload();
       await _loadAdaptiveGoalSettings();
 

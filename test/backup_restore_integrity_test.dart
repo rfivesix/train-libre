@@ -940,5 +940,104 @@ void main() {
               .isTracked,
           isTrue);
     });
+
+    test('backup payload omits device-local catalog state', () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'unit_system': 'metric',
+        'off_catalog_active_country': 'fr',
+        'is_exercise_catalog_initialized': true,
+        'installed_training_version': '202601010001',
+        'installed_food_version': '202601010001',
+        'installed_cats_version': '202601010001',
+        'installed_food_enrichment_v1': true,
+        'installed_off_version': '202601010001',
+        'installed_off_version_de': '202601010001',
+        'last_db_sync_app_version': '80013',
+        'exercise_catalog_last_remote_version': '202601010001',
+        'off_catalog_last_remote_version_de': '202601010001',
+        'last_prompted_wger_version': '202601010001',
+        'last_prompted_off_version': '202601010001',
+        'db_update_snoozed_until': '2026-09-01T00:00:00.000',
+      });
+
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      final exported = payload['userPreferences'] as Map<String, dynamic>;
+
+      // Real user preferences still travel …
+      expect(exported['unit_system'], 'metric');
+      expect(exported['off_catalog_active_country'], 'fr');
+
+      // … but nothing describing which catalog DBs sit on the source device.
+      for (final key in const [
+        'is_exercise_catalog_initialized',
+        'installed_training_version',
+        'installed_food_version',
+        'installed_cats_version',
+        'installed_food_enrichment_v1',
+        'installed_off_version',
+        'installed_off_version_de',
+        'last_db_sync_app_version',
+        'exercise_catalog_last_remote_version',
+        'off_catalog_last_remote_version_de',
+        'last_prompted_wger_version',
+        'last_prompted_off_version',
+        'db_update_snoozed_until',
+      ]) {
+        expect(exported.containsKey(key), isFalse, reason: 'leaked $key');
+      }
+    });
+
+    test('restore keeps this device catalog state instead of the backup one',
+        () async {
+      // A payload from an older build that still carries the catalog keys,
+      // taken on a device where every catalog was installed.
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      (payload['userPreferences'] as Map<String, dynamic>).addAll({
+        'unit_system': 'imperial',
+        'is_exercise_catalog_initialized': true,
+        'installed_training_version': '202601010001',
+        'installed_off_version_de': '202601010001',
+        'last_db_sync_app_version': '80013',
+      });
+
+      // This device is a fresh install: no catalogs yet.
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'unit_system': 'metric',
+      });
+
+      expect(
+          await backupManager.importBackupPayloadForTesting(payload), isTrue);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('unit_system'), 'imperial',
+          reason: 'ordinary preferences must still be restored');
+      expect(prefs.getBool('is_exercise_catalog_initialized'), isNull);
+      expect(prefs.getString('installed_training_version'), isNull);
+      expect(prefs.getString('installed_off_version_de'), isNull);
+      expect(prefs.getString('last_db_sync_app_version'), isNull);
+    });
+
+    test('restore does not wipe catalog state the device already has',
+        () async {
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      (payload['userPreferences'] as Map<String, dynamic>)['unit_system'] =
+          'imperial';
+
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'unit_system': 'metric',
+        'is_exercise_catalog_initialized': true,
+        'installed_training_version': '202512310001',
+        'installed_off_version_de': '202512310001',
+      });
+
+      expect(
+          await backupManager.importBackupPayloadForTesting(payload), isTrue);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('unit_system'), 'imperial');
+      expect(prefs.getBool('is_exercise_catalog_initialized'), isTrue);
+      expect(prefs.getString('installed_training_version'), '202512310001');
+      expect(prefs.getString('installed_off_version_de'), '202512310001');
+    });
   });
 }

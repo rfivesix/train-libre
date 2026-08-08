@@ -129,6 +129,7 @@ void main() {
       });
       db = AppDatabase(NativeDatabase.memory());
       DatabaseHelper.setDriftDb(db);
+      BasisDataManager.instance.invalidateCatalogPresenceCache();
       await db.into(db.exercises).insert(const ExercisesCompanion(
             id: Value('dummy-uuid'),
           ));
@@ -140,6 +141,24 @@ void main() {
             languageCode: Value('de'),
           ));
     });
+
+    /// Seeds the rows the bundled imports would have produced, so the
+    /// "everything is installed" preference state is actually backed by data.
+    Future<void> seedBundledCatalogData() async {
+      await db.into(db.products).insert(const ProductsCompanion(
+            barcode: Value('base-1'),
+            name: Value('Base product'),
+            calories: Value(100),
+            protein: Value(1),
+            carbs: Value(2),
+            fat: Value(3),
+            source: Value('base'),
+          ));
+      await db.into(db.foodCategories).insert(const FoodCategoriesCompanion(
+            key: Value('obst'),
+            nameDe: Value('Obst'),
+          ));
+    }
 
     tearDown(() async {
       const pathProviderChannel =
@@ -154,14 +173,24 @@ void main() {
 
     test('skips update entirely when build number matches cached value',
         () async {
+      await seedBundledCatalogData();
+      await db.into(db.products).insert(const ProductsCompanion(
+            barcode: Value('off-1'),
+            name: Value('OFF product'),
+            calories: Value(100),
+            protein: Value(1),
+            carbs: Value(2),
+            fat: Value(3),
+            source: Value('off'),
+          ));
       SharedPreferences.setMockInitialValues({
         'is_exercise_catalog_initialized': true,
         'last_db_sync_app_version': '80013',
         'installed_food_enrichment_v1': true,
         'installed_training_version': '999999999999',
         'installed_food_version': '999999999999',
-        'installed_categories_version': '999999999999',
-        'installed_off_version': '999999999999',
+        'installed_cats_version': '999999999999',
+        'installed_off_version_de': '999999999999',
       });
 
       final progressCalls = <Map<String, dynamic>>[];
@@ -190,6 +219,80 @@ void main() {
       expect(progressCalls[2]['task'], startsWith('Produktdatenbank'));
       expect(progressCalls[2]['detail'], contains('ist aktuell'));
       expect(progressCalls[2]['progress'], 1.0);
+    });
+
+    test(
+        'does not skip when the preferences claim catalogs the device does not have',
+        () async {
+      // The state a restored backup used to leave behind: every bookkeeping
+      // key says "installed", but nothing was imported on this device.
+      SharedPreferences.setMockInitialValues({
+        'is_exercise_catalog_initialized': true,
+        'last_db_sync_app_version': '80013',
+        'installed_food_enrichment_v1': true,
+        'installed_training_version': '999999999999',
+        'installed_food_version': '999999999999',
+        'installed_cats_version': '999999999999',
+        'installed_off_version_de': '999999999999',
+      });
+
+      final progressCalls = <String>[];
+      await BasisDataManager.instance.checkForBasisDataUpdate(
+        onProgress: (task, detail, progress) => progressCalls.add(detail),
+      );
+
+      // The build-bound early return must not have fired.
+      expect(progressCalls, isNot(contains('Basis-Produkte sind aktuell.')));
+
+      // The unbacked version claims are cleared so the importers and the
+      // download prompt see the real state of this device.
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('installed_food_version'), null);
+      expect(prefs.getString('installed_cats_version'), null);
+      expect(prefs.getString('installed_off_version_de'), null);
+    });
+
+    test('isOffDatabaseInitialized ignores a version without matching rows',
+        () async {
+      SharedPreferences.setMockInitialValues({
+        'installed_off_version_de': '999999999999',
+      });
+
+      expect(
+          await BasisDataManager.instance.isOffDatabaseInitialized(), isFalse);
+
+      await db.into(db.products).insert(const ProductsCompanion(
+            barcode: Value('off-1'),
+            name: Value('OFF product'),
+            calories: Value(100),
+            protein: Value(1),
+            carbs: Value(2),
+            fat: Value(3),
+            source: Value('off'),
+          ));
+
+      expect(
+          await BasisDataManager.instance.isOffDatabaseInitialized(), isTrue);
+    });
+
+    test('isExerciseCatalogInitialized ignores a flag without matching rows',
+        () async {
+      await db.delete(db.exerciseTranslations).go();
+      await db.delete(db.exercises).go();
+      SharedPreferences.setMockInitialValues({
+        'is_exercise_catalog_initialized': true,
+      });
+
+      expect(await BasisDataManager.instance.isExerciseCatalogInitialized(),
+          isFalse);
+
+      await db.into(db.exercises).insert(const ExercisesCompanion(
+            id: Value('restored-uuid'),
+          ));
+      BasisDataManager.instance.invalidateCatalogPresenceCache();
+
+      expect(await BasisDataManager.instance.isExerciseCatalogInitialized(),
+          isTrue);
     });
   });
 }

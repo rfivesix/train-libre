@@ -47,6 +47,7 @@ import 'features/supplements/data/supplement_repository_impl.dart';
 import 'features/supplements/data/sources/supplement_local_data_source.dart';
 import 'package:workmanager/workmanager.dart';
 import 'features/nutrition_recommendation/data/recommendation_service.dart';
+import 'services/ai_service.dart';
 import 'services/local_notification_service.dart';
 import 'services/telemetry/telemetry_service.dart';
 
@@ -90,6 +91,10 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // Move any keychain items still stored with backup-eligible accessibility
+  // onto the device-only class before anything reads them.
+  await AiService.migrateSecureStorageToDeviceOnly();
 
   final prefs = await SharedPreferences.getInstance();
   final hasAcceptedConsent = prefs.getBool('hasAcceptedConsent') ?? false;

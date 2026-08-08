@@ -1,6 +1,7 @@
 // lib/data/database_helper.dart
 
 import 'package:drift/drift.dart' as drift;
+import 'package:flutter/foundation.dart';
 import 'drift_database.dart' as db;
 import '../features/diary/domain/models/fluid_entry.dart';
 import '../features/diary/domain/models/food_entry.dart';
@@ -42,6 +43,21 @@ class DatabaseHelper {
   /// Returns the active [AppDatabase] instance if it has been initialised,
   /// or `null` if [setDriftDb] has not yet been called.
   static db.AppDatabase? get driftDb => _driftDb;
+
+  /// Closes the active connection and forgets it, so the SQLite file can be
+  /// replaced (backup restore) and the next [dbInstance] access opens a fresh
+  /// connection instead of handing out the closed one.
+  static Future<void> closeAndResetDriftDb() async {
+    final current = _driftDb;
+    _driftDb = null;
+    if (current == null) return;
+    try {
+      await current.close();
+    } catch (e) {
+      // A close failure must not block the restore that follows.
+      debugPrint('Closing the active database failed: $e');
+    }
+  }
 
   db.AppDatabase get dbInstance =>
       _injectedDb ?? (_driftDb ??= db.AppDatabase());
