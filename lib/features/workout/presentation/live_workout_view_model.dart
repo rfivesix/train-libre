@@ -11,6 +11,10 @@ import '../domain/models/workout_log.dart';
 import '../domain/repositories/workout_repository.dart';
 import '../domain/detect_personal_record_use_case.dart';
 import '../domain/log_workout_set_use_case.dart';
+import '../data/live_activity/workout_live_activity_service.dart';
+import '../domain/live_activity/build_workout_live_activity_content.dart';
+import '../domain/live_activity/workout_live_activity_content.dart';
+import '../domain/live_activity/workout_live_activity_strings.dart';
 import '../../../services/local_notification_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/sound_service.dart';
@@ -62,6 +66,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Timer? _restTimer;
   DateTime? _targetRestEndTime;
+  DateTime? _restStartedAt;
   int _remainingRestSeconds = 0;
   Timer? _restDoneBannerTimer;
   bool _showRestDone = false;
@@ -95,6 +100,131 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Duration get elapsedDuration => _elapsedDuration;
   Map<int, SetLog> get setLogs => _setLogs;
   bool get isActive => _workoutLog != null && _workoutLog!.endTime == null;
+
+  // ---------------------------------------------------------------------------
+  // Live Activity (iOS)
+  //
+  // The view model stays context-free, so the screen injects the localized
+  // strings once. Without them the activity is simply not started — the
+  // workout itself never depends on it.
+  // ---------------------------------------------------------------------------
+
+  static const String liveActivityDeepLink = 'trainlibre://workout/live';
+
+  final WorkoutLiveActivityService _liveActivityService =
+      WorkoutLiveActivityService.instance;
+
+  WorkoutLiveActivityStrings? _liveActivityStrings;
+  String _liveActivityLocale = 'en';
+  bool _liveActivityRunning = false;
+
+  /// Called by the live workout screen once localizations are available.
+  void configureLiveActivity({
+    required WorkoutLiveActivityStrings strings,
+    required String localeName,
+  }) {
+    final isFirstConfiguration = _liveActivityStrings == null;
+    _liveActivityStrings = strings;
+    _liveActivityLocale = localeName;
+    if (isFirstConfiguration && isActive) {
+      unawaited(_syncLiveActivity());
+    }
+  }
+
+  WorkoutLiveActivityContent? _buildLiveActivityContent() {
+    final strings = _liveActivityStrings;
+    if (strings == null) return null;
+    return buildWorkoutLiveActivityContent(
+      exercises: _exercises,
+      setLogs: _setLogs,
+      unitService: unitService,
+      strings: strings,
+      localeName: _liveActivityLocale,
+      restEndsAt: _targetRestEndTime,
+      restStartedAt: _restStartedAt,
+    );
+  }
+
+  /// Starts the activity on first call and updates it afterwards. Cheap to
+  /// call often — the service drops pushes that would not change anything.
+  Future<void> _syncLiveActivity() async {
+    if (!_liveActivityService.isPlatformSupported) return;
+    final log = _workoutLog;
+    final strings = _liveActivityStrings;
+    if (log == null || log.id == null || strings == null) return;
+    if (!isActive) return;
+
+    final content = _buildLiveActivityContent();
+    if (content == null) return;
+
+    if (_liveActivityRunning) {
+      await _liveActivityService.update(content);
+      return;
+    }
+
+    await _liveActivityService.start(
+      attributes: WorkoutLiveActivityAttributes(
+        workoutTitle: log.routineName ?? '',
+        workoutStartedAt: log.startTime,
+        deepLink: liveActivityDeepLink,
+        workoutLogId: log.id!,
+        labelAddExercise: strings.addExercise,
+        labelOpenApp: strings.openApp,
+        labelSkip: strings.skip,
+        labelOverdue: strings.overduePrefix,
+      ),
+      content: content,
+    );
+    _liveActivityRunning = true;
+  }
+
+  Future<void> _endLiveActivity() async {
+    if (!_liveActivityRunning) return;
+    _liveActivityRunning = false;
+    await _liveActivityService.end();
+  }
+
+  /// Applies the commands that Live Activity buttons produced while the app
+  /// was suspended or gone. Safe to call repeatedly — the queue is consumed.
+  Future<void> applyPendingLiveActivityCommands() async {
+    if (!isActive) return;
+    final commands = await _liveActivityService.consumePendingCommands();
+    if (commands.isEmpty) return;
+
+    for (final command in commands) {
+      switch (command['kind']) {
+        case 'skipRest':
+          cancelRest();
+        case 'adjustRest':
+          final delta = command['deltaSeconds'];
+          if (delta is int) adjustRestTime(delta);
+        case 'completeSet':
+          await _completeNextPlannedSet();
+      }
+    }
+    await _syncLiveActivity();
+  }
+
+  /// Completes the next open set with its planned values — the checkmark in
+  /// the Live Activity carries no input of its own.
+  Future<void> _completeNextPlannedSet() async {
+    for (final exercise in _exercises) {
+      for (final template in exercise.setTemplates) {
+        final templateId = template.id;
+        if (templateId == null) continue;
+        final log = _setLogs[templateId];
+        if (log == null || log.isCompleted == true) continue;
+        await updateSet(
+          templateId,
+          weight: template.targetWeight ?? log.weightKg,
+          reps: int.tryParse(template.targetReps ?? '') ?? log.reps,
+          rir: template.targetRir ?? log.rir,
+          isCompleted: true,
+        );
+        return;
+      }
+    }
+  }
 
   bool get _isAppInForeground =>
       WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed ||
@@ -135,6 +265,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     await _createInitialSetLogs();
     _startWorkoutTimer();
     notifyListeners();
+    unawaited(_syncLiveActivity());
   }
 
   Future<void> _createInitialSetLogs() async {
@@ -189,6 +320,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
       _startWorkoutTimer();
       notifyListeners();
+      unawaited(_syncLiveActivity());
       return;
     }
 
@@ -277,6 +409,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     _startWorkoutTimer();
     notifyListeners();
+    unawaited(_syncLiveActivity());
   }
 
   Future<void> loadInitialData(
@@ -437,6 +570,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     notifyListeners();
+    // The next set changed — this is the main reason the activity updates.
+    unawaited(_syncLiveActivity());
   }
 
   Future<void> _checkAndApplyPRs(SetLog setLog, int templateId) async {
@@ -521,6 +656,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     syncControllers();
     notifyListeners();
+    unawaited(_syncLiveActivity());
   }
 
   Future<void> removeSet(int templateId) async {
@@ -559,6 +695,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     rirControllers.remove(templateId);
 
     notifyListeners();
+    unawaited(_syncLiveActivity());
   }
 
   Future<void> addExercise(Exercise exercise) async {
@@ -626,6 +763,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     await _updateLogOrdersInDatabase();
     syncControllers();
     notifyListeners();
+    unawaited(_syncLiveActivity());
   }
 
   Future<void> removeExercise(int routineExerciseId) async {
@@ -657,6 +795,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     pauseTimes.remove(routineExerciseId);
 
     notifyListeners();
+    unawaited(_syncLiveActivity());
   }
 
   /// Moves the exercise at [oldIndex] to [newIndex].
@@ -671,6 +810,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _exercises = newExercises;
     await _updateLogOrdersInDatabase();
     notifyListeners();
+    // Reordering can change which set is "next" without touching any set.
+    unawaited(_syncLiveActivity());
   }
 
   Future<void> _updateLogOrdersInDatabase() async {
@@ -744,7 +885,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     LocalNotificationService.instance.cancelRestTimerNotification();
     _showRestDone = false;
     _remainingRestSeconds = seconds;
-    _targetRestEndTime = DateTime.now().add(Duration(seconds: seconds));
+    _restStartedAt = DateTime.now();
+    _targetRestEndTime = _restStartedAt!.add(Duration(seconds: seconds));
 
     LocalNotificationService.instance
         .scheduleRestTimerDoneNotification(secondsFromNow: seconds);
@@ -777,18 +919,27 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
             notifyListeners();
           });
           notifyListeners();
+          // Push the overdue state the moment the pause ends. Without this the
+          // Live Activity only switches when iOS gets around to honouring
+          // staleDate, which can lag by a noticeable amount. The staleDate
+          // fallback still covers the case where the app is suspended here.
+          unawaited(_syncLiveActivity());
         }
       }
     });
     notifyListeners();
+    unawaited(_syncLiveActivity());
   }
 
   void cancelRest() {
     _restTimer?.cancel();
     LocalNotificationService.instance.cancelRestTimerNotification();
     _remainingRestSeconds = 0;
+    _targetRestEndTime = null;
+    _restStartedAt = null;
     _showRestDone = false;
     notifyListeners();
+    unawaited(_syncLiveActivity());
   }
 
   void adjustRestTime(int deltaSeconds) {
@@ -820,6 +971,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       );
     }
     notifyListeners();
+    unawaited(_syncLiveActivity());
   }
 
   void _startWorkoutTimer() {
@@ -844,7 +996,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _restDoneBannerTimer?.cancel();
     _showRestDone = false;
     _remainingRestSeconds = 0;
+    _targetRestEndTime = null;
+    _restStartedAt = null;
     await LocalNotificationService.instance.cancelRestTimerNotification();
+    await _endLiveActivity();
 
     if (_workoutLog != null) {
       final logId = _workoutLog!.id!;
@@ -876,7 +1031,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       final duration = _elapsedDuration;
-      final workoutType = (_workoutLog?.routineId != null) ? 'routine' : 'custom';
+      final workoutType =
+          (_workoutLog?.routineId != null) ? 'routine' : 'custom';
       // BOLT OPTIMIZATION: Replaced multiple .where(), .any(), .map() passes with a single loop
       int totalSetCount = 0;
       int rirSetsCount = 0;
@@ -938,7 +1094,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _restTimer?.cancel();
     _restDoneBannerTimer?.cancel();
     await LocalNotificationService.instance.cancelRestTimerNotification();
+    // Covers the abort path — a discarded workout must not leave an activity
+    // behind on the lock screen.
+    await _endLiveActivity();
 
+    _targetRestEndTime = null;
+    _restStartedAt = null;
     _workoutLog = null;
     _exercises.clear();
     _setLogs.clear();

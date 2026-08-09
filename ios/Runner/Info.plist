@@ -115,5 +115,9 @@
 		<string>dev.flutter.background.refresh</string>
 		<string>task.tdeeCalculation</string>
 	</array>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<true/>
 </dict>
 </plist>

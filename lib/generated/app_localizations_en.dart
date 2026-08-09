@@ -5764,4 +5764,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryDeleteConfirmButton => 'Delete data now';
+
+  @override
+  String liveActivitySetPosition(int index, int total) {
+    return 'Set $index of $total';
+  }
+
+  @override
+  String get liveActivityOverdueLabel => 'overdue by';
+
+  @override
+  String get liveActivityRirLabel => 'RIR';
+
+  @override
+  String get liveActivityRpeLabel => 'RPE';
+
+  @override
+  String get liveActivityAddExercise => 'Add exercise';
+
+  @override
+  String get liveActivityOpenApp => 'Open app';
+
+  @override
+  String get unit_pounds => 'lbs';
+
+  @override
+  String get unit_kilometers => 'km';
+
+  @override
+  String get unit_miles => 'mi';
 }

@@ -16,6 +16,7 @@ import 'features/app/presentation/app_initializer_screen.dart';
 import 'services/profile_service.dart';
 import 'services/unit_service.dart';
 import 'features/workout/presentation/live_workout_view_model.dart';
+import 'features/workout/presentation/live_workout_screen.dart';
 import 'package:provider/provider.dart';
 import 'services/theme_service.dart';
 import 'theme/app_colors.dart';
@@ -247,13 +248,14 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   late final AppLifecycleListener _lifecycleListener;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _lifecycleListener = AppLifecycleListener(
       onPause: _onAppPause,
       onHide: _onAppPause,
@@ -262,8 +264,38 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _lifecycleListener.dispose();
     super.dispose();
+  }
+
+  /// Intercepts platform route pushes before the navigator acts on them.
+  ///
+  /// Tapping the workout Live Activity sends `trainlibre://workout/live` every
+  /// time. Left to the default handling that pushes a fresh
+  /// [LiveWorkoutScreen] on each tap, so the screen ends up stacked on top of
+  /// itself as many times as the user tapped. If one is already on the stack
+  /// we pop back to it instead.
+  @override
+  Future<bool> didPushRouteInformation(RouteInformation routeInformation) {
+    if (_returnedToOpenLiveWorkout(routeInformation.uri.toString())) {
+      return SynchronousFuture<bool>(true);
+    }
+    return super.didPushRouteInformation(routeInformation);
+  }
+
+  bool _returnedToOpenLiveWorkout(String location) {
+    if (!location.contains('workout/live')) return false;
+
+    final existing = LiveWorkoutScreen.activeRoute;
+    final navigator = _navigatorKey.currentState;
+    if (existing == null || !existing.isActive || navigator == null) {
+      // Not open yet — let the normal route generation push it once.
+      return false;
+    }
+
+    navigator.popUntil((route) => identical(route, existing));
+    return true;
   }
 
   /// Silently snapshot and upload the database to iCloud when the app is
@@ -781,7 +813,52 @@ class _MyAppState extends State<MyApp> {
           theme: baseLightTheme,
           darkTheme: baseDarkTheme,
           themeMode: themeService.themeMode,
-          onGenerateRoute: SleepNavigation.onGenerateRoute,
+          onGenerateRoute: (settings) {
+            final sleepRoute = SleepNavigation.onGenerateRoute(settings);
+            if (sleepRoute != null) return sleepRoute;
+
+            if (settings.name == '/workout/live' ||
+                settings.name == '/live' ||
+                (settings.name?.contains('workout/live') ?? false)) {
+              final Uri? uri = Uri.tryParse(settings.name ?? '');
+              final action = uri?.queryParameters['action'];
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) {
+                  final wsm =
+                      Provider.of<LiveWorkoutViewModel>(context, listen: false);
+                  if (wsm.isActive && wsm.workoutLog != null) {
+                    return LiveWorkoutScreen(
+                      workoutLog: wsm.workoutLog!,
+                      routine: null,
+                      initialAction: action,
+                    );
+                  }
+                  return widget.home;
+                },
+              );
+            }
+            return null;
+          },
+          onUnknownRoute: (settings) {
+            final Uri? uri = Uri.tryParse(settings.name ?? '');
+            final action = uri?.queryParameters['action'];
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) {
+                final wsm =
+                    Provider.of<LiveWorkoutViewModel>(context, listen: false);
+                if (wsm.isActive && wsm.workoutLog != null) {
+                  return LiveWorkoutScreen(
+                    workoutLog: wsm.workoutLog!,
+                    routine: null,
+                    initialAction: action,
+                  );
+                }
+                return widget.home;
+              },
+            );
+          },
           builder: (context, child) {
             return GestureDetector(
               behavior: HitTestBehavior.translucent,

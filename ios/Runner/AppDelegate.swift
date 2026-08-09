@@ -9,6 +9,7 @@ import UIKit
   private let sleepHealthKitChannelName = "trainlibre.health/sleep_healthkit"
   private let exportAppleHealthChannelName = "trainlibre.health/export_apple_health"
   private var channelsConfigured = false
+  private let liveActivityBridge = WorkoutLiveActivityBridge()
 
   override func application(
     _ application: UIApplication,
@@ -78,6 +79,14 @@ import UIKit
     )
     exportChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleExportAppleHealthCall(call: call, result: result)
+    }
+
+    let liveActivityChannel = FlutterMethodChannel(
+      name: WorkoutLiveActivityBridge.channelName,
+      binaryMessenger: messenger
+    )
+    liveActivityChannel.setMethodCallHandler { [weak self] call, result in
+      self?.liveActivityBridge.handle(call: call, result: result)
     }
     channelsConfigured = true
   }
