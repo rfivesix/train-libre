@@ -138,6 +138,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   late final AnimationController _prAnimationController;
   late final Animation<Offset> _prSlideAnimation;
 
+  /// This screen's own route, captured while the element is still active so
+  /// `dispose()` can compare against it without an inherited-widget lookup.
+  Route<dynamic>? _ownRoute;
+
   @override
   void initState() {
     super.initState();
@@ -198,7 +202,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
   @override
   void dispose() {
-    if (identical(LiveWorkoutScreen.activeRoute, ModalRoute.of(context))) {
+    // Compare against the cached reference, never `ModalRoute.of(context)`:
+    // looking up an inherited widget in dispose() is illegal, because the
+    // element is already deactivated by then.
+    if (identical(LiveWorkoutScreen.activeRoute, _ownRoute)) {
       LiveWorkoutScreen.activeRoute = null;
     }
     WidgetsBinding.instance.removeObserver(this);
@@ -215,7 +222,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    LiveWorkoutScreen.activeRoute = ModalRoute.of(context);
+    _ownRoute = ModalRoute.of(context);
+    LiveWorkoutScreen.activeRoute = _ownRoute;
     final l10n = AppLocalizations.of(context)!;
     final unitService = Provider.of<UnitService>(context);
     Provider.of<LiveWorkoutViewModel>(context, listen: false)
