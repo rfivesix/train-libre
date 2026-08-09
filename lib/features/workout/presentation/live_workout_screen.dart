@@ -70,6 +70,11 @@ class LiveWorkoutScreen extends StatefulWidget {
   /// tap on the Dynamic Island stacks another instance.
   static Route<dynamic>? activeRoute;
 
+  /// Invoked when the Live Activity deep link returns to an already open
+  /// screen. `initState` does not run again in that case, so the screen would
+  /// otherwise stay wherever the user last scrolled it.
+  static VoidCallback? onDeepLinkReturn;
+
   @override
   State<LiveWorkoutScreen> createState() => _LiveWorkoutScreenState();
 }
@@ -87,17 +92,32 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   late final ReorderScrollAnchor _dragAnchor =
       ReorderScrollAnchor(_scrollController);
 
-  void _scrollToActiveExercise({bool animated = true}) {
+  /// How many frames the scroll may spend hunting for its target before it
+  /// gives up. Each attempt either waits for data or advances one viewport.
+  static const int _maxScrollAttempts = 24;
+
+  /// Brings the exercise holding the next open set to the top of the list.
+  ///
+  /// Two things make this less trivial than an `ensureVisible` call. The
+  /// exercises load asynchronously, so the first frames have nothing to scroll
+  /// to; and the list is lazy, so a card further down has no context to align
+  /// against until it has been built. The method therefore retries across
+  /// frames, stepping the viewport towards the target until the card exists,
+  /// then aligns it exactly.
+  void _scrollToActiveExercise({bool animated = true, int attempt = 0}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted || !_scrollController.hasClients) return;
+
       final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
       final exercises = manager.exercises;
-      if (exercises.isEmpty) return;
+      if (exercises.isEmpty) {
+        _retryScroll(animated: animated, attempt: attempt);
+        return;
+      }
 
       int activeIndex = 0;
       for (int i = 0; i < exercises.length; i++) {
-        final ex = exercises[i];
-        final hasUncompleted = ex.setTemplates.any((t) {
+        final hasUncompleted = exercises[i].setTemplates.any((t) {
           final log = t.id != null ? manager.setLogs[t.id] : null;
           return log?.isCompleted != true;
         });
@@ -108,17 +128,37 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       }
 
       final targetExercise = exercises[activeIndex];
-      final key = _exerciseCardKeys[targetExercise.id ?? activeIndex];
-      if (key?.currentContext != null) {
-        Scrollable.ensureVisible(
-          key!.currentContext!,
-          alignment: 0.0,
-          duration:
-              animated ? const Duration(milliseconds: 350) : Duration.zero,
-          curve: Curves.easeOutCubic,
+      final targetContext =
+          _exerciseCardKeys[targetExercise.id ?? activeIndex]?.currentContext;
+
+      if (targetContext == null) {
+        // Not built yet — walk down a viewport at a time so the list
+        // materializes the cards in between, then look again.
+        final position = _scrollController.position;
+        if (position.pixels >= position.maxScrollExtent) return;
+        _scrollController.jumpTo(
+          (position.pixels + position.viewportDimension)
+              .clamp(position.minScrollExtent, position.maxScrollExtent),
         );
+        _retryScroll(animated: animated, attempt: attempt);
+        return;
       }
+
+      // alignment 0 puts the card's top edge at the top of the viewport, which
+      // starts directly below the summary bar and its divider — so the
+      // exercise title lands right underneath them.
+      Scrollable.ensureVisible(
+        targetContext,
+        alignment: 0.0,
+        duration: animated ? const Duration(milliseconds: 350) : Duration.zero,
+        curve: Curves.easeOutCubic,
+      );
     });
+  }
+
+  void _retryScroll({required bool animated, required int attempt}) {
+    if (attempt >= _maxScrollAttempts) return;
+    _scrollToActiveExercise(animated: animated, attempt: attempt + 1);
   }
 
   void _handleBack() {
@@ -161,18 +201,26 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       reverseCurve: Curves.easeInBack,
     ));
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final manager = Provider.of<LiveWorkoutViewModel>(
         context,
         listen: false,
       );
-      manager.loadInitialData(widget.workoutLog, widget.routine?.exercises);
-
       _prEventsSubscription = manager.prEvents.listen((event) {
         _prQueue.add(event);
         _processPRQueue();
       });
+
+      // Await the load: it starts the workout and fetches previous
+      // performances, and until it finishes there are no exercises to scroll
+      // to at all. Scrolling before it returned was the whole reason the
+      // screen always opened at the top.
+      await manager.loadInitialData(
+        widget.workoutLog,
+        widget.routine?.exercises,
+      );
+      if (!mounted) return;
 
       _scrollToActiveExercise(animated: false);
 
@@ -207,6 +255,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     // element is already deactivated by then.
     if (identical(LiveWorkoutScreen.activeRoute, _ownRoute)) {
       LiveWorkoutScreen.activeRoute = null;
+      LiveWorkoutScreen.onDeepLinkReturn = null;
     }
     WidgetsBinding.instance.removeObserver(this);
     _collapseTimer?.cancel();
@@ -224,6 +273,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     super.didChangeDependencies();
     _ownRoute = ModalRoute.of(context);
     LiveWorkoutScreen.activeRoute = _ownRoute;
+    LiveWorkoutScreen.onDeepLinkReturn = () => _scrollToActiveExercise();
     final l10n = AppLocalizations.of(context)!;
     final unitService = Provider.of<UnitService>(context);
     Provider.of<LiveWorkoutViewModel>(context, listen: false)
@@ -241,7 +291,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         rpeLabel: l10n.liveActivityRpeLabel,
         addExercise: l10n.liveActivityAddExercise,
         openApp: l10n.liveActivityOpenApp,
-        skip: l10n.skipButton,
+        // Short form on purpose: the button is 58pt wide, and the full
+        // German "Überspringen" wraps to two lines in it.
+        skip: l10n.liveActivitySkipShort,
         overduePrefix: l10n.liveActivityOverdueLabel,
         restDoneTitle: l10n.restTimerNotificationTitle,
         restDoneBody: l10n.restTimerNotificationBody,
@@ -1341,13 +1393,15 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                AnimatedBuilder(
-                                  animation: manager,
-                                  builder: (context, _) {
-                                    final bar = _buildRestBottomBar(
-                                        l10n, colorScheme, manager);
-                                    return bar ?? const SizedBox.shrink();
-                                  },
+                                _HiddenWhileKeyboardVisible(
+                                  child: AnimatedBuilder(
+                                    animation: manager,
+                                    builder: (context, _) {
+                                      final bar = _buildRestBottomBar(
+                                          l10n, colorScheme, manager);
+                                      return bar ?? const SizedBox.shrink();
+                                    },
+                                  ),
                                 ),
                               ],
                             ),
@@ -1368,7 +1422,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                               : (12.0 + MediaQuery.paddingOf(context).bottom),
                           right: 16.0,
                           child: RepaintBoundary(
-                            child: _LiveWorkoutFab(onPressed: _addExercise),
+                            child: _HiddenWhileKeyboardVisible(
+                              child: _LiveWorkoutFab(onPressed: _addExercise),
+                            ),
                           ),
                         );
                       },
@@ -1732,8 +1788,23 @@ class _LiveWorkoutFab extends StatefulWidget {
   State<_LiveWorkoutFab> createState() => _LiveWorkoutFabState();
 }
 
-class _LiveWorkoutFabState extends State<_LiveWorkoutFab>
-    with WidgetsBindingObserver {
+/// Removes its child while the software keyboard is up.
+///
+/// The bottom of the live workout screen carries two floating elements — the
+/// add-exercise button and the rest bar — and both sit exactly where the
+/// keyboard appears. Shared so the two cannot drift apart.
+class _HiddenWhileKeyboardVisible extends StatefulWidget {
+  final Widget child;
+
+  const _HiddenWhileKeyboardVisible({required this.child});
+
+  @override
+  State<_HiddenWhileKeyboardVisible> createState() =>
+      _HiddenWhileKeyboardVisibleState();
+}
+
+class _HiddenWhileKeyboardVisibleState
+    extends State<_HiddenWhileKeyboardVisible> with WidgetsBindingObserver {
   double _keyboardHeight = 0;
 
   @override
@@ -1768,10 +1839,13 @@ class _LiveWorkoutFabState extends State<_LiveWorkoutFab>
   }
 
   @override
+  Widget build(BuildContext context) =>
+      _keyboardHeight > 0 ? const SizedBox.shrink() : widget.child;
+}
+
+class _LiveWorkoutFabState extends State<_LiveWorkoutFab> {
+  @override
   Widget build(BuildContext context) {
-    if (_keyboardHeight > 0) {
-      return const SizedBox.shrink();
-    }
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
         (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
 

@@ -250,8 +250,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         final log = _setLogs[templateId];
         if (log == null || log.isCompleted == true) continue;
 
-        final weight = template.targetWeight ?? log.weightKg;
-        final reps = int.tryParse(template.targetReps ?? '') ?? log.reps;
+        // Values already entered win over the routine's plan. The other order
+        // silently overwrote what the user had typed with the template's
+        // numbers the moment the set was ticked off from the Live Activity.
+        final weight = log.weightKg ?? template.targetWeight;
+        final reps = log.reps ?? int.tryParse(template.targetReps ?? '');
         if (exercise.exercise.isCardio) {
           if (log.durationSeconds == null && log.distanceKm == null) return;
         } else if (weight == null || reps == null) {
@@ -262,7 +265,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           templateId,
           weight: weight,
           reps: reps,
-          rir: template.targetRir ?? log.rir,
+          rir: log.rir ?? template.targetRir,
           isCompleted: true,
         );
         return;

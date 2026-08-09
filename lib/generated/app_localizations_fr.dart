@@ -5895,4 +5895,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get unit_miles => 'mi';
+
+  @override
+  String get liveActivitySkipShort => 'Passer';
 }

@@ -81,12 +81,6 @@ class WorkoutLiveActivityContent {
   final String compactPrimary;
   final String compactSecondary;
 
-  /// The minimal Dynamic Island presentation is a circle roughly the size of
-  /// an icon — units and a second line do not fit. This is the shortest
-  /// truthful form of the set, e.g. `115×9`. Empty when nothing is known, in
-  /// which case the app icon is shown instead.
-  final String minimalText;
-
   /// Whether the set carries enough data to be ticked off from the Live
   /// Activity. False when weight or reps (duration or distance for cardio) are
   /// missing — the checkmark must not invent values, so it goes grey and only
@@ -107,7 +101,6 @@ class WorkoutLiveActivityContent {
     this.metricSeparator = '×',
     this.compactPrimary = '',
     this.compactSecondary = '',
-    this.minimalText = '',
     this.canCompleteSet = false,
   });
 
@@ -125,7 +118,6 @@ class WorkoutLiveActivityContent {
         'metricSeparator': metricSeparator,
         'compactPrimary': compactPrimary,
         'compactSecondary': compactSecondary,
-        'minimalText': minimalText,
         'canCompleteSet': canCompleteSet,
       };
 
@@ -145,7 +137,6 @@ class WorkoutLiveActivityContent {
       other.metricSeparator == metricSeparator &&
       other.compactPrimary == compactPrimary &&
       other.compactSecondary == compactSecondary &&
-      other.minimalText == minimalText &&
       other.canCompleteSet == canCompleteSet;
 
   @override
@@ -163,7 +154,6 @@ class WorkoutLiveActivityContent {
         metricSeparator,
         compactPrimary,
         compactSecondary,
-        minimalText,
         canCompleteSet,
       );
 }

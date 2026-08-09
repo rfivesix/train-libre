@@ -188,24 +188,6 @@ void main() {
 
       expect(content.compactPrimary, '72,5 kg');
       expect(content.compactSecondary, '× 8');
-      // The minimal circle fits neither units nor a second line.
-      expect(content.minimalText, '72,5×8');
-    });
-
-    test('minimal text is empty when a value is missing, so the icon shows',
-        () {
-      final bare = RoutineExercise(
-        id: 32,
-        exercise: _exercise(name: 'Klimmzug', category: 'Strength'),
-        pauseSeconds: 90,
-        setTemplates: [SetTemplate(id: 321, setType: 'normal')],
-      );
-      final content = _build(
-        exercises: [bare],
-        setLogs: {321: _log(exerciseName: 'Klimmzug')},
-      );
-
-      expect(content.minimalText, isEmpty);
     });
   });
 

@@ -250,7 +250,6 @@ final class WorkoutLiveActivityBridge {
         metricSeparator: args["metricSeparator"] as? String ?? "×",
         compactPrimary: args["compactPrimary"] as? String ?? "",
         compactSecondary: args["compactSecondary"] as? String ?? "",
-        minimalText: args["minimalText"] as? String ?? "",
         canCompleteSet: args["canCompleteSet"] as? Bool ?? false
       )
     }

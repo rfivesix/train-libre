@@ -198,9 +198,16 @@ class Exercise {
   /// Returns the name of the exercise localized to the user's language.
   ///
   /// Priority: [nameDe] for German, [nameEn] for other languages, then fallbacks.
-  String getLocalizedName(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    if (locale == 'de' && nameDe.isNotEmpty) {
+  String getLocalizedName(BuildContext context) =>
+      localizedNameFor(Localizations.localeOf(context).languageCode);
+
+  /// Same as [getLocalizedName] without a [BuildContext].
+  ///
+  /// Needed wherever the name is resolved outside the widget tree — the Live
+  /// Activity builds its text in the domain layer, and would otherwise always
+  /// fall back to English.
+  String localizedNameFor(String languageCode) {
+    if (languageCode == 'de' && nameDe.isNotEmpty) {
       return nameDe;
     }
     if (nameEn.isNotEmpty) {

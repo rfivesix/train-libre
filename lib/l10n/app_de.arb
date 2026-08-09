@@ -2616,5 +2616,6 @@
   "liveActivityOpenApp": "App öffnen",
   "unit_pounds": "lbs",
   "unit_kilometers": "km",
-  "unit_miles": "mi"
+  "unit_miles": "mi",
+  "liveActivitySkipShort": "Skip"
 }

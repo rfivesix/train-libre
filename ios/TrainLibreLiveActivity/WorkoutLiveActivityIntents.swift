@@ -101,7 +101,6 @@ import Foundation
         metricSeparator: old.metricSeparator,
         compactPrimary: old.compactPrimary,
         compactSecondary: old.compactSecondary,
-        minimalText: old.minimalText,
         canCompleteSet: old.canCompleteSet
       )
 
@@ -143,7 +142,6 @@ import Foundation
         metricSeparator: old.metricSeparator,
         compactPrimary: old.compactPrimary,
         compactSecondary: old.compactSecondary,
-        minimalText: old.minimalText,
         canCompleteSet: old.canCompleteSet
       )
 

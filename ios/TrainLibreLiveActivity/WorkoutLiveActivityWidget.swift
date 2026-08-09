@@ -100,9 +100,12 @@ import WidgetKit
         if context.state.badge.text.isEmpty {
           icon
         } else {
+          // As tall as the compact zone allows — it is the only thing there.
           Text(context.state.badge.text)
-            .font(.system(size: 12, weight: .bold))
+            .font(.system(size: 18, weight: .heavy))
             .foregroundStyle(Color(hexString: context.state.badge.colorHex))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
         }
       case .noSetsLeft, .empty:
         icon
@@ -130,18 +133,10 @@ import WidgetKit
           icon
         }
       case .setPending:
-        // With two Live Activities on screen ours is reduced to this circle,
-        // and it is then the only place the set is visible at all — so the
-        // numbers win over the app icon whenever we have them.
-        if context.state.minimalText.isEmpty {
-          icon
-        } else {
-          Text(context.state.minimalText)
-            .font(.system(size: 9, weight: .bold))
-            .foregroundStyle(.white)
-            .lineLimit(1)
-            .minimumScaleFactor(0.6)
-        }
+        // Identical to the compact trailing zone. With a second Live Activity
+        // on screen this is the only place the set appears at all, so it shows
+        // the same two lines rather than a shortened variant.
+        LACompactTrailing(state: context.state)
       case .noSetsLeft, .empty:
         icon
       }

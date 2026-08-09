@@ -256,6 +256,8 @@ import WidgetKit
             Text(attributes.labelSkip)
               .font(.system(size: 12.5, weight: .bold))
               .foregroundStyle(LATheme.onAccent)
+              .lineLimit(1)
+              .minimumScaleFactor(0.7)
               .frame(width: 58, height: LATheme.controlHeight)
               .background(
                 LATheme.accent,

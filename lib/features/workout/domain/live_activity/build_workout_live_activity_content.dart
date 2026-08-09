@@ -65,7 +65,7 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
         : WorkoutLiveActivityPhase.setPending,
     restEndsAt: restEndsAt,
     restStartedAt: restStartedAt,
-    exerciseName: next.exerciseName,
+    exerciseName: next.localizedName(_languageCode(localeName)),
     setPosition:
         strings.setPosition(next.indexInExercise, next.totalInExercise),
     // Cardio sends no badge — the metrics line starts at the leading edge and
@@ -78,10 +78,13 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
     metricSeparator: metrics.separator,
     compactPrimary: metrics.compactPrimary,
     compactSecondary: metrics.compactSecondary,
-    minimalText: metrics.minimal,
     canCompleteSet: metrics.complete,
   );
 }
+
+/// `localeName` arrives as a full language tag such as `de-DE`.
+String _languageCode(String localeName) =>
+    localeName.split(RegExp('[-_]')).first;
 
 /// Shown in place of a value that simply is not known yet. Never a guess.
 const String _unknownValue = '–';
@@ -93,7 +96,6 @@ class _MetricLine {
   final String separator;
   final String compactPrimary;
   final String compactSecondary;
-  final String minimal;
 
   /// Whether the set can be completed from the Live Activity with the values
   /// shown. False as soon as one of the required numbers is missing.
@@ -106,7 +108,6 @@ class _MetricLine {
     required this.separator,
     required this.compactPrimary,
     required this.compactSecondary,
-    required this.minimal,
     required this.complete,
   });
 }
@@ -117,17 +118,20 @@ _MetricLine _strengthMetrics(
   WorkoutLiveActivityStrings strings,
   String localeName,
 ) {
-  final plannedWeight = next.template?.targetWeight ?? next.log.weightKg;
-  final weightText = plannedWeight == null
+  // What the user has typed always wins over what the routine planned. The
+  // other way round meant a set logged as 24 kg kept showing the template's
+  // 10 kg, and the checkmark then wrote the template value back over it.
+  final weight = next.log.weightKg ?? next.template?.targetWeight;
+  final weightText = weight == null
       ? ''
-      : '${_formatDecimal(unitService.convertDisplayValue(plannedWeight, UnitDimension.weight), localeName)} ${strings.weightUnit}';
+      : '${_formatDecimal(unitService.convertDisplayValue(weight, UnitDimension.weight), localeName)} ${strings.weightUnit}';
 
-  final repsRaw = next.template?.targetReps ?? next.log.reps?.toString();
+  final repsRaw = next.log.reps?.toString() ?? next.template?.targetReps;
   final repsText = (repsRaw == null || repsRaw.isEmpty)
       ? ''
       : '$repsRaw ${strings.repsShort}';
 
-  final rir = next.template?.targetRir ?? next.log.rir;
+  final rir = next.log.rir ?? next.template?.targetRir;
   final rirText = rir == null ? '' : '(${strings.rirLabel} $rir)';
 
   // Both numbers are required to tick the set off. A missing one shows as a
@@ -142,9 +146,6 @@ _MetricLine _strengthMetrics(
     separator: '×',
     compactPrimary: weightText.isEmpty ? _unknownValue : weightText,
     compactSecondary: '× ${repsRaw ?? _unknownValue}',
-    minimal: hasBoth
-        ? '${_formatDecimal(unitService.convertDisplayValue(plannedWeight!, UnitDimension.weight), localeName)}×$repsRaw'
-        : '',
     complete: hasBoth,
   );
 }
@@ -185,7 +186,6 @@ _MetricLine _cardioMetrics(
         ? (distanceText.isEmpty ? _unknownValue : distanceText)
         : durationText,
     compactSecondary: durationText.isEmpty ? '' : distanceText,
-    minimal: durationText.isNotEmpty ? durationText : distanceText,
     complete: hasAny,
   );
 }
@@ -237,8 +237,12 @@ class _NextSet {
     required this.totalInExercise,
   });
 
-  String get exerciseName =>
-      log.exerciseName.isNotEmpty ? log.exerciseName : exercise.exercise.nameEn;
+  /// `SetLog.exerciseName` always stores the English name, so it can never be
+  /// used for display — the catalog entry is localized instead.
+  String localizedName(String languageCode) {
+    final name = exercise.exercise.localizedNameFor(languageCode);
+    return name.isNotEmpty ? name : log.exerciseName;
+  }
 
   String get setType => log.setType;
 }

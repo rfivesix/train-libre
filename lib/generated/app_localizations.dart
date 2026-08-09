@@ -10152,6 +10152,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'mi'**
   String get unit_miles;
+
+  /// No description provided for @liveActivitySkipShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get liveActivitySkipShort;
 }
 
 class _AppLocalizationsDelegate

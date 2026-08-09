@@ -295,6 +295,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
 
     navigator.popUntil((route) => identical(route, existing));
+    // Coming back from the Dynamic Island should land on the set that is up
+    // next, not wherever the list happened to be left.
+    LiveWorkoutScreen.onDeepLinkReturn?.call();
     return true;
   }
 
