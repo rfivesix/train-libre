@@ -9,7 +9,7 @@ import '../../domain/live_activity/workout_live_activity_content.dart';
 ///
 /// Deliberately no plugin dependency: the payload is specific to this feature,
 /// and an offline-first app should not take on a package for ~100 lines of
-/// Swift (spec §5).
+/// Swift.
 class WorkoutLiveActivityService {
   static const MethodChannel _channel =
       MethodChannel('trainlibre.workout/live_activity');
@@ -54,7 +54,7 @@ class WorkoutLiveActivityService {
   ///
   /// Native rather than through `LocalNotificationService` so the Live
   /// Activity's App Intents can move it when the pause is extended or skipped
-  /// while the app is suspended — see §7a of the feature spec.
+  /// while the app is suspended.
   Future<void> scheduleRestSound({
     required DateTime endsAt,
     required String title,

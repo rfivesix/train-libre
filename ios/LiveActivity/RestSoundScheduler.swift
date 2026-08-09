@@ -12,7 +12,7 @@ import UserNotifications
 ///
 /// The sound is the point of this notification. A banner-less delivery
 /// (`interruptionLevel: .passive`) plays no sound at all, so on the lock screen
-/// the banner comes along with it — that is unavoidable, see §7a of the spec.
+/// the banner comes along with it — that is unavoidable.
 public enum RestSoundScheduler {
   public static let requestIdentifier = "trainlibre.rest_timer_done"
 

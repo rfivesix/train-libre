@@ -1,293 +1,164 @@
-# Live Activity: Workout (iOS)
+# Workout Live Activity
 
-Status: implementiert, Xcode-Target eingerichtet, Gerätetest offen
-Plattform: iOS 16.2+ · Dynamic Island: iPhone 14 Pro und neuer · interaktive Buttons: iOS 17+
-Android: nicht Teil dieser Version
+The **Workout Live Activity** puts the current workout on the Lock Screen and in the Dynamic
+Island for as long as a session is running. It answers one question at a glance — *what am I
+lifting next, and how much rest is left* — so the phone can stay in a pocket, on a bench, or on
+a music screen without the workout disappearing from view.
 
----
+Available on iOS 16.2 and newer. The Dynamic Island presentations require an iPhone 14 Pro or
+newer; every device gets the Lock Screen card. Interactive buttons require iOS 17.
 
-## 1. Ziel
-
-Während eines laufenden Workouts sieht der Nutzer außerhalb der App, **was als Nächstes ansteht**
-und **wie lange die Satzpause noch läuft** — ohne die App zu öffnen und ohne das Gerät zu
-entsperren.
-
-Leitsatz für jede Design-Entscheidung: *Ein Blick, keine Interpretation.*
-
-### Out of Scope (v1)
-
-- Android
-- Bearbeiten von Gewicht/Wdh/Distanz direkt aus der Live Activity
-- Push-Updates über APNs — widerspricht der Offline-first-Ausrichtung; alle Updates sind lokal
+> Like everything else in Train Libre, this runs entirely on the device. Live Activities are
+> commonly driven by remote push notifications; this one never is. There is no server, no APNs
+> certificate and no network round-trip — the app updates the card directly, and the system
+> animates the timers on its own.
 
 ---
 
-## 2. Zustände
+## What it shows
 
-| ID | Zustand | Bedingung |
-|---|---|---|
-| **S1** | Satz ausstehend | Kein Pausentimer aktiv, ein nächster Satz existiert |
-| **S2** | Pause läuft | Pausentimer aktiv, `jetzt < pauseEndetUm` |
-| **S3** | Pause überfällig | `jetzt >= pauseEndetUm`, Satz noch nicht getrackt |
-| **S4** | Keine Sätze mehr | Alle geplanten Sätze aller Übungen sind getrackt |
-| **S5** | Leer | Workout läuft, aber es gibt keine Übung |
-
-**S2 und S3 teilen sich ein Layout.** Das ist die zentrale Lehre aus der Umsetzung: eine Live
-Activity kann ohne Push nur *Text innerhalb von System-Zeitviews* selbst aktualisieren, niemals
-ihre Struktur. Zwei getrennte Layouts brauchen zwingend einen Re-Render, und dessen Zeitpunkt
-bestimmt iOS — beobachtet wurden ein bis zwei Minuten Verzug. Deshalb:
-
-- Die Karte sieht in S2 und S3 identisch aus. Der Timer läuft mit `Text(_, style: .timer)` bis
-  zum Pausenende runter und **danach weiter hoch**; das Häkchen ist durchgehend verfügbar.
-- Dart lässt die Phase auf `resting` und behält `restEndsAt` auch nach Ablauf. Nur so kann die
-  Swift-Seite überhaupt zwischen „läuft" und „überzogen" unterscheiden.
-- Sekundengenau reagiert allein `LARestProgress`: zwei `ProgressView(timerInterval:)`, vom System
-  animiert. Die obere Leiste ist exakt bei 0:00 voll, die untere läuft danach rot durch.
-- Die rote **Farbe** der Zahl hängt weiterhin an einem Re-Render und kommt verspätet. Das ist
-  hinnehmbar, weil sie nur bestätigt, was die Ziffern und die Leisten schon zeigen.
-
----
-
-## 3. Flächen
-
-### 3.1 Lockscreen / Banner
+The card always carries the same four pieces of information:
 
 ```
-[App-Icon] Push Day                                    17:06
-
-Bankdrücken                                    Satz 3 von 5
-W  72,5 kg  ×  8 Wdh  (RIR 2)                           [✓]
+[icon]  Push Day                                          17:06
+        Bench Press                                 Set 3 of 5
+        W  72.5 kg  ×  8 reps  (RIR 2)                     [✓]
 ```
 
-**Der Satztyp führt die Kennzahlenzeile an**, direkt vor dem Gewicht — nicht als eigene Spalte.
-So beginnt der Übungsname an der linken Kante und behält die volle Breite, und der Typ steht bei
-dem Wert, den er qualifiziert.
+- **Header** — routine name and the elapsed workout duration, counting up on its own.
+- **Exercise and position** — which exercise, and where in it you are.
+- **The set** — set type, weight, reps and RIR, led by a coloured set-type badge.
+- **The checkmark** — completes the set with the values shown.
 
-Zeichen **und** Farbe kommen 1:1 aus `SetTypeChip`: Warmup `W`/`#FF9800`, Failure `F`/`#E5253A`,
-Dropset `D`/`#2196F3`, Superset `S` und Other `O` neutral `#8E8E93`. **Normale Sätze tragen die
-Satznummer**, keinen Buchstaben — so ist das Badge immer sichtbar und trägt immer Information.
+The **set-type badge** uses the same letters and colours as the app's own set rows: `W` warm-up
+in orange, `F` failure in red, `D` drop set in blue, `S` superset and `O` other in neutral grey.
+Normal working sets show `N` — the position is already spelled out as "Set 3 of 5" beside it, so
+repeating the number would add nothing.
 
-**S2 und S3** ergänzen darunter zwei Fortschritts-Haarlinien und `−15s · 2:20 · +15s · Skip`.
-Die Kennzahlenzeile wird **nicht** ausgegraut und das Häkchen bleibt sichtbar — sonst müsste beim
-Ablauf das Layout wechseln, und genau das geht nicht rechtzeitig (§2). Überzogen wird die Zahl
-`#FF6B78`, aufgehellt aus `brandRedColor`; diese Umfärbung kommt verspätet.
+While a rest timer runs, a control row appears beneath the set:
 
-Fehlen Gewicht oder Wiederholungen, steht dort `–` statt einer geratenen Zahl, und das Häkchen ist
-grau und kein Button — der Tap fällt auf die `widgetURL` durch und öffnet die App.
+```
+        [ −15s ]        1:07        [ +15s ]        [ Skip ]
+```
 
-**S4** zeigt nur die Kopfzeile plus `Übung hinzufügen`, **S5** plus `App öffnen`.
+When there are no sets left the card offers **Add exercise**; if a workout is running with no
+exercises at all, it offers **Open app**. The workout is never finished from the card — that
+stays a deliberate action inside the app.
 
-### 3.2 Dynamic Island — Expanded
+### Cardio
 
-Inhaltsgleich, enger. Kürzungsreihenfolge: RIR → Satztyp → „von y" → Titel.
+Cardio sets use the same card with different numbers: duration, distance and RPE instead of
+weight, reps and RIR, separated by `·` instead of `×`, and without a set-type badge.
 
-### 3.3 Compact
+```
+        Treadmill                                   Set 1 of 1
+        20:00  ·  5.00 km  (RPE 7)                         [✓]
+```
 
-| Zustand | Leading | Trailing |
-|---|---|---|
-| S1 | Satztyp (Cardio: App-Icon) | `72,5 kg` / `× 8` |
-| S2 | `2:20` runterzählend | `72,5 kg` / `× 8` |
-| S3 | `0:47` hochzählend, `#FF6B78` | `72,5 kg` / `× 8` |
-| S4 / S5 | App-Icon | `+` / — |
-
-Der Satztyp verliert seinen Platz, sobald ein Timer läuft — der Timer ist dort wichtiger.
-
-### 3.4 Minimal
-
-Ein Kreis, genau **ein** Element: die laufende Zeit während der Pause, sonst der kürzestmögliche
-Satz (`115×9`, ohne Einheiten) und andernfalls das App-Icon. Laufen zwei Live Activities, bekommen
-**beide** ihren Minimal-Kreis — dann ist das hier die einzige Stelle, an der der Satz überhaupt
-sichtbar ist, weshalb die Zahlen dort Vorrang vor dem Logo haben.
+Routines currently store no target duration or distance for cardio, so a cardio set shows values
+only once they have been entered. Until then the line reads `–` and the set cannot be completed
+from the card.
 
 ---
 
-## 4. Cardio
+## The four surfaces
 
-Dieselben Zustände, dieselben Slots — nur andere Inhalte:
-
-| Übungsart | Kennzahlenzeile | Trenner |
-|---|---|---|
-| Kraft | `72,5 kg × 8 Wdh (RIR 2)` | `×` |
-| Cardio | `20:00 · 5,00 km (RPE 7)` | `·` |
-
-Cardio sendet **kein Badge** — die Zeile beginnt an der linken Kante, Compact Leading zeigt das
-App-Icon. „Intensität" ist das bestehende `SetLog.rpe`.
-
-**Bekannte Lücke:** `SetTemplate` kennt nur `targetReps`, `targetWeight` und `targetRir` — es gibt
-im Datenmodell **keine geplante Dauer und keine geplante Distanz**. Ein frischer Cardio-Satz kann
-daher keine Zielwerte anzeigen; die Zeile füllt sich aus bereits eingetragenen Ist-Werten und
-bleibt sonst leer. Sobald Templates Ziel-Dauer und -Distanz bekommen, ändert sich nur
-`_cardioMetrics` in `build_workout_live_activity_content.dart`.
-
----
-
-## 5. Architektur
-
-### Datenfluss
-
-```
-LiveWorkoutViewModel
-  └─ buildWorkoutLiveActivityContent()   ← rein, testbar, formatiert alles fertig
-       └─ WorkoutLiveActivityService     ← MethodChannel, verwirft No-op-Pushes
-            └─ WorkoutLiveActivityBridge (Swift)
-                 └─ ActivityKit
-```
-
-Zwei Regeln, die das Ganze tragen:
-
-1. **Alles vorformatiert aus Dart.** `72,5 kg`, `8 Wdh`, `RIR 2`, Satztyp-Farbe als `#RRGGBB`.
-   Die Swift-Seite formatiert keine Zahl, keine Einheit und kein lokalisiertes Wort — DE/EN,
-   kg/lbs, km/mi und Zahlenformate sind damit erledigt.
-2. **Zeiten als `Date`, nie als Sekundenzahl.** SwiftUI zählt selbst hoch und runter; kein Feld
-   im ContentState ändert sich sekündlich, deshalb kommt die Aktivität mit einem Push pro
-   Satzwechsel aus.
-
-### Buttons
-
-App Intents laufen in einem anderen Prozess und haben keinen Zugriff auf die drift-Datenbank.
-Deshalb zwei Klassen:
-
-- **`−15s` / `+15s` / `Skip`** berühren nur Timer-Zustand. Sie aktualisieren die Aktivität direkt,
-  spiegeln das Pausenende in die App Group und legen ein Kommando in die Warteschlange.
-- **Das Häkchen** ist ein Datenbank-Schreibvorgang. Es legt ein Kommando ab und öffnet die App
-  (`openAppWhenRun`), die es anwendet und den nächsten Satz neu bestimmt.
-
-`applyPendingLiveActivityCommands()` arbeitet die Warteschlange beim Zurückkehren in den
-Vordergrund ab. Danach ist die App wieder alleinige Quelle der Wahrheit.
-
----
-
-## 6. Dateien
-
-| Pfad | Rolle |
+| Surface | What it shows |
 |---|---|
-| `ios/LiveActivity/WorkoutActivityAttributes.swift` | Geteiltes Modell, **beide** Targets |
-| `ios/LiveActivity/WorkoutLiveActivityBridge.swift` | MethodChannel, nur Runner |
-| `ios/LiveActivity/RestSoundScheduler.swift` | Nativer Pausenton, **beide** Targets |
-| `ios/TrainLibreLiveActivity/WorkoutLiveActivityWidget.swift` | WidgetBundle, alle vier Flächen |
-| `ios/TrainLibreLiveActivity/WorkoutLiveActivityViews.swift` | Lockscreen + Expanded + Compact |
-| `ios/TrainLibreLiveActivity/WorkoutLiveActivityIntents.swift` | App Intents, Kommando-Warteschlange |
-| `ios/TrainLibreLiveActivity/WorkoutLiveActivityTheme.swift` | Design-Tokens |
-| `lib/features/workout/domain/live_activity/` | Modell, Strings, Builder |
-| `lib/features/workout/data/live_activity/` | MethodChannel-Service |
-| `test/features/workout/live_activity_content_test.dart` | Zustände, Badges, Cardio |
+| **Lock Screen / banner** | The full card described above |
+| **Dynamic Island, expanded** | The same content, laid out for the narrower island |
+| **Dynamic Island, compact** | Rest timer on the left, `72.5 kg / × 8` on the right |
+| **Dynamic Island, minimal** | One element: the rest timer, or `115×9`, or the app icon |
+
+Which of the compact and minimal forms you see is decided by iOS, not by the app. When a second
+Live Activity is on screen — a music player, a timer — both are reduced to their minimal circle.
+Because that circle is then the only place the set appears at all, it shows the numbers rather
+than the app icon.
 
 ---
 
-## 7. Xcode-Einrichtung (erledigt, hier zur Nachvollziehbarkeit)
+## Interactions
 
-Das Extension-Target `TrainLibreLiveActivity` steht. Beim Anlegen zu beachten war:
+| Element | Effect |
+|---|---|
+| Tapping the card | Opens the running workout. Never stacks a second copy of the screen. |
+| `−15s` / `+15s` | Extends or shortens the running pause |
+| `Skip` | Ends the pause immediately |
+| `✓` | Completes the set with the values shown and starts the next pause |
+| **Add exercise** | Opens the exercise picker |
 
-1. **Apple Developer Portal:** App Group `group.com.rfivesix.trainlibre` anlegen und dem App-ID
-   `com.rfivesix.trainlibre` sowie dem neuen Extension-Bundle
-   `com.rfivesix.trainlibre.LiveActivity` zuweisen.
-2. **Xcode → File → New → Target → Widget Extension**, Name `TrainLibreLiveActivity`,
-   „Include Live Activity" an, „Include Configuration Intent" aus.
-   Die von Xcode erzeugten Platzhalterdateien löschen.
-3. Die Dateien aus `ios/TrainLibreLiveActivity/` zum neuen Target hinzufügen, inklusive
-   `Assets.xcassets`. Xcodes generierte `Info.plist` durch die vorhandene ersetzen.
-4. `ios/LiveActivity/WorkoutActivityAttributes.swift` und `RestSoundScheduler.swift`
-   **beiden** Targets zuweisen
-   (Target Membership: Runner **und** TrainLibreLiveActivity).
-   `WorkoutLiveActivityBridge.swift` nur dem Runner.
-5. Signing & Capabilities → App Groups für beide Targets aktivieren, jeweils
-   `group.com.rfivesix.trainlibre`. Die Entitlement-Dateien liegen bereits vor.
-6. Deployment Target der Extension auf iOS 16.2.
-7. Fastlane: das neue Provisioning-Profil in die Match-/Signing-Konfiguration aufnehmen.
+The buttons work while the app is closed. They run in the widget's own process, which has no
+access to the app's database — so a completed set is recorded as a pending command in the shared
+App Group and applied by the app the next time it runs. Because of that, the checkmark also
+brings the app to the foreground; the timer buttons do not need to.
 
-`NSSupportsLiveActivities` in `ios/Runner/Info.plist` und die App Group in beiden Entitlements
-sind bereits gesetzt.
+**A set with missing values cannot be completed from the card.** If weight or reps are unknown,
+the checkmark is grey and inert, and tapping it opens the app instead. Missing numbers are shown
+as `–`; nothing is ever filled in from the plan or guessed.
 
 ---
 
-## 7a. Pausenton neben der Live Activity (umgesetzt)
+## The rest timer
 
-### Das Problem
+The rest countdown is the part of the card people look at most, and the part with the most
+subtlety behind it.
 
-Der Pausentimer meldet sich heute über zwei Wege, die sich mit der Live Activity überschneiden:
+**It never stops.** The number counts down to zero and then keeps counting *up*, so an overdue
+pause shows how long it has been overdue rather than sitting frozen at `0:00`.
 
-| Situation | heute | Ton? | Banner? |
-|---|---|---|---|
-| App im Vordergrund | Haptik + Sound + `showRestTimerDoneNotification(foreground: true)` | ja | ja, überflüssig |
-| App suspendiert | vorab geplante `scheduleRestTimerDoneNotification` | ja | ja, doppelt zur Live Activity |
+**The field turns red the moment the pause ends** — not a second later. This matters more than it
+sounds: a Live Activity cannot change its own layout, text or colour while the app is asleep.
+Only a handful of system-drawn views update on their own, and the red backdrop is built from one
+of them, so it flips exactly on time without the app being woken at all.
 
-Der **Ton ist der eigentliche Zweck** — mit Kopfhörern im Ohr ist er das Einzige, was ankommt.
-Das Banner ist der redundante Teil.
-
-### Die harte Randbedingung
-
-Ist die App suspendiert, läuft der Dart-`Timer.periodic` nicht. Der Ton kann dann **ausschließlich**
-aus der vorab geplanten lokalen Notification kommen. Eine Notification ohne Banner
-(`interruptionLevel: .passive`) spielt keinen Ton — beides zusammen geht nicht. Das Banner im
-Hintergrund ist also der Preis für den Ton und bleibt.
-
-### Vorgeschlagene Umsetzung
-
-**Schritt 1 — Vordergrund entdoppeln — erledigt**
-`_startRestTimer` ruft im Ablauf-Callback `showRestTimerDoneNotification(foreground: true)` auf.
-Läuft eine Live Activity, ist das Banner überflüssig: die Karte zeigt den Zustand bereits.
-Haptik und Sound bleiben, die Notification entfällt. Bedingung ist `_liveActivityRunning`, das im
-View Model schon existiert.
-
-**Schritt 2 — den Desync beheben — erledigt**
-`AdjustRestIntent` und `SkipRestIntent` verschieben das Pausenende in der App Group, während die
-App suspendiert ist. Die **geplante Notification bleibt dabei auf der alten Uhrzeit stehen** —
-nach `+15s` aus der Island piept es 15 Sekunden zu früh, nach `Skip` piept es überhaupt noch.
-Das ist ein echter Fehler, kein Schönheitsproblem.
-
-Lösung: die Pausenton-Notification nativ planen statt über `flutter_local_notifications`, damit
-sowohl die App als auch die App Intents sie umplanen können.
-
-- Neue Swift-Seite in `WorkoutLiveActivityBridge`: `scheduleRestSound(at:)` / `cancelRestSound()`
-  über `UNUserNotificationCenter` mit fester Identifier-Konstante.
-- `AdjustRestIntent` und `SkipRestIntent` rufen dieselben Funktionen direkt auf.
-- Dart ruft sie über den bestehenden MethodChannel statt `LocalNotificationService`, **solange
-  eine Live Activity läuft**. Ohne Live Activity bleibt alles beim Alten — der bestehende Pfad
-  ist auf Android ohnehin der einzige.
-
-**Schritt 3 — offen, optional, iOS 17+**
-`Activity.update(_:alertConfiguration:)` löst Ton und Haptik auf iPhone *und* Apple Watch aus und
-hebt die Live Activity kurz hervor. Das ist der von Apple dafür vorgesehene Weg, greift aber nur,
-wenn die App im Moment des Ablaufs läuft — also als Zusatz im Vordergrund, nicht als Ersatz für
-Schritt 2.
-
-### Entschieden
-
-- Die `haptics_enabled`-Einstellung wird auf dem nativen Pfad **nicht** ausgewertet; der Ton
-  kommt immer. Die Einstellung greift weiterhin auf dem bestehenden Flutter-Pfad.
-- Die native Planung ist **iOS-spezifisch**. Läuft keine Live Activity — und auf Android immer —
-  bleibt alles bei `LocalNotificationService`. Der Umschalter ist
-  `LiveWorkoutViewModel._usesNativeRestSound`.
+**The sound is what actually reaches you** when the phone is in a pocket and music is playing.
+It is scheduled ahead of time and moves along when the pause is changed from the card, so `+15s`
+really does mean fifteen seconds more. While the card is visible, the app does not additionally
+post a banner — the card already says it.
 
 ---
 
-## 8. Offene Fragen
+## Behaviour worth knowing
 
-1. **Pausentimer bei Cardio** — laufen S2/S3 dort überhaupt, oder ist Cardio immer S1?
-2. **Kürzel für Superset und Other** — `S` und `O` sind gesetzt, aber `SetTypeChip` kennt sie
-   noch nicht. Sobald die App sie definiert, hier nachziehen.
-3. **Geplante Cardio-Werte** — `SetTemplate` hat keine Ziel-Dauer und keine Ziel-Distanz. Bis das
-   existiert, kann ein frischer Cardio-Satz nicht aus der Live Activity abgehakt werden.
+- The Live Activity ends when the workout is finished or discarded. A workout left over from a
+  crash or force quit is cleaned up when the next one starts.
+- iOS ends Live Activities after about eight hours and removes them from the Lock Screen after
+  twelve. A very long session will lose the card before the workout ends.
+- If Live Activities are switched off in Settings, the workout is unaffected; the card simply
+  never appears.
+- Editing the workout in the app — adding, removing or reordering sets and exercises — is
+  reflected on the card immediately.
+- Text is fully localized (DE, EN, FR, IT, JA) and follows the chosen unit system, including
+  lbs and miles.
 
 ---
 
-## 9. Testmatrix
+## How it fits together
 
-- [x] Fünf Zustände, Badge-Logik, Cardio-Varianten und `canCompleteSet` (Unit-Tests)
-- [ ] Fortschrittsbalken: füllt sich exakt bis 0:00, danach läuft die rote Leiste — der einzige
-      sekundengenaue Indikator, weil das System ihn selbst animiert
-- [ ] Häkchen grau und nicht drückbar, wenn Gewicht oder Wdh fehlen; Tap öffnet die App
-- [ ] Deep Link stapelt den Live-Workout-Screen nicht mehr
-- [ ] `+15s` / `Skip` aus der Island verschieben den Pausenton mit (App suspendiert)
-- [ ] Alle fünf Zustände × vier Flächen visuell auf dem Gerät
-- [ ] Nicht-Pro-Gerät (keine Dynamic Island)
-- [ ] Zweite Live Activity aktiv → Compact **und** Minimal
-- [ ] **S2 → S3 mit suspendierter App** — der kritische Fall, hängt an `staleDate`/`isStale`
-- [ ] App im Hintergrund / hart beendet / Gerät neu gestartet
-- [ ] Buttons: `−15s`, `+15s`, `Skip` bei suspendierter App, danach Abgleich in der App
-- [ ] Häkchen → App öffnet sich, Satz ist mit den geplanten Werten getrackt
-- [ ] Workout länger als 8 Stunden
-- [ ] Live Activities in den Systemeinstellungen deaktiviert
-- [ ] Zwei Workouts hintereinander ohne App-Neustart; Workout abgebrochen statt beendet
-- [ ] Lange Übungsnamen, vierstellige Gewichte, lbs statt kg
-- [ ] Dark Mode, DE und EN
+Everything the card displays is prepared in Dart and handed over ready to draw: numbers already
+formatted, units already converted, words already translated, badge colours already resolved. The
+Swift side formats nothing — it lays out strings it does not interpret. That keeps a single source
+of truth for how a set is written, shared with the rest of the app.
+
+Times are the exception, and deliberately so: they cross over as absolute dates rather than
+counters, which lets the system animate them without an update every second. A running workout
+needs roughly one update per set.
+
+| Path | Role |
+|---|---|
+| `lib/features/workout/domain/live_activity/` | Builds the card's content from the session |
+| `lib/features/workout/data/live_activity/` | Channel to the platform |
+| `ios/LiveActivity/` | Shared model, bridge, rest-sound scheduler |
+| `ios/TrainLibreLiveActivity/` | The widget extension: views, App Intents, theme |
+| `test/features/workout/live_activity_content_test.dart` | Content, badges, cardio, guard rails |
+
+---
+
+## Known limits
+
+- **Android is not covered.** Live Activities are an iOS feature; the equivalent there is a
+  foreground-service notification and has not been built.
+- **Cardio targets do not exist yet.** Routines store no planned duration or distance, so cardio
+  sets stay empty until values are entered.
+- **The numbers cannot be edited from the card.** Weight and reps are shown as planned; changing
+  them means opening the app.

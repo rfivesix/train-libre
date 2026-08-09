@@ -1,7 +1,7 @@
 /// Localized text and unit labels handed to the Live Activity.
 ///
 /// The iOS extension has no string catalog of its own, so every word it shows
-/// is formatted here and shipped across the channel (spec §7). This also keeps
+/// is formatted here and shipped across the channel. This also keeps
 /// the view model free of a `BuildContext`.
 class WorkoutLiveActivityStrings {
   /// „Satz 3 von 5" — receives the current index and the total.
@@ -29,7 +29,7 @@ class WorkoutLiveActivityStrings {
   final String overduePrefix;
 
   /// Title and body of the "rest is over" sound notification. Scheduled
-  /// natively while a Live Activity is running (§7a), so the text has to
+  /// natively while a Live Activity is running, so the text has to
   /// travel across the channel like everything else.
   final String restDoneTitle;
   final String restDoneBody;

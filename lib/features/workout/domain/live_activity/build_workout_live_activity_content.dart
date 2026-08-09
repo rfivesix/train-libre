@@ -51,7 +51,7 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
   // A rest that has already run out stays `resting` on purpose: iOS decides
   // between "counting down" and "overdue" by comparing `restEndsAt` to the
   // current time, so it needs the date even after it has passed. Dropping back
-  // to `setPending` here would erase the overdue state (spec §2, S3).
+  // to `setPending` here would erase the overdue state.
   final hasRest = restEndsAt != null;
 
   final isCardio = next.exercise.exercise.isCardio;

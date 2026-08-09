@@ -8,7 +8,7 @@ import Foundation
 /// MethodChannel between the Flutter app and ActivityKit.
 ///
 /// Everything arriving here is already formatted for display — the Swift side
-/// never formats a number, a unit or a localized word (§7 of the feature spec).
+/// never formats a number, a unit or a localized word.
 final class WorkoutLiveActivityBridge {
   static let channelName = "trainlibre.workout/live_activity"
 
@@ -37,7 +37,7 @@ final class WorkoutLiveActivityBridge {
   }
 
   /// Schedules the rest-over sound natively so the Live Activity's intents can
-  /// move it when the pause is extended or skipped (§7a).
+  /// move it when the pause is extended or skipped.
   private func scheduleRestSound(args: [String: Any]?, result: @escaping FlutterResult) {
     guard
       let args,

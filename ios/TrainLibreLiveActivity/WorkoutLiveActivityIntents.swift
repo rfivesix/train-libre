@@ -6,7 +6,7 @@ import Foundation
 
   /// Commands produced by Live Activity buttons while the Flutter app may be
   /// suspended or terminated. They are appended to the App Group queue and
-  /// applied by the app on its next run — see §6 of the feature spec.
+  /// applied by the app on its next run.
   ///
   /// Each entry is idempotent: the app drops a command whose `id` it has
   /// already applied.
@@ -158,7 +158,7 @@ import Foundation
   /// The checkmark. Completing a set is a database write, and this intent runs
   /// in a process that has no access to the drift database — so it records the
   /// intent and hands over to the app, which applies it and recomputes the
-  /// next set. See §6, Schnitt 1.
+  /// next set.
   @available(iOS 17.0, *)
   struct CompleteSetIntent: LiveActivityIntent {
     static var title: LocalizedStringResource = "Complete set"

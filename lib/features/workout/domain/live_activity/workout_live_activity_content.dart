@@ -3,7 +3,7 @@
 /// `restOverdue` is deliberately absent: it is derived on the iOS side from
 /// `staleDate` once the rest timer runs out, because the app is typically
 /// suspended at that moment and cannot push an update.
-/// See `documentation/features/live_activity_workout.md` §3.
+/// See `documentation/features/live_activity_workout.md`.
 enum WorkoutLiveActivityPhase {
   setPending,
   resting,
@@ -58,7 +58,7 @@ class WorkoutLiveActivityAttributes {
 ///
 /// Every string arrives pre-formatted. No field may change every second — if
 /// one does, it is modelled wrong and belongs in a `Date` instead, so SwiftUI
-/// can animate it without an update being pushed (spec §7).
+/// can animate it without an update being pushed.
 class WorkoutLiveActivityContent {
   final WorkoutLiveActivityPhase phase;
 
