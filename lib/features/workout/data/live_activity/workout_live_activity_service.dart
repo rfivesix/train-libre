@@ -50,6 +50,29 @@ class WorkoutLiveActivityService {
     await _invoke('update', content.toMap());
   }
 
+  /// Schedules the "rest is over" sound natively.
+  ///
+  /// Native rather than through `LocalNotificationService` so the Live
+  /// Activity's App Intents can move it when the pause is extended or skipped
+  /// while the app is suspended — see §7a of the feature spec.
+  Future<void> scheduleRestSound({
+    required DateTime endsAt,
+    required String title,
+    required String body,
+  }) async {
+    if (!isPlatformSupported) return;
+    await _invoke('scheduleRestSound', {
+      'endsAtEpochMs': endsAt.millisecondsSinceEpoch,
+      'title': title,
+      'body': body,
+    });
+  }
+
+  Future<void> cancelRestSound() async {
+    if (!isPlatformSupported) return;
+    await _invoke('cancelRestSound', null);
+  }
+
   Future<void> end() async {
     if (!isPlatformSupported) return;
     _lastContent = null;

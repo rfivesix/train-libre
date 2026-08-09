@@ -22,6 +22,8 @@ enum LATheme {
   static let rowSpacing: CGFloat = 7
 
   static let controlFill = Color.white.opacity(0.14)
+  /// Checkmark glyph when the set cannot be completed from here.
+  static let disabledTickForeground = Color.white.opacity(0.35)
   static let timerWellFill = Color.white.opacity(0.07)
   static let trackFill = Color.white.opacity(0.16)
 

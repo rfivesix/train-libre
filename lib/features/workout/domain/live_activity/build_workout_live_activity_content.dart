@@ -78,8 +78,13 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
     metricSeparator: metrics.separator,
     compactPrimary: metrics.compactPrimary,
     compactSecondary: metrics.compactSecondary,
+    minimalText: metrics.minimal,
+    canCompleteSet: metrics.complete,
   );
 }
+
+/// Shown in place of a value that simply is not known yet. Never a guess.
+const String _unknownValue = '–';
 
 class _MetricLine {
   final String primary;
@@ -88,6 +93,11 @@ class _MetricLine {
   final String separator;
   final String compactPrimary;
   final String compactSecondary;
+  final String minimal;
+
+  /// Whether the set can be completed from the Live Activity with the values
+  /// shown. False as soon as one of the required numbers is missing.
+  final bool complete;
 
   const _MetricLine({
     required this.primary,
@@ -96,6 +106,8 @@ class _MetricLine {
     required this.separator,
     required this.compactPrimary,
     required this.compactSecondary,
+    required this.minimal,
+    required this.complete,
   });
 }
 
@@ -118,14 +130,22 @@ _MetricLine _strengthMetrics(
   final rir = next.template?.targetRir ?? next.log.rir;
   final rirText = rir == null ? '' : '(${strings.rirLabel} $rir)';
 
+  // Both numbers are required to tick the set off. A missing one shows as a
+  // dash rather than being skipped, so the line keeps its shape and it is
+  // obvious what is missing instead of a value being invented.
+  final hasBoth = weightText.isNotEmpty && repsText.isNotEmpty;
+
   return _MetricLine(
-    primary: weightText.isEmpty ? repsText : weightText,
-    secondary: weightText.isEmpty ? '' : repsText,
+    primary: weightText.isEmpty ? _unknownValue : weightText,
+    secondary: repsText.isEmpty ? _unknownValue : repsText,
     tertiary: rirText,
     separator: '×',
-    compactPrimary: weightText.isEmpty ? repsText : weightText,
-    compactSecondary:
-        (weightText.isEmpty || repsRaw == null) ? '' : '× $repsRaw',
+    compactPrimary: weightText.isEmpty ? _unknownValue : weightText,
+    compactSecondary: '× ${repsRaw ?? _unknownValue}',
+    minimal: hasBoth
+        ? '${_formatDecimal(unitService.convertDisplayValue(plannedWeight!, UnitDimension.weight), localeName)}×$repsRaw'
+        : '',
+    complete: hasBoth,
   );
 }
 
@@ -150,13 +170,23 @@ _MetricLine _cardioMetrics(
   final rpe = next.log.rpe;
   final rpeText = rpe == null ? '' : '(${strings.rpeLabel} $rpe)';
 
+  // Cardio needs at least one of the two to be meaningful; there is no
+  // planned value to fall back on (see the note above).
+  final hasAny = durationText.isNotEmpty || distanceText.isNotEmpty;
+
   return _MetricLine(
-    primary: durationText.isEmpty ? distanceText : durationText,
+    primary: durationText.isEmpty
+        ? (distanceText.isEmpty ? _unknownValue : distanceText)
+        : durationText,
     secondary: durationText.isEmpty ? '' : distanceText,
     tertiary: rpeText,
     separator: '·',
-    compactPrimary: durationText.isEmpty ? distanceText : durationText,
+    compactPrimary: durationText.isEmpty
+        ? (distanceText.isEmpty ? _unknownValue : distanceText)
+        : durationText,
     compactSecondary: durationText.isEmpty ? '' : distanceText,
+    minimal: durationText.isNotEmpty ? durationText : distanceText,
+    complete: hasAny,
   );
 }
 

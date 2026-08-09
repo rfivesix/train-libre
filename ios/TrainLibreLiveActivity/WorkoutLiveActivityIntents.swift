@@ -100,10 +100,14 @@ import Foundation
         metricTertiary: old.metricTertiary,
         metricSeparator: old.metricSeparator,
         compactPrimary: old.compactPrimary,
-        compactSecondary: old.compactSecondary
+        compactSecondary: old.compactSecondary,
+        minimalText: old.minimalText,
+        canCompleteSet: old.canCompleteSet
       )
 
       LiveActivityCommandStore.writeRestEndsAt(newEnd)
+      // Without this the pre-scheduled sound stays on the old time.
+      RestSoundScheduler.schedule(at: newEnd)
       LiveActivityCommandStore.enqueue(
         "adjustRest",
         payload: ["deltaSeconds": deltaSeconds]
@@ -138,10 +142,13 @@ import Foundation
         metricTertiary: old.metricTertiary,
         metricSeparator: old.metricSeparator,
         compactPrimary: old.compactPrimary,
-        compactSecondary: old.compactSecondary
+        compactSecondary: old.compactSecondary,
+        minimalText: old.minimalText,
+        canCompleteSet: old.canCompleteSet
       )
 
       LiveActivityCommandStore.writeRestEndsAt(nil)
+      RestSoundScheduler.cancel()
       LiveActivityCommandStore.enqueue("skipRest")
       await LiveActivityUpdater.push(activity, next)
       return .result()
@@ -168,6 +175,8 @@ import Foundation
     }
 
     func perform() async throws -> some IntentResult {
+      // A new pause is started by the app once it applies the command.
+      RestSoundScheduler.cancel()
       LiveActivityCommandStore.enqueue(
         "completeSet",
         payload: ["workoutLogId": workoutLogId]

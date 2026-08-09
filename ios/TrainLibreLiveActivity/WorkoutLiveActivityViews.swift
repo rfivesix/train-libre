@@ -63,7 +63,6 @@ import WidgetKit
   @available(iOS 16.2, *)
   struct LAMetricsRow: View {
     let state: WorkoutActivityAttributes.ContentState
-    let dimmed: Bool
     let showTertiary: Bool
     /// With no timer running, the set is the only thing on the card — it gets
     /// the full weight of the exercise name. While resting, the timer row
@@ -72,12 +71,10 @@ import WidgetKit
 
     init(
       state: WorkoutActivityAttributes.ContentState,
-      dimmed: Bool = false,
       showTertiary: Bool = true,
       prominent: Bool = false
     ) {
       self.state = state
-      self.dimmed = dimmed
       self.showTertiary = showTertiary
       self.prominent = prominent
     }
@@ -117,7 +114,6 @@ import WidgetKit
       .font(metricFont)
       .lineLimit(1)
       .minimumScaleFactor(0.75)
-      .opacity(dimmed ? 0.45 : 1.0)
     }
   }
 
@@ -125,9 +121,13 @@ import WidgetKit
   @available(iOS 16.2, *)
   struct LATickButton: View {
     let attributes: WorkoutActivityAttributes
+    /// With weight or reps missing there is nothing to tick off. The button
+    /// goes grey and stops being a button — tapping it falls through to the
+    /// activity's widgetURL and opens the app, where the values can be typed.
+    let enabled: Bool
 
     var body: some View {
-      if #available(iOS 17.0, *) {
+      if enabled, #available(iOS 17.0, *) {
         Button(intent: CompleteSetIntent(workoutLogId: attributes.workoutLogId)) {
           tick
         }
@@ -140,9 +140,66 @@ import WidgetKit
     private var tick: some View {
       Image(systemName: "checkmark")
         .font(.system(size: 16, weight: .bold))
-        .foregroundStyle(LATheme.onAccent)
+        .foregroundStyle(enabled ? LATheme.onAccent : LATheme.disabledTickForeground)
         .frame(width: LATheme.tickSize, height: LATheme.tickSize)
-        .background(LATheme.accent, in: RoundedRectangle(cornerRadius: LATheme.controlRadius))
+        .background(
+          enabled ? LATheme.accent : LATheme.controlFill,
+          in: RoundedRectangle(cornerRadius: LATheme.controlRadius)
+        )
+    }
+  }
+
+  /// A fill that latches from nothing to red **exactly** at `deadline`.
+  ///
+  /// The trick is the one-second interval: a `ProgressView` sits at 0% before
+  /// its interval and stays pinned at 100% after it, and the system animates
+  /// it out of process. So this is not a gauge, it is a switch that flips at
+  /// the deadline and holds — even if the screen is first woken minutes later
+  /// it renders as fully filled straight away. No push, no re-render, no
+  /// dependency on iOS getting around to `staleDate`.
+  ///
+  /// `scaleEffect` rather than a forced frame on purpose: it is a draw-time
+  /// transform, so the progress view still lays out at its natural hairline
+  /// height. Forcing it into an odd layout size is what previously tripped the
+  /// layout assertion in `GeometryReaderLayout.placeSubviews`.
+  @available(iOS 16.2, *)
+  struct LAOverdueFill: View {
+    let deadline: Date
+
+    /// How long the flip takes. Short enough to read as a switch rather than a
+    /// sweep, long enough that the system still has a frame or two to animate
+    /// — a zero-length range would be an invalid `ClosedRange`.
+    private static let flipDuration: TimeInterval = 0.25
+
+    var body: some View {
+      ProgressView(
+        timerInterval: deadline...deadline.addingTimeInterval(Self.flipDuration),
+        countsDown: false
+      ) {
+        EmptyView()
+      } currentValueLabel: {
+        EmptyView()
+      }
+      .progressViewStyle(.linear)
+      .tint(LATheme.overdue)
+      .scaleEffect(x: 1, y: 24, anchor: .center)
+    }
+  }
+
+  /// Background for anything that should turn red once the pause is over.
+  @available(iOS 16.2, *)
+  struct LAOverdueBackground: View {
+    let deadline: Date?
+    var cornerRadius: CGFloat = LATheme.controlRadius
+
+    var body: some View {
+      ZStack {
+        LATheme.controlFill
+        if let deadline {
+          LAOverdueFill(deadline: deadline)
+        }
+      }
+      .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
     }
   }
 
@@ -153,12 +210,6 @@ import WidgetKit
     let state: WorkoutActivityAttributes.ContentState
 
     var body: some View {
-      // The hairline progress bar is deliberately gone for now. It was a
-      // `ProgressView(timerInterval:).progressViewStyle(.linear)` forced to a
-      // 3pt height — the linear style lays out through a GeometryReader, and
-      // the widget renderer was tripping a layout assertion inside
-      // `GeometryReaderLayout.placeSubviews` during the island expand
-      // animation. Nothing else in this tree uses a GeometryReader.
       VStack(spacing: 10) {
         HStack(spacing: 7) {
           Button(intent: AdjustRestIntent(deltaSeconds: -15)) {
@@ -179,16 +230,14 @@ import WidgetKit
             // 0:00 until the layout switch finally arrives.
             Text(end, style: .timer)
               .font(.system(size: 17, weight: .bold).monospacedDigit())
-              .foregroundStyle(LATheme.accent)
+              // White reads cleanly on both states of the field behind it —
+              // grey while the pause runs, red once it is over.
+              .foregroundStyle(.white)
               .multilineTextAlignment(.center)
               .lineLimit(1)
               .frame(maxWidth: .infinity)
               .frame(height: LATheme.controlHeight)
-              .background(
-                // Same fill as the -15s / +15s buttons beside it.
-                LATheme.controlFill,
-                in: RoundedRectangle(cornerRadius: LATheme.controlRadius)
-              )
+              .background(LAOverdueBackground(deadline: end))
           }
 
           Button(intent: AdjustRestIntent(deltaSeconds: 15)) {
@@ -220,27 +269,6 @@ import WidgetKit
   }
 
   @available(iOS 16.2, *)
-  struct LAOverdueLabel: View {
-    let attributes: WorkoutActivityAttributes
-    let since: Date
-
-    var body: some View {
-      HStack(spacing: 4) {
-        Text(attributes.labelOverdue)
-        // `.timer` style, NOT `Text(timerInterval: since...Date.distantFuture)`:
-        // an interval that long makes SwiftUI reserve width for a gigantic
-        // duration string, which pushes the whole row out of the container and
-        // trips a layout assertion in the widget renderer.
-        Text(since, style: .timer)
-          .lineLimit(1)
-      }
-      .font(.system(size: 12, weight: .semibold).monospacedDigit())
-      .foregroundStyle(LATheme.overdue)
-      .padding(.top, 6)
-    }
-  }
-
-  @available(iOS 16.2, *)
   struct LAWideButton: View {
     let title: String
     let filled: Bool
@@ -267,15 +295,6 @@ import WidgetKit
   struct LALockScreenView: View {
     let context: ActivityViewContext<WorkoutActivityAttributes>
 
-    private var isOverdue: Bool {
-      guard context.state.phase == .resting else { return false }
-      if context.isStale { return true }
-      if let end = context.state.restEndsAt {
-        return Date() >= end
-      }
-      return false
-    }
-
     var body: some View {
       VStack(alignment: .leading, spacing: 0) {
         LAHeader(attributes: context.attributes)
@@ -286,19 +305,17 @@ import WidgetKit
         case .empty:
           LAWideButton(title: context.attributes.labelOpenApp, filled: false, deepLink: context.attributes.deepLink)
         case .setPending:
-          setBody(dimmed: false, showTick: true, showTertiary: true, prominent: true)
+          setBody(showTertiary: true, prominent: true)
         case .resting:
-          if isOverdue {
-            setBody(dimmed: false, showTick: true, showTertiary: true, prominent: true)
-            if let end = context.state.restEndsAt {
-              LAOverdueLabel(attributes: context.attributes, since: end)
-            }
-          } else {
-            setBody(dimmed: false, showTick: false, showTertiary: true, prominent: false)
-            if #available(iOS 17.0, *) {
-              LARestControls(attributes: context.attributes, state: context.state)
-                .padding(.top, LATheme.rowSpacing)
-            }
+          // One layout for "counting down" and "overdue". They used to be two,
+          // and switching between them needs a re-render that only iOS can
+          // schedule — so the card sat frozen at 0:00 until it got around to
+          // it. Now nothing has to switch: the timer text runs down and then
+          // straight on up, and the checkmark is available the whole time.
+          setBody(showTertiary: true, prominent: true)
+          if #available(iOS 17.0, *) {
+            LARestControls(attributes: context.attributes, state: context.state)
+              .padding(.top, LATheme.rowSpacing)
           }
         }
       }
@@ -309,24 +326,19 @@ import WidgetKit
     }
 
     @ViewBuilder
-    private func setBody(
-      dimmed: Bool,
-      showTick: Bool,
-      showTertiary: Bool,
-      prominent: Bool
-    ) -> some View {
+    private func setBody(showTertiary: Bool, prominent: Bool) -> some View {
       LATitleRow(state: context.state)
       HStack(spacing: 8) {
         LAMetricsRow(
           state: context.state,
-          dimmed: dimmed,
           showTertiary: showTertiary,
           prominent: prominent
         )
         Spacer(minLength: 4)
-        if showTick {
-          LATickButton(attributes: context.attributes)
-        }
+        LATickButton(
+          attributes: context.attributes,
+          enabled: context.state.canCompleteSet
+        )
       }
       .padding(.top, LATheme.rowSpacing)
     }
@@ -337,15 +349,6 @@ import WidgetKit
   @available(iOS 16.2, *)
   struct LAExpandedBottomView: View {
     let context: ActivityViewContext<WorkoutActivityAttributes>
-
-    private var isOverdue: Bool {
-      guard context.state.phase == .resting else { return false }
-      if context.isStale { return true }
-      if let end = context.state.restEndsAt {
-        return Date() >= end
-      }
-      return false
-    }
 
     var body: some View {
       // No header here — it lives in the .leading/.trailing regions. Putting
@@ -358,43 +361,36 @@ import WidgetKit
         case .empty:
           LAWideButton(title: context.attributes.labelOpenApp, filled: false, deepLink: context.attributes.deepLink)
         case .setPending:
-          setBody(dimmed: false, showTick: true, showTertiary: true, prominent: true)
+          setBody(showTertiary: true, prominent: true)
         case .resting:
-          if isOverdue {
-            setBody(dimmed: false, showTick: true, showTertiary: true, prominent: true)
-            if let end = context.state.restEndsAt {
-              LAOverdueLabel(attributes: context.attributes, since: end)
-            }
-          } else {
-            setBody(dimmed: false, showTick: false, showTertiary: true, prominent: false)
-            if #available(iOS 17.0, *) {
-              LARestControls(attributes: context.attributes, state: context.state)
-                .padding(.top, LATheme.rowSpacing)
-            }
+          // One layout for "counting down" and "overdue". They used to be two,
+          // and switching between them needs a re-render that only iOS can
+          // schedule — so the card sat frozen at 0:00 until it got around to
+          // it. Now nothing has to switch: the timer text runs down and then
+          // straight on up, and the checkmark is available the whole time.
+          setBody(showTertiary: true, prominent: true)
+          if #available(iOS 17.0, *) {
+            LARestControls(attributes: context.attributes, state: context.state)
+              .padding(.top, LATheme.rowSpacing)
           }
         }
       }
     }
 
     @ViewBuilder
-    private func setBody(
-      dimmed: Bool,
-      showTick: Bool,
-      showTertiary: Bool,
-      prominent: Bool
-    ) -> some View {
+    private func setBody(showTertiary: Bool, prominent: Bool) -> some View {
       LATitleRow(state: context.state)
       HStack(spacing: 8) {
         LAMetricsRow(
           state: context.state,
-          dimmed: dimmed,
           showTertiary: showTertiary,
           prominent: prominent
         )
         Spacer(minLength: 4)
-        if showTick {
-          LATickButton(attributes: context.attributes)
-        }
+        LATickButton(
+          attributes: context.attributes,
+          enabled: context.state.canCompleteSet
+        )
       }
       .padding(.top, LATheme.rowSpacing)
     }

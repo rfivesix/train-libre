@@ -28,6 +28,12 @@ class WorkoutLiveActivityStrings {
   /// by SwiftUI and appended after this text.
   final String overduePrefix;
 
+  /// Title and body of the "rest is over" sound notification. Scheduled
+  /// natively while a Live Activity is running (§7a), so the text has to
+  /// travel across the channel like everything else.
+  final String restDoneTitle;
+  final String restDoneBody;
+
   const WorkoutLiveActivityStrings({
     required this.setPosition,
     required this.weightUnit,
@@ -39,5 +45,7 @@ class WorkoutLiveActivityStrings {
     required this.openApp,
     required this.skip,
     required this.overduePrefix,
+    required this.restDoneTitle,
+    required this.restDoneBody,
   });
 }

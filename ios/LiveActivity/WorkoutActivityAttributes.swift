@@ -80,6 +80,15 @@ public enum TrainLibreLiveActivity {
       public let compactPrimary: String
       public let compactSecondary: String
 
+      /// Shortest truthful form of the set for the minimal circle, e.g.
+      /// `115×9`. Empty means "show the icon instead".
+      public let minimalText: String
+
+      /// False when weight or reps (duration/distance for cardio) are missing.
+      /// The checkmark must never invent values, so it goes grey and only
+      /// opens the app.
+      public let canCompleteSet: Bool
+
       public init(
         phase: WorkoutActivityPhase,
         restEndsAt: Date?,
@@ -92,7 +101,9 @@ public enum TrainLibreLiveActivity {
         metricTertiary: String,
         metricSeparator: String,
         compactPrimary: String,
-        compactSecondary: String
+        compactSecondary: String,
+        minimalText: String,
+        canCompleteSet: Bool
       ) {
         self.phase = phase
         self.restEndsAt = restEndsAt
@@ -106,6 +117,8 @@ public enum TrainLibreLiveActivity {
         self.metricSeparator = metricSeparator
         self.compactPrimary = compactPrimary
         self.compactSecondary = compactSecondary
+        self.minimalText = minimalText
+        self.canCompleteSet = canCompleteSet
       }
     }
 

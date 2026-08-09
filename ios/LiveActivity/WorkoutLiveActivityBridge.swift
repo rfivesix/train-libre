@@ -26,9 +26,32 @@ final class WorkoutLiveActivityBridge {
       end(result: result)
     case "consumePendingCommands":
       result(consumePendingCommands())
+    case "scheduleRestSound":
+      scheduleRestSound(args: call.arguments as? [String: Any], result: result)
+    case "cancelRestSound":
+      RestSoundScheduler.cancel()
+      result(true)
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  /// Schedules the rest-over sound natively so the Live Activity's intents can
+  /// move it when the pause is extended or skipped (§7a).
+  private func scheduleRestSound(args: [String: Any]?, result: @escaping FlutterResult) {
+    guard
+      let args,
+      let endMs = args["endsAtEpochMs"] as? NSNumber
+    else {
+      result(false)
+      return
+    }
+    RestSoundScheduler.rememberTexts(
+      title: args["title"] as? String ?? "",
+      body: args["body"] as? String ?? ""
+    )
+    RestSoundScheduler.schedule(at: Date(timeIntervalSince1970: endMs.doubleValue / 1000))
+    result(true)
   }
 
   private func isSupported() -> Bool {
@@ -130,6 +153,7 @@ final class WorkoutLiveActivityBridge {
           self.currentActivityId = nil
           Self.defaults?.removeObject(forKey: TrainLibreLiveActivity.pendingCommandsKey)
           Self.defaults?.removeObject(forKey: TrainLibreLiveActivity.restEndsAtKey)
+          RestSoundScheduler.cancel()
           result(true)
         }
       }
@@ -225,7 +249,9 @@ final class WorkoutLiveActivityBridge {
         metricTertiary: args["metricTertiary"] as? String ?? "",
         metricSeparator: args["metricSeparator"] as? String ?? "×",
         compactPrimary: args["compactPrimary"] as? String ?? "",
-        compactSecondary: args["compactSecondary"] as? String ?? ""
+        compactSecondary: args["compactSecondary"] as? String ?? "",
+        minimalText: args["minimalText"] as? String ?? "",
+        canCompleteSet: args["canCompleteSet"] as? Bool ?? false
       )
     }
   #endif

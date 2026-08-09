@@ -184,6 +184,36 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     await _liveActivityService.end();
   }
 
+  /// Whether the rest sound is handled natively instead of through
+  /// [LocalNotificationService].
+  ///
+  /// Only while a Live Activity is up: its App Intents can move the pause
+  /// while the app is suspended, and only the native scheduler can be moved
+  /// with it. Without a Live Activity — and on Android — nothing changes.
+  bool get _usesNativeRestSound => _liveActivityRunning;
+
+  void _scheduleRestSound(DateTime endsAt) {
+    final strings = _liveActivityStrings;
+    if (_usesNativeRestSound && strings != null) {
+      unawaited(_liveActivityService.scheduleRestSound(
+        endsAt: endsAt,
+        title: strings.restDoneTitle,
+        body: strings.restDoneBody,
+      ));
+      return;
+    }
+    LocalNotificationService.instance.scheduleRestTimerDoneNotification(
+      secondsFromNow: endsAt.difference(DateTime.now()).inSeconds,
+    );
+  }
+
+  void _cancelRestSound() {
+    LocalNotificationService.instance.cancelRestTimerNotification();
+    if (_usesNativeRestSound) {
+      unawaited(_liveActivityService.cancelRestSound());
+    }
+  }
+
   /// Applies the commands that Live Activity buttons produced while the app
   /// was suspended or gone. Safe to call repeatedly — the queue is consumed.
   Future<void> applyPendingLiveActivityCommands() async {
@@ -207,6 +237,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Completes the next open set with its planned values — the checkmark in
   /// the Live Activity carries no input of its own.
+  ///
+  /// Refuses when a required value is missing. The Live Activity already greys
+  /// the checkmark out in that case, but a command could still arrive from a
+  /// queue written before the values were cleared, and inventing a weight or a
+  /// rep count would silently corrupt the log.
   Future<void> _completeNextPlannedSet() async {
     for (final exercise in _exercises) {
       for (final template in exercise.setTemplates) {
@@ -214,10 +249,19 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         if (templateId == null) continue;
         final log = _setLogs[templateId];
         if (log == null || log.isCompleted == true) continue;
+
+        final weight = template.targetWeight ?? log.weightKg;
+        final reps = int.tryParse(template.targetReps ?? '') ?? log.reps;
+        if (exercise.exercise.isCardio) {
+          if (log.durationSeconds == null && log.distanceKm == null) return;
+        } else if (weight == null || reps == null) {
+          return;
+        }
+
         await updateSet(
           templateId,
-          weight: template.targetWeight ?? log.weightKg,
-          reps: int.tryParse(template.targetReps ?? '') ?? log.reps,
+          weight: weight,
+          reps: reps,
           rir: template.targetRir ?? log.rir,
           isCompleted: true,
         );
@@ -566,6 +610,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
       if (pauseTime != null && pauseTime > 0 && !isLastSet) {
         _startRestTimer(pauseTime);
+      } else if (_targetRestEndTime != null) {
+        // The set that was just completed defines the pause — if it has none
+        // (or it was the exercise's last set), a pause still running from an
+        // earlier set is stale and must not keep counting. It used to survive,
+        // so ticking off a set of a pause-less exercise left the previous
+        // exercise's timer running.
+        cancelRest();
       }
     }
 
@@ -882,14 +933,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   void _startRestTimer(int seconds) {
     _restTimer?.cancel();
     _restDoneBannerTimer?.cancel();
-    LocalNotificationService.instance.cancelRestTimerNotification();
+    _cancelRestSound();
     _showRestDone = false;
     _remainingRestSeconds = seconds;
     _restStartedAt = DateTime.now();
     _targetRestEndTime = _restStartedAt!.add(Duration(seconds: seconds));
 
-    LocalNotificationService.instance
-        .scheduleRestTimerDoneNotification(secondsFromNow: seconds);
+    _scheduleRestSound(_targetRestEndTime!);
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_targetRestEndTime != null) {
@@ -909,8 +959,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
             try {
               unawaited(HapticFeedbackService.instance.vibrate());
               unawaited(SoundService.instance.playTimerDoneSound());
-              unawaited(LocalNotificationService.instance
-                  .showRestTimerDoneNotification(foreground: true));
+              // A banner on top of a visible Live Activity is pure noise —
+              // the card already says the pause is over. Sound and haptics,
+              // which are the actual point, still fire.
+              if (!_liveActivityRunning) {
+                unawaited(LocalNotificationService.instance
+                    .showRestTimerDoneNotification(foreground: true));
+              }
             } catch (_) {}
           }
 
@@ -933,7 +988,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   void cancelRest() {
     _restTimer?.cancel();
-    LocalNotificationService.instance.cancelRestTimerNotification();
+    _cancelRestSound();
     _remainingRestSeconds = 0;
     _targetRestEndTime = null;
     _restStartedAt = null;
@@ -950,7 +1005,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           _targetRestEndTime!.add(Duration(seconds: deltaSeconds));
     }
 
-    LocalNotificationService.instance.cancelRestTimerNotification();
+    _cancelRestSound();
 
     if (_remainingRestSeconds <= 0) {
       _remainingRestSeconds = 0;
@@ -965,10 +1020,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         _showRestDone = false;
         notifyListeners();
       });
-    } else {
-      LocalNotificationService.instance.scheduleRestTimerDoneNotification(
-        secondsFromNow: _remainingRestSeconds,
-      );
+    } else if (_targetRestEndTime != null) {
+      _scheduleRestSound(_targetRestEndTime!);
     }
     notifyListeners();
     unawaited(_syncLiveActivity());
@@ -998,7 +1051,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _remainingRestSeconds = 0;
     _targetRestEndTime = null;
     _restStartedAt = null;
-    await LocalNotificationService.instance.cancelRestTimerNotification();
+    _cancelRestSound();
     await _endLiveActivity();
 
     if (_workoutLog != null) {
@@ -1093,7 +1146,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _workoutDurationTimer?.cancel();
     _restTimer?.cancel();
     _restDoneBannerTimer?.cancel();
-    await LocalNotificationService.instance.cancelRestTimerNotification();
+    _cancelRestSound();
     // Covers the abort path — a discarded workout must not leave an activity
     // behind on the lock screen.
     await _endLiveActivity();

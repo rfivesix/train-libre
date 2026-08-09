@@ -235,6 +235,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         openApp: l10n.liveActivityOpenApp,
         skip: l10n.skipButton,
         overduePrefix: l10n.liveActivityOverdueLabel,
+        restDoneTitle: l10n.restTimerNotificationTitle,
+        restDoneBody: l10n.restTimerNotificationBody,
       ),
     );
   }

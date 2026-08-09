@@ -13,6 +13,8 @@
 		3E64C4AC2F8EF3E3004782FB /* trainlibre_icon_v2.icon in Resources */ = {isa = PBXBuildFile; fileRef = 3E64C4AB2F8EF3E3004782FB /* trainlibre_icon_v2.icon */; };
 		3EFAF4193028BE0D002B89E7 /* WorkoutLiveActivityBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFAF4173028BE0D002B89E7 /* WorkoutLiveActivityBridge.swift */; };
 		3EFAF41A3028BE0D002B89E7 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFAF4163028BE0D002B89E7 /* WorkoutActivityAttributes.swift */; };
+		3EFAF4513028BE0D002B89E7 /* RestSoundScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFAF4503028BE0D002B89E7 /* RestSoundScheduler.swift */; };
+		3EFAF4523028BE0D002B89E7 /* RestSoundScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFAF4503028BE0D002B89E7 /* RestSoundScheduler.swift */; };
 		3EFAF4213028BE77002B89E7 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EFAF4203028BE77002B89E7 /* WidgetKit.framework */; };
 		3EFAF4233028BE77002B89E7 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EFAF4223028BE77002B89E7 /* SwiftUI.framework */; };
 		3EFAF4323028BE78002B89E7 /* TrainLibreLiveActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3EFAF41F3028BE77002B89E7 /* TrainLibreLiveActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -76,6 +78,7 @@
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		3E64C4AB2F8EF3E3004782FB /* trainlibre_icon_v2.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = trainlibre_icon_v2.icon; sourceTree = "<group>"; };
 		3EFAF4163028BE0D002B89E7 /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
+		3EFAF4503028BE0D002B89E7 /* RestSoundScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestSoundScheduler.swift; sourceTree = "<group>"; };
 		3EFAF4173028BE0D002B89E7 /* WorkoutLiveActivityBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLiveActivityBridge.swift; sourceTree = "<group>"; };
 		3EFAF41F3028BE77002B89E7 /* TrainLibreLiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TrainLibreLiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3EFAF4203028BE77002B89E7 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -195,6 +198,7 @@
 			children = (
 				3EFAF4163028BE0D002B89E7 /* WorkoutActivityAttributes.swift */,
 				3EFAF4173028BE0D002B89E7 /* WorkoutLiveActivityBridge.swift */,
+				3EFAF4503028BE0D002B89E7 /* RestSoundScheduler.swift */,
 			);
 			path = LiveActivity;
 			sourceTree = "<group>";
@@ -525,6 +529,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3EFAF44A3028C38A002B89E7 /* WorkoutActivityAttributes.swift in Sources */,
+				3EFAF4523028BE0D002B89E7 /* RestSoundScheduler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -534,6 +539,7 @@
 			files = (
 				3EFAF4193028BE0D002B89E7 /* WorkoutLiveActivityBridge.swift in Sources */,
 				3EFAF41A3028BE0D002B89E7 /* WorkoutActivityAttributes.swift in Sources */,
+				3EFAF4513028BE0D002B89E7 /* RestSoundScheduler.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);

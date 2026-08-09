@@ -67,18 +67,6 @@ import WidgetKit
       }
     }
 
-    private func checkIsOverdue(
-      _ state: WorkoutActivityAttributes.ContentState,
-      isStale: Bool
-    ) -> Bool {
-      guard state.phase == .resting else { return false }
-      if isStale { return true }
-      if let end = state.restEndsAt {
-        return Date() >= end
-      }
-      return false
-    }
-
     @ViewBuilder
     private func compactLeading(
       _ context: ActivityViewContext<WorkoutActivityAttributes>
@@ -86,19 +74,25 @@ import WidgetKit
       switch context.state.phase {
       case .resting:
         if let end = context.state.restEndsAt {
-          // One text for both cases: `.timer` counts down to the date and then
-          // keeps counting up, so the pill never freezes at 0:00. Only the
-          // colour depends on a re-render.
+          // `.timer` counts down to the date and then keeps counting up, so
+          // the pill never freezes at 0:00. The red backing latches exactly at
+          // the deadline without needing a re-render — see LAOverdueFill.
           Text(end, style: .timer)
             .font(.system(size: 12, weight: .bold).monospacedDigit())
-            .foregroundStyle(
-              checkIsOverdue(context.state, isStale: context.isStale)
-                ? LATheme.overdue : LATheme.accent
-            )
+            .foregroundStyle(.white)
             .lineLimit(1)
-            // Without a cap the timer text reserves width for the longest
-            // possible duration and stretches the whole compact pill.
-            .frame(maxWidth: 44)
+            .minimumScaleFactor(0.8)
+            // A `.timer` text reserves width for a longer duration than it is
+            // currently showing and leaves the digits leading-aligned inside
+            // that reserve — which is why the pill came out far too wide with
+            // the time stuck to its left edge. Capping the width and centring
+            // explicitly fixes both. `.fixedSize()` is not an option here: on
+            // a system-animated timer it renders nothing at all.
+            .multilineTextAlignment(.center)
+            .frame(width: 40, alignment: .center)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .background(LAOverdueBackground(deadline: end, cornerRadius: 7))
         } else {
           icon
         }
@@ -124,15 +118,31 @@ import WidgetKit
         if let end = context.state.restEndsAt {
           Text(end, style: .timer)
             .font(.system(size: 10, weight: .bold).monospacedDigit())
-            .foregroundStyle(
-              checkIsOverdue(context.state, isStale: context.isStale)
-                ? LATheme.overdue : LATheme.accent
-            )
+            .foregroundStyle(.white)
             .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .multilineTextAlignment(.center)
+            .frame(width: 34, alignment: .center)
+            .padding(.horizontal, 2)
+            .padding(.vertical, 1)
+            .background(LAOverdueBackground(deadline: end, cornerRadius: 6))
         } else {
           icon
         }
-      case .setPending, .noSetsLeft, .empty:
+      case .setPending:
+        // With two Live Activities on screen ours is reduced to this circle,
+        // and it is then the only place the set is visible at all — so the
+        // numbers win over the app icon whenever we have them.
+        if context.state.minimalText.isEmpty {
+          icon
+        } else {
+          Text(context.state.minimalText)
+            .font(.system(size: 9, weight: .bold))
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+        }
+      case .noSetsLeft, .empty:
         icon
       }
     }

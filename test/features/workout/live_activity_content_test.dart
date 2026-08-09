@@ -20,6 +20,8 @@ const _strings = WorkoutLiveActivityStrings(
   openApp: 'App öffnen',
   skip: 'Skip',
   overduePrefix: 'überfällig seit',
+  restDoneTitle: 'Pause beendet',
+  restDoneBody: 'Weiter geht es.',
 );
 
 String _setPosition(int index, int total) => 'Satz $index von $total';
@@ -117,6 +119,44 @@ void main() {
       expect(content.metricSecondary, '8 Wdh');
       expect(content.metricTertiary, '(RIR 2)');
       expect(content.metricSeparator, '×');
+      expect(content.canCompleteSet, isTrue);
+    });
+
+    test('a set without weight or reps cannot be completed', () {
+      final bare = RoutineExercise(
+        id: 30,
+        exercise: _exercise(name: 'Klimmzug', category: 'Strength'),
+        pauseSeconds: 90,
+        setTemplates: [SetTemplate(id: 301, setType: 'normal')],
+      );
+      final content = _build(
+        exercises: [bare],
+        setLogs: {301: _log(exerciseName: 'Klimmzug')},
+      );
+
+      expect(content.canCompleteSet, isFalse);
+      // No invented numbers — the gaps are shown as dashes.
+      expect(content.metricPrimary, '–');
+      expect(content.metricSecondary, '–');
+    });
+
+    test('weight without reps is still incomplete', () {
+      final partial = RoutineExercise(
+        id: 31,
+        exercise: _exercise(name: 'Klimmzug', category: 'Strength'),
+        pauseSeconds: 90,
+        setTemplates: [
+          SetTemplate(id: 311, setType: 'normal', targetWeight: 40),
+        ],
+      );
+      final content = _build(
+        exercises: [partial],
+        setLogs: {311: _log(exerciseName: 'Klimmzug')},
+      );
+
+      expect(content.canCompleteSet, isFalse);
+      expect(content.metricPrimary, '40 kg');
+      expect(content.metricSecondary, '–');
     });
 
     test('normal sets carry N, since the position is already spelled out', () {
@@ -148,6 +188,24 @@ void main() {
 
       expect(content.compactPrimary, '72,5 kg');
       expect(content.compactSecondary, '× 8');
+      // The minimal circle fits neither units nor a second line.
+      expect(content.minimalText, '72,5×8');
+    });
+
+    test('minimal text is empty when a value is missing, so the icon shows',
+        () {
+      final bare = RoutineExercise(
+        id: 32,
+        exercise: _exercise(name: 'Klimmzug', category: 'Strength'),
+        pauseSeconds: 90,
+        setTemplates: [SetTemplate(id: 321, setType: 'normal')],
+      );
+      final content = _build(
+        exercises: [bare],
+        setLogs: {321: _log(exerciseName: 'Klimmzug')},
+      );
+
+      expect(content.minimalText, isEmpty);
     });
   });
 
@@ -250,6 +308,7 @@ void main() {
       expect(content.metricSecondary, '5 km');
       expect(content.metricTertiary, '(RPE 7)');
       expect(content.metricSeparator, '·');
+      expect(content.canCompleteSet, isTrue);
     });
 
     test('shrinks the line from the left when only a distance exists', () {
@@ -272,7 +331,8 @@ void main() {
 
       expect(content.phase, WorkoutLiveActivityPhase.setPending);
       expect(content.exerciseName, 'Laufband');
-      expect(content.metricPrimary, isEmpty);
+      expect(content.metricPrimary, '–');
+      expect(content.canCompleteSet, isFalse);
     });
   });
 }
