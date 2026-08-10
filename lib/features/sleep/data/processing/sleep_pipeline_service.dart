@@ -1016,46 +1016,47 @@ class SleepPipelineService {
 
     final byNight = <String, double>{};
 
+    // BOLT OPTIMIZATION: Replaced chained .where().toList(), .map().toList(), and
+    // .map().reduce() with a single-pass loop to eliminate intermediate array allocations
+    // and redundant iterations.
     for (final night in targetNights) {
       final windowStart = night.subtract(const Duration(days: 14));
 
-      final windowSessions = coreSessionsList.where((s) {
+      final midSleeps = <double>[];
+      double sum = 0.0;
+
+      for (final s in coreSessionsList) {
         final d = _normalizeDay(s.endAtUtc.toLocal());
-        return !d.isBefore(windowStart) && !d.isAfter(night);
-      }).toList();
-
-      if (windowSessions.isEmpty) {
-        byNight[_nightKey(night)] = 0.0;
-        continue;
+        if (!d.isBefore(windowStart) && !d.isAfter(night)) {
+          final localStart = s.startAtUtc.toLocal();
+          double onset = localStart.hour + (localStart.minute / 60.0);
+          if (onset > 12.0) {
+            onset -= 24.0;
+          }
+          final durationMinutes = s.endAtUtc.difference(s.startAtUtc).inMinutes;
+          double ms = onset + ((durationMinutes / 60.0) / 2.0);
+          while (ms < 0) {
+            ms += 24.0;
+          }
+          while (ms >= 24.0) {
+            ms -= 24.0;
+          }
+          midSleeps.add(ms);
+          sum += ms;
+        }
       }
-
-      final midSleeps = windowSessions.map((s) {
-        final localStart = s.startAtUtc.toLocal();
-        double onset = localStart.hour + (localStart.minute / 60.0);
-        if (onset > 12.0) {
-          onset -= 24.0;
-        }
-        final durationMinutes = s.endAtUtc.difference(s.startAtUtc).inMinutes;
-        double ms = onset + ((durationMinutes / 60.0) / 2.0);
-        while (ms < 0) {
-          ms += 24.0;
-        }
-        while (ms >= 24.0) {
-          ms -= 24.0;
-        }
-        return ms;
-      }).toList();
 
       if (midSleeps.length < 2) {
         byNight[_nightKey(night)] = 0.0;
         continue;
       }
 
-      final mean = midSleeps.reduce((a, b) => a + b) / midSleeps.length;
-      final variance = midSleeps
-              .map((ms) => math.pow(ms - mean, 2))
-              .reduce((a, b) => a + b) /
-          (midSleeps.length - 1);
+      final mean = sum / midSleeps.length;
+      double varianceSum = 0.0;
+      for (final ms in midSleeps) {
+        varianceSum += math.pow(ms - mean, 2);
+      }
+      final variance = varianceSum / (midSleeps.length - 1);
       byNight[_nightKey(night)] = math.sqrt(variance);
     }
 
