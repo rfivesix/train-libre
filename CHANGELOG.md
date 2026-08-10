@@ -18,6 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **iOS App Shortcuts, Siri & Control Center Controls (iOS 18+ / Action Button):** All 7 quick actions are available as native iOS App Shortcuts (Siri voice triggers, Shortcuts app, Spotlight search), Control Center buttons (`ControlWidgetButton`), Lock Screen bottom controls, and hardware Action Button mappings (iPhone 15 Pro / 16). Instant launch of the barcode scanner without delay.
 - **Automatic Exercise Navigation on Live Workout Launch:** Opening a live workout automatically scrolls to the exercise holding the next open set directly below the summary bar.
 
+### Fixed
+- **iCloud Sync Emitted `feature_used` Telemetry on Every Background Sync:** Fixed `ICloudSyncService._snapshotAndUpload` emitting `FeatureKey.icloudSyncTriggered` to PostHog every time the app was backgrounded with iCloud sync enabled. Routine background syncs no longer transmit telemetry events. Telemetry is now only emitted when the user explicitly enables or disables the feature (`setting_toggled` for `icloud_sync_enabled`, plus `feature_used` for `icloud_sync_triggered` when enabled) or performs a manual backup ("Backup Now").
+
 ### Changed
 - **Logged Set Values Take Precedence Over Routine Template Plans:** Weight, reps, and RIR logged by the user take precedence over routine template plan defaults, preventing logged values from being overwritten outside the app or on Live Activity interactions.
 - **Improved Light & Dark Mode Widget Styling:** Refined surface background contrast and typography across all Home Screen and Lock Screen widgets, maintaining high legibility in Light Mode, Dark Mode, and iOS 18 Tinted/Glass appearance modes.

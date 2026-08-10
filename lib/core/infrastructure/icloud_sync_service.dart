@@ -68,6 +68,15 @@ class ICloudSyncService {
   Future<void> setSyncEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(kICloudSyncEnabledKey, enabled);
+
+    unawaited(TelemetryService.instance.trackSettingToggled(
+      settingKey: 'icloud_sync_enabled',
+      value: enabled,
+    ));
+    if (enabled) {
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
+    }
   }
 
   /// Returns the last successful sync timestamp, or null if never synced.
@@ -118,6 +127,9 @@ class ICloudSyncService {
 
     await _setLastSyncTimestamp(DateTime.now());
 
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
+
     return true;
   }
 
@@ -151,8 +163,6 @@ class ICloudSyncService {
 
       await _setLastSyncTimestamp(DateTime.now());
 
-      unawaited(TelemetryService.instance
-          .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
       return true;
     } catch (e, st) {
       debugPrint('iCloud backup: failed with error: $e');
