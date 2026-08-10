@@ -1349,7 +1349,10 @@ class BasisDataManager {
 
           // Progress melden
           if (onProgress != null) {
-            final double progress = (processed / totalCount).clamp(0.0, 1.0);
+            final double baseMax =
+                importType == BatchImportType.exercises ? 0.70 : 0.95;
+            final double progress =
+                ((processed / totalCount) * baseMax).clamp(0.0, baseMax);
             onProgress(
               "Update $taskLabel",
               "$processed / $totalCount Einträge",
@@ -1434,7 +1437,16 @@ class BasisDataManager {
                 }
               });
 
-              trOffset += batchSize;
+              trOffset += trRows.length;
+              if (onProgress != null && trTotal > 0) {
+                final double trProgress =
+                    (0.70 + (0.30 * (trOffset / trTotal))).clamp(0.70, 1.0);
+                onProgress(
+                  "Update $taskLabel",
+                  "$trOffset / $trTotal Übersetzungen",
+                  trProgress,
+                );
+              }
               await Future.delayed(const Duration(milliseconds: 1));
             }
 

@@ -13,7 +13,9 @@ import WidgetKit
       WorkoutLiveActivityWidget()
       if #available(iOS 18.0, *) {
         TodayGlanceWidget()
-        QuickActionsWidget()
+        SingleQuickActionWidget()
+        SmallQuickActionsWidget()
+        MediumQuickActionsWidget()
         RecoveryWidget()
         StepsWidget()
         MeasurementsWidget()

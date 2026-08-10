@@ -2,25 +2,145 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
-// MARK: - Configuration
+// MARK: - Single Quick Action Intent & Widget (Lock Screen Circular 1x1)
 
-/// Four slots regardless of family.
-///
-/// A widget cannot vary its parameter list by `WidgetFamily` — there is no API
-/// to condition a `ParameterSummary` on the size the user picked — so the small
-/// widget shows all four slots in its configuration sheet and renders the first
-/// two. The alternative, two separate widgets, would put "Schnellzugriff (2)"
-/// and "Schnellzugriff (4)" next to each other in the gallery, which is worse.
-/// The parameter titles say so instead.
+@available(iOS 18.0, *)
+public struct SingleQuickActionConfigIntent: WidgetConfigurationIntent {
+  public static var title: LocalizedStringResource { "widget.quickActions.name" }
+  public static var description: IntentDescription { "widget.quickActions.intentDescription" }
+
+  public static var parameterSummary: some ParameterSummary {
+    Summary {
+      \.$action1
+    }
+  }
+
+  @Parameter(title: "widget.quickActions.slotSingle", default: .scanBarcode)
+  var action1: QuickActionSlot1
+
+  public init() {}
+
+  public func resolvedKinds() -> [QuickActionKind] {
+    [action1.kind]
+  }
+}
+
+@available(iOS 18.0, *)
+struct SingleQuickActionsProvider: AppIntentTimelineProvider {
+  func placeholder(in context: Context) -> QuickActionsEntry {
+    QuickActionsEntry(date: .now, kinds: [.scanBarcode], isAiEnabled: true)
+  }
+
+  func snapshot(for configuration: SingleQuickActionConfigIntent, in context: Context) async -> QuickActionsEntry {
+    entry(for: configuration)
+  }
+
+  func timeline(for configuration: SingleQuickActionConfigIntent, in context: Context) async -> Timeline<QuickActionsEntry> {
+    Timeline(entries: [entry(for: configuration)], policy: .after(.now.addingTimeInterval(24 * 60 * 60)))
+  }
+
+  private func entry(for configuration: SingleQuickActionConfigIntent) -> QuickActionsEntry {
+    QuickActionsEntry(
+      date: .now,
+      kinds: configuration.resolvedKinds(),
+      isAiEnabled: HomeWidgetSnapshot.load()?.isAiEnabled ?? false
+    )
+  }
+}
+
+@available(iOS 18.0, *)
+struct SingleQuickActionWidget: Widget {
+  var body: some WidgetConfiguration {
+    AppIntentConfiguration(
+      kind: TrainLibreHomeWidget.kindQuickActionsSingle,
+      intent: SingleQuickActionConfigIntent.self,
+      provider: SingleQuickActionsProvider()
+    ) { entry in
+      QuickActionsView(entry: entry)
+        .widgetURL(entry.kinds.first?.deepLink ?? URL(string: "trainlibre://diary"))
+    }
+    .configurationDisplayName(Text("widget.quickActions.name"))
+    .description(Text("widget.quickActions.description"))
+    .supportedFamilies([.accessoryCircular])
+    .contentMarginsDisabled()
+  }
+}
+
+// MARK: - Small Quick Actions Intent & Widget (Home Screen Small 2x2)
+
+@available(iOS 18.0, *)
+public struct SmallQuickActionsConfigIntent: WidgetConfigurationIntent {
+  public static var title: LocalizedStringResource { "widget.quickActions.name" }
+  public static var description: IntentDescription { "widget.quickActions.intentDescription" }
+
+  public static var parameterSummary: some ParameterSummary {
+    Summary {
+      \.$action1
+      \.$action2
+    }
+  }
+
+  @Parameter(title: "widget.quickActions.slot1", default: .scanBarcode)
+  var action1: QuickActionSlot1
+
+  @Parameter(title: "widget.quickActions.slot2", default: .startWorkout)
+  var action2: QuickActionSlot2
+
+  public init() {}
+
+  public func resolvedKinds() -> [QuickActionKind] {
+    [action1.kind, action2.kind]
+  }
+}
+
+@available(iOS 18.0, *)
+struct SmallQuickActionsProvider: AppIntentTimelineProvider {
+  func placeholder(in context: Context) -> QuickActionsEntry {
+    QuickActionsEntry(date: .now, kinds: [.scanBarcode, .startWorkout], isAiEnabled: true)
+  }
+
+  func snapshot(for configuration: SmallQuickActionsConfigIntent, in context: Context) async -> QuickActionsEntry {
+    entry(for: configuration)
+  }
+
+  func timeline(for configuration: SmallQuickActionsConfigIntent, in context: Context) async -> Timeline<QuickActionsEntry> {
+    Timeline(entries: [entry(for: configuration)], policy: .after(.now.addingTimeInterval(24 * 60 * 60)))
+  }
+
+  private func entry(for configuration: SmallQuickActionsConfigIntent) -> QuickActionsEntry {
+    QuickActionsEntry(
+      date: .now,
+      kinds: configuration.resolvedKinds(),
+      isAiEnabled: HomeWidgetSnapshot.load()?.isAiEnabled ?? false
+    )
+  }
+}
+
+@available(iOS 18.0, *)
+struct SmallQuickActionsWidget: Widget {
+  var body: some WidgetConfiguration {
+    AppIntentConfiguration(
+      kind: TrainLibreHomeWidget.kindQuickActionsSmall,
+      intent: SmallQuickActionsConfigIntent.self,
+      provider: SmallQuickActionsProvider()
+    ) { entry in
+      QuickActionsView(entry: entry)
+        .widgetURL(entry.kinds.first?.deepLink ?? URL(string: "trainlibre://diary"))
+    }
+    .configurationDisplayName(Text("widget.quickActions.name"))
+    .description(Text("widget.quickActions.description"))
+    .supportedFamilies([.systemSmall])
+    .contentMarginsDisabled()
+  }
+}
+
+// MARK: - Medium Quick Actions Intent & Widget (Home Screen Medium 4x2)
+
 @available(iOS 18.0, *)
 public struct QuickActionsConfigIntent: WidgetConfigurationIntent {
   public static var title: LocalizedStringResource { "widget.quickActions.name" }
   public static var description: IntentDescription { "widget.quickActions.intentDescription" }
 
-  /// Keep this an opaque result type. AppIntents reads the concrete builder
-  /// structure while exporting `Metadata.appintents`; erasing it to the
-  /// `ParameterSummary` protocol leaves the edit sheet able to display the
-  /// fields but prevents their values from being restored for the provider.
   public static var parameterSummary: some ParameterSummary {
     Summary {
       \.$action1
@@ -44,33 +164,18 @@ public struct QuickActionsConfigIntent: WidgetConfigurationIntent {
 
   public init() {}
 
-  /// What a freshly added widget shows before the user has configured anything.
   public static let defaultKinds: [QuickActionKind] = [
-    .addLiquid, .scanBarcode, .startWorkout, .logSupplement,
+    .scanBarcode, .startWorkout, .aiMealCapture, .addLiquid,
   ]
 
-  /// The four configured actions, in slot order.
-  ///
-  /// Must be called while the intent is live — see `QuickActionsEntry`.
   public func resolvedKinds() -> [QuickActionKind] {
     [action1.kind, action2.kind, action3.kind, action4.kind]
   }
 }
 
-// MARK: - Timeline
-
-/// Holds the **resolved** actions, not the configuration intent.
-///
-/// Storing the intent here and reading its `@Parameter`s from the view does not
-/// work: WidgetKit archives timeline entries and replays them later, and the
-/// property wrappers do not survive that round trip — every tile silently fell
-/// back to its default no matter what the user picked. The configuration is
-/// therefore read once, while the intent is still live, and only plain values
-/// travel into the entry.
 @available(iOS 18.0, *)
 struct QuickActionsEntry: TimelineEntry {
   let date: Date
-  /// Always four, in slot order. The small family renders the first two.
   let kinds: [QuickActionKind]
   let isAiEnabled: Bool
 }
@@ -92,15 +197,6 @@ struct QuickActionsProvider: AppIntentTimelineProvider {
     entry(for: configuration)
   }
 
-  /// Nothing here changes on a schedule — the content depends only on the
-  /// configuration and on whether AI is enabled.
-  ///
-  /// The policy is still time-based rather than `.never`, because `.never`
-  /// means "the app must tell WidgetKit when to reload" and a configuration
-  /// change is not such a signal: a widget whose actions had been re-picked
-  /// kept rendering the previous ones indefinitely. A daily tick costs one
-  /// reload out of the ~40–70 daily budget and guarantees the widget cannot
-  /// stay stranded on a stale configuration.
   func timeline(
     for configuration: QuickActionsConfigIntent,
     in context: Context
@@ -121,10 +217,8 @@ struct QuickActionsProvider: AppIntentTimelineProvider {
   }
 }
 
-// MARK: - Widget
-
 @available(iOS 18.0, *)
-struct QuickActionsWidget: Widget {
+struct MediumQuickActionsWidget: Widget {
   var body: some WidgetConfiguration {
     AppIntentConfiguration(
       kind: TrainLibreHomeWidget.kindQuickActions,
@@ -136,7 +230,7 @@ struct QuickActionsWidget: Widget {
     }
     .configurationDisplayName(Text("widget.quickActions.name"))
     .description(Text("widget.quickActions.description"))
-    .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular])
+    .supportedFamilies([.systemMedium])
     .contentMarginsDisabled()
   }
 }
@@ -149,9 +243,8 @@ struct QuickActionsView: View {
 
   @Environment(\.widgetFamily) private var family
 
-  private var slotCount: Int { family == .systemSmall ? 2 : 4 }
+  private var slotCount: Int { family == .systemSmall ? 2 : (family == .accessoryCircular ? 1 : 4) }
 
-  /// The entry always carries four; the small family shows the first two.
   private var kinds: [QuickActionKind] {
     Array(entry.kinds.prefix(slotCount))
   }
@@ -200,7 +293,6 @@ struct QuickActionTile: View {
 
   @Environment(\.widgetRenderingMode) private var renderingMode
 
-  /// An AI tile placed while AI was on, then switched off in the app.
   private var isDisabled: Bool {
     kind == .aiMealCapture && !isAiEnabled
   }

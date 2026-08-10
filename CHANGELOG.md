@@ -19,11 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Automatic Exercise Navigation on Live Workout Launch:** Opening a live workout automatically scrolls to the exercise holding the next open set directly below the summary bar.
 
 ### Fixed
+- **Onboarding Telemetry Initial Step Tracking:** Fixed an issue where the initial step (`welcome`, `step_index: 0`) of `OnboardingScreen` was omitted from PostHog telemetry because tracking relied exclusively on `PageView.onPageChanged`, which does not fire on initial render. Added explicit post-frame tracking for step 0 so onboarding funnels begin at step 0 instead of skipping to step 1 (`unit_system`).
+- **Database Update Loading Screen Freeze & Performance Bottleneck:** Fixed the database update progress screen hanging for 15-30+ seconds at 100% ("all entries present"). Resolved a major query bottleneck in `RetainHistoricalOffProductsUseCase.execute` that previously fetched all 26 columns of 125,000 product rows into Dart memory as full Drift DataClasses instead of querying only product barcodes, cutting post-processing execution time from ~20 seconds to ~30 milliseconds. Additionally, progress calculation across batch imports (`BasisDataManager._performBatchImport`) was scaled accurately (0-70% main exercise import, 70-100% exercise relational translation pass; 0-95% OFF product import, 95-100% OFF retention cleanup), streaming continuous progress updates and localized detail text so the UI progress bar never stalls at 100%.
 - **iCloud Sync Emitted `feature_used` Telemetry on Every Background Sync:** Fixed `ICloudSyncService._snapshotAndUpload` emitting `FeatureKey.icloudSyncTriggered` to PostHog every time the app was backgrounded with iCloud sync enabled. Routine background syncs no longer transmit telemetry events. Telemetry is now only emitted when the user explicitly enables or disables the feature (`setting_toggled` for `icloud_sync_enabled`, plus `feature_used` for `icloud_sync_triggered` when enabled) or performs a manual backup ("Backup Now").
-
-### Changed
-- **Logged Set Values Take Precedence Over Routine Template Plans:** Weight, reps, and RIR logged by the user take precedence over routine template plan defaults, preventing logged values from being overwritten outside the app or on Live Activity interactions.
-- **Improved Light & Dark Mode Widget Styling:** Refined surface background contrast and typography across all Home Screen and Lock Screen widgets, maintaining high legibility in Light Mode, Dark Mode, and iOS 18 Tinted/Glass appearance modes.
 - **Keyboard-Aware Rest Bar:** The floating rest bar automatically hides when the software keyboard opens to avoid covering input fields.
 
 ## [1.0.1] - 2026-08-08

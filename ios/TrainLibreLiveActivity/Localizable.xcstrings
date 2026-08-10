@@ -520,37 +520,36 @@
       }
     },
     "widget.quickActions.slot3" : {
-      "comment" : "Slots 3 and 4 are unused by the small widget. A widget cannot vary its parameter list by family, so the title says so instead.",
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktion 3 (nur mittleres Widget)"
+            "value" : "Aktion 3"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Action 3 (medium widget only)"
+            "value" : "Action 3"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Action 3 (widget moyen uniquement)"
+            "value" : "Action 3"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Azione 3 (solo widget medio)"
+            "value" : "Azione 3"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アクション 3（中サイズのみ）"
+            "value" : "アクション 3"
           }
         }
       }
@@ -561,31 +560,66 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktion 4 (nur mittleres Widget)"
+            "value" : "Aktion 4"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Action 4 (medium widget only)"
+            "value" : "Action 4"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Action 4 (widget moyen uniquement)"
+            "value" : "Action 4"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Azione 4 (solo widget medio)"
+            "value" : "Azione 4"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アクション 4（中サイズのみ）"
+            "value" : "アクション 4"
+          }
+        }
+      }
+    },
+    "widget.quickActions.slotSingle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktion"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Action"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Action"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Azione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクション"
           }
         }
       }

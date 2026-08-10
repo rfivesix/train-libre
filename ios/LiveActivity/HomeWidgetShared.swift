@@ -13,6 +13,8 @@ public enum TrainLibreHomeWidget {
 
   public static let kindTodayGlance = "TrainLibreTodayGlance"
   public static let kindQuickActions = "TrainLibreQuickActions"
+  public static let kindQuickActionsSmall = "TrainLibreQuickActionsSmall"
+  public static let kindQuickActionsSingle = "TrainLibreQuickActionsSingle"
   public static let kindRecovery = "TrainLibreRecovery"
   public static let kindSteps = "TrainLibreSteps"
   public static let kindMeasurements = "TrainLibreMeasurements"
@@ -24,6 +26,8 @@ public enum TrainLibreHomeWidget {
   public static let allKinds = [
     kindTodayGlance,
     kindQuickActions,
+    kindQuickActionsSmall,
+    kindQuickActionsSingle,
     kindRecovery,
     kindSteps,
     kindMeasurements,
