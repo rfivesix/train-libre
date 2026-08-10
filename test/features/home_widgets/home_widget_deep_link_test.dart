@@ -75,6 +75,77 @@ void main() {
     });
   });
 
+  group('statistics widgets', () {
+    test('the recovery widget opens the recovery tracker', () {
+      expect(
+        parseHomeWidgetDeepLink('trainlibre://analytics/recovery'),
+        const OpenRecoveryLink(),
+      );
+      // Path form, as Flutter sometimes presents the route.
+      expect(
+        parseHomeWidgetDeepLink('/analytics/recovery'),
+        const OpenRecoveryLink(),
+      );
+    });
+
+    test('another analytics screen is not claimed', () {
+      expect(parseHomeWidgetDeepLink('trainlibre://analytics/volume'), isNull);
+      expect(parseHomeWidgetDeepLink('trainlibre://analytics'), isNull);
+    });
+
+    test('the steps widget opens the steps module', () {
+      expect(
+          parseHomeWidgetDeepLink('trainlibre://steps'), const OpenStepsLink());
+    });
+
+    test('the measurements widget carries its configuration', () {
+      expect(
+        parseHomeWidgetDeepLink(
+          'trainlibre://measurements?metric=waist&period=3m',
+        ),
+        const OpenMeasurementsLink(metricId: 'waist', periodKey: '3m'),
+      );
+    });
+
+    test('a measurements link without a configuration still opens the screen',
+        () {
+      expect(
+        parseHomeWidgetDeepLink('trainlibre://measurements'),
+        const OpenMeasurementsLink(),
+      );
+    });
+
+    test('an unknown period is dropped rather than taking the metric with it',
+        () {
+      // The screen has its own default timeframe; the metric is still worth
+      // honouring.
+      expect(
+        parseHomeWidgetDeepLink(
+          'trainlibre://measurements?metric=weight&period=2y',
+        ),
+        const OpenMeasurementsLink(metricId: 'weight'),
+      );
+    });
+
+    test('the last workout widget opens that workout', () {
+      expect(
+        parseHomeWidgetDeepLink('trainlibre://workout/log/12345'),
+        const OpenWorkoutLogLink(12345),
+      );
+    });
+
+    test('a workout log id that is not a number is not claimed', () {
+      expect(parseHomeWidgetDeepLink('trainlibre://workout/log/abc'), isNull);
+      expect(parseHomeWidgetDeepLink('trainlibre://workout/log'), isNull);
+    });
+  });
+
+  test('period keys stay in lockstep with the widget extension', () {
+    // Mirrors MeasurementPeriod's raw values in MeasurementsWidget.swift. A
+    // change here without a change there silently drops the timeframe on tap.
+    expect(HomeWidgetMeasurementPeriod.all, {'7d', '1m', '3m', '6m', 'max'});
+  });
+
   test('action keys stay in lockstep with the widget extension', () {
     // Mirrors QuickActionKind in QuickActionEntity.swift. A change here without
     // a change there produces tiles that silently do nothing.

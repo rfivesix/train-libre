@@ -13,9 +13,38 @@ public enum TrainLibreHomeWidget {
 
   public static let kindTodayGlance = "TrainLibreTodayGlance"
   public static let kindQuickActions = "TrainLibreQuickActions"
+  public static let kindRecovery = "TrainLibreRecovery"
+  public static let kindSteps = "TrainLibreSteps"
+  public static let kindMeasurements = "TrainLibreMeasurements"
+  public static let kindLastWorkout = "TrainLibreLastWorkout"
+
+  /// Every timeline the app's snapshot feeds. The bridge reloads all of them on
+  /// a write rather than guessing which section changed — a snapshot write is
+  /// already debounced to one per user action.
+  public static let allKinds = [
+    kindTodayGlance,
+    kindQuickActions,
+    kindRecovery,
+    kindSteps,
+    kindMeasurements,
+    kindLastWorkout,
+  ]
 
   public static var defaults: UserDefaults? {
     UserDefaults(suiteName: appGroupId)
+  }
+
+  /// Shared container directory. The muscle heatmap is a file rather than a
+  /// `UserDefaults` value because a PNG has no business in a plist.
+  public static var containerURL: URL? {
+    FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupId)
+  }
+
+  public static func sharedFileURL(named name: String) -> URL? {
+    // Defends the container against a snapshot that tries to escape it. The app
+    // is the only writer, but the widget is the one that would pay for a bug.
+    guard !name.isEmpty, !name.contains("/"), name != "..", name != "." else { return nil }
+    return containerURL?.appendingPathComponent(name)
   }
 }
 
@@ -129,12 +158,181 @@ public struct HomeWidgetTile: Codable, Hashable {
   }
 }
 
+// MARK: - Statistics sections (schema v2)
+
+/// One readiness pill of the Muscle Readiness widget.
+///
+/// Mirrors `RecoverySectionCard._buildReadinessPill`. The count, its share and
+/// the colour all arrive precomputed — the widget only lays them out.
+public struct HomeWidgetRecoveryState: Codable, Hashable {
+  public let state: String
+  public let label: String
+  public let count: Int
+  public let percent: Int
+  public let colorHex: String
+
+  public init(state: String, label: String, count: Int, percent: Int, colorHex: String) {
+    self.state = state
+    self.label = label
+    self.count = count
+    self.percent = percent
+    self.colorHex = colorHex
+  }
+}
+
+public struct HomeWidgetRecovery: Codable, Hashable {
+  public let hasData: Bool
+  public let headline: String
+
+  /// Absent when the app would have used `colorScheme.outline` — the widget has
+  /// its own scheme and resolves that itself rather than being handed a colour
+  /// from the app's theme.
+  public let headlineColorHex: String?
+  public let states: [HomeWidgetRecoveryState]
+
+  public init(
+    hasData: Bool,
+    headline: String,
+    headlineColorHex: String?,
+    states: [HomeWidgetRecoveryState]
+  ) {
+    self.hasData = hasData
+    self.headline = headline
+    self.headlineColorHex = headlineColorHex
+    self.states = states
+  }
+}
+
+public struct HomeWidgetStepsDay: Codable, Hashable {
+  /// `yyyy-MM-dd` in the user's calendar, so "which bar is today" needs no
+  /// timezone arithmetic in the widget.
+  public let dayKey: String
+  public let steps: Int
+
+  public init(dayKey: String, steps: Int) {
+    self.dayKey = dayKey
+    self.steps = steps
+  }
+}
+
+public struct HomeWidgetSteps: Codable, Hashable {
+  public let isTrackingEnabled: Bool
+  public let todaySteps: Int
+  public let dailyGoal: Int
+
+  /// Oldest first, seven entries, the last one being today.
+  public let days: [HomeWidgetStepsDay]
+
+  public init(isTrackingEnabled: Bool, todaySteps: Int, dailyGoal: Int, days: [HomeWidgetStepsDay]) {
+    self.isTrackingEnabled = isTrackingEnabled
+    self.todaySteps = todaySteps
+    self.dailyGoal = dailyGoal
+    self.days = days
+  }
+
+  /// `StatisticsStepsCard`'s scale: the taller of the goal and the best day, so
+  /// no bar can leave the chart no matter how big a day was.
+  public var chartMaximum: Int {
+    max(days.map(\.steps).max() ?? 0, max(dailyGoal, 1))
+  }
+}
+
+public struct HomeWidgetMeasurementPoint: Codable, Hashable {
+  public let epochMs: Double
+  public let value: Double
+
+  public init(epochMs: Double, value: Double) {
+    self.epochMs = epochMs
+    self.value = value
+  }
+
+  public var date: Date { Date(timeIntervalSince1970: epochMs / 1000) }
+}
+
+/// One selectable metric of the configurable Measurements widget.
+///
+/// Carries the whole series rather than a pre-sliced timeframe: the timeframe is
+/// a widget configuration the app never sees, so the widget has to be able to
+/// answer for any of the five periods on its own.
+public struct HomeWidgetMeasurementMetric: Codable, Hashable, Identifiable {
+  public let id: String
+  public let name: String
+  public let unit: String
+
+  /// Oldest first.
+  public let points: [HomeWidgetMeasurementPoint]
+
+  public init(id: String, name: String, unit: String, points: [HomeWidgetMeasurementPoint]) {
+    self.id = id
+    self.name = name
+    self.unit = unit
+    self.points = points
+  }
+
+  /// The points inside the last `days`, or all of them when `days` is nil (Max).
+  public func points(withinDays days: Int?, now: Date = .now) -> [HomeWidgetMeasurementPoint] {
+    guard let days else { return points }
+    let cutoff = now.addingTimeInterval(-Double(days) * 86_400)
+    return points.filter { $0.date >= cutoff }
+  }
+}
+
+public struct HomeWidgetLastWorkout: Codable, Hashable {
+  public let id: Int
+  public let title: String
+  public let completedAtEpochMs: Double
+  public let durationSeconds: Int
+
+  /// Absent for a session without a single weighted set — the widget shows the
+  /// rep count in that slot instead.
+  public let totalVolume: Double?
+  public let volumeUnit: String
+  public let totalReps: Int
+  public let totalSets: Int
+
+  /// File name inside the App Group container, written by the app when the
+  /// workout was finished.
+  public let heatmapImageName: String?
+
+  public init(
+    id: Int,
+    title: String,
+    completedAtEpochMs: Double,
+    durationSeconds: Int,
+    totalVolume: Double?,
+    volumeUnit: String,
+    totalReps: Int,
+    totalSets: Int,
+    heatmapImageName: String?
+  ) {
+    self.id = id
+    self.title = title
+    self.completedAtEpochMs = completedAtEpochMs
+    self.durationSeconds = durationSeconds
+    self.totalVolume = totalVolume
+    self.volumeUnit = volumeUnit
+    self.totalReps = totalReps
+    self.totalSets = totalSets
+    self.heatmapImageName = heatmapImageName
+  }
+
+  public var completedAt: Date { Date(timeIntervalSince1970: completedAtEpochMs / 1000) }
+
+  public var heatmapURL: URL? {
+    guard let heatmapImageName else { return nil }
+    return TrainLibreHomeWidget.sharedFileURL(named: heatmapImageName)
+  }
+}
+
 /// The full payload the app publishes to the App Group.
 ///
 /// Holds aggregate totals and targets only — no food names, no timestamps, no
 /// entry level data ever reaches the shared container.
 public struct HomeWidgetSnapshot: Codable, Hashable {
-  public static let currentSchemaVersion = 1
+  /// v2 added the four statistics sections. All of them are optional and every
+  /// reader treats a missing section as "nothing to show yet", so a v1 payload
+  /// left over from an older build still decodes.
+  public static let currentSchemaVersion = 2
 
   public let schemaVersion: Int
   public let generatedAtEpochMs: Double
@@ -151,13 +349,22 @@ public struct HomeWidgetSnapshot: Codable, Hashable {
   public let isAiEnabled: Bool
   public let tiles: [HomeWidgetTile]
 
+  public let recovery: HomeWidgetRecovery?
+  public let steps: HomeWidgetSteps?
+  public let measurements: [HomeWidgetMeasurementMetric]
+  public let lastWorkout: HomeWidgetLastWorkout?
+
   public init(
     schemaVersion: Int,
     generatedAtEpochMs: Double,
     logicalDayKey: String,
     rolloverHour: Int,
     isAiEnabled: Bool,
-    tiles: [HomeWidgetTile]
+    tiles: [HomeWidgetTile],
+    recovery: HomeWidgetRecovery? = nil,
+    steps: HomeWidgetSteps? = nil,
+    measurements: [HomeWidgetMeasurementMetric] = [],
+    lastWorkout: HomeWidgetLastWorkout? = nil
   ) {
     self.schemaVersion = schemaVersion
     self.generatedAtEpochMs = generatedAtEpochMs
@@ -165,6 +372,28 @@ public struct HomeWidgetSnapshot: Codable, Hashable {
     self.rolloverHour = rolloverHour
     self.isAiEnabled = isAiEnabled
     self.tiles = tiles
+    self.recovery = recovery
+    self.steps = steps
+    self.measurements = measurements
+    self.lastWorkout = lastWorkout
+  }
+
+  /// A v1 payload has no `measurements` key at all, and `[T].self` is not
+  /// optional-by-default the way `T?` is — without this the whole snapshot
+  /// would fail to decode on the first launch after an app update.
+  public init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    schemaVersion = try c.decode(Int.self, forKey: .schemaVersion)
+    generatedAtEpochMs = try c.decode(Double.self, forKey: .generatedAtEpochMs)
+    logicalDayKey = try c.decode(String.self, forKey: .logicalDayKey)
+    rolloverHour = try c.decode(Int.self, forKey: .rolloverHour)
+    isAiEnabled = try c.decode(Bool.self, forKey: .isAiEnabled)
+    tiles = try c.decode([HomeWidgetTile].self, forKey: .tiles)
+    recovery = try c.decodeIfPresent(HomeWidgetRecovery.self, forKey: .recovery)
+    steps = try c.decodeIfPresent(HomeWidgetSteps.self, forKey: .steps)
+    measurements =
+      try c.decodeIfPresent([HomeWidgetMeasurementMetric].self, forKey: .measurements) ?? []
+    lastWorkout = try c.decodeIfPresent(HomeWidgetLastWorkout.self, forKey: .lastWorkout)
   }
 
   /// Same totals reset to zero but the targets kept, for a day the app has not
@@ -178,7 +407,14 @@ public struct HomeWidgetSnapshot: Codable, Hashable {
       logicalDayKey: dayKey,
       rolloverHour: rolloverHour,
       isAiEnabled: isAiEnabled,
-      tiles: tiles.map { $0.zeroed() }
+      tiles: tiles.map { $0.zeroed() },
+      // Only the diary rolls over at 03:00. Recovery, steps, measurements and
+      // the last workout are not "today's totals" — they carry across the
+      // boundary unchanged, and blanking them would be a lie, not a reset.
+      recovery: recovery,
+      steps: steps,
+      measurements: measurements,
+      lastWorkout: lastWorkout
     )
   }
 

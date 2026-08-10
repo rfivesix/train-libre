@@ -171,7 +171,115 @@ final class HomeWidgetSharedTests: XCTestCase {
     XCTAssertEqual(decoded.tiles[0].value, 1234)
   }
 
+  func testDecodesAV1PayloadWithoutTheStatisticsSections() throws {
+    // A widget updated before the app is still holding the previous release's
+    // snapshot. It has no `measurements` key at all, and an array is not
+    // optional-by-default the way `T?` is — without the custom decoder the
+    // whole payload would fail and every widget would go blank.
+    let json = """
+      {"schemaVersion":1,"generatedAtEpochMs":1786355823833.0,\
+      "logicalDayKey":"2026-08-10","rolloverHour":3,"isAiEnabled":true,\
+      "tiles":[{"slot":"calories","label":"Kalorien","unit":"kcal",\
+      "value":1234.0,"target":2000.0,"colorHex":"#FF9800"}]}
+      """
+    let decoded = try JSONDecoder().decode(
+      HomeWidgetSnapshot.self, from: Data(json.utf8))
+
+    XCTAssertNil(decoded.recovery)
+    XCTAssertNil(decoded.steps)
+    XCTAssertNil(decoded.lastWorkout)
+    XCTAssertEqual(decoded.measurements, [])
+  }
+
+  func testDecodesTheStatisticsSections() throws {
+    let json = """
+      {"schemaVersion":2,"generatedAtEpochMs":1786355823833.0,\
+      "logicalDayKey":"2026-08-10","rolloverHour":3,"isAiEnabled":true,"tiles":[],\
+      "recovery":{"hasData":true,"headline":"Mehrere erholen sich",\
+      "headlineColorHex":"#FF9800","states":[{"state":"recovering",\
+      "label":"In Erholung","count":6,"percent":46,"colorHex":"#FF9800"}]},\
+      "steps":{"isTrackingEnabled":true,"todaySteps":8432,"dailyGoal":10000,\
+      "days":[{"dayKey":"2026-08-10","steps":8432}]},\
+      "measurements":[{"id":"weight","name":"Körpergewicht","unit":"kg",\
+      "points":[{"epochMs":1786355823833.0,"value":81.4}]}],\
+      "lastWorkout":{"id":42,"title":"Push Day","completedAtEpochMs":1786355823833.0,\
+      "durationSeconds":4440,"totalVolume":12450.0,"volumeUnit":"kg",\
+      "totalReps":186,"totalSets":18,"heatmapImageName":"last_workout_heatmap_42.png"}}
+      """
+    let decoded = try JSONDecoder().decode(
+      HomeWidgetSnapshot.self, from: Data(json.utf8))
+
+    XCTAssertEqual(decoded.recovery?.states.first?.percent, 46)
+    XCTAssertEqual(decoded.steps?.todaySteps, 8432)
+    XCTAssertEqual(decoded.measurements.first?.id, "weight")
+    XCTAssertEqual(decoded.lastWorkout?.totalSets, 18)
+    XCTAssertEqual(
+      decoded.lastWorkout?.heatmapImageName, "last_workout_heatmap_42.png")
+  }
+
+  func testMissingVolumeMeansABodyweightSession() throws {
+    let json = """
+      {"schemaVersion":2,"generatedAtEpochMs":0.0,"logicalDayKey":"2026-08-10",\
+      "rolloverHour":3,"isAiEnabled":true,"tiles":[],\
+      "lastWorkout":{"id":7,"title":"Calisthenics","completedAtEpochMs":0.0,\
+      "durationSeconds":2520,"volumeUnit":"kg","totalReps":248,"totalSets":16}}
+      """
+    let decoded = try JSONDecoder().decode(
+      HomeWidgetSnapshot.self, from: Data(json.utf8))
+
+    // Not zero: the widget swaps the volume tile for a rep count.
+    XCTAssertNil(decoded.lastWorkout?.totalVolume)
+    XCTAssertEqual(decoded.lastWorkout?.totalReps, 248)
+  }
+
+  func testStepsChartScalesToTheTallerOfGoalAndBestDay() {
+    let steps = HomeWidgetSteps(
+      isTrackingEnabled: true,
+      todaySteps: 31000,
+      dailyGoal: 10000,
+      days: [
+        HomeWidgetStepsDay(dayKey: "2026-08-09", steps: 9000),
+        HomeWidgetStepsDay(dayKey: "2026-08-10", steps: 31000),
+      ]
+    )
+    // A 31k day must not run off the top of the chart.
+    XCTAssertEqual(steps.chartMaximum, 31000)
+
+    let quietWeek = HomeWidgetSteps(
+      isTrackingEnabled: true,
+      todaySteps: 0,
+      dailyGoal: 10000,
+      days: [HomeWidgetStepsDay(dayKey: "2026-08-10", steps: 0)]
+    )
+    // And a week with nothing in it still scales against the goal rather than
+    // dividing by zero.
+    XCTAssertEqual(quietWeek.chartMaximum, 10000)
+  }
+
+  func testSharedFileNamesCannotEscapeTheContainer() {
+    XCTAssertNil(TrainLibreHomeWidget.sharedFileURL(named: "../escaped.png"))
+    XCTAssertNil(TrainLibreHomeWidget.sharedFileURL(named: ""))
+    XCTAssertNil(TrainLibreHomeWidget.sharedFileURL(named: ".."))
+  }
+
   // MARK: - Zeroing
+
+  func testZeroedKeepsTheStatisticsSections() {
+    let snapshot = HomeWidgetSnapshot(
+      schemaVersion: 2,
+      generatedAtEpochMs: 0,
+      logicalDayKey: "2026-08-10",
+      rolloverHour: 3,
+      isAiEnabled: true,
+      tiles: [],
+      steps: HomeWidgetSteps(
+        isTrackingEnabled: true, todaySteps: 8432, dailyGoal: 10000, days: [])
+    )
+
+    // Only the diary rolls over at 03:00 — the steps a widget already knows
+    // about are not "yesterday's totals" to be blanked.
+    XCTAssertEqual(snapshot.zeroed(forDayKey: "2026-08-11").steps?.todaySteps, 8432)
+  }
 
   func testZeroedClearsValuesButKeepsTargets() {
     let zeroed = makeSnapshot(dayKey: "2026-08-10").zeroed(forDayKey: "2026-08-11")

@@ -4,10 +4,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/features/diary/domain/models/daily_nutrition.dart';
 import 'package:train_libre/features/home_widgets/domain/build_home_widget_snapshot.dart';
 import 'package:train_libre/features/home_widgets/domain/models/home_widget_snapshot.dart';
+import 'package:train_libre/features/profile/domain/models/measurement.dart';
+import 'package:train_libre/features/profile/domain/models/measurement_session.dart';
+import 'package:train_libre/features/statistics/domain/recovery_payload_models.dart';
+import 'package:train_libre/features/steps/domain/steps_models.dart';
+import 'package:train_libre/features/workout/domain/models/set_log.dart';
+import 'package:train_libre/features/workout/domain/models/workout_log.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/generated/app_localizations_de.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:train_libre/util/design_constants.dart';
+import 'package:train_libre/util/l10n_ext.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -269,7 +276,350 @@ void main() {
     });
 
     test('declares the schema version the Swift decoder expects', () {
-      expect(build().schemaVersion, 1);
+      expect(build().schemaVersion, 2);
+    });
+
+    test('omits the statistics sections it was not given', () {
+      final json = build().toJson();
+
+      // A section that is absent must stay absent rather than travel as null:
+      // the Swift side distinguishes "no data yet" from "an empty section", and
+      // the widgets render different things for the two.
+      expect(json.containsKey('recovery'), isFalse);
+      expect(json.containsKey('steps'), isFalse);
+      expect(json.containsKey('measurements'), isFalse);
+      expect(json.containsKey('lastWorkout'), isFalse);
+    });
+
+    test('round trips the statistics sections', () {
+      final original = buildHomeWidgetSnapshot(
+        nutrition: sampleNutrition(),
+        extraNutrient: 'fiber',
+        l10n: l10n,
+        unitService: metricUnits,
+        isAiEnabled: true,
+        now: DateTime(2026, 8, 10, 12, 0),
+        recovery: buildHomeWidgetRecovery(
+          payload: samplePayload(recovering: 6, ready: 2, fresh: 5),
+          l10n: l10n,
+        ),
+        steps: buildHomeWidgetSteps(
+          dailyTotals: [
+            StepsBucket(start: DateTime(2026, 8, 9), steps: 12300),
+          ],
+          todaySteps: 8432,
+          dailyGoal: 10000,
+          isTrackingEnabled: true,
+          now: DateTime(2026, 8, 10, 12, 0),
+        ),
+        measurements: buildHomeWidgetMeasurements(
+          sessions: [
+            MeasurementSession(
+              id: 1,
+              timestamp: DateTime(2026, 8, 1),
+              measurements: [
+                Measurement(
+                    sessionId: 1, type: 'weight', value: 82.2, unit: 'kg'),
+              ],
+            ),
+          ],
+          l10n: l10n,
+          unitService: metricUnits,
+        ),
+      );
+
+      final restored = HomeWidgetSnapshot.decode(original.encode());
+
+      expect(restored.recovery, original.recovery);
+      expect(restored.steps, original.steps);
+      expect(restored.measurements, original.measurements);
+    });
+  });
+
+  group('recovery section', () {
+    test('mirrors the card: three pills with counts and rounded shares', () {
+      final recovery = buildHomeWidgetRecovery(
+        payload: samplePayload(recovering: 6, ready: 2, fresh: 5),
+        l10n: l10n,
+      );
+
+      expect(recovery.hasData, isTrue);
+      expect(recovery.states.map((s) => s.state), [
+        'recovering',
+        'ready',
+        'fresh',
+      ]);
+      expect(recovery.states.map((s) => s.count), [6, 2, 5]);
+      // 6/13, 2/13, 5/13 rounded — the card's own arithmetic.
+      expect(recovery.states.map((s) => s.percent), [46, 15, 38]);
+      expect(recovery.states.first.label, l10n.recoveryStateRecovering);
+    });
+
+    test('carries the headline colour only when the app has one', () {
+      expect(
+        buildHomeWidgetRecovery(
+          payload: samplePayload(
+            recovering: 6,
+            ready: 2,
+            fresh: 5,
+            overallState: 'severalRecovering',
+          ),
+          l10n: l10n,
+        ).headlineColorHex,
+        '#FF9800',
+      );
+
+      // `insufficientData` falls back to `colorScheme.outline` in the app,
+      // which is a theme value the widget has to resolve for itself.
+      expect(
+        buildHomeWidgetRecovery(
+          payload: samplePayload(
+            recovering: 0,
+            ready: 0,
+            fresh: 0,
+            hasData: false,
+            overallState: 'insufficientData',
+          ),
+          l10n: l10n,
+        ).headlineColorHex,
+        isNull,
+      );
+    });
+
+    test('drops the pills when there is no data to put in them', () {
+      final recovery = buildHomeWidgetRecovery(
+        payload: samplePayload(
+          recovering: 0,
+          ready: 0,
+          fresh: 0,
+          hasData: false,
+        ),
+        l10n: l10n,
+      );
+
+      expect(recovery.hasData, isFalse);
+      expect(recovery.states, isEmpty);
+    });
+  });
+
+  group('steps section', () {
+    final now = DateTime(2026, 8, 10, 12, 0);
+
+    test('materialises seven days, filling the gaps with zero', () {
+      final steps = buildHomeWidgetSteps(
+        dailyTotals: [
+          StepsBucket(start: DateTime(2026, 8, 4), steps: 9100),
+          // 5th–8th missing: the phone was off, or was not carried.
+          StepsBucket(start: DateTime(2026, 8, 9), steps: 12300),
+        ],
+        todaySteps: 8432,
+        dailyGoal: 10000,
+        isTrackingEnabled: true,
+        now: now,
+      );
+
+      expect(steps.days.length, 7);
+      expect(steps.days.first.dayKey, '2026-08-04');
+      expect(steps.days.last.dayKey, '2026-08-10');
+      expect(steps.days.map((d) => d.steps), [9100, 0, 0, 0, 0, 12300, 8432]);
+    });
+
+    test('takes today from the live counter, not from the aggregation', () {
+      final steps = buildHomeWidgetSteps(
+        // A stale stored total for today — the app's own card overrides this
+        // with the live count, and so does the widget.
+        dailyTotals: [StepsBucket(start: DateTime(2026, 8, 10), steps: 12)],
+        todaySteps: 8432,
+        dailyGoal: 10000,
+        isTrackingEnabled: true,
+        now: now,
+      );
+
+      expect(steps.days.last.steps, 8432);
+    });
+  });
+
+  group('measurements section', () {
+    test('groups by type, converts units and localizes the name', () {
+      final metrics = buildHomeWidgetMeasurements(
+        sessions: [
+          MeasurementSession(
+            id: 2,
+            timestamp: DateTime(2026, 8, 5),
+            measurements: [
+              Measurement(
+                  sessionId: 2, type: 'weight', value: 81.4, unit: 'kg'),
+              Measurement(sessionId: 2, type: 'waist', value: 88, unit: 'cm'),
+            ],
+          ),
+          MeasurementSession(
+            id: 1,
+            timestamp: DateTime(2026, 8, 1),
+            measurements: [
+              Measurement(
+                  sessionId: 1, type: 'weight', value: 82.2, unit: 'kg'),
+            ],
+          ),
+        ],
+        l10n: l10n,
+        unitService: metricUnits,
+      );
+
+      // Weight leads regardless of the alphabet — it is the screen's own
+      // default metric.
+      expect(metrics.map((m) => m.id), ['weight', 'waist']);
+      expect(metrics.first.name, l10n.getLocalizedMeasurementName('weight'));
+      expect(metrics.first.unit, 'kg');
+      // Oldest first, whatever order the sessions arrived in.
+      expect(metrics.first.points.map((p) => p.value), [82.2, 81.4]);
+    });
+
+    test('keeps the recent tail whole when a series has to be thinned', () {
+      final sessions = List.generate(
+        400,
+        (i) => MeasurementSession(
+          id: i,
+          timestamp: DateTime(2020, 1, 1).add(Duration(days: i)),
+          measurements: [
+            Measurement(
+                sessionId: i, type: 'weight', value: 80 + i / 100, unit: 'kg'),
+          ],
+        ),
+      );
+
+      final points = buildHomeWidgetMeasurements(
+        sessions: sessions,
+        l10n: l10n,
+        unitService: metricUnits,
+      ).single.points;
+
+      expect(
+        points.length,
+        homeWidgetRecentMeasurementPoints + homeWidgetHistoricMeasurementPoints,
+      );
+      // The newest reading must survive the thinning — it is the one the widget
+      // prints as the current value.
+      expect(points.last.value, closeTo(80 + 399 / 100, 1e-9));
+      expect(
+        points.map((p) => p.epochMs).toList(),
+        orderedEquals(points.map((p) => p.epochMs).toList()..sort()),
+      );
+    });
+  });
+
+  group('last workout section', () {
+    WorkoutLog log({
+      int? id = 42,
+      DateTime? endTime,
+      List<SetLog> sets = const [],
+      String? routineName = 'Push Day',
+    }) =>
+        WorkoutLog(
+          id: id,
+          routineName: routineName,
+          startTime: DateTime(2026, 8, 9, 18, 0),
+          endTime: endTime ?? DateTime(2026, 8, 9, 19, 14),
+          sets: sets,
+        );
+
+    SetLog set({double? weightKg, int? reps}) => SetLog(
+          workoutLogId: 42,
+          exerciseName: 'Bench Press',
+          setType: 'normal',
+          weightKg: weightKg,
+          reps: reps,
+        );
+
+    test('sums volume, reps and sets and keeps the duration', () {
+      final workout = buildHomeWidgetLastWorkout(
+        log: log(sets: [
+          set(weightKg: 100, reps: 10),
+          set(weightKg: 80, reps: 8),
+        ]),
+        l10n: l10n,
+        unitService: metricUnits,
+      )!;
+
+      expect(workout.id, 42);
+      expect(workout.title, 'Push Day');
+      expect(workout.durationSeconds, 74 * 60);
+      expect(workout.totalVolume, closeTo(1640, 1e-9));
+      expect(workout.volumeUnit, 'kg');
+      expect(workout.totalReps, 18);
+      expect(workout.totalSets, 2);
+    });
+
+    test('reports no volume for a bodyweight session', () {
+      final workout = buildHomeWidgetLastWorkout(
+        log: log(sets: [set(reps: 12), set(weightKg: 0, reps: 15)]),
+        l10n: l10n,
+        unitService: metricUnits,
+      )!;
+
+      // Not 0.0: the widget swaps the tile for a rep count rather than printing
+      // a bold zero at somebody who trained without weights.
+      expect(workout.totalVolume, isNull);
+      expect(workout.totalReps, 27);
+    });
+
+    test('falls back to the free-workout title', () {
+      expect(
+        buildHomeWidgetLastWorkout(
+          log: log(routineName: null),
+          l10n: l10n,
+          unitService: metricUnits,
+        )!
+            .title,
+        l10n.freeWorkoutTitle,
+      );
+    });
+
+    test('refuses a log that cannot be linked to or timed', () {
+      expect(
+        buildHomeWidgetLastWorkout(
+          log: log(id: null),
+          l10n: l10n,
+          unitService: metricUnits,
+        ),
+        isNull,
+      );
+      expect(
+        buildHomeWidgetLastWorkout(
+          log:
+              WorkoutLog(id: 1, startTime: DateTime(2026, 8, 9), endTime: null),
+          l10n: l10n,
+          unitService: metricUnits,
+        ),
+        isNull,
+      );
+      expect(
+        buildHomeWidgetLastWorkout(
+          log: null,
+          l10n: l10n,
+          unitService: metricUnits,
+        ),
+        isNull,
+      );
     });
   });
 }
+
+/// A recovery payload in the shape `getRecoveryAnalytics` returns.
+RecoveryAnalyticsPayload samplePayload({
+  required int recovering,
+  required int ready,
+  required int fresh,
+  bool hasData = true,
+  String overallState = 'severalRecovering',
+}) =>
+    RecoveryAnalyticsPayload.fromMap({
+      'hasData': hasData,
+      'overallState': overallState,
+      'totals': {
+        'recovering': recovering,
+        'ready': ready,
+        'fresh': fresh,
+        'tracked': recovering + ready + fresh,
+      },
+      'muscles': const <Map<String, dynamic>>[],
+    });

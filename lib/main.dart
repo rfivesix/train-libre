@@ -48,6 +48,10 @@ import 'features/supplements/data/supplement_repository_impl.dart';
 import 'features/supplements/data/sources/supplement_local_data_source.dart';
 import 'features/home_widgets/application/home_widget_sync_service.dart';
 import 'features/home_widgets/home_widget_deep_link.dart';
+import 'features/analytics/presentation/recovery_tracker_screen.dart';
+import 'features/steps/presentation/steps_module_screen.dart';
+import 'features/profile/presentation/measurements_screen.dart';
+import 'features/workout/presentation/workout_log_detail_screen.dart';
 import 'features/app/presentation/main_screen.dart';
 import 'package:workmanager/workmanager.dart';
 import 'features/nutrition_recommendation/data/recommendation_service.dart';
@@ -183,6 +187,8 @@ void main() async {
             create: (context) => HomeWidgetSyncService(
               diaryRepo: context.read<IDiaryRepository>(),
               supplementRepo: context.read<SupplementRepository>(),
+              profileRepo: context.read<IProfileRepository>(),
+              workoutRepo: context.read<IWorkoutRepository>(),
               unitService: unitService,
             ),
             dispose: (_, service) => service.dispose(),
@@ -321,7 +327,36 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         _navigatorKey.currentState?.popUntil((route) => route.isFirst);
         MainScreen.drainPendingWidgetAction?.call();
         return true;
+      case OpenRecoveryLink():
+        _openFromWidget((_) => const RecoveryTrackerScreen());
+        return true;
+      case OpenStepsLink():
+        _openFromWidget((_) => const StepsModuleScreen());
+        return true;
+      case OpenMeasurementsLink(:final metricId, :final periodKey):
+        _openFromWidget(
+          (_) => MeasurementsScreen(
+            initialMeasurementType: metricId,
+            initialBlock: measurementTimeframeBlockForWidgetPeriod(periodKey),
+          ),
+        );
+        return true;
+      case OpenWorkoutLogLink(:final logId):
+        _openFromWidget((_) => WorkoutLogDetailScreen(logId: logId));
+        return true;
     }
+  }
+
+  /// Pushes a widget's destination onto the tab shell.
+  ///
+  /// Pops back to the shell first: tapping the same widget twice should land on
+  /// the screen once, not stack two copies of it — the same rule
+  /// `_returnedToOpenLiveWorkout` applies to the live workout.
+  void _openFromWidget(WidgetBuilder builder) {
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return;
+    navigator.popUntil((route) => route.isFirst);
+    navigator.push(MaterialPageRoute(builder: builder));
   }
 
   bool _returnedToOpenLiveWorkout(String location) {

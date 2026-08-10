@@ -192,6 +192,10 @@ class _MainScreenState extends State<MainScreen>
     await context.read<HomeWidgetSyncService>().refresh(
           l10n: AppLocalizations.of(context)!,
           isAiEnabled: themeService.isAiEnabled,
+          // Backgrounding is the last moment before the Home Screen is on
+          // screen, so the statistics sections are recomputed rather than
+          // served from the cache the cheap in-app paths rely on.
+          forceStatistics: true,
         );
   }
 
