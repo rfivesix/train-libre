@@ -23,7 +23,7 @@ enum StatsTheme {
 
   /// `DesignConstants.summaryCardSecondary{Dark,Light}Mode`.
   static let secondarySurfaceDark = Color(hex: 0x2C2C2E)
-  static let secondarySurfaceLight = Color(hex: 0xF2F2F7)
+  static let secondarySurfaceLight = Color(hex: 0xE4E6EB)
 
   static let titleFont = Font.system(size: 16, weight: .bold)
   static let chipFont = Font.system(size: 10, weight: .bold)
