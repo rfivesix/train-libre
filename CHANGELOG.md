@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.0.2-alpha.1] - 2026-08-11
+## [1.0.2-beta.1] - 2026-08-11
 
 ### Added
 - **Live Activity & Dynamic Island for Workouts (iOS 16.2+):** Real-time workout tracking on the Lock Screen and Dynamic Island (iPhone 14 Pro and newer), showing the active exercise, set position, weight/reps or RIR, and rest countdown without unlocking the device. Includes interactive iOS 17+ controls (`-15s`, `+15s`, `Skip`, 1-tap set completion) and native rest timer sound rescheduling (`UNUserNotificationCenter`).
