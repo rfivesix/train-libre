@@ -30,16 +30,16 @@ public struct QuickActionsConfigIntent: WidgetConfigurationIntent {
     }
   }
 
-  @Parameter(title: "widget.quickActions.slot1", default: .addLiquid)
+  @Parameter(title: "widget.quickActions.slot1", default: .scanBarcode)
   var action1: QuickActionSlot1
 
-  @Parameter(title: "widget.quickActions.slot2", default: .scanBarcode)
+  @Parameter(title: "widget.quickActions.slot2", default: .startWorkout)
   var action2: QuickActionSlot2
 
-  @Parameter(title: "widget.quickActions.slot3", default: .startWorkout)
+  @Parameter(title: "widget.quickActions.slot3", default: .aiMealCapture)
   var action3: QuickActionSlot3
 
-  @Parameter(title: "widget.quickActions.slot4", default: .logSupplement)
+  @Parameter(title: "widget.quickActions.slot4", default: .addLiquid)
   var action4: QuickActionSlot4
 
   public init() {}
@@ -132,12 +132,11 @@ struct QuickActionsWidget: Widget {
       provider: QuickActionsProvider()
     ) { entry in
       QuickActionsView(entry: entry)
-        .padding(12)
-        .containerBackground(.fill.tertiary, for: .widget)
+        .widgetURL(entry.kinds.first?.deepLink ?? URL(string: "trainlibre://diary"))
     }
     .configurationDisplayName(Text("widget.quickActions.name"))
     .description(Text("widget.quickActions.description"))
-    .supportedFamilies([.systemSmall, .systemMedium])
+    .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular])
     .contentMarginsDisabled()
   }
 }
@@ -158,12 +157,25 @@ struct QuickActionsView: View {
   }
 
   var body: some View {
-    if family == .systemSmall {
+    if family == .accessoryCircular {
+      if let firstKind = entry.kinds.first {
+        Link(destination: firstKind.deepLink ?? URL(string: "trainlibre://diary")!) {
+          ZStack {
+            AccessoryWidgetBackground()
+            Image(systemName: firstKind.systemImage)
+              .font(.system(size: 20, weight: .bold))
+          }
+        }
+        .containerBackground(.clear, for: .widget)
+      }
+    } else if family == .systemSmall {
       VStack(spacing: TGTheme.gridSpacing) {
         ForEach(kinds, id: \.self) { kind in
           QuickActionTile(kind: kind, isAiEnabled: entry.isAiEnabled)
         }
       }
+      .padding(12)
+      .containerBackground(.fill.tertiary, for: .widget)
     } else {
       VStack(spacing: TGTheme.gridSpacing) {
         HStack(spacing: TGTheme.gridSpacing) {
@@ -175,6 +187,8 @@ struct QuickActionsView: View {
           QuickActionTile(kind: kinds[3], isAiEnabled: entry.isAiEnabled)
         }
       }
+      .padding(12)
+      .containerBackground(.fill.tertiary, for: .widget)
     }
   }
 }

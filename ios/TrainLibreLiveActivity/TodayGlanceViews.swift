@@ -206,3 +206,105 @@ func relativeLuminance(ofHex hexString: String) -> Double {
 
   return 0.2126 * channel(16) + 0.7152 * channel(8) + 0.0722 * channel(0)
 }
+
+// MARK: - Lock Screen Views & Wrapper
+
+@available(iOS 18.0, *)
+struct TodayGlanceWidgetWrapperView: View {
+  let snapshot: HomeWidgetSnapshot?
+
+  @Environment(\.widgetFamily) private var family
+
+  var body: some View {
+    switch family {
+    case .accessoryInline:
+      TodayGlanceLockScreenInline(snapshot: snapshot)
+        .containerBackground(.clear, for: .widget)
+    case .accessoryCircular:
+      TodayGlanceLockScreenCircular(snapshot: snapshot)
+        .containerBackground(.clear, for: .widget)
+    case .accessoryRectangular:
+      TodayGlanceLockScreenRectangular(snapshot: snapshot)
+        .containerBackground(.clear, for: .widget)
+    default:
+      TodayGlanceGrid(snapshot: snapshot)
+        .padding(12)
+        .containerBackground(.fill.tertiary, for: .widget)
+    }
+  }
+}
+
+@available(iOS 18.0, *)
+struct TodayGlanceLockScreenInline: View {
+  let snapshot: HomeWidgetSnapshot?
+
+  private var caloriesTile: HomeWidgetTile? {
+    snapshot?.tiles.first { $0.slot == "calories" }
+  }
+
+  private var proteinTile: HomeWidgetTile? {
+    snapshot?.tiles.first { $0.slot == "protein" }
+  }
+
+  var body: some View {
+    let calVal = Int(caloriesTile?.value ?? 0)
+    let proVal = Int(proteinTile?.value ?? 0)
+    Text("\(StatsFormat.grouped(calVal)) kcal · \(proVal)g P")
+  }
+}
+
+@available(iOS 18.0, *)
+struct TodayGlanceLockScreenCircular: View {
+  let snapshot: HomeWidgetSnapshot?
+
+  private var proteinTile: HomeWidgetTile? {
+    snapshot?.tiles.first { $0.slot == "protein" }
+  }
+
+  var body: some View {
+    let val = proteinTile?.value ?? 0
+    let target = max(proteinTile?.target ?? 150, 1)
+    Gauge(value: val, in: 0...target) {
+      Text("Protein")
+        .font(.system(size: 9, weight: .bold))
+    } currentValueLabel: {
+      Text("\(Int(val))")
+        .font(.system(size: 13, weight: .bold))
+    } minimumValueLabel: {
+    } maximumValueLabel: {
+    }
+    .gaugeStyle(.accessoryCircular)
+  }
+}
+
+@available(iOS 18.0, *)
+struct TodayGlanceLockScreenRectangular: View {
+  let snapshot: HomeWidgetSnapshot?
+
+  private var caloriesTile: HomeWidgetTile? {
+    snapshot?.tiles.first { $0.slot == "calories" }
+  }
+
+  private var proteinTile: HomeWidgetTile? {
+    snapshot?.tiles.first { $0.slot == "protein" }
+  }
+
+  var body: some View {
+    let calVal = Int(caloriesTile?.value ?? 0)
+    let calTar = Int(caloriesTile?.target ?? 2000)
+    let proVal = Int(proteinTile?.value ?? 0)
+    let proTar = Int(proteinTile?.target ?? 150)
+
+    VStack(alignment: .leading, spacing: 4) {
+      Text("\(StatsFormat.grouped(calVal)) / \(StatsFormat.grouped(calTar)) kcal")
+        .font(.system(size: 14, weight: .bold))
+        .lineLimit(1)
+        .minimumScaleFactor(0.85)
+
+      Text("Protein: \(proVal)g / \(proTar)g")
+        .font(.system(size: 12, weight: .medium))
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+    }
+  }
+}

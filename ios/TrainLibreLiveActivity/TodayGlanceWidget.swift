@@ -131,17 +131,12 @@ struct TodayGlanceWidget: Widget {
       intent: TodayGlanceConfigIntent.self,
       provider: TodayGlanceProvider()
     ) { entry in
-      TodayGlanceGrid(snapshot: entry.snapshot)
-        // Own padding rather than the system content margins: the default
-        // inset is tuned for a single headline, and eats roughly a third of the
-        // height a three-row grid needs.
-        .padding(12)
-        .containerBackground(.fill.tertiary, for: .widget)
+      TodayGlanceWidgetWrapperView(snapshot: entry.snapshot)
         .widgetURL(URL(string: "trainlibre://diary"))
     }
     .configurationDisplayName(Text("widget.todayGlance.name"))
     .description(Text("widget.todayGlance.description"))
-    .supportedFamilies([.systemMedium])
+    .supportedFamilies([.systemMedium, .accessoryInline, .accessoryCircular, .accessoryRectangular])
     .contentMarginsDisabled()
   }
 }

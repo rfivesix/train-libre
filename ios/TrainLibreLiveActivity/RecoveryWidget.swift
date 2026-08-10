@@ -43,14 +43,91 @@ struct RecoveryWidget: Widget {
       kind: TrainLibreHomeWidget.kindRecovery,
       provider: RecoveryProvider()
     ) { entry in
-      RecoveryWidgetView(recovery: entry.recovery)
-        .statsWidgetContainer()
+      RecoveryWidgetWrapperView(recovery: entry.recovery)
         .widgetURL(URL(string: "trainlibre://analytics/recovery"))
     }
     .configurationDisplayName(Text("widget.recovery.name"))
     .description(Text("widget.recovery.description"))
-    .supportedFamilies([.systemMedium])
+    .supportedFamilies([.systemMedium, .accessoryInline, .accessoryRectangular])
     .contentMarginsDisabled()
+  }
+}
+
+// MARK: - View Wrapper
+
+@available(iOS 18.0, *)
+struct RecoveryWidgetWrapperView: View {
+  let recovery: HomeWidgetRecovery?
+
+  @Environment(\.widgetFamily) private var family
+
+  var body: some View {
+    switch family {
+    case .accessoryInline:
+      RecoveryLockScreenInline(recovery: recovery)
+        .containerBackground(.clear, for: .widget)
+    case .accessoryRectangular:
+      RecoveryLockScreenRectangular(recovery: recovery)
+        .containerBackground(.clear, for: .widget)
+    default:
+      RecoveryWidgetView(recovery: recovery)
+        .statsWidgetContainer()
+    }
+  }
+}
+
+// MARK: - Lock Screen Views
+
+@available(iOS 18.0, *)
+struct RecoveryLockScreenInline: View {
+  let recovery: HomeWidgetRecovery?
+
+  private func count(for stateKey: String) -> Int {
+    guard let recovery else { return 0 }
+    return recovery.states.first(where: { $0.state == stateKey })?.count ?? 0
+  }
+
+  var body: some View {
+    let ready = count(for: "ready")
+    let recovering = count(for: "recovering")
+    let fresh = count(for: "fresh")
+    let readyLabel = String(localized: "widget.recovery.state.ready.short")
+    let recoveringLabel = String(localized: "widget.recovery.state.recovering.short")
+    let freshLabel = String(localized: "widget.recovery.state.fresh.short")
+    Text("\(ready) \(readyLabel) · \(recovering) \(recoveringLabel) · \(fresh) \(freshLabel)")
+  }
+}
+
+@available(iOS 18.0, *)
+struct RecoveryLockScreenRectangular: View {
+  let recovery: HomeWidgetRecovery?
+
+  private func count(for stateKey: String) -> Int {
+    guard let recovery else { return 0 }
+    return recovery.states.first(where: { $0.state == stateKey })?.count ?? 0
+  }
+
+  var body: some View {
+    let ready = count(for: "ready")
+    let recovering = count(for: "recovering")
+    let fresh = count(for: "fresh")
+
+    VStack(alignment: .leading, spacing: 3) {
+      stateRow(count: ready, label: String(localized: "widget.recovery.state.ready"))
+      stateRow(count: recovering, label: String(localized: "widget.recovery.state.recovering"))
+      stateRow(count: fresh, label: String(localized: "widget.recovery.state.fresh"))
+    }
+  }
+
+  private func stateRow(count: Int, label: String) -> some View {
+    HStack(spacing: 6) {
+      Text("\(count)")
+        .font(.system(size: 13, weight: .bold, design: .monospaced))
+        .frame(width: 18, alignment: .trailing)
+      Text(label)
+        .font(.system(size: 12, weight: .medium))
+        .lineLimit(1)
+    }
   }
 }
 

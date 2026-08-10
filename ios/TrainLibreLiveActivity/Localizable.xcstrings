@@ -1988,6 +1988,39 @@
         }
       }
     },
+    "widget.recovery.state.fresh.short" : {
+      "comment" : "Inline lockscreen recovery state label for fresh",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Fr." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Fresh" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Frais" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Fresco" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新鮮" } }
+      }
+    },
+    "widget.recovery.state.ready.short" : {
+      "comment" : "Inline lockscreen recovery state label for ready",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ber." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ready" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Prêt" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Pronto" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "準備" } }
+      }
+    },
+    "widget.recovery.state.recovering.short" : {
+      "comment" : "Inline lockscreen recovery state label for recovering",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Erh." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rec." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réc." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Rec." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "回復" } }
+      }
+    },
     "widget.startWorkout" : {
       "comment" : "Mirrors `startWorkout` in lib/l10n/*.arb.",
       "extractionState" : "manual",
