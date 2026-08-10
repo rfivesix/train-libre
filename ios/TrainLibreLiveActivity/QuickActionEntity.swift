@@ -23,19 +23,19 @@ import SwiftUI
 /// handled where it is harmless instead: the tile renders dimmed when AI is
 /// off, and the deep link falls back to the diary rather than opening a screen
 /// the app has disabled.
-enum QuickActionKind: String, AppEnum, CaseIterable {
-  case aiMealCapture = "ai_meal_capture"
-  case scanBarcode = "scan_barcode"
-  case startWorkout = "start_workout"
-  case addMeasurement = "add_measurement"
-  case logSupplement = "log_supplement"
-  case addLiquid = "add_liquid"
+public enum QuickActionKind: String, AppEnum, CaseIterable {
+  case aiMealCapture
+  case scanBarcode
+  case startWorkout
+  case addMeasurement
+  case logSupplement
+  case addLiquid
 
-  static var typeDisplayRepresentation: TypeDisplayRepresentation {
+  public static var typeDisplayRepresentation: TypeDisplayRepresentation {
     TypeDisplayRepresentation(name: "quickAction.type")
   }
 
-  static var caseDisplayRepresentations: [QuickActionKind: DisplayRepresentation] {
+  public static var caseDisplayRepresentations: [QuickActionKind: DisplayRepresentation] {
     [
       .aiMealCapture: .init(
         title: "quickAction.aiMealCapture", image: .init(systemName: "sparkles")),
@@ -99,7 +99,76 @@ enum QuickActionKind: String, AppEnum, CaseIterable {
     )
   }
 
+  var actionKey: String {
+    switch self {
+    case .aiMealCapture: return "ai_meal_capture"
+    case .scanBarcode: return "scan_barcode"
+    case .startWorkout: return "start_workout"
+    case .addMeasurement: return "add_measurement"
+    case .logSupplement: return "log_supplement"
+    case .addLiquid: return "add_liquid"
+    }
+  }
+
   var deepLink: URL? {
-    URL(string: "trainlibre://action/\(rawValue)")
+    URL(string: "trainlibre://action/\(actionKey)")
+  }
+}
+
+// MARK: - Widget configuration values
+
+/// WidgetKit persists a configuration parameter by its App Intents enum type
+/// and raw value. Do not use `QuickActionKind` for all four parameters: on
+/// iOS 18, multiple pickers sharing the same AppEnum can be restored as their
+/// defaults even though the configuration UI retains the selected labels.
+///
+/// The four types deliberately have identical cases and display strings, but
+/// distinct type identities. They convert back to `QuickActionKind` before a
+/// timeline entry is created, leaving rendering and deep links unchanged.
+protocol QuickActionSlotValue {
+  var kind: QuickActionKind { get }
+}
+
+extension QuickActionSlotValue where Self: RawRepresentable, RawValue == String {
+  var kind: QuickActionKind { QuickActionKind(rawValue: rawValue)! }
+}
+
+enum QuickActionSlot1: String, AppEnum, CaseIterable, QuickActionSlotValue {
+  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid
+  static var typeDisplayRepresentation: TypeDisplayRepresentation { "widget.quickActions.slot1" }
+  static var caseDisplayRepresentations: [Self: DisplayRepresentation] {
+    [.aiMealCapture: "quickAction.aiMealCapture", .scanBarcode: "quickAction.scanBarcode",
+     .startWorkout: "quickAction.startWorkout", .addMeasurement: "quickAction.addMeasurement",
+     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid"]
+  }
+}
+
+enum QuickActionSlot2: String, AppEnum, CaseIterable, QuickActionSlotValue {
+  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid
+  static var typeDisplayRepresentation: TypeDisplayRepresentation { "widget.quickActions.slot2" }
+  static var caseDisplayRepresentations: [Self: DisplayRepresentation] {
+    [.aiMealCapture: "quickAction.aiMealCapture", .scanBarcode: "quickAction.scanBarcode",
+     .startWorkout: "quickAction.startWorkout", .addMeasurement: "quickAction.addMeasurement",
+     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid"]
+  }
+}
+
+enum QuickActionSlot3: String, AppEnum, CaseIterable, QuickActionSlotValue {
+  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid
+  static var typeDisplayRepresentation: TypeDisplayRepresentation { "widget.quickActions.slot3" }
+  static var caseDisplayRepresentations: [Self: DisplayRepresentation] {
+    [.aiMealCapture: "quickAction.aiMealCapture", .scanBarcode: "quickAction.scanBarcode",
+     .startWorkout: "quickAction.startWorkout", .addMeasurement: "quickAction.addMeasurement",
+     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid"]
+  }
+}
+
+enum QuickActionSlot4: String, AppEnum, CaseIterable, QuickActionSlotValue {
+  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid
+  static var typeDisplayRepresentation: TypeDisplayRepresentation { "widget.quickActions.slot4" }
+  static var caseDisplayRepresentations: [Self: DisplayRepresentation] {
+    [.aiMealCapture: "quickAction.aiMealCapture", .scanBarcode: "quickAction.scanBarcode",
+     .startWorkout: "quickAction.startWorkout", .addMeasurement: "quickAction.addMeasurement",
+     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid"]
   }
 }

@@ -119,5 +119,10 @@
 	<true/>
 	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
 	<true/>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>QuickActionsConfigIntent</string>
+		<string>TodayGlanceConfigIntent</string>
+	</array>
 </dict>
 </plist>

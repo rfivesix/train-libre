@@ -7,5 +7,10 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>QuickActionsConfigIntent</string>
+		<string>TodayGlanceConfigIntent</string>
+	</array>
 </dict>
 </plist>

@@ -13,32 +13,47 @@ import WidgetKit
 /// and "Schnellzugriff (4)" next to each other in the gallery, which is worse.
 /// The parameter titles say so instead.
 @available(iOS 18.0, *)
-struct QuickActionsConfigIntent: WidgetConfigurationIntent {
-  static var title: LocalizedStringResource { "widget.quickActions.name" }
-  static var description: IntentDescription { "widget.quickActions.intentDescription" }
+public struct QuickActionsConfigIntent: WidgetConfigurationIntent {
+  public static var title: LocalizedStringResource { "widget.quickActions.name" }
+  public static var description: IntentDescription { "widget.quickActions.intentDescription" }
+
+  /// Keep this an opaque result type. AppIntents reads the concrete builder
+  /// structure while exporting `Metadata.appintents`; erasing it to the
+  /// `ParameterSummary` protocol leaves the edit sheet able to display the
+  /// fields but prevents their values from being restored for the provider.
+  public static var parameterSummary: some ParameterSummary {
+    Summary {
+      \.$action1
+      \.$action2
+      \.$action3
+      \.$action4
+    }
+  }
 
   @Parameter(title: "widget.quickActions.slot1", default: .addLiquid)
-  var action1: QuickActionKind
+  var action1: QuickActionSlot1
 
   @Parameter(title: "widget.quickActions.slot2", default: .scanBarcode)
-  var action2: QuickActionKind
+  var action2: QuickActionSlot2
 
   @Parameter(title: "widget.quickActions.slot3", default: .startWorkout)
-  var action3: QuickActionKind
+  var action3: QuickActionSlot3
 
   @Parameter(title: "widget.quickActions.slot4", default: .logSupplement)
-  var action4: QuickActionKind
+  var action4: QuickActionSlot4
+
+  public init() {}
 
   /// What a freshly added widget shows before the user has configured anything.
-  static let defaultKinds: [QuickActionKind] = [
+  public static let defaultKinds: [QuickActionKind] = [
     .addLiquid, .scanBarcode, .startWorkout, .logSupplement,
   ]
 
   /// The four configured actions, in slot order.
   ///
   /// Must be called while the intent is live — see `QuickActionsEntry`.
-  func resolvedKinds() -> [QuickActionKind] {
-    [action1, action2, action3, action4]
+  public func resolvedKinds() -> [QuickActionKind] {
+    [action1.kind, action2.kind, action3.kind, action4.kind]
   }
 }
 
@@ -145,7 +160,7 @@ struct QuickActionsView: View {
   var body: some View {
     if family == .systemSmall {
       VStack(spacing: TGTheme.gridSpacing) {
-        ForEach(Array(kinds.enumerated()), id: \.offset) { _, kind in
+        ForEach(kinds, id: \.self) { kind in
           QuickActionTile(kind: kind, isAiEnabled: entry.isAiEnabled)
         }
       }

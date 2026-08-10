@@ -158,46 +158,23 @@ pinned against Dart's real output in `HomeWidgetSharedTests`.
 
 ---
 
+## Resolved Issues
+
+### Quick Action Widget Configuration Intent Restoration
+
+The configuration sheet for `QuickActionsWidget` showed all four action pickers and accepted a
+selection, but the timeline provider was always passed the defaults. The App Intents metadata
+contained every field, so this was not an export or timeline issue. iOS 18 failed to restore
+separate widget parameters that all used the same `QuickActionKind` AppEnum type.
+
+**Fix:** Each slot uses a dedicated AppEnum (`QuickActionSlot1` through
+`QuickActionSlot4`) with the same cases and labels. The provider immediately maps those values
+to `QuickActionKind`, so widget rendering and deep links remain shared while WidgetKit persists
+each configured slot under a distinct type.
+
+---
+
 ## Still open
-
-### The Schnellzugriff configuration does not reach the widget
-
-**The four action slots cannot currently be changed.** The configuration sheet works — it lists
-the six actions, stores the selection and shows it back on reopening — but the value never
-arrives in the timeline provider, which always receives the parameter defaults. Every tile
-therefore renders `Add Liquid / Scan barcode / Start Workout / Log Intake` no matter what is
-picked.
-
-Established by writing what `timeline(for:in:)` actually received into the App Group and reading
-it back per widget instance and family:
-
-- `timeline(for:in:)` **is** re-run at the right moments, including immediately on configuration
-  commit.
-- The `configuration` argument carries default values on every single run.
-
-Ruled out, each verified on device and none of them the cause:
-
-| Suspected | Result |
-| --- | --- |
-| `AppEntity` + `EntityQuery` storing an unresolvable dynamic-option token | Switched to `AppEnum` (kept — it is simpler and makes the sheet show the real defaults). No change. |
-| Entry holding the intent, `@Parameter`s not surviving entry archiving | Entry now holds resolved plain values (kept — correct regardless). No change. |
-| `.never` reload policy suppressing configuration reloads | Switched to a daily policy (kept — `.never` means "app-triggered only" and can strand the widget). No change. |
-| Intent metadata missing from the app bundle | Added intents to the Runner target; app metadata then contained them, and the sheet switched to the app's *unlocalized* keys — proving the system reads the app bundle. Still defaults. Reverted, as it broke localization. |
-| `static var title = …` vs Apple's computed style | Switched to computed (kept). No change. |
-| Stale cached parameter schema under the old intent identifier | Renamed the intent and added a fresh instance. Still defaults. Reverted the name. |
-
-The two ways forward:
-
-1. Keep digging on the native path — the remaining suspect is how the configuration is namespaced
-   between the app bundle (`com.rfivesix.trainlibre.QuickActionsConfigIntent`, which is what the
-   configuration UI writes against) and the widget extension that decodes it.
-2. Move the choice into the app's own settings and ship the four actions in the App Group snapshot
-   the widget already reads. That pipeline is proven end to end, so it is guaranteed to work, and
-   the strings stay in the existing `.arb` files. The cost is that two placed widgets could no
-   longer be configured differently, and the setting no longer lives under *Edit Widget*.
-
-Until this is resolved the widget is still useful — the four default actions are the most common
-ones and all of them work — but it must not be advertised as configurable.
 
 ### Other
 
