@@ -6,8 +6,15 @@ import WidgetKit
 
   @main
   struct TrainLibreLiveActivityBundle: WidgetBundle {
+    // The Home Screen widgets need iOS 18, the Live Activity ships from 16.2.
+    // Gating them here rather than raising the extension's deployment target is
+    // what keeps the Live Activity available to 16/17 users.
     var body: some Widget {
       WorkoutLiveActivityWidget()
+      if #available(iOS 18.0, *) {
+        TodayGlanceWidget()
+        QuickActionsWidget()
+      }
     }
   }
 

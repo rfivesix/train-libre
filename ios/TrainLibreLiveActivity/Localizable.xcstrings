@@ -1,0 +1,247 @@
+{
+  "sourceLanguage" : "en",
+  "version" : "1.0",
+  "strings" : {
+    "quickAction.addLiquid" : {
+      "comment" : "Mirrors `addLiquidOption` in lib/l10n/*.arb. iOS renders the widget configuration UI outside the app process, so these cannot come from the snapshot and must be duplicated here.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Flüssigkeit hinzufügen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add Liquid" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter du liquide" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Aggiungi liquido" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "液体を追加" } }
+      }
+    },
+    "quickAction.addMeasurement" : {
+      "comment" : "Mirrors `addMeasurement` in lib/l10n/*.arb.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Messwert hinzufügen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add Measurement" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter une mesure" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Aggiungi misurazione" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "測定の追加" } }
+      }
+    },
+    "quickAction.aiMealCapture" : {
+      "comment" : "Mirrors `aiMealCapture` in lib/l10n/*.arb.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "KI-Mahlzeit" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI Meal" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Repas IA" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Pasto AI" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "AIミール" } }
+      }
+    },
+    "quickAction.logSupplement" : {
+      "comment" : "Mirrors `logIntakeTitle` in lib/l10n/*.arb.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Einnahme protokollieren" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Log Intake" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Entrée de journal" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Registra l'assunzione" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ログの取り込み" } }
+      }
+    },
+    "quickAction.scanBarcode" : {
+      "comment" : "Mirrors `scann_barcode_capslock` in lib/l10n/*.arb.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Barcode scannen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scan barcode" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Scanner le code-barres" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Scansiona il codice a barre" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "バーコードをスキャン" } }
+      }
+    },
+    "quickAction.startWorkout" : {
+      "comment" : "Mirrors `startWorkout` in lib/l10n/*.arb.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Workout starten" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Workout" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Commencer l'entraînement" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Inizia l'allenamento" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ワークアウトを開始する" } }
+      }
+    },
+    "quickAction.type" : {
+      "comment" : "Type name shown by the system when picking an action for a slot.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktion" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Action" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Action" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Azione" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アクション" } }
+      }
+    },
+    "widget.quickActions.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zwei oder vier frei wählbare Aktionen direkt vom Home-Bildschirm." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Two or four actions of your choice, straight from the Home Screen." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Deux ou quatre actions de votre choix, directement depuis l'écran d'accueil." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Due o quattro azioni a tua scelta, direttamente dalla schermata Home." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ホーム画面から、選んだ2つまたは4つのアクションをすぐに実行できます。" } }
+      }
+    },
+    "widget.quickActions.intentDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wähle die Aktionen, die im Widget erscheinen. Das kleine Widget zeigt die ersten beiden." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose the actions shown in the widget. The small widget shows the first two." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisissez les actions affichées dans le widget. Le petit widget affiche les deux premières." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Scegli le azioni mostrate nel widget. Il widget piccolo mostra le prime due." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ウィジェットに表示するアクションを選択します。小サイズでは最初の2つが表示されます。" } }
+      }
+    },
+    "widget.quickActions.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Schnellzugriff" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quick Actions" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Accès rapide" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Accesso rapido" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クイックアクセス" } }
+      }
+    },
+    "widget.quickActions.slot1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktion 1" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Action 1" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Action 1" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Azione 1" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アクション 1" } }
+      }
+    },
+    "widget.quickActions.slot2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktion 2" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Action 2" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Action 2" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Azione 2" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アクション 2" } }
+      }
+    },
+    "widget.quickActions.slot3" : {
+      "comment" : "Slots 3 and 4 are unused by the small widget. A widget cannot vary its parameter list by family, so the title says so instead.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktion 3 (nur mittleres Widget)" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Action 3 (medium widget only)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Action 3 (widget moyen uniquement)" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Azione 3 (solo widget medio)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アクション 3（中サイズのみ）" } }
+      }
+    },
+    "widget.quickActions.slot4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktion 4 (nur mittleres Widget)" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Action 4 (medium widget only)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Action 4 (widget moyen uniquement)" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Azione 4 (solo widget medio)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アクション 4（中サイズのみ）" } }
+      }
+    },
+    "widget.todayGlance.dayMode.calendarDay" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kalendertag" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Calendar day" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Jour calendaire" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Giorno di calendario" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "暦日" } }
+      }
+    },
+    "widget.todayGlance.dayMode.calendarDay.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Tageswechsel um 00:00 Uhr" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Day changes at 00:00" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Changement de jour à 00:00" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Il giorno cambia alle 00:00" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "0時に日付が変わります" } }
+      }
+    },
+    "widget.todayGlance.dayMode.followApp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wie in der App" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Same as the app" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Comme dans l'app" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Come nell'app" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アプリと同じ" } }
+      }
+    },
+    "widget.todayGlance.dayMode.followApp.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Tageswechsel um 03:00 Uhr" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Day changes at 03:00" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Changement de jour à 03:00" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Il giorno cambia alle 03:00" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "午前3時に日付が変わります" } }
+      }
+    },
+    "widget.todayGlance.dayMode.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Angezeigter Tag" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Day shown" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Jour affiché" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Giorno mostrato" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "表示する日" } }
+      }
+    },
+    "widget.todayGlance.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kalorien, Wasser und Makros des Tages auf einen Blick." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today's calories, water and macros at a glance." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Calories, eau et macros du jour en un coup d'œil." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Calorie, acqua e macro di oggi a colpo d'occhio." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日のカロリー・水分・マクロを一目で確認できます。" } }
+      }
+    },
+    "widget.todayGlance.empty.noData" : {
+      "comment" : "Shown when the app has never written a snapshot — e.g. the widget was added before the app was opened.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Öffne Train Libre, um deine Tageswerte zu laden" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Train Libre to load today's values" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvre Train Libre pour charger les valeurs du jour" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Apri Train Libre per caricare i valori di oggi" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Train Libre を開くと今日の値を読み込みます" } }
+      }
+    },
+    "widget.todayGlance.empty.noEntries" : {
+      "comment" : "Shown when the day has targets but nothing logged yet. Deliberately factual — the grid above already shows the targets.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Noch kein Eintrag für heute — tippen zum Loggen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Nothing logged today — tap to add an entry" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rien enregistré aujourd'hui — touche pour ajouter" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nulla registrato oggi — tocca per aggiungere" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日の記録はまだありません — タップして追加" } }
+      }
+    },
+    "widget.todayGlance.name" : {
+      "comment" : "Mirrors `nutritionSectionTodayInFocus` / `today_overview_text` in lib/l10n/*.arb.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Heute im Blick" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today at a Glance" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aujourd'hui en un coup d'œil" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Oggi in sintesi" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日の概要" } }
+      }
+    }
+  }
+}

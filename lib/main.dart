@@ -46,6 +46,9 @@ import 'features/profile/data/sources/profile_local_data_source.dart';
 import 'features/supplements/domain/repositories/supplement_repository.dart';
 import 'features/supplements/data/supplement_repository_impl.dart';
 import 'features/supplements/data/sources/supplement_local_data_source.dart';
+import 'features/home_widgets/application/home_widget_sync_service.dart';
+import 'features/home_widgets/home_widget_deep_link.dart';
+import 'features/app/presentation/main_screen.dart';
 import 'package:workmanager/workmanager.dart';
 import 'features/nutrition_recommendation/data/recommendation_service.dart';
 import 'services/ai_service.dart';
@@ -176,6 +179,14 @@ void main() async {
           ),
           ChangeNotifierProvider.value(value: unitService),
           ChangeNotifierProvider.value(value: themeService),
+          Provider<HomeWidgetSyncService>(
+            create: (context) => HomeWidgetSyncService(
+              diaryRepo: context.read<IDiaryRepository>(),
+              supplementRepo: context.read<SupplementRepository>(),
+              unitService: unitService,
+            ),
+            dispose: (_, service) => service.dispose(),
+          ),
         ],
         child: MyApp(
           home: isFreshInstall
@@ -278,10 +289,39 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// we pop back to it instead.
   @override
   Future<bool> didPushRouteInformation(RouteInformation routeInformation) {
-    if (_returnedToOpenLiveWorkout(routeInformation.uri.toString())) {
+    final location = routeInformation.uri.toString();
+    if (_returnedToOpenLiveWorkout(location)) {
+      return SynchronousFuture<bool>(true);
+    }
+    if (_handledHomeWidgetLink(location)) {
       return SynchronousFuture<bool>(true);
     }
     return super.didPushRouteInformation(routeInformation);
+  }
+
+  /// Handles the URLs the iOS Home Screen widgets emit.
+  ///
+  /// Returns true when the link was consumed, which stops the navigator from
+  /// also trying to generate a route for a URL that is a command, not a screen.
+  bool _handledHomeWidgetLink(String location) {
+    final link = parseHomeWidgetDeepLink(location);
+    switch (link) {
+      case null:
+        return false;
+      case OpenDiaryLink():
+        // The diary resolves its own day; passing one from the widget would
+        // only add a second opinion about what "today" means.
+        _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+        return true;
+      case QuickActionLink(:final actionKey):
+        // Park it either way: on a cold launch MainScreen does not exist yet
+        // and drains this once mounted, on a warm launch the drain below runs
+        // it immediately.
+        MainScreen.pendingWidgetAction = actionKey;
+        _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+        MainScreen.drainPendingWidgetAction?.call();
+        return true;
+    }
   }
 
   bool _returnedToOpenLiveWorkout(String location) {

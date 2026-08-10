@@ -103,12 +103,21 @@ class AddFoodScreen extends StatefulWidget {
   /// When true, the screen acts as a food picker — tapping an item pops it
   /// back to the caller instead of logging it. Used by AI meal review.
   final bool selectionMode;
+
+  /// When true, the barcode scanner opens straight away on the first frame.
+  ///
+  /// Used by the Home Screen "Barcode scannen" quick action, which wants the
+  /// camera rather than the search list, but wants the same scan → lookup →
+  /// log flow once a code has been read.
+  final bool autoOpenScanner;
+
   const AddFoodScreen({
     super.key,
     this.initialTab = 0,
     this.initialDate, // <--- New
     this.initialMealType, // <--- New
     this.selectionMode = false,
+    this.autoOpenScanner = false,
   });
 
   @override
@@ -283,6 +292,11 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       await BasisDataManager.instance
           .promptOffDatabaseDownloadIfFirstTime(context);
       await _checkDbStatus();
+      // Only after the first-run database prompt has been dealt with — opening
+      // the camera on top of that dialog would bury it.
+      if (widget.autoOpenScanner && mounted) {
+        _scanBarcodeAndPop();
+      }
     });
 
     _loadFavorites();
