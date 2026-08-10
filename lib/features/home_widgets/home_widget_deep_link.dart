@@ -47,6 +47,7 @@ class HomeWidgetAction {
   static const String addMeasurement = 'add_measurement';
   static const String logSupplement = 'log_supplement';
   static const String addLiquid = 'add_liquid';
+  static const String addFood = 'add_food';
 
   static const Set<String> all = {
     aiMealCapture,
@@ -55,6 +56,7 @@ class HomeWidgetAction {
     addMeasurement,
     logSupplement,
     addLiquid,
+    addFood,
   };
 
   const HomeWidgetAction._();

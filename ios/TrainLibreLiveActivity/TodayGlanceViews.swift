@@ -95,8 +95,24 @@ struct TodayGlanceBar: View {
   let tile: HomeWidgetTile?
 
   @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.widgetRenderingMode) private var renderingMode
 
   private var isDark: Bool { colorScheme == .dark }
+  private var isAccented: Bool { renderingMode == .accented }
+
+  private var barBackground: Color {
+    if isAccented {
+      return Color.primary.opacity(0.12)
+    }
+    return isDark ? Color(white: 0.18) : Color.white
+  }
+
+  private var strokeColor: Color {
+    if isAccented {
+      return Color.primary.opacity(0.25)
+    }
+    return isDark ? Color.white.opacity(0.18) : Color.black.opacity(0.08)
+  }
 
   /// `GlassProgressBar`'s readability heuristic: a fill that is light in dark
   /// mode (or dark in light mode) gets a scrim so the shadowed text keeps its
@@ -107,39 +123,35 @@ struct TodayGlanceBar: View {
     return isDark ? luminance > 0.5 : luminance < 0.5
   }
 
-  // The ZStack is deliberately the layout root here. An earlier version wrapped
-  // each bar in a GeometryReader, which has no intrinsic size — three of those
-  // in a VStack divide the height unevenly and the third bar lost its card
-  // entirely. GeometryReader now appears only inside the mask, where it reads
-  // the size the layout has already resolved.
   var body: some View {
     ZStack(alignment: .leading) {
-      (isDark ? TGTheme.cardDark : TGTheme.cardLight)
+      barBackground
 
       // Layer 2 — unfilled state, full width, no shadow.
-      textContent(withShadow: false)
+      textContent(withShadow: false, inAccentedFill: false)
 
       // Layer 3 — the fill and its text, clipped to the progress ratio.
       if let tile, tile.progress > 0 {
         ZStack(alignment: .leading) {
-          Color(hexString: tile.colorHex)
+          if isAccented {
+            Color.primary.opacity(0.35)
+          } else {
+            Color(hexString: tile.colorHex)
 
-          if isLowContrast || isDark {
-            LinearGradient(
-              stops: [
-                .init(color: .black.opacity(isDark ? 0.2 : 0.1), location: 0),
-                .init(color: .clear, location: 0.6),
-              ],
-              startPoint: .leading,
-              endPoint: .trailing
-            )
+            if isLowContrast || isDark {
+              LinearGradient(
+                stops: [
+                  .init(color: .black.opacity(isDark ? 0.2 : 0.1), location: 0),
+                  .init(color: .clear, location: 0.6),
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+              )
+            }
           }
 
-          textContent(withShadow: true)
+          textContent(withShadow: !isAccented, inAccentedFill: isAccented)
         }
-        // Masked rather than width-constrained: a narrower frame would re-lay
-        // out the text instead of clipping it, which is not what the Dart
-        // ClipRect does.
         .mask(alignment: .leading) {
           GeometryReader { geo in
             Rectangle().frame(width: geo.size.width * tile.progress)
@@ -148,26 +160,27 @@ struct TodayGlanceBar: View {
       }
     }
     .clipShape(RoundedRectangle(cornerRadius: TGTheme.barRadius, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: TGTheme.barRadius, style: .continuous)
+        .stroke(strokeColor, lineWidth: 0.8)
+    )
   }
 
-  private func textContent(withShadow: Bool) -> some View {
-    // Inside the fill the text is forced to white-on-dark / black-on-light with
-    // a shadow, exactly as in the Dart bar; outside it follows the system label
-    // colour.
-    let filled: Color = isDark ? .white : .black
+  private func textContent(withShadow: Bool, inAccentedFill: Bool = false) -> some View {
+    let filled: Color = inAccentedFill ? .primary : (isDark ? .white : .black)
     let shadowColor = withShadow ? Color.black.opacity(0.3) : Color.clear
 
     return VStack(alignment: .leading, spacing: 2) {
       Text(tile?.label ?? "—")
         .font(TGTheme.labelFont)
-        .foregroundStyle(withShadow ? filled : Color.primary)
+        .foregroundStyle(withShadow || inAccentedFill ? filled : Color.primary)
         .shadow(color: shadowColor, radius: 1, x: 0, y: 1)
         .lineLimit(1)
         .minimumScaleFactor(0.8)
 
       Text(tile?.valueText ?? "–")
         .font(TGTheme.valueFont)
-        .foregroundStyle(withShadow ? filled.opacity(0.9) : Color.primary)
+        .foregroundStyle(withShadow || inAccentedFill ? filled.opacity(0.9) : Color.primary)
         .shadow(color: shadowColor, radius: 1, x: 0, y: 1)
         .lineLimit(1)
         .minimumScaleFactor(0.8)

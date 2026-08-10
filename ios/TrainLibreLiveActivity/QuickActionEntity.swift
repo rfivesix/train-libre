@@ -30,6 +30,7 @@ public enum QuickActionKind: String, AppEnum, CaseIterable {
   case addMeasurement
   case logSupplement
   case addLiquid
+  case addFood
 
   public static var typeDisplayRepresentation: TypeDisplayRepresentation {
     TypeDisplayRepresentation(name: "quickAction.type")
@@ -49,6 +50,8 @@ public enum QuickActionKind: String, AppEnum, CaseIterable {
         title: "quickAction.logSupplement", image: .init(systemName: "pills.fill")),
       .addLiquid: .init(
         title: "quickAction.addLiquid", image: .init(systemName: "drop.fill")),
+      .addFood: .init(
+        title: "quickAction.addFood", image: .init(systemName: "plus.circle.fill")),
     ]
   }
 
@@ -62,6 +65,7 @@ public enum QuickActionKind: String, AppEnum, CaseIterable {
     case .addMeasurement: return "ruler"
     case .logSupplement: return "pills.fill"
     case .addLiquid: return "drop.fill"
+    case .addFood: return "plus.circle.fill"
     }
   }
 
@@ -73,6 +77,7 @@ public enum QuickActionKind: String, AppEnum, CaseIterable {
     case .addMeasurement: return "quickAction.addMeasurement"
     case .logSupplement: return "quickAction.logSupplement"
     case .addLiquid: return "quickAction.addLiquid"
+    case .addFood: return "quickAction.addFood"
     }
   }
 
@@ -86,6 +91,7 @@ public enum QuickActionKind: String, AppEnum, CaseIterable {
     case .addMeasurement: return Color(hex: 0x66BB6A)
     case .logSupplement: return Color(hex: 0xBA68C8)
     case .addLiquid: return Color(hex: 0x00A9C4)
+    case .addFood: return Color(hex: 0xFF9800)
     }
   }
 
@@ -107,6 +113,7 @@ public enum QuickActionKind: String, AppEnum, CaseIterable {
     case .addMeasurement: return "add_measurement"
     case .logSupplement: return "log_supplement"
     case .addLiquid: return "add_liquid"
+    case .addFood: return "add_food"
     }
   }
 
@@ -134,41 +141,45 @@ extension QuickActionSlotValue where Self: RawRepresentable, RawValue == String 
 }
 
 enum QuickActionSlot1: String, AppEnum, CaseIterable, QuickActionSlotValue {
-  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid
+  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid, addFood
   static var typeDisplayRepresentation: TypeDisplayRepresentation { "widget.quickActions.slot1" }
   static var caseDisplayRepresentations: [Self: DisplayRepresentation] {
     [.aiMealCapture: "quickAction.aiMealCapture", .scanBarcode: "quickAction.scanBarcode",
      .startWorkout: "quickAction.startWorkout", .addMeasurement: "quickAction.addMeasurement",
-     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid"]
+     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid",
+     .addFood: "quickAction.addFood"]
   }
 }
 
 enum QuickActionSlot2: String, AppEnum, CaseIterable, QuickActionSlotValue {
-  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid
+  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid, addFood
   static var typeDisplayRepresentation: TypeDisplayRepresentation { "widget.quickActions.slot2" }
   static var caseDisplayRepresentations: [Self: DisplayRepresentation] {
     [.aiMealCapture: "quickAction.aiMealCapture", .scanBarcode: "quickAction.scanBarcode",
      .startWorkout: "quickAction.startWorkout", .addMeasurement: "quickAction.addMeasurement",
-     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid"]
+     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid",
+     .addFood: "quickAction.addFood"]
   }
 }
 
 enum QuickActionSlot3: String, AppEnum, CaseIterable, QuickActionSlotValue {
-  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid
+  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid, addFood
   static var typeDisplayRepresentation: TypeDisplayRepresentation { "widget.quickActions.slot3" }
   static var caseDisplayRepresentations: [Self: DisplayRepresentation] {
     [.aiMealCapture: "quickAction.aiMealCapture", .scanBarcode: "quickAction.scanBarcode",
      .startWorkout: "quickAction.startWorkout", .addMeasurement: "quickAction.addMeasurement",
-     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid"]
+     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid",
+     .addFood: "quickAction.addFood"]
   }
 }
 
 enum QuickActionSlot4: String, AppEnum, CaseIterable, QuickActionSlotValue {
-  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid
+  case aiMealCapture, scanBarcode, startWorkout, addMeasurement, logSupplement, addLiquid, addFood
   static var typeDisplayRepresentation: TypeDisplayRepresentation { "widget.quickActions.slot4" }
   static var caseDisplayRepresentations: [Self: DisplayRepresentation] {
     [.aiMealCapture: "quickAction.aiMealCapture", .scanBarcode: "quickAction.scanBarcode",
      .startWorkout: "quickAction.startWorkout", .addMeasurement: "quickAction.addMeasurement",
-     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid"]
+     .logSupplement: "quickAction.logSupplement", .addLiquid: "quickAction.addLiquid",
+     .addFood: "quickAction.addFood"]
   }
 }

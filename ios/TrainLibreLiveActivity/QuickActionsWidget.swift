@@ -184,17 +184,14 @@ struct QuickActionTile: View {
   let kind: QuickActionKind
   let isAiEnabled: Bool
 
+  @Environment(\.widgetRenderingMode) private var renderingMode
+
   /// An AI tile placed while AI was on, then switched off in the app.
   private var isDisabled: Bool {
     kind == .aiMealCapture && !isAiEnabled
   }
 
   var body: some View {
-    // `Link`, not `Button(intent:)`. A widget button never fired here — the tap
-    // is consumed without the intent's `perform()` ever running, so the app was
-    // never launched. `Link` is handled by SpringBoard itself and works, and on
-    // the iOS 18 floor it works in `systemSmall` too, despite the long-standing
-    // "small widgets only support widgetURL" rule. Verified on both sizes.
     Link(destination: kind.deepLink ?? URL(string: "trainlibre://diary")!) {
       tileContent
     }
@@ -204,13 +201,13 @@ struct QuickActionTile: View {
     VStack(alignment: .leading, spacing: 0) {
       Image(systemName: kind.systemImage)
         .font(.system(size: 17, weight: .semibold))
-        .foregroundStyle(.white)
+        .foregroundStyle(renderingMode == .accented ? Color.primary : Color.white)
 
       Spacer(minLength: 4)
 
       Text(kind.titleKey)
         .font(.system(size: 12, weight: .semibold))
-        .foregroundStyle(.white)
+        .foregroundStyle(renderingMode == .accented ? Color.primary : Color.white)
         .lineLimit(2)
         .minimumScaleFactor(0.85)
         .multilineTextAlignment(.leading)
@@ -219,7 +216,9 @@ struct QuickActionTile: View {
     .padding(10)
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     .background {
-      if let gradient = kind.gradient {
+      if renderingMode == .accented {
+        Color.primary.opacity(0.15)
+      } else if let gradient = kind.gradient {
         gradient
       } else {
         kind.tint

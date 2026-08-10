@@ -14,6 +14,13 @@ import WidgetKit
       if #available(iOS 18.0, *) {
         TodayGlanceWidget()
         QuickActionsWidget()
+        AIMealControlWidget()
+        ScanBarcodeControlWidget()
+        StartWorkoutControlWidget()
+        AddMeasurementControlWidget()
+        LogSupplementControlWidget()
+        AddLiquidControlWidget()
+        AddFoodControlWidget()
       }
     }
   }

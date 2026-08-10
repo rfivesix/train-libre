@@ -25,6 +25,7 @@
 		3EFAF4623028BE0D002B89E7 /* HomeWidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFAF45F3028BE0D002B89E7 /* HomeWidgetBridge.swift */; };
 		4B2C70002F9A000100000001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4B2C70012F9A000100000001 /* InfoPlist.strings */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		3EFAF4803028BE0D002B89E7 /* TrainLibreAppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFAF47F3028BE0D002B89E7 /* TrainLibreAppShortcuts.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -97,6 +98,7 @@
 		70D5F3EFAC3DA38F90DDC540 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3EFAF47F3028BE0D002B89E7 /* TrainLibreAppShortcuts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TrainLibreAppShortcuts.swift; sourceTree = "<group>"; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		7DD821BB7B27553D58013B65 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -127,7 +129,6 @@
 			membershipExceptions = (
 				Assets.xcassets,
 				Info.plist,
-				Localizable.xcstrings,
 				QuickActionEntity.swift,
 				QuickActionsWidget.swift,
 				TodayGlanceViews.swift,
@@ -278,6 +279,7 @@
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
+				3EFAF47F3028BE0D002B89E7 /* TrainLibreAppShortcuts.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				3E64C4AB2F8EF3E3004782FB /* trainlibre_icon_v2.icon */,
 			);
@@ -559,6 +561,7 @@
 				3EFAF4603028BE0D002B89E7 /* HomeWidgetShared.swift in Sources */,
 				3EFAF4623028BE0D002B89E7 /* HomeWidgetBridge.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				3EFAF4803028BE0D002B89E7 /* TrainLibreAppShortcuts.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

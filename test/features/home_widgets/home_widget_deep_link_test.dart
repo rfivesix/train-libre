@@ -28,6 +28,7 @@ void main() {
       HomeWidgetAction.addMeasurement,
       HomeWidgetAction.logSupplement,
       HomeWidgetAction.addLiquid,
+      HomeWidgetAction.addFood,
     ]) {
       test('parses $key', () {
         expect(
@@ -84,6 +85,7 @@ void main() {
       'add_measurement',
       'log_supplement',
       'add_liquid',
+      'add_food',
     });
   });
 }

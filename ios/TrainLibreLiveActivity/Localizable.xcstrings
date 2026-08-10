@@ -24,6 +24,42 @@
     "Delta" : {
 
     },
+    "quickAction.addFood" : {
+      "comment" : "Mirrors `addFood` in lib/l10n/*.arb.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lebensmittel hinzufügen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Food"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter un aliment"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiungi alimento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "食品を追加"
+          }
+        }
+      }
+    },
     "quickAction.addLiquid" : {
       "comment" : "Mirrors `addLiquidOption` in lib/l10n/*.arb. iOS renders the widget configuration UI outside the app process, so these cannot come from the snapshot and must be duplicated here.",
       "extractionState" : "manual",

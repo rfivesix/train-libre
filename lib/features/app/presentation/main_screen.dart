@@ -19,6 +19,8 @@ import '../../supplements/domain/models/supplement_log.dart';
 import '../../workout/domain/models/workout_log.dart';
 import '../../diary/presentation/add_food_navigation_result.dart';
 import '../../diary/presentation/add_food_screen.dart';
+import '../../diary/presentation/scanner_screen.dart';
+import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/presentation/meal_editor_screen.dart';
 import '../../diary/presentation/ai_meal_capture_screen.dart';
 import '../../profile/presentation/measurements_screen.dart';
@@ -278,10 +280,7 @@ class _MainScreenState extends State<MainScreen>
         _handleAddFood();
         break;
       case 'scan_barcode':
-        // Reuses AddFoodScreen's scan → lookup → return-item flow rather than
-        // duplicating it, so the "barcode not found" handling, the telemetry and
-        // the quantity dialog below are identical to an in-app scan.
-        _handleAddFood(autoOpenScanner: true);
+        _handleDirectBarcodeScan();
         break;
       case 'add_liquid':
         await _showAddFluidMenu();
@@ -298,6 +297,87 @@ class _MainScreenState extends State<MainScreen>
         );
         if (result == true) _refreshHomeScreen();
         break;
+    }
+  }
+
+  Future<void> _handleDirectBarcodeScan() async {
+    final String? barcode = await Navigator.of(context).push<String>(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const ScannerScreen(),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
+
+    if (barcode != null && mounted) {
+      final foodItem =
+          await ProductLocalDataSource.instance.getProductByBarcode(barcode);
+      if (!mounted) return;
+
+      if (foodItem != null) {
+        unawaited(TelemetryService.instance
+            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        final targetDate = _currentActiveDate;
+        final fallbackMealType =
+            MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
+
+        final result = await _showQuantityMenu(
+          foodItem,
+          initialDate: targetDate,
+          initialMealType: fallbackMealType,
+        );
+
+        if (result == null || !mounted) return;
+
+        final int quantity = result.quantity;
+        final DateTime timestamp = result.timestamp;
+        final String mealType = result.mealType;
+        final bool isLiquid = result.isLiquid;
+
+        final newFoodEntry = FoodEntry(
+          barcode: foodItem.barcode,
+          timestamp: timestamp,
+          quantityInGrams: quantity,
+          mealType: mealType,
+        );
+
+        try {
+          final newFoodEntryId = await DatabaseHelper.instance.insertFoodEntry(
+            newFoodEntry,
+            telemetrySource: 'barcode_scanner',
+          );
+          HapticFeedbackService.instance.confirmationFeedback();
+
+          if (isLiquid) {
+            final newFluidEntry = FluidEntry(
+              timestamp: timestamp,
+              quantityInMl: quantity,
+              name: foodItem.name,
+              kcal: (foodItem.calories / 100 * quantity).round(),
+              sugarPer100ml: result.sugarPer100ml,
+              carbsPer100ml: result.sugarPer100ml,
+              caffeinePer100ml: result.caffeinePer100ml,
+              linkedFoodEntryId: newFoodEntryId,
+            );
+            await DatabaseHelper.instance.insertFluidEntry(newFluidEntry);
+          }
+          _refreshHomeScreen();
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+            );
+          }
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.snackbarBarcodeNotFound(barcode),
+            ),
+          ),
+        );
+      }
     }
   }
 
