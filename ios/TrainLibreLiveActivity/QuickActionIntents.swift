@@ -140,6 +140,8 @@ public struct AIMealControlWidget: ControlWidget {
         Label("quickAction.aiMealCapture", systemImage: "sparkles")
       }
     }
+    .displayName("quickAction.aiMealCapture")
+    .description("quickAction.aiMealCapture.description")
   }
 }
 
@@ -155,6 +157,8 @@ public struct ScanBarcodeControlWidget: ControlWidget {
         Label("quickAction.scanBarcode", systemImage: "barcode.viewfinder")
       }
     }
+    .displayName("quickAction.scanBarcode")
+    .description("quickAction.scanBarcode.description")
   }
 }
 
@@ -170,6 +174,8 @@ public struct StartWorkoutControlWidget: ControlWidget {
         Label("quickAction.startWorkout", systemImage: "dumbbell.fill")
       }
     }
+    .displayName("quickAction.startWorkout")
+    .description("quickAction.startWorkout.description")
   }
 }
 
@@ -185,6 +191,8 @@ public struct AddMeasurementControlWidget: ControlWidget {
         Label("quickAction.addMeasurement", systemImage: "ruler")
       }
     }
+    .displayName("quickAction.addMeasurement")
+    .description("quickAction.addMeasurement.description")
   }
 }
 
@@ -200,6 +208,8 @@ public struct LogSupplementControlWidget: ControlWidget {
         Label("quickAction.logSupplement", systemImage: "pills.fill")
       }
     }
+    .displayName("quickAction.logSupplement")
+    .description("quickAction.logSupplement.description")
   }
 }
 
@@ -215,6 +225,8 @@ public struct AddLiquidControlWidget: ControlWidget {
         Label("quickAction.addLiquid", systemImage: "drop.fill")
       }
     }
+    .displayName("quickAction.addLiquid")
+    .description("quickAction.addLiquid.description")
   }
 }
 
@@ -230,5 +242,7 @@ public struct AddFoodControlWidget: ControlWidget {
         Label("quickAction.addFood", systemImage: "plus.circle.fill")
       }
     }
+    .displayName("quickAction.addFood")
+    .description("quickAction.addFood.description")
   }
 }
