@@ -1,5 +1,31 @@
 import AppIntents
 import SwiftUI
+import UIKit
+
+// MARK: - Home Screen Quick Actions (long press on the app icon)
+
+/// The two static `UIApplicationShortcutItems` declared in `Info.plist`.
+///
+/// iOS shows at most four entries in the icon menu; we deliberately spend only
+/// two of them on the actions that carry the app's daily use.
+enum HomeScreenShortcut: String {
+  case addFood = "com.rfivesix.trainlibre.shortcut.addFood"
+  case startWorkout = "com.rfivesix.trainlibre.shortcut.startWorkout"
+
+  /// The action key shared with the widgets and App Intents, see
+  /// `HomeWidgetAction` on the Dart side.
+  var actionKey: String {
+    switch self {
+    case .addFood: return "add_food"
+    case .startWorkout: return "start_workout"
+    }
+  }
+
+  static func deepLink(for item: UIApplicationShortcutItem) -> URL? {
+    guard let shortcut = HomeScreenShortcut(rawValue: item.type) else { return nil }
+    return URL(string: "trainlibre://action/\(shortcut.actionKey)")
+  }
+}
 
 // MARK: - App Shortcuts Provider (Main App Target Only)
 

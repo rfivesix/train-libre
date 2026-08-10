@@ -11,18 +11,44 @@ import UIKit
   private var channelsConfigured = false
   private let liveActivityBridge = WorkoutLiveActivityBridge()
   private let homeWidgetBridge = HomeWidgetBridge()
+  private var pendingShortcutURL: URL?
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     configureChannelsIfNeeded()
+    if let shortcutItem = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
+      enqueueShortcut(shortcutItem)
+    }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
     configureChannelsIfNeeded()
+    if let url = pendingShortcutURL {
+      pendingShortcutURL = nil
+      UIApplication.shared.open(url)
+    }
     super.applicationDidBecomeActive(application)
+  }
+
+  /// Parks a Home Screen quick action tapped during a cold launch.
+  ///
+  /// At that point the Flutter engine is not listening yet, so the link is
+  /// replayed from `applicationDidBecomeActive`.
+  func enqueueShortcut(_ shortcutItem: UIApplicationShortcutItem) {
+    pendingShortcutURL = HomeScreenShortcut.deepLink(for: shortcutItem)
+  }
+
+  /// Runs a Home Screen quick action on an app that is already up.
+  @discardableResult
+  func performShortcut(_ shortcutItem: UIApplicationShortcutItem) -> Bool {
+    guard let url = HomeScreenShortcut.deepLink(for: shortcutItem) else { return false }
+    // Routing back through the custom scheme lands in the very same handler the
+    // widgets and App Intents already use, instead of a second code path.
+    UIApplication.shared.open(url)
+    return true
   }
 
   override func application(
@@ -41,10 +67,15 @@ import UIKit
     // FlutterAppDelegate does not guarantee an implementation for this selector
     // across iOS/Xcode combinations. Returning an explicit scene configuration
     // avoids a runtime "doesNotRecognizeSelector" crash on app launch.
-    return UISceneConfiguration(
+    let configuration = UISceneConfiguration(
       name: "flutter",
       sessionRole: connectingSceneSession.role
     )
+    // Home Screen quick actions are only ever delivered to a scene delegate,
+    // never to the app delegate, so the scene needs one. It keeps the window
+    // and URL handling with this class, see TrainLibreSceneDelegate.
+    configuration.delegateClass = TrainLibreSceneDelegate.self
+    return configuration
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
