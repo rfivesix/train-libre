@@ -10098,6 +10098,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete data now'**
   String get telemetryDeleteConfirmButton;
+
+  /// No description provided for @liveActivitySetPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Set {index} of {total}'**
+  String liveActivitySetPosition(int index, int total);
+
+  /// No description provided for @liveActivityOverdueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'overdue by'**
+  String get liveActivityOverdueLabel;
+
+  /// No description provided for @liveActivityRirLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'RIR'**
+  String get liveActivityRirLabel;
+
+  /// No description provided for @liveActivityRpeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'RPE'**
+  String get liveActivityRpeLabel;
+
+  /// No description provided for @liveActivityAddExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Add exercise'**
+  String get liveActivityAddExercise;
+
+  /// No description provided for @liveActivityOpenApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open app'**
+  String get liveActivityOpenApp;
+
+  /// No description provided for @unit_pounds.
+  ///
+  /// In en, this message translates to:
+  /// **'lbs'**
+  String get unit_pounds;
+
+  /// No description provided for @unit_kilometers.
+  ///
+  /// In en, this message translates to:
+  /// **'km'**
+  String get unit_kilometers;
+
+  /// No description provided for @unit_miles.
+  ///
+  /// In en, this message translates to:
+  /// **'mi'**
+  String get unit_miles;
+
+  /// No description provided for @liveActivitySkipShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get liveActivitySkipShort;
 }
 
 class _AppLocalizationsDelegate

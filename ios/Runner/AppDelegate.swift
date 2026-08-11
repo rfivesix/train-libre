@@ -9,18 +9,57 @@ import UIKit
   private let sleepHealthKitChannelName = "trainlibre.health/sleep_healthkit"
   private let exportAppleHealthChannelName = "trainlibre.health/export_apple_health"
   private var channelsConfigured = false
+  private let liveActivityBridge = WorkoutLiveActivityBridge()
+  private let homeWidgetBridge = HomeWidgetBridge()
+  private var pendingShortcutURL: URL?
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     configureChannelsIfNeeded()
+    if let shortcutItem = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
+      enqueueShortcut(shortcutItem)
+    }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
     configureChannelsIfNeeded()
+    if let url = pendingShortcutURL {
+      pendingShortcutURL = nil
+      openInApp(url)
+    }
     super.applicationDidBecomeActive(application)
+  }
+
+  /// Parks a Home Screen quick action tapped during a cold launch.
+  ///
+  /// At that point the Flutter engine is not listening yet, so the link is
+  /// replayed from `applicationDidBecomeActive`.
+  func enqueueShortcut(_ shortcutItem: UIApplicationShortcutItem) {
+    pendingShortcutURL = HomeScreenShortcut.deepLink(for: shortcutItem)
+  }
+
+  /// Runs a Home Screen quick action on an app that is already up.
+  @discardableResult
+  func performShortcut(_ shortcutItem: UIApplicationShortcutItem) -> Bool {
+    guard let url = HomeScreenShortcut.deepLink(for: shortcutItem) else { return false }
+    openInApp(url)
+    return true
+  }
+
+  /// Feeds a `trainlibre://` deep link straight into the same handler the
+  /// widgets and App Intents use, instead of `UIApplication.shared.open(url)`.
+  ///
+  /// The system `open` call sends the URL out to iOS and relies on it being
+  /// routed back into this process — self-opening a custom scheme this way is
+  /// unreliable when called from scene-lifecycle/active-transition callbacks,
+  /// and was silently swallowing quick actions from the icon long-press menu.
+  /// Widgets don't hit this because their URL genuinely arrives from outside
+  /// the app (the WidgetKit extension process), so their round trip is real.
+  private func openInApp(_ url: URL) {
+    _ = application(UIApplication.shared, open: url, options: [:])
   }
 
   override func application(
@@ -39,10 +78,15 @@ import UIKit
     // FlutterAppDelegate does not guarantee an implementation for this selector
     // across iOS/Xcode combinations. Returning an explicit scene configuration
     // avoids a runtime "doesNotRecognizeSelector" crash on app launch.
-    return UISceneConfiguration(
+    let configuration = UISceneConfiguration(
       name: "flutter",
       sessionRole: connectingSceneSession.role
     )
+    // Home Screen quick actions are only ever delivered to a scene delegate,
+    // never to the app delegate, so the scene needs one. It keeps the window
+    // and URL handling with this class, see TrainLibreSceneDelegate.
+    configuration.delegateClass = TrainLibreSceneDelegate.self
+    return configuration
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
@@ -78,6 +122,22 @@ import UIKit
     )
     exportChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleExportAppleHealthCall(call: call, result: result)
+    }
+
+    let liveActivityChannel = FlutterMethodChannel(
+      name: WorkoutLiveActivityBridge.channelName,
+      binaryMessenger: messenger
+    )
+    liveActivityChannel.setMethodCallHandler { [weak self] call, result in
+      self?.liveActivityBridge.handle(call: call, result: result)
+    }
+
+    let homeWidgetChannel = FlutterMethodChannel(
+      name: HomeWidgetBridge.channelName,
+      binaryMessenger: messenger
+    )
+    homeWidgetChannel.setMethodCallHandler { [weak self] call, result in
+      self?.homeWidgetBridge.handle(call: call, result: result)
     }
     channelsConfigured = true
   }

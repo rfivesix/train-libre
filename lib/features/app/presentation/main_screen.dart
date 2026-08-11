@@ -19,6 +19,8 @@ import '../../supplements/domain/models/supplement_log.dart';
 import '../../workout/domain/models/workout_log.dart';
 import '../../diary/presentation/add_food_navigation_result.dart';
 import '../../diary/presentation/add_food_screen.dart';
+import '../../diary/presentation/scanner_screen.dart';
+import '../../diary/data/sources/product_local_data_source.dart';
 import '../../diary/presentation/meal_editor_screen.dart';
 import '../../diary/presentation/ai_meal_capture_screen.dart';
 import '../../profile/presentation/measurements_screen.dart';
@@ -49,6 +51,8 @@ import '../../../services/app_tour_service.dart';
 import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
 import '../../../services/app_review_service.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../home_widgets/application/home_widget_sync_service.dart';
+import '../../home_widgets/home_widget_deep_link.dart';
 
 /// The root scaffold containing the main navigation structure.
 ///
@@ -58,6 +62,19 @@ class MainScreen extends StatefulWidget {
   /// The optional index of the tab to be displayed initially.
   final int? initialTabIndex;
   const MainScreen({super.key, this.initialTabIndex});
+
+  /// A quick action from the Home Screen widget that has not run yet.
+  ///
+  /// On a cold launch the platform delivers the widget's URL before this screen
+  /// exists, so the action cannot be executed on arrival — it is parked here and
+  /// drained once the tab shell is mounted. On a warm launch the drain runs
+  /// immediately and the parking slot is only briefly occupied.
+  static String? pendingWidgetAction;
+
+  /// Set by [_MainScreenState] while it is mounted, so a warm-launch deep link
+  /// can run the action without waiting for a rebuild.
+  static void Function()? drainPendingWidgetAction;
+
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
@@ -103,8 +120,7 @@ class _MainScreenState extends State<MainScreen>
     ScreenName.diaryTab,
     ScreenName.workoutTab,
     ScreenName.analyticsTab,
-    ScreenName.profileTab,
-    ScreenName.settingsTab,
+    ScreenName.nutritionTab,
   ];
 
   @override
@@ -117,6 +133,7 @@ class _MainScreenState extends State<MainScreen>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
+    MainScreen.drainPendingWidgetAction = _drainPendingWidgetAction;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePendingAppTourEntry();
       AppReviewService.instance.checkAndRequestReview(context);
@@ -125,14 +142,82 @@ class _MainScreenState extends State<MainScreen>
           screenName: _tabScreenNames[_currentIndex],
         ));
       }
+      // Cold launch from a widget: the deep link arrived before this screen
+      // existed, so the action was parked rather than run.
+      _drainPendingWidgetAction();
+      // First population, so a freshly added widget is not stuck on placeholders
+      // until the user happens to log something.
+      refreshHomeWidgets();
     });
+    _startWidgetRefreshTimer();
+  }
+
+  /// Runs a quick action parked by the Home Screen widget deep link, if any.
+  ///
+  /// Clears the slot before executing so a failing action cannot re-fire on the
+  /// next drain, and so a second tap while the first is still opening a screen
+  /// does not run twice.
+  void _drainPendingWidgetAction() {
+    final action = MainScreen.pendingWidgetAction;
+    if (action == null || !mounted) return;
+    MainScreen.pendingWidgetAction = null;
+
+    if (action == HomeWidgetAction.aiMealCapture && !themeService.isAiEnabled) {
+      // The picker hides this action while AI is off, but a tile placed before
+      // the user disabled AI would still send it. Land on the diary rather than
+      // on a screen the app has switched off.
+      _onNavigationTapped(0);
+      return;
+    }
+
+    _executeAddMenuAction(action);
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _widgetRefreshTimer?.cancel();
       unawaited(TelemetryService.instance.flushDailyFoodLog());
+      // Catch-all for everything that changes the widget without going through
+      // _refreshHomeScreen — goals, the extra-nutrient choice, the unit system,
+      // the app language. Backgrounding is also exactly the moment before the
+      // user can see the Home Screen, so it is the right time to be current.
+      // Not debounced: a 500ms timer would not survive being backgrounded.
+      unawaited(_syncHomeWidgetsNow());
+    } else if (state == AppLifecycleState.resumed) {
+      // Data can change while backgrounded (HealthKit steps/sleep sync from
+      // another process, day rollover) with nothing in-app to trigger a
+      // refresh. Resume is the first moment the app can act on that, rather
+      // than waiting for the next mutation or the next cold start.
+      unawaited(_syncHomeWidgetsNow());
+      _startWidgetRefreshTimer();
     }
+  }
+
+  Timer? _widgetRefreshTimer;
+
+  /// Keeps widgets from going stale during a long foreground session where
+  /// the user never leaves and never logs anything (e.g. just watching
+  /// steps tick up). Matches [HomeWidgetSyncService.statisticsMaxAge] so it
+  /// fires right as the cached statistics would age out anyway.
+  void _startWidgetRefreshTimer() {
+    _widgetRefreshTimer?.cancel();
+    _widgetRefreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
+      unawaited(_syncHomeWidgetsNow());
+    });
+  }
+
+  Future<void> _syncHomeWidgetsNow() async {
+    if (!mounted) return;
+    await context.read<HomeWidgetSyncService>().refresh(
+          l10n: AppLocalizations.of(context)!,
+          isAiEnabled: themeService.isAiEnabled,
+          // Backgrounding is the last moment before the Home Screen is on
+          // screen, so the statistics sections are recomputed rather than
+          // served from the cache the cheap in-app paths rely on.
+          forceStatistics: true,
+        );
   }
 
   @override
@@ -157,9 +242,16 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    _widgetRefreshTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
+    }
+    if (identical(
+      MainScreen.drainPendingWidgetAction,
+      _drainPendingWidgetAction,
+    )) {
+      MainScreen.drainPendingWidgetAction = null;
     }
     _pageController.dispose();
     _menuController.dispose();
@@ -170,8 +262,14 @@ class _MainScreenState extends State<MainScreen>
     if (_isWarping) {
       return;
     }
+    final previousIndex = _currentIndex;
     setState(() => _currentIndex = index);
-    if (index >= 0 && index < _tabScreenNames.length) {
+    // PageView can report onPageChanged once after initial layout settles,
+    // even when the page didn't actually change (e.g. still the initial tab
+    // from initState's own trackScreenView call) — guard against double-firing.
+    if (index != previousIndex &&
+        index >= 0 &&
+        index < _tabScreenNames.length) {
       unawaited(TelemetryService.instance.trackScreenView(
         screenName: _tabScreenNames[index],
       ));
@@ -182,7 +280,6 @@ class _MainScreenState extends State<MainScreen>
       }
     }
   }
-
 
   final bool _isWarping = false;
 
@@ -214,6 +311,9 @@ class _MainScreenState extends State<MainScreen>
       case 'add_food':
         _handleAddFood();
         break;
+      case 'scan_barcode':
+        _handleDirectBarcodeScan();
+        break;
       case 'add_liquid':
         await _showAddFluidMenu();
         break;
@@ -232,7 +332,89 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
+  Future<void> _handleDirectBarcodeScan() async {
+    final String? barcode = await Navigator.of(context).push<String>(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const ScannerScreen(),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
+
+    if (barcode != null && mounted) {
+      final foodItem =
+          await ProductLocalDataSource.instance.getProductByBarcode(barcode);
+      if (!mounted) return;
+
+      if (foodItem != null) {
+        unawaited(TelemetryService.instance
+            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        final targetDate = _currentActiveDate;
+        final fallbackMealType =
+            MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
+
+        final result = await _showQuantityMenu(
+          foodItem,
+          initialDate: targetDate,
+          initialMealType: fallbackMealType,
+        );
+
+        if (result == null || !mounted) return;
+
+        final int quantity = result.quantity;
+        final DateTime timestamp = result.timestamp;
+        final String mealType = result.mealType;
+        final bool isLiquid = result.isLiquid;
+
+        final newFoodEntry = FoodEntry(
+          barcode: foodItem.barcode,
+          timestamp: timestamp,
+          quantityInGrams: quantity,
+          mealType: mealType,
+        );
+
+        try {
+          final newFoodEntryId = await DatabaseHelper.instance.insertFoodEntry(
+            newFoodEntry,
+            telemetrySource: 'barcode_scanner',
+          );
+          HapticFeedbackService.instance.confirmationFeedback();
+
+          if (isLiquid) {
+            final newFluidEntry = FluidEntry(
+              timestamp: timestamp,
+              quantityInMl: quantity,
+              name: foodItem.name,
+              kcal: (foodItem.calories / 100 * quantity).round(),
+              sugarPer100ml: result.sugarPer100ml,
+              carbsPer100ml: result.sugarPer100ml,
+              caffeinePer100ml: result.caffeinePer100ml,
+              linkedFoodEntryId: newFoodEntryId,
+            );
+            await DatabaseHelper.instance.insertFluidEntry(newFluidEntry);
+          }
+          _refreshHomeScreen();
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+            );
+          }
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.snackbarBarcodeNotFound(barcode),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _refreshHomeScreen() async {
+    refreshHomeWidgets();
     if (_currentIndex == 0) {
       await _tagebuchKey.currentState?.syncHealthData(
         forceStepsRefresh: false, // Don't force 30-day refresh on every log
@@ -244,9 +426,27 @@ class _MainScreenState extends State<MainScreen>
     _statsKey.currentState?.markDirty();
   }
 
+  /// Republishes the iOS Home Screen snapshot.
+  ///
+  /// Debounced inside the service, so calling it from several paths that a
+  /// single user action triggers costs one write, not several.
+  void refreshHomeWidgets() {
+    if (!mounted) return;
+    context.read<HomeWidgetSyncService>().scheduleRefresh(
+          l10n: AppLocalizations.of(context)!,
+          isAiEnabled: themeService.isAiEnabled,
+        );
+  }
+
   Future<void> _refreshDiaryForActiveDate({
     bool queueIfInFlight = false,
   }) async {
+    // Before the tab guard below: the diary only re-syncs when it is the
+    // visible tab, but the Home Screen widget is stale either way. Fluid and
+    // supplement logging come through here rather than through
+    // _refreshHomeScreen, so without this the widget would not catch up until
+    // the app was next backgrounded.
+    refreshHomeWidgets();
     if (_currentIndex != 0) return;
     await _tagebuchKey.currentState?.syncHealthData();
   }
@@ -544,7 +744,7 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  Future<void> _handleAddFood() async {
+  Future<void> _handleAddFood({bool autoOpenScanner = false}) async {
     final l10n = AppLocalizations.of(context)!;
     // FIX: Get date
     final targetDate = _currentActiveDate;
@@ -556,6 +756,7 @@ class _MainScreenState extends State<MainScreen>
         builder: (context) => AddFoodScreen(
           initialDate: targetDate, // <--- Pass-through
           initialMealType: fallbackMealType, // <--- Use time-based fallback
+          autoOpenScanner: autoOpenScanner,
         ),
       ),
     );
@@ -1261,206 +1462,212 @@ class _MainScreenState extends State<MainScreen>
           child: RepaintBoundary(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                  final double horizontalPadding = 0.0;
-                  final double verticalPadding = 8.0;
-                  final double spacing = 8.0;
-                  final double extraButtonSize = DesignConstants.fabSize;
-                  final double maxTabW = constraints.maxWidth -
-                      (horizontalPadding * 2) -
-                      (extraButtonSize + spacing);
+                final double horizontalPadding = 0.0;
+                final double verticalPadding = 8.0;
+                final double spacing = 8.0;
+                final double extraButtonSize = DesignConstants.fabSize;
+                final double maxTabW = constraints.maxWidth -
+                    (horizontalPadding * 2) -
+                    (extraButtonSize + spacing);
 
-                  return Stack(
-                    children: [
-                      // Shadow layers underneath the glass tabs & FAB to provide physical depth matching standard style
-                      IgnorePointer(
+                return Stack(
+                  children: [
+                    // Shadow layers underneath the glass tabs & FAB to provide physical depth matching standard style
+                    IgnorePointer(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                          vertical: verticalPadding,
+                        ),
+                        child: Row(
+                          children: [
+                            ClipPath(
+                              clipper: ShadowOuterClipper(
+                                  borderRadius: DesignConstants
+                                          .bottomNavigationBarHeight /
+                                      2),
+                              child: Container(
+                                width: maxTabW,
+                                height: DesignConstants
+                                    .bottomNavigationBarHeight, // Match barHeight
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                      DesignConstants
+                                              .bottomNavigationBarHeight /
+                                          2),
+                                  boxShadow:
+                                      DesignConstants.glassShadow(isDark),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: spacing),
+                            ClipPath(
+                              clipper: ShadowOuterClipper(
+                                  borderRadius: DesignConstants.fabSize / 2,
+                                  isOval: true),
+                              child: Container(
+                                width: extraButtonSize,
+                                height:
+                                    DesignConstants.fabSize, // Match barHeight
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                      DesignConstants.fabSize / 2),
+                                  boxShadow:
+                                      DesignConstants.glassShadow(isDark),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Material(
+                      type: MaterialType.transparency,
+                      child: DefaultTextStyle(
+                        style: const TextStyle(
+                          fontSize: 11.0,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Inter',
+                          letterSpacing: -0.2,
+                        ),
                         child: Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: horizontalPadding,
                             vertical: verticalPadding,
                           ),
-                          child: Row(
-                            children: [
-                              ClipPath(
-                                clipper: ShadowOuterClipper(
-                                    borderRadius: DesignConstants
-                                            .bottomNavigationBarHeight /
-                                        2),
-                                child: Container(
-                                  width: maxTabW,
-                                  height: DesignConstants
-                                      .bottomNavigationBarHeight, // Match barHeight
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(
-                                        DesignConstants
-                                                .bottomNavigationBarHeight /
-                                            2),
-                                    boxShadow: DesignConstants.glassShadow(isDark),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: spacing),
-                              ClipPath(
-                                clipper: ShadowOuterClipper(
-                                    borderRadius: DesignConstants.fabSize / 2,
-                                    isOval: true),
-                                child: Container(
-                                  width: extraButtonSize,
-                                  height: DesignConstants
-                                      .fabSize, // Match barHeight
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(
-                                        DesignConstants.fabSize / 2),
-                                    boxShadow: DesignConstants.glassShadow(isDark),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Material(
-                        type: MaterialType.transparency,
-                        child: DefaultTextStyle(
-                          style: const TextStyle(
-                            fontSize: 11.0,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Inter',
-                            letterSpacing: -0.2,
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: horizontalPadding,
-                              vertical: verticalPadding,
-                            ),
-                            child: GlassAdaptiveScope(
-                              maxQuality: DesignConstants.defaultGlassQuality,
-                              minQuality: DesignConstants.minGlassQuality,
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: KeyedSubtree(
-                                      key: _tourNavigationBarKey,
-                                      child: GlassTabBar.bottom(
-                                        selectedIndex: _currentIndex,
-                                        onTabSelected: _onNavigationTapped,
-                                        barHeight: DesignConstants
-                                            .bottomNavigationBarHeight,
-                                        barBorderRadius: GlassDefaults.capsuleRadius,
-                                        indicatorBorderRadius: GlassDefaults.capsuleRadius,
-                                        tabWidth: null,
-                                        horizontalPadding: 0.0,
-                                        verticalPadding: 0.0,
-                                        quality: DesignConstants.defaultGlassQuality,
-                                        indicatorExpansion:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 14, vertical: 8),
-                                        selectedIconColor:
-                                            theme.colorScheme.primary,
-                                        unselectedIconColor:
-                                            isDark ? Colors.white : Colors.black,
-                                        indicatorColor:
-                                            (isDark ? Colors.white : Colors.black)
-                                                .withValues(alpha: 0.15),
-                                        settings:
-                                            DesignConstants.liquidGlassSettings(
-                                                isDark),
-                                        tabs: [
-                                          GlassTab(
-                                            label: l10n.diary,
-                                            icon: Icon(
-                                              LucideIcons.notebook,
-                                              key: _tourDiaryTabKey,
-                                            ),
-                                            activeIcon:
-                                                const Icon(LucideIcons.notebook),
-                                          ),
-                                          GlassTab(
-                                            label: l10n.workout,
-                                            icon: Icon(
-                                              LucideIcons.dumbbell,
-                                              key: _tourWorkoutTabKey,
-                                            ),
-                                            activeIcon:
-                                                const Icon(LucideIcons.dumbbell),
-                                          ),
-                                          GlassTab(
-                                            label: l10n.statistics,
-                                            icon: Icon(
-                                              LucideIcons.chart_no_axes_column,
-                                              key: _tourStatisticsTabKey,
-                                            ),
-                                            activeIcon: const Icon(
-                                                LucideIcons.chart_no_axes_column),
-                                          ),
-                                          GlassTab(
-                                            label: l10n.nutrition,
-                                            icon: Icon(
-                                              LucideIcons.utensils,
-                                              key: _tourNutritionTabKey,
-                                            ),
-                                            activeIcon:
-                                                const Icon(LucideIcons.utensils),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: spacing),
-                                  AnimatedBuilder(
-                                    animation: _menuController,
-                                    builder: (context, child) {
-                                      if (_menuController.value > 0.0) {
-                                        return SizedBox(
-                                          width: extraButtonSize,
-                                          height: DesignConstants.fabSize,
-                                        );
-                                      }
-                                      return child!;
-                                    },
-                                    child: AdaptiveGlass(
-                                      shape: const LiquidOval(),
+                          child: GlassAdaptiveScope(
+                            maxQuality: DesignConstants.defaultGlassQuality,
+                            minQuality: DesignConstants.minGlassQuality,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: KeyedSubtree(
+                                    key: _tourNavigationBarKey,
+                                    child: GlassTabBar.bottom(
+                                      selectedIndex: _currentIndex,
+                                      onTabSelected: _onNavigationTapped,
+                                      barHeight: DesignConstants
+                                          .bottomNavigationBarHeight,
+                                      barBorderRadius:
+                                          GlassDefaults.capsuleRadius,
+                                      indicatorBorderRadius:
+                                          GlassDefaults.capsuleRadius,
+                                      tabWidth: null,
+                                      horizontalPadding: 0.0,
+                                      verticalPadding: 0.0,
+                                      quality:
+                                          DesignConstants.defaultGlassQuality,
+                                      indicatorExpansion:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 14, vertical: 8),
+                                      selectedIconColor:
+                                          theme.colorScheme.primary,
+                                      unselectedIconColor:
+                                          isDark ? Colors.white : Colors.black,
+                                      indicatorColor:
+                                          (isDark ? Colors.white : Colors.black)
+                                              .withValues(alpha: 0.15),
                                       settings:
                                           DesignConstants.liquidGlassSettings(
                                               isDark),
-                                      quality: DesignConstants.defaultGlassQuality,
-                                      useOwnLayer: true,
-                                      isInteractive:
-                                          true, //false, // Force blur in minimal quality
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          customBorder: const CircleBorder(),
-                                          onTap: _toggleAddMenu,
-                                          child: SizedBox(
-                                            width: extraButtonSize,
-                                            height: DesignConstants.fabSize,
-                                            child: Center(
-                                              child: Icon(
-                                                LucideIcons.plus,
-                                                key: _tourFabKey,
-                                                color: isDark
-                                                    ? Colors.white
-                                                    : Colors.black,
-                                                size: 28,
-                                              ),
+                                      tabs: [
+                                        GlassTab(
+                                          label: l10n.diary,
+                                          icon: Icon(
+                                            LucideIcons.notebook,
+                                            key: _tourDiaryTabKey,
+                                          ),
+                                          activeIcon:
+                                              const Icon(LucideIcons.notebook),
+                                        ),
+                                        GlassTab(
+                                          label: l10n.workout,
+                                          icon: Icon(
+                                            LucideIcons.dumbbell,
+                                            key: _tourWorkoutTabKey,
+                                          ),
+                                          activeIcon:
+                                              const Icon(LucideIcons.dumbbell),
+                                        ),
+                                        GlassTab(
+                                          label: l10n.statistics,
+                                          icon: Icon(
+                                            LucideIcons.chart_no_axes_column,
+                                            key: _tourStatisticsTabKey,
+                                          ),
+                                          activeIcon: const Icon(
+                                              LucideIcons.chart_no_axes_column),
+                                        ),
+                                        GlassTab(
+                                          label: l10n.nutrition,
+                                          icon: Icon(
+                                            LucideIcons.utensils,
+                                            key: _tourNutritionTabKey,
+                                          ),
+                                          activeIcon:
+                                              const Icon(LucideIcons.utensils),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: spacing),
+                                AnimatedBuilder(
+                                  animation: _menuController,
+                                  builder: (context, child) {
+                                    if (_menuController.value > 0.0) {
+                                      return SizedBox(
+                                        width: extraButtonSize,
+                                        height: DesignConstants.fabSize,
+                                      );
+                                    }
+                                    return child!;
+                                  },
+                                  child: AdaptiveGlass(
+                                    shape: const LiquidOval(),
+                                    settings:
+                                        DesignConstants.liquidGlassSettings(
+                                            isDark),
+                                    quality:
+                                        DesignConstants.defaultGlassQuality,
+                                    useOwnLayer: true,
+                                    isInteractive:
+                                        true, //false, // Force blur in minimal quality
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        customBorder: const CircleBorder(),
+                                        onTap: _toggleAddMenu,
+                                        child: SizedBox(
+                                          width: extraButtonSize,
+                                          height: DesignConstants.fabSize,
+                                          child: Center(
+                                            child: Icon(
+                                              LucideIcons.plus,
+                                              key: _tourFabKey,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              size: 28,
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                    ],
-                  );
-                },
-              ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
+        ),
         // Speed Dial Menu Animation
         SpeedDialMenuOverlay(
           animation: _menuController,
@@ -1553,7 +1760,6 @@ class _MainScreenState extends State<MainScreen>
                 );
               },
             ),
-
           ),
         ),
       ),

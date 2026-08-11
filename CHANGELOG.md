@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.2-beta.1] - 2026-08-11
+
+### Added
+- **Live Activity & Dynamic Island for Workouts (iOS 16.2+):** Real-time workout tracking on the Lock Screen and Dynamic Island (iPhone 14 Pro and newer), showing the active exercise, set position, weight/reps or RIR, and rest countdown without unlocking the device. Includes interactive iOS 17+ controls (`-15s`, `+15s`, `Skip`, 1-tap set completion) and native rest timer sound rescheduling (`UNUserNotificationCenter`).
+- **Home Screen & Lock Screen Widgets (iOS 18+):** 
+  - **Last Workout (4x2 Medium & 4x4 Large):** Displays duration, total volume, sets, and a high-resolution 2D/3D muscle heatmap visualization.
+  - **Muscle Readiness / Recovery (4x2 Medium & Lock Screen):** 1:1 visual match of the app's muscle recovery hub, featuring compact inline text (`.accessoryInline`) and a 3-row aligned Lock Screen layout (`.accessoryRectangular`).
+  - **Steps 7-Day Chart (4x2 Medium):** 7-day step bar chart with goal reference line, completion checkmark badges, and daily step count.
+  - **Body Measurements (4x2 Medium Configurable):** Sparkline trend chart with selectable timeframes (7 Days, 1 Month, 3 Months, 6 Months, Max) and selectable metrics (Weight, Body Fat, Circumferences).
+  - **Today's Glance / Nutrition (4x2 Medium & Lock Screen):** Today's nutrition summary, circular protein gauge (`.accessoryCircular`), and clean Lock Screen calorie & protein breakdown.
+  - **Quick Actions & Lock Screen Buttons:** 1-Tap action buttons for Barcode Scanner, AI Meal Capture, Start Workout, Add Water, Log Supplement, Add Measurement, and Add Food.
+- **iOS App Shortcuts, Siri & Control Center Controls (iOS 18+ / Action Button):** All 7 quick actions are available as native iOS App Shortcuts (Siri voice triggers, Shortcuts app, Spotlight search), Control Center buttons (`ControlWidgetButton`), Lock Screen bottom controls, and hardware Action Button mappings (iPhone 15 Pro / 16). Instant launch of the barcode scanner without delay.
+- **Automatic Exercise Navigation on Live Workout Launch:** Opening a live workout automatically scrolls to the exercise holding the next open set directly below the summary bar.
+
+### Fixed
+- **Onboarding Telemetry Initial Step Tracking:** Fixed an issue where the initial step (`welcome`, `step_index: 0`) of `OnboardingScreen` was omitted from PostHog telemetry because tracking relied exclusively on `PageView.onPageChanged`, which does not fire on initial render. Added explicit post-frame tracking for step 0 so onboarding funnels begin at step 0 instead of skipping to step 1 (`unit_system`).
+- **Database Update Loading Screen Freeze & Performance Bottleneck:** Fixed the database update progress screen hanging for 15-30+ seconds at 100% ("all entries present"). Resolved a major query bottleneck in `RetainHistoricalOffProductsUseCase.execute` that previously fetched all 26 columns of 125,000 product rows into Dart memory as full Drift DataClasses instead of querying only product barcodes, cutting post-processing execution time from ~20 seconds to ~30 milliseconds. Additionally, progress calculation across batch imports (`BasisDataManager._performBatchImport`) was scaled accurately (0-70% main exercise import, 70-100% exercise relational translation pass; 0-95% OFF product import, 95-100% OFF retention cleanup), streaming continuous progress updates and localized detail text so the UI progress bar never stalls at 100%.
+- **iCloud Sync Emitted `feature_used` Telemetry on Every Background Sync:** Fixed `ICloudSyncService._snapshotAndUpload` emitting `FeatureKey.icloudSyncTriggered` to PostHog every time the app was backgrounded with iCloud sync enabled. Routine background syncs no longer transmit telemetry events. Telemetry is now only emitted when the user explicitly enables or disables the feature (`setting_toggled` for `icloud_sync_enabled`, plus `feature_used` for `icloud_sync_triggered` when enabled) or performs a manual backup ("Backup Now").
+- **Keyboard-Aware Rest Bar:** The floating rest bar automatically hides when the software keyboard opens to avoid covering input fields.
+
 ## [1.0.1] - 2026-08-08
 
 ### Security

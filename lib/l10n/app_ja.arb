@@ -434,13 +434,14 @@
   "deleteCustomExerciseBody": "「{name}」を完全に削除します。この操作は元に戻せません。",
   "@deleteCustomExerciseBody": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "deleteCustomExerciseWithLogsWarning": "このエクササイズはトレーニング履歴に記録されています。ログデータは保持されますが、エクササイズへのリンクは削除されます。",
   "deleteCustomExerciseWithRoutinesWarning": "このエクササイズは1つ以上のルーティンで使用されています。それらのルーティンから削除されます。",
   "deleteCustomExerciseSuccess": "エクササイズを削除しました。",
-
   "restOverLabel": "一時停止が終わりました",
   "workoutRunningLabel": "トレーニングはアクティブです…",
   "continueButton": "続く",
@@ -965,7 +966,6 @@
   "adaptiveRatePerWeekLabel": "週次目標レート",
   "customTargetRateOption": "カスタム",
   "customTargetRateDialogTitle": "カスタム目標レートを設定",
-
   "onboardingNameTitle": "あなたの名前は何ですか？",
   "onboardingNameLabel": "あなたの名前",
   "onboardingNameError": "あなたの名前を入力してください",
@@ -1469,7 +1469,7 @@
         "type": "String"
       }
     }
-},
+  },
   "analyticsPeriodLabel": "期間",
   "analyticsEquivalentSetsExplainer": "同等のハード セットでは、プライマリ x1.0 とセカンダリ x0.3 の重み付けが使用されます。頻度は、同等のセットが 1.0 以上に達した日のみをカウントします。",
   "analyticsWeeklySetsByMuscle": "Ø 筋肉別週次セット",
@@ -2598,5 +2598,25 @@
   "workoutImportZeroNew": "0件の新しいワークアウトがインポートされました（すべて既に存在しています）。",
   "telemetryDeleteDialogTitle": "テレメトリデータを削除しますか？",
   "telemetryDeleteDialogBody": "過去のテレメトリデータを本当に削除しますか？\n\n以下の処理が行われます：\n• このデバイスに保存されているすべてのデバイスUUID、セッションID、ローカルカウンターがリセットされます。\n• EUのPostHogサーバーに削除リクエスト（$delete_person）が送信され、そこからデータが削除されます。\n• テレメトリSDKが完全にリセットされます。",
-  "telemetryDeleteConfirmButton": "今すぐデータを削除"
+  "telemetryDeleteConfirmButton": "今すぐデータを削除",
+  "liveActivitySetPosition": "{total} セット中 {index}",
+  "@liveActivitySetPosition": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "liveActivityOverdueLabel": "経過",
+  "liveActivityRirLabel": "RIR",
+  "liveActivityRpeLabel": "RPE",
+  "liveActivityAddExercise": "種目を追加",
+  "liveActivityOpenApp": "アプリを開く",
+  "unit_pounds": "lbs",
+  "unit_kilometers": "km",
+  "unit_miles": "mi",
+  "liveActivitySkipShort": "スキップ"
 }

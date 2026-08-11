@@ -434,13 +434,14 @@
   "deleteCustomExerciseBody": "« {name} » sera supprimé définitivement. Cette action est irréversible.",
   "@deleteCustomExerciseBody": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "deleteCustomExerciseWithLogsWarning": "Cet exercice apparaît dans votre historique d'entraînements. Vos entrées de journal seront conservées, mais le lien vers l'exercice sera supprimé.",
   "deleteCustomExerciseWithRoutinesWarning": "Cet exercice est utilisé dans une ou plusieurs routines. Il sera supprimé de ces routines.",
   "deleteCustomExerciseSuccess": "Exercice supprimé.",
-
   "restOverLabel": "La pause est terminée",
   "workoutRunningLabel": "L’entraînement est actif…",
   "continueButton": "Continuer",
@@ -965,7 +966,6 @@
   "adaptiveRatePerWeekLabel": "Taux cible hebdomadaire",
   "customTargetRateOption": "Personnalisé",
   "customTargetRateDialogTitle": "Définir l'objectif personnalisé",
-
   "onboardingNameTitle": "Quel est ton nom?",
   "onboardingNameLabel": "Votre nom",
   "onboardingNameError": "Veuillez entrer votre nom",
@@ -2598,5 +2598,25 @@
   "workoutImportZeroNew": "0 nouvel entraînement importé (tous existaient déjà).",
   "telemetryDeleteDialogTitle": "Supprimer les données de télémétrie ?",
   "telemetryDeleteDialogBody": "Voulez-vous vraiment supprimer vos données de télémétrie passées ?\n\nCe qui suit va se produire :\n• Tous les UUID d'appareil, ID de session et compteurs locaux enregistrés sur cet appareil seront réinitialisés.\n• Une demande de suppression ($delete_person) sera envoyée aux serveurs PostHog dans l'UE pour y supprimer vos données.\n• Le SDK de télémétrie sera entièrement réinitialisé.",
-  "telemetryDeleteConfirmButton": "Supprimer les données maintenant"
+  "telemetryDeleteConfirmButton": "Supprimer les données maintenant",
+  "liveActivitySetPosition": "Série {index} sur {total}",
+  "@liveActivitySetPosition": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "liveActivityOverdueLabel": "en retard de",
+  "liveActivityRirLabel": "RIR",
+  "liveActivityRpeLabel": "RPE",
+  "liveActivityAddExercise": "Ajouter un exercice",
+  "liveActivityOpenApp": "Ouvrir l'app",
+  "unit_pounds": "lbs",
+  "unit_kilometers": "km",
+  "unit_miles": "mi",
+  "liveActivitySkipShort": "Passer"
 }

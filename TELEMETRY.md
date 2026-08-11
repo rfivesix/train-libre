@@ -153,7 +153,7 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
 
 > **Reconciled against the app:** `"routine_shared_qr"` became `"routine_shared"` — sharing goes through `ShareService`'s text/image sheet, there is no QR flow. `"routine_scanned_qr"` was replaced by `"workout_imported"` (CSV/XLSX import via `ImportManager`). `"fasting_timer_started"`, `"fasting_timer_completed"` and `"plate_calculator_used"` were removed: neither a fasting timer nor a plate calculator exists in the app.
 >
-> Keys whose event can fire from several screens are tracked at their data-layer choke point (`recipe_created`, `supplement_logged`, `body_measurement_logged`, `json_backup_created`, `json_backup_restored`, `csv_exported`) so no call site can bypass them.
+> Keys whose event can fire from several screens are tracked at their data-layer choke point (`recipe_created`, `supplement_logged`, `body_measurement_logged`, `json_backup_created`, `json_backup_restored`, `csv_exported`) so no call site can bypass them. `icloud_sync_triggered` is tracked when the user enables iCloud sync or triggers a manual backup ("Backup Now"); automatic background syncs perform zero telemetry tracking.
 
 ### 5. Aggregated Food Logging (`daily_food_logged`)
 * **`daily_food_logged`**:

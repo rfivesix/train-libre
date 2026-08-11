@@ -434,13 +434,14 @@
   "deleteCustomExerciseBody": "'{name}' wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
   "@deleteCustomExerciseBody": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "deleteCustomExerciseWithLogsWarning": "Diese Übung erscheint in deiner Workout-History. Deine Log-Einträge bleiben erhalten, aber der Übungs-Link wird entfernt.",
   "deleteCustomExerciseWithRoutinesWarning": "Diese Übung wird in einer oder mehreren Routinen verwendet. Sie wird dort entfernt.",
   "deleteCustomExerciseSuccess": "Übung gelöscht.",
-
   "restOverLabel": "Pause vorbei",
   "workoutRunningLabel": "Workout läuft …",
   "continueButton": "Weiter",
@@ -965,7 +966,6 @@
   "adaptiveRatePerWeekLabel": "Wöchentliche Zielrate",
   "customTargetRateOption": "Eigener Wert",
   "customTargetRateDialogTitle": "Eigene Zielrate festlegen",
-
   "onboardingNameTitle": "Wie heißt du?",
   "onboardingNameLabel": "Dein Name",
   "onboardingNameError": "Bitte gib deinen Namen ein",
@@ -2597,5 +2597,25 @@
   "workoutImportZeroNew": "0 neue Workouts importiert (alle existierten bereits).",
   "telemetryDeleteDialogTitle": "Telemetrie-Daten löschen?",
   "telemetryDeleteDialogBody": "Möchtest du deine bisherigen Telemetrie-Daten wirklich löschen?\n\nFolgendes passiert dabei:\n• Alle auf diesem Gerät gespeicherten Geräte-UUIDs, Session-IDs und lokalen Zähler werden zurückgesetzt.\n• Es wird ein Löschauftrag ($delete_person) an die PostHog-Server in der EU gesendet, um deine bisherigen Daten dort zu entfernen.\n• Das Telemetrie-SDK wird vollständig zurückgesetzt.",
-  "telemetryDeleteConfirmButton": "Daten jetzt löschen"
+  "telemetryDeleteConfirmButton": "Daten jetzt löschen",
+  "liveActivitySetPosition": "Satz {index} von {total}",
+  "@liveActivitySetPosition": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "liveActivityOverdueLabel": "überfällig seit",
+  "liveActivityRirLabel": "RIR",
+  "liveActivityRpeLabel": "RPE",
+  "liveActivityAddExercise": "Übung hinzufügen",
+  "liveActivityOpenApp": "App öffnen",
+  "unit_pounds": "lbs",
+  "unit_kilometers": "km",
+  "unit_miles": "mi",
+  "liveActivitySkipShort": "Skip"
 }

@@ -337,10 +337,13 @@ class StatisticsStepsCard extends StatelessWidget {
                                       color: primaryColor,
                                       borderRadius: BorderRadius.circular(3),
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       LucideIcons.check,
                                       size: 9,
-                                      color: Colors.white,
+                                      // Not always white: in dark mode the
+                                      // primary is a near-white lime that a
+                                      // white tick vanishes into.
+                                      color: theme.colorScheme.onPrimary,
                                     ),
                                   )
                                 : const SizedBox(),
