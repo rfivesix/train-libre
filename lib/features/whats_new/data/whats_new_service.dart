@@ -5,13 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/whats_new_content.g.dart';
 import '../domain/whats_new_release.dart';
 
-/// TEMPORARY TESTING SWITCH — set back to `false` before releasing.
+/// Local preview switch for working on the sheet. **Must be `false` in every
+/// build that leaves this machine.**
 ///
-/// While `true`, the "What's New" sheet is shown on every single app start,
+/// Flip it to `true` to show the "What's New" sheet on every app start
 /// regardless of the stored version, so the layout can be inspected without
-/// reinstalling over an older build. It also stops [WhatsNewService.markSeen]
+/// installing over an older build. It also stops [WhatsNewService.markSeen]
 /// from having any lasting effect, so the sheet keeps coming back.
-const bool kDebugAlwaysShowWhatsNew = true;
+const bool kDebugAlwaysShowWhatsNew = false;
 
 /// Decides whether the "What's New" sheet is due after an update, and
 /// remembers which version the user has already seen.
