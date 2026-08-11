@@ -222,6 +222,14 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       );
       if (!mounted) return;
 
+      // A Live Activity command can be queued before this screen exists at
+      // all (e.g. tapped while the app was on another screen, or cold) — the
+      // lifecycle-based drain in didChangeAppLifecycleState only fires while
+      // this screen is already mounted, so it would otherwise sit stranded
+      // and greyed out until some unrelated resume happens to fire later.
+      await manager.applyPendingLiveActivityCommands();
+      if (!mounted) return;
+
       _scrollToActiveExercise(animated: false);
 
       if (widget.initialAction == 'add_exercise') {
@@ -273,7 +281,15 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     super.didChangeDependencies();
     _ownRoute = ModalRoute.of(context);
     LiveWorkoutScreen.activeRoute = _ownRoute;
-    LiveWorkoutScreen.onDeepLinkReturn = () => _scrollToActiveExercise();
+    LiveWorkoutScreen.onDeepLinkReturn = () {
+      // Tapping the Live Activity body itself returns here via URL deep link
+      // rather than an app-lifecycle resume, so it needs its own drain too.
+      unawaited(
+        Provider.of<LiveWorkoutViewModel>(context, listen: false)
+            .applyPendingLiveActivityCommands(),
+      );
+      _scrollToActiveExercise();
+    };
     final l10n = AppLocalizations.of(context)!;
     final unitService = Provider.of<UnitService>(context);
     Provider.of<LiveWorkoutViewModel>(context, listen: false)

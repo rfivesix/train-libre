@@ -203,7 +203,7 @@ struct LastWorkoutWidgetView: View {
   /// Nothing logged yet. An invitation rather than an apology.
   private var emptyBody: some View {
     VStack(alignment: .leading, spacing: 0) {
-      StatsOverline(text: Text("widget.lastWorkout.name"), palette: palette, showsChevron: false)
+      StatsOverline(text: Text("widget.lastWorkout.name"), palette: palette)
 
       Spacer(minLength: 8)
 

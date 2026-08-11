@@ -28,7 +28,7 @@ import UIKit
     configureChannelsIfNeeded()
     if let url = pendingShortcutURL {
       pendingShortcutURL = nil
-      UIApplication.shared.open(url)
+      openInApp(url)
     }
     super.applicationDidBecomeActive(application)
   }
@@ -45,10 +45,21 @@ import UIKit
   @discardableResult
   func performShortcut(_ shortcutItem: UIApplicationShortcutItem) -> Bool {
     guard let url = HomeScreenShortcut.deepLink(for: shortcutItem) else { return false }
-    // Routing back through the custom scheme lands in the very same handler the
-    // widgets and App Intents already use, instead of a second code path.
-    UIApplication.shared.open(url)
+    openInApp(url)
     return true
+  }
+
+  /// Feeds a `trainlibre://` deep link straight into the same handler the
+  /// widgets and App Intents use, instead of `UIApplication.shared.open(url)`.
+  ///
+  /// The system `open` call sends the URL out to iOS and relies on it being
+  /// routed back into this process — self-opening a custom scheme this way is
+  /// unreliable when called from scene-lifecycle/active-transition callbacks,
+  /// and was silently swallowing quick actions from the icon long-press menu.
+  /// Widgets don't hit this because their URL genuinely arrives from outside
+  /// the app (the WidgetKit extension process), so their round trip is real.
+  private func openInApp(_ url: URL) {
+    _ = application(UIApplication.shared, open: url, options: [:])
   }
 
   override func application(

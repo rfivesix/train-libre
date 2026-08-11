@@ -250,21 +250,20 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         final log = _setLogs[templateId];
         if (log == null || log.isCompleted == true) continue;
 
-        // Values already entered win over the routine's plan. The other order
-        // silently overwrote what the user had typed with the template's
-        // numbers the moment the set was ticked off from the Live Activity.
-        final weight = log.weightKg ?? template.targetWeight;
-        final reps = log.reps ?? int.tryParse(template.targetReps ?? '');
-        if (exercise.exercise.isCardio) {
-          if (log.durationSeconds == null && log.distanceKm == null) return;
-        } else if (weight == null || reps == null) {
+        if (exercise.exercise.isCardio &&
+            log.durationSeconds == null &&
+            log.distanceKm == null) {
           return;
         }
 
+        // Only what the user actually entered is passed on; updateSet fills
+        // the rest from the template, the same way the in-app checkmark does.
+        // Resolving the targets here instead meant reimplementing that fill,
+        // and the copy could not read a rep range like "8-12".
         await updateSet(
           templateId,
-          weight: weight,
-          reps: reps,
+          weight: log.weightKg,
+          reps: log.reps,
           rir: log.rir ?? template.targetRir,
           isCompleted: true,
         );
@@ -526,6 +525,42 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     });
   }
 
+  /// Writes a completed set's resolved values into its input fields.
+  ///
+  /// Completing a set fills in whatever the user left blank from the template's
+  /// targets. Those land in the [SetLog] but not in the text fields, which then
+  /// keep showing the grey hint instead of the value that was actually logged.
+  /// Belongs here rather than in the row widget so every completion path gets
+  /// it — the Live Activity's button never goes through the widget at all.
+  void _fillControllersFromSet(int templateId, SetLog setLog) {
+    final exercise = _exercises.firstWhere(
+      (re) => re.setTemplates.any((t) => t.id == templateId),
+      orElse: () => _exercises.first,
+    );
+
+    if (exercise.exercise.isCardio) {
+      if (setLog.distanceKm != null) {
+        weightControllers[templateId]?.text = setLog.distanceKm!
+            .toStringAsFixed(3)
+            .replaceAll(RegExp(r'0*$'), '')
+            .replaceAll(RegExp(r'\.$'), '');
+      }
+      if (setLog.durationSeconds != null) {
+        repsControllers[templateId]?.text =
+            formatPauseDuration(setLog.durationSeconds);
+      }
+    } else {
+      if (setLog.weightKg != null) {
+        weightControllers[templateId]?.text =
+            unitService.formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
+      }
+      if (setLog.reps != null) {
+        repsControllers[templateId]?.text = setLog.reps!.toString();
+      }
+    }
+    rirControllers[templateId]?.text = setLog.rir?.toString() ?? '';
+  }
+
   void disposeControllers() {
     for (var c in weightControllers.values) {
       c.dispose();
@@ -599,6 +634,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     await _repository.updateSetLogs([_setLogs[templateId]!]);
 
     if (isCompleted == true && oldLog.isCompleted != true) {
+      _fillControllersFromSet(templateId, result.updatedSet);
+
       int? pauseTime;
       bool isLastSet = false;
       for (var re in _exercises) {

@@ -117,7 +117,7 @@ extension View {
   }
 }
 
-/// Title, optional chip and chevron — the header every hub card in the app has.
+/// Title and optional chip — the header every hub card in the app has.
 @available(iOS 18.0, *)
 struct StatsHeader: View {
   let title: Text
@@ -148,10 +148,6 @@ struct StatsHeader: View {
           .fixedSize(horizontal: true, vertical: false)
           .layoutPriority(1)
       }
-
-      Image(systemName: "chevron.right")
-        .font(.system(size: 13, weight: .bold))
-        .foregroundStyle(palette.secondaryText)
     }
   }
 }
@@ -162,7 +158,6 @@ struct StatsHeader: View {
 struct StatsOverline: View {
   let text: Text
   let palette: StatsPalette
-  var showsChevron: Bool = true
 
   var body: some View {
     HStack(spacing: 6) {
@@ -173,12 +168,6 @@ struct StatsOverline: View {
         .foregroundStyle(palette.secondaryText)
         .lineLimit(1)
         .frame(maxWidth: .infinity, alignment: .leading)
-
-      if showsChevron {
-        Image(systemName: "chevron.right")
-          .font(.system(size: 11, weight: .bold))
-          .foregroundStyle(palette.secondaryText)
-      }
     }
   }
 }
