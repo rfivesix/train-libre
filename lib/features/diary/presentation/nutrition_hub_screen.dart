@@ -15,7 +15,6 @@ import '../../nutrition_recommendation/presentation/nutrition_recommendation_car
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
-import '../../../services/telemetry/telemetry_service.dart';
 
 /// A portal for overviewing nutrition and meal planning.
 ///
@@ -33,13 +32,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   final _recommendationService = AdaptiveNutritionRecommendationService();
   bool _isRecalculatingRecommendation = false;
   bool _isApplyingRecommendation = false;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.nutritionHub));
-  }
 
   @override
   void didChangeDependencies() {

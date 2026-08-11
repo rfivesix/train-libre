@@ -120,8 +120,7 @@ class _MainScreenState extends State<MainScreen>
     ScreenName.diaryTab,
     ScreenName.workoutTab,
     ScreenName.analyticsTab,
-    ScreenName.profileTab,
-    ScreenName.settingsTab,
+    ScreenName.nutritionTab,
   ];
 
   @override
@@ -240,8 +239,14 @@ class _MainScreenState extends State<MainScreen>
     if (_isWarping) {
       return;
     }
+    final previousIndex = _currentIndex;
     setState(() => _currentIndex = index);
-    if (index >= 0 && index < _tabScreenNames.length) {
+    // PageView can report onPageChanged once after initial layout settles,
+    // even when the page didn't actually change (e.g. still the initial tab
+    // from initState's own trackScreenView call) — guard against double-firing.
+    if (index != previousIndex &&
+        index >= 0 &&
+        index < _tabScreenNames.length) {
       unawaited(TelemetryService.instance.trackScreenView(
         screenName: _tabScreenNames[index],
       ));
