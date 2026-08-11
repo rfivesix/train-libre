@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - **Live Activity & Dynamic Island for Workouts (iOS 16.2+):** Real-time workout tracking on the Lock Screen and Dynamic Island (iPhone 14 Pro and newer), showing the active exercise, set position, weight/reps or RIR, and rest countdown without unlocking the device. Includes interactive iOS 17+ controls (`-15s`, `+15s`, `Skip`, 1-tap set completion) and native rest timer sound rescheduling (`UNUserNotificationCenter`).
-- **Home Screen & Lock Screen Widgets (iOS 18+ / macOS / Android):** 
+- **Home Screen & Lock Screen Widgets (iOS 18+):** 
   - **Last Workout (4x2 Medium & 4x4 Large):** Displays duration, total volume, sets, and a high-resolution 2D/3D muscle heatmap visualization.
   - **Muscle Readiness / Recovery (4x2 Medium & Lock Screen):** 1:1 visual match of the app's muscle recovery hub, featuring compact inline text (`.accessoryInline`) and a 3-row aligned Lock Screen layout (`.accessoryRectangular`).
   - **Steps 7-Day Chart (4x2 Medium):** 7-day step bar chart with goal reference line, completion checkmark badges, and daily step count.
