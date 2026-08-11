@@ -149,6 +149,7 @@ class _MainScreenState extends State<MainScreen>
       // until the user happens to log something.
       refreshHomeWidgets();
     });
+    _startWidgetRefreshTimer();
   }
 
   /// Runs a quick action parked by the Home Screen widget deep link, if any.
@@ -176,6 +177,7 @@ class _MainScreenState extends State<MainScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
+      _widgetRefreshTimer?.cancel();
       unawaited(TelemetryService.instance.flushDailyFoodLog());
       // Catch-all for everything that changes the widget without going through
       // _refreshHomeScreen — goals, the extra-nutrient choice, the unit system,
@@ -183,7 +185,27 @@ class _MainScreenState extends State<MainScreen>
       // user can see the Home Screen, so it is the right time to be current.
       // Not debounced: a 500ms timer would not survive being backgrounded.
       unawaited(_syncHomeWidgetsNow());
+    } else if (state == AppLifecycleState.resumed) {
+      // Data can change while backgrounded (HealthKit steps/sleep sync from
+      // another process, day rollover) with nothing in-app to trigger a
+      // refresh. Resume is the first moment the app can act on that, rather
+      // than waiting for the next mutation or the next cold start.
+      unawaited(_syncHomeWidgetsNow());
+      _startWidgetRefreshTimer();
     }
+  }
+
+  Timer? _widgetRefreshTimer;
+
+  /// Keeps widgets from going stale during a long foreground session where
+  /// the user never leaves and never logs anything (e.g. just watching
+  /// steps tick up). Matches [HomeWidgetSyncService.statisticsMaxAge] so it
+  /// fires right as the cached statistics would age out anyway.
+  void _startWidgetRefreshTimer() {
+    _widgetRefreshTimer?.cancel();
+    _widgetRefreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
+      unawaited(_syncHomeWidgetsNow());
+    });
   }
 
   Future<void> _syncHomeWidgetsNow() async {
@@ -220,6 +242,7 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   void dispose() {
+    _widgetRefreshTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
