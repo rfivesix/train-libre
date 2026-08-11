@@ -2618,5 +2618,20 @@
   "unit_pounds": "lbs",
   "unit_kilometers": "km",
   "unit_miles": "mi",
-  "liveActivitySkipShort": "スキップ"
+  "liveActivitySkipShort": "スキップ",
+  "whatsNewTitle": "新機能",
+  "whatsNewSubtitle": "前回のアップデートからの変更点です。",
+  "whatsNewVersionHeader": "バージョン {version}",
+  "whatsNewCta": "はじめる",
+  "whatsNewAboutRow": "新機能",
+  "whatsNewAboutRowSubtitle": "このバージョンと以前のバージョンの主な変更点",
+  "@whatsNewVersionHeader": {
+    "description": "Section header above one release's highlights in the What's New sheet.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.2"
+      }
+    }
+  }
 }

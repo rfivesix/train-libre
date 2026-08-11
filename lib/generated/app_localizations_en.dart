@@ -5796,4 +5796,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get liveActivitySkipShort => 'Skip';
+
+  @override
+  String get whatsNewTitle => 'What\'s New';
+
+  @override
+  String get whatsNewSubtitle => 'Here\'s what changed since your last update.';
+
+  @override
+  String whatsNewVersionHeader(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get whatsNewCta => 'Let\'s go';
+
+  @override
+  String get whatsNewAboutRow => 'What\'s New';
+
+  @override
+  String get whatsNewAboutRowSubtitle =>
+      'Release highlights of this and earlier versions';
 }

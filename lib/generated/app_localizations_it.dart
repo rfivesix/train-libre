@@ -5883,4 +5883,26 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get liveActivitySkipShort => 'Salta';
+
+  @override
+  String get whatsNewTitle => 'Novità';
+
+  @override
+  String get whatsNewSubtitle =>
+      'Ecco cosa è cambiato dall\'ultimo aggiornamento.';
+
+  @override
+  String whatsNewVersionHeader(String version) {
+    return 'Versione $version';
+  }
+
+  @override
+  String get whatsNewCta => 'Iniziamo';
+
+  @override
+  String get whatsNewAboutRow => 'Novità';
+
+  @override
+  String get whatsNewAboutRowSubtitle =>
+      'Novità di questa versione e delle precedenti';
 }

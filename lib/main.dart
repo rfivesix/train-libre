@@ -26,6 +26,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'features/onboarding/presentation/initial_consent_screen.dart';
 import 'features/onboarding/presentation/legal_update_consent_screen.dart';
+import 'features/whats_new/data/whats_new_service.dart';
 import 'features/app/presentation/legal_screen.dart';
 import 'core/infrastructure/icloud_sync_service.dart';
 
@@ -110,6 +111,13 @@ void main() async {
 
   final isFreshInstall = !hasAcceptedConsent && acceptedLegalVersion == null;
   final isLegalOutdated = acceptedLegalVersion != kCurrentLegalVersion;
+
+  // A brand new user goes through onboarding and the app tour; release notes
+  // for a version they have never used before would be a third greeting with
+  // nothing to compare against. Mark them as seen up front.
+  if (isFreshInstall) {
+    await WhatsNewService.instance.seedForFreshInstall();
+  }
 
   // Load previously settled glass quality to avoid warmup jank on cold starts
   final savedGlassQuality = prefs.getString('glass_quality');

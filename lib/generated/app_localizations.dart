@@ -10158,6 +10158,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Skip'**
   String get liveActivitySkipShort;
+
+  /// No description provided for @whatsNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get whatsNewTitle;
+
+  /// No description provided for @whatsNewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Here\'s what changed since your last update.'**
+  String get whatsNewSubtitle;
+
+  /// Section header above one release's highlights in the What's New sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String whatsNewVersionHeader(String version);
+
+  /// No description provided for @whatsNewCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go'**
+  String get whatsNewCta;
+
+  /// No description provided for @whatsNewAboutRow.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get whatsNewAboutRow;
+
+  /// No description provided for @whatsNewAboutRowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Release highlights of this and earlier versions'**
+  String get whatsNewAboutRowSubtitle;
 }
 
 class _AppLocalizationsDelegate

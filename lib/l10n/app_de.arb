@@ -2617,5 +2617,20 @@
   "unit_pounds": "lbs",
   "unit_kilometers": "km",
   "unit_miles": "mi",
-  "liveActivitySkipShort": "Skip"
+  "liveActivitySkipShort": "Skip",
+  "whatsNewTitle": "Was ist neu",
+  "whatsNewSubtitle": "Das hat sich seit deinem letzten Update geändert.",
+  "whatsNewVersionHeader": "Version {version}",
+  "whatsNewCta": "Los geht's",
+  "whatsNewAboutRow": "Was ist neu",
+  "whatsNewAboutRowSubtitle": "Highlights dieser und früherer Versionen",
+  "@whatsNewVersionHeader": {
+    "description": "Section header above one release's highlights in the What's New sheet.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.2"
+      }
+    }
+  }
 }

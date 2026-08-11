@@ -37,6 +37,8 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
+import '../../whats_new/data/whats_new_service.dart';
+import '../../whats_new/presentation/whats_new_sheet.dart';
 import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
 import 'widgets/glass_bottom_menu.dart';
@@ -135,8 +137,7 @@ class _MainScreenState extends State<MainScreen>
     );
     MainScreen.drainPendingWidgetAction = _drainPendingWidgetAction;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _handlePendingAppTourEntry();
-      AppReviewService.instance.checkAndRequestReview(context);
+      unawaited(_runStartupPrompts());
       if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
         unawaited(TelemetryService.instance.trackScreenView(
           screenName: _tabScreenNames[_currentIndex],
@@ -1030,7 +1031,6 @@ class _MainScreenState extends State<MainScreen>
                           state.caffeineText.replaceAll(',', '.'),
                         );
                         if (quantity != null && quantity > 0) {
-                          HapticFeedbackService.instance.confirmationFeedback();
                           close();
                           Navigator.of(ctx).pop((
                             quantity: quantity,
@@ -1223,6 +1223,36 @@ class _MainScreenState extends State<MainScreen>
     }
 
     return rect;
+  }
+
+  /// Runs the three things that can greet the user on a cold start, one after
+  /// the other and at most one per launch.
+  ///
+  /// They used to be fired side by side from the post-frame callback, which was
+  /// harmless only because the app tour and the review prompt rarely became due
+  /// on the same launch. "What's New" makes that collision likely — an update
+  /// is exactly when the tour can also be pending — so the order is now
+  /// explicit: app tour, then release notes, then the review prompt.
+  Future<void> _runStartupPrompts() async {
+    await _handlePendingAppTourEntry();
+    if (!mounted || _isTourActive || _isTourOfferVisible) return;
+
+    if (await _showWhatsNewIfPending()) return;
+    if (!mounted) return;
+
+    await AppReviewService.instance.checkAndRequestReview(context);
+  }
+
+  /// Returns `true` when the release notes were shown, so the caller can hold
+  /// the review prompt back until the next launch.
+  Future<bool> _showWhatsNewIfPending() async {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final releases =
+        await WhatsNewService.instance.pendingReleases(languageCode);
+    if (!mounted || releases.isEmpty) return false;
+
+    await showWhatsNewSheet(context, releases);
+    return true;
   }
 
   Future<void> _handlePendingAppTourEntry() async {

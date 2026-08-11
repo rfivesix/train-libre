@@ -12,6 +12,8 @@ import '../../../util/design_constants.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../whats_new/data/whats_new_service.dart';
+import '../../whats_new/presentation/whats_new_sheet.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -91,6 +93,11 @@ class _AboutScreenState extends State<AboutScreen> {
                   Column(
                     children: [
                       AppLinkRow(
+                        title: l10n.whatsNewAboutRow,
+                        subtitle: l10n.whatsNewAboutRowSubtitle,
+                        onTap: () => _openWhatsNew(context),
+                      ),
+                      AppLinkRow(
                         title: l10n.used_libraries,
                         onTap: () => _openUsedPackages(context),
                       ),
@@ -140,6 +147,15 @@ class _AboutScreenState extends State<AboutScreen> {
         ],
       ),
     );
+  }
+
+  /// Opens the full release history. Unlike the automatic presentation after an
+  /// update this does not touch the stored "last seen" version, so a user
+  /// browsing here does not suppress the notes of an update still to come.
+  void _openWhatsNew(BuildContext context) {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final releases = WhatsNewService.instance.releasesForLanguage(languageCode);
+    unawaited(showWhatsNewSheet(context, releases, markSeen: false));
   }
 
   void _openUsedPackages(BuildContext context) {

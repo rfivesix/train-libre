@@ -5844,4 +5844,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get liveActivitySkipShort => 'Skip';
+
+  @override
+  String get whatsNewTitle => 'Was ist neu';
+
+  @override
+  String get whatsNewSubtitle =>
+      'Das hat sich seit deinem letzten Update geändert.';
+
+  @override
+  String whatsNewVersionHeader(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get whatsNewCta => 'Los geht\'s';
+
+  @override
+  String get whatsNewAboutRow => 'Was ist neu';
+
+  @override
+  String get whatsNewAboutRowSubtitle =>
+      'Highlights dieser und früherer Versionen';
 }

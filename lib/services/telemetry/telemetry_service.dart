@@ -84,6 +84,11 @@ abstract class FeatureKey {
   static const String appTourStarted = 'app_tour_started';
   static const String appTourCompleted = 'app_tour_completed';
 
+  /// Emitted only for the automatic post-update presentation, not when the
+  /// user opens the release history from the About screen — otherwise the
+  /// metric would no longer describe update reach.
+  static const String whatsNewViewed = 'whats_new_viewed';
+
   static const Set<String> all = {
     routineCreated,
     routineStarted,
@@ -103,6 +108,7 @@ abstract class FeatureKey {
     csvExported,
     appTourStarted,
     appTourCompleted,
+    whatsNewViewed,
   };
 }
 
@@ -158,6 +164,7 @@ abstract class ScreenName {
   /// `import_data` and `cloud_backup` names had no screen to attach to.
   static const String dataManagement = 'data_management';
   static const String aboutApp = 'about_app';
+  static const String whatsNew = 'whats_new';
   static const String legalPrivacy = 'legal_privacy';
   static const String feedbackReport = 'feedback_report';
 }
@@ -525,7 +532,8 @@ abstract class TelemetryService {
 
   /// Event 2: workout_completed (Aggregated counts and subfeature usage flags, ZERO PII)
   Future<void> trackWorkoutCompleted({
-    required String workoutType, // 'routine' or 'custom' ONLY (no custom titles)
+    required String
+        workoutType, // 'routine' or 'custom' ONLY (no custom titles)
     required int exerciseCount,
     required int setCount,
     required int durationMinutes,
@@ -634,4 +642,3 @@ abstract class TelemetryService {
     Map<String, dynamic>? diagnosticsSummary,
   });
 }
-

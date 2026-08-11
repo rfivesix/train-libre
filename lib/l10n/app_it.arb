@@ -2618,5 +2618,20 @@
   "unit_pounds": "lbs",
   "unit_kilometers": "km",
   "unit_miles": "mi",
-  "liveActivitySkipShort": "Salta"
+  "liveActivitySkipShort": "Salta",
+  "whatsNewTitle": "Novità",
+  "whatsNewSubtitle": "Ecco cosa è cambiato dall'ultimo aggiornamento.",
+  "whatsNewVersionHeader": "Versione {version}",
+  "whatsNewCta": "Iniziamo",
+  "whatsNewAboutRow": "Novità",
+  "whatsNewAboutRowSubtitle": "Novità di questa versione e delle precedenti",
+  "@whatsNewVersionHeader": {
+    "description": "Section header above one release's highlights in the What's New sheet.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.2"
+      }
+    }
+  }
 }
