@@ -46,7 +46,11 @@ dependencies:
 
   # AI Meal Capture (#81)
   http: ^1.2.0
-  flutter_secure_storage: ^11.0.0
+  # Pinned below 11.0.0: that release raises the plugin's own compileSdk to 37,
+  # and AGP 8.13.2 resolves that to the platform hash `android-37`, which Google
+  # no longer ships (only android-37.0 / 37.1 exist). It is also a breaking
+  # release that drops the legacy ciphers. Revisit together with an AGP upgrade.
+  flutter_secure_storage: ">=10.3.0 <11.0.0"
   flutter_local_notifications: ^22.1.0
   timezone: ^0.11.0
   crypto: ^3.0.5
@@ -58,7 +62,9 @@ dependencies:
   uuid: ^4.6.0
   json_annotation: ^4.12.0
   qr_code_scanner_plus: ^2.2.0
-  permission_handler: ^13.0.0
+  # Pinned below 13.0.0 for the same reason: it pulls permission_handler_android
+  # 14.x, which also requires compileSdk 37.
+  permission_handler: ">=12.0.3 <13.0.0"
   flutter_markdown_plus: ^1.0.12
   flutter_markdown_plus_latex: ^1.0.5
   markdown: ^7.3.1
