@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tinted at the call site via ColorFilter, so one white shape serves every
+  surface colour. See RoundedShape in WidgetChrome.kt for why this exists
+  instead of GlanceModifier.cornerRadius: that one only takes effect on API 31+.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+    <corners android:radius="22dp" />
+</shape>

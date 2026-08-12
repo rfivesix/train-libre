@@ -16,6 +16,30 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.1.1',
+      releasedOn: '2026-08-12',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Home screen widgets on Android',
+          body:
+              'The widget family has arrived on Android - your last workout with its muscle map, muscle recovery, your steps of the last 7 days, body measurements, today\'s nutrition and quick actions. Add them from your launcher\'s widget picker; nutrition, measurements and quick actions can be reconfigured at any time.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Your running workout in the notification shade',
+          body:
+              'A workout in progress now sits in your notifications with its rest countdown, and on Android 16 it becomes a Live Update with a chip in the status bar. Tick off a set, add or drop 15 seconds and skip the rest right there, without opening the app.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: 'Quick Settings tiles',
+          body:
+              'All seven quick actions - barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food - are now available as tiles in your Quick Settings panel.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.1.0',
       releasedOn: '2026-08-12',
       entries: <WhatsNewEntry>[
@@ -53,6 +77,30 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.1.1',
+      releasedOn: '2026-08-12',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Homescreen-Widgets für Android',
+          body:
+              'Die Widget-Familie gibt es jetzt auch auf Android - dein letztes Workout mit Muskelkarte, die Muskelregeneration, deine Schritte der letzten 7 Tage, Körpermaße, die heutige Ernährung und Schnellaktionen. Du fügst sie über die Widget-Auswahl deines Launchers hinzu; Ernährung, Körpermaße und Schnellaktionen kannst du jederzeit neu einstellen.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Laufendes Workout in der Benachrichtigung',
+          body:
+              'Dein Workout liegt jetzt mit Pausen-Countdown in den Benachrichtigungen, auf Android 16 wird daraus ein Live Update mit Chip in der Statusleiste. Satz abhaken, 15 Sekunden drauflegen oder abziehen und Pause überspringen geht direkt dort, ohne die App zu öffnen.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: 'Kacheln in den Schnelleinstellungen',
+          body:
+              'Alle sieben Schnellaktionen - Barcode-Scanner, KI-Mahlzeitenerfassung, Workout starten, Wasser hinzufügen, Supplement eintragen, Körpermaß erfassen und Lebensmittel hinzufügen - gibt es jetzt als Kacheln in deinen Schnelleinstellungen.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.1.0',
       releasedOn: '2026-08-12',
@@ -92,6 +140,30 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.1.1',
+      releasedOn: '2026-08-12',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Widgets d\'écran d\'accueil sur Android',
+          body:
+              'la famille de widgets arrive sur Android - ta dernière séance avec sa carte musculaire, la récupération musculaire, tes pas des 7 derniers jours, tes mensurations, la nutrition du jour et les actions rapides. Ajoute-les depuis le sélecteur de widgets de ton lanceur ; nutrition, mensurations et actions rapides se reconfigurent à tout moment.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Ta séance en cours dans les notifications',
+          body:
+              'une séance en cours s\'affiche désormais dans tes notifications avec le compte à rebours de repos, et sur Android 16 elle devient une Live Update avec une pastille dans la barre d\'état. Valider une série, ajouter ou retirer 15 secondes et passer le repos se font sur place, sans ouvrir l\'app.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: 'Tuiles des réglages rapides',
+          body:
+              'les sept actions rapides - scanner de code-barres, capture de repas par IA, démarrer une séance, ajouter de l\'eau, enregistrer un complément, ajouter une mensuration et ajouter un aliment - sont maintenant disponibles comme tuiles dans tes réglages rapides.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.1.0',
       releasedOn: '2026-08-12',
       entries: <WhatsNewEntry>[
@@ -130,6 +202,30 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.1.1',
+      releasedOn: '2026-08-12',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Widget per la schermata Home su Android',
+          body:
+              'la famiglia di widget arriva su Android - il tuo ultimo allenamento con la mappa muscolare, il recupero muscolare, i passi degli ultimi 7 giorni, le misure corporee, la nutrizione di oggi e le azioni rapide. Aggiungili dal selettore di widget del tuo launcher; nutrizione, misure e azioni rapide si possono riconfigurare in qualsiasi momento.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'L\'allenamento in corso nelle notifiche',
+          body:
+              'un allenamento in corso compare ora nelle notifiche con il conto alla rovescia del recupero e, su Android 16, diventa una Live Update con un indicatore nella barra di stato. Completare una serie, aggiungere o togliere 15 secondi e saltare il recupero si fanno da lì, senza aprire l\'app.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: 'Riquadri delle impostazioni rapide',
+          body:
+              'tutte e sette le azioni rapide - scanner di codici a barre, riconoscimento pasti con IA, avvia allenamento, aggiungi acqua, registra un integratore, aggiungi una misura e aggiungi un alimento - sono ora disponibili come riquadri nelle tue impostazioni rapide.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.1.0',
       releasedOn: '2026-08-12',
       entries: <WhatsNewEntry>[
@@ -167,6 +263,30 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.1.1',
+      releasedOn: '2026-08-12',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Androidのホーム画面ウィジェット',
+          body:
+              'ウィジェットがAndroidにも登場しました。直近のワークアウト（筋肉マップ付き）、筋肉の回復状況、過去7日間の歩数、身体計測、今日の栄養、クイックアクションの6種類です。ランチャーのウィジェット一覧から追加でき、栄養・身体計測・クイックアクションは後からいつでも設定を変更できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: '進行中のワークアウトを通知に表示',
+          body:
+              'ワークアウト中は休憩のカウントダウンが通知に表示され、Android 16ではステータスバーにチップが出るライブアップデートになります。セットの完了、休憩の15秒延長・短縮、スキップは、アプリを開かずにその場で行えます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: 'クイック設定のタイル',
+          body:
+              'バーコードスキャナー、AI食事記録、ワークアウト開始、水分の追加、サプリの記録、身体計測の追加、食品の追加という7つのクイックアクションが、クイック設定のタイルとして使えるようになりました。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.1.0',
       releasedOn: '2026-08-12',
@@ -208,4 +328,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.1.0';
+const String kWhatsNewGeneratedForVersion = '1.1.1';

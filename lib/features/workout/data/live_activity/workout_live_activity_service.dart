@@ -19,7 +19,7 @@ class WorkoutLiveActivityService {
   @visibleForTesting
   WorkoutLiveActivityService();
 
-  bool get isPlatformSupported => !kIsWeb && Platform.isIOS;
+  bool get isPlatformSupported => !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
   WorkoutLiveActivityContent? _lastContent;
 

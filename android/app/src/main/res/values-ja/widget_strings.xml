@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Generated from ios/TrainLibreLiveActivity/Localizable.xcstrings.
+  Both platforms show the same widgets, so they share one set of
+  translations; edit the catalogue, not this file.
+-->
+<resources>
+    <string name="quick_action_add_food">食品を追加</string>
+    <string name="quick_action_add_liquid">液体を追加</string>
+    <string name="quick_action_add_measurement">測定の追加</string>
+    <string name="quick_action_ai_meal_capture">AIミール</string>
+    <string name="quick_action_log_supplement">ログの取り込み</string>
+    <string name="quick_action_scan_barcode">バーコードをスキャン</string>
+    <string name="quick_action_start_workout">ワークアウトを開始する</string>
+    <string name="quick_action_type">アクション</string>
+    <string name="widget_last_workout_description">直近のセッションの主要指標と筋肉マップ。</string>
+    <string name="widget_last_workout_duration">時間</string>
+    <string name="widget_last_workout_empty_title">最初のワークアウトの準備はできましたか？</string>
+    <string name="widget_last_workout_name">最後のワークアウト</string>
+    <string name="widget_last_workout_placeholder_title">プッシュデー — 胸と上腕三頭筋</string>
+    <string name="widget_last_workout_reps">回数</string>
+    <string name="widget_last_workout_sets">セット</string>
+    <string name="widget_last_workout_volume">重量(%1$s)</string>
+    <string name="widget_measurements_description">選んだ期間で体の測定値を追跡します。</string>
+    <string name="widget_measurements_empty_body">この期間の測定値はありません。</string>
+    <string name="widget_measurements_empty_cta">値を追加</string>
+    <string name="widget_measurements_metric_title">測定項目</string>
+    <string name="widget_measurements_metric_weight">体重</string>
+    <string name="widget_measurements_name">測定</string>
+    <string name="widget_measurements_period_1m">1ヶ月</string>
+    <string name="widget_measurements_period_3m">3ヶ月</string>
+    <string name="widget_measurements_period_6m">6ヶ月</string>
+    <string name="widget_measurements_period_7d">7日間</string>
+    <string name="widget_measurements_period_max">最大</string>
+    <string name="widget_measurements_period_title">期間</string>
+    <string name="widget_measurements_since">%1$s 比</string>
+    <string name="widget_measurements_single_entry">記録は1件のみ</string>
+    <string name="widget_quick_actions_description">ホーム画面から、選んだ2つまたは4つのアクションをすぐに実行できます。</string>
+    <string name="widget_quick_actions_intent_description">ウィジェットに表示するアクションを選択します。小サイズでは最初の2つが表示されます。</string>
+    <string name="widget_quick_actions_name">クイックアクセス</string>
+    <string name="widget_quick_actions_slot1">アクション 1</string>
+    <string name="widget_quick_actions_slot2">アクション 2</string>
+    <string name="widget_quick_actions_slot3">アクション 3</string>
+    <string name="widget_quick_actions_slot4">アクション 4</string>
+    <string name="widget_quick_actions_slot_single">アクション</string>
+    <string name="widget_recovery_chip">現在</string>
+    <string name="widget_recovery_description">回復済みでトレーニングできる筋肉グループを表示します。</string>
+    <string name="widget_recovery_empty_body">回復データがありません。最初のワークアウトを完了してください。</string>
+    <string name="widget_recovery_name">筋肉の準備状態</string>
+    <string name="widget_recovery_placeholder_headline">いくつかの筋肉グループはまだ回復中です</string>
+    <string name="widget_recovery_state_fresh">新鮮</string>
+    <string name="widget_recovery_state_fresh_short">新鮮</string>
+    <string name="widget_recovery_state_ready">準備完了</string>
+    <string name="widget_recovery_state_ready_short">準備</string>
+    <string name="widget_recovery_state_recovering">回復</string>
+    <string name="widget_recovery_state_recovering_short">回復</string>
+    <string name="widget_start_workout">ワークアウトを開始</string>
+    <string name="widget_steps_chip">過去7日間</string>
+    <string name="widget_steps_description">過去7日間の歩数。</string>
+    <string name="widget_steps_name">歩数</string>
+    <string name="widget_steps_no_access_body">Train Libre で歩数データへのアクセスを有効にしてください。</string>
+    <string name="widget_steps_no_access_cta">設定を開く</string>
+    <string name="widget_steps_no_access_title">歩数へのアクセスがオフです</string>
+    <string name="widget_steps_percent_of_goal">目標の%1$d%%</string>
+    <string name="widget_steps_today">今日</string>
+    <string name="widget_today_glance_day_mode_calendar_day">暦日</string>
+    <string name="widget_today_glance_day_mode_calendar_day_subtitle">0時に日付が変わります</string>
+    <string name="widget_today_glance_day_mode_follow_app">アプリと同じ</string>
+    <string name="widget_today_glance_day_mode_follow_app_subtitle">午前3時に日付が変わります</string>
+    <string name="widget_today_glance_day_mode_title">表示する日</string>
+    <string name="widget_today_glance_description">今日のカロリー・水分・マクロを一目で確認できます。</string>
+    <string name="widget_today_glance_empty_no_data">Train Libre を開くと今日の値を読み込みます</string>
+    <string name="widget_today_glance_empty_no_entries">今日の記録はまだありません — タップして追加</string>
+    <string name="widget_today_glance_name">今日の概要</string>
+</resources>

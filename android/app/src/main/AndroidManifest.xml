@@ -18,6 +18,9 @@
     <!-- <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/> -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Android 16+: lets the running workout notification be promoted to a
+         Live Update, with a status bar chip and a lock screen card. -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS"/>
 
     <!-- Required for Health Connect. -->
     <uses-permission android:name="android.permission.health.READ_STEPS"/>
@@ -61,6 +64,14 @@
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
+
+            <!-- The URLs the home screen widgets and Quick Settings tiles emit.
+                 Parsed in lib/features/home_widgets/home_widget_deep_link.dart. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="trainlibre"/>
+            </intent-filter>
             
             <!-- Required for Android 14+ Health Connect: predeclare the permissions in use. -->
             <meta-data
@@ -84,6 +95,193 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Home screen widgets. Each label is what the widget picker shows. -->
+        <receiver
+            android:name=".widgets.StepsWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_steps_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_steps"/>
+        </receiver>
+
+        <receiver
+            android:name=".widgets.RecoveryWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_recovery_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_recovery"/>
+        </receiver>
+
+        <receiver
+            android:name=".widgets.LastWorkoutWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_last_workout_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_last_workout"/>
+        </receiver>
+
+        <receiver
+            android:name=".widgets.TodayGlanceWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_today_glance_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_today_glance"/>
+        </receiver>
+
+        <receiver
+            android:name=".widgets.MeasurementsWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_measurements_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_measurements"/>
+        </receiver>
+
+        <receiver
+            android:name=".widgets.QuickActionsWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_quick_actions_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_quick_actions"/>
+        </receiver>
+
+        <!-- The configuration screens the launcher opens when one of the three
+             configurable widgets is placed. Not exported: only the system's own
+             widget-binding flow may start them. -->
+        <activity
+            android:name=".widgets.config.TodayGlanceConfigActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TrainLibre.WidgetConfig">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".widgets.config.MeasurementsConfigActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TrainLibre.WidgetConfig">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".widgets.config.QuickActionsConfigActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TrainLibre.WidgetConfig">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
+
+
+        <!-- Quick Settings tiles: the same seven actions the quick access widget
+             offers, and the counterpart to the iOS Control Center controls. -->
+
+        <service
+            android:name=".widgets.tiles.AiMealCaptureTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_widget_ai_meal_capture"
+            android:label="@string/quick_action_ai_meal_capture"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".widgets.tiles.ScanBarcodeTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_widget_scan_barcode"
+            android:label="@string/quick_action_scan_barcode"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".widgets.tiles.StartWorkoutTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_widget_start_workout"
+            android:label="@string/quick_action_start_workout"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".widgets.tiles.AddMeasurementTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_widget_add_measurement"
+            android:label="@string/quick_action_add_measurement"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".widgets.tiles.LogSupplementTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_widget_log_supplement"
+            android:label="@string/quick_action_log_supplement"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".widgets.tiles.AddLiquidTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_widget_add_liquid"
+            android:label="@string/quick_action_add_liquid"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".widgets.tiles.AddFoodTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_widget_add_food"
+            android:label="@string/quick_action_add_food"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+        <!-- The workout live update's buttons. Not exported: only the
+             notification's own PendingIntents may raise these. -->
+        <receiver
+            android:name=".liveupdate.LiveUpdateActionReceiver"
+            android:exported="false" />
 
     </application>
 
