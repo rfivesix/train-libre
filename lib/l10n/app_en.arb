@@ -433,13 +433,14 @@
   "deleteCustomExerciseBody": "This will permanently delete \"{name}\". This cannot be undone.",
   "@deleteCustomExerciseBody": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "deleteCustomExerciseWithLogsWarning": "This exercise appears in your workout history. Your log entries will be kept, but the exercise link will be removed.",
   "deleteCustomExerciseWithRoutinesWarning": "This exercise is used in one or more routines. It will be removed from those routines.",
   "deleteCustomExerciseSuccess": "Exercise deleted.",
-
   "restOverLabel": "Pause is over",
   "workoutRunningLabel": "Workout is active …",
   "continueButton": "Continue",
@@ -964,7 +965,6 @@
   "adaptiveRatePerWeekLabel": "Weekly Target Rate",
   "customTargetRateOption": "Custom",
   "customTargetRateDialogTitle": "Set Custom Target Rate",
-
   "onboardingNameTitle": "What's your name?",
   "onboardingNameLabel": "Your Name",
   "onboardingNameError": "Please enter your name",
@@ -2731,5 +2731,40 @@
   "workoutImportZeroNew": "0 new workouts imported (all already existed).",
   "telemetryDeleteDialogTitle": "Delete Telemetry Data?",
   "telemetryDeleteDialogBody": "Do you really want to delete your past telemetry data?\n\nThe following will happen:\n• All device UUIDs, session IDs, and local counters stored on this device will be reset.\n• A deletion request ($delete_person) will be sent to PostHog servers in the EU to remove your data there.\n• The telemetry SDK will be fully reset.",
-  "telemetryDeleteConfirmButton": "Delete data now"
+  "telemetryDeleteConfirmButton": "Delete data now",
+  "liveActivitySetPosition": "Set {index} of {total}",
+  "@liveActivitySetPosition": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "liveActivityOverdueLabel": "overdue by",
+  "liveActivityRirLabel": "RIR",
+  "liveActivityRpeLabel": "RPE",
+  "liveActivityAddExercise": "Add exercise",
+  "liveActivityOpenApp": "Open app",
+  "unit_pounds": "lbs",
+  "unit_kilometers": "km",
+  "unit_miles": "mi",
+  "liveActivitySkipShort": "Skip",
+  "whatsNewTitle": "What's New",
+  "whatsNewSubtitle": "Here's what changed since your last update.",
+  "whatsNewVersionHeader": "Version {version}",
+  "whatsNewCta": "Let's go",
+  "whatsNewAboutRow": "What's New",
+  "whatsNewAboutRowSubtitle": "Release highlights of this and earlier versions",
+  "@whatsNewVersionHeader": {
+    "description": "Section header above one release's highlights in the What's New sheet.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.2"
+      }
+    }
+  }
 }

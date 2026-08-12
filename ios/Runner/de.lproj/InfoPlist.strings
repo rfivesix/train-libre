@@ -2,3 +2,5 @@
 "NSHealthShareUsageDescription" = "Train Libre liest Schritte, Schlaf und Herzfrequenz aus Apple Health, um aktivierte Gesundheits- und Erholungsansichten anzuzeigen.";
 "NSHealthUpdateUsageDescription" = "Train Libre schreibt Messwerte, Ernaehrung, Fluessigkeit und Workouts in Apple Health, wenn du den einseitigen Gesundheitsexport aktivierst.";
 "NSPhotoLibraryUsageDescription" = "Train Libre verwendet den Zugriff auf die Fotomediathek fuer optionale KI-Mahlzeitenanalysen und Profilbilder.";
+"shortcut.addFood" = "Lebensmittel hinzufügen";
+"shortcut.startWorkout" = "Workout starten";

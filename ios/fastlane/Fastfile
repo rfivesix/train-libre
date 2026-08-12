@@ -20,11 +20,13 @@ platform :ios do
       UI.user_error!("pubspec.yaml not found at path: #{pubspec_path}")
     end
 
-    # Increment (set) build number in Runner.xcodeproj
-    increment_build_number(
-      build_number: build_number,
-      xcodeproj: "Runner.xcodeproj"
-    )
+    # NOTE: Deliberately no increment_build_number here. This lane uploads an
+    # already-built IPA, so setting the version afterwards cannot affect the
+    # binary anyway -- and agvtool would rewrite the $(FLUTTER_BUILD_NUMBER)
+    # placeholder in Runner/Info.plist back into a hardcoded literal, which is
+    # exactly how that file got stuck at build 1000013. The build number comes
+    # from pubspec.yaml via `flutter build ipa --build-number` in
+    # script/deploy_release.sh; it is only parsed above to verify the IPA.
 
     ipa_path = Dir[File.join(project_root, "build", "ios", "ipa", "**", "*.ipa")].first
     

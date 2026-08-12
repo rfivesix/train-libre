@@ -434,13 +434,14 @@
   "deleteCustomExerciseBody": "'{name}' verrà eliminato definitivamente. Questa azione è irreversibile.",
   "@deleteCustomExerciseBody": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "deleteCustomExerciseWithLogsWarning": "Questo esercizio è presente nella cronologia degli allenamenti. Le voci del diario verranno mantenute, ma il collegamento all'esercizio verrà rimosso.",
   "deleteCustomExerciseWithRoutinesWarning": "Questo esercizio è utilizzato in una o più routine. Verrà rimosso da quelle routine.",
   "deleteCustomExerciseSuccess": "Esercizio eliminato.",
-
   "restOverLabel": "La pausa è finita",
   "workoutRunningLabel": "L’allenamento è attivo…",
   "continueButton": "Continuare",
@@ -965,7 +966,6 @@
   "adaptiveRatePerWeekLabel": "Tasso target settimanale",
   "customTargetRateOption": "Personalizzato",
   "customTargetRateDialogTitle": "Imposta obiettivo personalizzato",
-
   "onboardingNameTitle": "Come ti chiami?",
   "onboardingNameLabel": "Il tuo nome",
   "onboardingNameError": "Per favore inserisci il tuo nome",
@@ -2598,5 +2598,40 @@
   "workoutImportZeroNew": "0 nuovi allenamenti importati (tutti esistevano già).",
   "telemetryDeleteDialogTitle": "Eliminare i dati di telemetria?",
   "telemetryDeleteDialogBody": "Vuoi davvero eliminare i tuoi dati di telemetria precedenti?\n\nAccadrà quanto segue:\n• Tutti gli UUID del dispositivo, gli ID sessione e i contatori locali memorizzati su questo dispositivo verranno ripristinati.\n• Verrà inviata una richiesta di eliminazione ($delete_person) ai server PostHog nell'UE per rimuovere i tuoi dati da lì.\n• L'SDK di telemetria verrà completamente ripristinato.",
-  "telemetryDeleteConfirmButton": "Elimina i dati ora"
+  "telemetryDeleteConfirmButton": "Elimina i dati ora",
+  "liveActivitySetPosition": "Serie {index} di {total}",
+  "@liveActivitySetPosition": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "liveActivityOverdueLabel": "in ritardo di",
+  "liveActivityRirLabel": "RIR",
+  "liveActivityRpeLabel": "RPE",
+  "liveActivityAddExercise": "Aggiungi esercizio",
+  "liveActivityOpenApp": "Apri l'app",
+  "unit_pounds": "lbs",
+  "unit_kilometers": "km",
+  "unit_miles": "mi",
+  "liveActivitySkipShort": "Salta",
+  "whatsNewTitle": "Novità",
+  "whatsNewSubtitle": "Ecco cosa è cambiato dall'ultimo aggiornamento.",
+  "whatsNewVersionHeader": "Versione {version}",
+  "whatsNewCta": "Iniziamo",
+  "whatsNewAboutRow": "Novità",
+  "whatsNewAboutRowSubtitle": "Novità di questa versione e delle precedenti",
+  "@whatsNewVersionHeader": {
+    "description": "Section header above one release's highlights in the What's New sheet.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.2"
+      }
+    }
+  }
 }

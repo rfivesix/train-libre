@@ -84,6 +84,11 @@ abstract class FeatureKey {
   static const String appTourStarted = 'app_tour_started';
   static const String appTourCompleted = 'app_tour_completed';
 
+  /// Emitted only for the automatic post-update presentation, not when the
+  /// user opens the release history from the About screen — otherwise the
+  /// metric would no longer describe update reach.
+  static const String whatsNewViewed = 'whats_new_viewed';
+
   static const Set<String> all = {
     routineCreated,
     routineStarted,
@@ -103,6 +108,7 @@ abstract class FeatureKey {
     csvExported,
     appTourStarted,
     appTourCompleted,
+    whatsNewViewed,
   };
 }
 
@@ -112,7 +118,7 @@ abstract class ScreenName {
   static const String workoutTab = 'workout_tab';
   static const String diaryTab = 'diary_tab';
   static const String analyticsTab = 'analytics_tab';
-  static const String profileTab = 'profile_tab';
+  static const String nutritionTab = 'nutrition_tab';
 
   // Workout
   static const String liveWorkout = 'live_workout';
@@ -126,8 +132,6 @@ abstract class ScreenName {
   static const String createExercise = 'create_exercise';
 
   // Diary
-  static const String diaryDayView = 'diary_day_view';
-  static const String nutritionHub = 'nutrition_hub';
   static const String mealList = 'meal_list';
   static const String addFoodSearch = 'add_food_search';
   static const String foodDetail = 'food_detail';
@@ -139,7 +143,6 @@ abstract class ScreenName {
   static const String foodExplorer = 'food_explorer';
 
   // Analytics
-  static const String statisticsHub = 'statistics_hub';
   static const String muscleGroupAnalytics = 'muscle_group_analytics';
   static const String prDashboard = 'pr_dashboard';
   static const String consistencyTracker = 'consistency_tracker';
@@ -154,7 +157,6 @@ abstract class ScreenName {
   static const String stepsOverview = 'steps_overview';
   static const String supplementsOverview = 'supplements_overview';
   static const String settingsMain = 'settings_main';
-  static const String settingsTab = 'settings_tab';
   static const String aiSettings = 'ai_settings';
 
   /// Backup, CSV export, import and local-data deletion all live on one screen
@@ -162,6 +164,7 @@ abstract class ScreenName {
   /// `import_data` and `cloud_backup` names had no screen to attach to.
   static const String dataManagement = 'data_management';
   static const String aboutApp = 'about_app';
+  static const String whatsNew = 'whats_new';
   static const String legalPrivacy = 'legal_privacy';
   static const String feedbackReport = 'feedback_report';
 }
@@ -529,7 +532,8 @@ abstract class TelemetryService {
 
   /// Event 2: workout_completed (Aggregated counts and subfeature usage flags, ZERO PII)
   Future<void> trackWorkoutCompleted({
-    required String workoutType, // 'routine' or 'custom' ONLY (no custom titles)
+    required String
+        workoutType, // 'routine' or 'custom' ONLY (no custom titles)
     required int exerciseCount,
     required int setCount,
     required int durationMinutes,
@@ -638,4 +642,3 @@ abstract class TelemetryService {
     Map<String, dynamic>? diagnosticsSummary,
   });
 }
-

@@ -1,0 +1,1 @@
+Log workouts, calories and macros offline. No ads, no account, no commercial tracking. Optional usage stats are off by default. Open source — verify it yourself.

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:train_libre/core/infrastructure/icloud_sync_service.dart';
 import 'package:train_libre/services/telemetry/telemetry_service.dart';
 import 'package:train_libre/services/telemetry/telemetry_service_noop.dart';
 import 'package:train_libre/services/telemetry/telemetry_service_posthog.dart';
@@ -298,5 +299,54 @@ void main() {
         expect(identifierPattern.hasMatch(source), isTrue, reason: source);
       }
     });
+
+    test('ICloudSyncService.setSyncEnabled tracks setting_toggled and feature_used on toggle', () async {
+      final trackedEvents = <Map<String, dynamic>>[];
+      final testTelemetry = TestTelemetryService((event) => trackedEvents.add(event));
+      TelemetryService.instance = testTelemetry;
+
+      await ICloudSyncService.instance.setSyncEnabled(true);
+      await Future<void>.delayed(Duration.zero);
+      expect(trackedEvents, hasLength(2));
+      expect(trackedEvents[0]['type'], equals('setting_toggled'));
+      expect(trackedEvents[0]['setting_key'], equals('icloud_sync_enabled'));
+      expect(trackedEvents[0]['value'], equals(true));
+      expect(trackedEvents[1]['type'], equals('feature_used'));
+      expect(trackedEvents[1]['feature_key'], equals(FeatureKey.icloudSyncTriggered));
+
+      trackedEvents.clear();
+
+      await ICloudSyncService.instance.setSyncEnabled(false);
+      await Future<void>.delayed(Duration.zero);
+      expect(trackedEvents, hasLength(1));
+      expect(trackedEvents[0]['type'], equals('setting_toggled'));
+      expect(trackedEvents[0]['setting_key'], equals('icloud_sync_enabled'));
+      expect(trackedEvents[0]['value'], equals(false));
+    });
   });
+}
+
+class TestTelemetryService extends NoOpTelemetryService {
+  final void Function(Map<String, dynamic> event) onTrack;
+  TestTelemetryService(this.onTrack);
+
+  @override
+  Future<void> trackSettingToggled({
+    required String settingKey,
+    required dynamic value,
+  }) async {
+    onTrack({'type': 'setting_toggled', 'setting_key': settingKey, 'value': value});
+  }
+
+  @override
+  Future<void> trackFeatureUsed({
+    required String featureKey,
+    Map<String, dynamic>? extraProps,
+  }) async {
+    onTrack({
+      'type': 'feature_used',
+      'feature_key': featureKey,
+      if (extraProps != null) ...extraProps,
+    });
+  }
 }

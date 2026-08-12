@@ -35,7 +35,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1000013</string>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
@@ -48,6 +48,25 @@
 	<string>Train Libre writes measurements, nutrition, hydration, and workouts to Apple Health when you enable one-way health export.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Train Libre uses photo library access for optional AI meal analysis and profile images.</string>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.rfivesix.trainlibre.shortcut.addFood</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>shortcut.addFood</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>plus.circle.fill</string>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.rfivesix.trainlibre.shortcut.startWorkout</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>shortcut.startWorkout</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>dumbbell.fill</string>
+		</dict>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -114,6 +133,15 @@
 	<array>
 		<string>dev.flutter.background.refresh</string>
 		<string>task.tdeeCalculation</string>
+	</array>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<true/>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>QuickActionsConfigIntent</string>
+		<string>TodayGlanceConfigIntent</string>
 	</array>
 </dict>
 </plist>

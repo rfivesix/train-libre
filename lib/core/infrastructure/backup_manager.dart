@@ -15,6 +15,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as p;
 
+import 'catalog_state_prefs.dart';
 import '../../data/database_helper.dart';
 import '../../data/drift_database.dart' as db;
 import '../../features/diary/data/sources/diary_local_data_source.dart';
@@ -267,9 +268,13 @@ class BackupManager {
     token?.throwIfCancelled();
 
     final prefs = await _prefsLoader();
+    // Catalog-state keys describe which catalog databases sit on *this* disk
+    // and must not travel to another device — see [CatalogStatePrefs].
     final userPrefs = <String, dynamic>{
       for (String key in prefs.getKeys())
-        if (!key.startsWith('ai_api_key_')) key: prefs.get(key)
+        if (!key.startsWith('ai_api_key_') &&
+            !CatalogStatePrefs.isCatalogStateKey(key))
+          key: prefs.get(key)
     };
 
     final backup = TrainLibreBackup(
@@ -594,6 +599,16 @@ class BackupManager {
       originalPrefs[key] = prefs.get(key);
     }
 
+    // Which catalog databases are installed is a property of this device, not
+    // of the backup. Carry the local values across `prefs.clear()` and ignore
+    // any that older backups still contain, otherwise a restore convinces a
+    // fresh install that it already has the wger/OFF catalogs and no download
+    // is ever offered. See [CatalogStatePrefs].
+    final deviceCatalogPrefs = <String, dynamic>{
+      for (final key in originalPrefs.keys)
+        if (CatalogStatePrefs.isCatalogStateKey(key)) key: originalPrefs[key]
+    };
+
     final dbInst = _dbHelper.dbInstance;
     bool success = false;
 
@@ -659,6 +674,23 @@ class BackupManager {
         onProgress?.call('preferences', 0.25);
 
         for (final entry in backup.userPreferences.entries) {
+          final k = entry.key, v = entry.value;
+          if (CatalogStatePrefs.isCatalogStateKey(k)) continue;
+          if (v is bool) {
+            await prefs.setBool(k, v);
+          } else if (v is int) {
+            await prefs.setInt(k, v);
+          } else if (v is double) {
+            await prefs.setDouble(k, v);
+          } else if (v is String) {
+            await prefs.setString(k, v);
+          } else if (v is List && v.every((e) => e is String)) {
+            await prefs.setStringList(k, v.cast<String>());
+          }
+        }
+
+        // Re-apply this device's own catalog state after the wipe.
+        for (final entry in deviceCatalogPrefs.entries) {
           final k = entry.key, v = entry.value;
           if (v is bool) {
             await prefs.setBool(k, v);

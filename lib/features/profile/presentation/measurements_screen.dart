@@ -28,11 +28,38 @@ import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 
+/// Maps a Measurements-widget period key onto the timeframe the screen offers.
+///
+/// The keys come from `HomeWidgetMeasurementPeriod` / `MeasurementPeriod` on
+/// the Swift side; an unknown or absent key leaves the screen on its default.
+TimeframeBlock? measurementTimeframeBlockForWidgetPeriod(String? periodKey) {
+  return switch (periodKey) {
+    '7d' => TimeframeBlock.week,
+    '1m' => TimeframeBlock.month,
+    '3m' => TimeframeBlock.threeMonths,
+    '6m' => TimeframeBlock.sixMonths,
+    'max' => TimeframeBlock.maxBlock,
+    _ => null,
+  };
+}
+
 /// A screen for viewing and analyzing body measurement history.
 class MeasurementsScreen extends StatefulWidget {
   final IProfileRepository? repository;
 
-  const MeasurementsScreen({super.key, this.repository});
+  /// Preselects a metric — the `Measurement.type` key the Home Screen widget
+  /// was configured with. Ignored if the user has never recorded it.
+  final String? initialMeasurementType;
+
+  /// Preselects a timeframe, likewise from the widget's configuration.
+  final TimeframeBlock? initialBlock;
+
+  const MeasurementsScreen({
+    super.key,
+    this.repository,
+    this.initialMeasurementType,
+    this.initialBlock,
+  });
 
   @override
   State<MeasurementsScreen> createState() => _MeasurementsScreenState();
@@ -141,6 +168,11 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedChartType = widget.initialMeasurementType;
+    final initialBlock = widget.initialBlock;
+    if (initialBlock != null && _blocks.contains(initialBlock)) {
+      _activeBlock = initialBlock;
+    }
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.bodyMeasurements));
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -164,7 +196,12 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         setState(() {
           _sessions = sessions;
           _availableMeasurementTypes = types.toList()..sort();
-          if (_selectedChartType == null &&
+          // Also covers a preselection from a Home Screen widget that names a
+          // metric the user has since stopped recording: the dropdown would
+          // otherwise hold a value that is not among its items.
+          final selected = _selectedChartType;
+          if ((selected == null ||
+                  !_availableMeasurementTypes.contains(selected)) &&
               _availableMeasurementTypes.isNotEmpty) {
             _selectedChartType = _availableMeasurementTypes.contains('weight')
                 ? 'weight'

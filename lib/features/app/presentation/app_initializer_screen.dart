@@ -319,6 +319,18 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       return l10n.initCheckingProductDatabase(country).replaceAll('...', '');
     }
 
+    final uebersetzungenReg = RegExp(r'^(\d+)\s*/\s*(\d+)\s+Übersetzungen$');
+    if (uebersetzungenReg.hasMatch(raw)) {
+      final match = uebersetzungenReg.firstMatch(raw)!;
+      final processed = match.group(1) ?? '';
+      final total = match.group(2) ?? '';
+      return l10n.initEntriesProgress(processed, total);
+    }
+
+    if (raw == 'Bereinige veraltete OFF-Daten...') {
+      return l10n.initPreparation;
+    }
+
     final eintraegeReg = RegExp(r'^(\d+)\s*/\s*(\d+)\s+Einträge$');
     if (eintraegeReg.hasMatch(raw)) {
       final match = eintraegeReg.firstMatch(raw)!;

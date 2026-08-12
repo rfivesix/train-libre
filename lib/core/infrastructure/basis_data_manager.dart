@@ -113,9 +113,40 @@ class BasisDataManager {
       (value as num?)?.toDouble() ?? 0.0;
   static String _parseString(dynamic value) => value?.toString() ?? '';
 
+  // Memoized "the rows are really there" results. Only a positive result is
+  // cached: once a catalog is confirmed present it cannot disappear without a
+  // restore or a wipe, both of which restart the app or call
+  // [invalidateCatalogPresenceCache].
+  bool _exerciseRowsVerified = false;
+  bool _offRowsVerified = false;
+
+  /// Drops the memoized presence results, e.g. after a restore replaced the
+  /// database underneath us.
+  void invalidateCatalogPresenceCache() {
+    _exerciseRowsVerified = false;
+    _offRowsVerified = false;
+  }
+
   Future<bool> isExerciseCatalogInitialized() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('is_exercise_catalog_initialized') ?? false;
+    if (!(prefs.getBool('is_exercise_catalog_initialized') ?? false)) {
+      return false;
+    }
+    // The preference alone is not proof: a restored backup carries the flag
+    // from the source device, where the catalog *was* installed. Confirm the
+    // rows exist here before claiming the catalog is ready.
+    if (_exerciseRowsVerified) return true;
+    try {
+      final mainDb = await DatabaseHelper.instance.database;
+      final row = await mainDb
+          .customSelect('SELECT 1 FROM exercises LIMIT 1')
+          .getSingleOrNull();
+      _exerciseRowsVerified = row != null;
+      return _exerciseRowsVerified;
+    } catch (e) {
+      debugPrint('[ExerciseCatalog] Presence check failed: $e');
+      return false;
+    }
   }
 
   Future<bool> isOffDatabaseInitialized() async {
@@ -128,7 +159,22 @@ class BasisDataManager {
         OffCatalogCountryService.installedVersionKeyForCountry(
             activeOffCountry);
     final version = prefs.getString(activeOffVersionKey);
-    return version != null && version != '0' && version != '';
+    if (version == null || version == '0' || version == '') return false;
+    // Same reasoning as above — verify the OFF rows actually landed on this
+    // device instead of trusting a version string that may have been restored.
+    if (_offRowsVerified) return true;
+    try {
+      final mainDb = await DatabaseHelper.instance.database;
+      final row = await mainDb.customSelect(
+        'SELECT 1 FROM products WHERE source = ? LIMIT 1',
+        variables: [drift.Variable.withString('off')],
+      ).getSingleOrNull();
+      _offRowsVerified = row != null;
+      return _offRowsVerified;
+    } catch (e) {
+      debugPrint('[OffCatalog] Presence check failed: $e');
+      return false;
+    }
   }
 
   Future<int?> getRemoteFileSize(Uri uri) async {
@@ -272,15 +318,20 @@ class BasisDataManager {
 
     final shouldDownload = await showGlassBottomMenu<bool>(
       context: context,
-      title: isMissingEither ? l10n.offDownloadTitle : l10n.updateAvailableTitle,
+      title:
+          isMissingEither ? l10n.offDownloadTitle : l10n.updateAvailableTitle,
       isDismissible: true,
       enableDrag: true,
       contentBuilder: (ctx, close) {
         final wgerStatus = wgerInitialized
-            ? (wgerUpdateAvailable ? l10n.updateAvailableTitle : l10n.statusReady)
+            ? (wgerUpdateAvailable
+                ? l10n.updateAvailableTitle
+                : l10n.statusReady)
             : l10n.statusRequired;
         final offStatus = offInitialized
-            ? (offUpdateAvailable ? l10n.updateAvailableTitle : l10n.statusReady)
+            ? (offUpdateAvailable
+                ? l10n.updateAvailableTitle
+                : l10n.statusReady)
             : l10n.statusRequired;
 
         final wgerSizeText =
@@ -311,7 +362,9 @@ class BasisDataManager {
                 Text(
                   "$wgerStatus ($wgerSizeText)",
                   style: TextStyle(
-                    color: wgerStatus == l10n.statusReady ? Colors.green : Colors.orange,
+                    color: wgerStatus == l10n.statusReady
+                        ? Colors.green
+                        : Colors.orange,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -329,7 +382,9 @@ class BasisDataManager {
                 Text(
                   "$offStatus ($offSizeText)",
                   style: TextStyle(
-                    color: offStatus == l10n.statusReady ? Colors.green : Colors.orange,
+                    color: offStatus == l10n.statusReady
+                        ? Colors.green
+                        : Colors.orange,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -482,35 +537,41 @@ class BasisDataManager {
         prefs.getBool('is_exercise_catalog_initialized') ?? false;
     final mainDb = await DatabaseHelper.instance.database;
 
-    if (!isExerciseInitialized || force) {
-      final exerciseCountRow = await mainDb
-          .customSelect('SELECT COUNT(*) AS c FROM exercises')
-          .getSingleOrNull();
-      final exerciseCountDb = exerciseCountRow?.read<int>('c') ?? 0;
-      final translationCountRow = await mainDb
-          .customSelect('SELECT COUNT(*) AS c FROM exercise_translations')
-          .getSingleOrNull();
-      final translationCountDb = translationCountRow?.read<int>('c') ?? 0;
+    // The health check runs unconditionally, not only when the initialized
+    // flag is missing: after a backup restore the flag is carried over from
+    // the source device while the tables here are still empty, and gating the
+    // check on the flag would let that state slip through untouched.
+    final exerciseCountRow = await mainDb
+        .customSelect('SELECT COUNT(*) AS c FROM exercises')
+        .getSingleOrNull();
+    final exerciseCountDb = exerciseCountRow?.read<int>('c') ?? 0;
+    final translationCountRow = await mainDb
+        .customSelect('SELECT COUNT(*) AS c FROM exercise_translations')
+        .getSingleOrNull();
+    final translationCountDb = translationCountRow?.read<int>('c') ?? 0;
 
-      final exercisesEmpty = exerciseCountDb == 0;
-      final translationsHealthy =
-          exerciseCountDb == 0 || (translationCountDb >= exerciseCountDb);
+    final exercisesEmpty = exerciseCountDb == 0;
+    final translationsHealthy =
+        exerciseCountDb == 0 || (translationCountDb >= exerciseCountDb);
+    final exerciseCatalogUnhealthy = exercisesEmpty || !translationsHealthy;
 
-      if (exercisesEmpty || !translationsHealthy) {
-        await prefs.remove(_keyVersionTraining);
-        if (exercisesEmpty) {
-          debugPrint(
-            '[ExerciseCatalog] ⚠️  exercises table empty → forcing re-seed '
-            '(sandbox reset: NSUserDefaults survived SQLite wipe).',
-          );
-        } else {
-          debugPrint(
-            '[ExerciseCatalog] ⚠️  Under-translated: $translationCountDb translations '
-            'for $exerciseCountDb exercises → forcing re-seed.',
-          );
-        }
+    if (exerciseCatalogUnhealthy) {
+      await prefs.remove(_keyVersionTraining);
+      _exerciseRowsVerified = false;
+      if (exercisesEmpty) {
+        debugPrint(
+          '[ExerciseCatalog] ⚠️  exercises table empty → forcing re-seed '
+          '(sandbox reset or restored backup: prefs survived an empty SQLite).',
+        );
+      } else {
+        debugPrint(
+          '[ExerciseCatalog] ⚠️  Under-translated: $translationCountDb translations '
+          'for $exerciseCountDb exercises → forcing re-seed.',
+        );
       }
+    }
 
+    if (!isExerciseInitialized || exerciseCatalogUnhealthy || force) {
       await importExerciseCatalog(
         force: force,
         checkRemote: force,
@@ -555,6 +616,28 @@ class BasisDataManager {
       activeOffCountry,
     );
 
+    // Drop an OFF version claim that no rows on this device back up, so the
+    // "download required" prompt is offered instead of the app silently
+    // reporting an up-to-date catalog it does not have.
+    final storedOffVersion = prefs.getString(activeOffVersionKey);
+    if (storedOffVersion != null &&
+        storedOffVersion.isNotEmpty &&
+        storedOffVersion != '0') {
+      final hasOffData = await _hasInitializedData(
+        mainDb: mainDb,
+        prefKey: activeOffVersionKey,
+      );
+      if (!hasOffData) {
+        debugPrint(
+          '[OffCatalog] ⚠️  Installed version "$storedOffVersion" claimed for '
+          '${activeOffCountry.upperCode} but no OFF products on this device → '
+          'clearing the claim so a download can be offered.',
+        );
+        await prefs.remove(activeOffVersionKey);
+        _offRowsVerified = false;
+      }
+    }
+
     final packageInfo = await PackageInfo.fromPlatform();
     final currentAppVersion = packageInfo.version;
     final currentAppBuild = packageInfo.buildNumber;
@@ -562,8 +645,36 @@ class BasisDataManager {
     final bool isEnriched = prefs.getBool(_keyVersionFoodEnrichment) ?? false;
     final bool forceEnrichment = !isEnriched;
 
-    final bool shouldSync =
-        force || currentAppBuild != lastDbSyncAppVersion || forceEnrichment;
+    // Same restore hazard as the exercise catalog: `last_db_sync_app_version`
+    // may have been carried over from another device, which would make the
+    // build-bound gate below skip the bundled imports even though nothing is
+    // on disk here. Verify the rows before trusting the gate, and clear the
+    // installed-version keys so the importer does not skip a second time.
+    final bool hasBaseFoodData =
+        await _hasInitializedData(mainDb: mainDb, prefKey: _keyVersionFood);
+    final bool hasCategoryData =
+        await _hasInitializedData(mainDb: mainDb, prefKey: _keyVersionCats);
+    final bool bundledDataMissing = !hasBaseFoodData || !hasCategoryData;
+
+    if (bundledDataMissing && !force) {
+      if (!hasBaseFoodData) {
+        debugPrint(
+          '[BasisData] ⚠️  Base products missing on this device → re-seeding.',
+        );
+        await prefs.remove(_keyVersionFood);
+      }
+      if (!hasCategoryData) {
+        debugPrint(
+          '[BasisData] ⚠️  Food categories missing on this device → re-seeding.',
+        );
+        await prefs.remove(_keyVersionCats);
+      }
+    }
+
+    final bool shouldSync = force ||
+        currentAppBuild != lastDbSyncAppVersion ||
+        forceEnrichment ||
+        bundledDataMissing;
 
     if (!shouldSync) {
       onProgress?.call(
@@ -1238,7 +1349,10 @@ class BasisDataManager {
 
           // Progress melden
           if (onProgress != null) {
-            final double progress = (processed / totalCount).clamp(0.0, 1.0);
+            final double baseMax =
+                importType == BatchImportType.exercises ? 0.70 : 0.95;
+            final double progress =
+                ((processed / totalCount) * baseMax).clamp(0.0, baseMax);
             onProgress(
               "Update $taskLabel",
               "$processed / $totalCount Einträge",
@@ -1323,7 +1437,16 @@ class BasisDataManager {
                 }
               });
 
-              trOffset += batchSize;
+              trOffset += trRows.length;
+              if (onProgress != null && trTotal > 0) {
+                final double trProgress =
+                    (0.70 + (0.30 * (trOffset / trTotal))).clamp(0.70, 1.0);
+                onProgress(
+                  "Update $taskLabel",
+                  "$trOffset / $trTotal Übersetzungen",
+                  trProgress,
+                );
+              }
               await Future.delayed(const Duration(milliseconds: 1));
             }
 

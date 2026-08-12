@@ -171,11 +171,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _loadAdaptiveGoalSettings();
     _initSelectedCountry();
 
-    if (_isImportedMode) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isImportedMode) {
         _pageController.jumpToPage(_unitSystemPageIndex);
-      });
-    }
+      } else {
+        TelemetryService.instance.trackOnboardingStep(
+          stepIndex: 0,
+          stepName: _stepNames[0],
+          durationSeconds: 0,
+          sessionId: _onboardingSessionId,
+        );
+      }
+    });
 
     // Silently check if an iCloud backup is available for restore on iOS.
     if (Platform.isIOS || Platform.isMacOS) {
@@ -566,9 +573,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         SnackBar(content: Text(l10n.onboardingRestoreICloudSuccess)),
       );
 
-      // Close old connection so SQLite releases the file lock
-      DatabaseHelper.driftDb?.close();
-
+      // The old connection was already closed and cleared by
+      // downloadAndRestore before it swapped the file; these reads open a
+      // fresh connection against the restored database.
       await context.read<UnitService>().reload();
       await _loadAdaptiveGoalSettings();
 
@@ -1166,6 +1173,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Row(
                   children: [
                     IconButton.filledTonal(
+                      tooltip: MaterialLocalizations.of(context).previousPageTooltip,
                       onPressed: _isCheckingDatabase ? null : _prevPage,
                       icon: const Icon(LucideIcons.arrow_left),
                     ),

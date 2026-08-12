@@ -8,6 +8,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
@@ -38,7 +39,7 @@ class AiService {
     FlutterSecureStorage? secureStorage,
     DynamicModelIdsLoader? dynamicModelIdsLoader,
     AiHttpGet? httpGet,
-  })  : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
+  })  : _secureStorage = secureStorage ?? deviceOnlySecureStorage,
         _dynamicModelIdsLoader = dynamicModelIdsLoader,
         _httpGet = httpGet ?? http.get;
   static final AiService instance = AiService._();
@@ -59,6 +60,34 @@ class AiService {
   final FlutterSecureStorage _secureStorage;
   final DynamicModelIdsLoader? _dynamicModelIdsLoader;
   final AiHttpGet _httpGet;
+
+  /// Keychain items default to `kSecAttrAccessibleWhenUnlocked`, which Apple
+  /// copies into device and iCloud backups and restores onto whatever device
+  /// the backup is applied to. BYOK credentials must not travel that way, so
+  /// everything this service stores is written `…ThisDeviceOnly`.
+  ///
+  /// Anything reading or deleting these items must use the same options —
+  /// `kSecAttrAccessible` is part of the keychain lookup query, so a mismatch
+  /// silently finds nothing.
+  static const IOSOptions deviceOnlyIosOptions = IOSOptions(
+    accessibility: KeychainAccessibility.unlocked_this_device,
+  );
+  static const MacOsOptions deviceOnlyMacOsOptions = MacOsOptions(
+    accessibility: KeychainAccessibility.unlocked_this_device,
+  );
+
+  static const FlutterSecureStorage deviceOnlySecureStorage =
+      FlutterSecureStorage(
+    iOptions: deviceOnlyIosOptions,
+    mOptions: deviceOnlyMacOsOptions,
+  );
+
+  /// The options items were stored with before [deviceOnlySecureStorage]; kept
+  /// so [migrateSecureStorageToDeviceOnly] can find and move them.
+  static const FlutterSecureStorage _legacySecureStorage = FlutterSecureStorage(
+    iOptions: IOSOptions(),
+    mOptions: MacOsOptions(),
+  );
 
   // Secure storage keys per provider
   static const _keyPrefix = 'ai_api_key_';
@@ -255,6 +284,47 @@ class AiService {
   // ---------------------------------------------------------------------------
   // Key Management
   // ---------------------------------------------------------------------------
+
+  /// Every key this service owns, used by the device-only migration.
+  static List<String> get _allStorageKeys => [
+        for (final provider in AiProvider.values) apiKeyStorageKeyFor(provider),
+        for (final provider in AiProvider.values)
+          selectedModelStorageKeyFor(provider),
+        _providerKey,
+        _customBaseUrlKey,
+        _customModelKey,
+        _timeoutKey,
+      ];
+
+  /// Moves keychain items written before [deviceOnlyAppleOptions] existed onto
+  /// the device-only accessibility class, so they stop being included in iOS
+  /// device and iCloud backups.
+  ///
+  /// Runs once per install and is a no-op on non-Apple platforms and on fresh
+  /// installs. Each item is deleted before being rewritten: `SecItemAdd`
+  /// rejects a duplicate service/account pair, and the plugin's delete ignores
+  /// the accessibility attribute, so it removes the backup-eligible item that
+  /// the new-options read cannot see.
+  static Future<void> migrateSecureStorageToDeviceOnly() async {
+    if (!Platform.isIOS && !Platform.isMacOS) return;
+    final prefs = await SharedPreferences.getInstance();
+    const migrationFlag = 'ai_secure_storage_device_only_v1';
+    if (prefs.getBool(migrationFlag) ?? false) return;
+
+    for (final key in _allStorageKeys) {
+      try {
+        final legacyValue = await _legacySecureStorage.read(key: key);
+        if (legacyValue == null) continue;
+        await _legacySecureStorage.delete(key: key);
+        await deviceOnlySecureStorage.write(key: key, value: legacyValue);
+      } catch (e) {
+        debugPrint('Device-only keychain migration failed for $key: $e');
+        return; // Retry on the next launch rather than half-migrating.
+      }
+    }
+
+    await prefs.setBool(migrationFlag, true);
+  }
 
   /// Reads the stored API key for the given [provider].
   Future<String?> getApiKey(AiProvider provider) async {

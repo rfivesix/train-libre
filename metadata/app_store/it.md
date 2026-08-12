@@ -54,23 +54,15 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Backup e ripristino iCloud: i tuoi dati ora vengono salvati automaticamente su iCloud e si ripristinano con un tocco, su un nuovo dispositivo o dopo una reinstallazione.
+Attività in tempo reale e Dynamic Island: segui l'allenamento in corso direttamente dalla schermata di blocco e dalla Dynamic Island - esercizio attuale, serie, peso e conto alla rovescia del recupero, senza sbloccare il telefono. Puoi prolungare o saltare il recupero da lì.
 
-Rinnovamento visivo: un aspetto più pulito in tutta l'app, con effetti vetro rifiniti, superfici più omogenee in modalità chiara e scura e problemi di contrasto risolti che rendevano poco leggibili alcuni testi e pulsanti.
+Widget per schermata Home e di blocco: nuovi widget per l'ultimo allenamento, il recupero muscolare, i passi degli ultimi 7 giorni, le misure corporee e la nutrizione di oggi. Aggiungili e vedi tutto a colpo d'occhio.
 
-Grande aumento delle prestazioni: scorrimento più fluido e navigazione più rapida in Diario, Statistiche e Allenamenti, soprattutto sui display ad alta frequenza di aggiornamento.
+Siri, Comandi rapidi e tasto Azione: scanner di codici a barre, riconoscimento pasti con IA, avvia allenamento, aggiungi acqua, registra un integratore, aggiungi una misura e aggiungi un alimento sono ora disponibili come comandi rapidi, pulsanti del Centro di Controllo e per il tasto Azione.
 
-Supporto completo alle unità imperiali: libbre, pollici e miglia ora funzionano correttamente ovunque nell'app, non solo in alcune schermate.
+Aggiornamenti del catalogo più veloci: la schermata di aggiornamento del database non si blocca più poco prima della fine - il passaggio lento dietro le quinte ora richiede millisecondi invece di circa 20 secondi.
 
-Tracciamento cardio: nuovi record personali per distanza, durata e passo, tenuti separati dalle statistiche di forza per mantenere accurate le tue analisi.
-
-Salvataggio più affidabile: risolti bug per cui lo storico modificato, i timer di recupero e i record personali potevano non essere salvati.
-
-Importazioni più rapide e affidabili: l'importazione CSV degli allenamenti è ora molto più veloce e salta automaticamente i duplicati.
-
-Miglioramenti di sicurezza: import ed export dei backup rafforzati per proteggere meglio i tuoi dati.
-
-Statistiche d'uso opzionali: ora puoi aiutare a migliorare Train Libre condividendo statistiche d'uso. Disattivate di default, non contengono dati sanitari e possono essere disattivate ed eliminate in qualsiasi momento nelle Impostazioni.
+Subito alla prossima serie: aprendo un allenamento in corso l'app scorre direttamente all'esercizio con la prossima serie da completare.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

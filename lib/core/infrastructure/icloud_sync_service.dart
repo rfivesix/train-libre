@@ -10,8 +10,10 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../data/database_helper.dart';
 import '../../data/drift_database.dart';
 import '../../services/telemetry/telemetry_service.dart';
+import 'basis_data_manager.dart';
 
 /// The filename used for the iCloud backup snapshot.
 const _kICloudBackupFileName = 'icloud_backup.sqlite';
@@ -66,6 +68,15 @@ class ICloudSyncService {
   Future<void> setSyncEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(kICloudSyncEnabledKey, enabled);
+
+    unawaited(TelemetryService.instance.trackSettingToggled(
+      settingKey: 'icloud_sync_enabled',
+      value: enabled,
+    ));
+    if (enabled) {
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
+    }
   }
 
   /// Returns the last successful sync timestamp, or null if never synced.
@@ -116,6 +127,9 @@ class ICloudSyncService {
 
     await _setLastSyncTimestamp(DateTime.now());
 
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
+
     return true;
   }
 
@@ -149,8 +163,6 @@ class ICloudSyncService {
 
       await _setLastSyncTimestamp(DateTime.now());
 
-      unawaited(TelemetryService.instance
-          .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
       return true;
     } catch (e, st) {
       debugPrint('iCloud backup: failed with error: $e');
@@ -181,9 +193,10 @@ class ICloudSyncService {
 
   /// Downloads the iCloud backup file and overwrites the active database.
   ///
-  /// **IMPORTANT:** Call this BEFORE the Drift [AppDatabase] connection is
-  /// opened (i.e., during the onboarding splash / before `main()` wires up
-  /// the database provider).
+  /// The caller does not have to close the database first — this method closes
+  /// the active Drift connection itself, because the file swap is only safe
+  /// once no connection holds the old file. The app must be restarted
+  /// afterwards so every provider is rebuilt against the restored database.
   ///
   /// Returns `true` on success.
   Future<bool> downloadAndRestore({
@@ -207,13 +220,34 @@ class ICloudSyncService {
         return false;
       }
 
+      // Release the live connection before swapping the file underneath it.
+      // Replacing an open SQLite file leaves the old connection writing to an
+      // unlinked inode and hands every later caller a closed database.
+      await DatabaseHelper.closeAndResetDriftDb();
+
       // Atomically replace the active database.
       await tempFile.rename(activePath);
 
-      // Restore shared preferences from the new database snapshot
-      final tempDb = AppDatabase();
-      await _extractSharedPreferences(tempDb);
-      await tempDb.close();
+      // Drop journal sidecars belonging to the *previous* database — SQLite
+      // would otherwise try to recover the restored file from them.
+      for (final suffix in const ['-wal', '-shm', '-journal']) {
+        final sidecar = File('$activePath$suffix');
+        if (sidecar.existsSync()) {
+          try {
+            sidecar.deleteSync();
+          } catch (e) {
+            debugPrint('iCloud restore: could not delete $suffix sidecar: $e');
+          }
+        }
+      }
+
+      // Restore shared preferences from the new database snapshot.
+      final restoredDb = AppDatabase();
+      await _extractSharedPreferences(restoredDb);
+      await restoredDb.close();
+
+      // Catalog presence was memoized against the database we just replaced.
+      BasisDataManager.instance.invalidateCatalogPresenceCache();
 
       return true;
     } catch (e) {

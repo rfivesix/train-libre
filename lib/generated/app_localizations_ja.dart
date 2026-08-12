@@ -5579,4 +5579,56 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get telemetryDeleteConfirmButton => '今すぐデータを削除';
+
+  @override
+  String liveActivitySetPosition(int index, int total) {
+    return '$total セット中 $index';
+  }
+
+  @override
+  String get liveActivityOverdueLabel => '経過';
+
+  @override
+  String get liveActivityRirLabel => 'RIR';
+
+  @override
+  String get liveActivityRpeLabel => 'RPE';
+
+  @override
+  String get liveActivityAddExercise => '種目を追加';
+
+  @override
+  String get liveActivityOpenApp => 'アプリを開く';
+
+  @override
+  String get unit_pounds => 'lbs';
+
+  @override
+  String get unit_kilometers => 'km';
+
+  @override
+  String get unit_miles => 'mi';
+
+  @override
+  String get liveActivitySkipShort => 'スキップ';
+
+  @override
+  String get whatsNewTitle => '新機能';
+
+  @override
+  String get whatsNewSubtitle => '前回のアップデートからの変更点です。';
+
+  @override
+  String whatsNewVersionHeader(String version) {
+    return 'バージョン $version';
+  }
+
+  @override
+  String get whatsNewCta => 'はじめる';
+
+  @override
+  String get whatsNewAboutRow => '新機能';
+
+  @override
+  String get whatsNewAboutRowSubtitle => 'このバージョンと以前のバージョンの主な変更点';
 }

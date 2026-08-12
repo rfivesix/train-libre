@@ -46,7 +46,6 @@ import 'widgets/performance_section_card.dart';
 import 'widgets/pulse_section_card.dart';
 import 'widgets/recovery_section_card.dart';
 import 'widgets/sleep_section_card.dart';
-import '../../../services/telemetry/telemetry_service.dart';
 
 class StatisticsHubScreen extends StatefulWidget {
   const StatisticsHubScreen({
@@ -93,8 +92,6 @@ class StatisticsHubScreenState extends State<StatisticsHubScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.statisticsHub));
     _viewModel = StatisticsHubViewModel(
       hubDataAdapter: widget._hubDataAdapter,
       stepsRepository: widget._stepsRepository,

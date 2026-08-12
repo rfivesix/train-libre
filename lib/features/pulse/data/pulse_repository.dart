@@ -321,26 +321,22 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
       );
     }
 
-    final sampleCount = overlapping.fold<int>(
-      0,
-      (sum, bucket) => sum + bucket.sampleCount,
-    );
-    final sumBpm = overlapping.fold<double>(
-      0,
-      (sum, bucket) => sum + bucket.sumBpm,
-    );
-    final minBpm = overlapping
-        .map((bucket) => bucket.minBpm)
-        .reduce((a, b) => math.min(a, b));
-    final maxBpm = overlapping
-        .map((bucket) => bucket.maxBpm)
-        .reduce((a, b) => math.max(a, b));
-    final first = overlapping
-        .map((bucket) => bucket.firstSampleUtc)
-        .reduce((a, b) => a.isBefore(b) ? a : b);
-    final last = overlapping
-        .map((bucket) => bucket.lastSampleUtc)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    // BOLT OPTIMIZATION: Replaced 6 chained O(N) fold/map/reduce passes with a single loop
+    int sampleCount = 0;
+    double sumBpm = 0.0;
+    double minBpm = overlapping.first.minBpm;
+    double maxBpm = overlapping.first.maxBpm;
+    DateTime first = overlapping.first.firstSampleUtc;
+    DateTime last = overlapping.first.lastSampleUtc;
+
+    for (final bucket in overlapping) {
+      sampleCount += bucket.sampleCount;
+      sumBpm += bucket.sumBpm;
+      if (bucket.minBpm < minBpm) minBpm = bucket.minBpm;
+      if (bucket.maxBpm > maxBpm) maxBpm = bucket.maxBpm;
+      if (bucket.firstSampleUtc.isBefore(first)) first = bucket.firstSampleUtc;
+      if (bucket.lastSampleUtc.isAfter(last)) last = bucket.lastSampleUtc;
+    }
     final chartSamples = _chartSamplesFromBuckets(window, overlapping);
 
     PerfDebugTimer.logDuration(
@@ -442,10 +438,9 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
   double _restingFromAggregateBuckets(List<PulseAggregateBucket> buckets) {
     final sorted = buckets.map((bucket) => bucket.averageBpm).toList()..sort();
     final count = math.max(1, (sorted.length * 0.2).ceil());
-    final lowWindow = sorted.take(count).toList(growable: false);
-    final middle = lowWindow.length ~/ 2;
-    if (lowWindow.length.isOdd) return lowWindow[middle];
-    return (lowWindow[middle - 1] + lowWindow[middle]) / 2;
+    final middle = count ~/ 2;
+    if (count.isOdd) return sorted[middle];
+    return (sorted[middle - 1] + sorted[middle]) / 2;
   }
 
   PulseDataQuality _classifyAggregateQuality({
