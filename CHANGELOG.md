@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.1] - 2026-08-12
+
+### Changed
+- **Optimized Sleep Standard Deviation Calculation:** Replaced functional pipeline chaining with a single-pass loop in `SleepPipelineService._buildRollingMidSleepSdByNight` to avoid redundant list allocations and reduce GC pressure.
+- **Optimized Daily Nutrition Calculation:** Replaced map lookup duplicates and added early loop short-circuiting in `CalculateDailyNutritionUseCase` to reduce execution time and avoid redundant loops over the supplements database.
+
 ## [1.1.0] - 2026-08-12
 
 ### Added
@@ -22,8 +28,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - **Startup Prompts Are Serialized:** The app tour, the release notes and the review prompt were previously fired side by side from `MainScreen`'s post-frame callback, which only ever worked because the tour and the review prompt rarely became due on the same launch. They now run one after the other with at most one prompt per launch, in the order app tour → "What's New" → review prompt, so an update — the one moment when several of them *can* be due at once — cannot stack three sheets on top of each other.
 - **Reduced Redundant Iteration Passes in Hot Paths:** Replaced chained `.where()/.map()/.reduce()/.fold()` pipelines with single-pass `for` loops in several frequently-executed code paths, cutting allocations and repeated traversals of the same collection: pulse summary metric extraction (`PulseRepository._summaryFromBuckets`), resting pulse median calculation (`PulseRepository._restingFromAggregateBuckets`, `PulseAnalysisEngine._restingPulse`), and live workout completion stats (`LiveWorkoutViewModel.finishWorkout`). No behavioral change; output is identical to the previous implementation.
-- **Optimized Sleep Standard Deviation Calculation:** Replaced functional pipeline chaining with a single-pass loop in `SleepPipelineService._buildRollingMidSleepSdByNight` to avoid redundant list allocations and reduce GC pressure.
-- **Optimized Daily Nutrition Calculation:** Replaced map lookup duplicates and added early loop short-circuiting in `CalculateDailyNutritionUseCase` to reduce execution time and avoid redundant loops over the supplements database.
 
 ### Fixed
 - **Onboarding Telemetry Initial Step Tracking:** Fixed an issue where the initial step (`welcome`, `step_index: 0`) of `OnboardingScreen` was omitted from PostHog telemetry because tracking relied exclusively on `PageView.onPageChanged`, which does not fire on initial render. Added explicit post-frame tracking for step 0 so onboarding funnels begin at step 0 instead of skipping to step 1 (`unit_system`).
