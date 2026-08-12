@@ -171,11 +171,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _loadAdaptiveGoalSettings();
     _initSelectedCountry();
 
-    if (_isImportedMode) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isImportedMode) {
         _pageController.jumpToPage(_unitSystemPageIndex);
-      });
-    }
+      } else {
+        TelemetryService.instance.trackOnboardingStep(
+          stepIndex: 0,
+          stepName: _stepNames[0],
+          durationSeconds: 0,
+          sessionId: _onboardingSessionId,
+        );
+      }
+    });
 
     // Silently check if an iCloud backup is available for restore on iOS.
     if (Platform.isIOS || Platform.isMacOS) {

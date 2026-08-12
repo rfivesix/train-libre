@@ -10098,6 +10098,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete data now'**
   String get telemetryDeleteConfirmButton;
+
+  /// No description provided for @liveActivitySetPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Set {index} of {total}'**
+  String liveActivitySetPosition(int index, int total);
+
+  /// No description provided for @liveActivityOverdueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'overdue by'**
+  String get liveActivityOverdueLabel;
+
+  /// No description provided for @liveActivityRirLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'RIR'**
+  String get liveActivityRirLabel;
+
+  /// No description provided for @liveActivityRpeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'RPE'**
+  String get liveActivityRpeLabel;
+
+  /// No description provided for @liveActivityAddExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Add exercise'**
+  String get liveActivityAddExercise;
+
+  /// No description provided for @liveActivityOpenApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open app'**
+  String get liveActivityOpenApp;
+
+  /// No description provided for @unit_pounds.
+  ///
+  /// In en, this message translates to:
+  /// **'lbs'**
+  String get unit_pounds;
+
+  /// No description provided for @unit_kilometers.
+  ///
+  /// In en, this message translates to:
+  /// **'km'**
+  String get unit_kilometers;
+
+  /// No description provided for @unit_miles.
+  ///
+  /// In en, this message translates to:
+  /// **'mi'**
+  String get unit_miles;
+
+  /// No description provided for @liveActivitySkipShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get liveActivitySkipShort;
+
+  /// No description provided for @whatsNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get whatsNewTitle;
+
+  /// No description provided for @whatsNewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Here\'s what changed since your last update.'**
+  String get whatsNewSubtitle;
+
+  /// Section header above one release's highlights in the What's New sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String whatsNewVersionHeader(String version);
+
+  /// No description provided for @whatsNewCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go'**
+  String get whatsNewCta;
+
+  /// No description provided for @whatsNewAboutRow.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get whatsNewAboutRow;
+
+  /// No description provided for @whatsNewAboutRowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Release highlights of this and earlier versions'**
+  String get whatsNewAboutRowSubtitle;
 }
 
 class _AppLocalizationsDelegate

@@ -46,6 +46,25 @@ Welcome to the Train Libre repository! We appreciate your interest in contributi
 - **Visual Changes:** If your pull request introduces UI modifications, you *must* attach layout screenshots (for both Light and Dark mode, if applicable) to your PR description.
 - **Feature Modules:** New feature modules should be spawned in the `lib/features/` folder following the pure layer isolation pattern described in `documentation/architecture.md`.
 
+## User-Facing Release Notes
+
+`CHANGELOG.md` is the technical record. The short, user-readable notes that
+appear in the in-app "What's New" sheet after an update *and* as the App Store
+"What's New" text live in `metadata/whats_new/<locale>.md` — one file per store
+locale, 3–5 highlights per release.
+
+After editing them, regenerate the in-app catalog and push the same text to the
+store metadata:
+
+```bash
+python3 script/build_whats_new.py --write --sync-store
+```
+
+`script/deploy_release.sh` runs `python3 script/build_whats_new.py --check`
+before it builds anything and asks for confirmation when the notes for the
+version in `pubspec.yaml` are missing, incomplete or out of sync. See
+`metadata/whats_new/README.md` for the exact format.
+
 ## Submitting Pull Requests
 
 - Work on targeted, single-responsibility branches.

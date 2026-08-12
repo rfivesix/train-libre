@@ -54,23 +54,15 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and the wger exercise database. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-iCloud Backup & Restore: Your data now backs up automatically to iCloud and restores in one tap when you get a new device or reinstall the app.
+Live Activity & Dynamic Island: Follow your running workout straight from the Lock Screen and the Dynamic Island - current exercise, set, weight and rest countdown, without unlocking your phone. Skip or extend the rest timer right there.
 
-Visual refresh: A cleaner look throughout, with refined glass effects, smoother dark/light mode surfaces, and fixed contrast issues that made some text and buttons hard to see.
+Home & Lock Screen Widgets: New widgets for your last workout, muscle recovery, 7-day steps, body measurements and today's nutrition. Add them to the Home Screen or the Lock Screen and see your numbers at a glance.
 
-Big performance boost: Smoother scrolling and faster navigation across Diary, Statistics, and Workout screens, especially on newer high-refresh-rate displays.
+Siri, Shortcuts & Action Button: Barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food are now available as Shortcuts, Control Center buttons and Action Button mappings.
 
-Full Imperial unit support: Pounds, inches, and miles now work correctly everywhere in the app, not just in some screens.
+Faster catalog updates: The database update screen no longer stalls near the end - the slow step behind it now takes milliseconds instead of about 20 seconds.
 
-Cardio tracking: New personal records for distance, duration, and pace, kept separate from your strength stats so your analytics stay accurate.
-
-More reliable data saving: Fixed bugs where edited workout history, rest timers, and personal records could fail to save.
-
-Faster, more reliable imports: CSV workout imports are now dramatically faster and skip duplicates automatically.
-
-Security improvements: Hardened backup import/export to better protect your data.
-
-Optional usage statistics: You can now help improve Train Libre by sharing usage statistics. Off by default, contains no health data, and can be turned off and erased at any time in Settings.
+Straight to your next set: Opening a running workout now scrolls directly to the exercise with the next open set.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

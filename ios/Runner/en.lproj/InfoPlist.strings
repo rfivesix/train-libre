@@ -2,3 +2,5 @@
 "NSHealthShareUsageDescription" = "Train Libre reads steps, sleep, and heart-rate data from Apple Health to show health and recovery views you enable.";
 "NSHealthUpdateUsageDescription" = "Train Libre writes measurements, nutrition, hydration, and workouts to Apple Health when you enable one-way health export.";
 "NSPhotoLibraryUsageDescription" = "Train Libre uses photo library access for optional AI meal analysis and profile images.";
+"shortcut.addFood" = "Add Food";
+"shortcut.startWorkout" = "Start Workout";

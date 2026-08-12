@@ -40,6 +40,40 @@ IOS_BUILD_NAME="${VERSION_NUMBER%%-*}"
 echo "iOS build version (cleaned): $IOS_BUILD_NAME"
 
 # ------------------------------------------------------------------------------
+# STEP 1b: User-Facing Release Notes Preflight
+# ------------------------------------------------------------------------------
+# Verifies that metadata/whats_new/<locale>.md has a section for this version,
+# that the generated in-app catalog is current, and that the App Store notes
+# match. This is the one thing in the release that is easy to forget and
+# impossible to fix after the build, so it asks before continuing.
+echo "Checking user-facing release notes for $VERSION_NUMBER..."
+WHATS_NEW_STATUS=0
+python3 script/build_whats_new.py --check || WHATS_NEW_STATUS=$?
+
+if [ "$WHATS_NEW_STATUS" -ne 0 ]; then
+  echo ""
+  echo "------------------------------------------------------------------"
+  echo "The 'What's New' release notes for $VERSION_NUMBER are incomplete."
+  echo ""
+  echo "  1. Edit metadata/whats_new/<locale>.md (see the README there)"
+  echo "  2. Run: python3 script/build_whats_new.py --write --sync-store"
+  echo ""
+  echo "Continuing now ships this version without release notes in the app"
+  echo "and with stale 'What's New' text in the App Store."
+  echo "------------------------------------------------------------------"
+  read -r -p "Continue anyway? [y/N] " WHATS_NEW_ANSWER </dev/tty
+  case "$WHATS_NEW_ANSWER" in
+    [yY]|[yY][eE][sS])
+      echo "Continuing without complete release notes."
+      ;;
+    *)
+      echo "Aborted. Nothing was built, committed or pushed."
+      exit 1
+      ;;
+  esac
+fi
+
+# ------------------------------------------------------------------------------
 # STEP 2: Branch Verification & PR Automation
 # ------------------------------------------------------------------------------
 CURRENT_BRANCH=$(git branch --show-current)

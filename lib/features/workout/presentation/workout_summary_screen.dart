@@ -8,6 +8,8 @@ import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 
 import '../data/sources/workout_local_data_source.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
+import '../../home_widgets/application/home_widget_sync_service.dart';
+import '../../../services/theme_service.dart';
 import '../../sharing/share_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/routine.dart';
@@ -305,10 +307,37 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           _showSyncBanner = showSyncBanner;
           _isLoading = false;
         });
+
+        // Publish the heatmap for the Home Screen widget from here: this is the
+        // one place per finished workout that has both the resolved exercises
+        // and a live overlay to rasterise into.
+        unawaited(_refreshHomeWidgets());
       }
     } else {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  /// A finished workout moves recovery, the Last Workout card and its muscle
+  /// heatmap all at once, so the cached statistics sections are dropped here
+  /// rather than waited out.
+  ///
+  /// The heatmap itself is rendered by the sync service, not from this screen:
+  /// tying it to a screen visit left every workout logged before the feature
+  /// existed without one.
+  Future<void> _refreshHomeWidgets() async {
+    if (!mounted) return;
+    // One frame of grace so the summary is on screen before the off-screen
+    // render competes with it for the raster thread.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    final sync = context.read<HomeWidgetSyncService>();
+    sync.invalidateStatistics();
+    await sync.refresh(
+      l10n: AppLocalizations.of(context)!,
+      isAiEnabled: context.read<ThemeService>().isAiEnabled,
+    );
   }
 
   @override

@@ -1,0 +1,9 @@
+Live Activity & Dynamic Island: Follow your running workout straight from the Lock Screen and the Dynamic Island - current exercise, set, weight and rest countdown, without unlocking your phone. Skip or extend the rest timer right there.
+
+Home & Lock Screen Widgets: New widgets for your last workout, muscle recovery, 7-day steps, body measurements and today's nutrition. Add them to the Home Screen or the Lock Screen and see your numbers at a glance.
+
+Siri, Shortcuts & Action Button: Barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food are now available as Shortcuts, Control Center buttons and Action Button mappings.
+
+Faster catalog updates: The database update screen no longer stalls near the end - the slow step behind it now takes milliseconds instead of about 20 seconds.
+
+Straight to your next set: Opening a running workout now scrolls directly to the exercise with the next open set.

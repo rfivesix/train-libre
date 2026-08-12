@@ -550,51 +550,12 @@ class LiveWorkoutSetRow extends StatelessWidget {
                     color: isCompleted ? Colors.green : Colors.grey,
                   ),
                   onPressed: () async {
+                    // updateSet fills the input fields with the values it
+                    // resolved from the template, for every completion path.
                     await manager.updateSet(
                       templateId,
                       isCompleted: !isCompleted,
                     );
-                    if (!isCompleted) {
-                      final updatedSet = manager.setLogs[templateId];
-                      if (updatedSet != null) {
-                        if (isCardio) {
-                          if (updatedSet.distanceKm != null) {
-                            manager.weightControllers[templateId]?.text =
-                                updatedSet.distanceKm!
-                                    .toStringAsFixed(3)
-                                    .replaceAll(RegExp(r'0*$'), '')
-                                    .replaceAll(RegExp(r'\.$'), '');
-                          }
-                          if (updatedSet.durationSeconds != null) {
-                            manager.repsControllers[templateId]?.text =
-                                formatPauseDuration(updatedSet.durationSeconds);
-                          }
-                        } else {
-                          if (updatedSet.weightKg != null) {
-                            final displayWeight =
-                                unitService.convertDisplayValue(
-                              updatedSet.weightKg!,
-                              UnitDimension.weight,
-                            );
-                            manager.weightControllers[templateId]?.text =
-                                displayWeight
-                                    .toStringAsFixed(2)
-                                    .replaceAll(RegExp(r'0*$'), '')
-                                    .replaceAll(RegExp(r'\.$'), '');
-                          }
-                          if (updatedSet.reps != null) {
-                            manager.repsControllers[templateId]?.text =
-                                updatedSet.reps!.toString();
-                          }
-                        }
-                        if (updatedSet.rir != null) {
-                          manager.rirControllers[templateId]?.text =
-                              updatedSet.rir!.toString();
-                        } else {
-                          manager.rirControllers[templateId]?.text = '';
-                        }
-                      }
-                    }
                   },
                 ),
               ),

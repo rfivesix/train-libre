@@ -16,6 +16,7 @@ import 'features/app/presentation/app_initializer_screen.dart';
 import 'services/profile_service.dart';
 import 'services/unit_service.dart';
 import 'features/workout/presentation/live_workout_view_model.dart';
+import 'features/workout/presentation/live_workout_screen.dart';
 import 'package:provider/provider.dart';
 import 'services/theme_service.dart';
 import 'theme/app_colors.dart';
@@ -25,6 +26,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'features/onboarding/presentation/initial_consent_screen.dart';
 import 'features/onboarding/presentation/legal_update_consent_screen.dart';
+import 'features/whats_new/data/whats_new_service.dart';
 import 'features/app/presentation/legal_screen.dart';
 import 'core/infrastructure/icloud_sync_service.dart';
 
@@ -45,6 +47,13 @@ import 'features/profile/data/sources/profile_local_data_source.dart';
 import 'features/supplements/domain/repositories/supplement_repository.dart';
 import 'features/supplements/data/supplement_repository_impl.dart';
 import 'features/supplements/data/sources/supplement_local_data_source.dart';
+import 'features/home_widgets/application/home_widget_sync_service.dart';
+import 'features/home_widgets/home_widget_deep_link.dart';
+import 'features/analytics/presentation/recovery_tracker_screen.dart';
+import 'features/steps/presentation/steps_module_screen.dart';
+import 'features/profile/presentation/measurements_screen.dart';
+import 'features/workout/presentation/workout_log_detail_screen.dart';
+import 'features/app/presentation/main_screen.dart';
 import 'package:workmanager/workmanager.dart';
 import 'features/nutrition_recommendation/data/recommendation_service.dart';
 import 'services/ai_service.dart';
@@ -102,6 +111,13 @@ void main() async {
 
   final isFreshInstall = !hasAcceptedConsent && acceptedLegalVersion == null;
   final isLegalOutdated = acceptedLegalVersion != kCurrentLegalVersion;
+
+  // A brand new user goes through onboarding and the app tour; release notes
+  // for a version they have never used before would be a third greeting with
+  // nothing to compare against. Mark them as seen up front.
+  if (isFreshInstall) {
+    await WhatsNewService.instance.seedForFreshInstall();
+  }
 
   // Load previously settled glass quality to avoid warmup jank on cold starts
   final savedGlassQuality = prefs.getString('glass_quality');
@@ -175,6 +191,16 @@ void main() async {
           ),
           ChangeNotifierProvider.value(value: unitService),
           ChangeNotifierProvider.value(value: themeService),
+          Provider<HomeWidgetSyncService>(
+            create: (context) => HomeWidgetSyncService(
+              diaryRepo: context.read<IDiaryRepository>(),
+              supplementRepo: context.read<SupplementRepository>(),
+              profileRepo: context.read<IProfileRepository>(),
+              workoutRepo: context.read<IWorkoutRepository>(),
+              unitService: unitService,
+            ),
+            dispose: (_, service) => service.dispose(),
+          ),
         ],
         child: MyApp(
           home: isFreshInstall
@@ -247,13 +273,14 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   late final AppLifecycleListener _lifecycleListener;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _lifecycleListener = AppLifecycleListener(
       onPause: _onAppPause,
       onHide: _onAppPause,
@@ -262,8 +289,99 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _lifecycleListener.dispose();
     super.dispose();
+  }
+
+  /// Intercepts platform route pushes before the navigator acts on them.
+  ///
+  /// Tapping the workout Live Activity sends `trainlibre://workout/live` every
+  /// time. Left to the default handling that pushes a fresh
+  /// [LiveWorkoutScreen] on each tap, so the screen ends up stacked on top of
+  /// itself as many times as the user tapped. If one is already on the stack
+  /// we pop back to it instead.
+  @override
+  Future<bool> didPushRouteInformation(RouteInformation routeInformation) {
+    final location = routeInformation.uri.toString();
+    if (_returnedToOpenLiveWorkout(location)) {
+      return SynchronousFuture<bool>(true);
+    }
+    if (_handledHomeWidgetLink(location)) {
+      return SynchronousFuture<bool>(true);
+    }
+    return super.didPushRouteInformation(routeInformation);
+  }
+
+  /// Handles the URLs the iOS Home Screen widgets emit.
+  ///
+  /// Returns true when the link was consumed, which stops the navigator from
+  /// also trying to generate a route for a URL that is a command, not a screen.
+  bool _handledHomeWidgetLink(String location) {
+    final link = parseHomeWidgetDeepLink(location);
+    switch (link) {
+      case null:
+        return false;
+      case OpenDiaryLink():
+        // The diary resolves its own day; passing one from the widget would
+        // only add a second opinion about what "today" means.
+        _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+        return true;
+      case QuickActionLink(:final actionKey):
+        // Park it either way: on a cold launch MainScreen does not exist yet
+        // and drains this once mounted, on a warm launch the drain below runs
+        // it immediately.
+        MainScreen.pendingWidgetAction = actionKey;
+        _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+        MainScreen.drainPendingWidgetAction?.call();
+        return true;
+      case OpenRecoveryLink():
+        _openFromWidget((_) => const RecoveryTrackerScreen());
+        return true;
+      case OpenStepsLink():
+        _openFromWidget((_) => const StepsModuleScreen());
+        return true;
+      case OpenMeasurementsLink(:final metricId, :final periodKey):
+        _openFromWidget(
+          (_) => MeasurementsScreen(
+            initialMeasurementType: metricId,
+            initialBlock: measurementTimeframeBlockForWidgetPeriod(periodKey),
+          ),
+        );
+        return true;
+      case OpenWorkoutLogLink(:final logId):
+        _openFromWidget((_) => WorkoutLogDetailScreen(logId: logId));
+        return true;
+    }
+  }
+
+  /// Pushes a widget's destination onto the tab shell.
+  ///
+  /// Pops back to the shell first: tapping the same widget twice should land on
+  /// the screen once, not stack two copies of it — the same rule
+  /// `_returnedToOpenLiveWorkout` applies to the live workout.
+  void _openFromWidget(WidgetBuilder builder) {
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return;
+    navigator.popUntil((route) => route.isFirst);
+    navigator.push(MaterialPageRoute(builder: builder));
+  }
+
+  bool _returnedToOpenLiveWorkout(String location) {
+    if (!location.contains('workout/live')) return false;
+
+    final existing = LiveWorkoutScreen.activeRoute;
+    final navigator = _navigatorKey.currentState;
+    if (existing == null || !existing.isActive || navigator == null) {
+      // Not open yet — let the normal route generation push it once.
+      return false;
+    }
+
+    navigator.popUntil((route) => identical(route, existing));
+    // Coming back from the Dynamic Island should land on the set that is up
+    // next, not wherever the list happened to be left.
+    LiveWorkoutScreen.onDeepLinkReturn?.call();
+    return true;
   }
 
   /// Silently snapshot and upload the database to iCloud when the app is
@@ -781,7 +899,52 @@ class _MyAppState extends State<MyApp> {
           theme: baseLightTheme,
           darkTheme: baseDarkTheme,
           themeMode: themeService.themeMode,
-          onGenerateRoute: SleepNavigation.onGenerateRoute,
+          onGenerateRoute: (settings) {
+            final sleepRoute = SleepNavigation.onGenerateRoute(settings);
+            if (sleepRoute != null) return sleepRoute;
+
+            if (settings.name == '/workout/live' ||
+                settings.name == '/live' ||
+                (settings.name?.contains('workout/live') ?? false)) {
+              final Uri? uri = Uri.tryParse(settings.name ?? '');
+              final action = uri?.queryParameters['action'];
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) {
+                  final wsm =
+                      Provider.of<LiveWorkoutViewModel>(context, listen: false);
+                  if (wsm.isActive && wsm.workoutLog != null) {
+                    return LiveWorkoutScreen(
+                      workoutLog: wsm.workoutLog!,
+                      routine: null,
+                      initialAction: action,
+                    );
+                  }
+                  return widget.home;
+                },
+              );
+            }
+            return null;
+          },
+          onUnknownRoute: (settings) {
+            final Uri? uri = Uri.tryParse(settings.name ?? '');
+            final action = uri?.queryParameters['action'];
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) {
+                final wsm =
+                    Provider.of<LiveWorkoutViewModel>(context, listen: false);
+                if (wsm.isActive && wsm.workoutLog != null) {
+                  return LiveWorkoutScreen(
+                    workoutLog: wsm.workoutLog!,
+                    routine: null,
+                    initialAction: action,
+                  );
+                }
+                return widget.home;
+              },
+            );
+          },
           builder: (context, child) {
             return GestureDetector(
               behavior: HitTestBehavior.translucent,

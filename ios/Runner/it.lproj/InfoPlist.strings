@@ -1,0 +1,6 @@
+"NSCameraUsageDescription" = "Train Libre usa la fotocamera per scansionare i codici a barre e per l'analisi facoltativa dei pasti con IA.";
+"NSHealthShareUsageDescription" = "Train Libre legge passi, sonno e frequenza cardiaca da Apple Salute per mostrare le viste di salute e recupero che attivi.";
+"NSHealthUpdateUsageDescription" = "Train Libre scrive misurazioni, nutrizione, idratazione e allenamenti in Apple Salute quando attivi l'esportazione unidirezionale.";
+"NSPhotoLibraryUsageDescription" = "Train Libre accede alla libreria foto per l'analisi facoltativa dei pasti con IA e le immagini del profilo.";
+"shortcut.addFood" = "Aggiungi alimento";
+"shortcut.startWorkout" = "Inizia l'allenamento";

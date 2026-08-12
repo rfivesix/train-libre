@@ -21,18 +21,25 @@ class RetainHistoricalOffProductsUseCase {
       return;
     }
 
+    onProgress?.call(
+      'Update Produktdatenbank',
+      'Bereinige veraltete OFF-Daten...',
+      0.95,
+    );
+
     final protectedBarcodes = await loadHistoricallyProtectedBarcodes(database);
 
-    final offRows = await (database.select(
-      database.products,
-    )..where((t) => t.source.equals('off')))
-        .get();
+    final offBarcodeRows = await database.customSelect('''
+      SELECT barcode
+      FROM products
+      WHERE source = 'off' AND barcode IS NOT NULL AND TRIM(barcode) != ''
+      ''').get();
 
     final barcodesToRetain = <String>[];
     final barcodesToDelete = <String>[];
 
-    for (final row in offRows) {
-      final barcode = row.barcode.trim();
+    for (final row in offBarcodeRows) {
+      final barcode = (row.data['barcode'] as String?)?.trim() ?? '';
       if (barcode.isEmpty || importedOffBarcodes.contains(barcode)) continue;
 
       if (protectedBarcodes.contains(barcode)) {
@@ -46,6 +53,7 @@ class RetainHistoricalOffProductsUseCase {
       database: database,
       barcodesToRetain: barcodesToRetain,
       barcodesToDelete: barcodesToDelete,
+      onProgress: onProgress,
     );
 
     onProgress?.call(
@@ -126,8 +134,11 @@ class RetainHistoricalOffProductsUseCase {
     required db.AppDatabase database,
     required List<String> barcodesToRetain,
     required List<String> barcodesToDelete,
+    void Function(String message, String detail, double progress)? onProgress,
   }) async {
     const int chunkSize = 900;
+    final totalOps = barcodesToRetain.length + barcodesToDelete.length;
+    int doneOps = 0;
 
     for (var i = 0; i < barcodesToRetain.length; i += chunkSize) {
       final chunk = barcodesToRetain.sublist(
@@ -139,6 +150,16 @@ class RetainHistoricalOffProductsUseCase {
       await (database.update(database.products)
             ..where((t) => t.source.equals('off') & t.barcode.isIn(chunk)))
           .write(const db.ProductsCompanion(source: Value('off_retained')));
+
+      doneOps += chunk.length;
+      if (onProgress != null && totalOps > 0) {
+        final progress = 0.95 + (0.04 * (doneOps / totalOps));
+        onProgress(
+          'Update Produktdatenbank',
+          'Bereinige veraltete OFF-Daten...',
+          progress.clamp(0.95, 0.99),
+        );
+      }
     }
 
     for (var i = 0; i < barcodesToDelete.length; i += chunkSize) {
@@ -152,6 +173,16 @@ class RetainHistoricalOffProductsUseCase {
         database.products,
       )..where((t) => t.source.equals('off') & t.barcode.isIn(chunk)))
           .go();
+
+      doneOps += chunk.length;
+      if (onProgress != null && totalOps > 0) {
+        final progress = 0.95 + (0.04 * (doneOps / totalOps));
+        onProgress(
+          'Update Produktdatenbank',
+          'Bereinige veraltete OFF-Daten...',
+          progress.clamp(0.95, 0.99),
+        );
+      }
     }
   }
 }
