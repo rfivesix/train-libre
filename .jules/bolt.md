@@ -45,6 +45,12 @@
 ## 2024-05-19 - Single-Pass Iteration over Chained Iterables in Live Workouts
 **Learning:** In Dart/Flutter, using chained Iterable methods like `.where()`, `.map()`, and multiple `.any()` passes on highly active ViewModels (like `LiveWorkoutViewModel`) causes redundant iterations (O(M*N)) and allocates intermediate memory (`toList()`, `toSet()`). In performance-critical reactive classes, manually managing state accumulation in a single-pass loop drastically reduces overhead compared to functional-style pipelines.
 **Action:** When aggregating multiple statistics or filtering items in ViewModels handling real-time data tracking (like live workouts), always prefer a single `for` loop that accumulates all flags, lists, and maps simultaneously rather than making multiple passes over the same collection.
+
 ## 2025-02-14 - Optimize Computational Pipelines by Replacing Functional Chaining with Single-Pass Loops
 **Learning:** In `lib/features/sleep/data/processing/sleep_pipeline_service.dart`, calculating the standard deviation (SD) for rolling mid-sleep points utilized multiple chained array allocations: `.where().toList()`, `.map().toList()`, and `.map().reduce()`. In a reactive computational pipeline processing historical sessions, creating these intermediate arrays creates unnecessary garbage and CPU cycles.
 **Action:** When computing standard deviation, variance, or other complex aggregations, replace functional array chaining with a single `for` loop to filter and accumulate the base metrics, followed by a second O(N) loop specifically over the simplified valid dataset. This eliminates redundant arrays and drops iteration complexity.
+
+## 2025-02-15 - Fast Paths in UseCases loops
+**Learning:** `CalculateDailyNutritionUseCase` loops over `allSupplements` (which can be a large list) to find any untracked supplements that have logs today, and to find the base caffeine supplement. When most daily doses are for already tracked supplements, this full loop is largely redundant but is executed anyway. Furthermore, Map `update` and `containsKey` incurs redundant hash lookups compared to checking the map directly.
+**Action:** When searching an array for matching elements where we know exactly how many elements we need to find (e.g. from a Set difference), keep a running counter and `break` early from the loop once we've found all of them. Also use single hash map lookup and check against `null` instead of `update(..., ifAbsent: ...)` or `containsKey()` then `put()`.
+

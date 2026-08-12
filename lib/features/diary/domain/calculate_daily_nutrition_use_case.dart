@@ -100,8 +100,9 @@ class CalculateDailyNutritionUseCase {
         if (foodItem.isFluid || (foodItem.isLiquid ?? false)) {
           final qty = entry.quantityInGrams;
           final ms = entry.timestamp.millisecondsSinceEpoch;
-          if (fluidFoodSignatures.containsKey(qty)) {
-            fluidFoodSignatures[qty]!.add(ms);
+          final signatureList = fluidFoodSignatures[qty];
+          if (signatureList != null) {
+            signatureList.add(ms);
           } else {
             fluidFoodSignatures[qty] = [ms];
           }
@@ -160,11 +161,12 @@ class CalculateDailyNutritionUseCase {
     // Supplements
     final Map<int, double> todaysDoses = {};
     for (final log in todaysSupplementLogs) {
-      todaysDoses.update(
-        log.supplementId,
-        (value) => value + log.dose,
-        ifAbsent: () => log.dose,
-      );
+      final currentDose = todaysDoses[log.supplementId];
+      if (currentDose != null) {
+        todaysDoses[log.supplementId] = currentDose + log.dose;
+      } else {
+        todaysDoses[log.supplementId] = log.dose;
+      }
     }
 
     final double targetCaffeineDouble = targetCaffeine.toDouble();
@@ -203,17 +205,29 @@ class CalculateDailyNutritionUseCase {
     }
 
     Supplement? caffeineSupplement;
+    // Fast path: Find unaccounted active doses to short-circuit iteration.
+    int unaccountedDoses = 0;
+    for (final id in todaysDoses.keys) {
+      if (!trackedSuppIds.contains(id)) unaccountedDoses++;
+    }
+
     for (final s in allSupplements) {
-      if (caffeineSupplement == null &&
-          ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine')) {
+      // Short-circuit if we found caffeine and accounted for all active logs
+      if (caffeineSupplement != null && unaccountedDoses == 0) {
+        break;
+      }
+
+      final isCaffeine = (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine';
+
+      if (caffeineSupplement == null && isCaffeine) {
         caffeineSupplement = s;
       }
 
-      if (s.id != null &&
+      if (unaccountedDoses > 0 && s.id != null &&
           todaysDoses.containsKey(s.id) &&
           !trackedSuppIds.contains(s.id)) {
         var supplementToUse = s;
-        if ((s.code == 'caffeine' || s.name.toLowerCase() == 'caffeine') &&
+        if (isCaffeine &&
             s.dailyGoal == null &&
             s.dailyLimit == null) {
           supplementToUse = Supplement(
@@ -232,6 +246,7 @@ class CalculateDailyNutritionUseCase {
           TrackedSupplement(supplement: supplementToUse, totalDosedToday: todaysDoses[s.id]!),
         );
         trackedSuppIds.add(s.id!);
+        unaccountedDoses--;
       }
     }
 
