@@ -63,7 +63,9 @@ ios/vendor/bundle/
 ios/.bundle/
 ios/fastlane/.env
 
-# Raw Fastlane `deliver` metadata cache (may contain reviewer credentials/PII).
-# The source of truth is metadata/app_store/*.md; this folder is regenerated
-# locally by script/sync_store_metadata.sh and must never be committed.
-ios/fastlane/metadata/
+# App Review Information: goes to Apple only, never public. notes.txt carries
+# the reviewer API key, the rest is personal contact data (name, email, phone,
+# demo account). The public store listing under ios/fastlane/metadata/<locale>/
+# stays tracked; its source of truth is metadata/app_store/*.md, regenerated
+# locally by script/sync_store_metadata.sh.
+ios/fastlane/metadata/review_information/
