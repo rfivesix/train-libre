@@ -1,6 +1,8 @@
 import "../../../services/unit_service.dart";
 
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
@@ -187,10 +189,16 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   /// Whether the rest sound is handled natively instead of through
   /// [LocalNotificationService].
   ///
-  /// Only while a Live Activity is up: its App Intents can move the pause
-  /// while the app is suspended, and only the native scheduler can be moved
-  /// with it. Without a Live Activity — and on Android — nothing changes.
-  bool get _usesNativeRestSound => _liveActivityRunning;
+  /// Only on iOS, and only while a Live Activity is up: its App Intents can
+  /// move the pause while the app is suspended, and only the native scheduler
+  /// can be moved with it.
+  ///
+  /// Android has a live update of its own now, but its buttons reach a
+  /// BroadcastReceiver in the app's own process rather than a separate
+  /// extension, so [LocalNotificationService] can still be rescheduled from
+  /// Dart — and keeping it means the app needs no exact-alarm permission.
+  bool get _usesNativeRestSound =>
+      _liveActivityRunning && !kIsWeb && Platform.isIOS;
 
   void _scheduleRestSound(DateTime endsAt) {
     final strings = _liveActivityStrings;

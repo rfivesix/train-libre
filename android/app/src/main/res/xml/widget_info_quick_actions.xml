@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Resizable down to a 2x2, where the layout drops to a single column of two
+  tiles. iOS ships that as a separate widget; here it is the same one, narrower.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="com.rfivesix.trainlibre.widgets.config.QuickActionsConfigActivity"
+    android:widgetFeatures="reconfigurable"
+    android:description="@string/widget_quick_actions_description"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

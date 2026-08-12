@@ -15,4 +15,5 @@
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+    <style name="Theme.TrainLibre.WidgetConfig" parent="@android:style/Theme.Material.NoActionBar" />
 </resources>

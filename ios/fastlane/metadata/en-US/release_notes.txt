@@ -1,9 +1,5 @@
-Live Activity & Dynamic Island: Follow your running workout straight from the Lock Screen and the Dynamic Island - current exercise, set, weight and rest countdown, without unlocking your phone. Skip or extend the rest timer right there.
+Home screen widgets on Android: The widget family has arrived on Android - your last workout with its muscle map, muscle recovery, your steps of the last 7 days, body measurements, today's nutrition and quick actions. Add them from your launcher's widget picker; nutrition, measurements and quick actions can be reconfigured at any time.
 
-Home & Lock Screen Widgets: New widgets for your last workout, muscle recovery, 7-day steps, body measurements and today's nutrition. Add them to the Home Screen or the Lock Screen and see your numbers at a glance.
+Your running workout in the notification shade: A workout in progress now sits in your notifications with its rest countdown, and on Android 16 it becomes a Live Update with a chip in the status bar. Tick off a set, add or drop 15 seconds and skip the rest right there, without opening the app.
 
-Siri, Shortcuts & Action Button: Barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food are now available as Shortcuts, Control Center buttons and Action Button mappings.
-
-Faster catalog updates: The database update screen no longer stalls near the end - the slow step behind it now takes milliseconds instead of about 20 seconds.
-
-Straight to your next set: Opening a running workout now scrolls directly to the exercise with the next open set.
+Quick Settings tiles: All seven quick actions - barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food - are now available as tiles in your Quick Settings panel.
