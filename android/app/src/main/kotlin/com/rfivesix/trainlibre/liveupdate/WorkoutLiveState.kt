@@ -59,6 +59,14 @@ data class WorkoutLiveAttributes(
     }
 }
 
+/**
+ * Whether a preformatted metric actually carries a value.
+ *
+ * A digit or letter means there is something to read; an en dash, a lone `×` or
+ * whitespace is the app saying "not entered yet".
+ */
+private fun String.hasMetricValue(): Boolean = any { it.isLetterOrDigit() }
+
 /** The five states of the workout live update. */
 enum class WorkoutPhase(val wireName: String) {
     SetPending("setPending"),
@@ -95,15 +103,33 @@ data class WorkoutLiveContent(
     val compactSecondary: String,
     val canCompleteSet: Boolean,
 ) {
-    /** The metrics line as the card shows it — `80 × 8 · 60s`. */
+    /**
+     * The metrics line as the card shows it — `80 kg × 8 · RIR 2`.
+     *
+     * Placeholders are dropped rather than printed. The app fills a weight or
+     * rep count it does not have yet with an en dash (`_unknownValue` in
+     * `build_workout_live_activity_content.dart`); on the iOS card that reads as
+     * "not entered yet" inside a full layout, but in a single notification line
+     * it comes out as "– × –", which says nothing at all.
+     */
     val metricsLine: String
-        get() = listOf(metricPrimary, metricSecondary)
-            .filter { it.isNotEmpty() }
-            .joinToString(" $metricSeparator ")
-            .let { head ->
-                if (metricTertiary.isEmpty()) head
-                else listOf(head, metricTertiary).filter { it.isNotEmpty() }.joinToString(" · ")
-            }
+        get() {
+            val head = listOf(metricPrimary, metricSecondary)
+                .filter { it.hasMetricValue() }
+                .joinToString(" $metricSeparator ")
+            return listOf(head, metricTertiary.takeIf { it.hasMetricValue() }.orEmpty())
+                .filter { it.isNotEmpty() }
+                .joinToString(" · ")
+        }
+
+    /** The chip's line, falling back to the set position when no number is known yet. */
+    val compactLine: String
+        get() {
+            val metrics = listOf(compactPrimary, compactSecondary)
+                .filter { it.hasMetricValue() }
+                .joinToString(" ")
+            return metrics.ifEmpty { setPosition }
+        }
 
     fun toJson(): JSONObject = JSONObject().apply {
         put("phase", phase.wireName)

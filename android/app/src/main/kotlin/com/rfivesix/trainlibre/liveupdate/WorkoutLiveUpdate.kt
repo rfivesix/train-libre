@@ -75,9 +75,11 @@ object WorkoutLiveUpdate {
             .setContentIntent(openApp(context, attributes))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setSilent(true)
             .setColor(parseHexColor(content.badgeColorHex).toArgb())
-            .setColorized(true)
+            // Deliberately *not* setColorized: a colorised notification is
+            // explicitly disqualified from being promoted to a Live Update, so
+            // asking for both means getting neither. setColor alone still tints
+            // the icon and the status bar chip.
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
@@ -94,7 +96,7 @@ object WorkoutLiveUpdate {
         }
 
         addActions(context, builder, attributes, content)
-        promote(builder)
+        promote(builder, content, isResting)
         return builder.build()
     }
 
@@ -103,10 +105,26 @@ object WorkoutLiveUpdate {
      *
      * A no-op everywhere else, and a request rather than a guarantee: the system
      * decides, and the notification has to work either way.
+     *
+     * `shortCriticalText` is what the status bar chip shows while the shade is
+     * closed — the one line the user gets without pulling anything down, so it
+     * carries the set's numbers. During a rest it is left unset on purpose: the
+     * chronometer below is a live countdown, and a static string would sit next
+     * to it going stale.
+     *
+     * Samsung's Now Bar on One UI 8 feeds off this same promotion, so there is
+     * nothing vendor-specific to add for it.
      */
-    private fun promote(builder: NotificationCompat.Builder) {
-        if (Build.VERSION.SDK_INT >= 36) {
-            builder.setRequestPromotedOngoing(true)
+    private fun promote(
+        builder: NotificationCompat.Builder,
+        content: WorkoutLiveContent,
+        isResting: Boolean,
+    ) {
+        if (Build.VERSION.SDK_INT < 36) return
+        builder.setRequestPromotedOngoing(true)
+        if (!isResting) {
+            content.compactLine.takeIf { it.isNotEmpty() }
+                ?.let { builder.setShortCriticalText(it) }
         }
     }
 
