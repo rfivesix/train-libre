@@ -29,6 +29,9 @@ import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
 import androidx.health.connect.client.units.Percentage
 import androidx.health.connect.client.units.Volume
+import com.rfivesix.trainlibre.liveupdate.WorkoutLiveActivityBridge
+import com.rfivesix.trainlibre.widgets.HomeWidgetBridge
+import com.rfivesix.trainlibre.widgets.WidgetDeepLinks
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -213,6 +216,48 @@ class MainActivity : FlutterActivity() {
             }
         }
 
+        val homeWidgetBridge = HomeWidgetBridge(applicationContext)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            HomeWidgetBridge.CHANNEL_NAME,
+        ).setMethodCallHandler(homeWidgetBridge::handle)
+
+        val liveActivityBridge = WorkoutLiveActivityBridge(applicationContext)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            WorkoutLiveActivityBridge.CHANNEL_NAME,
+        ).setMethodCallHandler(liveActivityBridge::handle)
+
+        // The engine only exists now, so a widget tap that launched the app has
+        // been waiting in the intent since onCreate.
+        deliverWidgetDeepLink(flutterEngine, intent)
+    }
+
+    /**
+     * A widget tap while the app is already running.
+     *
+     * `singleTop` means the running instance is reused rather than a second one
+     * created, and the new intent arrives here instead of in `onCreate`.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        flutterEngine?.let { deliverWidgetDeepLink(it, intent) }
+    }
+
+    /**
+     * Hands a `trainlibre://` URL to Dart's `didPushRouteInformation`.
+     *
+     * Deliberately not Flutter's own `flutter_deeplinking_enabled`: that would
+     * put the framework in charge of every incoming intent and change how the
+     * app routes in general. Pushing the route directly reaches the handler
+     * `lib/main.dart` already runs for the iOS widgets, so both platforms end up
+     * in the same place and no Dart code has to know which one it is on.
+     */
+    private fun deliverWidgetDeepLink(engine: FlutterEngine, intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (uri.scheme != WidgetDeepLinks.SCHEME) return
+        engine.navigationChannel.pushRouteInformation(uri.toString())
     }
 
     private fun handleAvailability(result: MethodChannel.Result) {

@@ -15,4 +15,8 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+    <!-- The widget configuration screens. Compose paints their content, so this
+         only has to supply a window without an action bar and a background that
+         does not flash the wrong colour before the first frame. -->
+    <style name="Theme.TrainLibre.WidgetConfig" parent="@android:style/Theme.Material.Light.NoActionBar" />
 </resources>

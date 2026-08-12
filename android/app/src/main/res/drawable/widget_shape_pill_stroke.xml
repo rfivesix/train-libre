@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A ring, not a fill: the readiness pills carry their state's colour as a border
+  around a neutral surface. Stacked under a filled pill and tinted separately,
+  because one ColorFilter cannot tint two layers of a layer-list apart.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+    <corners android:radius="19dp" />
+</shape>

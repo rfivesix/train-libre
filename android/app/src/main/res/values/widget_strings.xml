@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Generated from ios/TrainLibreLiveActivity/Localizable.xcstrings.
+  Both platforms show the same widgets, so they share one set of
+  translations; edit the catalogue, not this file.
+-->
+<resources>
+    <string name="quick_action_add_food">Add Food</string>
+    <string name="quick_action_add_liquid">Add Liquid</string>
+    <string name="quick_action_add_measurement">Add Measurement</string>
+    <string name="quick_action_ai_meal_capture">AI Meal</string>
+    <string name="quick_action_log_supplement">Log Intake</string>
+    <string name="quick_action_scan_barcode">Scan barcode</string>
+    <string name="quick_action_start_workout">Start Workout</string>
+    <string name="quick_action_type">Action</string>
+    <string name="widget_last_workout_description">Your last session with its key figures and muscle map.</string>
+    <string name="widget_last_workout_duration">Duration</string>
+    <string name="widget_last_workout_empty_title">Ready for your first workout?</string>
+    <string name="widget_last_workout_name">Last workout</string>
+    <string name="widget_last_workout_placeholder_title">Push Day — Chest &amp; Triceps</string>
+    <string name="widget_last_workout_reps">Reps</string>
+    <string name="widget_last_workout_sets">Sets</string>
+    <string name="widget_last_workout_volume">Vol. (%1$s)</string>
+    <string name="widget_measurements_description">Track one body metric over a timeframe you choose.</string>
+    <string name="widget_measurements_empty_body">No measurements in this timeframe.</string>
+    <string name="widget_measurements_empty_cta">Add a value</string>
+    <string name="widget_measurements_metric_title">Metric</string>
+    <string name="widget_measurements_metric_weight">Body Weight</string>
+    <string name="widget_measurements_name">Measurements</string>
+    <string name="widget_measurements_period_1m">1 Month</string>
+    <string name="widget_measurements_period_3m">3 Months</string>
+    <string name="widget_measurements_period_6m">6 Months</string>
+    <string name="widget_measurements_period_7d">7 Days</string>
+    <string name="widget_measurements_period_max">Max</string>
+    <string name="widget_measurements_period_title">Timeframe</string>
+    <string name="widget_measurements_since">vs. %1$s</string>
+    <string name="widget_measurements_single_entry">only one entry</string>
+    <string name="widget_quick_actions_description">Two or four actions of your choice, straight from the Home Screen.</string>
+    <string name="widget_quick_actions_intent_description">Choose the actions shown in the widget. The small widget shows the first two.</string>
+    <string name="widget_quick_actions_name">Quick Actions</string>
+    <string name="widget_quick_actions_slot1">Action 1</string>
+    <string name="widget_quick_actions_slot2">Action 2</string>
+    <string name="widget_quick_actions_slot3">Action 3</string>
+    <string name="widget_quick_actions_slot4">Action 4</string>
+    <string name="widget_quick_actions_slot_single">Action</string>
+    <string name="widget_recovery_chip">Currently</string>
+    <string name="widget_recovery_description">Which muscle groups are recovered and ready to train.</string>
+    <string name="widget_recovery_empty_body">No recovery data yet. Complete your first workout.</string>
+    <string name="widget_recovery_name">Muscle Readiness</string>
+    <string name="widget_recovery_placeholder_headline">Several muscle groups still recovering</string>
+    <string name="widget_recovery_state_fresh">Fresh</string>
+    <string name="widget_recovery_state_fresh_short">Fresh</string>
+    <string name="widget_recovery_state_ready">Ready</string>
+    <string name="widget_recovery_state_ready_short">Ready</string>
+    <string name="widget_recovery_state_recovering">Recovering</string>
+    <string name="widget_recovery_state_recovering_short">Rec.</string>
+    <string name="widget_start_workout">Start Workout</string>
+    <string name="widget_steps_chip">Last 7 days</string>
+    <string name="widget_steps_description">Your step count over the last seven days.</string>
+    <string name="widget_steps_name">Steps</string>
+    <string name="widget_steps_no_access_body">Enable step data access in Train Libre.</string>
+    <string name="widget_steps_no_access_cta">Open settings</string>
+    <string name="widget_steps_no_access_title">Step access is off</string>
+    <string name="widget_steps_percent_of_goal">%1$d%% of goal</string>
+    <string name="widget_steps_today">Today</string>
+    <string name="widget_today_glance_day_mode_calendar_day">Calendar day</string>
+    <string name="widget_today_glance_day_mode_calendar_day_subtitle">Day changes at 00:00</string>
+    <string name="widget_today_glance_day_mode_follow_app">Same as the app</string>
+    <string name="widget_today_glance_day_mode_follow_app_subtitle">Day changes at 03:00</string>
+    <string name="widget_today_glance_day_mode_title">Day shown</string>
+    <string name="widget_today_glance_description">Today\'s calories, water and macros at a glance.</string>
+    <string name="widget_today_glance_empty_no_data">Open Train Libre to load today\'s values</string>
+    <string name="widget_today_glance_empty_no_entries">Nothing logged today — tap to add an entry</string>
+    <string name="widget_today_glance_name">Today at a Glance</string>
+</resources>

@@ -21,7 +21,7 @@ class HomeWidgetChannel {
   static bool? _isSupported;
 
   Future<bool> isSupported() async {
-    if (!(!kIsWeb && Platform.isIOS)) return false;
+    if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return false;
     final cached = _isSupported;
     if (cached != null) return cached;
     try {
