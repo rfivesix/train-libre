@@ -216,12 +216,19 @@ class AnalyticsCardBase {
     required Color color,
     required String semanticsLabel,
   }) {
-    final clean = values.where((v) => v.isFinite).toList(growable: false);
-    if (clean.isEmpty) return const SizedBox.shrink();
-    final max = clean.fold<double>(0, (a, b) => a > b ? a : b);
-    final normalized = max <= 0
-        ? clean.map((_) => 0.2).toList(growable: false)
-        : clean.map((v) => (v / max).clamp(0.08, 1.0)).toList(growable: false);
+    // BOLT OPTIMIZATION: Replaced chained .where().toList() and .map().toList()
+    // with a single-pass loop for max calculation, and collection-for for rendering,
+    // avoiding unnecessary list allocations on every build.
+    double max = 0;
+    bool hasValid = false;
+    for (final v in values) {
+      if (v.isFinite) {
+        hasValid = true;
+        if (v > max) max = v;
+      }
+    }
+
+    if (!hasValid) return const SizedBox.shrink();
 
     return Semantics(
       label: semanticsLabel,
@@ -230,22 +237,23 @@ class AnalyticsCardBase {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            for (final ratio in normalized)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: FractionallySizedBox(
-                    heightFactor: ratio,
-                    alignment: Alignment.bottomCenter,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: miniBarOpacity),
-                        borderRadius: BorderRadius.circular(3),
+            for (final v in values)
+              if (v.isFinite)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: FractionallySizedBox(
+                      heightFactor: max <= 0 ? 0.2 : (v / max).clamp(0.08, 1.0),
+                      alignment: Alignment.bottomCenter,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: miniBarOpacity),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
           ],
         ),
       ),
