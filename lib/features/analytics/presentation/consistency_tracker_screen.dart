@@ -405,9 +405,14 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     bool isRolling,
     AppLocalizations l10n,
   ) {
-    final timeframeTotalWorkouts = weeklyMetrics.isEmpty
-        ? 0
-        : weeklyMetrics.map((e) => e.count).fold(0, (a, b) => a + b);
+    // ⚡ Bolt Optimization: Single-pass loop for sum aggregation
+    // Replaces `.map().fold()`, preventing intermediate Iterable allocation on every UI render.
+    int timeframeTotalWorkouts = 0;
+    if (weeklyMetrics.isNotEmpty) {
+      for (final metric in weeklyMetrics) {
+        timeframeTotalWorkouts += metric.count;
+      }
+    }
     final total = isRolling ? stats.totalWorkouts : timeframeTotalWorkouts;
     final thisWeek = isRolling ? stats.thisWeekCount : timeframeTotalWorkouts;
     final streak = isRolling
