@@ -54,3 +54,6 @@
 **Learning:** `CalculateDailyNutritionUseCase` loops over `allSupplements` (which can be a large list) to find any untracked supplements that have logs today, and to find the base caffeine supplement. When most daily doses are for already tracked supplements, this full loop is largely redundant but is executed anyway. Furthermore, Map `update` and `containsKey` incurs redundant hash lookups compared to checking the map directly.
 **Action:** When searching an array for matching elements where we know exactly how many elements we need to find (e.g. from a Set difference), keep a running counter and `break` early from the loop once we've found all of them. Also use single hash map lookup and check against `null` instead of `update(..., ifAbsent: ...)` or `containsKey()` then `put()`.
 
+## 2024-05-19 - Dart DateTime/Duration Instantiation in Hot Loops
+**Learning:** Instantiating `DateTime` and `Duration` objects inside heavy loops (e.g., when analyzing thousands of pulse samples) causes high object allocation overhead, stressing the Dart garbage collector and leading to measurable performance degradation (taking up to 10x longer).
+**Action:** Replace `DateTime`/`Duration` calculations in hot loops with direct 64-bit integer arithmetic using `microsecondsSinceEpoch` and `~/` (integer division).
