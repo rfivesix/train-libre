@@ -1,6 +1,8 @@
 // lib/widgets/set_type_chip.dart
 
 import 'package:flutter/material.dart';
+import '../../../../generated/app_localizations.dart';
+
 
 /// A visual indicator for a workout set's type (e.g., normal, warmup, failure).
 ///
@@ -28,30 +30,37 @@ class SetTypeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final Map<String, dynamic> typeInfo = {
       'normal': {
         'char': setIndex.toString(),
-        'color': Theme.of(context).colorScheme.onSurfaceVariant
+        'color': Theme.of(context).colorScheme.onSurfaceVariant,
+        'label': l10n.set_type_normal,
       },
-      'warmup': {'char': 'W', 'color': Colors.orange},
-      'failure': {'char': 'F', 'color': Theme.of(context).colorScheme.error},
-      'dropset': {'char': 'D', 'color': Colors.blue},
+      'warmup': {'char': 'W', 'color': Colors.orange, 'label': l10n.set_type_warmup},
+      'failure': {'char': 'F', 'color': Theme.of(context).colorScheme.error, 'label': l10n.set_type_failure},
+      'dropset': {'char': 'D', 'color': Colors.blue, 'label': l10n.set_type_dropset},
     };
     final type = typeInfo[setType] ?? typeInfo['normal']!;
     final Color textColor = type['color'];
+    final String typeLabel = type['label'];
 
-    return GestureDetector(
-      onTap: isCompleted ? null : onTap,
-      child: SizedBox(
-        width: 40, // Fixed width for the column
-        height: 40, // Fixed height
-        child: Center(
-          child: Text(
-            type['char'],
-            style: TextStyle(
-              color: textColor,
-              fontSize: 20, // Larger font size
-              fontWeight: FontWeight.bold,
+    return Semantics(
+      button: true,
+      label: typeLabel,
+      child: GestureDetector(
+        onTap: isCompleted ? null : onTap,
+        child: SizedBox(
+          width: 40, // Fixed width for the column
+          height: 40, // Fixed height
+          child: Center(
+            child: Text(
+              type['char'],
+              style: TextStyle(
+                color: textColor,
+                fontSize: 20, // Larger font size
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
