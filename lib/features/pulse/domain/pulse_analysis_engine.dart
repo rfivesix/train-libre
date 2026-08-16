@@ -36,8 +36,9 @@ class PulseAnalysisEngine {
     final quality = _classifyQuality(
       sampleCount: samples.length,
       windowDuration: window.duration,
-      coverageSpan:
-          samples.last.sampledAtUtc.difference(samples.first.sampledAtUtc),
+      coverageSpan: samples.last.sampledAtUtc.difference(
+        samples.first.sampledAtUtc,
+      ),
     );
 
     return PulseAnalysisSummary(
@@ -68,24 +69,35 @@ class PulseAnalysisEngine {
       if (!sample.bpm.isFinite || sample.bpm < 25 || sample.bpm > 240) {
         continue;
       }
-      groupedByTimestamp
-          .putIfAbsent(sampledAtUtc.millisecondsSinceEpoch, () => <double>[])
-          .add(sample.bpm);
+      // BOLT OPTIMIZATION: Replaced map.putIfAbsent() with map direct lookup to avoid closure allocation
+      final ms = sampledAtUtc.millisecondsSinceEpoch;
+      var list = groupedByTimestamp[ms];
+      if (list == null) {
+        list = <double>[];
+        groupedByTimestamp[ms] = list;
+      }
+      list.add(sample.bpm);
     }
 
     final timestamps = groupedByTimestamp.keys.toList()..sort();
-    return timestamps.map((timestamp) {
-      final values = groupedByTimestamp[timestamp]!;
-      final bpm =
-          values.fold<double>(0, (sum, value) => sum + value) / values.length;
-      return PulseSamplePoint(
-        sampledAtUtc: DateTime.fromMillisecondsSinceEpoch(
-          timestamp,
-          isUtc: true,
-        ),
-        bpm: bpm,
-      );
-    }).toList(growable: false);
+    return timestamps
+        .map((timestamp) {
+          final values = groupedByTimestamp[timestamp]!;
+          // BOLT OPTIMIZATION: Replaced .fold() with a standard for-loop
+          var sum = 0.0;
+          for (var i = 0; i < values.length; i++) {
+            sum += values[i];
+          }
+          final bpm = sum / values.length;
+          return PulseSamplePoint(
+            sampledAtUtc: DateTime.fromMillisecondsSinceEpoch(
+              timestamp,
+              isUtc: true,
+            ),
+            bpm: bpm,
+          );
+        })
+        .toList(growable: false);
   }
 
   double _durationWeightedAverage(
@@ -99,8 +111,9 @@ class PulseAnalysisEngine {
     for (var i = 0; i < samples.length; i++) {
       final current = samples[i];
       final previous = i == 0 ? window.startUtc : samples[i - 1].sampledAtUtc;
-      final next =
-          i == samples.length - 1 ? window.endUtc : samples[i + 1].sampledAtUtc;
+      final next = i == samples.length - 1
+          ? window.endUtc
+          : samples[i + 1].sampledAtUtc;
       final start = _midpoint(previous, current.sampledAtUtc);
       final end = _midpoint(current.sampledAtUtc, next);
       final seconds = math.max(0, end.difference(start).inSeconds);
@@ -110,8 +123,12 @@ class PulseAnalysisEngine {
     }
 
     if (totalSeconds <= 0) {
-      return samples.fold<double>(0, (sum, sample) => sum + sample.bpm) /
-          samples.length;
+      // BOLT OPTIMIZATION: Replaced .fold() with a standard for-loop
+      var sum = 0.0;
+      for (var i = 0; i < samples.length; i++) {
+        sum += samples[i].bpm;
+      }
+      return sum / samples.length;
     }
     return weightedSum / totalSeconds;
   }
@@ -121,7 +138,12 @@ class PulseAnalysisEngine {
   /// This avoids claiming a medically validated resting heart rate while still
   /// surfacing a conservative low-rest estimate from the selected period.
   double _restingPulse(List<PulseSamplePoint> samples) {
-    final sorted = samples.map((sample) => sample.bpm).toList()..sort();
+    // BOLT OPTIMIZATION: Avoid intermediate Iterable allocation via .map().toList()
+    final sorted = List<double>.generate(
+      samples.length,
+      (i) => samples[i].bpm,
+      growable: false,
+    )..sort();
     final count = math.max(1, (sorted.length * 0.2).ceil());
     final middle = count ~/ 2;
     if (count.isOdd) return sorted[middle];
