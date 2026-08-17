@@ -129,23 +129,27 @@ int _countInterruptions(
 }) {
   if (sleepOnsetAt == null) return 0;
 
-  final qualifyingWakeSegments = sorted.where((segment) {
-    if (!_isWake(segment.stage)) return false;
-    if (!segment.startAtUtc.isAfter(sleepOnsetAt)) return false;
-    return segment.endAtUtc.difference(segment.startAtUtc) >=
-        _interruptionWakeThreshold;
-  }).toList(growable: false);
+  // BOLT OPTIMIZATION: Replaced .where().toList() and a second loop
+  // with a single-pass calculation to eliminate the intermediate List allocation.
+  var count = 0;
+  SleepStageSegment? previousQualifying;
 
-  if (qualifyingWakeSegments.isEmpty) return 0;
-  var count = 1;
-  for (var i = 1; i < qualifyingWakeSegments.length; i++) {
-    final previous = qualifyingWakeSegments[i - 1];
-    final current = qualifyingWakeSegments[i];
-    final gap = current.startAtUtc.difference(previous.endAtUtc);
-    if (gap > _interruptionSleepGapThreshold) {
-      count += 1;
+  for (final segment in sorted) {
+    if (!_isWake(segment.stage)) continue;
+    if (!segment.startAtUtc.isAfter(sleepOnsetAt)) continue;
+    if (segment.endAtUtc.difference(segment.startAtUtc) < _interruptionWakeThreshold) continue;
+
+    if (previousQualifying == null) {
+      count = 1;
+    } else {
+      final gap = segment.startAtUtc.difference(previousQualifying.endAtUtc);
+      if (gap > _interruptionSleepGapThreshold) {
+        count += 1;
+      }
     }
+    previousQualifying = segment;
   }
+
   return count;
 }
 

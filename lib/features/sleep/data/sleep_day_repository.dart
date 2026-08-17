@@ -451,22 +451,32 @@ class SleepDayRepository implements SleepDayDataRepository {
       }
     }
     final sortedNights = latestByNight.keys.toList()..sort();
-    return sortedNights
-        .map((night) => latestByNight[night]!.restingHeartRateBpm)
-        .whereType<double>()
-        .where((value) => value.isFinite)
-        .toList(growable: false);
+
+    // BOLT OPTIMIZATION: Replaced chained .map(), .whereType(), .where(), and .toList()
+    // with a single-pass loop to eliminate intermediate array allocations.
+    final heartRates = <double>[];
+    for (final night in sortedNights) {
+      final value = latestByNight[night]!.restingHeartRateBpm;
+      if (value != null && value.isFinite) {
+        heartRates.add(value);
+      }
+    }
+    return heartRates;
   }
 
   Duration _sumStageDuration(
     List<SleepStageSegment> segments,
     CanonicalSleepStage stage,
   ) {
-    return segments.where((segment) => segment.stage == stage).fold<Duration>(
-          Duration.zero,
-          (total, segment) =>
-              total + segment.endAtUtc.difference(segment.startAtUtc),
-        );
+    // BOLT OPTIMIZATION: Replaced .where().fold() with a standard loop
+    // to avoid intermediate Iterator and closure allocations.
+    var total = Duration.zero;
+    for (final segment in segments) {
+      if (segment.stage == stage) {
+        total += segment.endAtUtc.difference(segment.startAtUtc);
+      }
+    }
+    return total;
   }
 
   String _nightKey(DateTime date) {
