@@ -57,3 +57,7 @@
 ## 2024-05-18 - Avoid chained map/where pipelines in Flutter build methods
 **Learning:** Chaining `.where().toList()` and `.map().toList()` in frequently executed synchronous paths like Flutter's `build` methods causes unnecessary intermediate list allocations, which increases heap pressure and can trigger garbage collection jank. This is especially true for data visualization components (like analytics cards) that may rebuild often.
 **Action:** Replace chained iterable pipelines in UI rendering paths with standard single-pass `for` loops or Dart's collection `for-if` syntax to construct widget lists directly without intermediate arrays.
+
+## 2024-05-19 - [Optimize Sleep Metrics Calculation]
+**Learning:** Chained Dart Iterables (`.map().where().toList()`) in hot paths like the sleep pipeline calculate metrics asynchronously but create unnecessary object allocation overhead and trigger frequent GC pauses, especially when computing historical baselines across multiple days.
+**Action:** Replace functional pipeline chains with single-pass `for` loops in performance-critical data processing logic (such as repository queries or metric calculations) to minimize intermediate Iterable allocations and avoid O(N*M) lookups inside `.where()` predicates.
