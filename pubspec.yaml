@@ -13,7 +13,7 @@ dependencies:
   # DOC: Added for localization (multilingual support)
   flutter_localizations:
     sdk: flutter
-  intl: 0.20.2 # Always check the latest version with `flutter pub outdated`
+  intl: 0.20.3 # Always check the latest version with `flutter pub outdated`
 
   # DOC: Added for the SQLite database
   sqflite: ^2.4.3
@@ -22,7 +22,7 @@ dependencies:
   # cupertino_icons: ^1.0.8
   flutter_gen: ^5.14.1
   shared_preferences: ^2.2.3
-  dynamic_color: ^1.7.0
+  dynamic_color: ^1.9.0
   url_launcher: ^6.2.6
   path_provider: ^2.1.6
   file_picker: ^12.0.0-beta.5
@@ -36,7 +36,7 @@ dependencies:
   package_info_plus: ^10.2.1 # or the latest version
   image_picker: ^1.2.2
   cryptography: ^2.7.0
-  table_calendar: ^3.2.0
+  table_calendar: ^3.2.1
 
   mime: ^2.0.0
   archive: ^4.0.9
@@ -50,8 +50,8 @@ dependencies:
   # and AGP 8.13.2 resolves that to the platform hash `android-37`, which Google
   # no longer ships (only android-37.0 / 37.1 exist). It is also a breaking
   # release that drops the legacy ciphers. Revisit together with an AGP upgrade.
-  flutter_secure_storage: ">=10.3.0 <11.0.0"
-  flutter_local_notifications: ^22.1.0
+  flutter_secure_storage: ^11.0.0
+  flutter_local_notifications: ^22.3.0
   timezone: ^0.11.0
   crypto: ^3.0.5
 
@@ -64,7 +64,7 @@ dependencies:
   qr_code_scanner_plus: ^2.2.0
   # Pinned below 13.0.0 for the same reason: it pulls permission_handler_android
   # 14.x, which also requires compileSdk 37.
-  permission_handler: ">=12.0.3 <13.0.0"
+  permission_handler: ^13.0.1
   flutter_markdown_plus: ^1.0.12
   flutter_markdown_plus_latex: ^1.0.5
   markdown: ^7.3.1
@@ -85,7 +85,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  build_runner: ^2.15.1
+  build_runner: ^2.16.0
   drift_dev: ^2.34.4
 # dependency_overrides:
 
