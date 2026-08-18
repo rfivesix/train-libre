@@ -29,3 +29,6 @@
 ## 2024-05-14 - Add tooltips to IconButtons for accessibility
 **Learning:** Flutter's `MaterialLocalizations` does not provide built-in getters for password visibility toggles (e.g., 'show/hide password').
 **Action:** Custom `.arb` localization strings or existing related field labels (like `passwordLabel`) must be reused for these tooltips instead.
+## 2024-05-18 - Missing tooltips and semantic labels on custom icon-only tap targets
+**Learning:** Custom UI tap targets utilizing `InkWell` or `GestureDetector` that display only an `Icon` without a `Text` widget often bypass standard accessibility checks that would normally flag missing `tooltip`s on native `IconButton`s. The main screen's floating "Add" button and the AI meal capture's image close buttons lacked screen reader context and visual tooltips because they used a nested custom layout for a glassmorphism effect instead of standard `FloatingActionButton` or `IconButton`.
+**Action:** When working with custom icon-only buttons (especially `InkWell` + `Icon` combinations), actively search for and ensure they are wrapped in `Tooltip` widgets and have `semanticLabel` properties set on the inner `Icon`.

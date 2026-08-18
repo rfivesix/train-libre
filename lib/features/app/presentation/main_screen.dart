@@ -1665,20 +1665,24 @@ class _MainScreenState extends State<MainScreen>
                                         true, //false, // Force blur in minimal quality
                                     child: Material(
                                       color: Colors.transparent,
-                                      child: InkWell(
-                                        customBorder: const CircleBorder(),
-                                        onTap: _toggleAddMenu,
-                                        child: SizedBox(
-                                          width: extraButtonSize,
-                                          height: DesignConstants.fabSize,
-                                          child: Center(
-                                            child: Icon(
-                                              LucideIcons.plus,
-                                              key: _tourFabKey,
-                                              color: isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                              size: 28,
+                                      child: Tooltip(
+                                        message: l10n.add_button,
+                                        child: InkWell(
+                                          customBorder: const CircleBorder(),
+                                          onTap: _toggleAddMenu,
+                                          child: SizedBox(
+                                            width: extraButtonSize,
+                                            height: DesignConstants.fabSize,
+                                            child: Center(
+                                              child: Icon(
+                                                LucideIcons.plus,
+                                                key: _tourFabKey,
+                                                semanticLabel: l10n.add_button,
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                                size: 28,
+                                              ),
                                             ),
                                           ),
                                         ),
