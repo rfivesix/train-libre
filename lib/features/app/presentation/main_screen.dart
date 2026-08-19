@@ -1675,6 +1675,7 @@ class _MainScreenState extends State<MainScreen>
                                             child: Icon(
                                               LucideIcons.plus,
                                               key: _tourFabKey,
+                                              semanticLabel: l10n.addMenuTitle,
                                               color: isDark
                                                   ? Colors.white
                                                   : Colors.black,

@@ -308,6 +308,7 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                         ),
                                         child: Icon(
                                           LucideIcons.plus,
+                                          semanticLabel: MaterialLocalizations.of(context).closeButtonTooltip,
                                           color: isDarkLocal
                                               ? Colors.white
                                               : Colors.black,
