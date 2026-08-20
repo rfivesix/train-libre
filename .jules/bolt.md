@@ -61,3 +61,7 @@
 ## 2024-05-19 - [Optimize Sleep Metrics Calculation]
 **Learning:** Chained Dart Iterables (`.map().where().toList()`) in hot paths like the sleep pipeline calculate metrics asynchronously but create unnecessary object allocation overhead and trigger frequent GC pauses, especially when computing historical baselines across multiple days.
 **Action:** Replace functional pipeline chains with single-pass `for` loops in performance-critical data processing logic (such as repository queries or metric calculations) to minimize intermediate Iterable allocations and avoid O(N*M) lookups inside `.where()` predicates.
+
+## 2025-02-15 - Removed object allocations in heart rate analysis loop
+**Learning:** The `PulseAnalysisEngine._sanitizeAndSort` loop processes thousands of raw heart rate samples. Converting `DateTime` to UTC and performing comparisons (`isBefore`) inside this loop created a significant number of short-lived `DateTime` and `Duration` objects. Additionally, using `Map.putIfAbsent` dynamically allocated closure functions (`() => <double>[]`) for every iteration, causing significant overhead for the garbage collector on the main thread when charting heart rates.
+**Action:** Always pre-calculate epoch integer values (e.g. `millisecondsSinceEpoch`) outside of large loops for comparisons, use direct 64-bit integer logic instead of `DateTime` instances, and use direct `null` checking on maps instead of `putIfAbsent` to prevent unnecessary closures and object pressure.
