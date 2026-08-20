@@ -157,24 +157,28 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                         ),
 
                         // Navigation
-                        InkWell(
-                          key: const Key('time-range-prev'),
-                          onTap: widget.onPrevious != null
-                              ? () {
-                                  HapticFeedbackService.instance
-                                      .selectionFeedback();
-                                  widget.onPrevious!();
-                                }
-                              : null,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Center(
-                              child: Icon(
-                                LucideIcons.chevron_left,
-                                size: 16,
-                                color: widget.onPrevious != null
-                                    ? theme.colorScheme.onPrimary
-                                    : theme.disabledColor,
+                        Tooltip(
+                          message: MaterialLocalizations.of(context).previousPageTooltip,
+                          child: InkWell(
+                            key: const Key('time-range-prev'),
+                            onTap: widget.onPrevious != null
+                                ? () {
+                                    HapticFeedbackService.instance
+                                        .selectionFeedback();
+                                    widget.onPrevious!();
+                                  }
+                                : null,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Center(
+                                child: Icon(
+                                  LucideIcons.chevron_left,
+                                  semanticLabel: MaterialLocalizations.of(context).previousPageTooltip,
+                                  size: 16,
+                                  color: widget.onPrevious != null
+                                      ? theme.colorScheme.onPrimary
+                                      : theme.disabledColor,
+                                ),
                               ),
                             ),
                           ),
@@ -204,27 +208,31 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                             ),
                           ),
 
-                        InkWell(
-                          key: const Key('time-range-next'),
-                          onTap: widget.nextEnabled && widget.onNext != null
-                              ? () {
-                                  HapticFeedbackService.instance
-                                      .selectionFeedback();
-                                  widget.onNext!();
-                                }
-                              : null,
-                          borderRadius: const BorderRadius.horizontal(
-                              right: Radius.circular(100)),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Center(
-                              child: Icon(
-                                LucideIcons.chevron_right,
-                                size: 16,
-                                color:
-                                    widget.nextEnabled && widget.onNext != null
-                                        ? theme.colorScheme.onPrimary
-                                        : theme.disabledColor,
+                        Tooltip(
+                          message: MaterialLocalizations.of(context).nextPageTooltip,
+                          child: InkWell(
+                            key: const Key('time-range-next'),
+                            onTap: widget.nextEnabled && widget.onNext != null
+                                ? () {
+                                    HapticFeedbackService.instance
+                                        .selectionFeedback();
+                                    widget.onNext!();
+                                  }
+                                : null,
+                            borderRadius: const BorderRadius.horizontal(
+                                right: Radius.circular(100)),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: Center(
+                                child: Icon(
+                                  LucideIcons.chevron_right,
+                                  semanticLabel: MaterialLocalizations.of(context).nextPageTooltip,
+                                  size: 16,
+                                  color:
+                                      widget.nextEnabled && widget.onNext != null
+                                          ? theme.colorScheme.onPrimary
+                                          : theme.disabledColor,
+                                ),
                               ),
                             ),
                           ),
