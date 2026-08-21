@@ -65,3 +65,7 @@
 ## 2025-02-15 - Removed object allocations in heart rate analysis loop
 **Learning:** The `PulseAnalysisEngine._sanitizeAndSort` loop processes thousands of raw heart rate samples. Converting `DateTime` to UTC and performing comparisons (`isBefore`) inside this loop created a significant number of short-lived `DateTime` and `Duration` objects. Additionally, using `Map.putIfAbsent` dynamically allocated closure functions (`() => <double>[]`) for every iteration, causing significant overhead for the garbage collector on the main thread when charting heart rates.
 **Action:** Always pre-calculate epoch integer values (e.g. `millisecondsSinceEpoch`) outside of large loops for comparisons, use direct 64-bit integer logic instead of `DateTime` instances, and use direct `null` checking on maps instead of `putIfAbsent` to prevent unnecessary closures and object pressure.
+
+## 2025-02-15 - Fast Paths in ViewModels loops
+**Learning:** `_updateCalculatedState` loops over maps and lists inside `SupplementsViewModel`. Calling `.any()` on a list inside a loop creates an O(N^2) complexity bottleneck. Additionally, `doses.update(ifAbsent:)` creates closure allocations that slow down frequent re-evaluations.
+**Action:** When checking for existence inside a loop, maintain a `Set` of IDs/keys and use `.contains()` for O(1) lookups. When updating frequency or counter maps in reactive classes, replace `.update` with a direct lookup, null-check, and assignment to avoid closure allocations.

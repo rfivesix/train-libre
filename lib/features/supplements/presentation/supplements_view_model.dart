@@ -119,36 +119,43 @@ class SupplementsViewModel extends ChangeNotifier {
     };
 
     for (final s in _allSupplementsList) {
-      if (s.id != null && !byId.containsKey(s.id!)) {
+      if (s.id != null && byId[s.id!] == null) {
         byId[s.id!] = s;
       }
     }
 
+    // BOLT OPTIMIZATION: Avoid closure allocations, redundant Map hash lookups, and O(N^2) `.any()` iterations.
     final doses = <int, double>{};
     for (final log in _logsList) {
-      doses.update(
-        log.supplementId,
-        (v) => v + log.dose,
-        ifAbsent: () => log.dose,
-      );
+      final currentDose = doses[log.supplementId];
+      if (currentDose != null) {
+        doses[log.supplementId] = currentDose + log.dose;
+      } else {
+        doses[log.supplementId] = log.dose;
+      }
     }
 
     final List<TrackedSupplement> tracked = [];
+    final Set<int> trackedIds = {};
     for (final s in _supplementsForDateList) {
-      final hasLog = doses.containsKey(s.id);
-      if (s.isTracked || hasLog) {
+      final double? dose = doses[s.id];
+      if (s.isTracked || dose != null) {
         tracked.add(
-          TrackedSupplement(supplement: s, totalDosedToday: doses[s.id] ?? 0.0),
+          TrackedSupplement(supplement: s, totalDosedToday: dose ?? 0.0),
         );
+        if (s.id != null) {
+          trackedIds.add(s.id!);
+        }
       }
     }
 
     for (final id in doses.keys) {
-      if (!tracked.any((ts) => ts.supplement.id == id)) {
-        if (byId.containsKey(id)) {
+      if (!trackedIds.contains(id)) {
+        final supplement = byId[id];
+        if (supplement != null) {
           tracked.add(
             TrackedSupplement(
-              supplement: byId[id]!,
+              supplement: supplement,
               totalDosedToday: doses[id]!,
             ),
           );
