@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
 
-
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../main.dart' as app_main;
@@ -124,7 +123,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _isCheckingDatabase = false;
   Future<void>? _onboardingRecommendationFuture;
 
-
   late final AdaptiveNutritionRecommendationService _recommendationService;
   late final DatabaseHelper _databaseHelper;
   BodyweightGoal _selectedGoal = BodyweightGoal.maintainWeight;
@@ -166,7 +164,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.initState();
     _isImportedMode = widget.forceImportMode;
     _databaseHelper = widget.databaseHelper ?? DatabaseHelper.instance;
-    _recommendationService = widget.recommendationService ??
+    _recommendationService =
+        widget.recommendationService ??
         AdaptiveNutritionRecommendationService(databaseHelper: _databaseHelper);
     _loadAdaptiveGoalSettings();
     _initSelectedCountry();
@@ -269,7 +268,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-
   // --- LOGIC ---
 
   UnitService get _unitService => context.read<UnitService>();
@@ -279,10 +277,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _loadAdaptiveGoalSettings() async {
     final goal = await _recommendationService.getGoal();
     final rate = await _recommendationService.getTargetRateKgPerWeek();
-    final priorActivityLevel =
-        await _recommendationService.getPriorActivityLevel();
-    final extraCardioHoursOption =
-        await _recommendationService.getExtraCardioHoursOption();
+    final priorActivityLevel = await _recommendationService
+        .getPriorActivityLevel();
+    final extraCardioHoursOption = await _recommendationService
+        .getExtraCardioHoursOption();
     if (!mounted) return;
     setState(() {
       _selectedGoal = goal;
@@ -322,25 +320,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final height = heightInput == null
         ? null
         : unitService
-            .convertToMetric(heightInput, UnitDimension.height)
-            .round();
-    final bodyFatPercent =
-        double.tryParse(_bodyFatPercentController.text.replaceAll(',', '.'));
+              .convertToMetric(heightInput, UnitDimension.height)
+              .round();
+    final bodyFatPercent = double.tryParse(
+      _bodyFatPercentController.text.replaceAll(',', '.'),
+    );
     try {
-      final preview =
-          await _recommendationService.generateOnboardingRecommendationPreview(
-        goal: _selectedGoal,
-        targetRateKgPerWeek: _selectedTargetRateKgPerWeek,
-        weightKg: weight,
-        heightCm: height,
-        birthday: _selectedDate,
-        gender: _selectedGender,
-        bodyFatPercent: bodyFatPercent,
-        declaredActivityLevel: _selectedPriorActivityLevel,
-        extraCardioHoursOption: _selectedExtraCardioHoursOption,
-        persistGenerated: false,
-        markAsApplied: false,
-      );
+      final preview = await _recommendationService
+          .generateOnboardingRecommendationPreview(
+            goal: _selectedGoal,
+            targetRateKgPerWeek: _selectedTargetRateKgPerWeek,
+            weightKg: weight,
+            heightCm: height,
+            birthday: _selectedDate,
+            gender: _selectedGender,
+            bodyFatPercent: bodyFatPercent,
+            declaredActivityLevel: _selectedPriorActivityLevel,
+            extraCardioHoursOption: _selectedExtraCardioHoursOption,
+            persistGenerated: false,
+            markAsApplied: false,
+          );
 
       if (!mounted) return;
       setState(() {
@@ -385,7 +384,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   bool _activeGoalInputsMatchRecommendation(
-      NutritionRecommendation recommendation) {
+    NutritionRecommendation recommendation,
+  ) {
     return (int.tryParse(_calController.text) ?? -1) ==
             recommendation.recommendedCalories &&
         (int.tryParse(_protController.text) ?? -1) ==
@@ -423,8 +423,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final int? height = heightInput == null
         ? null
         : unitService
-            .convertToMetric(heightInput, UnitDimension.height)
-            .round();
+              .convertToMetric(heightInput, UnitDimension.height)
+              .round();
     final double? weight = weightInput == null
         ? null
         : unitService.convertToMetric(weightInput, UnitDimension.weight);
@@ -433,7 +433,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ? (weight != null ? ((weight / 20.0) * 1000.0).round() : 3000)
         : unitService.convertToMetric(waterInput, UnitDimension.liquid).round();
 
-    final onboardingRecommendation = _onboardingRecommendation ??
+    final onboardingRecommendation =
+        _onboardingRecommendation ??
         await _recommendationService.generateOnboardingRecommendation(
           goal: _selectedGoal,
           targetRateKgPerWeek: _selectedTargetRateKgPerWeek,
@@ -458,9 +459,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     if (_selectedGender != null && mounted) {
       await context.read<ProfileService>().updateGender(
-            UserGender.fromString(_selectedGender),
-            context.read<IProfileRepository>(),
-          );
+        UserGender.fromString(_selectedGender),
+        context.read<IProfileRepository>(),
+      );
     }
 
     // Also cache height briefly in prefs for GoalsScreen fallback (optional).
@@ -516,14 +517,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await AppTourService.instance.queuePostOnboardingOffer();
 
     _onboardingCompletedSuccessfully = true;
-    unawaited(TelemetryService.instance.trackOnboardingCompleted(
-      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
-      restoredFromBackup: _isImportedMode,
-      sessionId: _onboardingSessionId,
-    ));
+    unawaited(
+      TelemetryService.instance.trackOnboardingCompleted(
+        totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+        restoredFromBackup: _isImportedMode,
+        sessionId: _onboardingSessionId,
+      ),
+    );
 
     if (!mounted) return;
-
 
     if (_requiresHardRestart) {
       app_main.main();
@@ -604,13 +606,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _restoreFromBackup() async {
     final l10n = AppLocalizations.of(context)!;
 
-    final wgerInitialized =
-        await BasisDataManager.instance.isExerciseCatalogInitialized();
+    final wgerInitialized = await BasisDataManager.instance
+        .isExerciseCatalogInitialized();
 
     if (!wgerInitialized) {
       if (!mounted) return;
-      await BasisDataManager.instance
-          .promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+        context,
+      );
       return;
     }
 
@@ -709,40 +712,52 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<String?> _askRestorePassword(AppLocalizations l10n) async {
     final controller = TextEditingController();
+    bool obscure = true;
     return showGlassBottomMenu<String?>(
       context: context,
       title: l10n.dialogEnterPasswordImport,
-      contentBuilder: (ctx, close) => Column(
-        key: const Key('onboarding_restore_password_sheet'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: controller,
-            obscureText: true,
-            decoration: InputDecoration(labelText: l10n.passwordLabel),
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
-          Row(
+      contentBuilder: (ctx, close) => StatefulBuilder(
+        builder: (context, setState) {
+          return Column(
+            key: const Key('onboarding_restore_password_sheet'),
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: AppButton.secondary(
-                  onPressed: () => Navigator.of(ctx).pop(null),
-                  label: l10n.cancel,
-                  tooltip: l10n.cancel,
+              TextField(
+                controller: controller,
+                obscureText: obscure,
+                decoration: InputDecoration(
+                  labelText: l10n.passwordLabel,
+                  suffixIcon: IconButton(
+                    tooltip: l10n.passwordLabel,
+                    icon: Icon(obscure ? LucideIcons.eye_off : LucideIcons.eye),
+                    onPressed: () => setState(() => obscure = !obscure),
+                  ),
                 ),
               ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: AppButton.primary(
-                  onPressed: () =>
-                      Navigator.of(ctx).pop(controller.text.trim()),
-                  label: l10n.onboardingNext,
-                  tooltip: l10n.onboardingNext,
-                ),
+              const SizedBox(height: DesignConstants.spacingM),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton.secondary(
+                      onPressed: () => Navigator.of(ctx).pop(null),
+                      label: l10n.cancel,
+                      tooltip: l10n.cancel,
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  Expanded(
+                    child: AppButton.primary(
+                      onPressed: () =>
+                          Navigator.of(ctx).pop(controller.text.trim()),
+                      label: l10n.onboardingNext,
+                      tooltip: l10n.onboardingNext,
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -804,11 +819,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           return;
         }
 
-        final heightInput =
-            double.tryParse(_heightController.text.replaceAll(',', '.'));
+        final heightInput = double.tryParse(
+          _heightController.text.replaceAll(',', '.'),
+        );
         if (heightInput != null) {
-          final heightCm =
-              _unitService.convertToMetric(heightInput, UnitDimension.height);
+          final heightCm = _unitService.convertToMetric(
+            heightInput,
+            UnitDimension.height,
+          );
           if (heightCm < 100 || heightCm > 250) {
             if (_lastWarnedHeightValue != _heightController.text) {
               setState(() {
@@ -842,8 +860,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
         final weightInput = double.tryParse(weightText.replaceAll(',', '.'));
         if (weightInput != null) {
-          final weightKg =
-              _unitService.convertToMetric(weightInput, UnitDimension.weight);
+          final weightKg = _unitService.convertToMetric(
+            weightInput,
+            UnitDimension.weight,
+          );
           if (weightKg < 35 || weightKg > 250) {
             if (_lastWarnedWeightValue != _weightController.text) {
               setState(() {
@@ -928,13 +948,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         cancelLabel: l10n.health_permission_not_now,
       );
       if (confirmed && mounted) {
-        final service = HealthExportService(adapters: [
-          AppleHealthExportAdapter(),
-          HealthConnectExportAdapter()
-        ]);
-        await service.requestPermissions(Platform.isIOS
-            ? HealthExportPlatform.appleHealth
-            : HealthExportPlatform.healthConnect);
+        final service = HealthExportService(
+          adapters: [AppleHealthExportAdapter(), HealthConnectExportAdapter()],
+        );
+        await service.requestPermissions(
+          Platform.isIOS
+              ? HealthExportPlatform.appleHealth
+              : HealthExportPlatform.healthConnect,
+        );
       }
     }
 
@@ -979,11 +1000,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // 4. Sleep Tracking
     final sleepEnabled = prefs.getBool('sleep_tracking_enabled') ?? false;
     if (sleepEnabled) {
-      final controller = SleepPermissionController(Platform.isIOS
-          ? const HealthKitSleepPermissionsService(
-              HealthKitSleepMethodChannelBridge())
-          : const HealthConnectSleepPermissionsService(
-              HealthConnectSleepMethodChannelBridge()));
+      final controller = SleepPermissionController(
+        Platform.isIOS
+            ? const HealthKitSleepPermissionsService(
+                HealthKitSleepMethodChannelBridge(),
+              )
+            : const HealthConnectSleepPermissionsService(
+                HealthConnectSleepMethodChannelBridge(),
+              ),
+      );
       await controller.requestAccess(context);
     }
 
@@ -993,11 +1018,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await AppTourService.instance.queuePostOnboardingOffer();
 
     _onboardingCompletedSuccessfully = true;
-    unawaited(TelemetryService.instance.trackOnboardingCompleted(
-      totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
-      restoredFromBackup: _isImportedMode,
-      sessionId: _onboardingSessionId,
-    ));
+    unawaited(
+      TelemetryService.instance.trackOnboardingCompleted(
+        totalDurationSeconds: _totalStopwatch.elapsed.inSeconds,
+        restoredFromBackup: _isImportedMode,
+        sessionId: _onboardingSessionId,
+      ),
+    );
 
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
@@ -1055,162 +1082,168 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     }
                   },
 
-                children: [
-                  WelcomeSlide(
-                    isRestoring: _isRestoring,
-                    onContinue: _nextPage,
-                    onRestore: _restoreFromBackup,
-                    onRestoreICloud: _restoreFromICloud,
-                    hasICloudBackup: _hasICloudBackup,
-                  ),
-                  UnitSystemSlide(
-                    selectedSystem: _unitService.unitSystem,
-                    onSelectSystem: (system) async {
-                      await context.read<UnitService>().setUnitSystem(system);
-                      setState(() {});
-                    },
-                  ),
-                  RegionSelectionSlide(
-                    selectedCountry: _selectedOffCountry,
-                    onSelectCountry: (country) {
-                      setState(() {
-                        _selectedOffCountry = country;
-                      });
-                    },
-                  ),
-                  ProfileSlide(
-                    nameController: _nameController,
-                    selectedDate: _selectedDate,
-                    heightController: _heightController,
-                    selectedGender: _selectedGender,
-                    heightError: _heightError,
-                    heightWarning: _heightWarning,
-                    dobError: _dobError,
-                    genderError: _genderError,
-                    onSelectDate: (picked) {
-                      setState(() {
-                        _selectedDate = picked;
-                        _dobError = null;
-                      });
-                      if (_currentPage >= _adaptiveGoalPageIndex) {
-                        _refreshOnboardingRecommendationPreview();
-                      }
-                    },
-                    onSelectGender: (val) {
-                      setState(() {
-                        _selectedGender = val;
-                        _genderError = null;
-                      });
-                    },
-                  ),
-                  _OnboardingMeasurementsStep(
-                    weightController: _weightController,
-                    bodyFatPercentController: _bodyFatPercentController,
-                    onBodyFatChanged: (_) {
-                      if (_currentPage >= _adaptiveGoalPageIndex) {
-                        _refreshOnboardingRecommendationPreview();
-                      }
-                    },
-                    onOpenBodyFatHelp: _openBodyFatHelperEntryPoint,
-                    weightError: _weightError,
-                    weightWarning: _weightWarning,
-                  ),
-                  AdaptiveGoalSlide(
-                    selectedGoal: _selectedGoal,
-                    selectedPriorActivityLevel: _selectedPriorActivityLevel,
-                    selectedExtraCardioHoursOption:
-                        _selectedExtraCardioHoursOption,
-                    selectedTargetRateKgPerWeek: _selectedTargetRateKgPerWeek,
-                    onGoalChanged: (goal) {
-                      setState(() {
-                        _selectedGoal = goal;
-                        _selectedTargetRateKgPerWeek =
-                            WeeklyTargetRateCatalog.defaultForGoal(
-                                    goal, _unitService)
-                                .kgPerWeek;
-                      });
-                      _refreshOnboardingRecommendationPreview();
-                    },
-                    onPriorActivityLevelChanged: (level) {
-                      setState(() {
-                        _selectedPriorActivityLevel = level;
-                      });
-                      _refreshOnboardingRecommendationPreview();
-                    },
-                    onExtraCardioHoursOptionChanged: (option) {
-                      setState(() {
-                        _selectedExtraCardioHoursOption = option;
-                      });
-                      _refreshOnboardingRecommendationPreview();
-                    },
-                    onTargetRateKgPerWeekChanged: (rate) {
-                      setState(() {
-                        _selectedTargetRateKgPerWeek = rate;
-                      });
-                      _refreshOnboardingRecommendationPreview();
-                    },
-                  ),
-                  _OnboardingNutritionStep(
-                    calController: _calController,
-                    protController: _protController,
-                    carbController: _carbController,
-                    fatController: _fatController,
-                    waterController: _waterController,
-                  ),
-                  _OnboardingAiHealthStep(
-                    onOpenAiSettings: _openAiSettings,
-                    onOpenStepsSettings: _openStepsSettings,
-                    onOpenSleepSettings: _openSleepSettings,
-                    onOpenPulseSettings: _openPulseSettings,
-                  ),
-                ],
-              ),
-            ),
-            // Hide bottom nav on the welcome page (page 0) — it has its own buttons.
-            if (_currentPage > 0)
-              Padding(
-                padding: const EdgeInsets.all(DesignConstants.spacingXL),
-                child: Row(
                   children: [
-                    IconButton.filledTonal(
-                      tooltip: MaterialLocalizations.of(context).previousPageTooltip,
-                      onPressed: _isCheckingDatabase ? null : _prevPage,
-                      icon: const Icon(LucideIcons.arrow_left),
+                    WelcomeSlide(
+                      isRestoring: _isRestoring,
+                      onContinue: _nextPage,
+                      onRestore: _restoreFromBackup,
+                      onRestoreICloud: _restoreFromICloud,
+                      hasICloudBackup: _hasICloudBackup,
                     ),
-                    const Spacer(),
-                    AppButton.primary(
-                      key: const Key('onboarding_bottom_next_button'),
-                      onPressed: _isGeneratingOnboardingRecommendation || _isCheckingDatabase
-                          ? null
-                          : _nextPage,
-                      label: _currentPage == _lastPageIndex
-                          ? l10n.onboardingFinish.toUpperCase()
-                          : l10n.onboardingNext.toUpperCase(),
-                      tooltip: _currentPage == _lastPageIndex
-                          ? l10n.onboardingFinish.toUpperCase()
-                          : l10n.onboardingNext.toUpperCase(),
-                      isLoading: (_isGeneratingOnboardingRecommendation &&
-                              _currentPage == _adaptiveGoalPageIndex) ||
-                          _isCheckingDatabase,
+                    UnitSystemSlide(
+                      selectedSystem: _unitService.unitSystem,
+                      onSelectSystem: (system) async {
+                        await context.read<UnitService>().setUnitSystem(system);
+                        setState(() {});
+                      },
+                    ),
+                    RegionSelectionSlide(
+                      selectedCountry: _selectedOffCountry,
+                      onSelectCountry: (country) {
+                        setState(() {
+                          _selectedOffCountry = country;
+                        });
+                      },
+                    ),
+                    ProfileSlide(
+                      nameController: _nameController,
+                      selectedDate: _selectedDate,
+                      heightController: _heightController,
+                      selectedGender: _selectedGender,
+                      heightError: _heightError,
+                      heightWarning: _heightWarning,
+                      dobError: _dobError,
+                      genderError: _genderError,
+                      onSelectDate: (picked) {
+                        setState(() {
+                          _selectedDate = picked;
+                          _dobError = null;
+                        });
+                        if (_currentPage >= _adaptiveGoalPageIndex) {
+                          _refreshOnboardingRecommendationPreview();
+                        }
+                      },
+                      onSelectGender: (val) {
+                        setState(() {
+                          _selectedGender = val;
+                          _genderError = null;
+                        });
+                      },
+                    ),
+                    _OnboardingMeasurementsStep(
+                      weightController: _weightController,
+                      bodyFatPercentController: _bodyFatPercentController,
+                      onBodyFatChanged: (_) {
+                        if (_currentPage >= _adaptiveGoalPageIndex) {
+                          _refreshOnboardingRecommendationPreview();
+                        }
+                      },
+                      onOpenBodyFatHelp: _openBodyFatHelperEntryPoint,
+                      weightError: _weightError,
+                      weightWarning: _weightWarning,
+                    ),
+                    AdaptiveGoalSlide(
+                      selectedGoal: _selectedGoal,
+                      selectedPriorActivityLevel: _selectedPriorActivityLevel,
+                      selectedExtraCardioHoursOption:
+                          _selectedExtraCardioHoursOption,
+                      selectedTargetRateKgPerWeek: _selectedTargetRateKgPerWeek,
+                      onGoalChanged: (goal) {
+                        setState(() {
+                          _selectedGoal = goal;
+                          _selectedTargetRateKgPerWeek =
+                              WeeklyTargetRateCatalog.defaultForGoal(
+                                goal,
+                                _unitService,
+                              ).kgPerWeek;
+                        });
+                        _refreshOnboardingRecommendationPreview();
+                      },
+                      onPriorActivityLevelChanged: (level) {
+                        setState(() {
+                          _selectedPriorActivityLevel = level;
+                        });
+                        _refreshOnboardingRecommendationPreview();
+                      },
+                      onExtraCardioHoursOptionChanged: (option) {
+                        setState(() {
+                          _selectedExtraCardioHoursOption = option;
+                        });
+                        _refreshOnboardingRecommendationPreview();
+                      },
+                      onTargetRateKgPerWeekChanged: (rate) {
+                        setState(() {
+                          _selectedTargetRateKgPerWeek = rate;
+                        });
+                        _refreshOnboardingRecommendationPreview();
+                      },
+                    ),
+                    _OnboardingNutritionStep(
+                      calController: _calController,
+                      protController: _protController,
+                      carbController: _carbController,
+                      fatController: _fatController,
+                      waterController: _waterController,
+                    ),
+                    _OnboardingAiHealthStep(
+                      onOpenAiSettings: _openAiSettings,
+                      onOpenStepsSettings: _openStepsSettings,
+                      onOpenSleepSettings: _openSleepSettings,
+                      onOpenPulseSettings: _openPulseSettings,
                     ),
                   ],
                 ),
               ),
-          ],
+              // Hide bottom nav on the welcome page (page 0) — it has its own buttons.
+              if (_currentPage > 0)
+                Padding(
+                  padding: const EdgeInsets.all(DesignConstants.spacingXL),
+                  child: Row(
+                    children: [
+                      IconButton.filledTonal(
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).previousPageTooltip,
+                        onPressed: _isCheckingDatabase ? null : _prevPage,
+                        icon: const Icon(LucideIcons.arrow_left),
+                      ),
+                      const Spacer(),
+                      AppButton.primary(
+                        key: const Key('onboarding_bottom_next_button'),
+                        onPressed:
+                            _isGeneratingOnboardingRecommendation ||
+                                _isCheckingDatabase
+                            ? null
+                            : _nextPage,
+                        label: _currentPage == _lastPageIndex
+                            ? l10n.onboardingFinish.toUpperCase()
+                            : l10n.onboardingNext.toUpperCase(),
+                        tooltip: _currentPage == _lastPageIndex
+                            ? l10n.onboardingFinish.toUpperCase()
+                            : l10n.onboardingNext.toUpperCase(),
+                        isLoading:
+                            (_isGeneratingOnboardingRecommendation &&
+                                _currentPage == _adaptiveGoalPageIndex) ||
+                            _isCheckingDatabase,
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Future<void> _openBodyFatHelperEntryPoint() async {
     await showBodyFatGuidanceSheet(context);
   }
 
   Future<void> _openAiSettings() {
-    return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const AiSettingsScreen()),
-    );
+    return Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => const AiSettingsScreen()));
   }
 
   Future<void> _openStepsSettings() {
@@ -1285,8 +1318,9 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
               labelText: '${l10n.onboardingWeightTitle} ($weightSuffix)',
               suffixText: weightSuffix,
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
               ),
               errorText: weightError,
             ),
@@ -1295,10 +1329,7 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               weightWarning!,
-              style: TextStyle(
-                color: Colors.orange.shade800,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
             ),
           ],
           const SizedBox(height: 18),
@@ -1311,8 +1342,9 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
               labelText: l10n.onboardingBodyFatOptionalLabel,
               suffixText: '%',
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
               ),
             ),
           ),
@@ -1360,8 +1392,8 @@ class _OnboardingNutritionStep extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final liquidSuffix = context.watch<UnitService>().suffixFor(
-          UnitDimension.liquid,
-        );
+      UnitDimension.liquid,
+    );
 
     return SingleChildScrollView(
       key: const Key('onboarding_nutrition_page'),
@@ -1478,8 +1510,9 @@ class _OnboardingInfoBox extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:
-            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.45,
+        ),
         borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
       ),
       child: Text(
@@ -1590,10 +1623,7 @@ class _OnboardingSettingsTile extends StatelessWidget {
 
     return ListTile(
       leading: Icon(icon),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle),
       trailing: TextButton.icon(
         onPressed: onTap,
