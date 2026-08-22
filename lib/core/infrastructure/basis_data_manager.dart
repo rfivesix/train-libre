@@ -29,14 +29,15 @@ import 'package:flutter_lucide/flutter_lucide.dart'; // Added
 import '../../widgets/common/app_button.dart';
 
 // Type definition for the callback
-typedef ProgressCallback = void Function(
-    String task, String detail, double progress);
-typedef RemoteCatalogProgressCallback = void Function(
-  String task,
-  String detail,
-  double progress, {
-  required bool canSkip,
-});
+typedef ProgressCallback =
+    void Function(String task, String detail, double progress);
+typedef RemoteCatalogProgressCallback =
+    void Function(
+      String task,
+      String detail,
+      double progress, {
+      required bool canSkip,
+    });
 typedef RemoteCatalogSkipRequested = bool Function();
 
 /// Manager responsible for initializing and updating the application's base data.
@@ -76,9 +77,13 @@ List<dynamic> _parseBatchInIsolate(_BatchImportPayload payload) {
       return payload.rows.map(BasisDataManager._mapCategoryRow).toList();
     case BatchImportType.productsBase:
       return payload.rows
-          .map((r) => BasisDataManager._mapProductRow(r,
+          .map(
+            (r) => BasisDataManager._mapProductRow(
+              r,
               sourceLabel: 'base',
-              preferredLanguage: payload.preferredLanguage))
+              preferredLanguage: payload.preferredLanguage,
+            ),
+          )
           .toList();
     case BatchImportType.productsOff:
       return payload.rows
@@ -151,13 +156,16 @@ class BasisDataManager {
 
   Future<bool> isOffDatabaseInitialized() async {
     final prefs = await SharedPreferences.getInstance();
-    final activeOffSource =
-        OffCatalogCountryService.activeSourceFromPrefs(prefs);
-    final activeOffCountry =
-        OffCatalogCountryCodec.parseOrDefault(activeOffSource.countryCode);
+    final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
+      prefs,
+    );
+    final activeOffCountry = OffCatalogCountryCodec.parseOrDefault(
+      activeOffSource.countryCode,
+    );
     final activeOffVersionKey =
         OffCatalogCountryService.installedVersionKeyForCountry(
-            activeOffCountry);
+          activeOffCountry,
+        );
     final version = prefs.getString(activeOffVersionKey);
     if (version == null || version == '0' || version == '') return false;
     // Same reasoning as above — verify the OFF rows actually landed on this
@@ -165,10 +173,12 @@ class BasisDataManager {
     if (_offRowsVerified) return true;
     try {
       final mainDb = await DatabaseHelper.instance.database;
-      final row = await mainDb.customSelect(
-        'SELECT 1 FROM products WHERE source = ? LIMIT 1',
-        variables: [drift.Variable.withString('off')],
-      ).getSingleOrNull();
+      final row = await mainDb
+          .customSelect(
+            'SELECT 1 FROM products WHERE source = ? LIMIT 1',
+            variables: [drift.Variable.withString('off')],
+          )
+          .getSingleOrNull();
       _offRowsVerified = row != null;
       return _offRowsVerified;
     } catch (e) {
@@ -180,16 +190,18 @@ class BasisDataManager {
   Future<int?> getRemoteFileSize(Uri uri) async {
     try {
       final client = http.Client();
-      final response =
-          await client.head(uri).timeout(const Duration(seconds: 4));
+      final response = await client
+          .head(uri)
+          .timeout(const Duration(seconds: 4));
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final contentLength = response.headers['content-length'];
         if (contentLength != null) {
           return int.tryParse(contentLength);
         }
       }
-      final response2 = await client.get(uri,
-          headers: {'Range': 'bytes=0-0'}).timeout(const Duration(seconds: 4));
+      final response2 = await client
+          .get(uri, headers: {'Range': 'bytes=0-0'})
+          .timeout(const Duration(seconds: 4));
       if (response2.statusCode == 206) {
         final contentRange = response2.headers['content-range'];
         if (contentRange != null) {
@@ -206,7 +218,8 @@ class BasisDataManager {
   }
 
   Future<void> promptOffDatabaseDownloadIfFirstTime(
-      BuildContext context) async {
+    BuildContext context,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final wgerInitialized = await isExerciseCatalogInitialized();
     final offInitialized = await isOffDatabaseInitialized();
@@ -217,17 +230,19 @@ class BasisDataManager {
     double? offSize;
 
     try {
-      final wgerManifest =
-          await ExerciseCatalogRefreshService.instance.fetchManifestDirect();
+      final wgerManifest = await ExerciseCatalogRefreshService.instance
+          .fetchManifestDirect();
       if (wgerManifest != null) {
         final wgerInstalled = prefs.getString(_keyVersionTraining) ?? '0';
         wgerUpdateAvailable =
             ExerciseCatalogRefreshService.isRemoteVersionNewer(
-          remoteVersion: wgerManifest.version,
-          installedVersion: wgerInstalled,
-        );
+              remoteVersion: wgerManifest.version,
+              installedVersion: wgerInstalled,
+            );
         await prefs.setString(
-            'exercise_catalog_last_remote_version', wgerManifest.version);
+          'exercise_catalog_last_remote_version',
+          wgerManifest.version,
+        );
         final wgerBytes = await getRemoteFileSize(wgerManifest.dbUri);
         if (wgerBytes != null) {
           wgerSize = wgerBytes / (1024 * 1024);
@@ -238,24 +253,28 @@ class BasisDataManager {
     }
 
     try {
-      final offManifest =
-          await OffCatalogRefreshService.instance.fetchManifestDirect();
+      final offManifest = await OffCatalogRefreshService.instance
+          .fetchManifestDirect();
       if (offManifest != null) {
-        final activeOffSource =
-            OffCatalogCountryService.activeSourceFromPrefs(prefs);
-        final activeOffCountry =
-            OffCatalogCountryCodec.parseOrDefault(activeOffSource.countryCode);
+        final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
+          prefs,
+        );
+        final activeOffCountry = OffCatalogCountryCodec.parseOrDefault(
+          activeOffSource.countryCode,
+        );
         final activeOffVersionKey =
             OffCatalogCountryService.installedVersionKeyForCountry(
-                activeOffCountry);
+              activeOffCountry,
+            );
         final offInstalled = prefs.getString(activeOffVersionKey) ?? '0';
         offUpdateAvailable = OffCatalogRefreshService.isRemoteVersionNewer(
           remoteVersion: offManifest.version,
           installedVersion: offInstalled,
         );
         await prefs.setString(
-            'off_catalog_last_remote_version_${activeOffCountry.code}',
-            offManifest.version);
+          'off_catalog_last_remote_version_${activeOffCountry.code}',
+          offManifest.version,
+        );
         final offBytes = await getRemoteFileSize(offManifest.dbUri);
         if (offBytes != null) {
           offSize = offBytes / (1024 * 1024);
@@ -287,14 +306,18 @@ class BasisDataManager {
           prefs.getString('last_prompted_off_version') ?? '';
       final currentWgerRemote =
           prefs.getString('exercise_catalog_last_remote_version') ?? '';
-      final currentOffRemote = prefs.getString(
-              'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ??
+      final currentOffRemote =
+          prefs.getString(
+            'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}',
+          ) ??
           '';
 
-      bool wgerMatch = !wgerUpdateAvailable ||
+      bool wgerMatch =
+          !wgerUpdateAvailable ||
           (lastPromptedWger == currentWgerRemote &&
               currentWgerRemote.isNotEmpty);
-      bool offMatch = !offUpdateAvailable ||
+      bool offMatch =
+          !offUpdateAvailable ||
           (lastPromptedOff == currentOffRemote && currentOffRemote.isNotEmpty);
       if (wgerMatch && offMatch) {
         return;
@@ -302,15 +325,19 @@ class BasisDataManager {
     }
 
     if (wgerUpdateAvailable) {
-      await prefs.setString('last_prompted_wger_version',
-          prefs.getString('exercise_catalog_last_remote_version') ?? '');
+      await prefs.setString(
+        'last_prompted_wger_version',
+        prefs.getString('exercise_catalog_last_remote_version') ?? '',
+      );
     }
     if (offUpdateAvailable) {
       await prefs.setString(
-          'last_prompted_off_version',
-          prefs.getString(
-                  'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}') ??
-              '');
+        'last_prompted_off_version',
+        prefs.getString(
+              'off_catalog_last_remote_version_${OffCatalogCountryService.readActiveCountryFromPrefs(prefs).code}',
+            ) ??
+            '',
+      );
     }
 
     if (!context.mounted) return;
@@ -318,26 +345,29 @@ class BasisDataManager {
 
     final shouldDownload = await showGlassBottomMenu<bool>(
       context: context,
-      title:
-          isMissingEither ? l10n.offDownloadTitle : l10n.updateAvailableTitle,
+      title: isMissingEither
+          ? l10n.offDownloadTitle
+          : l10n.updateAvailableTitle,
       isDismissible: true,
       enableDrag: true,
       contentBuilder: (ctx, close) {
         final wgerStatus = wgerInitialized
             ? (wgerUpdateAvailable
-                ? l10n.updateAvailableTitle
-                : l10n.statusReady)
+                  ? l10n.updateAvailableTitle
+                  : l10n.statusReady)
             : l10n.statusRequired;
         final offStatus = offInitialized
             ? (offUpdateAvailable
-                ? l10n.updateAvailableTitle
-                : l10n.statusReady)
+                  ? l10n.updateAvailableTitle
+                  : l10n.statusReady)
             : l10n.statusRequired;
 
-        final wgerSizeText =
-            wgerSize != null ? '${wgerSize.toStringAsFixed(1)} MB' : '1.4 MB';
-        final offSizeText =
-            offSize != null ? '${offSize.toStringAsFixed(1)} MB' : '41.2 MB';
+        final wgerSizeText = wgerSize != null
+            ? '${wgerSize.toStringAsFixed(1)} MB'
+            : '1.4 MB';
+        final offSizeText = offSize != null
+            ? '${offSize.toStringAsFixed(1)} MB'
+            : '41.2 MB';
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -356,8 +386,10 @@ class BasisDataManager {
                 const Icon(LucideIcons.dumbbell, size: 24),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: Text(l10n.exerciseCatalogWger,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    l10n.exerciseCatalogWger,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Text(
                   "$wgerStatus ($wgerSizeText)",
@@ -376,8 +408,10 @@ class BasisDataManager {
                 const Icon(LucideIcons.database, size: 24),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
-                  child: Text(l10n.nutritionCatalogOff,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    l10n.nutritionCatalogOff,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Text(
                   "$offStatus ($offSizeText)",
@@ -398,10 +432,11 @@ class BasisDataManager {
                     onPressed: () async {
                       if (!isMissingEither) {
                         await prefs.setString(
-                            'db_update_snoozed_until',
-                            DateTime.now()
-                                .add(const Duration(days: 30))
-                                .toIso8601String());
+                          'db_update_snoozed_until',
+                          DateTime.now()
+                              .add(const Duration(days: 30))
+                              .toIso8601String(),
+                        );
                       }
                       if (ctx.mounted) {
                         Navigator.of(ctx).pop(false);
@@ -443,10 +478,8 @@ class BasisDataManager {
     if (shouldDownload == true && context.mounted) {
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => const AppInitializerScreen(
-            forceUpdate: true,
-            isModal: true,
-          ),
+          builder: (context) =>
+              const AppInitializerScreen(forceUpdate: true, isModal: true),
         ),
       );
     }
@@ -475,17 +508,18 @@ class BasisDataManager {
           "Suche nach Remote-Katalog-Updates...",
           0.0,
         );
-        final remoteCandidate =
-            await ExerciseCatalogRefreshService.instance.prepareUpdateCandidate(
-          installedVersion: installedTrainingVersion,
-          force: force,
-          onProgress: onRemoteProgress,
-          isSkipRequested: isRemoteSkipRequested,
-        );
+        final remoteCandidate = await ExerciseCatalogRefreshService.instance
+            .prepareUpdateCandidate(
+              installedVersion: installedTrainingVersion,
+              force: force,
+              onProgress: onRemoteProgress,
+              isSkipRequested: isRemoteSkipRequested,
+            );
         if (remoteCandidate != null) {
           remoteTrainingDbPath = remoteCandidate.localDbPath;
           debugPrint(
-              '[ExerciseCatalog] Remote update available: v${remoteCandidate.version}');
+            '[ExerciseCatalog] Remote update available: v${remoteCandidate.version}',
+          );
           onProgress?.call(
             "Update Übungen",
             "Remote-Katalog ${remoteCandidate.version} gefunden.",
@@ -595,10 +629,12 @@ class BasisDataManager {
       debugPrint('[ExerciseCatalog] ❌ exercises still EMPTY after import!');
     } else if (postTrCount < postExCount) {
       debugPrint(
-          '[ExerciseCatalog] ❌ translations ($postTrCount) still below exercises ($postExCount) after import!');
+        '[ExerciseCatalog] ❌ translations ($postTrCount) still below exercises ($postExCount) after import!',
+      );
     } else {
       debugPrint(
-          '[ExerciseCatalog] ✅ $postExCount exercises / $postTrCount translations ready.');
+        '[ExerciseCatalog] ✅ $postExCount exercises / $postTrCount translations ready.',
+      );
     }
 
     final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
@@ -613,8 +649,8 @@ class BasisDataManager {
     );
     final activeOffVersionKey =
         OffCatalogCountryService.installedVersionKeyForCountry(
-      activeOffCountry,
-    );
+          activeOffCountry,
+        );
 
     // Drop an OFF version claim that no rows on this device back up, so the
     // "download required" prompt is offered instead of the app silently
@@ -650,10 +686,14 @@ class BasisDataManager {
     // build-bound gate below skip the bundled imports even though nothing is
     // on disk here. Verify the rows before trusting the gate, and clear the
     // installed-version keys so the importer does not skip a second time.
-    final bool hasBaseFoodData =
-        await _hasInitializedData(mainDb: mainDb, prefKey: _keyVersionFood);
-    final bool hasCategoryData =
-        await _hasInitializedData(mainDb: mainDb, prefKey: _keyVersionCats);
+    final bool hasBaseFoodData = await _hasInitializedData(
+      mainDb: mainDb,
+      prefKey: _keyVersionFood,
+    );
+    final bool hasCategoryData = await _hasInitializedData(
+      mainDb: mainDb,
+      prefKey: _keyVersionCats,
+    );
     final bool bundledDataMissing = !hasBaseFoodData || !hasCategoryData;
 
     if (bundledDataMissing && !force) {
@@ -671,22 +711,15 @@ class BasisDataManager {
       }
     }
 
-    final bool shouldSync = force ||
+    final bool shouldSync =
+        force ||
         currentAppBuild != lastDbSyncAppVersion ||
         forceEnrichment ||
         bundledDataMissing;
 
     if (!shouldSync) {
-      onProgress?.call(
-        'Basis-Produkte',
-        'Basis-Produkte sind aktuell.',
-        1.0,
-      );
-      onProgress?.call(
-        'Kategorien',
-        'Kategorien sind aktuell.',
-        1.0,
-      );
+      onProgress?.call('Basis-Produkte', 'Basis-Produkte sind aktuell.', 1.0);
+      onProgress?.call('Kategorien', 'Kategorien sind aktuell.', 1.0);
       onProgress?.call(
         'Produktdatenbank (${activeOffCountry.upperCode})',
         'OFF-Datenbank ist aktuell (Version: $currentAppVersion).',
@@ -774,13 +807,13 @@ class BasisDataManager {
           'Suche nach Remote-OFF-Katalog-Updates...',
           0.0,
         );
-        final remoteOffCandidate =
-            await OffCatalogRefreshService.instance.prepareUpdateCandidate(
-          installedVersion: installedOffVersion,
-          force: force,
-          onProgress: onRemoteProgress,
-          isSkipRequested: isRemoteSkipRequested,
-        );
+        final remoteOffCandidate = await OffCatalogRefreshService.instance
+            .prepareUpdateCandidate(
+              installedVersion: installedOffVersion,
+              force: force,
+              onProgress: onRemoteProgress,
+              isSkipRequested: isRemoteSkipRequested,
+            );
         if (remoteOffCandidate != null) {
           remoteOffDbPath = remoteOffCandidate.localDbPath;
           onProgress?.call(
@@ -796,8 +829,8 @@ class BasisDataManager {
 
     final hasBundledOffAsset =
         await OffCatalogCountryService.bundledAssetAvailableForCountry(
-      activeOffCountry,
-    );
+          activeOffCountry,
+        );
 
     if (remoteOffDbPath == null && !hasBundledOffAsset) {
       onProgress?.call(
@@ -899,7 +932,8 @@ class BasisDataManager {
           sourceFilePath.isNotEmpty &&
           await File(sourceFilePath).exists()) {
         debugPrint(
-            '[ExerciseCatalog]   [$taskLabel] Opening REMOTE source: $sourceFilePath');
+          '[ExerciseCatalog]   [$taskLabel] Opening REMOTE source: $sourceFilePath',
+        );
         try {
           assetDb = await sqflite.openDatabase(sourceFilePath, readOnly: true);
         } catch (e) {
@@ -909,7 +943,8 @@ class BasisDataManager {
         }
       } else {
         debugPrint(
-            '[ExerciseCatalog]   [$taskLabel] No remote source → will use bundled asset: $assetPath');
+          '[ExerciseCatalog]   [$taskLabel] No remote source → will use bundled asset: $assetPath',
+        );
       }
 
       if (assetDb == null) {
@@ -921,26 +956,31 @@ class BasisDataManager {
           try {
             byteData = await rootBundle.load(assetPath);
             debugPrint(
-                '[ExerciseCatalog]   [$taskLabel] Bundled asset loaded: $assetPath (${byteData.lengthInBytes} bytes)');
+              '[ExerciseCatalog]   [$taskLabel] Bundled asset loaded: $assetPath (${byteData.lengthInBytes} bytes)',
+            );
             // Guard: a 0-byte asset is an empty placeholder — opening it as a
             // SQLite DB produces a valid empty database with no tables, which
             // causes the importer to silently skip without importing anything.
             if (byteData.lengthInBytes == 0) {
               debugPrint(
-                  '[ExerciseCatalog] ❌ [$taskLabel] Bundled asset is 0 bytes – import aborted. '
-                  'Drop a real SQLite file at $assetPath.');
+                '[ExerciseCatalog] ❌ [$taskLabel] Bundled asset is 0 bytes – import aborted. '
+                'Drop a real SQLite file at $assetPath.',
+              );
               return;
             }
           } catch (_) {
             if (legacyAssetPath == null) rethrow;
             debugPrint(
-                '[ExerciseCatalog]   [$taskLabel] Primary asset missing → trying legacy: $legacyAssetPath');
+              '[ExerciseCatalog]   [$taskLabel] Primary asset missing → trying legacy: $legacyAssetPath',
+            );
             byteData = await rootBundle.load(legacyAssetPath);
             debugPrint(
-                '[ExerciseCatalog]   [$taskLabel] Legacy asset loaded: $legacyAssetPath (${byteData.lengthInBytes} bytes)');
+              '[ExerciseCatalog]   [$taskLabel] Legacy asset loaded: $legacyAssetPath (${byteData.lengthInBytes} bytes)',
+            );
             if (byteData.lengthInBytes == 0) {
               debugPrint(
-                  '[ExerciseCatalog] ❌ [$taskLabel] Legacy asset is also 0 bytes – import aborted.');
+                '[ExerciseCatalog] ❌ [$taskLabel] Legacy asset is also 0 bytes – import aborted.',
+              );
               return;
             }
           }
@@ -973,7 +1013,8 @@ class BasisDataManager {
         if (tables.isEmpty) {
           checkTable = 'exercise';
           debugPrint(
-              '[ExerciseCatalog] [$taskLabel] Using fallback table name "exercise"');
+            '[ExerciseCatalog] [$taskLabel] Using fallback table name "exercise"',
+          );
         }
       } else {
         final tables = await assetDb.query(
@@ -984,7 +1025,8 @@ class BasisDataManager {
         );
         if (tables.isEmpty) {
           debugPrint(
-              '[ExerciseCatalog] ❌ [$taskLabel] Source table "$tableName" not found in asset DB – aborting.');
+            '[ExerciseCatalog] ❌ [$taskLabel] Source table "$tableName" not found in asset DB – aborting.',
+          );
           return;
         }
       }
@@ -1002,7 +1044,8 @@ class BasisDataManager {
         }
       } catch (_) {
         debugPrint(
-            '[ExerciseCatalog]   [$taskLabel] No metadata table in asset DB – assetVersion = "0"');
+          '[ExerciseCatalog]   [$taskLabel] No metadata table in asset DB – assetVersion = "0"',
+        );
       }
 
       final String installedVersion = prefs.getString(prefKey) ?? '0';
@@ -1047,8 +1090,9 @@ class BasisDataManager {
           );
         }
 
-        final storedVersion =
-            storedVersionAfterImport(assetVersion: assetVersion);
+        final storedVersion = storedVersionAfterImport(
+          assetVersion: assetVersion,
+        );
         await prefs.setString(prefKey, storedVersion);
 
         // If we just successfully imported base foods, mark the enrichment version as well.
@@ -1109,16 +1153,20 @@ class BasisDataManager {
             .getSingleOrNull();
         return row != null;
       case _keyVersionFood:
-        final row = await mainDb.customSelect(
-          'SELECT 1 FROM products WHERE source = ? LIMIT 1',
-          variables: [drift.Variable.withString('base')],
-        ).getSingleOrNull();
+        final row = await mainDb
+            .customSelect(
+              'SELECT 1 FROM products WHERE source = ? LIMIT 1',
+              variables: [drift.Variable.withString('base')],
+            )
+            .getSingleOrNull();
         return row != null;
       case OffCatalogCountryService.legacyInstalledVersionKey:
-        final row = await mainDb.customSelect(
-          'SELECT 1 FROM products WHERE source = ? LIMIT 1',
-          variables: [drift.Variable.withString('off')],
-        ).getSingleOrNull();
+        final row = await mainDb
+            .customSelect(
+              'SELECT 1 FROM products WHERE source = ? LIMIT 1',
+              variables: [drift.Variable.withString('off')],
+            )
+            .getSingleOrNull();
         return row != null;
       case _keyVersionCats:
         final row = await mainDb
@@ -1129,10 +1177,12 @@ class BasisDataManager {
         if (prefKey.startsWith(
           OffCatalogCountryService.installedVersionKeyPrefix,
         )) {
-          final row = await mainDb.customSelect(
-            'SELECT 1 FROM products WHERE source = ? LIMIT 1',
-            variables: [drift.Variable.withString('off')],
-          ).getSingleOrNull();
+          final row = await mainDb
+              .customSelect(
+                'SELECT 1 FROM products WHERE source = ? LIMIT 1',
+                variables: [drift.Variable.withString('off')],
+              )
+              .getSingleOrNull();
           return row != null;
         }
         return false;
@@ -1167,7 +1217,8 @@ class BasisDataManager {
 
     if (totalCount == 0) {
       debugPrint(
-          '[ExerciseCatalog] ❌ [$taskLabel] Source table has 0 rows – import skipped entirely!');
+        '[ExerciseCatalog] ❌ [$taskLabel] Source table has 0 rows – import skipped entirely!',
+      );
       return importedProductBarcodes;
     }
 
@@ -1176,18 +1227,22 @@ class BasisDataManager {
     int originalSynchronous = 1; // NORMAL
     int originalForeignKeys = 1; // ON
     try {
-      final journalModeRow =
-          await mainDb.customSelect('PRAGMA journal_mode;').getSingle();
+      final journalModeRow = await mainDb
+          .customSelect('PRAGMA journal_mode;')
+          .getSingle();
       originalJournalMode = journalModeRow.read<String>('journal_mode');
-      final syncRow =
-          await mainDb.customSelect('PRAGMA synchronous;').getSingle();
+      final syncRow = await mainDb
+          .customSelect('PRAGMA synchronous;')
+          .getSingle();
       originalSynchronous = syncRow.read<int>('synchronous');
-      final fkRow =
-          await mainDb.customSelect('PRAGMA foreign_keys;').getSingle();
+      final fkRow = await mainDb
+          .customSelect('PRAGMA foreign_keys;')
+          .getSingle();
       originalForeignKeys = fkRow.read<int>('foreign_keys');
     } catch (e) {
       debugPrint(
-          '[ExerciseCatalog] Warning: could not query original PRAGMAs: $e');
+        '[ExerciseCatalog] Warning: could not query original PRAGMAs: $e',
+      );
     }
 
     // Configure performance PRAGMAs before transaction
@@ -1197,7 +1252,8 @@ class BasisDataManager {
       await mainDb.customStatement('PRAGMA foreign_keys = OFF;');
     } catch (e) {
       debugPrint(
-          '[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e');
+        '[ExerciseCatalog] Warning: could not set performance PRAGMAs: $e',
+      );
     }
 
     int processed = 0;
@@ -1226,10 +1282,17 @@ class BasisDataManager {
           );
 
           // Exercise bundles need two passes: first insert exercises, then translations.
-          final exerciseBundles =
-              mappedCompanions.whereType<_ExerciseBundle>().toList();
-          final otherCompanions =
-              mappedCompanions.where((c) => c is! _ExerciseBundle).toList();
+          // BOLT OPTIMIZATION: Replaced multiple .where() passes with a single-pass loop
+          // to avoid redundant O(N) iterations and intermediate array allocations during batch processing.
+          final exerciseBundles = <_ExerciseBundle>[];
+          final otherCompanions = <dynamic>[];
+          for (final c in mappedCompanions) {
+            if (c is _ExerciseBundle) {
+              exerciseBundles.add(c);
+            } else {
+              otherCompanions.add(c);
+            }
+          }
 
           debugPrint(
             '[ExerciseCatalog]   [$taskLabel] Batch #$batchNumber: '
@@ -1260,7 +1323,8 @@ class BasisDataManager {
                 }
               } catch (e) {
                 debugPrint(
-                    '[ExerciseCatalog]   [$taskLabel] Skipping malformed non-exercise row: $e');
+                  '[ExerciseCatalog]   [$taskLabel] Skipping malformed non-exercise row: $e',
+                );
               }
             }
           });
@@ -1277,17 +1341,21 @@ class BasisDataManager {
                   final exerciseId = _parseString(fields['id']);
                   if (exerciseId.isEmpty) {
                     debugPrint(
-                        '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping exercise with empty id');
+                      '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping exercise with empty id',
+                    );
                     return;
                   }
                   final exerciseCompanion = ExercisesCompanion(
                     id: drift.Value(exerciseId),
-                    categoryName:
-                        drift.Value(_parseString(fields['category_name'])),
-                    musclesPrimary:
-                        drift.Value(_parseString(fields['muscles_primary'])),
-                    musclesSecondary:
-                        drift.Value(_parseString(fields['muscles_secondary'])),
+                    categoryName: drift.Value(
+                      _parseString(fields['category_name']),
+                    ),
+                    musclesPrimary: drift.Value(
+                      _parseString(fields['muscles_primary']),
+                    ),
+                    musclesSecondary: drift.Value(
+                      _parseString(fields['muscles_secondary']),
+                    ),
                     isCustom: const drift.Value(false),
                     createdBy: const drift.Value('system'),
                     source: const drift.Value('wger'),
@@ -1303,7 +1371,8 @@ class BasisDataManager {
                   batchExCount++;
                 } catch (e) {
                   debugPrint(
-                      '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed exercise: $e');
+                    '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed exercise: $e',
+                  );
                 }
               }
             });
@@ -1315,8 +1384,9 @@ class BasisDataManager {
                   try {
                     final companion = ExerciseTranslationsCompanion(
                       exerciseId: drift.Value(_parseString(t['exercise_id'])),
-                      languageCode:
-                          drift.Value(_parseString(t['language_code'])),
+                      languageCode: drift.Value(
+                        _parseString(t['language_code']),
+                      ),
                       name: drift.Value(_parseString(t['name'])),
                       description: drift.Value(t['description'] as String?),
                     );
@@ -1334,7 +1404,8 @@ class BasisDataManager {
                     batchTrCount++;
                   } catch (e) {
                     debugPrint(
-                        '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed translation: $e');
+                      '[ExerciseCatalog]   [$taskLabel] ⚠️  Skipping malformed translation: $e',
+                    );
                   }
                 }
               }
@@ -1349,10 +1420,13 @@ class BasisDataManager {
 
           // Progress melden
           if (onProgress != null) {
-            final double baseMax =
-                importType == BatchImportType.exercises ? 0.70 : 0.95;
-            final double progress =
-                ((processed / totalCount) * baseMax).clamp(0.0, baseMax);
+            final double baseMax = importType == BatchImportType.exercises
+                ? 0.70
+                : 0.95;
+            final double progress = ((processed / totalCount) * baseMax).clamp(
+              0.0,
+              baseMax,
+            );
             onProgress(
               "Update $taskLabel",
               "$processed / $totalCount Einträge",
@@ -1439,8 +1513,8 @@ class BasisDataManager {
 
               trOffset += trRows.length;
               if (onProgress != null && trTotal > 0) {
-                final double trProgress =
-                    (0.70 + (0.30 * (trOffset / trTotal))).clamp(0.70, 1.0);
+                final double trProgress = (0.70 + (0.30 * (trOffset / trTotal)))
+                    .clamp(0.70, 1.0);
                 onProgress(
                   "Update $taskLabel",
                   "$trOffset / $trTotal Übersetzungen",
@@ -1474,23 +1548,29 @@ class BasisDataManager {
         );
         if (totalExercisesInserted == 0) {
           debugPrint(
-              '[ExerciseCatalog] ❌ [$taskLabel] ZERO exercises written – check source DB and mapping!');
+            '[ExerciseCatalog] ❌ [$taskLabel] ZERO exercises written – check source DB and mapping!',
+          );
         } else if (totalTranslationsInserted == 0) {
           debugPrint(
-              '[ExerciseCatalog] ❌ [$taskLabel] ZERO translations written – exercises will be invisible!');
+            '[ExerciseCatalog] ❌ [$taskLabel] ZERO translations written – exercises will be invisible!',
+          );
         }
       }
     } finally {
       // Restore original PRAGMAs
       debugPrint(
-          '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous, foreign_keys=$originalForeignKeys');
+        '[ExerciseCatalog] [$taskLabel] Restoring original SQLite PRAGMAs: journal_mode=$originalJournalMode, synchronous=$originalSynchronous, foreign_keys=$originalForeignKeys',
+      );
       try {
-        await mainDb
-            .customStatement('PRAGMA synchronous = $originalSynchronous;');
-        await mainDb
-            .customStatement('PRAGMA journal_mode = $originalJournalMode;');
-        await mainDb
-            .customStatement('PRAGMA foreign_keys = $originalForeignKeys;');
+        await mainDb.customStatement(
+          'PRAGMA synchronous = $originalSynchronous;',
+        );
+        await mainDb.customStatement(
+          'PRAGMA journal_mode = $originalJournalMode;',
+        );
+        await mainDb.customStatement(
+          'PRAGMA foreign_keys = $originalForeignKeys;',
+        );
       } catch (e) {
         debugPrint('[ExerciseCatalog] Error restoring PRAGMAs: $e');
       }
@@ -1520,10 +1600,16 @@ class BasisDataManager {
   }
 
   @visibleForTesting
-  dynamic mapProductRowForTesting(Map<String, dynamic> row,
-      {required String sourceLabel, String? preferredLanguage}) {
-    return _mapProductRow(row,
-        sourceLabel: sourceLabel, preferredLanguage: preferredLanguage);
+  dynamic mapProductRowForTesting(
+    Map<String, dynamic> row, {
+    required String sourceLabel,
+    String? preferredLanguage,
+  }) {
+    return _mapProductRow(
+      row,
+      sourceLabel: sourceLabel,
+      preferredLanguage: preferredLanguage,
+    );
   }
 
   // --- Mapping functions (unchanged) ---
@@ -1560,14 +1646,17 @@ class BasisDataManager {
     if (preferredLanguage == 'en') {
       displayName = _parseString(rawNameEn ?? rawNameDe ?? rawName);
     } else if (preferredLanguage == 'fr') {
-      displayName =
-          _parseString(rawNameFr ?? rawNameEn ?? rawNameDe ?? rawName);
+      displayName = _parseString(
+        rawNameFr ?? rawNameEn ?? rawNameDe ?? rawName,
+      );
     } else if (preferredLanguage == 'it') {
-      displayName =
-          _parseString(rawNameIt ?? rawNameEn ?? rawNameDe ?? rawName);
+      displayName = _parseString(
+        rawNameIt ?? rawNameEn ?? rawNameDe ?? rawName,
+      );
     } else if (preferredLanguage == 'ja') {
-      displayName =
-          _parseString(rawNameJa ?? rawNameEn ?? rawNameDe ?? rawName);
+      displayName = _parseString(
+        rawNameJa ?? rawNameEn ?? rawNameDe ?? rawName,
+      );
     } else {
       displayName = _parseString(rawNameDe ?? rawNameEn ?? rawName);
     }
@@ -1590,8 +1679,9 @@ class BasisDataManager {
     // Read category tag blob — may come from the OFF API as a tag list string.
     final rawCategory =
         row['category'] ?? row['categories'] ?? row['categories_tags'];
-    final categoryStr =
-        rawCategory != null ? rawCategory.toString().toLowerCase() : '';
+    final categoryStr = rawCategory != null
+        ? rawCategory.toString().toLowerCase()
+        : '';
 
     // Split the flat string into individual tags, stripping blanks.
     final cats = categoryStr
@@ -1769,8 +1859,9 @@ class BasisDataManager {
       final isCandidate = cats.any(
         (cat) => beverageAllowlistSubstrings.any((sub) => cat.contains(sub)),
       );
-      final isBlocked =
-          cats.any((cat) => nonBeverageBlocklistTags.contains(cat));
+      final isBlocked = cats.any(
+        (cat) => nonBeverageBlocklistTags.contains(cat),
+      );
 
       if (isBlocked) {
         isFluidVal = false;
@@ -1780,13 +1871,14 @@ class BasisDataManager {
       // else: category data present but no signal → conservative false
     } else {
       // Tier 3: no category data — fall back to volume unit
-      final nutritionPer = (row['nutrition_data_prepared_per'] ??
-              row['nutrition_data_per'] ??
-              row['nutrition_baseline'] ??
-              row['nutrition_baseline_key'])
-          ?.toString()
-          .toLowerCase()
-          .trim();
+      final nutritionPer =
+          (row['nutrition_data_prepared_per'] ??
+                  row['nutrition_data_per'] ??
+                  row['nutrition_baseline'] ??
+                  row['nutrition_baseline_key'])
+              ?.toString()
+              .toLowerCase()
+              .trim();
       final unit =
           row['product_quantity_unit']?.toString().toLowerCase().trim() ?? '';
       if (nutritionPer != null && nutritionPer.contains('100ml')) {
@@ -1814,16 +1906,20 @@ class BasisDataManager {
       fiber: drift.Value(_parseDouble(row['fiber'])),
       salt: drift.Value(_parseDouble(row['salt'])),
       caffeine: drift.Value(
-          _parseDouble(row['caffeine_mg_per_100ml'] ?? row['caffeine'])),
+        _parseDouble(row['caffeine_mg_per_100ml'] ?? row['caffeine']),
+      ),
       caffeineMgPer100g: drift.Value(_parseDouble(row['caffeine_mg_per_100g'])),
       ingredientsText: drift.Value(
-          sourceLabel == 'base' ? null : row['ingredients_text']?.toString()),
-      ingredientsAnalysisTags:
-          drift.Value(row['ingredients_analysis_tags']?.toString()),
+        sourceLabel == 'base' ? null : row['ingredients_text']?.toString(),
+      ),
+      ingredientsAnalysisTags: drift.Value(
+        row['ingredients_analysis_tags']?.toString(),
+      ),
       additivesTags: drift.Value(row['additives_tags']?.toString()),
       productQuantity: drift.Value(_parseDouble(row['product_quantity'])),
-      productQuantityUnit:
-          drift.Value(row['product_quantity_unit']?.toString()),
+      productQuantityUnit: drift.Value(
+        row['product_quantity_unit']?.toString(),
+      ),
       isFluid: drift.Value(isFluidVal),
       source: drift.Value(sourceLabel),
       isLiquid: drift.Value(_parseInt(row['is_liquid']) == 1),
@@ -1846,8 +1942,7 @@ class BasisDataManager {
       OffCatalogCountry.us || OffCatalogCountry.uk => 'en',
       OffCatalogCountry.de ||
       OffCatalogCountry.ch ||
-      OffCatalogCountry.at =>
-        'de',
+      OffCatalogCountry.at => 'de',
       OffCatalogCountry.fr => 'fr',
       OffCatalogCountry.it => 'it',
       OffCatalogCountry.jp => 'ja',
@@ -1904,15 +1999,30 @@ class BasisDataManager {
     // English-locale environments.
     if (row.containsKey('name_de') || row.containsKey('name_en')) {
       addTranslation(
-          'de', row['name_de'] ?? row['name_en'], row['description_de']);
-      addTranslation('en', row['name_en'] ?? row['name_de'],
-          row['description_en'] ?? row['description_de']);
-      addTranslation('fr', row['name_fr'] ?? row['name_en'] ?? row['name_de'],
-          row['description_fr']);
-      addTranslation('it', row['name_it'] ?? row['name_en'] ?? row['name_de'],
-          row['description_it']);
-      addTranslation('ja', row['name_ja'] ?? row['name_en'] ?? row['name_de'],
-          row['description_ja']);
+        'de',
+        row['name_de'] ?? row['name_en'],
+        row['description_de'],
+      );
+      addTranslation(
+        'en',
+        row['name_en'] ?? row['name_de'],
+        row['description_en'] ?? row['description_de'],
+      );
+      addTranslation(
+        'fr',
+        row['name_fr'] ?? row['name_en'] ?? row['name_de'],
+        row['description_fr'],
+      );
+      addTranslation(
+        'it',
+        row['name_it'] ?? row['name_en'] ?? row['name_de'],
+        row['description_it'],
+      );
+      addTranslation(
+        'ja',
+        row['name_ja'] ?? row['name_en'] ?? row['name_de'],
+        row['description_ja'],
+      );
     }
 
     return _ExerciseBundle(
