@@ -561,17 +561,24 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             Positioned(
               top: 6,
               right: 6,
-              child: GestureDetector(
-                onTap: () => _removeImage(index),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white24, width: 1),
+              child: Tooltip(
+                message: l10n.delete,
+                child: GestureDetector(
+                  onTap: () => _removeImage(index),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white24, width: 1),
+                    ),
+                    child: Icon(
+                      LucideIcons.x,
+                      size: 14,
+                      color: Colors.white,
+                      semanticLabel: l10n.delete,
+                    ),
                   ),
-                  child:
-                      const Icon(LucideIcons.x, size: 14, color: Colors.white),
                 ),
               ),
             ),
