@@ -54,3 +54,6 @@
 **Learning:** `CalculateDailyNutritionUseCase` loops over `allSupplements` (which can be a large list) to find any untracked supplements that have logs today, and to find the base caffeine supplement. When most daily doses are for already tracked supplements, this full loop is largely redundant but is executed anyway. Furthermore, Map `update` and `containsKey` incurs redundant hash lookups compared to checking the map directly.
 **Action:** When searching an array for matching elements where we know exactly how many elements we need to find (e.g. from a Set difference), keep a running counter and `break` early from the loop once we've found all of them. Also use single hash map lookup and check against `null` instead of `update(..., ifAbsent: ...)` or `containsKey()` then `put()`.
 
+## 2024-05-19 - Single-pass bounds calculation
+**Learning:** Chained `.map().reduce()` methods on Dart `Iterable`s instantiate lazy iterables and closures for every step. When computing both a minimum and maximum over the same list (like finding the earliest and latest session in `SleepPipelineService`), using two separate map/reduce chains results in O(2N) complexity and multiple object allocations.
+**Action:** Replace dual map/reduce chains calculating min/max bounds with a single-pass `for` loop to compute both bounds simultaneously.

@@ -111,15 +111,23 @@ class SleepPipelineService {
     final totalSessions = normalizedBatch.sessions.length;
 
     final importedAt = DateTime.now().toUtc();
-    final from = recomputeFromInclusive ??
-        normalizedBatch.sessions
-            .map((s) => s.startAtUtc)
-            .reduce((a, b) => a.isBefore(b) ? a : b);
-    final to = recomputeToExclusive ??
-        normalizedBatch.sessions
-            .map((s) => s.endAtUtc)
-            .reduce((a, b) => a.isAfter(b) ? a : b)
-            .add(const Duration(seconds: 1));
+    DateTime? computedFrom;
+    DateTime? computedTo;
+    if (recomputeFromInclusive == null || recomputeToExclusive == null) {
+      // BOLT OPTIMIZATION: Replaced dual .map().reduce() with a single-pass loop
+      // to calculate both bounds simultaneously without extra allocations.
+      for (final s in normalizedBatch.sessions) {
+        if (computedFrom == null || s.startAtUtc.isBefore(computedFrom)) {
+          computedFrom = s.startAtUtc;
+        }
+        if (computedTo == null || s.endAtUtc.isAfter(computedTo)) {
+          computedTo = s.endAtUtc;
+        }
+      }
+    }
+
+    final from = recomputeFromInclusive ?? computedFrom!;
+    final to = recomputeToExclusive ?? computedTo!.add(const Duration(seconds: 1));
 
     token?.throwIfCancelled();
 
