@@ -1,6 +1,7 @@
 // lib/features/diary/presentation/meal_analysis_screen.dart
 
 import 'dart:io';
+import '../../../generated/app_localizations.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -65,17 +66,18 @@ class MealAnalysisScreen extends StatelessWidget {
     );
   }
 
-  String _label(MealAnalysisPhase phase) {
+  String _label(AppLocalizations l10n, MealAnalysisPhase phase) {
     return switch (phase) {
-      MealAnalysisPhase.preparing => 'Aufnahme wird vorbereitet',
-      MealAnalysisPhase.analyzing => 'Mahlzeit wird analysiert',
-      MealAnalysisPhase.matching => 'Zutaten werden abgeglichen',
-      MealAnalysisPhase.failed => 'Das hat nicht geklappt',
+      MealAnalysisPhase.preparing => l10n.mealAnalysisPreparing,
+      MealAnalysisPhase.analyzing => l10n.mealAnalysisAnalyzing,
+      MealAnalysisPhase.matching => l10n.mealAnalysisMatching,
+      MealAnalysisPhase.failed => l10n.mealAnalysisFailed,
     };
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return PopScope(
       // Leaving is offered explicitly below rather than by a back swipe, so a
       // half-finished request cannot be left behind by accident.
@@ -112,7 +114,7 @@ class MealAnalysisScreen extends StatelessWidget {
                       return AnimatedSwitcher(
                         duration: const Duration(milliseconds: 220),
                         child: Text(
-                          _label(phase),
+                          _label(l10n, phase),
                           key: ValueKey(phase),
                           style: const TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
@@ -132,7 +134,7 @@ class MealAnalysisScreen extends StatelessWidget {
                       child: TextButton(
                         onPressed: onCancel,
                         child: Text(
-                          'Abbrechen',
+                          l10n.cancel,
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.w600,

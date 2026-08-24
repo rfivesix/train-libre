@@ -2774,5 +2774,115 @@
         "example": "1.0.2"
       }
     }
-  }
+  },
+  "mealAnalysisPreparing": "Preparing the capture",
+  "mealAnalysisAnalyzing": "Analysing the meal",
+  "mealAnalysisMatching": "Matching the ingredients",
+  "mealAnalysisFailed": "That did not work",
+  "aiScannerTitle": "AI scanner",
+  "aiCaptureAnalyzing": "Analysing…",
+  "aiCaptureAnalyzeMeal": "Analyse meal ({count})",
+  "@aiCaptureAnalyzeMeal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiCaptureAnalyzeText": "Analyse text",
+  "aiCaptureDescribeHint": "Describe the meal (e.g. 2 eggs with toast)…",
+  "aiCaptureLogBarcode": "Log",
+  "aiCaptureBarcodeFallback": "Barcode {code}",
+  "@aiCaptureBarcodeFallback": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "aiCaptureMoveCloser": "Move a little closer",
+  "aiCaptureMoveAway": "Move back a little",
+  "aiCaptureOpenSettings": "Open settings",
+  "voiceDictationTitle": "Dictate the meal",
+  "voiceHoldToTalk": "Hold to speak",
+  "voiceSpeakNow": "Speak now — release to finish",
+  "voiceExampleStandalone": "e.g. “A vegetable kebab with flatbread and garlic sauce”",
+  "voiceExampleWithPhoto": "Add what the photo cannot show — e.g. “fried in two tablespoons of olive oil”",
+  "voiceNetworkNotice": "This device cannot recognise speech locally. The recording is sent to the system’s speech recognition to be transcribed.",
+  "voiceApplyText": "Use this text",
+  "voiceTranscriptHint": "Recognised text — editable here",
+  "voiceUnavailablePermission": "Dictation needs microphone and speech recognition access. You can still type the text.",
+  "voiceUnavailableUnsupported": "This device offers no speech recognition. You can type the text instead.",
+  "voiceUnavailableFailed": "Speech recognition could not be started. You can type the text instead.",
+  "mealFallbackTitle": "Meal",
+  "mealIngredientCount": "{count, plural, =1{1 ingredient} other{{count} ingredients}}",
+  "@mealIngredientCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealDetailOptions": "Options",
+  "mealDetailAddIngredient": "Add ingredient",
+  "mealDetailSaveAsTemplate": "Save as template",
+  "mealDetailSavedAsTemplate": "Saved as a meal template.",
+  "mealDetailChangeMealType": "Change meal type",
+  "mealDetailSelectMealType": "Select meal type",
+  "mealDetailAmountInGrams": "Amount in grams",
+  "mealDetailApply": "Apply",
+  "mealDeleteQuestion": "What should happen to this meal?",
+  "mealDeleteUngroupTitle": "Only remove the grouping",
+  "mealDeleteUngroupBody": "{count, plural, =1{The photo and the grouping are removed. The entry stays in the diary on its own — your daily totals do not change.} other{The photo and the grouping are removed. The {count} entries stay in the diary on their own — your daily totals do not change.}}",
+  "@mealDeleteUngroupBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealDeleteAllTitle": "Delete the meal and its entries",
+  "mealDeleteAllBody": "{count, plural, =1{The photo, the grouping and the entry disappear from the diary. {kcal} kcal are removed from your day.} other{The photo, the grouping and all {count} entries disappear from the diary. {kcal} kcal are removed from your day.}}",
+  "@mealDeleteAllBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "reanalysisTitle": "New result",
+  "reanalysisSubtitle": "You decide what stays saved.",
+  "reanalysisPrevious": "CURRENT",
+  "reanalysisNew": "NEW",
+  "reanalysisKeepPrevious": "Keep current",
+  "reanalysisApplyNew": "Use the new one",
+  "reanalysisDiffHint": "Marked = differs from what is saved",
+  "aiReviewDiscardTitle": "Discard this meal?",
+  "aiReviewDiscardBody": "The analysis has not been saved and will be lost.",
+  "aiLidarScaleTitle": "Send LiDAR scale",
+  "aiLidarScaleSubtitle": "Measures distance and frame size in centimetres and passes them to the AI. Switch off to compare whether the estimate actually improves.",
+  "mealPhotoStorageSection": "Meal photos (storage)",
+  "mealPhotoRetentionTitle": "Retention period",
+  "mealPhotoRetentionBody": "Photos are deleted automatically once the period is over. The nutrition entries in the diary remain.",
+  "mealPhotoRetentionDays": "{days} days",
+  "@mealPhotoRetentionDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "mealPhotoRetentionDefaultSuffix": "(default)",
+  "mealPhotoRetentionUnlimited": "Unlimited",
+  "mealPhotoRetentionSaved": "Retention period saved.",
+  "mealPhotoDeleteAll": "Delete all local photos",
+  "mealPhotoDeleteAllTitle": "Delete all meal photos?",
+  "mealPhotoDeleteAllBody": "Only the image files are removed from the device. Your entries and calories in the diary stay exactly as they are.",
+  "mealPhotoDeleted": "Photos deleted.",
+  "speechSectionTitle": "Voice input & dictation",
+  "speechOnDeviceActive": "On-device speech recognition active",
+  "speechOnDeviceBody": "Spoken meals (“2 eggs with toast and coffee”) are turned into text directly on your device and stay private."
 }

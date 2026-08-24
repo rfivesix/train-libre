@@ -206,7 +206,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     HapticFeedbackService.instance.confirmationFeedback();
     setState(() {
       _detectedBarcode = code;
-      _detectedBarcodeName = 'Barcode $code';
+      _detectedBarcodeName = null;
     });
 
     try {
@@ -244,7 +244,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         HapticFeedbackService.instance.confirmationFeedback();
         setState(() {
           _detectedBarcode = code;
-          _detectedBarcodeName = 'Barcode $code';
+          _detectedBarcodeName = null;
         });
 
         // Lookup product name asynchronously in background
@@ -285,17 +285,17 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   /// A short, non-alarming note when the measurement fell outside the range
   /// LiDAR is dependable at. Null means everything was fine — the common case,
   /// which deliberately shows nothing at all.
-  String? _distanceHintFor(DepthCaptureResult result) {
+  String? _distanceHintFor(AppLocalizations l10n, DepthCaptureResult result) {
     final facts = result.scaleFacts;
     if (facts == null) return null;
     if (facts.isValid) return null;
     if (facts.accuracy != 'absolute') return null;
 
     if (facts.subjectDistanceCm < 15) {
-      return 'Etwas weiter weg gehen';
+      return l10n.aiCaptureMoveAway;
     }
     if (facts.subjectDistanceCm > 120) {
-      return 'Etwas näher herangehen';
+      return l10n.aiCaptureMoveCloser;
     }
     return null;
   }
@@ -315,7 +315,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           setState(() {
             _lastDepthCapture = res;
             _images.add(res.imageFile);
-            _distanceHint = _distanceHintFor(res);
+            _distanceHint =
+                _distanceHintFor(AppLocalizations.of(context)!, res);
           });
           _preProcessor.processImages([res.imageFile]);
           return;
@@ -604,7 +605,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.black,
       appBar: GlobalAppBar(
-        title: 'AI Scanner',
+        title: l10n.aiScannerTitle,
         actions: [
           if (_hasLidar)
             Center(
@@ -748,7 +749,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              _detectedBarcodeName ?? _detectedBarcode!,
+                              _detectedBarcodeName ??
+                                  l10n.aiCaptureBarcodeFallback(
+                                      _detectedBarcode!),
                               style: const TextStyle(
                                 fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.w700,
@@ -767,8 +770,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                               color: lime,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
-                              'Loggen',
+                            child: Text(
+                              l10n.aiCaptureLogBarcode,
                               style: TextStyle(
                                 fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.w800,
@@ -863,8 +866,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                             autofocus: true,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              hintText:
-                                  'Mahlzeit beschreiben (z.B. 2 Eier mit Toast)...',
+                              hintText: l10n.aiCaptureDescribeHint,
                               hintStyle: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.5)),
                               // The theme fills inputs by default, which drew a
@@ -998,10 +1000,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           // broken button; the wait itself now has its own
                           // screen, so this only has to stay recognisable.
                           child: _isAnalyzing
-                              ? const Row(
+                              ? Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    SizedBox(
+                                    const SizedBox(
                                       width: 18,
                                       height: 18,
                                       child: CircularProgressIndicator(
@@ -1009,10 +1011,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                         color: Color(0xFF12120F),
                                       ),
                                     ),
-                                    SizedBox(width: 10),
+                                    const SizedBox(width: 10),
                                     Text(
-                                      'Analysiere…',
-                                      style: TextStyle(
+                                      l10n.aiCaptureAnalyzing,
+                                      style: const TextStyle(
                                         fontFamily: 'Plus Jakarta Sans',
                                         fontWeight: FontWeight.w800,
                                         fontSize: 16,
@@ -1028,8 +1030,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                     const SizedBox(width: 8),
                                     Text(
                                       _images.isNotEmpty
-                                          ? 'Mahlzeit analysieren (${_images.length})'
-                                          : 'Text analysieren',
+                                          ? l10n.aiCaptureAnalyzeMeal(
+                                              _images.length)
+                                          : l10n.aiCaptureAnalyzeText,
                                       style: const TextStyle(
                                         fontFamily: 'Plus Jakarta Sans',
                                         fontWeight: FontWeight.w800,
@@ -1052,6 +1055,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Widget _buildCameraFallback() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       color: const Color(0xFF121212),
       child: Center(
@@ -1091,8 +1095,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     borderRadius: BorderRadius.circular(14)),
               ),
               onPressed: openAppSettings,
-              child: const Text('Einstellungen öffnen',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+              child: Text(l10n.aiCaptureOpenSettings,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ],
         ),
@@ -1146,25 +1150,25 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (!mounted) return;
 
     if (!availability.available) {
+      final l10n = AppLocalizations.of(context)!;
       final message = switch (availability.reason) {
         VoiceUnavailableReason.permissionDenied =>
-          'Ohne Mikrofon- und Spracherkennungsfreigabe geht das Diktat nicht. Du kannst den Text weiterhin eintippen.',
-        VoiceUnavailableReason.unsupported =>
-          'Dieses Gerät bietet keine Spracherkennung an. Du kannst den Text eintippen.',
-        _ =>
-          'Die Spracherkennung ließ sich nicht starten. Du kannst den Text eintippen.',
+          l10n.voiceUnavailablePermission,
+        VoiceUnavailableReason.unsupported => l10n.voiceUnavailableUnsupported,
+        _ => l10n.voiceUnavailableFailed,
       };
       _showDictationFallback(message);
       return;
     }
 
+    final l10n = AppLocalizations.of(context)!;
     final textEditController =
         TextEditingController(text: _textController.text);
     final baseText = _textController.text.trim();
 
     await showGlassBottomMenu<void>(
       context: context,
-      title: 'Mahlzeit diktieren',
+      title: l10n.voiceDictationTitle,
       contentBuilder: (ctx, close) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
@@ -1244,8 +1248,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       const SizedBox(height: 12),
                       Text(
                         _isDictating
-                            ? 'Sprich jetzt — loslassen zum Beenden'
-                            : 'Zum Sprechen gedrückt halten',
+                            ? l10n.voiceSpeakNow
+                            : l10n.voiceHoldToTalk,
                         style: const TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.w700,
@@ -1257,8 +1261,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       const SizedBox(height: 4),
                       Text(
                         _images.isEmpty
-                            ? 'z. B. „Ein Teller Gemüsedöner mit Fladenbrot und Knoblauchsauce“'
-                            : 'Ergänze, was das Foto nicht zeigt — z. B. „in zwei Esslöffeln Olivenöl gebraten“',
+                            ? l10n.voiceExampleStandalone
+                            : l10n.voiceExampleWithPhoto,
                         style: TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.w500,
@@ -1271,7 +1275,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           .instance.lastRunUsedNetwork) ...[
                         const SizedBox(height: 8),
                         Text(
-                          'Dieses Gerät erkennt Sprache nicht lokal. Die Aufnahme wird zur Umwandlung an die Spracherkennung des Systems gesendet.',
+                          l10n.voiceNetworkNotice,
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.w500,
@@ -1290,7 +1294,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   maxLines: 3,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'Erkannter Text — hier korrigierbar',
+                    hintText: l10n.voiceTranscriptHint,
                     hintStyle:
                         TextStyle(color: Colors.white.withValues(alpha: 0.5)),
                     border: OutlineInputBorder(
@@ -1308,8 +1312,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     });
                     close();
                   },
-                  label: 'Text übernehmen',
-                  tooltip: 'Text übernehmen',
+                  label: l10n.voiceApplyText,
+                  tooltip: l10n.voiceApplyText,
                 ),
               ],
             );

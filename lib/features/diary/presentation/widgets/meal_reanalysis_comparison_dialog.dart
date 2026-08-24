@@ -1,6 +1,7 @@
 // lib/features/diary/presentation/widgets/meal_reanalysis_comparison_dialog.dart
 
 import 'package:flutter/material.dart';
+import '../../../../generated/app_localizations.dart';
 import '../../domain/models/tracked_food_item.dart';
 
 class ReanalysisItemDiff {
@@ -58,11 +59,13 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF161616) : const Color(0xFFF7F7F4);
     final cardBg = isDark ? const Color(0xFF222220) : Colors.white;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
-    final subtitleColor = isDark ? const Color(0xFF8A8A82) : const Color(0xFF5C5C55);
+    final subtitleColor =
+        isDark ? const Color(0xFF8A8A82) : const Color(0xFF5C5C55);
     final lime = const Color(0xFFC9EF00);
 
     int prevKcal = 0;
@@ -91,7 +94,9 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                 width: 38,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF33332E) : const Color(0xFFD6D6CC),
+                  color: isDark
+                      ? const Color(0xFF33332E)
+                      : const Color(0xFFD6D6CC),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -100,7 +105,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
 
             // Header
             Text(
-              'Neues Ergebnis',
+              l10n.reanalysisTitle,
               style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontWeight: FontWeight.w800,
@@ -110,7 +115,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Du entscheidest, was gespeichert bleibt.',
+              l10n.reanalysisSubtitle,
               style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontWeight: FontWeight.w500,
@@ -143,7 +148,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'BISHER',
+                          l10n.reanalysisPrevious,
                           style: TextStyle(
                             fontFamily: 'monospace',
                             fontWeight: FontWeight.w700,
@@ -219,7 +224,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'NEU',
+                          l10n.reanalysisNew,
                           style: TextStyle(
                             fontFamily: 'monospace',
                             fontWeight: FontWeight.w700,
@@ -249,7 +254,8 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                             return Container(
                               margin: const EdgeInsets.symmetric(vertical: 3),
                               padding: isHighlighted
-                                  ? const EdgeInsets.symmetric(horizontal: 6, vertical: 3)
+                                  ? const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 3)
                                   : EdgeInsets.zero,
                               decoration: isHighlighted
                                   ? BoxDecoration(
@@ -275,9 +281,13 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                                     '${it.grams} g${it.diffBadge != null ? " · ${it.diffBadge}" : ""}',
                                     style: TextStyle(
                                       fontFamily: 'Plus Jakarta Sans',
-                                      fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
+                                      fontWeight: isHighlighted
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
                                       fontSize: 12,
-                                      color: isHighlighted ? const Color(0xFF4A5800) : subtitleColor,
+                                      color: isHighlighted
+                                          ? const Color(0xFF4A5800)
+                                          : subtitleColor,
                                     ),
                                   ),
                                 ],
@@ -306,7 +316,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Markiert = weicht vom gespeicherten Stand ab',
+                  l10n.reanalysisDiffHint,
                   style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.w500,
@@ -333,8 +343,8 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                       elevation: 1,
                     ),
                     onPressed: onKeepPrevious,
-                    child: const Text(
-                      'Bisheriges behalten',
+                    child: Text(
+                      l10n.reanalysisKeepPrevious,
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w700,
@@ -356,8 +366,8 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                       elevation: 0,
                     ),
                     onPressed: onApplyNew,
-                    child: const Text(
-                      'Neues übernehmen',
+                    child: Text(
+                      l10n.reanalysisApplyNew,
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w800,

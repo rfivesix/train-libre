@@ -5910,4 +5910,246 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get whatsNewAboutRowSubtitle =>
       'Novità di questa versione e delle precedenti';
+
+  @override
+  String get mealAnalysisPreparing => 'Preparazione dello scatto';
+
+  @override
+  String get mealAnalysisAnalyzing => 'Analisi del pasto';
+
+  @override
+  String get mealAnalysisMatching => 'Confronto degli ingredienti';
+
+  @override
+  String get mealAnalysisFailed => 'Non ha funzionato';
+
+  @override
+  String get aiScannerTitle => 'Scanner IA';
+
+  @override
+  String get aiCaptureAnalyzing => 'Analisi…';
+
+  @override
+  String aiCaptureAnalyzeMeal(int count) {
+    return 'Analizza il pasto ($count)';
+  }
+
+  @override
+  String get aiCaptureAnalyzeText => 'Analizza il testo';
+
+  @override
+  String get aiCaptureDescribeHint =>
+      'Descrivi il pasto (es. 2 uova con toast)…';
+
+  @override
+  String get aiCaptureLogBarcode => 'Registra';
+
+  @override
+  String aiCaptureBarcodeFallback(String code) {
+    return 'Codice a barre $code';
+  }
+
+  @override
+  String get aiCaptureMoveCloser => 'Avvicinati un po’';
+
+  @override
+  String get aiCaptureMoveAway => 'Allontanati un po’';
+
+  @override
+  String get aiCaptureOpenSettings => 'Apri le impostazioni';
+
+  @override
+  String get voiceDictationTitle => 'Detta il pasto';
+
+  @override
+  String get voiceHoldToTalk => 'Tieni premuto per parlare';
+
+  @override
+  String get voiceSpeakNow => 'Parla ora — rilascia per terminare';
+
+  @override
+  String get voiceExampleStandalone =>
+      'es. «Un kebab di verdure con pane piatto e salsa all’aglio»';
+
+  @override
+  String get voiceExampleWithPhoto =>
+      'Aggiungi ciò che la foto non mostra — es. «fritto in due cucchiai di olio d’oliva»';
+
+  @override
+  String get voiceNetworkNotice =>
+      'Questo dispositivo non riconosce il parlato localmente. La registrazione viene inviata al riconoscimento vocale di sistema per la trascrizione.';
+
+  @override
+  String get voiceApplyText => 'Usa questo testo';
+
+  @override
+  String get voiceTranscriptHint => 'Testo riconosciuto — modificabile qui';
+
+  @override
+  String get voiceUnavailablePermission =>
+      'La dettatura richiede l’accesso al microfono e al riconoscimento vocale. Puoi comunque digitare il testo.';
+
+  @override
+  String get voiceUnavailableUnsupported =>
+      'Questo dispositivo non offre il riconoscimento vocale. Puoi digitare il testo.';
+
+  @override
+  String get voiceUnavailableFailed =>
+      'Non è stato possibile avviare il riconoscimento vocale. Puoi digitare il testo.';
+
+  @override
+  String get mealFallbackTitle => 'Pasto';
+
+  @override
+  String mealIngredientCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ingredienti',
+      one: '1 ingrediente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDetailOptions => 'Opzioni';
+
+  @override
+  String get mealDetailAddIngredient => 'Aggiungi ingrediente';
+
+  @override
+  String get mealDetailSaveAsTemplate => 'Salva come modello';
+
+  @override
+  String get mealDetailSavedAsTemplate => 'Salvato come modello di pasto.';
+
+  @override
+  String get mealDetailChangeMealType => 'Cambia tipo di pasto';
+
+  @override
+  String get mealDetailSelectMealType => 'Scegli il tipo di pasto';
+
+  @override
+  String get mealDetailAmountInGrams => 'Quantità in grammi';
+
+  @override
+  String get mealDetailApply => 'Applica';
+
+  @override
+  String get mealDeleteQuestion => 'Cosa vuoi fare con questo pasto?';
+
+  @override
+  String get mealDeleteUngroupTitle => 'Sciogli solo il raggruppamento';
+
+  @override
+  String mealDeleteUngroupBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'La foto e il raggruppamento vengono rimossi. Le $count voci restano da sole nel diario — i totali giornalieri non cambiano.',
+      one:
+          'La foto e il raggruppamento vengono rimossi. La voce resta da sola nel diario — i totali giornalieri non cambiano.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDeleteAllTitle => 'Elimina il pasto e le sue voci';
+
+  @override
+  String mealDeleteAllBody(int count, int kcal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'La foto, il raggruppamento e tutte le $count voci spariscono dal diario. $kcal kcal vengono tolte dalla giornata.',
+      one:
+          'La foto, il raggruppamento e la voce spariscono dal diario. $kcal kcal vengono tolte dalla giornata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reanalysisTitle => 'Nuovo risultato';
+
+  @override
+  String get reanalysisSubtitle => 'Decidi tu cosa resta salvato.';
+
+  @override
+  String get reanalysisPrevious => 'ATTUALE';
+
+  @override
+  String get reanalysisNew => 'NUOVO';
+
+  @override
+  String get reanalysisKeepPrevious => 'Mantieni l’attuale';
+
+  @override
+  String get reanalysisApplyNew => 'Usa il nuovo';
+
+  @override
+  String get reanalysisDiffHint => 'Evidenziato = diverso da ciò che è salvato';
+
+  @override
+  String get aiReviewDiscardTitle => 'Vuoi scartare questo pasto?';
+
+  @override
+  String get aiReviewDiscardBody =>
+      'L’analisi non è stata salvata e andrà persa.';
+
+  @override
+  String get aiLidarScaleTitle => 'Invia la scala LiDAR';
+
+  @override
+  String get aiLidarScaleSubtitle =>
+      'Misura distanza e inquadratura in centimetri e li passa all’IA. Disattiva per confrontare se la stima migliora davvero.';
+
+  @override
+  String get mealPhotoStorageSection => 'Foto dei pasti (spazio)';
+
+  @override
+  String get mealPhotoRetentionTitle => 'Periodo di conservazione';
+
+  @override
+  String get mealPhotoRetentionBody =>
+      'Le foto vengono eliminate automaticamente allo scadere del periodo. Le voci nutrizionali nel diario restano.';
+
+  @override
+  String mealPhotoRetentionDays(int days) {
+    return '$days giorni';
+  }
+
+  @override
+  String get mealPhotoRetentionDefaultSuffix => '(predefinito)';
+
+  @override
+  String get mealPhotoRetentionUnlimited => 'Illimitato';
+
+  @override
+  String get mealPhotoRetentionSaved => 'Periodo di conservazione salvato.';
+
+  @override
+  String get mealPhotoDeleteAll => 'Elimina tutte le foto locali';
+
+  @override
+  String get mealPhotoDeleteAllTitle => 'Eliminare tutte le foto dei pasti?';
+
+  @override
+  String get mealPhotoDeleteAllBody =>
+      'Vengono rimossi solo i file immagine dal dispositivo. Le voci e le calorie nel diario restano invariate.';
+
+  @override
+  String get mealPhotoDeleted => 'Foto eliminate.';
+
+  @override
+  String get speechSectionTitle => 'Input vocale e dettatura';
+
+  @override
+  String get speechOnDeviceActive =>
+      'Riconoscimento vocale sul dispositivo attivo';
+
+  @override
+  String get speechOnDeviceBody =>
+      'I pasti dettati («2 uova con toast e caffè») vengono trascritti direttamente sul dispositivo e restano privati.';
 }

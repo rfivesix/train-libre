@@ -5822,4 +5822,245 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNewAboutRowSubtitle =>
       'Release highlights of this and earlier versions';
+
+  @override
+  String get mealAnalysisPreparing => 'Preparing the capture';
+
+  @override
+  String get mealAnalysisAnalyzing => 'Analysing the meal';
+
+  @override
+  String get mealAnalysisMatching => 'Matching the ingredients';
+
+  @override
+  String get mealAnalysisFailed => 'That did not work';
+
+  @override
+  String get aiScannerTitle => 'AI scanner';
+
+  @override
+  String get aiCaptureAnalyzing => 'Analysing…';
+
+  @override
+  String aiCaptureAnalyzeMeal(int count) {
+    return 'Analyse meal ($count)';
+  }
+
+  @override
+  String get aiCaptureAnalyzeText => 'Analyse text';
+
+  @override
+  String get aiCaptureDescribeHint =>
+      'Describe the meal (e.g. 2 eggs with toast)…';
+
+  @override
+  String get aiCaptureLogBarcode => 'Log';
+
+  @override
+  String aiCaptureBarcodeFallback(String code) {
+    return 'Barcode $code';
+  }
+
+  @override
+  String get aiCaptureMoveCloser => 'Move a little closer';
+
+  @override
+  String get aiCaptureMoveAway => 'Move back a little';
+
+  @override
+  String get aiCaptureOpenSettings => 'Open settings';
+
+  @override
+  String get voiceDictationTitle => 'Dictate the meal';
+
+  @override
+  String get voiceHoldToTalk => 'Hold to speak';
+
+  @override
+  String get voiceSpeakNow => 'Speak now — release to finish';
+
+  @override
+  String get voiceExampleStandalone =>
+      'e.g. “A vegetable kebab with flatbread and garlic sauce”';
+
+  @override
+  String get voiceExampleWithPhoto =>
+      'Add what the photo cannot show — e.g. “fried in two tablespoons of olive oil”';
+
+  @override
+  String get voiceNetworkNotice =>
+      'This device cannot recognise speech locally. The recording is sent to the system’s speech recognition to be transcribed.';
+
+  @override
+  String get voiceApplyText => 'Use this text';
+
+  @override
+  String get voiceTranscriptHint => 'Recognised text — editable here';
+
+  @override
+  String get voiceUnavailablePermission =>
+      'Dictation needs microphone and speech recognition access. You can still type the text.';
+
+  @override
+  String get voiceUnavailableUnsupported =>
+      'This device offers no speech recognition. You can type the text instead.';
+
+  @override
+  String get voiceUnavailableFailed =>
+      'Speech recognition could not be started. You can type the text instead.';
+
+  @override
+  String get mealFallbackTitle => 'Meal';
+
+  @override
+  String mealIngredientCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ingredients',
+      one: '1 ingredient',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDetailOptions => 'Options';
+
+  @override
+  String get mealDetailAddIngredient => 'Add ingredient';
+
+  @override
+  String get mealDetailSaveAsTemplate => 'Save as template';
+
+  @override
+  String get mealDetailSavedAsTemplate => 'Saved as a meal template.';
+
+  @override
+  String get mealDetailChangeMealType => 'Change meal type';
+
+  @override
+  String get mealDetailSelectMealType => 'Select meal type';
+
+  @override
+  String get mealDetailAmountInGrams => 'Amount in grams';
+
+  @override
+  String get mealDetailApply => 'Apply';
+
+  @override
+  String get mealDeleteQuestion => 'What should happen to this meal?';
+
+  @override
+  String get mealDeleteUngroupTitle => 'Only remove the grouping';
+
+  @override
+  String mealDeleteUngroupBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'The photo and the grouping are removed. The $count entries stay in the diary on their own — your daily totals do not change.',
+      one:
+          'The photo and the grouping are removed. The entry stays in the diary on its own — your daily totals do not change.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDeleteAllTitle => 'Delete the meal and its entries';
+
+  @override
+  String mealDeleteAllBody(int count, int kcal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'The photo, the grouping and all $count entries disappear from the diary. $kcal kcal are removed from your day.',
+      one:
+          'The photo, the grouping and the entry disappear from the diary. $kcal kcal are removed from your day.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reanalysisTitle => 'New result';
+
+  @override
+  String get reanalysisSubtitle => 'You decide what stays saved.';
+
+  @override
+  String get reanalysisPrevious => 'CURRENT';
+
+  @override
+  String get reanalysisNew => 'NEW';
+
+  @override
+  String get reanalysisKeepPrevious => 'Keep current';
+
+  @override
+  String get reanalysisApplyNew => 'Use the new one';
+
+  @override
+  String get reanalysisDiffHint => 'Marked = differs from what is saved';
+
+  @override
+  String get aiReviewDiscardTitle => 'Discard this meal?';
+
+  @override
+  String get aiReviewDiscardBody =>
+      'The analysis has not been saved and will be lost.';
+
+  @override
+  String get aiLidarScaleTitle => 'Send LiDAR scale';
+
+  @override
+  String get aiLidarScaleSubtitle =>
+      'Measures distance and frame size in centimetres and passes them to the AI. Switch off to compare whether the estimate actually improves.';
+
+  @override
+  String get mealPhotoStorageSection => 'Meal photos (storage)';
+
+  @override
+  String get mealPhotoRetentionTitle => 'Retention period';
+
+  @override
+  String get mealPhotoRetentionBody =>
+      'Photos are deleted automatically once the period is over. The nutrition entries in the diary remain.';
+
+  @override
+  String mealPhotoRetentionDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get mealPhotoRetentionDefaultSuffix => '(default)';
+
+  @override
+  String get mealPhotoRetentionUnlimited => 'Unlimited';
+
+  @override
+  String get mealPhotoRetentionSaved => 'Retention period saved.';
+
+  @override
+  String get mealPhotoDeleteAll => 'Delete all local photos';
+
+  @override
+  String get mealPhotoDeleteAllTitle => 'Delete all meal photos?';
+
+  @override
+  String get mealPhotoDeleteAllBody =>
+      'Only the image files are removed from the device. Your entries and calories in the diary stay exactly as they are.';
+
+  @override
+  String get mealPhotoDeleted => 'Photos deleted.';
+
+  @override
+  String get speechSectionTitle => 'Voice input & dictation';
+
+  @override
+  String get speechOnDeviceActive => 'On-device speech recognition active';
+
+  @override
+  String get speechOnDeviceBody =>
+      'Spoken meals (“2 eggs with toast and coffee”) are turned into text directly on your device and stay private.';
 }

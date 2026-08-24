@@ -559,261 +559,302 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // Build
   // ---------------------------------------------------------------------------
 
+  /// Asks before throwing an unsaved analysis away.
+  ///
+  /// Leaving this screen returns all the way to where the capture started, so
+  /// a stray back swipe would otherwise silently discard a finished analysis
+  /// with no way to get it back.
+  Future<bool> _confirmDiscard() async {
+    if (_isSaving) return true;
+    final l10n = AppLocalizations.of(context)!;
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.aiReviewDiscardTitle),
+        content: Text(l10n.aiReviewDiscardBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(
+              l10n.discard,
+              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    return discard ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(
-        title: l10n.aiReviewTitle,
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.sparkles, size: 20),
-            tooltip: 'LiDAR & AI Insights',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => MealScanDebugView(
-                    captureResult: widget.depthResult,
-                    scaleFacts:
-                        widget.depthFacts ?? widget.depthResult?.scaleFacts,
-                    sentPrompt: widget.sentPrompt,
-                    rawResponse: widget.rawResponse,
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: DesignConstants.cardPadding.copyWith(
-                top: DesignConstants.cardPadding.top + topPadding,
-              ),
-              children: [
-                // The photo runs edge to edge; OverflowBox lets it escape the
-                // list's horizontal padding without restructuring the list.
-                if (widget.originalImages.isNotEmpty) ...[
-                  SizedBox(
-                    height: 300,
-                    child: OverflowBox(
-                      maxWidth: MediaQuery.sizeOf(context).width,
-                      maxHeight: 300,
-                      child: MealPhotoWidget(
-                        photoFiles: widget.originalImages,
-                        photoFile: widget.originalImages.first,
-                        height: 300,
-                      ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (await _confirmDiscard() && mounted) {
+          if (!context.mounted) return;
+          Navigator.of(context).pop(false);
+        }
+      },
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: GlobalAppBar(
+          title: l10n.aiReviewTitle,
+          actions: [
+            IconButton(
+              icon: const Icon(LucideIcons.sparkles, size: 20),
+              tooltip: 'LiDAR & AI Insights',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => MealScanDebugView(
+                      captureResult: widget.depthResult,
+                      scaleFacts:
+                          widget.depthFacts ?? widget.depthResult?.scaleFacts,
+                      sentPrompt: widget.sentPrompt,
+                      rawResponse: widget.rawResponse,
                     ),
                   ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                ],
-
-                // Header
-                Text(
-                  l10n.aiReviewFoundItems(_items.length),
-                  style: theme.textTheme.titleMedium,
+                );
+              },
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: DesignConstants.cardPadding.copyWith(
+                  top: DesignConstants.cardPadding.top + topPadding,
                 ),
-                const SizedBox(height: DesignConstants.spacingM),
-                if (_validation != null) ...[
-                  MealReviewValidationSummary(
-                    validation: _validation!,
-                    itemsCount: _items.length,
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                ],
-
-                // Meal type selector removed from here — relocated to bottom bar
-
-                // Items list
-                if (_isMatching)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(DesignConstants.spacingXL),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                else
-                  ..._items.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    return MealReviewComparisonCard(
-                      dismissibleKey: ValueKey(item.hashCode),
-                      name: item.suggestion.name,
-                      estimatedGrams: item.suggestion.estimatedGrams,
-                      confidence: item.suggestion.confidence,
-                      matchedFood: item.matchedFood,
-                      issues: item.issues,
-                      nutrition: item.nutrition,
-                      onDismissed: () => _removeItem(index),
-                      onTap: item.matchedFood != null
-                          ? () => _inspectFood(index)
-                          : () => _replaceWithFood(index),
-                      onReplace: () => _replaceWithFood(index),
-                      onEditQuantity: () => _editQuantity(index),
-                      onQuickAdjustQuantity: (delta) =>
-                          _adjustQuantityBy(index, delta),
-                    );
-                  }),
-
-                // Add item button
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: DesignConstants.spacingS),
-                  child: AppButton.secondary(
-                    onPressed: _addManualItem,
-                    label: l10n.aiReviewAddItem,
-                    tooltip: l10n.aiReviewAddItem,
-                    icon: LucideIcons.plus,
-                  ),
-                ),
-
-                // Feedback section
-                const SizedBox(height: DesignConstants.spacingM),
-                InkWell(
-                  onTap: () => setState(() => _showFeedback = !_showFeedback),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _showFeedback
-                            ? LucideIcons.chevron_up
-                            : LucideIcons.chevron_down,
-                        color: theme.colorScheme.primary,
+                children: [
+                  // The photo runs edge to edge; OverflowBox lets it escape the
+                  // list's horizontal padding without restructuring the list.
+                  if (widget.originalImages.isNotEmpty) ...[
+                    SizedBox(
+                      height: 300,
+                      child: OverflowBox(
+                        maxWidth: MediaQuery.sizeOf(context).width,
+                        maxHeight: 300,
+                        child: MealPhotoWidget(
+                          photoFiles: widget.originalImages,
+                          photoFile: widget.originalImages.first,
+                          height: 300,
+                        ),
                       ),
-                      const SizedBox(width: DesignConstants.spacingS),
-                      Text(
-                        l10n.aiReviewFeedbackSection,
-                        style: theme.textTheme.titleSmall?.copyWith(
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                  ],
+
+                  // Header
+                  Text(
+                    l10n.aiReviewFoundItems(_items.length),
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  if (_validation != null) ...[
+                    MealReviewValidationSummary(
+                      validation: _validation!,
+                      itemsCount: _items.length,
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                  ],
+
+                  // Meal type selector removed from here — relocated to bottom bar
+
+                  // Items list
+                  if (_isMatching)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(DesignConstants.spacingXL),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else
+                    ..._items.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      return MealReviewComparisonCard(
+                        dismissibleKey: ValueKey(item.hashCode),
+                        name: item.suggestion.name,
+                        estimatedGrams: item.suggestion.estimatedGrams,
+                        confidence: item.suggestion.confidence,
+                        matchedFood: item.matchedFood,
+                        issues: item.issues,
+                        nutrition: item.nutrition,
+                        onDismissed: () => _removeItem(index),
+                        onTap: item.matchedFood != null
+                            ? () => _inspectFood(index)
+                            : () => _replaceWithFood(index),
+                        onReplace: () => _replaceWithFood(index),
+                        onEditQuantity: () => _editQuantity(index),
+                        onQuickAdjustQuantity: (delta) =>
+                            _adjustQuantityBy(index, delta),
+                      );
+                    }),
+
+                  // Add item button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: DesignConstants.spacingS),
+                    child: AppButton.secondary(
+                      onPressed: _addManualItem,
+                      label: l10n.aiReviewAddItem,
+                      tooltip: l10n.aiReviewAddItem,
+                      icon: LucideIcons.plus,
+                    ),
+                  ),
+
+                  // Feedback section
+                  const SizedBox(height: DesignConstants.spacingM),
+                  InkWell(
+                    onTap: () => setState(() => _showFeedback = !_showFeedback),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _showFeedback
+                              ? LucideIcons.chevron_up
+                              : LucideIcons.chevron_down,
                           color: theme.colorScheme.primary,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_showFeedback) ...[
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _buildFeedbackChip(theme, 'Larger portions'),
-                      _buildFeedbackChip(theme, 'Smaller portions'),
-                      _buildFeedbackChip(theme, 'Separate ingredients'),
-                      _buildFeedbackChip(theme, 'No sauce/dressing'),
-                    ],
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  TextField(
-                    controller: _feedbackController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: l10n.aiReviewFeedbackHint,
-                      border: const OutlineInputBorder(),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        Text(
+                          l10n.aiReviewFeedbackSection,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  AppButton.secondary(
-                    onPressed: _isRetrying ? null : _retryWithFeedback,
-                    label: l10n.aiReviewRetryButton,
-                    tooltip: l10n.aiReviewRetryButton,
+                  if (_showFeedback) ...[
+                    const SizedBox(height: DesignConstants.spacingS),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        _buildFeedbackChip(theme, 'Larger portions'),
+                        _buildFeedbackChip(theme, 'Smaller portions'),
+                        _buildFeedbackChip(theme, 'Separate ingredients'),
+                        _buildFeedbackChip(theme, 'No sauce/dressing'),
+                      ],
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    TextField(
+                      controller: _feedbackController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: l10n.aiReviewFeedbackHint,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    AppButton.secondary(
+                      onPressed: _isRetrying ? null : _retryWithFeedback,
+                      label: l10n.aiReviewRetryButton,
+                      tooltip: l10n.aiReviewRetryButton,
+                    ),
+                  ],
+
+                  const SizedBox(height: 80), // Bottom padding for save button
+                ],
+              ),
+            ),
+            // Fixed bottom bar: meal-type selector + save button
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
                   ),
                 ],
-
-                const SizedBox(height: 80), // Bottom padding for save button
-              ],
-            ),
-          ),
-          // Fixed bottom bar: meal-type selector + save button
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // Meal-type compact dropdown
-                Expanded(
-                  flex: 2,
-                  child: PlatformAdaptiveDropdownFormField<String>(
-                    initialValue: _selectedMealType,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: DesignConstants.spacingS,
-                      ),
-                      isDense: true,
-                    ),
-                    items: [
-                      DropdownMenuItem(
-                        value: 'mealtypeBreakfast',
-                        child: Text(
-                          l10n.mealtypeBreakfast,
-                          overflow: TextOverflow.ellipsis,
+              ),
+              child: Row(
+                children: [
+                  // Meal-type compact dropdown
+                  Expanded(
+                    flex: 2,
+                    child: PlatformAdaptiveDropdownFormField<String>(
+                      initialValue: _selectedMealType,
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: DesignConstants.spacingS,
                         ),
+                        isDense: true,
                       ),
-                      DropdownMenuItem(
-                        value: 'mealtypeLunch',
-                        child: Text(
-                          l10n.mealtypeLunch,
-                          overflow: TextOverflow.ellipsis,
+                      items: [
+                        DropdownMenuItem(
+                          value: 'mealtypeBreakfast',
+                          child: Text(
+                            l10n.mealtypeBreakfast,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'mealtypeDinner',
-                        child: Text(
-                          l10n.mealtypeDinner,
-                          overflow: TextOverflow.ellipsis,
+                        DropdownMenuItem(
+                          value: 'mealtypeLunch',
+                          child: Text(
+                            l10n.mealtypeLunch,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'mealtypeSnack',
-                        child: Text(
-                          l10n.mealtypeSnack,
-                          overflow: TextOverflow.ellipsis,
+                        DropdownMenuItem(
+                          value: 'mealtypeDinner',
+                          child: Text(
+                            l10n.mealtypeDinner,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() => _selectedMealType = v);
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: DesignConstants.spacingM),
-                // Save button
-                Expanded(
-                  flex: 3,
-                  child: SizedBox(
-                    height: 48,
-                    child: AppButton.primary(
-                      onPressed:
-                          (_items.isNotEmpty && !_isSaving && !_isMatching)
-                              ? _saveToDiary
-                              : null,
-                      label: l10n.aiReviewSaveToDiary,
-                      tooltip: l10n.aiReviewSaveToDiary,
+                        DropdownMenuItem(
+                          value: 'mealtypeSnack',
+                          child: Text(
+                            l10n.mealtypeSnack,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() => _selectedMealType = v);
+                        }
+                      },
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: DesignConstants.spacingM),
+                  // Save button
+                  Expanded(
+                    flex: 3,
+                    child: SizedBox(
+                      height: 48,
+                      child: AppButton.primary(
+                        onPressed:
+                            (_items.isNotEmpty && !_isSaving && !_isMatching)
+                                ? _saveToDiary
+                                : null,
+                        label: l10n.aiReviewSaveToDiary,
+                        tooltip: l10n.aiReviewSaveToDiary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

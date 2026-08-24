@@ -145,7 +145,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
               autofocus: true,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'Menge in Gramm',
+                labelText: l10n.mealDetailAmountInGrams,
                 suffixText: 'g',
                 border: OutlineInputBorder(
                   borderRadius:
@@ -159,8 +159,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                 final val = int.tryParse(controller.text);
                 Navigator.of(ctx).pop(val);
               },
-              label: 'Übernehmen',
-              tooltip: 'Übernehmen',
+              label: l10n.mealDetailApply,
+              tooltip: l10n.mealDetailApply,
             ),
             const SizedBox(height: DesignConstants.spacingS),
             AppButton.secondary(
@@ -271,22 +271,21 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     final l10n = AppLocalizations.of(context)!;
     showGlassBottomMenu<void>(
       context: context,
-      title: _mealEntry.title ?? 'Mahlzeit',
+      title: _mealEntry.title ?? l10n.mealFallbackTitle,
       actions: [
         GlassMenuAction(
           icon: LucideIcons.bookmark,
-          label: 'Als Vorlage speichern',
+          label: l10n.mealDetailSaveAsTemplate,
           onTap: () {
             Navigator.of(context).pop();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Als Mahlzeiten-Vorlage gespeichert.')),
+              SnackBar(content: Text(l10n.mealDetailSavedAsTemplate)),
             );
           },
         ),
         GlassMenuAction(
           icon: LucideIcons.clock,
-          label: 'Mahlzeitentyp ändern',
+          label: l10n.mealDetailChangeMealType,
           onTap: () {
             Navigator.of(context).pop();
             _showChangeMealTypeDialog();
@@ -299,7 +298,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
             Navigator.of(context).pop();
             final choice = await DeleteMealEntryBottomSheet.show(
               context,
-              mealTitle: _mealEntry.title ?? 'Mahlzeit',
+              mealTitle: _mealEntry.title ?? l10n.mealFallbackTitle,
               itemCount: _items.length,
               totalKcal: _totalKcal,
             );
@@ -329,7 +328,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
 
     showGlassBottomMenu<void>(
       context: context,
-      title: 'Mahlzeitentyp wählen',
+      title: l10n.mealDetailSelectMealType,
       actions: types.map((entry) {
         return GlassMenuAction(
           icon: LucideIcons.utensils,
@@ -353,6 +352,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bg = theme.scaffoldBackgroundColor;
@@ -386,7 +386,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
           actions: [
             IconButton(
               icon: const Icon(LucideIcons.ellipsis, size: 20),
-              tooltip: 'Optionen',
+              tooltip: l10n.mealDetailOptions,
               onPressed: _showOverflowMenu,
             ),
           ],
@@ -496,8 +496,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                         // Add Ingredient Button
                         AppButton.secondary(
                           onPressed: _addNewIngredient,
-                          label: 'Zutat hinzufügen',
-                          tooltip: 'Zutat hinzufügen',
+                          label: l10n.mealDetailAddIngredient,
+                          tooltip: l10n.mealDetailAddIngredient,
                           icon: LucideIcons.plus,
                         ),
                       ],

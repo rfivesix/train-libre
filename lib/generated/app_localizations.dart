@@ -10200,6 +10200,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Release highlights of this and earlier versions'**
   String get whatsNewAboutRowSubtitle;
+
+  /// No description provided for @mealAnalysisPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the capture'**
+  String get mealAnalysisPreparing;
+
+  /// No description provided for @mealAnalysisAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysing the meal'**
+  String get mealAnalysisAnalyzing;
+
+  /// No description provided for @mealAnalysisMatching.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching the ingredients'**
+  String get mealAnalysisMatching;
+
+  /// No description provided for @mealAnalysisFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not work'**
+  String get mealAnalysisFailed;
+
+  /// No description provided for @aiScannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI scanner'**
+  String get aiScannerTitle;
+
+  /// No description provided for @aiCaptureAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysing…'**
+  String get aiCaptureAnalyzing;
+
+  /// No description provided for @aiCaptureAnalyzeMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyse meal ({count})'**
+  String aiCaptureAnalyzeMeal(int count);
+
+  /// No description provided for @aiCaptureAnalyzeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyse text'**
+  String get aiCaptureAnalyzeText;
+
+  /// No description provided for @aiCaptureDescribeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the meal (e.g. 2 eggs with toast)…'**
+  String get aiCaptureDescribeHint;
+
+  /// No description provided for @aiCaptureLogBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get aiCaptureLogBarcode;
+
+  /// No description provided for @aiCaptureBarcodeFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode {code}'**
+  String aiCaptureBarcodeFallback(String code);
+
+  /// No description provided for @aiCaptureMoveCloser.
+  ///
+  /// In en, this message translates to:
+  /// **'Move a little closer'**
+  String get aiCaptureMoveCloser;
+
+  /// No description provided for @aiCaptureMoveAway.
+  ///
+  /// In en, this message translates to:
+  /// **'Move back a little'**
+  String get aiCaptureMoveAway;
+
+  /// No description provided for @aiCaptureOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get aiCaptureOpenSettings;
+
+  /// No description provided for @voiceDictationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate the meal'**
+  String get voiceDictationTitle;
+
+  /// No description provided for @voiceHoldToTalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to speak'**
+  String get voiceHoldToTalk;
+
+  /// No description provided for @voiceSpeakNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak now — release to finish'**
+  String get voiceSpeakNow;
+
+  /// No description provided for @voiceExampleStandalone.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. “A vegetable kebab with flatbread and garlic sauce”'**
+  String get voiceExampleStandalone;
+
+  /// No description provided for @voiceExampleWithPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what the photo cannot show — e.g. “fried in two tablespoons of olive oil”'**
+  String get voiceExampleWithPhoto;
+
+  /// No description provided for @voiceNetworkNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot recognise speech locally. The recording is sent to the system’s speech recognition to be transcribed.'**
+  String get voiceNetworkNotice;
+
+  /// No description provided for @voiceApplyText.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this text'**
+  String get voiceApplyText;
+
+  /// No description provided for @voiceTranscriptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognised text — editable here'**
+  String get voiceTranscriptHint;
+
+  /// No description provided for @voiceUnavailablePermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictation needs microphone and speech recognition access. You can still type the text.'**
+  String get voiceUnavailablePermission;
+
+  /// No description provided for @voiceUnavailableUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This device offers no speech recognition. You can type the text instead.'**
+  String get voiceUnavailableUnsupported;
+
+  /// No description provided for @voiceUnavailableFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech recognition could not be started. You can type the text instead.'**
+  String get voiceUnavailableFailed;
+
+  /// No description provided for @mealFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal'**
+  String get mealFallbackTitle;
+
+  /// No description provided for @mealIngredientCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 ingredient} other{{count} ingredients}}'**
+  String mealIngredientCount(int count);
+
+  /// No description provided for @mealDetailOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get mealDetailOptions;
+
+  /// No description provided for @mealDetailAddIngredient.
+  ///
+  /// In en, this message translates to:
+  /// **'Add ingredient'**
+  String get mealDetailAddIngredient;
+
+  /// No description provided for @mealDetailSaveAsTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as template'**
+  String get mealDetailSaveAsTemplate;
+
+  /// No description provided for @mealDetailSavedAsTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as a meal template.'**
+  String get mealDetailSavedAsTemplate;
+
+  /// No description provided for @mealDetailChangeMealType.
+  ///
+  /// In en, this message translates to:
+  /// **'Change meal type'**
+  String get mealDetailChangeMealType;
+
+  /// No description provided for @mealDetailSelectMealType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select meal type'**
+  String get mealDetailSelectMealType;
+
+  /// No description provided for @mealDetailAmountInGrams.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount in grams'**
+  String get mealDetailAmountInGrams;
+
+  /// No description provided for @mealDetailApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get mealDetailApply;
+
+  /// No description provided for @mealDeleteQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What should happen to this meal?'**
+  String get mealDeleteQuestion;
+
+  /// No description provided for @mealDeleteUngroupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Only remove the grouping'**
+  String get mealDeleteUngroupTitle;
+
+  /// No description provided for @mealDeleteUngroupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The photo and the grouping are removed. The entry stays in the diary on its own — your daily totals do not change.} other{The photo and the grouping are removed. The {count} entries stay in the diary on their own — your daily totals do not change.}}'**
+  String mealDeleteUngroupBody(int count);
+
+  /// No description provided for @mealDeleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the meal and its entries'**
+  String get mealDeleteAllTitle;
+
+  /// No description provided for @mealDeleteAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The photo, the grouping and the entry disappear from the diary. {kcal} kcal are removed from your day.} other{The photo, the grouping and all {count} entries disappear from the diary. {kcal} kcal are removed from your day.}}'**
+  String mealDeleteAllBody(int count, int kcal);
+
+  /// No description provided for @reanalysisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New result'**
+  String get reanalysisTitle;
+
+  /// No description provided for @reanalysisSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You decide what stays saved.'**
+  String get reanalysisSubtitle;
+
+  /// No description provided for @reanalysisPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT'**
+  String get reanalysisPrevious;
+
+  /// No description provided for @reanalysisNew.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get reanalysisNew;
+
+  /// No description provided for @reanalysisKeepPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current'**
+  String get reanalysisKeepPrevious;
+
+  /// No description provided for @reanalysisApplyNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the new one'**
+  String get reanalysisApplyNew;
+
+  /// No description provided for @reanalysisDiffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked = differs from what is saved'**
+  String get reanalysisDiffHint;
+
+  /// No description provided for @aiReviewDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this meal?'**
+  String get aiReviewDiscardTitle;
+
+  /// No description provided for @aiReviewDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The analysis has not been saved and will be lost.'**
+  String get aiReviewDiscardBody;
+
+  /// No description provided for @aiLidarScaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send LiDAR scale'**
+  String get aiLidarScaleTitle;
+
+  /// No description provided for @aiLidarScaleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measures distance and frame size in centimetres and passes them to the AI. Switch off to compare whether the estimate actually improves.'**
+  String get aiLidarScaleSubtitle;
+
+  /// No description provided for @mealPhotoStorageSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal photos (storage)'**
+  String get mealPhotoStorageSection;
+
+  /// No description provided for @mealPhotoRetentionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Retention period'**
+  String get mealPhotoRetentionTitle;
+
+  /// No description provided for @mealPhotoRetentionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos are deleted automatically once the period is over. The nutrition entries in the diary remain.'**
+  String get mealPhotoRetentionBody;
+
+  /// No description provided for @mealPhotoRetentionDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String mealPhotoRetentionDays(int days);
+
+  /// No description provided for @mealPhotoRetentionDefaultSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'(default)'**
+  String get mealPhotoRetentionDefaultSuffix;
+
+  /// No description provided for @mealPhotoRetentionUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get mealPhotoRetentionUnlimited;
+
+  /// No description provided for @mealPhotoRetentionSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Retention period saved.'**
+  String get mealPhotoRetentionSaved;
+
+  /// No description provided for @mealPhotoDeleteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all local photos'**
+  String get mealPhotoDeleteAll;
+
+  /// No description provided for @mealPhotoDeleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all meal photos?'**
+  String get mealPhotoDeleteAllTitle;
+
+  /// No description provided for @mealPhotoDeleteAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the image files are removed from the device. Your entries and calories in the diary stay exactly as they are.'**
+  String get mealPhotoDeleteAllBody;
+
+  /// No description provided for @mealPhotoDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos deleted.'**
+  String get mealPhotoDeleted;
+
+  /// No description provided for @speechSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input & dictation'**
+  String get speechSectionTitle;
+
+  /// No description provided for @speechOnDeviceActive.
+  ///
+  /// In en, this message translates to:
+  /// **'On-device speech recognition active'**
+  String get speechOnDeviceActive;
+
+  /// No description provided for @speechOnDeviceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Spoken meals (“2 eggs with toast and coffee”) are turned into text directly on your device and stay private.'**
+  String get speechOnDeviceBody;
 }
 
 class _AppLocalizationsDelegate

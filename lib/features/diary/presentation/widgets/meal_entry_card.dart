@@ -1,6 +1,7 @@
 // lib/features/diary/presentation/widgets/meal_entry_card.dart
 
 import '../../data/meal_photo_store.dart';
+import '../../../../generated/app_localizations.dart';
 import 'diary_food_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -37,6 +38,7 @@ class _MealEntryCardState extends State<MealEntryCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
     final subtitleColor =
@@ -53,7 +55,7 @@ class _MealEntryCardState extends State<MealEntryCard> {
 
     final timeStr = DateFormat('HH:mm').format(widget.mealEntry.consumedAt);
     final countStr =
-        '${widget.items.length} ${widget.items.length == 1 ? "Zutat" : "Zutaten"} · $timeStr';
+        '${l10n.mealIngredientCount(widget.items.length)} · $timeStr';
     final photoFile =
         MealPhotoStore.instance.resolveSync(widget.mealEntry.photoPath);
     final hasPhoto = photoFile != null && photoFile.existsSync();
@@ -133,7 +135,8 @@ class _MealEntryCardState extends State<MealEntryCard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.mealEntry.title ?? 'Mahlzeit',
+                                widget.mealEntry.title ??
+                                    l10n.mealFallbackTitle,
                                 style: TextStyle(
                                   fontFamily: 'Plus Jakarta Sans',
                                   fontWeight: FontWeight.w700,

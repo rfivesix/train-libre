@@ -8,7 +8,7 @@ import '../../../../util/design_constants.dart';
 
 enum DeleteMealChoice {
   dissolveGroupOnly, // Unlink food items so they stay as individual logs
-  deleteAll,         // Delete meal entry and all child food logs
+  deleteAll, // Delete meal entry and all child food logs
 }
 
 /// Bottom sheet confirming meal entry deletion with two clear options (Screen D5).
@@ -22,12 +22,10 @@ class DeleteMealEntryBottomSheet {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF222220) : Colors.white;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
-    final subtitleColor = isDark ? const Color(0xFF8A8A82) : const Color(0xFF5C5C55);
+    final subtitleColor =
+        isDark ? const Color(0xFF8A8A82) : const Color(0xFF5C5C55);
     final destructiveColor = const Color(0xFFB32219);
     final l10n = AppLocalizations.of(context)!;
-
-    final itemWord = itemCount == 1 ? '1 Zutat' : '$itemCount Zutaten';
-    final entriesWord = itemCount == 1 ? '1 Eintrag' : '$itemCount Einträgen';
 
     return showGlassBottomMenu<DeleteMealChoice>(
       context: context,
@@ -40,7 +38,7 @@ class DeleteMealEntryBottomSheet {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
-                'Was soll mit dieser Mahlzeit passieren?',
+                l10n.mealDeleteQuestion,
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.w500,
@@ -53,22 +51,27 @@ class DeleteMealEntryBottomSheet {
 
             // Option 1: Dissolve group only
             InkWell(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-              onTap: () => Navigator.of(ctx).pop(DeleteMealChoice.dissolveGroupOnly),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusL),
+              onTap: () =>
+                  Navigator.of(ctx).pop(DeleteMealChoice.dissolveGroupOnly),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: cardBg,
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusL),
                   border: Border.all(
-                    color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.08),
+                    color: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.08),
                   ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Nur Gruppierung auflösen',
+                      l10n.mealDeleteUngroupTitle,
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w800,
@@ -78,7 +81,7 @@ class DeleteMealEntryBottomSheet {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Foto und Gruppierung werden entfernt. Die $itemWord bleiben als Einzeleinträge im Tagebuch — deine Tageswerte ändern sich nicht.',
+                      l10n.mealDeleteUngroupBody(itemCount),
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w500,
@@ -95,13 +98,15 @@ class DeleteMealEntryBottomSheet {
 
             // Option 2: Delete meal and all items
             InkWell(
-              borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusL),
               onTap: () => Navigator.of(ctx).pop(DeleteMealChoice.deleteAll),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: cardBg,
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusL),
                   border: Border.all(
                     color: destructiveColor.withValues(alpha: 0.4),
                     width: 1.5,
@@ -111,7 +116,7 @@ class DeleteMealEntryBottomSheet {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mahlzeit samt $entriesWord löschen',
+                      l10n.mealDeleteAllTitle,
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w800,
@@ -121,7 +126,7 @@ class DeleteMealEntryBottomSheet {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Foto, Gruppierung und alle $entriesWord verschwinden aus dem Tagebuch. $totalKcal kcal werden von deinem Tag abgezogen.',
+                      l10n.mealDeleteAllBody(itemCount, totalKcal),
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontWeight: FontWeight.w500,

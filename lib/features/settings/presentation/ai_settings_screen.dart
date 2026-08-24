@@ -363,14 +363,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       PlatformAdaptiveSwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         secondary: const Icon(LucideIcons.ruler),
-                        title: const Text(
-                          'LiDAR-Maßstab senden',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        title: Text(
+                          l10n.aiLidarScaleTitle,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        subtitle: const Text(
-                          'Misst Abstand und Bildausschnitt in Zentimetern und gibt sie der KI mit. '
-                          'Ausschalten, um zu vergleichen, ob die Schätzung dadurch besser wird.',
-                        ),
+                        subtitle: Text(l10n.aiLidarScaleSubtitle),
                         value: _scaleHintEnabled,
                         onChanged: (value) async {
                           await DepthScanSettings.instance
@@ -606,39 +603,50 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
             const SizedBox(height: DesignConstants.spacingL),
 
             // --- Photo Storage & Retention (Screen E2) ---
-            const AppSectionHeader(title: 'Mahlzeitenfotos (Speicher)'),
+            AppSectionHeader(title: l10n.mealPhotoStorageSection),
             SummaryCard(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Aufbewahrungsdauer',
-                      style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                      l10n.mealPhotoRetentionTitle,
+                      style: theme.textTheme.labelLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Fotos werden nach Ablauf der Frist automatisch gelöscht. Die Nährwerteinträge im Tagebuch bleiben erhalten.',
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      l10n.mealPhotoRetentionBody,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
                       initialValue: 180,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 30, child: Text('30 Tage')),
-                        DropdownMenuItem(value: 90, child: Text('90 Tage')),
-                        DropdownMenuItem(value: 180, child: Text('180 Tage (Standard)')),
-                        DropdownMenuItem(value: 365, child: Text('365 Tage (1 Jahr)')),
-                        DropdownMenuItem(value: -1, child: Text('Unbegrenzt')),
+                      items: [
+                        for (final days in [30, 90, 180, 365])
+                          DropdownMenuItem(
+                            value: days,
+                            child: Text(days == 180
+                                ? '${l10n.mealPhotoRetentionDays(days)} '
+                                    '${l10n.mealPhotoRetentionDefaultSuffix}'
+                                : l10n.mealPhotoRetentionDays(days)),
+                          ),
+                        DropdownMenuItem(
+                          value: -1,
+                          child: Text(l10n.mealPhotoRetentionUnlimited),
+                        ),
                       ],
                       onChanged: (val) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Aufbewahrungsdauer gespeichert.')),
+                          SnackBar(content: Text(l10n.mealPhotoRetentionSaved)),
                         );
                       },
                     ),
@@ -648,25 +656,29 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         showDialog(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('Alle Mahlzeitenfotos löschen?'),
-                            content: const Text('Nur die Bilddateien werden vom Gerät entfernt. Deine Einträge und Kalorien im Tagebuch bleiben vollständig erhalten.'),
+                            title: Text(l10n.mealPhotoDeleteAllTitle),
+                            content: Text(l10n.mealPhotoDeleteAllBody),
                             actions: [
-                              TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Abbrechen')),
+                              TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(),
+                                  child: Text(l10n.cancel)),
                               TextButton(
                                 onPressed: () {
                                   Navigator.of(ctx).pop();
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Fotos gelöscht.')),
+                                    SnackBar(
+                                        content: Text(l10n.mealPhotoDeleted)),
                                   );
                                 },
-                                child: const Text('Löschen', style: TextStyle(color: Colors.red)),
+                                child: Text(l10n.delete,
+                                    style: const TextStyle(color: Colors.red)),
                               ),
                             ],
                           ),
                         );
                       },
-                      label: 'Alle lokalen Fotos löschen',
-                      tooltip: 'Alle lokalen Fotos löschen',
+                      label: l10n.mealPhotoDeleteAll,
+                      tooltip: l10n.mealPhotoDeleteAll,
                       icon: LucideIcons.trash_2,
                     ),
                   ],
@@ -677,10 +689,11 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
             const SizedBox(height: DesignConstants.spacingL),
 
             // --- Speech Recognition (Screen E3) ---
-            const AppSectionHeader(title: 'Spracheingabe & Diktat'),
+            AppSectionHeader(title: l10n.speechSectionTitle),
             SummaryCard(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -696,15 +709,17 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'On-Device Spracherkennung aktiv',
-                          style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                          l10n.speechOnDeviceActive,
+                          style: theme.textTheme.labelLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Gesprochene Mahlzeiten ("2 Eier mit Toast und Kaffee") werden direkt auf deinem Gerät in Text umgewandelt und bleiben privat.',
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      l10n.speechOnDeviceBody,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
