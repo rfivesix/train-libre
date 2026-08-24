@@ -3,6 +3,7 @@
 **Branch:** `feat/depth-scale-hint` (von `develop`, ohne den `lidar-experiment`-Stand)
 **Status:** Planung, noch keine Implementierung
 **Ziel:** Mengenschätzung der KI-Mahlzeitenerkennung verbessern, indem LiDAR-Tiefendaten als *Kontext* an die KI gegeben werden — ohne lokale Segmentierung, Volumenberechnung oder Clustering.
+**Ergänzend:** [NUTRITION_CAPTURE_PLAN.md](NUTRITION_CAPTURE_PLAN.md) beschreibt die Struktur um den Scan herum (Aufnahme, Speicherung, Darstellung). Die native Kamerasession aus P0 wird dort in N6 mitgenutzt — beide Phasen gehören zusammen gebaut.
 
 ---
 
