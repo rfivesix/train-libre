@@ -16,6 +16,8 @@ import 'ai_matching_language_service.dart';
 import 'package:uuid/uuid.dart';
 import 'telemetry/telemetry_service.dart';
 import 'telemetry/telemetry_buckets.dart';
+import '../features/depth_scan/domain/models/item_region.dart';
+import '../features/depth_scan/domain/models/depth_scale_facts.dart';
 
 part 'ai/ai_models.dart';
 part 'ai/ai_prompts.dart';
@@ -556,6 +558,7 @@ class AiService {
     String? textHint,
     String? languageCode,
     AiMatchingContext? matchingContext,
+    DepthScaleFacts? depthFacts,
   }) async {
     final userContent =
         textHint ?? 'Analyze this meal and identify all food components.';
@@ -563,6 +566,7 @@ class AiService {
       languageCode: languageCode,
       appLanguage: matchingContext?.appLanguage,
       catalogLanguage: matchingContext?.catalogLanguage,
+      depthFacts: depthFacts,
     );
 
     final raw = await _callSelectedProviderRaw(
@@ -656,6 +660,7 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     String? languageCode,
     AiMatchingContext? matchingContext,
     AiMealContext? mealContext,
+    DepthScaleFacts? depthFacts,
   }) async {
     final userContent = '''
 Previous meal capture candidate:
@@ -679,6 +684,7 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
         appLanguage: matchingContext?.appLanguage,
         catalogLanguage: matchingContext?.catalogLanguage,
         mealContext: mealContext,
+        depthFacts: depthFacts,
       ),
       temperature: 0.1,
     );

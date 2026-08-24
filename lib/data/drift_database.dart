@@ -263,6 +263,19 @@ class OffProductsArchive extends Table with HybridId, MetaColumns {
       boolean().withDefault(const Constant(false))();
 }
 
+@TableIndex(name: 'idx_meal_entries_consumed_at', columns: {#consumedAt})
+class MealEntries extends Table with HybridId, MetaColumns {
+  TextColumn get userId => text().nullable()();
+  DateTimeColumn get consumedAt => dateTime()();
+  TextColumn get mealType => text()(); // Breakfast, Lunch, Dinner, Snack
+  TextColumn get title => text().nullable()(); // e.g., "Hähnchen mit Reis"
+  TextColumn get source => text()(); // aiPhoto, aiVoice, aiText, barcode, manual, template
+  TextColumn get photoPath => text().nullable()(); // Relative to app support dir
+  TextColumn get photoThumbPath => text().nullable()();
+  TextColumn get voiceTranscript => text().nullable()();
+  TextColumn get captureMeta => text().nullable()(); // JSON: DepthScaleFacts, regions, provider
+}
+
 @TableIndex(name: 'idx_nutrition_consumed_at', columns: {#consumedAt})
 class NutritionLogs extends Table with HybridId, MetaColumns {
   TextColumn get userId => text().nullable()();
@@ -278,6 +291,12 @@ class NutritionLogs extends Table with HybridId, MetaColumns {
 
   IntColumn get archiveLocalId =>
       integer().nullable().references(OffProductsArchive, #localId)();
+
+  TextColumn get mealEntryId => text().nullable().references(
+        MealEntries,
+        #id,
+        onDelete: KeyAction.setNull,
+      )();
 }
 
 // 13. Supplements
@@ -512,6 +531,7 @@ class UserFoodOverrideTranslations extends Table with HybridId, MetaColumns {
     ExerciseTranslations,
     UserFoodOverrideTranslations,
     OffProductsArchive, // Added
+    MealEntries, // Added
   ],
 )
 
@@ -520,7 +540,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -550,6 +570,12 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             'CREATE INDEX IF NOT EXISTS idx_archive_barcode ON off_products_archive (barcode);',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_meal_entries_consumed_at ON meal_entries (consumed_at);',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
           );
         },
         onUpgrade: (Migrator m, int from, int to) async {
@@ -964,6 +990,16 @@ class AppDatabase extends _$AppDatabase {
             );
             await customStatement(
               'CREATE INDEX IF NOT EXISTS idx_archive_barcode ON off_products_archive (barcode);',
+            );
+          }
+          if (from < 25) {
+            await m.createTable(mealEntries);
+            await m.addColumn(nutritionLogs, nutritionLogs.mealEntryId);
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_meal_entries_consumed_at ON meal_entries (consumed_at);',
+            );
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
             );
           }
           unawaited(TelemetryService.instance.trackDbMigrationStatus(

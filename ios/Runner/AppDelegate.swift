@@ -139,6 +139,9 @@ import UIKit
     homeWidgetChannel.setMethodCallHandler { [weak self] call, result in
       self?.homeWidgetBridge.handle(call: call, result: result)
     }
+
+    DepthScanPlugin.register(with: messenger)
+
     channelsConfigured = true
   }
 

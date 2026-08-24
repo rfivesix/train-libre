@@ -6,6 +6,8 @@ abstract class _AiPrompts {
     String? languageCode,
     String? appLanguage,
     String? catalogLanguage,
+    DepthScaleFacts? depthFacts,
+    bool includeRegionsRule = true,
   }) {
     final effectiveAppLang = appLanguage ?? languageCode;
     final effectiveCatalogLang = catalogLanguage;
@@ -28,10 +30,38 @@ abstract class _AiPrompts {
       );
     }
 
+    if (includeRegionsRule) {
+      langRuleBuffer.write('''
+
+12. LOCALIZATION: For each item that is clearly visible as a distinct area in the image, add a "regions" array.
+    Each region has:
+      "box": [x, y, width, height], values 0.0-1.0, origin top-left
+      "polygon": optional [x1, y1, x2, y2, ...], 4 to 12 points, clockwise, following the outline. Omit if unsure.
+    - If one food appears in SEVERAL separate places (e.g. two pieces of chicken on opposite sides of the plate), return SEVERAL regions in the SAME item. Never split it into multiple items, and never draw one large region spanning the gap between them.
+    - Use at most 4 regions per item.
+    - Return "regions": [] for anything you cannot point at: seasoning, oil, salt, sugar, sauces mixed into a dish, ingredients inside a soup, stew, smoothie or wrap, and anything hidden behind other food.
+    - Do NOT invent regions to be helpful. An empty array is a correct answer and is preferred over a guess.
+    - Do NOT return a region that covers the whole dish or the whole plate.''');
+    }
+
+    final depthBlockBuffer = StringBuffer();
+    if (depthFacts != null && depthFacts.isValid) {
+      depthBlockBuffer.write('''
+
+LIDAR SCALE MEASUREMENT (measured, not estimated — trust these numbers over your visual impression):
+- Distance from camera to the food: ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm
+- The visible frame covers ${depthFacts.frameWidthCm.toStringAsFixed(0)} cm x ${depthFacts.frameHeightCm.toStringAsFixed(0)} cm at that distance
+- Nearest surface: ${depthFacts.nearCm.toStringAsFixed(0)} cm, farthest: ${depthFacts.farCm.toStringAsFixed(0)} cm
+
+Use this to calibrate the absolute size of everything in the image. Do NOT rely on assumed plate or cutlery sizes when this measurement is present — derive plate diameter and portion dimensions from the frame size above.
+''');
+    }
+
     final langRule = langRuleBuffer.toString();
+    final depthBlock = depthBlockBuffer.toString();
 
     return '''
-You are a nutrition analysis assistant. Analyze the provided meal image(s) or description.
+You are a nutrition analysis assistant. Analyze the provided meal image(s) or description.$depthBlock
 
 CRITICAL RULES:
 1. Establish a holistic meal context anchor *before* decomposing. Identify the dish and its overall cooking method, expected calories, and macro percentage ranges based on culinary knowledge.
@@ -50,7 +80,7 @@ The JSON object must have exactly these two fields:
 1. "mealContext": An object containing:
    - "dishType": string (the name of the dish/meal)
    - "expectedKcalRange": array of two integers [low, high]
-   - "expectedMacroProfile": an object with keys "proteinPercent", "carbsPercent", "fatPercent", each being an array of two integers [low, high] (representing the range of percentage of calories, e.g. [20, 30])
+   - "expectedMacroProfile": an object with keys "proteinPercent", "carbsPercent", "fatPercent", each being an array of two integers [low, high]
    - "cookingMethod": string (overall cooking method)
    - "contextNotes": string (contextual culinary details)
 2. "items": An array where each element has:
@@ -59,6 +89,7 @@ The JSON object must have exactly these two fields:
    - "estimatedGrams": integer (estimated weight in grams)
    - "confidence": number (0.0 to 1.0)
    - "stateHint": string or null (e.g. "cooked", "raw", "boiled")
+   - "regions": array of region objects with "box" ([x, y, w, h] normalized 0.0-1.0) and optional "polygon"
 
 Example response:
 {
@@ -74,8 +105,8 @@ Example response:
     "contextNotes": "Made with 3 eggs and 10g of butter"
   },
   "items": [
-    {"name": "Egg", "catalogSearchTerm": "Oeuf", "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked"},
-    {"name": "Butter", "catalogSearchTerm": "Beurre", "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw"}
+    {"name": "Egg", "catalogSearchTerm": "Oeuf", "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "regions": [{"box": [0.2, 0.3, 0.4, 0.3]}]},
+    {"name": "Butter", "catalogSearchTerm": "Beurre", "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw", "regions": []}
   ]
 }
 ''';
@@ -86,6 +117,7 @@ Example response:
     String? appLanguage,
     String? catalogLanguage,
     AiMealContext? mealContext,
+    DepthScaleFacts? depthFacts,
   }) {
     final effectiveLang = appLanguage ?? languageCode;
     final langRule = (effectiveLang != null && effectiveLang.isNotEmpty)
@@ -103,6 +135,10 @@ Example response:
             'Adjust gram amounts so the total aligns with this anchor.'
         : '';
 
+    final depthBlock = (depthFacts != null && depthFacts.isValid)
+        ? '\n\nLIDAR SCALE MEASUREMENT: ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm distance, visible frame ${depthFacts.frameWidthCm.toStringAsFixed(0)}x${depthFacts.frameHeightCm.toStringAsFixed(0)} cm. Trust this measurement over assumed portion sizes.'
+        : '';
+
     return '''
 You are repairing an AI meal candidate after deterministic local validation.
 
@@ -113,7 +149,7 @@ Rules:
 - Correct unrealistic quantities.
 - Do not invent or return nutrition values.
 - Respect strict target macros when provided; local code will verify kcal/protein/carbs/fat again.
-- Use low creativity and keep the output deterministic.$langRule$anchorBlock
+- Use low creativity and keep the output deterministic.$langRule$anchorBlock$depthBlock
 
 Return ONLY a valid JSON array:
 [{"name":"Food name","estimatedGrams":100,"confidence":0.8}]

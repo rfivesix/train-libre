@@ -1,5 +1,6 @@
 import '../features/diary/data/sources/product_local_data_source.dart';
 import '../features/diary/domain/models/food_item.dart';
+import '../features/depth_scan/domain/models/item_region.dart';
 import 'ai_meal_context.dart';
 import 'ai_repair_candidate.dart';
 

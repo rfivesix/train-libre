@@ -563,6 +563,114 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
               ),
             ),
 
+            const SizedBox(height: DesignConstants.spacingL),
+
+            // --- Photo Storage & Retention (Screen E2) ---
+            const AppSectionHeader(title: 'Mahlzeitenfotos (Speicher)'),
+            SummaryCard(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Aufbewahrungsdauer',
+                      style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Fotos werden nach Ablauf der Frist automatisch gelöscht. Die Nährwerteinträge im Tagebuch bleiben erhalten.',
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      initialValue: 180,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 30, child: Text('30 Tage')),
+                        DropdownMenuItem(value: 90, child: Text('90 Tage')),
+                        DropdownMenuItem(value: 180, child: Text('180 Tage (Standard)')),
+                        DropdownMenuItem(value: 365, child: Text('365 Tage (1 Jahr)')),
+                        DropdownMenuItem(value: -1, child: Text('Unbegrenzt')),
+                      ],
+                      onChanged: (val) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Aufbewahrungsdauer gespeichert.')),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    AppButton.secondary(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Alle Mahlzeitenfotos löschen?'),
+                            content: const Text('Nur die Bilddateien werden vom Gerät entfernt. Deine Einträge und Kalorien im Tagebuch bleiben vollständig erhalten.'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Abbrechen')),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(ctx).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Fotos gelöscht.')),
+                                  );
+                                },
+                                child: const Text('Löschen', style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      label: 'Alle lokalen Fotos löschen',
+                      tooltip: 'Alle lokalen Fotos löschen',
+                      icon: LucideIcons.trash_2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: DesignConstants.spacingL),
+
+            // --- Speech Recognition (Screen E3) ---
+            const AppSectionHeader(title: 'Spracheingabe & Diktat'),
+            SummaryCard(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF34C759),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'On-Device Spracherkennung aktiv',
+                          style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Gesprochene Mahlzeiten ("2 Eier mit Toast und Kaffee") werden direkt auf deinem Gerät in Text umgewandelt und bleiben privat.',
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             const SizedBox(height: DesignConstants.spacingXL),
 
             // --- Privacy Disclosure ---

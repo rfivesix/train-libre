@@ -7,6 +7,7 @@ import 'package:drift/drift.dart' as drift;
 import '../../../../data/database_helper.dart';
 import '../../../../util/date_util.dart';
 import '../../domain/models/food_entry.dart';
+import '../../domain/models/meal_entry.dart';
 import '../../domain/models/fluid_entry.dart';
 import '../../../supplements/domain/models/supplement.dart' as domain;
 import '../../../supplements/data/sources/supplement_local_data_source.dart';
@@ -80,6 +81,7 @@ class DiaryLocalDataSource {
               mealType: row.mealType,
               updatedAt: row.updatedAt,
               archiveLocalId: row.archiveLocalId,
+              mealEntryId: row.mealEntryId,
             ),
           )
           .toList();
@@ -546,6 +548,7 @@ class DiaryLocalDataSource {
       amount: drift.Value(entry.quantityInGrams.toDouble()),
       mealType: drift.Value(entry.mealType),
       archiveLocalId: drift.Value(archiveId),
+      mealEntryId: drift.Value(entry.mealEntryId),
     );
     return await _db.into(_db.nutritionLogs).insert(companion);
   }
@@ -856,5 +859,117 @@ class DiaryLocalDataSource {
       caloriesByDay: caloriesByDay,
       unresolvedEntryCount: unresolvedCount,
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // MealEntry Operations
+  // ---------------------------------------------------------------------------
+
+  Stream<List<MealEntry>> watchMealEntriesForDate(DateTime date) {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
+
+    final query = _db.select(_db.mealEntries)
+      ..where((tbl) => tbl.consumedAt.isBetweenValues(start, end));
+
+    return query.watch().map((rows) {
+      return rows
+          .map(
+            (row) => MealEntry(
+              id: row.id,
+              userId: row.userId,
+              consumedAt: row.consumedAt,
+              mealType: row.mealType,
+              title: row.title,
+              source: row.source,
+              photoPath: row.photoPath,
+              photoThumbPath: row.photoThumbPath,
+              voiceTranscript: row.voiceTranscript,
+              captureMeta: row.captureMeta,
+              createdAt: row.createdAt,
+              updatedAt: row.updatedAt,
+            ),
+          )
+          .toList();
+    });
+  }
+
+  Future<MealEntry?> getMealEntryById(String id) async {
+    final row = await (_db.select(_db.mealEntries)
+          ..where((tbl) => tbl.id.equals(id)))
+        .getSingleOrNull();
+    if (row == null) return null;
+    return MealEntry(
+      id: row.id,
+      userId: row.userId,
+      consumedAt: row.consumedAt,
+      mealType: row.mealType,
+      title: row.title,
+      source: row.source,
+      photoPath: row.photoPath,
+      photoThumbPath: row.photoThumbPath,
+      voiceTranscript: row.voiceTranscript,
+      captureMeta: row.captureMeta,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    );
+  }
+
+  Future<String> insertMealEntry(MealEntry entry) async {
+    final now = DateTime.now();
+    final companion = drift_db.MealEntriesCompanion(
+      id: drift.Value(entry.id.isNotEmpty ? entry.id : const Uuid().v4()),
+      userId: drift.Value(entry.userId),
+      consumedAt: drift.Value(entry.consumedAt),
+      mealType: drift.Value(entry.mealType),
+      title: drift.Value(entry.title),
+      source: drift.Value(entry.source),
+      photoPath: drift.Value(entry.photoPath),
+      photoThumbPath: drift.Value(entry.photoThumbPath),
+      voiceTranscript: drift.Value(entry.voiceTranscript),
+      captureMeta: drift.Value(entry.captureMeta),
+      createdAt: drift.Value(entry.createdAt ?? now),
+      updatedAt: drift.Value(entry.updatedAt ?? now),
+    );
+    await _db.into(_db.mealEntries).insert(companion);
+    return companion.id.value;
+  }
+
+  Future<void> updateMealEntry(MealEntry entry) async {
+    final companion = drift_db.MealEntriesCompanion(
+      userId: drift.Value(entry.userId),
+      consumedAt: drift.Value(entry.consumedAt),
+      mealType: drift.Value(entry.mealType),
+      title: drift.Value(entry.title),
+      source: drift.Value(entry.source),
+      photoPath: drift.Value(entry.photoPath),
+      photoThumbPath: drift.Value(entry.photoThumbPath),
+      voiceTranscript: drift.Value(entry.voiceTranscript),
+      captureMeta: drift.Value(entry.captureMeta),
+      updatedAt: drift.Value(DateTime.now()),
+    );
+    await (_db.update(_db.mealEntries)..where((tbl) => tbl.id.equals(entry.id)))
+        .write(companion);
+  }
+
+  Future<void> deleteMealEntry(String id, {required bool deleteFoodLogs}) async {
+    if (deleteFoodLogs) {
+      final logs = await (_db.select(_db.nutritionLogs)
+            ..where((t) => t.mealEntryId.equals(id)))
+          .get();
+      for (final log in logs) {
+        await deleteFoodEntry(log.localId);
+      }
+    } else {
+      // Unlink entries from meal entry so they remain in diary as individual items
+      await (_db.update(_db.nutritionLogs)
+            ..where((t) => t.mealEntryId.equals(id)))
+          .write(
+        const drift_db.NutritionLogsCompanion(
+          mealEntryId: drift.Value(null),
+        ),
+      );
+    }
+    await (_db.delete(_db.mealEntries)..where((t) => t.id.equals(id))).go();
   }
 }

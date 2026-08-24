@@ -62,6 +62,7 @@ class AiMealCandidateItem {
   final String? matchedBarcode;
   final String? stateHint;
   final String? catalogSearchTerm;
+  final List<ItemRegion> regions;
   final double? volumeCm3;
   final double? depthConfidence;
   final Map<String, dynamic>? spatialBoundingBox;
@@ -73,6 +74,7 @@ class AiMealCandidateItem {
     this.matchedBarcode,
     this.stateHint,
     this.catalogSearchTerm,
+    this.regions = const [],
     this.volumeCm3,
     this.depthConfidence,
     this.spatialBoundingBox,
@@ -85,6 +87,7 @@ class AiMealCandidateItem {
     String? matchedBarcode,
     String? stateHint,
     String? catalogSearchTerm,
+    List<ItemRegion>? regions,
     double? volumeCm3,
     double? depthConfidence,
     Map<String, dynamic>? spatialBoundingBox,
@@ -96,6 +99,7 @@ class AiMealCandidateItem {
       matchedBarcode: matchedBarcode ?? this.matchedBarcode,
       stateHint: stateHint ?? this.stateHint,
       catalogSearchTerm: catalogSearchTerm ?? this.catalogSearchTerm,
+      regions: regions ?? this.regions,
       volumeCm3: volumeCm3 ?? this.volumeCm3,
       depthConfidence: depthConfidence ?? this.depthConfidence,
       spatialBoundingBox: spatialBoundingBox ?? this.spatialBoundingBox,
@@ -110,6 +114,7 @@ class AiMealCandidateItem {
       if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
       if (stateHint != null) 'stateHint': stateHint,
       if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
+      if (regions.isNotEmpty) 'regions': regions.map((r) => r.toMap()).toList(),
       if (volumeCm3 != null) 'volumeCm3': volumeCm3,
       if (depthConfidence != null) 'depthConfidence': depthConfidence,
       if (spatialBoundingBox != null) 'spatialBoundingBox': spatialBoundingBox,

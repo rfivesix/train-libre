@@ -61,6 +61,9 @@ class AiSuggestedItem {
   /// Barcode of a matched product in the local database (filled after fuzzy matching).
   String? matchedBarcode;
 
+  /// Localized regions on the image corresponding to this item.
+  List<ItemRegion> regions;
+
   /// Optional estimated volume in cubic centimeters from camera depth/LiDAR scans.
   double? volumeCm3;
 
@@ -75,6 +78,7 @@ class AiSuggestedItem {
     required this.estimatedGrams,
     required this.confidence,
     this.matchedBarcode,
+    this.regions = const [],
     this.volumeCm3,
     this.depthConfidence,
     this.spatialBoundingBox,
@@ -86,6 +90,10 @@ class AiSuggestedItem {
       estimatedGrams: (json['estimatedGrams'] as num?)?.toInt() ?? 100,
       confidence:
           (json['confidence'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 0.5,
+      regions: (json['regions'] as List<dynamic>?)
+              ?.map((e) => ItemRegion.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       volumeCm3: (json['volumeCm3'] as num?)?.toDouble(),
       depthConfidence: (json['depthConfidence'] as num?)?.toDouble(),
       spatialBoundingBox: json['spatialBoundingBox'] as Map<String, dynamic>?,
@@ -96,6 +104,8 @@ class AiSuggestedItem {
         'name': name,
         'estimatedGrams': estimatedGrams,
         'confidence': confidence,
+        if (regions.isNotEmpty)
+          'regions': regions.map((r) => r.toMap()).toList(),
         if (volumeCm3 != null) 'volumeCm3': volumeCm3,
         if (depthConfidence != null) 'depthConfidence': depthConfidence,
         if (spatialBoundingBox != null) 'spatialBoundingBox': spatialBoundingBox,

@@ -6,8 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.2.0] - 2026-08-2X
 
-## [1.1.1] - 2026-08-12
+### Added
+- **AI Meal & Nutrition Capture with LiDAR Depth Scaling (`Mahlzeiten-Erfassung`):**
+  - **1:1 Visual Implementation of Claude Design (`Mahlzeiten-Erfassung.dc.html`):** Custom 19px corner radii, Lime `#C9EF00` accents, organic contour blobs (orange `#FFA854`, blue `#72CBFF`, green `#A8E868`, yellow `#FFD043`, purple `#C58BE8`), floating frosted-glass label pills with leader lines, split-item piece branching (C2), interactive highlight selection (C3), and soup/composite fallback (C4).
+  - **Multi-Photo Carousel & Edge Gradients (`MealPhotoOverlayWidget`):** Smooth swipeable photo carousel supporting up to 4 captures with animated lime dot indicators and subtle top/bottom fade gradients for seamless immersion.
+  - **Standard Glass Widgets & Swipe Actions (`GlassActionableCard` & `showGlassBottomMenu`):** All meal entries and sub-ingredients fully support left-swipe deletion, right-swipe detail editing, and long-press context menu. `DeleteMealEntryBottomSheet` rewritten using the native `showGlassBottomMenu` with liquid glass blur and border styling.
+  - **Unified Search Bar with Responsive AI Scan Action (Screen E1):** Replaced separate banners with an integrated search row featuring an animated Lime `#C9EF00` AI Scan button `[ ✨ AI ]` that smoothly collapses to an icon when typing.
+  - **GlobalAppBar Standardization:** Replaced disconnected floating headers across AI Scanner, Meal Detail, and Review screens with the app's native `GlobalAppBar` featuring frosted glass blur and proper typography.
+  - **Voice Dictation & Speech Modal (Screen A1):** Added dedicated microphone action button and interactive voice dictation sheet with live feedback.
+  - **LiDAR-Powered Scale Calibration & Depth Heatmap (`DEPTH_SCAN_PLAN.md`):** Native iOS `AVCaptureDevice.builtInLiDARDepthCamera` pipeline capturing hardware Float32 depth maps and camera intrinsics (`fx`, `fy`, `cx`, `cy`). Computes subject distance, visible frame dimensions, and discrete 8-band relative elevation maps with quality gating (15–120cm, $\ge 50\%$ valid points). Injects measured dimensions into AI prompts to eliminate portion estimation guesswork.
+  - **Hierarchical Meal Entries & Grouping (`MealEntries` Schema 25):** Drift database migration v25 adding `MealEntries` grouping table with `mealEntryId` foreign key on `NutritionLogs`.
+  - **Developer Insights & Debug Inspector (`MealScanDebugView`):** Dedicated developer inspector featuring an interactive tap-to-measure 8-band Viridis/Grayscale depth heatmap viewer, camera intrinsics/scale facts breakdown, system/scale prompt inspector, raw JSON response inspector, and bounding box/polygon validator.
+  - **Strict FOSS Compliance:** Retained standard open-source ZXing camera barcode engine (`qr_code_scanner_plus: ^2.2.0`) without proprietary Google Play Services / ML Kit dependencies.
+  - **Photo Storage & Speech Settings (E2, E3):** Configurable photo retention policies (30, 90, 180 days default, 1 year, unlimited), local photo purge, and on-device offline speech recognition status indicator.
 
+## [1.1.1] - 2026-08-12
 ### Added
 - **Android Home Screen Widgets:** The iOS widget suite ported to Android with Jetpack Glance, on top of the snapshot pipeline that already existed: `HomeWidgetSyncService` writes one JSON payload over the `trainlibre.widgets/home_screen` MethodChannel and the widgets only render it, so no Dart logic is duplicated per platform. Opening `lib/features/home_widgets/` needed a single line of change — the `Platform.isIOS` gate in `HomeWidgetChannel.isSupported`.
   - **Today's Glance (4x2, configurable):** The diary's six-tile grid, with a configurable day mode — follow the app's 03:00 rollover, or the calendar day.

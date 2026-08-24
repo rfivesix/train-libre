@@ -25,6 +25,9 @@ class FoodEntry {
   /// FK to the archived POINT-IN-TIME snapshot in OffProductsArchive.
   final int? archiveLocalId;
 
+  /// Optional FK to the parent MealEntry that groups this item with others.
+  final String? mealEntryId;
+
   /// Creates a new [FoodEntry] instance.
   FoodEntry({
     this.id,
@@ -34,6 +37,7 @@ class FoodEntry {
     required this.mealType,
     this.updatedAt,
     this.archiveLocalId,
+    this.mealEntryId,
   });
 
   /// Converts the [FoodEntry] instance to a Map for database storage.
@@ -45,6 +49,7 @@ class FoodEntry {
       'quantity_in_grams': quantityInGrams,
       'meal_type': mealType,
       'archive_local_id': archiveLocalId,
+      'meal_entry_id': mealEntryId,
     };
   }
 
@@ -56,6 +61,7 @@ class FoodEntry {
     String? mealType,
     DateTime? updatedAt,
     int? archiveLocalId,
+    String? mealEntryId,
   }) {
     return FoodEntry(
       id: id ?? this.id,
@@ -65,6 +71,7 @@ class FoodEntry {
       mealType: mealType ?? this.mealType,
       updatedAt: updatedAt ?? this.updatedAt,
       archiveLocalId: archiveLocalId ?? this.archiveLocalId,
+      mealEntryId: mealEntryId ?? this.mealEntryId,
     );
   }
 }

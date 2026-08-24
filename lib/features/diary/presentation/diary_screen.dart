@@ -43,6 +43,10 @@ import 'widgets/sleep_summary_card.dart';
 import 'widgets/pulse_summary_card.dart';
 import 'widgets/food_entry_tile.dart';
 import 'widgets/fluid_entry_tile.dart';
+import 'widgets/meal_entry_card.dart';
+import 'dialogs/delete_meal_entry_bottom_sheet.dart';
+import 'meal_entry_screen.dart';
+import '../domain/models/meal_entry.dart';
 import 'widgets/recommendation_banner.dart';
 import 'meal_screen.dart';
 import '../../../core/infrastructure/share_service.dart';
@@ -1563,43 +1567,115 @@ class _MealCardState extends State<_MealCard> {
                       ? CrossFadeState.showFirst
                       : CrossFadeState.showSecond,
                   duration: DesignConstants.expandCollapseDuration,
-                  firstChild: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (items.isNotEmpty)
-                        const SizedBox(height: DesignConstants.spacingS),
-                      ...items.asMap().entries.expand((entry) {
-                        final index = entry.key;
-                        final item = entry.value;
-                        return [
-                          if (index > 0) const Divider(height: 1),
-                          FoodEntryTile(
-                            trackedItem: item,
-                            onEdit: widget.onEditFood,
-                            onDelete: widget.onDeleteFood,
-                          ),
-                        ];
-                      }),
-                      if (solidItems.isNotEmpty) ...[
-                        const SizedBox(height: DesignConstants.spacingXS),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 0,
-                              vertical: DesignConstants.spacingXS,
+                  firstChild: Builder(
+                    builder: (context) {
+                      final mealEntriesById = context.select<DiaryViewModel, Map<String, MealEntry>>(
+                        (vm) => vm.mealEntriesById,
+                      );
+
+                      // Group items with a valid mealEntryId
+                      final groupedByMealEntry = <String, List<TrackedFoodItem>>{};
+                      final standaloneItems = <TrackedFoodItem>[];
+
+                      for (final item in items) {
+                        final mId = item.entry.mealEntryId;
+                        if (mId != null && mealEntriesById.containsKey(mId)) {
+                          groupedByMealEntry.putIfAbsent(mId, () => []).add(item);
+                        } else {
+                          standaloneItems.add(item);
+                        }
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (items.isNotEmpty)
+                            const SizedBox(height: DesignConstants.spacingS),
+
+                          // Render grouped MealEntry cards
+                          for (final entryId in groupedByMealEntry.keys)
+                            MealEntryCard(
+                              key: ValueKey(entryId),
+                              mealEntry: mealEntriesById[entryId]!,
+                              items: groupedByMealEntry[entryId]!,
+                              onTapDetail: () async {
+                                final result = await Navigator.of(context).push<bool>(
+                                  MaterialPageRoute(
+                                    builder: (_) => MealEntryScreen(
+                                      mealEntry: mealEntriesById[entryId]!,
+                                      initialItems: groupedByMealEntry[entryId]!,
+                                    ),
+                                  ),
+                                );
+                                if (result == true && context.mounted) {
+                                  context.read<DiaryViewModel>().loadDataForDate(
+                                    context.read<DiaryViewModel>().selectedDate,
+                                  );
+                                }
+                              },
+                              onLongPressMeal: () async {
+                                final meal = mealEntriesById[entryId]!;
+                                final childItems = groupedByMealEntry[entryId]!;
+                                int mealKcal = 0;
+                                for (final it in childItems) {
+                                  final factor = it.entry.quantityInGrams / 100.0;
+                                  mealKcal += (it.item.calories * factor).round();
+                                }
+                                final choice = await DeleteMealEntryBottomSheet.show(
+                                  context,
+                                  mealTitle: meal.title ?? 'Mahlzeit',
+                                  itemCount: childItems.length,
+                                  totalKcal: mealKcal,
+                                );
+                                if (choice != null && context.mounted) {
+                                  final deleteLogs = choice == DeleteMealChoice.deleteAll;
+                                  await context.read<DiaryViewModel>().deleteMealEntry(
+                                    meal.id,
+                                    deleteFoodLogs: deleteLogs,
+                                  );
+                                }
+                              },
+                              onEditItem: widget.onEditFood,
+                              onDeleteItem: widget.onDeleteFood,
                             ),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            foregroundColor: theme.colorScheme.primary,
-                            textStyle: const TextStyle(
-                              fontWeight: FontWeight.w700,
+
+                          // Render standalone food entry tiles
+                          ...standaloneItems.asMap().entries.expand((entry) {
+                            final index = entry.key;
+                            final item = entry.value;
+                            return [
+                              if (groupedByMealEntry.isNotEmpty || index > 0)
+                                const Divider(height: 1),
+                              FoodEntryTile(
+                                trackedItem: item,
+                                onEdit: widget.onEditFood,
+                                onDelete: widget.onDeleteFood,
+                              ),
+                            ];
+                          }),
+
+                          if (solidItems.isNotEmpty) ...[
+                            const SizedBox(height: DesignConstants.spacingXS),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 0,
+                                  vertical: DesignConstants.spacingXS,
+                                ),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                foregroundColor: theme.colorScheme.primary,
+                                textStyle: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              onPressed: () =>
+                                  widget.onSaveAsTemplate(solidItems, l10n),
+                              child: Text(l10n.saveMealTemplateShortcut),
                             ),
-                          ),
-                          onPressed: () =>
-                              widget.onSaveAsTemplate(solidItems, l10n),
-                          child: Text(l10n.saveMealTemplateShortcut),
-                        ),
-                      ],
-                    ],
+                          ],
+                        ],
+                      );
+                    },
                   ),
                   secondChild: const SizedBox.shrink(),
                 ),

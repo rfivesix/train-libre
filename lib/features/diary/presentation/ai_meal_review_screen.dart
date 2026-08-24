@@ -1,12 +1,12 @@
-// lib/screens/ai_meal_review_screen.dart
-
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/meal_entry.dart';
+import '../domain/repositories/diary_repository.dart';
 import '../../../services/ai_meal_validation.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/ai_service.dart';
@@ -20,6 +20,10 @@ import 'food_detail_screen.dart';
 import 'meal_editor_screen.dart';
 import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
+import 'widgets/meal_photo_overlay_widget.dart';
+import '../../depth_scan/domain/models/depth_scale_facts.dart';
+import '../../depth_scan/platform/depth_scan_channel.dart';
+import '../../depth_scan/presentation/meal_scan_debug_view.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
@@ -30,17 +34,16 @@ import '../../../services/telemetry/telemetry_service.dart';
 import 'dart:async';
 
 /// Review screen for AI-suggested food items.
-///
-/// Displays the AI's decomposed meal components. Users can edit quantities,
-/// remove items, replace with database matches, add manual items, and
-/// provide feedback for a retry. Once satisfied, items are saved as
-/// [FoodEntry] records.
 class AiMealReviewScreen extends StatefulWidget {
   final List<AiSuggestedItem> suggestions;
   final AiValidationResult? initialValidation;
   final List<File> originalImages;
   final DateTime? initialDate;
   final String? initialMealType;
+  final DepthCaptureResult? depthResult;
+  final DepthScaleFacts? depthFacts;
+  final String? sentPrompt;
+  final String? rawResponse;
 
   const AiMealReviewScreen({
     super.key,
@@ -49,6 +52,10 @@ class AiMealReviewScreen extends StatefulWidget {
     required this.originalImages,
     this.initialDate,
     this.initialMealType,
+    this.depthResult,
+    this.depthFacts,
+    this.sentPrompt,
+    this.rawResponse,
   });
 
   @override
@@ -421,9 +428,25 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     setState(() => _isSaving = true);
 
     final db = DatabaseHelper.instance;
+    final diaryRepo = context.read<IDiaryRepository>();
     var saved = false;
 
     try {
+      final mealEntryId = const Uuid().v4();
+      final candidateDish = _validation?.candidate.context?.dishType ??
+          _validation?.candidate.mealName ??
+          (_items.isNotEmpty ? _items.first.suggestion.name : 'Mahlzeit');
+
+      final mealEntry = MealEntry(
+        id: mealEntryId,
+        title: candidateDish,
+        consumedAt: _selectedTimestamp,
+        mealType: _selectedMealType,
+        photoPath: widget.originalImages.isNotEmpty ? widget.originalImages.first.path : null,
+        source: 'aiPhoto',
+      );
+      await diaryRepo.insertMealEntry(mealEntry);
+
       for (final item in savePlan.matchedItems) {
         final food = item.match.bestMatch!;
 
@@ -432,6 +455,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           quantityInGrams: item.candidate.grams,
           timestamp: _selectedTimestamp,
           mealType: _selectedMealType,
+          mealEntryId: mealEntryId,
         );
         await db.insertFoodEntry(entry,
             telemetrySource: FoodLogSource.aiCapture);
@@ -506,15 +530,53 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // Build
   // ---------------------------------------------------------------------------
 
+  int? _selectedRegionIndex;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
 
+    final overlayItems = _items.asMap().entries.map((e) {
+      final it = e.value;
+      final kcal = it.nutrition.kcal.round();
+      return OverlayItemDisplay(
+        name: it.suggestion.name,
+        grams: it.suggestion.estimatedGrams,
+        kcal: kcal,
+        regions: it.suggestion.regions,
+        color: MealOverlayColors.forIndex(e.key),
+      );
+    }).toList();
+
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(title: l10n.aiReviewTitle),
+      appBar: GlobalAppBar(
+        title: l10n.aiReviewTitle,
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.sparkles, size: 20),
+            tooltip: 'LiDAR & AI Insights',
+            onPressed: () {
+              final rawRegions = _items
+                  .expand((it) => it.suggestion.regions)
+                  .toList();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => MealScanDebugView(
+                    captureResult: widget.depthResult,
+                    scaleFacts: widget.depthFacts ?? widget.depthResult?.scaleFacts,
+                    sentPrompt: widget.sentPrompt,
+                    rawResponse: widget.rawResponse,
+                    rawRegions: rawRegions,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
@@ -523,6 +585,19 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 top: DesignConstants.cardPadding.top + topPadding,
               ),
               children: [
+                // Organic Photo Overlay Blobs / Multi-Photo Carousel (Screens C1, C2, C3, C4)
+                if (widget.originalImages.isNotEmpty) ...[
+                  MealPhotoOverlayWidget(
+                    photoFiles: widget.originalImages,
+                    photoFile: widget.originalImages.first,
+                    height: 300,
+                    items: overlayItems,
+                    selectedIndex: _selectedRegionIndex,
+                    onItemTapped: (idx) => setState(() => _selectedRegionIndex = idx),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                ],
+
                 // Header
                 Text(
                   l10n.aiReviewFoundItems(_items.length),
